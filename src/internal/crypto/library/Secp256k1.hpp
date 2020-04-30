@@ -3,12 +3,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef OPENTXS_CRYPTO_LIBRARY_SECP256K1_HPP
-#define OPENTXS_CRYPTO_LIBRARY_SECP256K1_HPP
+#pragma once
 
-#include "Internal.hpp"
-
-#if OT_CRYPTO_USING_LIBSECP256K1
 #include "opentxs/crypto/library/AsymmetricProvider.hpp"
 #include "opentxs/crypto/library/EcdsaProvider.hpp"
 
@@ -31,5 +27,3 @@ private:
     Secp256k1& operator=(Secp256k1&&) = delete;
 };
 }  // namespace opentxs::crypto
-#endif  // OT_CRYPTO_USING_LIBSECP256K1
-#endif

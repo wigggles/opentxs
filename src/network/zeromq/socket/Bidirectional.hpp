@@ -5,6 +5,26 @@
 
 #pragma once
 
+#include <mutex>
+#include <string>
+
+#include "network/zeromq/socket/Receiver.hpp"
+#include "network/zeromq/socket/Receiver.tpp"
+#include "network/zeromq/socket/Sender.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/network/zeromq/Message.hpp"
+
+namespace opentxs
+{
+namespace network
+{
+namespace zeromq
+{
+class Context;
+}  // namespace zeromq
+}  // namespace network
+}  // namespace opentxs
+
 namespace opentxs::network::zeromq::socket::implementation
 {
 template <typename InterfaceType, typename MessageType = zeromq::Message>

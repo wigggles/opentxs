@@ -3,27 +3,20 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
-
-#include "Internal.hpp"
-
+#include "0_stdafx.hpp"    // IWYU pragma: associated
+#include "1_Internal.hpp"  // IWYU pragma: associated
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-#include "opentxs/api/crypto/Crypto.hpp"
+#include "crypto/key/Secp256k1.hpp"  // IWYU pragma: associated
+
+#include <stdexcept>
+
+#include "Factory.hpp"
+#include "internal/api/Api.hpp"
+#include "opentxs/Pimpl.hpp"
 #include "opentxs/api/crypto/Symmetric.hpp"
-#include "opentxs/api/Core.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/core/String.hpp"
+#include "opentxs/core/LogSource.hpp"
 #include "opentxs/crypto/key/Secp256k1.hpp"
-#include "opentxs/crypto/key/Symmetric.hpp"
-#include "opentxs/crypto/library/AsymmetricProvider.hpp"
-#include "opentxs/crypto/library/EcdsaProvider.hpp"
-#if OT_CRYPTO_USING_LIBSECP256K1
-#include "opentxs/crypto/library/Secp256k1.hpp"
-#endif
-
-#include "crypto/key/HD.hpp"
-
-#include "Secp256k1.hpp"
 
 namespace opentxs
 {

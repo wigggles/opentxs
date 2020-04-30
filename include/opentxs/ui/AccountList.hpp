@@ -8,9 +8,10 @@
 
 #ifndef Q_MOC_RUN
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include "opentxs/ui/List.hpp"
+#include "opentxs/SharedPimpl.hpp"
 
 #ifdef SWIG
 // clang-format off
@@ -75,6 +76,8 @@ public:
         ContractIdRole = Qt::UserRole + 6,
     };
 
+    AccountListQt(implementation::AccountList& parent) noexcept;
+
     ~AccountListQt() final = default;
 
 private:
@@ -84,7 +87,6 @@ private:
 
     void notify() const noexcept;
 
-    AccountListQt(implementation::AccountList& parent) noexcept;
     AccountListQt(const AccountListQt&) = delete;
     AccountListQt(AccountListQt&&) = delete;
     AccountListQt& operator=(const AccountListQt&) = delete;

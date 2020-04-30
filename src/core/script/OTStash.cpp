@@ -3,28 +3,26 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
-
-#include "opentxs/core/script/OTStash.hpp"
-
-#include "opentxs/core/script/OTStashItem.hpp"
-#include "opentxs/core/util/Tag.hpp"
-#include "opentxs/core/Contract.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/String.hpp"
-
-#include <irrxml/irrXML.hpp>
-#include <sys/types.h>
+#include "0_stdafx.hpp"                     // IWYU pragma: associated
+#include "1_Internal.hpp"                   // IWYU pragma: associated
+#include "opentxs/core/script/OTStash.hpp"  // IWYU pragma: associated
 
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
+#include <irrxml/irrXML.hpp>
 #include <map>
 #include <memory>
-#include <ostream>
 #include <string>
 #include <utility>
+
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/script/OTStashItem.hpp"
+#include "opentxs/core/util/Tag.hpp"
 
 #define OT_METHOD "opentxs::OTStash"
 

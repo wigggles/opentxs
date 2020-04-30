@@ -5,12 +5,34 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
-#include "opentxs/network/zeromq/socket/Subscribe.hpp"
+#include <map>
+#include <string>
 
 #include "network/zeromq/curve/Client.hpp"
-#include "Receiver.tpp"
+#include "network/zeromq/socket/Receiver.hpp"
+#include "network/zeromq/socket/Receiver.tpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/network/zeromq/socket/Subscribe.hpp"
+
+namespace opentxs
+{
+namespace network
+{
+namespace zeromq
+{
+namespace socket
+{
+class Subscribe;
+}  // namespace socket
+
+class Context;
+class ListenCallback;
+class Message;
+}  // namespace zeromq
+}  // namespace network
+
+class Factory;
+}  // namespace opentxs
 
 namespace opentxs::network::zeromq::socket::implementation
 {

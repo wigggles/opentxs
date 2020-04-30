@@ -3,25 +3,27 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"           // IWYU pragma: associated
+#include "1_Internal.hpp"         // IWYU pragma: associated
+#include "consensus/Context.hpp"  // IWYU pragma: associated
 
-#include "opentxs/api/storage/Storage.hpp"
+#include <stdexcept>
+#include <utility>
+
+#include "internal/api/Api.hpp"
+#include "opentxs/Pimpl.hpp"
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
-#include "opentxs/consensus/Context.hpp"
-#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Ledger.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/core/NymFile.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/NymFile.hpp"  // IWYU pragma: keep
 #include "opentxs/core/String.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/identity/Nym.hpp"
-#include "opentxs/Proto.tpp"
-
-#include "internal/api/Api.hpp"
-
-#include "Context.hpp"
 
 #ifndef OT_MAX_ACK_NUMS
 #define OT_MAX_ACK_NUMS 100

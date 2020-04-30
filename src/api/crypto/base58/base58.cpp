@@ -3,10 +3,10 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "base58.h"
+#include "base58.h"  // IWYU pragma: associated
 
+#include <cctype>
 #include <cassert>
-#include <cstdint>
 #include <cstring>
 #include <vector>
 #include <string>

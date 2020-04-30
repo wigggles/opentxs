@@ -5,21 +5,34 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
-#include "opentxs/api/storage/Driver.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/Proto.hpp"
-#include "opentxs/Types.hpp"
-
+#include <cstdint>
+#include <cstdlib>
 #include <functional>
+#include <iostream>
 #include <map>
+#include <memory>
 #include <mutex>
 #include <string>
 #include <tuple>
+#include <utility>
+
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/api/storage/Driver.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "storage/Plugin.hpp"
 
 namespace opentxs
 {
+namespace api
+{
+namespace storage
+{
+class Driver;
+}  // namespace storage
+}  // namespace api
+
 namespace storage
 {
 class Root;

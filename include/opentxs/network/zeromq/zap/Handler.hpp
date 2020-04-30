@@ -6,15 +6,30 @@
 #ifndef OPENTXS_NETWORK_ZEROMQ_ZAP_HANDLER_HPP
 #define OPENTXS_NETWORK_ZEROMQ_ZAP_HANDLER_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include "opentxs/network/zeromq/zap/ZAP.hpp"
 #include "opentxs/network/zeromq/socket/Reply.hpp"
+#include "opentxs/Pimpl.hpp"
 
 namespace opentxs
 {
-using OTZMQZAPHandler = Pimpl<network::zeromq::zap::Handler>;
+namespace network
+{
+namespace zeromq
+{
+namespace zap
+{
+class Handler;
+}  // namespace zap
+}  // namespace zeromq
+}  // namespace network
 
+using OTZMQZAPHandler = Pimpl<network::zeromq::zap::Handler>;
+}  // namespace opentxs
+
+namespace opentxs
+{
 namespace network
 {
 namespace zeromq

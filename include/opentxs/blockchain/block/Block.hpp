@@ -6,16 +6,16 @@
 #ifndef OPENTXS_BLOCKCHAIN_BLOCK_HPP
 #define OPENTXS_BLOCKCHAIN_BLOCK_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/blockchain/Blockchain.hpp"
-#include "opentxs/core/Data.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/Bytes.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <map>
 #include <tuple>
 #include <vector>
+
+#include "opentxs/Bytes.hpp"
+#include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/core/Data.hpp"
+#include "opentxs/core/Identifier.hpp"
 
 namespace opentxs
 {

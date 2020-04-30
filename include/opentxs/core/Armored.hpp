@@ -6,19 +6,26 @@
 #ifndef OPENTXS_CORE_ARMORED_HPP
 #define OPENTXS_CORE_ARMORED_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/core/String.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <cstdint>
 #include <iosfwd>
 #include <map>
 #include <string>
 
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/core/String.hpp"
+
 namespace opentxs
 {
-using OTArmored = Pimpl<Armored>;
+class Armored;
+class Data;
 
+using OTArmored = Pimpl<Armored>;
+}  // namespace opentxs
+
+namespace opentxs
+{
 extern const char* OT_BEGIN_ARMORED;
 extern const char* OT_END_ARMORED;
 

@@ -5,6 +5,48 @@
 
 #pragma once
 
+#include <cstddef>
+#include <cstdint>
+
+#include "crypto/library/AsymmetricProvider.hpp"
+#include "crypto/library/EcdsaProvider.hpp"
+#include "internal/crypto/library/Sodium.hpp"
+#include "opentxs/Bytes.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Version.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+
+class Crypto;
+}  // namespace api
+
+namespace crypto
+{
+namespace key
+{
+class Asymmetric;
+}  // namespace key
+}  // namespace crypto
+
+namespace proto
+{
+class Ciphertext;
+}  // namespace proto
+
+class Data;
+class Factory;
+class NymParameters;
+class OTPassword;
+class PasswordPrompt;
+}  // namespace opentxs
+
 namespace opentxs::crypto::implementation
 {
 class Sodium final : virtual public crypto::Sodium

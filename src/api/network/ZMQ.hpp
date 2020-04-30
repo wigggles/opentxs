@@ -3,7 +3,38 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/api/network/ZMQ.cpp"
+
 #pragma once
+
+#include <atomic>
+#include <chrono>
+#include <map>
+#include <mutex>
+#include <string>
+
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/api/network/ZMQ.hpp"
+#include "opentxs/core/contract/ServerContract.hpp"
+#include "opentxs/network/ServerConnection.hpp"
+#include "opentxs/network/zeromq/Context.hpp"
+#include "opentxs/network/zeromq/socket/Publish.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
+class Factory;
+class Flag;
+}  // namespace opentxs
 
 namespace opentxs::api::network::implementation
 {

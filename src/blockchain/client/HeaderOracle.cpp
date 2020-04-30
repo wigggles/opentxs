@@ -3,27 +3,26 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
-
-#include "Internal.hpp"
-
-#include "opentxs/blockchain/block/Header.hpp"
-#include "opentxs/blockchain/client/HeaderOracle.hpp"
-#include "opentxs/blockchain/NumericHash.hpp"
-#include "opentxs/blockchain/Work.hpp"
-#include "opentxs/core/Data.hpp"
-#include "opentxs/core/Log.hpp"
-
-#include "blockchain/client/UpdateTransaction.hpp"
-#include "internal/api/Api.hpp"
-#include "internal/blockchain/Blockchain.hpp"
+#include "0_stdafx.hpp"                        // IWYU pragma: associated
+#include "1_Internal.hpp"                      // IWYU pragma: associated
+#include "blockchain/client/HeaderOracle.hpp"  // IWYU pragma: associated
 
 #include <algorithm>
+#include <atomic>
+#include <functional>
 #include <map>
-#include <mutex>
-#include <tuple>
+#include <type_traits>
 
-#include "HeaderOracle.hpp"
+#include "Factory.hpp"
+#include "blockchain/client/UpdateTransaction.hpp"
+#include "internal/api/Api.hpp"
+#include "internal/core/Core.hpp"
+#include "opentxs/blockchain/Work.hpp"
+#include "opentxs/blockchain/block/Header.hpp"
+#include "opentxs/blockchain/client/HeaderOracle.hpp"
+#include "opentxs/core/Data.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
 
 #define OT_METHOD "opentxs::blockchain::client::implementation::HeaderOracle::"
 

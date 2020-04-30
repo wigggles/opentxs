@@ -3,19 +3,14 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"                      // IWYU pragma: associated
+#include "1_Internal.hpp"                    // IWYU pragma: associated
+#include "storage/drivers/StorageMemDB.hpp"  // IWYU pragma: associated
 
-#include "Internal.hpp"
-
-#include "opentxs/core/Lockable.hpp"
-#include "opentxs/core/Log.hpp"
-
-#include "storage/Plugin.hpp"
-#include "storage/StorageConfig.hpp"
-
+#include <memory>
 #include <string>
 
-#include "StorageMemDB.hpp"
+#include "opentxs/core/Log.hpp"
 
 //#define OT_METHOD "opentxs::StorageMemDB::"
 

@@ -5,9 +5,15 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
 #include "opentxs/crypto/library/EcdsaProvider.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+class Crypto;
+}  // namespace api
+}  // namespace opentxs
 
 namespace opentxs::crypto::implementation
 {

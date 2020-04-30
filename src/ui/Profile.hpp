@@ -3,9 +3,62 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/ui/Profile.cpp"
+
 #pragma once
 
-#include "Internal.hpp"
+#include <map>
+#include <set>
+#include <string>
+#include <utility>
+
+#include "1_Internal.hpp"
+#include "internal/ui/UI.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/SharedPimpl.hpp"
+#include "opentxs/Version.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/ui/Profile.hpp"
+#include "ui/List.hpp"
+#include "ui/Widget.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace client
+{
+namespace internal
+{
+struct Manager;
+}  // namespace internal
+}  // namespace client
+
+class Wallet;
+}  // namespace api
+
+namespace identity
+{
+class Nym;
+}  // namespace identity
+
+namespace network
+{
+namespace zeromq
+{
+namespace socket
+{
+class Publish;
+}  // namespace socket
+
+class Message;
+}  // namespace zeromq
+}  // namespace network
+
+class Factory;
+}  // namespace opentxs
 
 namespace opentxs::ui::implementation
 {
@@ -62,6 +115,15 @@ public:
         const std::string& claimID,
         const std::string& value) const noexcept final;
 
+    Profile(
+        const api::client::internal::Manager& api,
+        const network::zeromq::socket::Publish& publisher,
+        const identifier::Nym& nymID
+#if OT_QT
+        ,
+        const bool qt
+#endif
+        ) noexcept;
     ~Profile();
 
 private:
@@ -94,15 +156,6 @@ private:
     void process_nym(const network::zeromq::Message& message) noexcept;
     void startup() noexcept;
 
-    Profile(
-        const api::client::internal::Manager& api,
-        const network::zeromq::socket::Publish& publisher,
-        const identifier::Nym& nymID
-#if OT_QT
-        ,
-        const bool qt
-#endif
-        ) noexcept;
     Profile() = delete;
     Profile(const Profile&) = delete;
     Profile(Profile&&) = delete;

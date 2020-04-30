@@ -5,8 +5,6 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
 namespace opentxs::crypto::key::implementation
 {
 class SymmetricNull final : virtual public key::Symmetric

@@ -5,23 +5,34 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
-#if OT_STORAGE_FS
-#include "opentxs/core/Flag.hpp"
-
-#include "storage/Plugin.hpp"
-
 #include <boost/iostreams/device/file_descriptor.hpp>
 #include <boost/iostreams/stream.hpp>
-
 #include <atomic>
+#include <future>
+#include <ios>
+#include <string>
+
+#include "opentxs/Bytes.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/Version.hpp"
+#include "opentxs/core/Flag.hpp"
+#include "storage/Plugin.hpp"
 
 namespace opentxs
 {
+namespace api
+{
+namespace storage
+{
+class Storage;
+}  // namespace storage
+}  // namespace api
 
 class StorageConfig;
+}  // namespace opentxs
 
+namespace opentxs
+{
 // Simple filesystem implementation of opentxs::storage
 class StorageFS : public Plugin
 {
@@ -90,5 +101,3 @@ private:
     StorageFS& operator=(StorageFS&&) = delete;
 };
 }  // namespace opentxs
-
-#endif  // OT_STORAGE_FS

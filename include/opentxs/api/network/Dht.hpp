@@ -6,14 +6,14 @@
 #ifndef OPENTXS_API_NETWORK_DHT_HPP
 #define OPENTXS_API_NETWORK_DHT_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/identity/Nym.hpp"
-#include "opentxs/Proto.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <functional>
 #include <map>
 #include <string>
+
+#include "opentxs/identity/Nym.hpp"
+#include "opentxs/Proto.hpp"
 
 namespace opentxs
 {

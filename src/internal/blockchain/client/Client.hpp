@@ -5,33 +5,109 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
-#if OT_BLOCKCHAIN
-#include "opentxs/blockchain/client/BlockOracle.hpp"
-#include "opentxs/blockchain/client/HeaderOracle.hpp"
-#include "opentxs/blockchain/Blockchain.hpp"
-#include "opentxs/blockchain/Network.hpp"
-#include "opentxs/network/zeromq/socket/Router.hpp"
-#include "opentxs/network/zeromq/ListenCallback.hpp"
-#include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/Bytes.hpp"
-#endif  // OT_BLOCKCHAIN
-
-#include "internal/core/Core.hpp"
-
 #include <boost/asio.hpp>
 #include <boost/thread/thread.hpp>
-
+#include <cstdint>
 #include <future>
+#include <iosfwd>
 #include <map>
 #include <memory>
 #include <mutex>
 #include <optional>
 #include <set>
+#include <shared_mutex>
+#include <string>
 #include <tuple>
+#include <utility>
 #include <vector>
+
+#include "1_Internal.hpp"
+#include "internal/core/Core.hpp"
+#if OT_BLOCKCHAIN
+#include "opentxs/Bytes.hpp"
+#endif  // OT_BLOCKCHAIN
+#include "opentxs/Types.hpp"
+#include "opentxs/Version.hpp"
+#if OT_BLOCKCHAIN
+#include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/blockchain/Network.hpp"
+#include "opentxs/blockchain/client/BlockOracle.hpp"
+#include "opentxs/blockchain/client/HeaderOracle.hpp"
+#endif  // OT_BLOCKCHAIN
+#include "opentxs/core/Data.hpp"
+#if OT_BLOCKCHAIN
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/network/zeromq/ListenCallback.hpp"
+#include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/network/zeromq/socket/Router.hpp"
+#endif  // OT_BLOCKCHAIN
+
+namespace opentxs
+{
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+
+class Core;
+}  // namespace api
+namespace blockchain
+{
+namespace block
+{
+namespace bitcoin
+{
+class Block;
+class Transaction;
+struct Outpoint;
+}  // namespace bitcoin
+
+class Block;
+class Header;
+}  // namespace block
+
+namespace client
+{
+class UpdateTransaction;
+}  // namespace client
+
+namespace internal
+{
+struct Database;
+struct GCS;
+}  // namespace internal
+
+namespace p2p
+{
+namespace internal
+{
+struct Address;
+}  // namespace internal
+
+class Address;
+}  // namespace p2p
+}  // namespace blockchain
+
+namespace network
+{
+namespace zeromq
+{
+class Frame;
+
+namespace socket
+{
+class Publish;
+}  // namespace socket
+}  // namespace zeromq
+}  // namespace network
+
+namespace proto
+{
+class BlockchainTransactionOutput;
+}  // namespace proto
+}  // namespace opentxs
 
 namespace zmq = opentxs::network::zeromq;
 

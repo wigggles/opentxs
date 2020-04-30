@@ -6,7 +6,7 @@
 #ifndef OPENTXS_API_CRYPTO_CRYPTO_HPP
 #define OPENTXS_API_CRYPTO_CRYPTO_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 namespace opentxs
 {

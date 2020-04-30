@@ -5,15 +5,41 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
-#include "opentxs/Bytes.hpp"
+#include <cstdint>
+#include <memory>
+#include <vector>
 
 #include "internal/api/client/blockchain/Blockchain.hpp"
 #include "internal/blockchain/client/Client.hpp"
+#include "opentxs/Bytes.hpp"
 #include "util/LMDB.hpp"
 
-#include <cstdint>
+namespace opentxs
+{
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
+namespace blockchain
+{
+namespace internal
+{
+struct GCS;
+}  // namespace internal
+}  // namespace blockchain
+
+namespace storage
+{
+namespace lmdb
+{
+class LMDB;
+}  // namespace lmdb
+}  // namespace storage
+}  // namespace opentxs
 
 namespace opentxs::api::client::blockchain::database::implementation
 {

@@ -3,14 +3,56 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/ui/MessagableList.cpp"
+
 #pragma once
 
-#include "Internal.hpp"
+#include <map>
+#include <utility>
 
-#include "opentxs/ui/MessagableList.hpp"
-
+#include "1_Internal.hpp"
 #include "internal/ui/UI.hpp"
-#include "List.hpp"
+#include "opentxs/SharedPimpl.hpp"
+#include "opentxs/Version.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/ui/MessagableList.hpp"
+#include "ui/List.hpp"
+#include "ui/Widget.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace client
+{
+namespace internal
+{
+struct Manager;
+}  // namespace internal
+}  // namespace client
+}  // namespace api
+
+namespace identifier
+{
+class Nym;
+}  // namespace identifier
+
+namespace network
+{
+namespace zeromq
+{
+namespace socket
+{
+class Publish;
+}  // namespace socket
+
+class Message;
+}  // namespace zeromq
+}  // namespace network
+
+class Factory;
+}  // namespace opentxs
 
 namespace opentxs::ui::implementation
 {
@@ -29,6 +71,15 @@ class MessagableList final : public MessagableListList
 public:
     const Identifier& ID() const noexcept final;
 
+    MessagableList(
+        const api::client::internal::Manager& api,
+        const network::zeromq::socket::Publish& publisher,
+        const identifier::Nym& nymID
+#if OT_QT
+        ,
+        const bool qt
+#endif
+        ) noexcept;
     ~MessagableList() final;
 
 private:
@@ -53,15 +104,6 @@ private:
     void process_nym(const network::zeromq::Message& message) noexcept;
     void startup() noexcept;
 
-    MessagableList(
-        const api::client::internal::Manager& api,
-        const network::zeromq::socket::Publish& publisher,
-        const identifier::Nym& nymID
-#if OT_QT
-        ,
-        const bool qt
-#endif
-        ) noexcept;
     MessagableList() = delete;
     MessagableList(const MessagableList&) = delete;
     MessagableList(MessagableList&&) = delete;

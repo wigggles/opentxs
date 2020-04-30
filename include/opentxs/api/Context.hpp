@@ -6,15 +6,15 @@
 #ifndef OPENTXS_API_CONTEXT_HPP
 #define OPENTXS_API_CONTEXT_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/api/Periodic.hpp"
-#include "opentxs/Proto.hpp"
-#include "opentxs/Types.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <chrono>
 #include <functional>
 #include <string>
+
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/api/Periodic.hpp"
 
 namespace opentxs
 {

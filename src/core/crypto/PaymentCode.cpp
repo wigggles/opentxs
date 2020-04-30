@@ -3,43 +3,40 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"                 // IWYU pragma: associated
+#include "1_Internal.hpp"               // IWYU pragma: associated
+#include "core/crypto/PaymentCode.hpp"  // IWYU pragma: associated
 
-#include "Internal.hpp"
+#include <algorithm>
+#include <cstring>
+#include <functional>
+#include <iterator>
+#include <string>
+#include <string_view>
+#include <utility>
 
-#include "opentxs/api/crypto/Crypto.hpp"
-#include "opentxs/api/crypto/Encode.hpp"
-#include "opentxs/api/crypto/Symmetric.hpp"
-#include "opentxs/api/Core.hpp"
+#include "Factory.hpp"
+#include "internal/api/Api.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Proto.tpp"
+#include "opentxs/Types.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/HDSeed.hpp"
-#include "opentxs/core/contract/Signable.hpp"
+#include "opentxs/api/crypto/Crypto.hpp"
+#include "opentxs/api/crypto/Encode.hpp"
+#include "opentxs/core/Data.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/PaymentCode.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
-#include "opentxs/core/Data.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/String.hpp"
 #include "opentxs/crypto/key/Asymmetric.hpp"
-#include "opentxs/crypto/key/EllipticCurve.hpp"
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #include "opentxs/crypto/key/Secp256k1.hpp"
-#endif
-#include "opentxs/crypto/key/Symmetric.hpp"
-#include "opentxs/crypto/library/EcdsaProvider.hpp"
-#include "opentxs/crypto/Bip32.hpp"
+#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+#include "opentxs/crypto/library/AsymmetricProvider.hpp"
 #include "opentxs/identity/credential/Base.hpp"
-#include "opentxs/identity/credential/Primary.hpp"
-#include "opentxs/Proto.tpp"
-#include "opentxs/Types.hpp"
-
-#include "internal/api/Api.hpp"
-
-#include <ostream>
-#include <string>
-#include <tuple>
-
-#include "PaymentCode.hpp"
 
 template class opentxs::Pimpl<opentxs::PaymentCode>;
 

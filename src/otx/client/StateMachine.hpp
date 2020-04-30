@@ -5,21 +5,45 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
-#include "opentxs/api/client/OTX.hpp"
-#include "opentxs/core/contract/peer/PeerReply.hpp"
-#include "opentxs/core/contract/peer/PeerRequest.hpp"
-#include "opentxs/core/UniqueQueue.hpp"
-
-#include "core/StateMachine.hpp"
-#include "otx/client/PaymentTasks.hpp"
-#include "internal/api/client/Client.hpp"
-#include "internal/otx/client/Client.hpp"
-
+#include <algorithm>
+#include <atomic>
+#include <cstring>
 #include <functional>
 #include <future>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <string>
 #include <tuple>
+#include <utility>
+#include <vector>
+
+#include "core/StateMachine.hpp"
+#include "internal/api/Api.hpp"
+#include "internal/api/client/Client.hpp"
+#include "internal/otx/client/Client.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/SharedPimpl.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/Version.hpp"
+#include "opentxs/api/client/OTX.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/PasswordPrompt.hpp"
+#include "opentxs/core/UniqueQueue.hpp"
+#include "opentxs/core/contract/peer/PeerReply.hpp"
+#include "opentxs/core/contract/peer/PeerRequest.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
+#include "opentxs/ext/OTPayment.hpp"
+#include "otx/client/PaymentTasks.hpp"
+
+namespace opentxs
+{
+class Flag;
+class OTPassword;
+class ServerContext;
+}  // namespace opentxs
 
 namespace std
 {

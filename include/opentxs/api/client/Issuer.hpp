@@ -6,16 +6,16 @@
 #ifndef OPENTXS_API_CLIENT_ISSUER_HPP
 #define OPENTXS_API_CLIENT_ISSUER_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/core/identifier/Server.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/Proto.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <set>
 #include <string>
 #include <tuple>
 #include <vector>
+
+#include "opentxs/Proto.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/identifier/Server.hpp"
 
 namespace opentxs
 {
@@ -23,7 +23,6 @@ namespace api
 {
 namespace client
 {
-
 class Issuer
 {
 public:

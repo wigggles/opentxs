@@ -3,36 +3,36 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"     // IWYU pragma: associated
+#include "1_Internal.hpp"   // IWYU pragma: associated
+#include "core/String.hpp"  // IWYU pragma: associated
 
-#include "opentxs/core/String.hpp"
-
-#include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/crypto/Signature.hpp"
-#include "opentxs/core/Armored.hpp"
-#include "opentxs/core/Contract.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/NymFile.hpp"
-#include "opentxs/identity/Nym.hpp"
-
+#include <algorithm>
+#include <cctype>
+#include <cstdarg>
+#include <cstdint>
+#include <cstdio>
+#include <cstring>
+#include <map>
+#include <memory>
+#include <sstream>
+#include <string>
+#include <utility>
 #if !(                                                                         \
     defined(_WIN32) || (defined(TARGET_OS_IPHONE) && TARGET_OS_IPHONE) ||      \
     defined(ANDROID))
 #include <wordexp.h>
 #endif
 
-#include <ctype.h>
-#include <stdarg.h>
-#include <stdio.h>
-#include <cstring>
-#include <cstdint>
-#include <map>
-#include <sstream>
-#include <string>
-#include <utility>
-
-#include "String.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/core/Armored.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/NymFile.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/crypto/Signature.hpp"
 
 #define MAX_STRING_LENGTH 0x800000  // this is about 8 megs.
 

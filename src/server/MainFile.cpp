@@ -3,46 +3,43 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
-
-#include "MainFile.hpp"
-
-#include "opentxs/api/crypto/Crypto.hpp"
-#include "opentxs/api/Core.hpp"
-#include "opentxs/api/Factory.hpp"
-#include "opentxs/api/Legacy.hpp"
-#include "opentxs/api/Wallet.hpp"
-#include "opentxs/core/cron/OTCron.hpp"
-#include "opentxs/core/identifier/Nym.hpp"
-#include "opentxs/core/identifier/Server.hpp"
-#include "opentxs/core/identifier/UnitDefinition.hpp"
-#include "opentxs/core/util/Tag.hpp"
-#include "opentxs/core/AccountList.hpp"
-#include "opentxs/core/Armored.hpp"
-#include "opentxs/core/Contract.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/OTStorage.hpp"
-#include "opentxs/core/StringXML.hpp"
-#include "opentxs/core/String.hpp"
-#include "opentxs/identity/Nym.hpp"
-
-#include "internal/api/Api.hpp"
-#include "Server.hpp"
-#include "Transactor.hpp"
+#include "0_stdafx.hpp"         // IWYU pragma: associated
+#include "1_Internal.hpp"       // IWYU pragma: associated
+#include "server/MainFile.hpp"  // IWYU pragma: associated
 
 #include <irrxml/irrXML.hpp>
-
-#include <cinttypes>
 #include <cstdint>
 #include <memory>
 #include <string>
 #include <utility>
 
+#include "internal/api/Api.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/api/Legacy.hpp"
+#include "opentxs/api/Wallet.hpp"
+#include "opentxs/core/AccountList.hpp"
+#include "opentxs/core/Armored.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/OTStorage.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/StringXML.hpp"
+#include "opentxs/core/cron/OTCron.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
+#include "opentxs/core/util/Tag.hpp"
+#include "opentxs/identity/Nym.hpp"
+#include "server/Server.hpp"
+#include "server/Transactor.hpp"
+
 #define OT_METHOD "opentxs::Mainfile::"
 
 namespace opentxs::server
 {
-
 MainFile::MainFile(Server& server, const PasswordPrompt& reason)
     : server_(server)
     , version_()

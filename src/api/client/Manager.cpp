@@ -3,41 +3,41 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"            // IWYU pragma: associated
+#include "1_Internal.hpp"          // IWYU pragma: associated
+#include "api/client/Manager.hpp"  // IWYU pragma: associated
 
+#include <map>
+#include <memory>
+#include <mutex>
+#include <string>
+#include <functional>
+#include <utility>
+
+#include "Factory.hpp"
+#include "api/Core.hpp"
+#include "api/Scheduler.hpp"
+#include "api/StorageParent.hpp"
+#include "internal/api/Api.hpp"
+#include "internal/api/client/Client.hpp"
+#include "internal/api/storage/Storage.hpp"
+#include "opentxs/Version.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/api/client/Activity.hpp"
 #include "opentxs/api/client/Blockchain.hpp"
 #include "opentxs/api/client/Contacts.hpp"
-#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/client/OTX.hpp"
 #include "opentxs/api/client/Pair.hpp"
 #include "opentxs/api/client/ServerAction.hpp"
 #include "opentxs/api/client/UI.hpp"
 #include "opentxs/api/client/Workflow.hpp"
-#include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/network/ZMQ.hpp"
-#include "opentxs/api/storage/Storage.hpp"
-#include "opentxs/api/Settings.hpp"
-#include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
-#include "opentxs/client/SwigWrap.hpp"
+#include "opentxs/client/OT_API.hpp"
 #include "opentxs/core/Flag.hpp"
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/core/PasswordPrompt.hpp"
-
-#include "api/Core.hpp"
-#include "internal/api/client/Client.hpp"
-#include "internal/api/storage/Storage.hpp"
-#include "internal/api/Api.hpp"
-
-#include <set>
-#include <map>
-#include <memory>
-#include <mutex>
-#include <string>
-
-#include "Manager.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/Server.hpp"
 
 namespace opentxs
 {
@@ -140,12 +140,6 @@ Manager::Manager(
     OT_ASSERT(ui_);
     OT_ASSERT(pair_);
 
-    if (0 == instance_) {
-        SwigWrap::client_ = this;
-
-        OT_ASSERT(nullptr != SwigWrap::client_)
-    }
-
     Init();
 }
 
@@ -165,8 +159,6 @@ const api::client::Blockchain& Manager::Blockchain() const
 
 void Manager::Cleanup()
 {
-    if (0 == instance_) { SwigWrap::client_ = nullptr; }
-
     ui_.reset();
     pair_.reset();
     otx_.reset();

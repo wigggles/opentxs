@@ -3,9 +3,64 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/ui/ProfileSubsection.cpp"
+
 #pragma once
 
-#include "Internal.hpp"
+#include <set>
+#include <string>
+#include <utility>
+
+#include "1_Internal.hpp"
+#include "internal/ui/UI.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/SharedPimpl.hpp"
+#include "opentxs/Version.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "ui/Combined.hpp"
+#include "ui/List.hpp"
+#include "ui/RowType.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace client
+{
+namespace internal
+{
+struct Manager;
+}  // namespace internal
+}  // namespace client
+}  // namespace api
+
+namespace identifier
+{
+class Nym;
+}  // namespace identifier
+
+namespace network
+{
+namespace zeromq
+{
+namespace socket
+{
+class Publish;
+}  // namespace socket
+}  // namespace zeromq
+}  // namespace network
+
+namespace ui
+{
+class ProfileSubsection;
+}  // namespace ui
+
+class ContactGroup;
+class Factory;
+}  // namespace opentxs
 
 namespace opentxs::ui::implementation
 {
@@ -55,6 +110,18 @@ public:
         const ProfileSectionSortKey& key,
         const CustomData& custom) noexcept final;
 
+    ProfileSubsection(
+        const ProfileSectionInternalInterface& parent,
+        const api::client::internal::Manager& api,
+        const network::zeromq::socket::Publish& publisher,
+        const ProfileSectionRowID& rowID,
+        const ProfileSectionSortKey& key,
+        const CustomData& custom
+#if OT_QT
+        ,
+        const bool qt
+#endif
+        ) noexcept;
     ~ProfileSubsection() = default;
 
 private:
@@ -76,18 +143,6 @@ private:
     int sort_key(const ProfileSubsectionRowID type) const noexcept;
     void startup(const CustomData& custom) noexcept;
 
-    ProfileSubsection(
-        const ProfileSectionInternalInterface& parent,
-        const api::client::internal::Manager& api,
-        const network::zeromq::socket::Publish& publisher,
-        const ProfileSectionRowID& rowID,
-        const ProfileSectionSortKey& key,
-        const CustomData& custom
-#if OT_QT
-        ,
-        const bool qt
-#endif
-        ) noexcept;
     ProfileSubsection() = delete;
     ProfileSubsection(const ProfileSubsection&) = delete;
     ProfileSubsection(ProfileSubsection&&) = delete;
@@ -95,3 +150,5 @@ private:
     ProfileSubsection& operator=(ProfileSubsection&&) = delete;
 };
 }  // namespace opentxs::ui::implementation
+
+template class opentxs::SharedPimpl<opentxs::ui::ProfileSubsection>;

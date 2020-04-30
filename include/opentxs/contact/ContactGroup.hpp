@@ -6,16 +6,20 @@
 #ifndef OPENTXS_CONTACT_CONTACTGROUP_HPP
 #define OPENTXS_CONTACT_CONTACTGROUP_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
+
+#include <map>
+#include <memory>
+#include <iosfwd>
+#include <string>
 
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/Proto.hpp"
 
-#include <map>
-#include <memory>
-
 namespace opentxs
 {
+class ContactItem;
+
 class ContactGroup
 {
 public:

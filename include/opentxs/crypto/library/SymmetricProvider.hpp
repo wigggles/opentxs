@@ -6,11 +6,11 @@
 #ifndef OPENTXS_CRYPTO_LIBRARY_SYMMETRICPROVIDER_HPP
 #define OPENTXS_CRYPTO_LIBRARY_SYMMETRICPROVIDER_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/Proto.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <cstdint>
+
+#include "opentxs/Proto.hpp"
 
 namespace opentxs
 {

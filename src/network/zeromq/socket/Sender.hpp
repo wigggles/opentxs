@@ -5,6 +5,19 @@
 
 #pragma once
 
+#include "network/zeromq/socket/Socket.hpp"
+
+namespace opentxs
+{
+namespace network
+{
+namespace zeromq
+{
+class Message;
+}  // namespace zeromq
+}  // namespace network
+}  // namespace opentxs
+
 namespace opentxs::network::zeromq::socket::implementation
 {
 template <typename Interface, typename ImplementationParent = Socket>

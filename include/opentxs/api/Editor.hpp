@@ -6,17 +6,16 @@
 #ifndef OPENTXS_API_EDITOR_HPP
 #define OPENTXS_API_EDITOR_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/core/Log.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <functional>
 #include <memory>
 #include <mutex>
 
+#include "opentxs/core/Log.hpp"
+
 namespace opentxs
 {
-
 template <class ChildType, class MutexType = std::mutex>
 class Editor
 {

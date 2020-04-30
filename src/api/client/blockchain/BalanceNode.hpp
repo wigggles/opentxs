@@ -5,13 +5,59 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
-#include "opentxs/core/Identifier.hpp"
+#include <memory>
+#include <mutex>
+#include <set>
+#include <string>
+#include <vector>
 
 #include "internal/api/client/blockchain/Blockchain.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/api/client/blockchain/BalanceTree.hpp"
+#include "opentxs/core/Data.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
 
-#include <mutex>
+namespace opentxs
+{
+namespace api
+{
+namespace client
+{
+namespace internal
+{
+struct Blockchain;
+}  // namespace internal
+}  // namespace client
+
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
+namespace crypto
+{
+namespace key
+{
+class EllipticCurve;
+class HD;
+}  // namespace key
+}  // namespace crypto
+
+namespace identifier
+{
+class Nym;
+}  // namespace identifier
+
+namespace proto
+{
+class AsymmetricKey;
+}  // namespace proto
+
+class PasswordPrompt;
+}  // namespace opentxs
 
 namespace opentxs::api::client::blockchain::implementation
 {

@@ -3,14 +3,12 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"                      // IWYU pragma: associated
+#include "opentxs/core/crypto/OTCaller.hpp"  // IWYU pragma: associated
 
-#include "opentxs/core/crypto/OTCaller.hpp"
-
-#include "opentxs/core/crypto/OTCallback.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/PasswordPrompt.hpp"
+#include "opentxs/core/crypto/OTCallback.hpp"
 
 // #define OT_METHOD "opentxs::OTCaller"
 

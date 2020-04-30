@@ -6,10 +6,11 @@
 #ifndef OPENTXS_NETWORK_ZEROMQ_SOCKET_DEALER_HPP
 #define OPENTXS_NETWORK_ZEROMQ_SOCKET_DEALER_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include "opentxs/network/zeromq/curve/Client.hpp"
 #include "opentxs/network/zeromq/socket/Sender.hpp"
+#include "opentxs/Pimpl.hpp"
 
 #ifdef SWIG
 // clang-format off
@@ -24,8 +25,22 @@
 
 namespace opentxs
 {
-using OTZMQDealerSocket = Pimpl<network::zeromq::socket::Dealer>;
+namespace network
+{
+namespace zeromq
+{
+namespace socket
+{
+class Dealer;
+}  // namespace socket
+}  // namespace zeromq
+}  // namespace network
 
+using OTZMQDealerSocket = Pimpl<network::zeromq::socket::Dealer>;
+}  // namespace opentxs
+
+namespace opentxs
+{
 namespace network
 {
 namespace zeromq

@@ -6,9 +6,13 @@
 #ifndef OPENTXS_NETWORK_ZEROMQ_FRAMEITERATOR_HPP
 #define OPENTXS_NETWORK_ZEROMQ_FRAMEITERATOR_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <atomic>
+#include <iosfwd>
+#include <iterator>
+
+#include "opentxs/network/zeromq/Frame.hpp"
 
 #ifdef SWIG
 // clang-format off
@@ -29,6 +33,8 @@ namespace network
 {
 namespace zeromq
 {
+class Message;
+
 class FrameIterator
 {
 public:

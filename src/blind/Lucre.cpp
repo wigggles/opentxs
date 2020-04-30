@@ -3,15 +3,14 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
-
-#include "Internal.hpp"
-
+#include "0_stdafx.hpp"    // IWYU pragma: associated
+#include "1_Internal.hpp"  // IWYU pragma: associated
 #if OT_CASH_USING_LUCRE
+#include "blind/Lucre.hpp"  // IWYU pragma: associated
 
 #include <cstdio>
 
-#include "Lucre.hpp"
+#include "opentxs/Version.hpp"
 
 namespace opentxs::blind
 {

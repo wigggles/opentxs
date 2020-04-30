@@ -3,42 +3,40 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"           // IWYU pragma: associated
+#include "1_Internal.hpp"         // IWYU pragma: associated
+#include "ui/ActivityThread.hpp"  // IWYU pragma: associated
 
-#include "opentxs/api/client/Activity.hpp"
-#include "opentxs/api/client/Contacts.hpp"
-#include "opentxs/api/client/Manager.hpp"
-#include "opentxs/api/storage/Storage.hpp"
-#include "opentxs/api/Factory.hpp"
-#include "opentxs/api/Wallet.hpp"
-#include "opentxs/contact/Contact.hpp"
-#include "opentxs/contact/ContactData.hpp"
-#include "opentxs/core/contract/UnitDefinition.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/PasswordPrompt.hpp"
-#include "opentxs/network/zeromq/socket/Pull.hpp"
-#include "opentxs/network/zeromq/socket/Push.hpp"
-#include "opentxs/network/zeromq/socket/Subscribe.hpp"
-#include "opentxs/network/zeromq/Context.hpp"
-#include "opentxs/network/zeromq/ListenCallback.hpp"
-#include "opentxs/network/zeromq/FrameIterator.hpp"
-#include "opentxs/network/zeromq/FrameSection.hpp"
-#include "opentxs/network/zeromq/Frame.hpp"
-#include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/ui/ActivityThreadItem.hpp"
-#include "opentxs/Types.hpp"
-
-#include "internal/api/client/Client.hpp"
-
+#include <algorithm>
+#include <chrono>
 #include <map>
 #include <memory>
+#include <ostream>
 #include <set>
 #include <thread>
 #include <tuple>
 #include <vector>
 
-#include "ActivityThread.hpp"
+#include "internal/api/client/Client.hpp"
+#include "opentxs/Forward.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/api/Wallet.hpp"
+#include "opentxs/api/client/Activity.hpp"
+#include "opentxs/api/client/Contacts.hpp"
+#include "opentxs/api/storage/Storage.hpp"
+#include "opentxs/contact/Contact.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/contract/UnitDefinition.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
+#include "opentxs/network/zeromq/Frame.hpp"
+#include "opentxs/network/zeromq/FrameIterator.hpp"
+#include "opentxs/network/zeromq/FrameSection.hpp"
+#include "opentxs/network/zeromq/Message.hpp"
+#include "ui/List.hpp"
 
 template class std::
     tuple<opentxs::OTIdentifier, opentxs::StorageBox, opentxs::OTIdentifier>;
@@ -47,9 +45,9 @@ template class std::
 
 namespace zmq = opentxs::network::zeromq;
 
-namespace opentxs
+namespace opentxs::factory
 {
-ui::implementation::ActivityThread* Factory::ActivityThreadModel(
+auto ActivityThreadModel(
     const api::client::internal::Manager& api,
     const network::zeromq::socket::Publish& publisher,
     const identifier::Nym& nymID,
@@ -58,9 +56,11 @@ ui::implementation::ActivityThread* Factory::ActivityThreadModel(
     ,
     const bool qt
 #endif
-)
+    ) noexcept -> std::unique_ptr<ui::implementation::ActivityThread>
 {
-    return new ui::implementation::ActivityThread(
+    using ReturnType = ui::implementation::ActivityThread;
+
+    return std::make_unique<ReturnType>(
         api,
         publisher,
         nymID,
@@ -73,15 +73,15 @@ ui::implementation::ActivityThread* Factory::ActivityThreadModel(
 }
 
 #if OT_QT
-ui::ActivityThreadQt* Factory::ActivityThreadQtModel(
-    ui::implementation::ActivityThread& parent)
+auto ActivityThreadQtModel(ui::implementation::ActivityThread& parent) noexcept
+    -> std::unique_ptr<ui::ActivityThreadQt>
 {
     using ReturnType = ui::ActivityThreadQt;
 
-    return new ReturnType(parent);
+    return std::make_unique<ReturnType>(parent);
 }
 #endif  // OT_QT
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 #if OT_QT
 namespace opentxs::ui
@@ -219,7 +219,7 @@ void* ActivityThread::construct_row(
         case StorageBox::MAILOUTBOX: {
             const auto [it, added] = items_[index].emplace(
                 id,
-                Factory::MailItem(
+                factory::MailItem(
                     *this, api_, publisher_, primary_id_, id, index, custom));
 
             return it->second.get();
@@ -227,7 +227,7 @@ void* ActivityThread::construct_row(
         case StorageBox::DRAFT: {
             const auto [it, added] = items_[index].emplace(
                 id,
-                Factory::MailItem(
+                factory::MailItem(
                     *this,
                     api_,
                     publisher_,
@@ -244,7 +244,7 @@ void* ActivityThread::construct_row(
         case StorageBox::OUTGOINGCHEQUE: {
             const auto [it, added] = items_[index].emplace(
                 id,
-                Factory::PaymentItem(
+                factory::PaymentItem(
                     *this, api_, publisher_, primary_id_, id, index, custom));
 
             return it->second.get();
@@ -252,7 +252,7 @@ void* ActivityThread::construct_row(
         case StorageBox::PENDING_SEND: {
             const auto [it, added] = items_[index].emplace(
                 id,
-                Factory::PendingSend(
+                factory::PendingSend(
                     *this, api_, publisher_, primary_id_, id, index, custom));
 
             return it->second.get();

@@ -5,6 +5,73 @@
 
 #pragma once
 
+#include <atomic>
+#include <chrono>
+#include <cstdint>
+#include <ctime>
+#include <map>
+#include <mutex>
+#include <string>
+#include <thread>
+#include <utility>
+
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/core/Flag.hpp"
+#include "opentxs/core/Lockable.hpp"
+#include "opentxs/core/Message.hpp"
+#include "opentxs/core/contract/ServerContract.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/network/ServerConnection.hpp"
+#include "opentxs/network/zeromq/ListenCallback.hpp"
+#include "opentxs/network/zeromq/socket/Dealer.hpp"
+#include "opentxs/network/zeromq/socket/Push.hpp"
+#include "opentxs/network/zeromq/socket/Request.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+
+namespace network
+{
+class ZMQ;
+}  // namespace network
+}  // namespace api
+
+namespace network
+{
+namespace zeromq
+{
+namespace curve
+{
+class Client;
+}  // namespace curve
+
+namespace socket
+{
+class Publish;
+class Socket;
+}  // namespace socket
+
+class Frame;
+class Message;
+}  // namespace zeromq
+}  // namespace network
+
+namespace proto
+{
+class ServerReply;
+}  // namespace proto
+
+class PasswordPrompt;
+class ServerContext;
+}  // namespace opentxs
+
 namespace opentxs::network::implementation
 {
 class ServerConnection final

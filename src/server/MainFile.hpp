@@ -5,13 +5,20 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
 #include <string>
 
 namespace opentxs
 {
 namespace server
+{
+class Server;
+}  // namespace server
+
+class PasswordPrompt;
+class String;
+}  // namespace opentxs
+
+namespace opentxs::server
 {
 class MainFile
 {
@@ -37,5 +44,4 @@ private:
     MainFile& operator=(const MainFile&) = delete;
     MainFile& operator=(MainFile&&) = delete;
 };
-}  // namespace server
-}  // namespace opentxs
+}  // namespace opentxs::server

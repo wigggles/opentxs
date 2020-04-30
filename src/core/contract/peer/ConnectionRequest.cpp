@@ -3,19 +3,19 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"                              // IWYU pragma: associated
+#include "1_Internal.hpp"                            // IWYU pragma: associated
+#include "core/contract/peer/ConnectionRequest.hpp"  // IWYU pragma: associated
 
-#include "Internal.hpp"
+#include <memory>
+#include <stdexcept>
+#include <utility>
 
-#include "opentxs/api/Core.hpp"
-#include "opentxs/api/Factory.hpp"
-#include "opentxs/core/contract/peer/ConnectionRequest.hpp"
-#include "opentxs/core/Log.hpp"
-
+#include "Factory.hpp"
 #include "core/contract/peer/PeerRequest.hpp"
-#include "internal/api/Api.hpp"
-
-#include "ConnectionRequest.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
 
 #define CURRENT_VERSION 4
 

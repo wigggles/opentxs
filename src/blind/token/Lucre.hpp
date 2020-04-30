@@ -3,14 +3,54 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/blind/token/Lucre.cpp"
+
 #pragma once
 
-#include "opentxs/core/Data.hpp"
-
-#include "blind/Token.hpp"
-
+#include <cstdint>
 #include <memory>
 #include <stdexcept>
+#include <string>
+
+#include "blind/Token.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/blind/Token.hpp"
+#include "opentxs/core/Data.hpp"
+#include "opentxs/core/String.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
+namespace blind
+{
+class Mint;
+class Purse;
+}  // namespace blind
+
+namespace identity
+{
+class Nym;
+}  // namespace identity
+
+namespace proto
+{
+class Ciphertext;
+class LucreTokenData;
+}  // namespace proto
+
+class Factory;
+class PasswordPrompt;
+}  // namespace opentxs
 
 namespace opentxs::blind::token::implementation
 {

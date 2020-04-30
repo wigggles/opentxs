@@ -6,15 +6,15 @@
 #ifndef OPENTXS_IDENTITY_CREDENTIAL_KEY_HPP
 #define OPENTXS_IDENTITY_CREDENTIAL_KEY_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
+
+#include <memory>
 
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/crypto/key/Keypair.hpp"
 #include "opentxs/identity/credential/Base.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
-
-#include <memory>
 
 namespace opentxs
 {

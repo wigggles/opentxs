@@ -6,15 +6,23 @@
 #ifndef OPENTXS_CORE_ACCOUNTVISITOR_HPP
 #define OPENTXS_CORE_ACCOUNTVISITOR_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <map>
 #include <string>
 
+#include "opentxs/core/identifier/Server.hpp"
+
 namespace opentxs
 {
+namespace api
+{
+class Wallet;
+}  // namespace api
+
+class Account;
+class PasswordPrompt;
+
 class AccountVisitor
 {
 public:

@@ -3,10 +3,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef OPENTXS_CRYPTO_LIBRARY_PBKDF2_HPP
-#define OPENTXS_CRYPTO_LIBRARY_PBKDF2_HPP
-
-#include "Internal.hpp"
+#pragma once
 
 #include <cstdint>
 
@@ -37,4 +34,3 @@ private:
     Pbkdf2& operator=(Pbkdf2&&) = delete;
 };
 }  // namespace opentxs::crypto
-#endif

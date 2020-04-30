@@ -3,12 +3,62 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/core/crypto/PaymentCode.cpp"
+
 #pragma once
 
 #include <array>
 #include <cstddef>
 #include <cstdint>
 #include <memory>
+#include <string>
+
+#include "opentxs/Bytes.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/Version.hpp"
+#include "opentxs/core/Data.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/crypto/PaymentCode.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/crypto/key/Asymmetric.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
+namespace crypto
+{
+namespace key
+{
+class Secp256k1;
+}  // namespace key
+}  // namespace crypto
+
+namespace identity
+{
+namespace credential
+{
+class Base;
+}  // namespace credential
+}  // namespace identity
+
+namespace proto
+{
+class Credential;
+class PaymentCode;
+class Signature;
+}  // namespace proto
+
+class Factory;
+class PasswordPrompt;
+}  // namespace opentxs
 
 namespace opentxs::implementation
 {

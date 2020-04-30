@@ -3,24 +3,31 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"                    // IWYU pragma: associated
+#include "1_Internal.hpp"                  // IWYU pragma: associated
+#include "network/zeromq/socket/Pair.hpp"  // IWYU pragma: associated
 
-#include "Internal.hpp"
-
-#include "opentxs/core/Identifier.hpp"
+#include "Factory.hpp"
+#include "network/zeromq/socket/Bidirectional.tpp"
+#include "network/zeromq/socket/Receiver.hpp"
+#include "network/zeromq/socket/Receiver.tpp"
+#include "network/zeromq/socket/Sender.tpp"
+#include "opentxs/Pimpl.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/network/zeromq/socket/Pair.hpp"
-#include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
-#include "opentxs/network/zeromq/FrameIterator.hpp"
-#include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/network/zeromq/socket/Pair.hpp"
 
-#include "Bidirectional.tpp"
-
-#include <zmq.h>
-
-#include "Pair.hpp"
+namespace opentxs
+{
+namespace network
+{
+namespace zeromq
+{
+class Context;
+}  // namespace zeromq
+}  // namespace network
+}  // namespace opentxs
 
 template class opentxs::Pimpl<opentxs::network::zeromq::socket::Pair>;
 

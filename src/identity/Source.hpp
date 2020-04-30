@@ -5,14 +5,37 @@
 
 #pragma once
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/core/crypto/PaymentCode.hpp"
-#include "opentxs/core/String.hpp"
-#include "opentxs/Proto.hpp"
-
 #include <cstdint>
 #include <memory>
+
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/core/Data.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/crypto/PaymentCode.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/crypto/key/Asymmetric.hpp"
+#include "opentxs/identity/Source.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+class Factory;
+}  // namespace api
+
+namespace identity
+{
+namespace credential
+{
+class Primary;
+}  // namespace credential
+}  // namespace identity
+
+class Factory;
+class NymParameters;
+class PasswordPrompt;
+}  // namespace opentxs
 
 namespace opentxs::identity::implementation
 {

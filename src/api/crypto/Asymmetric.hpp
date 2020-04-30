@@ -3,9 +3,39 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/api/crypto/Symmetric.cpp"
+
 #pragma once
 
-#include "Internal.hpp"
+#include <map>
+#include <memory>
+#include <string>
+
+#include "internal/api/crypto/Crypto.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/Version.hpp"
+#include "opentxs/api/crypto/Asymmetric.hpp"
+#include "opentxs/crypto/Bip32.hpp"
+#include "opentxs/crypto/key/EllipticCurve.hpp"
+#include "opentxs/crypto/key/Secp256k1.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
+class Factory;
+class NymParameters;
+class OTPassword;
+class PasswordPrompt;
+}  // namespace opentxs
 
 namespace opentxs::api::crypto::implementation
 {

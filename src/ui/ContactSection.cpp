@@ -3,41 +3,30 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
-
-#include "opentxs/api/client/Contacts.hpp"
-#include "opentxs/contact/ContactGroup.hpp"
-#include "opentxs/contact/ContactSection.hpp"
-#include "opentxs/core/Flag.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Lockable.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/network/zeromq/socket/Subscribe.hpp"
-#include "opentxs/network/zeromq/Context.hpp"
-#include "opentxs/network/zeromq/ListenCallback.hpp"
-#include "opentxs/network/zeromq/Frame.hpp"
-#include "opentxs/ui/ContactSection.hpp"
-#include "opentxs/ui/ContactSubsection.hpp"
-
-#include "internal/ui/UI.hpp"
-#include "Combined.hpp"
+#include "0_stdafx.hpp"           // IWYU pragma: associated
+#include "1_Internal.hpp"         // IWYU pragma: associated
+#include "ui/ContactSection.hpp"  // IWYU pragma: associated
 
 #include <map>
 #include <memory>
 #include <set>
+#include <stdexcept>
 #include <thread>
-#include <tuple>
-#include <vector>
+#include <type_traits>
+#include <utility>
 
-#include "ContactSection.hpp"
-
-template class opentxs::SharedPimpl<opentxs::ui::ContactSection>;
+#include "opentxs/contact/ContactGroup.hpp"
+#include "opentxs/contact/ContactSection.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Log.hpp"
+#include "ui/Combined.hpp"
+#include "ui/Widget.hpp"
 
 //#define OT_METHOD "opentxs::ui::implementation::ContactSection::"
 
-namespace opentxs
+namespace opentxs::factory
 {
-ui::implementation::ContactRowInternal* Factory::ContactSectionWidget(
+auto ContactSectionWidget(
     const ui::implementation::ContactInternalInterface& parent,
     const api::client::internal::Manager& api,
     const network::zeromq::socket::Publish& publisher,
@@ -48,9 +37,11 @@ ui::implementation::ContactRowInternal* Factory::ContactSectionWidget(
     ,
     const bool qt
 #endif
-)
+    ) noexcept -> std::shared_ptr<ui::implementation::ContactRowInternal>
 {
-    return new ui::implementation::ContactSection(
+    using ReturnType = ui::implementation::ContactSection;
+
+    return std::make_shared<ReturnType>(
         parent,
         api,
         publisher,
@@ -63,7 +54,7 @@ ui::implementation::ContactRowInternal* Factory::ContactSectionWidget(
 #endif
     );
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::ui::implementation
 {
@@ -196,7 +187,7 @@ void* ContactSection::construct_row(
     names_.emplace(id, index);
     const auto [it, added] = items_[index].emplace(
         id,
-        Factory::ContactSubsectionWidget(
+        factory::ContactSubsectionWidget(
             *this,
             api_,
             publisher_,

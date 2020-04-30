@@ -5,26 +5,55 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
-#include "opentxs/blockchain/p2p/Peer.hpp"
-#include "opentxs/core/Data.hpp"
-#include "opentxs/core/Flag.hpp"
-#include "opentxs/network/zeromq/socket/Dealer.hpp"
-#include "opentxs/network/zeromq/ListenCallback.hpp"
-#include "opentxs/network/zeromq/Pipeline.hpp"
-#include "opentxs/Bytes.hpp"
+#include <boost/asio.hpp>
+#include <boost/system/error_code.hpp>
+#include <atomic>
+#include <cstdint>
+#include <deque>
+#include <future>
+#include <iosfwd>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <queue>
+#include <set>
+#include <string>
+#include <utility>
+#include <vector>
 
 #include "core/Executor.hpp"
 #include "internal/blockchain/client/Client.hpp"
 #include "internal/blockchain/p2p/P2P.hpp"
+#include "opentxs/Bytes.hpp"
+#include "opentxs/Forward.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/blockchain/p2p/Peer.hpp"
+#include "opentxs/core/Data.hpp"
+#include "opentxs/core/Flag.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/network/zeromq/ListenCallback.hpp"
+#include "opentxs/network/zeromq/Pipeline.hpp"
+#include "opentxs/network/zeromq/socket/Dealer.hpp"
 
-#include <boost/asio.hpp>
+namespace opentxs
+{
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
 
-#include <atomic>
-#include <deque>
-#include <map>
-#include <queue>
+namespace network
+{
+namespace zeromq
+{
+class Frame;
+class Message;
+}  // namespace zeromq
+}  // namespace network
+}  // namespace opentxs
 
 namespace asio = boost::asio;
 namespace zmq = opentxs::network::zeromq;

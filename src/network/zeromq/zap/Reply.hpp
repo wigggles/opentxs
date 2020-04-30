@@ -3,9 +3,34 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/network/zeromq/zap/Reply.cpp"
+
 #pragma once
 
-#include "Internal.hpp"
+#include <map>
+#include <string>
+
+#include "Factory.hpp"
+#include "network/zeromq/Message.hpp"
+#include "opentxs/core/Data.hpp"
+#include "opentxs/network/zeromq/Frame.hpp"
+#include "opentxs/network/zeromq/zap/Reply.hpp"
+#include "opentxs/network/zeromq/zap/ZAP.hpp"
+
+namespace opentxs
+{
+namespace network
+{
+namespace zeromq
+{
+namespace zap
+{
+class Request;
+}  // namespace zap
+}  // namespace zeromq
+}  // namespace network
+}  // namespace opentxs
 
 #define VERSION_POSITION 0
 #define REQUEST_ID_POSITION 1

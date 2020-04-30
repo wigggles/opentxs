@@ -6,17 +6,19 @@
 #ifndef OPENTXS_CONTACT_CONTACTDATA_HPP
 #define OPENTXS_CONTACT_CONTACTDATA_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/core/identifier/Server.hpp"
-#include "opentxs/Proto.hpp"
-#include "opentxs/Types.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <map>
 #include <memory>
 #include <set>
 #include <string>
 #include <tuple>
+#include <utility>
+
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/identifier/Server.hpp"
 
 namespace opentxs
 {
@@ -27,6 +29,10 @@ namespace internal
 struct Core;
 }  // namespace internal
 }  // namespace api
+
+class ContactGroup;
+class ContactItem;
+class ContactSection;
 
 class ContactData
 {

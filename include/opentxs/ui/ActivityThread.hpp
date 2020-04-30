@@ -8,12 +8,13 @@
 
 #ifndef Q_MOC_RUN
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
+
+#include <string>
 
 #include "opentxs/ui/List.hpp"
 #include "opentxs/Proto.hpp"
-
-#include <string>
+#include "opentxs/SharedPimpl.hpp"
 
 #ifdef SWIG
 // clang-format off
@@ -121,6 +122,8 @@ public:
     OPENTXS_EXPORT Q_INVOKABLE bool setDraft(const QString& draft) const
         noexcept;
 
+    ActivityThreadQt(implementation::ActivityThread& parent) noexcept;
+
     ~ActivityThreadQt() final = default;
 
 private:
@@ -130,7 +133,6 @@ private:
 
     void notify() const noexcept;
 
-    ActivityThreadQt(implementation::ActivityThread& parent) noexcept;
     ActivityThreadQt() = delete;
     ActivityThreadQt(const ActivityThreadQt&) = delete;
     ActivityThreadQt(ActivityThreadQt&&) = delete;

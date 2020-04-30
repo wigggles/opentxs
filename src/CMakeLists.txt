@@ -113,7 +113,7 @@ list(
 
 set(
   cxx-sources
-  ${CMAKE_CURRENT_SOURCE_DIR}/Factory.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/Bytes.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Globals.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/OT.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Proto.cpp
@@ -138,9 +138,10 @@ set(
 set(
   cxx-headers
   ${cxx-install-headers}
-  "${CMAKE_CURRENT_SOURCE_DIR}/Internal.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/0_stdafx.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/1_Internal.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Exclusive.tpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/stdafx.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Factory.hpp"
 )
 
 add_library(opentxs ${cxx-sources} ${cxx-headers} ${object-deps})

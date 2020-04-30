@@ -5,15 +5,41 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
-#include "opentxs/api/Editor.hpp"
-#include "opentxs/identity/Nym.hpp"
-#include "opentxs/Types.hpp"
-
 #include <cstdint>
 #include <memory>
 #include <set>
+
+#include "opentxs/Types.hpp"
+#include "opentxs/api/Editor.hpp"
+#include "opentxs/core/Message.hpp"
+#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/identity/Nym.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+class Wallet;
+}  // namespace api
+
+namespace identity
+{
+class Nym;
+}  // namespace identity
+
+namespace server
+{
+class Server;
+class UserCommandProcessor;
+}  // namespace server
+
+class Armored;
+class ClientContext;
+class Data;
+class Identifier;
+class PasswordPrompt;
+class String;
+}  // namespace opentxs
 
 namespace opentxs::server
 {

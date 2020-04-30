@@ -5,16 +5,8 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
-#include "opentxs/storage/Plugin.hpp"
-
 namespace opentxs
 {
-
-class Storage;
-class StorageConfig;
-
 /** \brief An example implementation of \ref Storage which demonstrates how
  *  to implement support for new storage backends.
  *

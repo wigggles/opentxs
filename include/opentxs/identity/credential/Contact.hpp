@@ -6,14 +6,14 @@
 #ifndef OPENTXS_IDENTITY_CREDENTIAL_CONTACT_HPP
 #define OPENTXS_IDENTITY_CREDENTIAL_CONTACT_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
+
+#include <cstdint>
+#include <string>
 
 #include "opentxs/identity/credential/Base.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
-
-#include <cstdint>
-#include <string>
 
 namespace opentxs
 {

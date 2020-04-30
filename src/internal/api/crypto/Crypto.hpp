@@ -5,8 +5,6 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
 #include "opentxs/api/crypto/Asymmetric.hpp"
 #include "opentxs/api/crypto/Symmetric.hpp"
 

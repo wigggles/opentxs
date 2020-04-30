@@ -3,18 +3,20 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"                // IWYU pragma: associated
+#include "1_Internal.hpp"              // IWYU pragma: associated
+#include "network/zeromq/Message.hpp"  // IWYU pragma: associated
 
-#include "opentxs/core/Data.hpp"
+#include <algorithm>
+#include <memory>
+#include <utility>
+
+#include "opentxs/Pimpl.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/FrameIterator.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
-
-#include <zmq.h>
-
-#include "Message.hpp"
 
 template class opentxs::Pimpl<opentxs::network::zeromq::Message>;
 

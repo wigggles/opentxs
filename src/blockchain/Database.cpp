@@ -3,45 +3,61 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"             // IWYU pragma: associated
+#include "1_Internal.hpp"           // IWYU pragma: associated
+#include "blockchain/Database.hpp"  // IWYU pragma: associated
 
-#include "Internal.hpp"
+#include <algorithm>
+#include <boost/container/flat_set.hpp>
+#include <boost/container/vector.hpp>
+#include <cstring>
+#include <iterator>
+#include <map>
+#include <memory>
+#include <numeric>
+#include <stdexcept>
+#include <string_view>
+#include <tuple>
+#include <type_traits>
 
-#include "opentxs/api/crypto/Crypto.hpp"
-#include "opentxs/api/crypto/Hash.hpp"
+#include "Factory.hpp"
+#include "blockchain/client/UpdateTransaction.hpp"
+#include "core/Executor.hpp"
+#include "internal/api/Api.hpp"
+#include "internal/blockchain/Blockchain.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Proto.tpp"
 #include "opentxs/api/Core.hpp"
-#include "opentxs/api/Endpoints.hpp"
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/blockchain/block/Block.hpp"
+#include "opentxs/blockchain/block/Header.hpp"
 #include "opentxs/blockchain/block/bitcoin/Input.hpp"
 #include "opentxs/blockchain/block/bitcoin/Inputs.hpp"
 #include "opentxs/blockchain/block/bitcoin/Output.hpp"
 #include "opentxs/blockchain/block/bitcoin/Outputs.hpp"
 #include "opentxs/blockchain/block/bitcoin/Transaction.hpp"
-#include "opentxs/blockchain/block/Header.hpp"
 #include "opentxs/blockchain/client/HeaderOracle.hpp"
-#include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/Proto.tpp"
-
-#include "api/client/blockchain/database/Database.hpp"
-#include "blockchain/client/UpdateTransaction.hpp"
-#include "core/Executor.hpp"
-#include "internal/api/Api.hpp"
-#include "internal/blockchain/block/Block.hpp"
-#include "internal/blockchain/p2p/P2P.hpp"
-#include "internal/blockchain/Blockchain.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/network/zeromq/socket/Publish.hpp"
 #include "util/LMDB.hpp"
 
-#include <boost/container/flat_set.hpp>
-
-#include <algorithm>
-#include <map>
-#include <memory>
-#include <mutex>
-#include <random>
-#include <set>
-
-#include "Database.hpp"
+namespace opentxs
+{
+namespace blockchain
+{
+namespace block
+{
+namespace bitcoin
+{
+class Block;
+}  // namespace bitcoin
+}  // namespace block
+}  // namespace blockchain
+}  // namespace opentxs
 
 #define OT_METHOD "opentxs::blockchain::implementation::Database::"
 

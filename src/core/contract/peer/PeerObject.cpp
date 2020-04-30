@@ -3,31 +3,31 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"                       // IWYU pragma: associated
+#include "1_Internal.hpp"                     // IWYU pragma: associated
+#include "core/contract/peer/PeerObject.hpp"  // IWYU pragma: associated
 
-#include "Internal.hpp"
+#include <stdexcept>
 
-#include "opentxs/api/client/Contacts.hpp"
-#include "opentxs/api/Core.hpp"
+#include "Factory.hpp"
+#include "internal/api/Api.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.tpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
+#include "opentxs/api/client/Contacts.hpp"
 #if OT_CASH
 #include "opentxs/blind/Purse.hpp"
-#endif
+#endif  // OT_CASH
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/String.hpp"
 #include "opentxs/core/contract/peer/PeerObject.hpp"
 #include "opentxs/core/contract/peer/PeerReply.hpp"
 #include "opentxs/core/contract/peer/PeerRequest.hpp"
-#include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
-#include "opentxs/core/Armored.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/String.hpp"
 #include "opentxs/crypto/Envelope.hpp"
-#include "opentxs/Proto.tpp"
-
-#include "internal/api/Api.hpp"
-
-#include "PeerObject.hpp"
+#include "opentxs/identity/Nym.hpp"
 
 #define OT_METHOD "opentxs::peer::implementation::Object::"
 

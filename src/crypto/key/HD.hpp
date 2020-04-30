@@ -5,7 +5,41 @@
 
 #pragma once
 
-#include "EllipticCurve.hpp"
+#include <memory>
+#include <string>
+#include <tuple>
+
+#include "crypto/key/EllipticCurve.hpp"
+#include "opentxs/Bytes.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/Version.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/crypto/key/HD.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
+namespace crypto
+{
+namespace key
+{
+class Symmetric;
+}  // namespace key
+
+class EcdsaProvider;
+}  // namespace crypto
+
+class Data;
+class PasswordPrompt;
+}  // namespace opentxs
 
 namespace opentxs::crypto::key::implementation
 {

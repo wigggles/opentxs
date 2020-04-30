@@ -5,8 +5,6 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
 #include "opentxs/Bytes.hpp"
 
 namespace opentxs::crypto::sodium

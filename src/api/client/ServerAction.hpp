@@ -3,9 +3,49 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/api/client/ServerAction.cpp"
+
 #pragma once
 
-#include "Internal.hpp"
+#include <chrono>
+#include <memory>
+#include <string>
+
+#include "opentxs/Types.hpp"
+#include "opentxs/api/client/ServerAction.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace client
+{
+namespace internal
+{
+struct Manager;
+}  // namespace internal
+}  // namespace client
+}  // namespace api
+
+namespace identifier
+{
+class Nym;
+class Server;
+class UnitDefinition;
+}  // namespace identifier
+
+namespace proto
+{
+class UnitDefinition;
+}  // namespace proto
+
+class Factory;
+class Identifier;
+class OTPaymentPlan;
+class OTSmartContract;
+class PasswordPrompt;
+}  // namespace opentxs
 
 namespace opentxs::api::client::implementation
 {

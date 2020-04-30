@@ -5,7 +5,74 @@
 
 #pragma once
 
-#include "Internal.hpp"
+#include <cstdint>
+#include <list>
+#include <map>
+#include <memory>
+#include <string>
+#include <utility>
+
+#include "internal/identity/Identity.hpp"
+#include "internal/identity/credential/Credential.hpp"
+#include "opentxs/Bytes.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/crypto/key/Asymmetric.hpp"
+#include "opentxs/crypto/key/Keypair.hpp"
+#include "opentxs/identity/Authority.hpp"
+#include "opentxs/identity/Nym.hpp"
+#include "opentxs/identity/Source.hpp"
+#include "opentxs/identity/credential/Base.hpp"
+#include "opentxs/identity/credential/Key.hpp"
+#include "opentxs/identity/credential/Primary.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
+namespace crypto
+{
+namespace key
+{
+class Asymmetric;
+class Symmetric;
+}  // namespace key
+}  // namespace crypto
+
+namespace identity
+{
+namespace credential
+{
+class Key;
+class Primary;
+}  // namespace credential
+}  // namespace identity
+
+namespace proto
+{
+class ContactData;
+class Credential;
+class HDPath;
+class Signature;
+class Verification;
+class VerificationSet;
+}  // namespace proto
+
+class Data;
+class Factory;
+class NymParameters;
+class OTPassword;
+class PasswordPrompt;
+class Signature;
+}  // namespace opentxs
 
 namespace opentxs::identity::implementation
 {

@@ -5,19 +5,53 @@
 
 #pragma once
 
-#include "Internal.hpp"
+#include <iosfwd>
+#include <memory>
+#include <optional>
+#include <set>
+#include <string>
+#include <utility>
+#include <vector>
 
-#include "opentxs/core/String.hpp"
-#include "opentxs/Bytes.hpp"
-
-#include "internal/api/client/blockchain/Blockchain.hpp"
-#include "internal/blockchain/client/Client.hpp"
-#include "internal/blockchain/Blockchain.hpp"
-#include "util/LMDB.hpp"
 #include "BlockFilter.hpp"
 #include "BlockHeaders.hpp"
 #include "Blocks.hpp"
 #include "Peers.hpp"
+#include "internal/api/client/blockchain/Blockchain.hpp"
+#include "internal/blockchain/Blockchain.hpp"
+#include "internal/blockchain/client/Client.hpp"
+#include "opentxs/Bytes.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/core/String.hpp"
+#include "util/LMDB.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+
+class Legacy;
+}  // namespace api
+
+namespace blockchain
+{
+namespace block
+{
+class Header;
+}  // namespace block
+
+namespace internal
+{
+struct GCS;
+}  // namespace internal
+}  // namespace blockchain
+}  // namespace opentxs
 
 namespace opentxs::api::client::blockchain::database::implementation
 {

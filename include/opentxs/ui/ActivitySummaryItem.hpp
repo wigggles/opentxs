@@ -6,13 +6,13 @@
 #ifndef OPENTXS_UI_ACTIVITYSUMMARYITEM_HPP
 #define OPENTXS_UI_ACTIVITYSUMMARYITEM_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/Types.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <chrono>
 #include <string>
 
+#include "opentxs/SharedPimpl.hpp"
+#include "opentxs/Types.hpp"
 #include "ListRow.hpp"
 
 #ifdef SWIG
@@ -31,8 +31,16 @@
 
 namespace opentxs
 {
-using OTUIActivitySummaryItem = SharedPimpl<ui::ActivitySummaryItem>;
+namespace ui
+{
+class ActivitySummaryItem;
+}  // namespace ui
 
+using OTUIActivitySummaryItem = SharedPimpl<ui::ActivitySummaryItem>;
+}  // namespace opentxs
+
+namespace opentxs
+{
 namespace ui
 {
 class ActivitySummaryItem : virtual public ListRow

@@ -6,14 +6,15 @@
 #ifndef OPENTXS_BLOCKCHAIN_BLOCKCHAIN_HPP
 #define OPENTXS_BLOCKCHAIN_BLOCKCHAIN_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/core/Data.hpp"
-#include "opentxs/Bytes.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <set>
 #include <tuple>
 #include <vector>
+
+#include "opentxs/Bytes.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/core/Data.hpp"
 
 namespace opentxs
 {

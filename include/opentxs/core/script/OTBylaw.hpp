@@ -6,18 +6,17 @@
 #ifndef OPENTXS_CORE_SCRIPT_OTBYLAW_HPP
 #define OPENTXS_CORE_SCRIPT_OTBYLAW_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/core/script/OTVariable.hpp"
-#include "opentxs/core/String.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <cstdint>
 #include <map>
 #include <string>
 
+#include "opentxs/core/script/OTVariable.hpp"
+#include "opentxs/core/String.hpp"
+
 namespace opentxs
 {
-
 class OTClause;
 class OTScript;
 class OTScriptable;

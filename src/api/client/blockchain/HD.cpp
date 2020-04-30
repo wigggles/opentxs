@@ -3,26 +3,31 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"                  // IWYU pragma: associated
+#include "1_Internal.hpp"                // IWYU pragma: associated
+#include "api/client/blockchain/HD.hpp"  // IWYU pragma: associated
 
-#include "Internal.hpp"
-
-#include "opentxs/api/storage/Storage.hpp"
-#include "opentxs/api/Core.hpp"
-#include "opentxs/api/Factory.hpp"
-#include "opentxs/api/HDSeed.hpp"
-#include "opentxs/core/identifier/Nym.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/PasswordPrompt.hpp"
-
-#include "api/client/blockchain/Deterministic.hpp"
-#include "internal/api/Api.hpp"
-
+#include <algorithm>
 #include <atomic>
 #include <map>
+#include <memory>
 #include <set>
+#include <stdexcept>
+#include <tuple>
+#include <type_traits>
+#include <utility>
 
-#include "HD.hpp"
+#include "Factory.hpp"
+#include "api/client/blockchain/Deterministic.hpp"
+#include "internal/api/Api.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/api/HDSeed.hpp"
+#include "opentxs/api/storage/Storage.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
 
 #define OT_METHOD "opentxs::api::client::blockchain::implementation::HD::"
 

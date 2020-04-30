@@ -6,9 +6,10 @@
 #ifndef OPENTXS_CORE_IDENTIFIER_NYM_HPP
 #define OPENTXS_CORE_IDENTIFIER_NYM_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include "opentxs/core/Identifier.hpp"
+#include "opentxs/Pimpl.hpp"
 
 #ifdef SWIG
 // clang-format off
@@ -31,29 +32,37 @@
 
 namespace opentxs
 {
+namespace identifier
+{
+class Nym;
+}  // namespace identifier
+
 using OTNymID = Pimpl<identifier::Nym>;
 
 #ifndef SWIG
 OPENTXS_EXPORT bool operator==(
-    const opentxs::Pimpl<opentxs::identifier::Nym>& lhs,
+    const OTNymID& lhs,
     const opentxs::Identifier& rhs);
 OPENTXS_EXPORT bool operator!=(
-    const opentxs::Pimpl<opentxs::identifier::Nym>& lhs,
+    const OTNymID& lhs,
     const opentxs::Identifier& rhs);
 OPENTXS_EXPORT bool operator<(
-    const opentxs::Pimpl<opentxs::identifier::Nym>& lhs,
+    const OTNymID& lhs,
     const opentxs::Identifier& rhs);
 OPENTXS_EXPORT bool operator>(
-    const opentxs::Pimpl<opentxs::identifier::Nym>& lhs,
+    const OTNymID& lhs,
     const opentxs::Identifier& rhs);
 OPENTXS_EXPORT bool operator<=(
-    const opentxs::Pimpl<opentxs::identifier::Nym>& lhs,
+    const OTNymID& lhs,
     const opentxs::Identifier& rhs);
 OPENTXS_EXPORT bool operator>=(
-    const opentxs::Pimpl<opentxs::identifier::Nym>& lhs,
+    const OTNymID& lhs,
     const opentxs::Identifier& rhs);
 #endif
+}  // namespace opentxs
 
+namespace opentxs
+{
 namespace identifier
 {
 class Nym : virtual public opentxs::Identifier

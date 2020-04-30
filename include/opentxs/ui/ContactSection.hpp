@@ -6,13 +6,14 @@
 #ifndef OPENTXS_UI_CONTACTSECTION_HPP
 #define OPENTXS_UI_CONTACTSECTION_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
+
+#include <string>
 
 #include "opentxs/ui/List.hpp"
 #include "opentxs/ui/ListRow.hpp"
 #include "opentxs/Proto.hpp"
-
-#include <string>
+#include "opentxs/SharedPimpl.hpp"
 
 #ifdef SWIG
 // clang-format off
@@ -31,8 +32,16 @@
 
 namespace opentxs
 {
-using OTUIContactSection = SharedPimpl<ui::ContactSection>;
+namespace ui
+{
+class ContactSection;
+}  // namespace ui
 
+using OTUIContactSection = SharedPimpl<ui::ContactSection>;
+}  // namespace opentxs
+
+namespace opentxs
+{
 namespace ui
 {
 class ContactSection : virtual public List, virtual public ListRow

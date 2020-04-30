@@ -6,7 +6,7 @@
 #ifndef OPENTXS_CRYPTO_LIBRARY_ASYMMETRICPROVIDER_HPP
 #define OPENTXS_CRYPTO_LIBRARY_ASYMMETRICPROVIDER_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/Bytes.hpp"

@@ -3,41 +3,39 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"              // IWYU pragma: associated
+#include "1_Internal.hpp"            // IWYU pragma: associated
+#include "opentxs/core/Account.hpp"  // IWYU pragma: associated
 
-#include "opentxs/core/Account.hpp"
+#include <cinttypes>
+#include <cstdint>
+#include <irrxml/irrXML.hpp>
+#include <memory>
+#include <set>
+#include <string>
 
-#include "opentxs/api/Core.hpp"
+#include "internal/api/Api.hpp"
+#include "opentxs/Pimpl.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/consensus/Context.hpp"
-#include "opentxs/core/identifier/Nym.hpp"
-#include "opentxs/core/identifier/Server.hpp"
-#include "opentxs/core/util/Common.hpp"
-#include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Helpers.hpp"
 #include "opentxs/core/Ledger.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/core/Message.hpp"
+#include "opentxs/core/LogSource.hpp"
 #include "opentxs/core/NymFile.hpp"
 #include "opentxs/core/OTStorage.hpp"
-#include "opentxs/core/StringXML.hpp"
 #include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/core/StringXML.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/core/util/Common.hpp"
+#include "opentxs/core/util/Tag.hpp"
 #include "opentxs/identity/Nym.hpp"
-
-#include "internal/api/Api.hpp"
-
-#include <irrxml/irrXML.hpp>
-
-#include <cinttypes>
-#include <cstdint>
-#include <fstream>
-#include <memory>
-#include <string>
 
 using namespace irr;
 using namespace io;

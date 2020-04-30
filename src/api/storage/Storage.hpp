@@ -3,9 +3,65 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/api/storage/Storage.cpp"
+
 #pragma once
 
-#include "Internal.hpp"
+#include <cstdint>
+#include <ctime>
+#include <iosfwd>
+#include <limits>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <set>
+#include <string>
+#include <thread>
+#include <utility>
+#include <vector>
+
+#include "internal/api/storage/Storage.hpp"
+#include "opentxs/Bytes.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/Version.hpp"
+#include "opentxs/api/Editor.hpp"
+#include "opentxs/api/storage/Storage.hpp"
+#include "opentxs/core/Data.hpp"
+#include "opentxs/core/Flag.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
+#include "storage/StorageConfig.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace storage
+{
+class Multiplex;
+}  // namespace storage
+}  // namespace api
+
+namespace crypto
+{
+namespace key
+{
+class Symmetric;
+}  // namespace key
+}  // namespace crypto
+
+namespace storage
+{
+class Root;
+}  // namespace storage
+
+class Factory;
+class String;
+}  // namespace opentxs
 
 namespace opentxs::api::storage::implementation
 {

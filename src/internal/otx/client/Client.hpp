@@ -5,19 +5,16 @@
 
 #pragma once
 
-#include "Internal.hpp"
+#include <future>
+#include <memory>
 
+#include "internal/api/client/Client.hpp"
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/client/OTX.hpp"
+#include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/core/contract/peer/PeerReply.hpp"
 #include "opentxs/core/contract/peer/PeerRequest.hpp"
-#include "opentxs/consensus/ServerContext.hpp"
-
-#include "internal/api/client/Client.hpp"
-
-#include <future>
-#include <memory>
 
 namespace opentxs
 {

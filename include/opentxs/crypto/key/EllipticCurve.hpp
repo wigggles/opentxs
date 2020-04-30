@@ -6,12 +6,12 @@
 #ifndef OPENTXS_CRYPTO_KEY_ELLIPTICCURVE_HPP
 #define OPENTXS_CRYPTO_KEY_ELLIPTICCURVE_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
+
+#include <memory>
 
 #include "opentxs/crypto/key/Asymmetric.hpp"
 #include "opentxs/crypto/key/Keypair.hpp"
-
-#include <memory>
 
 namespace opentxs
 {

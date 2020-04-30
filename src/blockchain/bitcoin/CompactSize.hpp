@@ -5,10 +5,12 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
+#include <cstddef>
 #include <cstdint>
 #include <stdexcept>
+#include <vector>
+
+#include "opentxs/Bytes.hpp"
 
 namespace opentxs::blockchain::bitcoin
 {

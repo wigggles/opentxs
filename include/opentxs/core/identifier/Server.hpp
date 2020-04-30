@@ -6,9 +6,10 @@
 #ifndef OPENTXS_CORE_IDENTIFIER_SERVER_HPP
 #define OPENTXS_CORE_IDENTIFIER_SERVER_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include "opentxs/core/Identifier.hpp"
+#include "opentxs/Pimpl.hpp"
 
 #ifdef SWIG
 // clang-format off
@@ -31,29 +32,37 @@
 
 namespace opentxs
 {
+namespace identifier
+{
+class Server;
+}  // namespace identifier
+
 using OTServerID = Pimpl<identifier::Server>;
 
 #ifndef SWIG
 OPENTXS_EXPORT bool operator==(
-    const opentxs::Pimpl<opentxs::identifier::Server>& lhs,
+    const OTServerID& lhs,
     const opentxs::Identifier& rhs);
 OPENTXS_EXPORT bool operator!=(
-    const opentxs::Pimpl<opentxs::identifier::Server>& lhs,
+    const OTServerID& lhs,
     const opentxs::Identifier& rhs);
 OPENTXS_EXPORT bool operator<(
-    const opentxs::Pimpl<opentxs::identifier::Server>& lhs,
+    const OTServerID& lhs,
     const opentxs::Identifier& rhs);
 OPENTXS_EXPORT bool operator>(
-    const opentxs::Pimpl<opentxs::identifier::Server>& lhs,
+    const OTServerID& lhs,
     const opentxs::Identifier& rhs);
 OPENTXS_EXPORT bool operator<=(
-    const opentxs::Pimpl<opentxs::identifier::Server>& lhs,
+    const OTServerID& lhs,
     const opentxs::Identifier& rhs);
 OPENTXS_EXPORT bool operator>=(
-    const opentxs::Pimpl<opentxs::identifier::Server>& lhs,
+    const OTServerID& lhs,
     const opentxs::Identifier& rhs);
 #endif
+}  // namespace opentxs
 
+namespace opentxs
+{
 namespace identifier
 {
 class Server : virtual public opentxs::Identifier

@@ -6,7 +6,7 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTCALLBACK_HPP
 #define OPENTXS_CORE_CRYPTO_OTCALLBACK_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #ifdef SWIG
 // clang-format off
@@ -16,6 +16,8 @@
 
 namespace opentxs
 {
+class OTPassword;
+
 class OTCallback
 {
 public:

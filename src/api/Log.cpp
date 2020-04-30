@@ -3,27 +3,31 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"    // IWYU pragma: associated
+#include "1_Internal.hpp"  // IWYU pragma: associated
+#include "api/Log.hpp"     // IWYU pragma: associated
+
+#ifdef ANDROID
+extern "C" {
+#include <android/log.h>
+}
+#endif
+
+#include <cstdlib>
+#include <functional>
+#include <future>
+#include <iostream>
+#include <memory>
 
 #include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/network/zeromq/socket/Pull.hpp"
-#include "opentxs/network/zeromq/socket/Publish.hpp"
-#include "opentxs/network/zeromq/socket/Sender.tpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
-
-#include "internal/api/Api.hpp"
-
-#ifdef ANDROID
-#include <android/log.h>
-#endif
-
-#include <future>
-
-#include "Log.hpp"
+#include "opentxs/network/zeromq/socket/Publish.hpp"
+#include "opentxs/network/zeromq/socket/Pull.hpp"
+#include "opentxs/network/zeromq/socket/Socket.hpp"
 
 #define LOG_SINK "inproc://opentxs/logsink/1"
 

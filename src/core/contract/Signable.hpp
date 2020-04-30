@@ -5,11 +5,31 @@
 
 #pragma once
 
-#include "Internal.hpp"
+#include <list>
+#include <mutex>
+#include <string>
 
+#include "opentxs/Types.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/contract/Signable.hpp"
 
-#include <list>
+namespace opentxs
+{
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
+namespace proto
+{
+class Signature;
+}  // namespace proto
+
+class PasswordPrompt;
+}  // namespace opentxs
 
 namespace opentxs::contract::implementation
 {

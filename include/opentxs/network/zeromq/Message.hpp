@@ -6,9 +6,10 @@
 #ifndef OPENTXS_NETWORK_ZEROMQ_MESSAGE_HPP
 #define OPENTXS_NETWORK_ZEROMQ_MESSAGE_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include "opentxs/network/zeromq/Frame.hpp"
+#include "opentxs/Pimpl.hpp"
 #include "opentxs/Proto.hpp"
 
 #ifdef SWIG
@@ -27,8 +28,19 @@
 
 namespace opentxs
 {
-using OTZMQMessage = Pimpl<network::zeromq::Message>;
+namespace network
+{
+namespace zeromq
+{
+class Message;
+}  // namespace zeromq
+}  // namespace network
 
+using OTZMQMessage = Pimpl<network::zeromq::Message>;
+}  // namespace opentxs
+
+namespace opentxs
+{
 namespace network
 {
 namespace zeromq

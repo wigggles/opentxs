@@ -5,13 +5,33 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
-#include "opentxs/core/contract/UnitDefinition.hpp"
+#include <cstdint>
+#include <map>
+#include <string>
 
 #include "core/contract/Signable.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/core/Account.hpp"
+#include "opentxs/core/Data.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/contract/UnitDefinition.hpp"
 
-#include <map>
+namespace opentxs
+{
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
+class AccountVisitor;
+class Factory;
+class PasswordPrompt;
+class String;
+}  // namespace opentxs
 
 namespace opentxs::contract::implementation
 {

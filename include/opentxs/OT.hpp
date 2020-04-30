@@ -6,11 +6,11 @@
 #ifndef OPENTXS_OT_HPP
 #define OPENTXS_OT_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/Types.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <chrono>
+
+#include "opentxs/Types.hpp"
 
 namespace opentxs
 {

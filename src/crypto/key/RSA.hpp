@@ -5,17 +5,48 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
-#include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/Data.hpp"
-#include "opentxs/crypto/key/RSA.hpp"
-
-#include "Asymmetric.hpp"
-
 #include <memory>
 
-#if OT_CRYPTO_SUPPORTED_KEY_RSA
+#include "crypto/key/Asymmetric.hpp"
+#include "opentxs/Bytes.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/Version.hpp"
+#include "opentxs/core/Data.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/crypto/key/RSA.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
+namespace crypto
+{
+namespace key
+{
+class Asymmetric;
+}  // namespace key
+
+class AsymmetricProvider;
+}  // namespace crypto
+
+namespace proto
+{
+class AsymmetricKey;
+class Ciphertext;
+}  // namespace proto
+
+class NymParameters;
+class OTPassword;
+class PasswordPrompt;
+}  // namespace opentxs
+
 namespace opentxs::crypto::key::implementation
 {
 class RSA final : public key::RSA, public Asymmetric
@@ -63,4 +94,3 @@ private:
     RSA& operator=(RSA&&) = delete;
 };
 }  // namespace opentxs::crypto::key::implementation
-#endif  // OT_CRYPTO_SUPPORTED_KEY_RSA

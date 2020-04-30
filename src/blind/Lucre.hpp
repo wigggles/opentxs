@@ -5,11 +5,13 @@
 
 #pragma once
 
+#if OT_CASH_USING_LUCRE
 // IWYU pragma: begin_exports
 #include <lucre/bank.h>
 // IWYU pragma: end_exports
-
 #include <string>
+
+#include "opentxs/Version.hpp"
 
 namespace opentxs::blind
 {
@@ -22,3 +24,4 @@ public:
     ~LucreDumper() = default;
 };
 }  // namespace opentxs::blind
+#endif  // OT_CASH_USING_LUCRE

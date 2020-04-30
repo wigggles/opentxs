@@ -3,23 +3,31 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"           // IWYU pragma: associated
+#include "1_Internal.hpp"         // IWYU pragma: associated
+#include "api/client/Issuer.hpp"  // IWYU pragma: associated
 
-#include "opentxs/api/client/Issuer.hpp"
+#include <algorithm>
+#include <cstdint>
+#include <ctime>
+#include <memory>
+#include <ostream>
+#include <type_traits>
+
+#include "Factory.hpp"
+#include "opentxs/Pimpl.hpp"
 #include "opentxs/api/Wallet.hpp"
+#include "opentxs/api/client/Issuer.hpp"
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/contact/ContactGroup.hpp"
 #include "opentxs/contact/ContactItem.hpp"
-#include "opentxs/contact/ContactSection.hpp"
-#include "opentxs/core/Identifier.hpp"
+#include "opentxs/contact/ContactSection.hpp"  // IWYU pragma: keep
 #include "opentxs/core/Flag.hpp"
-#include "opentxs/core/Lockable.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
-
-#include <cstdint>
-#include <mutex>
-
-#include "Issuer.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/identity/Nym.hpp"
 
 #define CURRENT_VERSION 1
 

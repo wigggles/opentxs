@@ -3,20 +3,25 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "Internal.hpp"
+#include "0_stdafx.hpp"                // IWYU pragma: associated
+#include "1_Internal.hpp"              // IWYU pragma: associated
+#include "blockchain/NumericHash.hpp"  // IWYU pragma: associated
 
-#include "stdafx.hpp"
+#include <boost/endian/buffers.hpp>
+#include <algorithm>
+#include <cstddef>
+#include <cstdint>
+#include <iterator>
+#include <vector>
 
+#include "Factory.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/blockchain/NumericHash.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
-
-#include <boost/endian/buffers.hpp>
-#include <boost/multiprecision/cpp_int.hpp>
-
-#include <vector>
-
-#include "NumericHash.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/iterator/Bidirectional.hpp"
 
 #define OT_METHOD "opentxs::blockchain::implementation::NumericHash::"
 

@@ -3,16 +3,58 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/api/crypto/Crypto.cpp"
+
 #pragma once
-
-#include "Internal.hpp"
-
-#include "opentxs/api/crypto/Crypto.hpp"
-#include "opentxs/Proto.hpp"
-#include "opentxs/Types.hpp"
 
 #include <map>
 #include <memory>
+
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/Version.hpp"
+#include "opentxs/api/crypto/Config.hpp"
+#include "opentxs/api/crypto/Crypto.hpp"
+#include "opentxs/api/crypto/Encode.hpp"
+#include "opentxs/api/crypto/Hash.hpp"
+#include "opentxs/api/crypto/Util.hpp"
+#include "opentxs/crypto/Bip32.hpp"
+#include "opentxs/crypto/Bip39.hpp"
+#include "opentxs/crypto/library/AsymmetricProvider.hpp"
+#include "opentxs/crypto/library/EcdsaProvider.hpp"
+#include "opentxs/crypto/library/SymmetricProvider.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace crypto
+{
+class Config;
+class Encode;
+class Hash;
+class Util;
+}  // namespace crypto
+
+class Settings;
+}  // namespace api
+
+namespace crypto
+{
+namespace key
+{
+class Symmetric;
+}  // namespace key
+
+class OpenSSL;
+class Ripemd160;
+class Secp256k1;
+class Sodium;
+}  // namespace crypto
+
+class Factory;
+}  // namespace opentxs
 
 namespace opentxs::api::implementation
 {

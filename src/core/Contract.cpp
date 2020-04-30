@@ -3,41 +3,40 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
-
-#include "opentxs/core/Contract.hpp"
-
-#include "opentxs/api/Core.hpp"
-#include "opentxs/api/Factory.hpp"
-#include "opentxs/api/Legacy.hpp"
-#include "opentxs/api/Wallet.hpp"
-#include "opentxs/core/crypto/Signature.hpp"
-#include "opentxs/core/crypto/OTSignatureMetadata.hpp"
-#include "opentxs/core/identifier/Nym.hpp"
-#include "opentxs/core/util/Tag.hpp"
-#include "opentxs/core/Armored.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/OTStorage.hpp"
-#include "opentxs/core/StringXML.hpp"
-#include "opentxs/core/String.hpp"
-#include "opentxs/crypto/key/Asymmetric.hpp"
-#include "opentxs/crypto/library/AsymmetricProvider.hpp"
-#include "opentxs/crypto/library/HashingProvider.hpp"
-#include "opentxs/identity/Nym.hpp"
-#include "opentxs/Proto.tpp"
-
-#include "internal/api/Api.hpp"
+#include "0_stdafx.hpp"               // IWYU pragma: associated
+#include "1_Internal.hpp"             // IWYU pragma: associated
+#include "opentxs/core/Contract.hpp"  // IWYU pragma: associated
 
 #include <irrxml/irrXML.hpp>
-
 #include <array>
 #include <cstdint>
 #include <cstring>
-#include <fstream>
+#include <fstream>  // IWYU pragma: keep
 #include <map>
 #include <memory>
 #include <string>
 #include <utility>
+
+#include "internal/api/Api.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/api/Legacy.hpp"
+#include "opentxs/api/Wallet.hpp"
+#include "opentxs/core/Armored.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/OTStorage.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/StringXML.hpp"
+#include "opentxs/core/crypto/OTSignatureMetadata.hpp"
+#include "opentxs/core/crypto/Signature.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/util/Tag.hpp"
+#include "opentxs/crypto/key/Asymmetric.hpp"
+#include "opentxs/crypto/key/Keypair.hpp"
+#include "opentxs/crypto/library/AsymmetricProvider.hpp"
+#include "opentxs/crypto/library/HashingProvider.hpp"
+#include "opentxs/identity/Nym.hpp"
 
 using namespace irr;
 using namespace io;

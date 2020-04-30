@@ -5,24 +5,43 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
-#include "opentxs/api/Editor.hpp"
-#include "opentxs/core/Flag.hpp"
-#include "opentxs/Types.hpp"
-
-#include "Node.hpp"
-
 #include <atomic>
 #include <cstdint>
 #include <limits>
 #include <string>
 #include <thread>
+#include <memory>
+#include <mutex>
+
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/api/Editor.hpp"
+#include "opentxs/core/Flag.hpp"
+#include "storage/tree/Node.hpp"
+#include "storage/tree/Tree.hpp"
 
 namespace opentxs
 {
+namespace api
+{
 namespace storage
 {
+namespace implementation
+{
+class Storage;
+}  // namespace implementation
+
+class Driver;
+}  // namespace storage
+}  // namespace api
+
+namespace storage
+{
+namespace implementation
+{
+class StorageMultiplex;
+}  // namespace implementation
+
 class Root final : public Node
 {
 private:

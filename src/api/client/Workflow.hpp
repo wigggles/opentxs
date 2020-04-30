@@ -3,9 +3,62 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/api/client/Workflow.cpp"
+
 #pragma once
 
-#include "Internal.hpp"
+#include <chrono>
+#include <map>
+#include <memory>
+#include <set>
+#include <shared_mutex>
+#include <string>
+#include <utility>
+#include <vector>
+
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/Version.hpp"
+#include "opentxs/api/client/Workflow.hpp"
+#include "opentxs/core/Cheque.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Item.hpp"
+#include "opentxs/core/Lockable.hpp"
+#include "opentxs/core/Message.hpp"
+#include "opentxs/core/OTTransaction.hpp"
+#include "opentxs/network/zeromq/socket/Publish.hpp"
+#include "opentxs/network/zeromq/socket/Push.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace client
+{
+class Activity;
+class Contacts;
+}  // namespace client
+
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
+namespace blind
+{
+class Purse;
+}  // namespace blind
+
+namespace identifier
+{
+class Nym;
+class Server;
+}  // namespace identifier
+
+class Factory;
+}  // namespace opentxs
 
 namespace opentxs::api::client::implementation
 {

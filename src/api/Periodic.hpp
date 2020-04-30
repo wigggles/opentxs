@@ -5,6 +5,21 @@
 
 #pragma once
 
+#include <atomic>
+#include <chrono>
+#include <map>
+#include <mutex>
+#include <thread>
+#include <tuple>
+
+#include "opentxs/Types.hpp"
+#include "opentxs/api/Periodic.hpp"
+
+namespace opentxs
+{
+class Flag;
+}  // namespace opentxs
+
 namespace opentxs::api::implementation
 {
 class Periodic : virtual public api::Periodic

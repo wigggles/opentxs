@@ -6,11 +6,12 @@
 #ifndef OPENTXS_NETWORK_ZEROMQ_PIPELINE_HPP
 #define OPENTXS_NETWORK_ZEROMQ_PIPELINE_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include "opentxs/network/zeromq/socket/Socket.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/Pimpl.hpp"
 #include "opentxs/Proto.hpp"
 
 #ifdef SWIG
@@ -22,8 +23,19 @@
 
 namespace opentxs
 {
-using OTZMQPipeline = Pimpl<network::zeromq::Pipeline>;
+namespace network
+{
+namespace zeromq
+{
+class Pipeline;
+}  // namespace zeromq
+}  // namespace network
 
+using OTZMQPipeline = Pimpl<network::zeromq::Pipeline>;
+}  // namespace opentxs
+
+namespace opentxs
+{
 namespace network
 {
 namespace zeromq

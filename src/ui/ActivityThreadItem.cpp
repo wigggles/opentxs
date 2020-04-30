@@ -3,24 +3,19 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"               // IWYU pragma: associated
+#include "1_Internal.hpp"             // IWYU pragma: associated
+#include "ui/ActivityThreadItem.hpp"  // IWYU pragma: associated
 
-#include "opentxs/api/client/Activity.hpp"
-#include "opentxs/api/client/Contacts.hpp"
-#include "opentxs/api/client/Manager.hpp"
-#include "opentxs/core/Flag.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Lockable.hpp"
-#include "opentxs/ui/ActivityThread.hpp"
-#include "opentxs/ui/ActivityThreadItem.hpp"
+#include <tuple>
+#include <utility>
 
 #include "internal/api/client/Client.hpp"
-#include "internal/ui/UI.hpp"
-#include "Row.hpp"
-
-#include "ActivityThreadItem.hpp"
-
-template class opentxs::SharedPimpl<opentxs::ui::ActivityThreadItem>;
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/api/client/Activity.hpp"
+#include "opentxs/core/Flag.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "ui/Widget.hpp"
 
 namespace opentxs::ui::implementation
 {

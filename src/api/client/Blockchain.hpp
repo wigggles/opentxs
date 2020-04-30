@@ -3,7 +3,82 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/api/client/Blockchain.cpp"
+
 #pragma once
+
+#include <atomic>
+#include <future>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <set>
+#include <string>
+#include <tuple>
+#include <utility>
+#include <vector>
+
+#if OT_BLOCKCHAIN
+#include "api/client/blockchain/database/Database.hpp"
+#endif  // OT_BLOCKCHAIN
+#include "internal/api/Api.hpp"
+#include "internal/api/client/Client.hpp"
+#include "internal/api/client/blockchain/Blockchain.hpp"
+#include "internal/blockchain/client/Client.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/Version.hpp"
+#include "opentxs/api/client/Blockchain.hpp"
+#include "opentxs/api/client/Contacts.hpp"
+#include "opentxs/api/client/blockchain/BalanceTree.hpp"
+#include "opentxs/api/client/blockchain/HD.hpp"
+#include "opentxs/blockchain/Network.hpp"
+#include "opentxs/core/Data.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/network/zeromq/ListenCallback.hpp"
+#include "opentxs/network/zeromq/socket/Publish.hpp"
+#include "opentxs/network/zeromq/socket/Pull.hpp"
+#include "opentxs/network/zeromq/socket/Push.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace client
+{
+namespace blockchain
+{
+class BalanceTree;
+class HD;
+}  // namespace blockchain
+
+class Activity;
+}  // namespace client
+
+class Core;
+class Legacy;
+}  // namespace api
+
+namespace network
+{
+namespace zeromq
+{
+class Message;
+}  // namespace zeromq
+}  // namespace network
+
+namespace proto
+{
+class BlockchainTransaction;
+class HDPath;
+}  // namespace proto
+
+class Factory;
+class PasswordPrompt;
+}  // namespace opentxs
 
 namespace opentxs::api::client::implementation
 {

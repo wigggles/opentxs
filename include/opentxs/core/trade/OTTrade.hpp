@@ -3,23 +3,23 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-// An OTTrade is derived from OTCronItem. OTCron has a list of items,
-// which may be trades or agreements or who knows what next.
-
 #ifndef OPENTXS_CORE_TRADE_OTTRADE_HPP
 #define OPENTXS_CORE_TRADE_OTTRADE_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/core/cron/OTCronItem.hpp"
-#include "opentxs/core/trade/OTMarket.hpp"
-#include "opentxs/core/trade/OTOffer.hpp"
-#include "opentxs/core/Contract.hpp"
-#include "opentxs/core/OTTransactionType.hpp"
-#include "opentxs/core/String.hpp"
-#include "opentxs/Types.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <cstdint>
+
+#include "opentxs/Types.hpp"
+#include "opentxs/core/Account.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/OTTransactionType.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/cron/OTCronItem.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
+#include "opentxs/core/trade/OTMarket.hpp"
+#include "opentxs/core/trade/OTOffer.hpp"
 
 namespace opentxs
 {
@@ -35,6 +35,25 @@ namespace internal
 struct Core;
 }  // namespace internal
 }  // namespace api
+
+namespace identifier
+{
+class Nym;
+class Server;
+}  // namespace identifier
+
+namespace identity
+{
+class Nym;
+}  // namespace identity
+
+class ClientContext;
+class OTMarket;
+class OTOffer;
+class PasswordPrompt;
+
+// An OTTrade is derived from OTCronItem. OTCron has a list of items,
+// which may be trades or agreements or who knows what next.
 
 /*
  OTTrade

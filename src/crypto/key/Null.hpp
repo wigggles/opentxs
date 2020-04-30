@@ -5,17 +5,14 @@
 
 #pragma once
 
-#include "Internal.hpp"
+#include <memory>
 
+#include "crypto/library/AsymmetricProviderNull.hpp"
 #include "opentxs/crypto/key/HD.hpp"
+#include "opentxs/crypto/key/Keypair.hpp"
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #include "opentxs/crypto/key/Secp256k1.hpp"
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-#include "opentxs/crypto/key/Keypair.hpp"
-
-#include "crypto/library/AsymmetricProviderNull.hpp"
-
-#include <memory>
 
 namespace opentxs::crypto::key::implementation
 {

@@ -3,32 +3,33 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"               // IWYU pragma: associated
+#include "1_Internal.hpp"             // IWYU pragma: associated
+#include "api/crypto/Asymmetric.hpp"  // IWYU pragma: associated
 
+#include <type_traits>
+#include <utility>
+
+#include "Factory.hpp"
+#include "crypto/key/Null.hpp"
+#include "internal/api/Api.hpp"
 #include "opentxs/api/crypto/Asymmetric.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
-#include "opentxs/api/Core.hpp"
-#include "opentxs/crypto/key/HD.hpp"
-#include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/crypto/NymParameters.hpp"
+#include "opentxs/crypto/Bip32.hpp"
 #include "opentxs/crypto/key/Asymmetric.hpp"
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
 #include "opentxs/crypto/key/Ed25519.hpp"
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
+#include "opentxs/crypto/key/HD.hpp"
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
 #include "opentxs/crypto/key/RSA.hpp"
 #endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #include "opentxs/crypto/key/Secp256k1.hpp"
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-#include "opentxs/crypto/Bip32.hpp"
-
-#include "internal/api/crypto/Crypto.hpp"
-#include "internal/api/Api.hpp"
-#include "crypto/key/Null.hpp"
-#include "Factory.hpp"
-
-#include "Asymmetric.hpp"
 
 #define OT_METHOD "opentxs::api::crypto::implementation::Asymmetric::"
 

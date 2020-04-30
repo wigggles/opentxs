@@ -3,28 +3,24 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#pragma once
 
-#include "Internal.hpp"
+#include "network/zeromq/socket/Bidirectional.hpp"  // IWYU pragma: associated
 
+#include <memory>
+#include <mutex>
+#include <thread>
+#include <zmq.h>
+
+#include "network/zeromq/socket/Receiver.tpp"
+#include "network/zeromq/socket/Sender.tpp"
+#include "opentxs/Types.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/FrameIterator.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/Types.hpp"
-
-#include "Receiver.tpp"
-#include "Sender.tpp"
-
-#include <zmq.h>
-
-#include <memory>
-#include <mutex>
-#include <thread>
-
-#include "Bidirectional.hpp"
 
 #define CALLBACK_WAIT_MILLISECONDS 50
 #define POLL_MILLISECONDS 100

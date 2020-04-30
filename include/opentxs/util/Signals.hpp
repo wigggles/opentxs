@@ -6,17 +6,18 @@
 #ifndef OPENTXS_UTIL_SIGNALS_HPP
 #define OPENTXS_UTIL_SIGNALS_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/core/Flag.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <functional>
 #include <map>
 #include <memory>
 #include <thread>
 
+#include "opentxs/core/Flag.hpp"
+
 namespace opentxs
 {
+class Flag;
 
 class Signals
 {

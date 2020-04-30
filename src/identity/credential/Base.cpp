@@ -3,32 +3,33 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
-
-#include "opentxs/api/storage/Storage.hpp"
-#include "opentxs/api/Core.hpp"
-#include "opentxs/api/Factory.hpp"
-#include "opentxs/api/Wallet.hpp"
-#include "opentxs/core/contract/Signable.hpp"
-#include "opentxs/core/crypto/NymParameters.hpp"
-#include "opentxs/core/identifier/Nym.hpp"
-#include "opentxs/core/Armored.hpp"
-#include "opentxs/core/Data.hpp"
-#include "opentxs/core/String.hpp"
-#include "opentxs/identity/Authority.hpp"
-#include "opentxs/identity/Source.hpp"
-#include "opentxs/Proto.tpp"
-
-#include "internal/api/Api.hpp"
-#include "internal/identity/credential/Credential.hpp"
-#include "internal/identity/Identity.hpp"
+#include "0_stdafx.hpp"                  // IWYU pragma: associated
+#include "1_Internal.hpp"                // IWYU pragma: associated
+#include "identity/credential/Base.tpp"  // IWYU pragma: associated
 
 #include <list>
 #include <memory>
-#include <ostream>
+#include <stdexcept>
 #include <string>
 
-#include "Base.tpp"
+#include "core/contract/Signable.hpp"
+#include "identity/credential/Base.hpp"
+#include "internal/api/Api.hpp"
+#include "internal/identity/Identity.hpp"
+#include "internal/identity/credential/Credential.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.tpp"
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/api/Wallet.hpp"
+#include "opentxs/core/Armored.hpp"
+#include "opentxs/core/Data.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/contract/Signable.hpp"
+#include "opentxs/core/crypto/NymParameters.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/identity/Source.hpp"
+#include "opentxs/identity/credential/Primary.hpp"
 
 #define OT_METHOD "opentxs::identity::credential::implementation::Base::"
 

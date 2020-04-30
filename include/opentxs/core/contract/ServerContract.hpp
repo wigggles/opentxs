@@ -6,20 +6,29 @@
 #ifndef OPENTXS_CORE_CONTRACT_SERVERCONTRACT_HPP
 #define OPENTXS_CORE_CONTRACT_SERVERCONTRACT_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/core/contract/Signable.hpp"
-#include "opentxs/Proto.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <cstdint>
 #include <memory>
 #include <string>
 #include <tuple>
 
+#include "opentxs/core/contract/Signable.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/SharedPimpl.hpp"
+
 namespace opentxs
 {
-using OTServerContract = SharedPimpl<contract::Server>;
+namespace contract
+{
+class Server;
+}  // namespace contract
 
+using OTServerContract = SharedPimpl<contract::Server>;
+}  // namespace opentxs
+
+namespace opentxs
+{
 namespace contract
 {
 class Server : virtual public opentxs::contract::Signable

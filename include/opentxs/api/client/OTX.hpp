@@ -6,10 +6,7 @@
 #ifndef OPENTXS_API_CLIENT_OTX_HPP
 #define OPENTXS_API_CLIENT_OTX_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/Proto.hpp"
-#include "opentxs/Types.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <chrono>
 #include <cstdint>
@@ -17,6 +14,10 @@
 #include <tuple>
 #include <memory>
 #include <set>
+
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/core/identifier/Server.hpp"
 
 #define OT_CHEQUE_DAYS 30
 #define OT_CHEQUE_HOURS 24 * OT_CHEQUE_DAYS

@@ -3,9 +3,36 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/storage/drivers/StorageLMDB.cpp"
+
 #pragma once
 
-#if OT_STORAGE_LMDB
+#include <future>
+#include <string>
+
+#include "opentxs/Bytes.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/Version.hpp"
+#include "opentxs/api/storage/Driver.hpp"
+#include "storage/Plugin.hpp"
+#include "util/LMDB.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace storage
+{
+class Storage;
+}  // namespace storage
+}  // namespace api
+
+class Factory;
+class Flag;
+class StorageConfig;
+}  // namespace opentxs
+
 namespace opentxs::storage::implementation
 {
 // LMDB implementation of opentxs::storage
@@ -63,4 +90,3 @@ private:
     StorageLMDB& operator=(StorageLMDB&&) = delete;
 };
 }  // namespace opentxs::storage::implementation
-#endif  // OT_STORAGE_LMDB

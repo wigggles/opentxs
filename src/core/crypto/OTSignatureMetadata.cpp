@@ -3,19 +3,17 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"    // IWYU pragma: associated
+#include "1_Internal.hpp"  // IWYU pragma: associated
+#include "opentxs/core/crypto/OTSignatureMetadata.hpp"  // IWYU pragma: associated
 
-#include "opentxs/core/crypto/OTSignatureMetadata.hpp"
-
-#include "opentxs/api/crypto/Crypto.hpp"
-#include "opentxs/api/crypto/Encode.hpp"
-#include "opentxs/api/Core.hpp"
-#include "opentxs/core/Log.hpp"
+#include <string>
 
 #include "internal/api/Api.hpp"
-
-#include <ostream>
-#include <string>
+#include "opentxs/api/crypto/Crypto.hpp"
+#include "opentxs/api/crypto/Encode.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
 
 #define OT_METHOD "opentxs::OTSignatureMetadata::"
 

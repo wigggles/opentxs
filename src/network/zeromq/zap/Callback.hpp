@@ -3,11 +3,32 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/network/zeromq/zap/Callback.cpp"
+
 #pragma once
 
-#include "opentxs/Forward.hpp"
+#include <atomic>
+#include <map>
+#include <mutex>
+#include <string>
 
 #include "opentxs/network/zeromq/zap/Callback.hpp"
+#include "opentxs/network/zeromq/zap/Reply.hpp"
+
+namespace opentxs
+{
+namespace network
+{
+namespace zeromq
+{
+namespace zap
+{
+class Request;
+}  // namespace zap
+}  // namespace zeromq
+}  // namespace network
+}  // namespace opentxs
 
 namespace opentxs::network::zeromq::zap::implementation
 {

@@ -3,25 +3,26 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
-
-#include "opentxs/api/Legacy.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/String.hpp"
-
-#include <boost/filesystem.hpp>
+#include "0_stdafx.hpp"    // IWYU pragma: associated
+#include "1_Internal.hpp"  // IWYU pragma: associated
+#include "api/Legacy.hpp"  // IWYU pragma: associated
 
 #ifndef _WIN32
 extern "C" {
-#include <sys/types.h>
 #include <pwd.h>
 #include <unistd.h>
 }
 #endif
 
+#include <boost/filesystem.hpp>
 #include <cstdlib>
+#include <memory>
 
-#include "Legacy.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/api/Legacy.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/String.hpp"
 
 #define CLIENT_CONFIG_KEY "client"
 #define CRYPTO_CONFIG_KEY "crypto"

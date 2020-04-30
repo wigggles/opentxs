@@ -6,9 +6,9 @@
 #ifndef OPENTXS_API_CLIENT_BLOCKCHAIN_HD_HPP
 #define OPENTXS_API_CLIENT_BLOCKCHAIN_HD_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
-#include "Deterministic.hpp"
+#include "opentxs/api/client/blockchain/Deterministic.hpp"
 
 namespace opentxs
 {

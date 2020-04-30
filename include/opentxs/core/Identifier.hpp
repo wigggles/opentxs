@@ -6,14 +6,15 @@
 #ifndef OPENTXS_CORE_IDENTIFIER_HPP
 #define OPENTXS_CORE_IDENTIFIER_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
+
+#include <string>
 
 #include "opentxs/core/Data.hpp"
 #include "opentxs/Bytes.hpp"
+#include "opentxs/Pimpl.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
-
-#include <string>
 
 #ifdef SWIG
 // clang-format off
@@ -33,6 +34,8 @@
 
 namespace opentxs
 {
+class Identifier;
+
 using OTIdentifier = Pimpl<Identifier>;
 
 #ifndef SWIG
@@ -55,7 +58,10 @@ OPENTXS_EXPORT bool operator>=(
     const opentxs::Pimpl<opentxs::Identifier>& lhs,
     const opentxs::Identifier& rhs);
 #endif
+}  // namespace opentxs
 
+namespace opentxs
+{
 /** An Identifier is basically a 256 bit hash value. This class makes it easy to
  * convert IDs back and forth to strings. */
 class Identifier : virtual public Data

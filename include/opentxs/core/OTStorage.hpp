@@ -6,21 +6,19 @@
 #ifndef OPENTXS_CORE_OTSTORAGE_HPP
 #define OPENTXS_CORE_OTSTORAGE_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
-#include "opentxs/core/Log.hpp"
-
+#include <cstddef>
+#include <cstdint>
 #include <deque>
 #include <iostream>
-#include <vector>
 #include <map>
+#include <memory>
 #include <string>
-#include <cstdint>
+#include <utility>
+#include <vector>
 
-#define OTDB_PROTOCOL_BUFFERS 1
-
-#define OTDB_DEFAULT_PACKER OTDB::PACK_PROTOCOL_BUFFERS
-#define OTDB_DEFAULT_STORAGE OTDB::STORE_FILESYSTEM
+#include "opentxs/core/Log.hpp"
 
 namespace opentxs
 {
@@ -34,6 +32,38 @@ struct Core;
 
 namespace OTDB
 {
+class Acct;
+class AddressBook;
+class AskData;
+class BidData;
+class BitcoinAcct;
+class BitcoinServer;
+class Blob;
+class Contact;
+class ContactAcct;
+class ContactNym;
+class Displayable;
+class LoomServer;
+class MarketData;
+class MarketList;
+class OTDBString;
+class OfferDataMarket;
+class OfferDataNym;
+class OfferListMarket;
+class OfferListNym;
+class RippleServer;
+class Server;
+class ServerInfo;
+class StringMap;
+class TradeDataMarket;
+class TradeDataNym;
+class TradeListMarket;
+class TradeListNym;
+class WalletData;
+
+#define OTDB_PROTOCOL_BUFFERS 1
+#define OTDB_DEFAULT_PACKER OTDB::PACK_PROTOCOL_BUFFERS
+#define OTDB_DEFAULT_STORAGE OTDB::STORE_FILESYSTEM
 
 // ENUMS:    PackType, StorageType, and StoredObjectType.
 
@@ -99,15 +129,15 @@ enum StoredObjectType {
     STORED_OBJ_ERROR               // (Should never be.)
 };
 
+class OTPacker;  // A packer (Could be MsgPack, or Google Protocol Buffers, or a
+                 // Swappable.)
+class PackedBuffer;  // A buffer for containing a PACKED STORABLE. (On its way
 // ABSTRACT BASE CLASSES
 //
 class Storable;  // A storable object
-class OTPacker;  // A packer (Could be MsgPack, or Google Protocol Buffers, or a
                  // json lib...)
 class Storage;   // A storage context (database, filesystem, cloud, etc.
-                 // Swappable.)
-class PackedBuffer;  // A buffer for containing a PACKED STORABLE. (On its way
-                     // to/from storage.)
+                 // to/from storage.)
 
 // OTDB NAMESPACE "CONSTRUCTOR"
 //
@@ -1769,5 +1799,4 @@ public:
     using IStorable::hookAfterUnpack
 
 }  // namespace opentxs
-
 #endif

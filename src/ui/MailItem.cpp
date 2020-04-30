@@ -3,31 +3,28 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
-
-#include "opentxs/api/client/Activity.hpp"
-#include "opentxs/api/client/Manager.hpp"
-#include "opentxs/api/Factory.hpp"
-#include "opentxs/core/identifier/Nym.hpp"
-#include "opentxs/core/Flag.hpp"
-#include "opentxs/core/Lockable.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/Message.hpp"
-#include "opentxs/core/PasswordPrompt.hpp"
-#include "opentxs/ui/ActivityThreadItem.hpp"
-
-#include "internal/api/client/Client.hpp"
-#include "internal/ui/UI.hpp"
-#include "Row.hpp"
+#include "0_stdafx.hpp"     // IWYU pragma: associated
+#include "1_Internal.hpp"   // IWYU pragma: associated
+#include "ui/MailItem.hpp"  // IWYU pragma: associated
 
 #include <memory>
+#include <string>
 #include <thread>
 
-#include "MailItem.hpp"
+#include "internal/api/client/Client.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/api/client/Activity.hpp"
+#include "opentxs/core/Flag.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "ui/ActivityThreadItem.hpp"
 
-namespace opentxs
+namespace opentxs::factory
 {
-ui::implementation::ActivityThreadRowInternal* Factory::MailItem(
+auto MailItem(
     const ui::implementation::ActivityThreadInternalInterface& parent,
     const api::client::internal::Manager& api,
     const network::zeromq::socket::Publish& publisher,
@@ -36,9 +33,12 @@ ui::implementation::ActivityThreadRowInternal* Factory::MailItem(
     const ui::implementation::ActivityThreadSortKey& sortKey,
     const ui::implementation::CustomData& custom,
     const bool loading,
-    const bool pending)
+    const bool pending) noexcept
+    -> std::shared_ptr<ui::implementation::ActivityThreadRowInternal>
 {
-    return new ui::implementation::MailItem(
+    using ReturnType = ui::implementation::MailItem;
+
+    return std::make_shared<ReturnType>(
         parent,
         api,
         publisher,
@@ -50,19 +50,22 @@ ui::implementation::ActivityThreadRowInternal* Factory::MailItem(
         pending);
 }
 
-ui::implementation::ActivityThreadRowInternal* Factory::MailItem(
+auto MailItem(
     const ui::implementation::ActivityThreadInternalInterface& parent,
     const api::client::internal::Manager& api,
     const network::zeromq::socket::Publish& publisher,
     const identifier::Nym& nymID,
     const ui::implementation::ActivityThreadRowID& rowID,
     const ui::implementation::ActivityThreadSortKey& sortKey,
-    const ui::implementation::CustomData& custom)
+    const ui::implementation::CustomData& custom) noexcept
+    -> std::shared_ptr<ui::implementation::ActivityThreadRowInternal>
 {
-    return new ui::implementation::MailItem(
+    using ReturnType = ui::implementation::MailItem;
+
+    return std::make_shared<ReturnType>(
         parent, api, publisher, nymID, rowID, sortKey, custom);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::ui::implementation
 {

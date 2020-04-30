@@ -3,31 +3,36 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"                   // IWYU pragma: associated
+#include "1_Internal.hpp"                 // IWYU pragma: associated
+#include "opentxs/client/OTAPI_Exec.hpp"  // IWYU pragma: associated
 
-#include "opentxs/client/OTAPI_Exec.hpp"
+#include <cstdint>
+#include <memory>
+#include <string>
+#include <utility>
 
-#include "opentxs/api/client/Activity.hpp"
-#include "opentxs/api/client/Contacts.hpp"
-#include "opentxs/api/client/Manager.hpp"
-#include "opentxs/api/crypto/Crypto.hpp"
-#include "opentxs/api/crypto/Encode.hpp"
-#include "opentxs/api/network/ZMQ.hpp"
+#include "internal/api/Api.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Proto.tpp"
+#include "opentxs/SharedPimpl.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/Version.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/HDSeed.hpp"
 #include "opentxs/api/Wallet.hpp"
-#include "opentxs/client/NymData.hpp"
 #include "opentxs/client/OT_API.hpp"
-#include "opentxs/consensus/ServerContext.hpp"
-#include "opentxs/contact/ContactData.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/NumList.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/contract/ServerContract.hpp"
+#include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/contract/basket/Basket.hpp"
 #include "opentxs/core/contract/basket/BasketContract.hpp"
-#include "opentxs/core/contract/peer/PeerObject.hpp"
-#include "opentxs/core/contract/UnitDefinition.hpp"
-#include "opentxs/core/cron/OTCronItem.hpp"
-#include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/crypto/PaymentCode.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
@@ -39,37 +44,6 @@
 #include "opentxs/core/script/OTPartyAccount.hpp"
 #include "opentxs/core/script/OTScriptable.hpp"
 #include "opentxs/core/script/OTVariable.hpp"
-#include "opentxs/core/transaction/Helpers.hpp"
-#include "opentxs/core/Account.hpp"
-#include "opentxs/core/Armored.hpp"
-#include "opentxs/core/Cheque.hpp"
-#include "opentxs/core/Contract.hpp"
-#include "opentxs/core/Data.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Item.hpp"
-#include "opentxs/core/Ledger.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/Message.hpp"
-#include "opentxs/core/NumList.hpp"
-#include "opentxs/core/NymFile.hpp"
-#include "opentxs/core/OTTransaction.hpp"
-#include "opentxs/core/PasswordPrompt.hpp"
-#include "opentxs/core/String.hpp"
-#include "opentxs/identity/Authority.hpp"
-#include "opentxs/crypto/key/Asymmetric.hpp"
-#include "opentxs/ext/OTPayment.hpp"
-#include "opentxs/identity/Nym.hpp"
-#include "opentxs/identity/Source.hpp"
-#include "opentxs/Proto.tpp"
-#include "opentxs/Types.hpp"
-
-#include "internal/api/Api.hpp"
-
-#include <cinttypes>
-#include <cstdint>
-#include <memory>
-#include <sstream>
-#include <string>
 
 #define OT_ERROR_AMOUNT INT64_MIN
 
@@ -77,7 +51,6 @@
 
 namespace opentxs
 {
-
 #ifndef OT_ERROR
 const std::int32_t OT_ERROR = (-1);
 #endif

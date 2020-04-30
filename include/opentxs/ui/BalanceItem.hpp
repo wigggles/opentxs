@@ -6,15 +6,15 @@
 #ifndef OPENTXS_UI_BALANCEITEM_HPP
 #define OPENTXS_UI_BALANCEITEM_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/Types.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <cstdint>
 #include <chrono>
 #include <list>
 #include <string>
 
+#include "opentxs/SharedPimpl.hpp"
+#include "opentxs/Types.hpp"
 #include "ListRow.hpp"
 
 #ifdef SWIG
@@ -35,8 +35,16 @@
 
 namespace opentxs
 {
-using OTUIBalanceItem = SharedPimpl<ui::BalanceItem>;
+namespace ui
+{
+class BalanceItem;
+}  // namespace ui
 
+using OTUIBalanceItem = SharedPimpl<ui::BalanceItem>;
+}  // namespace opentxs
+
+namespace opentxs
+{
 namespace ui
 {
 class BalanceItem : virtual public ListRow

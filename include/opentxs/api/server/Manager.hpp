@@ -6,13 +6,13 @@
 #ifndef OPENTXS_API_SERVER_MANAGER_HPP
 #define OPENTXS_API_SERVER_MANAGER_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/api/Core.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <cstdint>
 #include <memory>
 #include <string>
+
+#include "opentxs/api/Core.hpp"
 
 #define OT_MINT_KEY_SIZE_DEFAULT 1536
 #define OT_MINT_KEY_SIZE_TEST 288

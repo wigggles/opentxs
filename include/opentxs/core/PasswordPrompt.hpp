@@ -6,10 +6,12 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTPASSWORDDATA_HPP
 #define OPENTXS_CORE_CRYPTO_OTPASSWORDDATA_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <string>
 #include <memory>
+
+#include "opentxs/Pimpl.hpp"
 
 #ifdef SWIG
 // clang-format off
@@ -20,16 +22,28 @@
 
 namespace opentxs
 {
-using OTPasswordPrompt = Pimpl<PasswordPrompt>;
-
 namespace api
 {
 namespace implementation
 {
 class Core;
 }  // namespace implementation
+
+namespace internal
+{
+struct Core;
+}  // namespace internal
 }  // namespace api
 
+class Factory;
+class OTPassword;
+class PasswordPrompt;
+
+using OTPasswordPrompt = Pimpl<PasswordPrompt>;
+}  // namespace opentxs
+
+namespace opentxs
+{
 /*
  PasswordPrompt
  This class is used for passing user data to the password callback.

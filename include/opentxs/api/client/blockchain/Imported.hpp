@@ -6,9 +6,9 @@
 #ifndef OPENTXS_API_CLIENT_BLOCKCHAIN_IMPORTED_HPP
 #define OPENTXS_API_CLIENT_BLOCKCHAIN_IMPORTED_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
-#include "BalanceNode.hpp"
+#include "opentxs/api/client/blockchain/BalanceNode.hpp"
 
 namespace opentxs
 {

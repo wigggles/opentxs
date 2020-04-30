@@ -3,18 +3,23 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
-
-#include "opentxs/network/zeromq/Context.hpp"
-#include "opentxs/network/zeromq/Frame.hpp"
-#include "opentxs/network/zeromq/FrameIterator.hpp"
-#include "opentxs/network/zeromq/Message.hpp"
+#include "0_stdafx.hpp"                      // IWYU pragma: associated
+#include "1_Internal.hpp"                    // IWYU pragma: associated
+#include "network/zeromq/socket/Socket.hpp"  // IWYU pragma: associated
 
 #include <zmq.h>
-
+#include <cerrno>
+#include <cstdint>
+#include <iostream>
+#include <memory>
 #include <random>
+#include <utility>
 
-#include "Socket.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/network/zeromq/Context.hpp"
+#include "opentxs/network/zeromq/Frame.hpp"
+#include "opentxs/network/zeromq/FrameIterator.hpp"  // IWYU pragma: keep
+#include "opentxs/network/zeromq/Message.hpp"
 
 #define INPROC_PREFIX "inproc://opentxs/"
 

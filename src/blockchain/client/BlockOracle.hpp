@@ -5,6 +5,43 @@
 
 #pragma once
 
+#include <chrono>
+#include <deque>
+#include <future>
+#include <iosfwd>
+#include <map>
+#include <mutex>
+#include <string>
+#include <tuple>
+#include <utility>
+
+#include "core/Executor.hpp"
+#include "internal/blockchain/client/Client.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/blockchain/client/BlockOracle.hpp"
+#include "opentxs/core/Data.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
+namespace network
+{
+namespace zeromq
+{
+class Frame;
+class Message;
+}  // namespace zeromq
+}  // namespace network
+}  // namespace opentxs
+
 namespace opentxs::blockchain::client::implementation
 {
 class BlockOracle final : public internal::BlockOracle,

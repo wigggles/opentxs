@@ -5,13 +5,13 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
 #include <atomic>
 #include <functional>
 #include <future>
-#include <thread>
 #include <mutex>
+#include <thread>
+
+#include "opentxs/Types.hpp"
 
 namespace opentxs::internal
 {

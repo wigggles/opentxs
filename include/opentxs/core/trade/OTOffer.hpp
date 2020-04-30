@@ -3,18 +3,18 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-// Each instance of OTOffer represents a Bid or Ask. (A Market has a list of bid
-// offers and a list of ask offers.)
-
 #ifndef OPENTXS_CORE_TRADE_OTOFFER_HPP
 #define OPENTXS_CORE_TRADE_OTOFFER_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
+
+#include <cstdint>
 
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Instrument.hpp"
-
-#include <cstdint>
+#include "opentxs/Types.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
 
 namespace opentxs
 {
@@ -29,6 +29,17 @@ namespace internal
 struct Core;
 }  // namespace internal
 }  // namespace api
+
+namespace identifier
+{
+class Server;
+}  // namespace identifier
+
+class OTTrade;
+class PasswordPrompt;
+
+// Each instance of OTOffer represents a Bid or Ask. (A Market has a list of bid
+// offers and a list of ask offers.)
 
 /*
  OTOffer

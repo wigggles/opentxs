@@ -3,9 +3,42 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/consensus/ClientContext.cpp"
+
 #pragma once
 
-#include "opentxs/Forward.hpp"
+#include <iosfwd>
+#include <mutex>
+#include <set>
+#include <string>
+
+#include "consensus/Context.hpp"
+#include "internal/consensus/Consensus.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/consensus/TransactionStatement.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
+namespace identifier
+{
+class Nym;
+class Server;
+}  // namespace identifier
+
+class Factory;
+class PasswordPrompt;
+}  // namespace opentxs
 
 namespace opentxs::implementation
 {

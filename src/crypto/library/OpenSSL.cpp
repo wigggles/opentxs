@@ -3,30 +3,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
-
-#include "Internal.hpp"
-
+#include "0_stdafx.hpp"    // IWYU pragma: associated
+#include "1_Internal.hpp"  // IWYU pragma: associated
 #if OT_CRYPTO_USING_OPENSSL
-#include "opentxs/api/crypto/Config.hpp"
-#include "opentxs/api/crypto/Crypto.hpp"
-#include "opentxs/api/crypto/Hash.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/Data.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/String.hpp"
-#include "opentxs/crypto/key/Asymmetric.hpp"
-#if OT_CRYPTO_SUPPORTED_KEY_RSA
-#include "opentxs/crypto/key/RSA.hpp"
-#endif
-#include "opentxs/identity/Nym.hpp"
-
-#if OT_CRYPTO_SUPPORTED_KEY_RSA
-#include "crypto/key/RSA.hpp"
-#endif
-
-#include <boost/endian/buffers.hpp>
+#include "crypto/library/OpenSSL.hpp"  // IWYU pragma: associated
 
 extern "C" {
 #include <openssl/evp.h>
@@ -34,18 +14,20 @@ extern "C" {
 #include <openssl/pem.h>
 }
 
-#include <cstdlib>
 #include <cstdint>
-#include <cstdio>
-#include <cstring>
+#include <limits>
 #include <memory>
-#include <mutex>
-#include <ostream>
-#include <set>
-#include <string>
-#include <thread>
+#include <string_view>
 
-#include "OpenSSL.hpp"
+#include "crypto/library/AsymmetricProvider.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/core/Data.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/crypto/NymParameters.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/crypto/key/Asymmetric.hpp"
+#include "opentxs/crypto/library/HashingProvider.hpp"
 
 #define OT_METHOD "opentxs::OpenSSL::"
 

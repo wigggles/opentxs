@@ -6,14 +6,26 @@
 #ifndef OPENTXS_CORE_CONTRACT_SECURITYCONTRACT_HPP
 #define OPENTXS_CORE_CONTRACT_SECURITYCONTRACT_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include "opentxs/core/contract/UnitDefinition.hpp"
+#include "opentxs/SharedPimpl.hpp"
 
 namespace opentxs
 {
-using OTSecurityContract = SharedPimpl<contract::unit::Security>;
+namespace contract
+{
+namespace unit
+{
+class Security;
+}  // namespace unit
+}  // namespace contract
 
+using OTSecurityContract = SharedPimpl<contract::unit::Security>;
+}  // namespace opentxs
+
+namespace opentxs
+{
 namespace contract
 {
 namespace unit

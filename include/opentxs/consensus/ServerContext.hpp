@@ -6,13 +6,13 @@
 #ifndef OPENTXS_CONSENSUS_SERVERCONTEXT_HPP
 #define OPENTXS_CONSENSUS_SERVERCONTEXT_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/consensus/Context.hpp"
-#include "opentxs/consensus/ManagedNumber.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <future>
 #include <tuple>
+
+#include "opentxs/consensus/Context.hpp"
+#include "opentxs/consensus/ManagedNumber.hpp"
 
 namespace opentxs
 {

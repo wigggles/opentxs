@@ -3,16 +3,21 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"    // IWYU pragma: associated
+#include "1_Internal.hpp"  // IWYU pragma: associated
+#include "api/client/blockchain/database/BlockHeaders.hpp"  // IWYU pragma: associated
 
+#include <optional>
+#include <stdexcept>
+#include <string>
+#include <utility>
+
+#include "internal/api/Api.hpp"
+#include "opentxs/Proto.tpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/blockchain/block/Header.hpp"
-#include "opentxs/Proto.tpp"
-
-#include "internal/api/Api.hpp"
-
-#include "BlockHeaders.hpp"
+#include "util/LMDB.hpp"
 
 // #define OT_METHOD
 // "opentxs::api::client::blockchain::database::implementation::BlockHeader::"

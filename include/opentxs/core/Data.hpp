@@ -6,14 +6,15 @@
 #ifndef OPENTXS_CORE_DATA_HPP
 #define OPENTXS_CORE_DATA_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/iterator/Bidirectional.hpp"
-#include "opentxs/Bytes.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <cstdint>
 #include <string>
 #include <vector>
+
+#include "opentxs/iterator/Bidirectional.hpp"
+#include "opentxs/Bytes.hpp"
+#include "opentxs/Pimpl.hpp"
 
 #ifdef SWIG
 // clang-format off
@@ -42,6 +43,8 @@
 
 namespace opentxs
 {
+class Data;
+
 using OTData = Pimpl<Data>;
 
 OPENTXS_EXPORT bool operator==(const OTData& lhs, const Data& rhs);
@@ -55,7 +58,10 @@ OPENTXS_EXPORT OTData& operator+=(OTData& lhs, const std::uint8_t rhs);
 OPENTXS_EXPORT OTData& operator+=(OTData& lhs, const std::uint16_t rhs);
 OPENTXS_EXPORT OTData& operator+=(OTData& lhs, const std::uint32_t rhs);
 OPENTXS_EXPORT OTData& operator+=(OTData& lhs, const std::uint64_t rhs);
+}  // namespace opentxs
 
+namespace opentxs
+{
 class Data
 {
 public:

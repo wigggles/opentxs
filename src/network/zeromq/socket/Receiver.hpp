@@ -5,6 +5,26 @@
 
 #pragma once
 
+#include <map>
+#include <mutex>
+#include <thread>
+
+#include "network/zeromq/socket/Socket.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/network/zeromq/socket/Socket.hpp"
+
+namespace opentxs
+{
+namespace network
+{
+namespace zeromq
+{
+class Context;
+}  // namespace zeromq
+}  // namespace network
+}  // namespace opentxs
+
 #define CALLBACK_WAIT_MILLISECONDS 50
 #define RECEIVER_POLL_MILLISECONDS 100
 

@@ -3,67 +3,43 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"      // IWYU pragma: associated
+#include "1_Internal.hpp"    // IWYU pragma: associated
+#include "identity/Nym.hpp"  // IWYU pragma: associated
 
-#include "opentxs/api/client/Activity.hpp"
-#include "opentxs/api/crypto/Crypto.hpp"
-#include "opentxs/api/crypto/Hash.hpp"
-#include "opentxs/api/crypto/Symmetric.hpp"
-#include "opentxs/api/server/Manager.hpp"
-#include "opentxs/api/storage/Storage.hpp"
-#include "opentxs/api/Core.hpp"
+#include <algorithm>
+#include <atomic>
+#include <iterator>
+#include <list>
+#include <map>
+#include <stdexcept>
+#include <utility>
+#include <vector>
+
+#include "Factory.hpp"
+#include "internal/api/Api.hpp"
+#include "internal/identity/Identity.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.tpp"
+#include "opentxs/Version.hpp"
 #include "opentxs/api/Factory.hpp"
 #if OT_CRYPTO_WITH_BIP32
 #include "opentxs/api/HDSeed.hpp"
-#endif
-#include "opentxs/api/Wallet.hpp"
-#include "opentxs/consensus/ClientContext.hpp"
-#include "opentxs/consensus/ServerContext.hpp"
+#endif  // OT_CRYPTO_WITH_BIP32
 #include "opentxs/contact/ContactData.hpp"
+#include "opentxs/core/Armored.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/String.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/crypto/OTSignedFile.hpp"
 #include "opentxs/core/crypto/PaymentCode.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/core/util/Tag.hpp"
-#include "opentxs/core/Armored.hpp"
-#include "opentxs/core/Contract.hpp"
-#include "opentxs/core/Data.hpp"
-#include "opentxs/core/Item.hpp"
-#include "opentxs/core/Lockable.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/Ledger.hpp"
-#include "opentxs/core/Message.hpp"
-#include "opentxs/core/OTStorage.hpp"
-#include "opentxs/core/OTTransaction.hpp"
-#include "opentxs/core/PasswordPrompt.hpp"
-#include "opentxs/core/StringXML.hpp"
-#include "opentxs/core/String.hpp"
-#include "opentxs/crypto/key/Symmetric.hpp"
-#include "opentxs/identity/credential/Base.hpp"
 #include "opentxs/identity/Authority.hpp"
 #include "opentxs/identity/Nym.hpp"
 #include "opentxs/identity/Source.hpp"
-#include "opentxs/ext/OTPayment.hpp"
-#include "opentxs/Proto.tpp"
-
-#include "internal/api/Api.hpp"
-#include "internal/identity/Identity.hpp"
-
-#include <irrxml/irrXML.hpp>
-#include <sodium/crypto_box.h>
-#include <sys/types.h>
-
-#include <array>
-#include <atomic>
-#include <deque>
-#include <fstream>
-#include <functional>
-#include <list>
-#include <map>
-#include <mutex>
-
-#include "Nym.hpp"
 
 #define OT_METHOD "opentxs::identity::implementation::Nym::"
 

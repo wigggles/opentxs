@@ -3,23 +3,19 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"                       // IWYU pragma: associated
+#include "1_Internal.hpp"                     // IWYU pragma: associated
+#include "blockchain/p2p/bitcoin/Header.hpp"  // IWYU pragma: associated
 
-#include "Internal.hpp"
+#include <cstring>
+#include <cstdint>
+#include <stdexcept>
+#include <utility>
 
-#include "opentxs/api/crypto/Crypto.hpp"
-#include "opentxs/api/crypto/Hash.hpp"
+#include "Factory.hpp"
+#include "opentxs/Pimpl.hpp"
 #include "opentxs/core/Data.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
-
-#include "blockchain/p2p/bitcoin/Header.hpp"
-
-#include <boost/endian/arithmetic.hpp>
-#include <boost/endian/conversion.hpp>
-#include <boost/endian/buffers.hpp>
 
 #define HEADER_SIZE 24
 

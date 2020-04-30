@@ -3,42 +3,31 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"        // IWYU pragma: associated
+#include "1_Internal.hpp"      // IWYU pragma: associated
+#include "ui/PayableList.hpp"  // IWYU pragma: associated
 
-#include "opentxs/api/client/Contacts.hpp"
-#include "opentxs/api/client/Manager.hpp"
-#include "opentxs/api/client/OTX.hpp"
-#include "opentxs/api/Endpoints.hpp"
-#include "opentxs/api/Factory.hpp"
-#include "opentxs/contact/Contact.hpp"
-#include "opentxs/contact/ContactData.hpp"
-#include "opentxs/core/Flag.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Lockable.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/PasswordPrompt.hpp"
-#include "opentxs/network/zeromq/socket/Subscribe.hpp"
-#include "opentxs/network/zeromq/Context.hpp"
-#include "opentxs/network/zeromq/ListenCallback.hpp"
-#include "opentxs/network/zeromq/FrameIterator.hpp"
-#include "opentxs/network/zeromq/FrameSection.hpp"
-#include "opentxs/network/zeromq/Frame.hpp"
-#include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/ui/ContactListItem.hpp"
-#include "opentxs/ui/PayableList.hpp"
-
-#include "internal/api/client/Client.hpp"
-#include "List.hpp"
-
+#include <list>
 #include <map>
 #include <memory>
-#include <set>
 #include <string>
 #include <thread>
-#include <tuple>
-#include <vector>
+#include <utility>
 
-#include "PayableList.hpp"
+#include "internal/api/client/Client.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/api/Endpoints.hpp"
+#include "opentxs/api/client/Contacts.hpp"
+#include "opentxs/contact/Contact.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/network/zeromq/Frame.hpp"
+#include "opentxs/network/zeromq/FrameIterator.hpp"
+#include "opentxs/network/zeromq/FrameSection.hpp"
+#include "opentxs/network/zeromq/Message.hpp"
+#include "ui/List.hpp"
 
 #define OT_METHOD "opentxs::ui::implementation::PayableList::"
 
@@ -49,9 +38,9 @@ QT_PROXY_MODEL_WRAPPER(PayableListQt, implementation::PayableList)
 }  // namespace opentxs::ui
 #endif
 
-namespace opentxs
+namespace opentxs::factory
 {
-ui::implementation::PayableList* Factory::PayableListModel(
+auto PayableListModel(
     const api::client::internal::Manager& api,
     const network::zeromq::socket::Publish& publisher,
     const identifier::Nym& nymID,
@@ -60,9 +49,11 @@ ui::implementation::PayableList* Factory::PayableListModel(
     ,
     const bool qt
 #endif
-)
+    ) noexcept -> std::unique_ptr<ui::implementation::PayableList>
 {
-    return new ui::implementation::PayableList(
+    using ReturnType = ui::implementation::PayableList;
+
+    return std::make_unique<ReturnType>(
         api,
         publisher,
         nymID,
@@ -75,15 +66,15 @@ ui::implementation::PayableList* Factory::PayableListModel(
 }
 
 #if OT_QT
-ui::PayableListQt* Factory::PayableListQtModel(
-    ui::implementation::PayableList& parent)
+auto PayableListQtModel(ui::implementation::PayableList& parent) noexcept
+    -> std::unique_ptr<ui::PayableListQt>
 {
     using ReturnType = ui::PayableListQt;
 
-    return new ReturnType(parent);
+    return std::make_unique<ReturnType>(parent);
 }
 #endif  // OT_QT
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::ui::implementation
 {
@@ -141,7 +132,7 @@ void* PayableList::construct_row(
     names_.emplace(id, index);
     const auto [it, added] = items_[index].emplace(
         id,
-        Factory::PayableListItem(
+        factory::PayableListItem(
             *this, api_, publisher_, id, index, *paymentCode, currency_));
 
     return it->second.get();

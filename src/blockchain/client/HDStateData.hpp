@@ -5,18 +5,46 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
-#include "opentxs/api/client/blockchain/HD.hpp"
-
-#include "internal/blockchain/client/Client.hpp"
-#include "internal/blockchain/Blockchain.hpp"
-
 #include <atomic>
 #include <map>
 #include <optional>
 #include <queue>
 #include <vector>
+
+#include "internal/blockchain/Blockchain.hpp"
+#include "internal/blockchain/client/Client.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/api/client/blockchain/BalanceNode.hpp"
+#include "opentxs/api/client/blockchain/HD.hpp"
+#include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/blockchain/block/Block.hpp"
+#include "opentxs/blockchain/client/BlockOracle.hpp"
+#include "opentxs/core/Data.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace client
+{
+namespace blockchain
+{
+class HD;
+}  // namespace blockchain
+}  // namespace client
+}  // namespace api
+
+namespace blockchain
+{
+namespace block
+{
+namespace bitcoin
+{
+class Block;
+}  // namespace bitcoin
+}  // namespace block
+}  // namespace blockchain
+}  // namespace opentxs
 
 namespace opentxs::blockchain::client::implementation
 {

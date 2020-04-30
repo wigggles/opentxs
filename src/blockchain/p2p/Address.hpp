@@ -3,9 +3,35 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/blockchain/p2p/Address.cpp"
+
 #pragma once
 
-#include "Internal.hpp"
+#include <cstdint>
+#include <memory>
+#include <set>
+#include <string>
+
+#include "internal/blockchain/p2p/P2P.hpp"
+#include "opentxs/Bytes.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/blockchain/p2p/Address.hpp"
+#include "opentxs/core/Data.hpp"
+#include "opentxs/core/Identifier.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
+class Factory;
+}  // namespace opentxs
 
 namespace opentxs::blockchain::p2p::implementation
 {

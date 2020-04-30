@@ -5,7 +5,50 @@
 
 #pragma once
 
-#if OT_CRYPTO_USING_LIBSECP256K1
+extern "C" {
+#include <secp256k1.h>
+}
+#include <iosfwd>
+
+#include "crypto/library/AsymmetricProvider.hpp"
+#include "crypto/library/EcdsaProvider.hpp"
+#include "internal/crypto/library/Secp256k1.hpp"
+#include "opentxs/Bytes.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Version.hpp"
+#include "opentxs/core/Data.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace crypto
+{
+class Util;
+}  // namespace crypto
+
+namespace internal
+{
+struct Core;
+}  // namespace internal
+
+class Crypto;
+}  // namespace api
+
+namespace crypto
+{
+namespace key
+{
+class Asymmetric;
+}  // namespace key
+}  // namespace crypto
+
+class Factory;
+class NymParameters;
+class OTPassword;
+class PasswordPrompt;
+}  // namespace opentxs
+
 namespace opentxs::crypto::implementation
 {
 class Secp256k1 final : virtual public crypto::Secp256k1,
@@ -73,4 +116,3 @@ private:
     Secp256k1& operator=(Secp256k1&&) = delete;
 };
 }  // namespace opentxs::crypto::implementation
-#endif  // OT_CRYPTO_USING_LIBSECP256K1

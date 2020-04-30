@@ -3,7 +3,37 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "Base.hpp"
+#include "identity/credential/Base.hpp"  // IWYU pragma: associated
+
+#include <cstdint>
+
+#include "Factory.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
+namespace identity
+{
+namespace internal
+{
+struct Authority;
+}  // namespace internal
+
+class Source;
+}  // namespace identity
+
+class NymParameters;
+class PasswordPrompt;
+}  // namespace opentxs
 
 namespace opentxs
 {

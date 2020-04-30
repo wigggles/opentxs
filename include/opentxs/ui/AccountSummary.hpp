@@ -7,9 +7,10 @@
 #define OPENTXS_UI_ACCOUNTSUMMARY_HPP
 
 #ifndef Q_MOC_RUN
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include "opentxs/ui/List.hpp"
+#include "opentxs/SharedPimpl.hpp"
 
 #ifdef SWIG
 // clang-format off
@@ -72,6 +73,8 @@ public:
         BalanceColumn = 4,
     };
 
+    AccountSummaryQt(implementation::AccountSummary& parent) noexcept;
+
     ~AccountSummaryQt() final = default;
 
 private:
@@ -81,7 +84,6 @@ private:
 
     void notify() const noexcept;
 
-    AccountSummaryQt(implementation::AccountSummary& parent) noexcept;
     AccountSummaryQt(const AccountSummaryQt&) = delete;
     AccountSummaryQt(AccountSummaryQt&&) = delete;
     AccountSummaryQt& operator=(const AccountSummaryQt&) = delete;

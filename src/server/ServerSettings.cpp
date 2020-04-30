@@ -3,16 +3,15 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
-
-#include "ServerSettings.hpp"
+#include "0_stdafx.hpp"               // IWYU pragma: associated
+#include "1_Internal.hpp"             // IWYU pragma: associated
+#include "server/ServerSettings.hpp"  // IWYU pragma: associated
 
 #include <cstdint>
 #include <string>
 
 namespace opentxs::server
 {
-
 // These are default values. There are configurable in ~/.ot/server.cfg
 // (static)
 

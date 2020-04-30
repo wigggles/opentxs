@@ -5,10 +5,8 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
-#include "RowType.hpp"
-#include "List.hpp"
+#include "ui/RowType.hpp"
+#include "ui/List.hpp"
 
 namespace opentxs::ui::implementation
 {

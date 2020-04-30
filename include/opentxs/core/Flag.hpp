@@ -6,12 +6,19 @@
 #ifndef OPENTXS_CORE_FLAG_HPP
 #define OPENTXS_CORE_FLAG_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
+
+#include "opentxs/Pimpl.hpp"
 
 namespace opentxs
 {
-using OTFlag = Pimpl<Flag>;
+class Flag;
 
+using OTFlag = Pimpl<Flag>;
+}  // namespace opentxs
+
+namespace opentxs
+{
 /** Wrapper for a std::atomic<bool> */
 class Flag
 {

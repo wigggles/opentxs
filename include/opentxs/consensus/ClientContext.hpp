@@ -6,7 +6,7 @@
 #ifndef OPENTXS_CONSENSUS_CLIENTCONTEXT_HPP
 #define OPENTXS_CONSENSUS_CLIENTCONTEXT_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include "opentxs/consensus/Context.hpp"
 

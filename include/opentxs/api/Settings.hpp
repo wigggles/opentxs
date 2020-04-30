@@ -6,13 +6,13 @@
 #ifndef OPENTXS_API_SETTINGS_HPP
 #define OPENTXS_API_SETTINGS_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/core/Flag.hpp"
-#include "opentxs/core/String.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <cstdint>
 #include <string>
+
+#include "opentxs/core/Flag.hpp"
+#include "opentxs/core/String.hpp"
 
 namespace opentxs
 {

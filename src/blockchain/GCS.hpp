@@ -3,7 +3,30 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/blockchain/GCS.cpp"
+
 #pragma once
+
+#include <cstdint>
+#include <optional>
+#include <vector>
+
+#include "internal/blockchain/Blockchain.hpp"
+#include "opentxs/Bytes.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/core/Data.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+class Core;
+}  // namespace api
+
+class Factory;
+}  // namespace opentxs
 
 namespace opentxs::blockchain::implementation
 {

@@ -3,48 +3,46 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"            // IWYU pragma: associated
+#include "1_Internal.hpp"          // IWYU pragma: associated
+#include "ui/AccountActivity.hpp"  // IWYU pragma: associated
 
-#include "opentxs/api/client/Manager.hpp"
-#include "opentxs/api/client/Workflow.hpp"
-#include "opentxs/api/storage/Storage.hpp"
-#include "opentxs/api/Core.hpp"
-#include "opentxs/api/Endpoints.hpp"
-#include "opentxs/api/Factory.hpp"
-#include "opentxs/api/Wallet.hpp"
-#include "opentxs/core/contract/UnitDefinition.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/PasswordPrompt.hpp"
-#include "opentxs/network/zeromq/socket/Socket.hpp"
-#include "opentxs/network/zeromq/socket/Subscribe.hpp"
-#include "opentxs/network/zeromq/Context.hpp"
-#include "opentxs/network/zeromq/ListenCallback.hpp"
-#include "opentxs/network/zeromq/FrameIterator.hpp"
-#include "opentxs/network/zeromq/FrameSection.hpp"
-#include "opentxs/network/zeromq/Frame.hpp"
-#include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/ui/BalanceItem.hpp"
-
-#include "internal/api/client/Client.hpp"
-
+#include <algorithm>
 #include <atomic>
+#include <chrono>
 #include <map>
 #include <memory>
 #include <set>
 #include <string>
-#include <tuple>
 #include <thread>
-#include <tuple>
 #include <vector>
 
-#include "AccountActivity.hpp"
+#include "internal/api/client/Client.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Shared.hpp"
+#include "opentxs/api/Endpoints.hpp"
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/api/Wallet.hpp"
+#include "opentxs/api/client/Workflow.hpp"
+#include "opentxs/api/storage/Storage.hpp"
+#include "opentxs/core/Account.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/contract/UnitDefinition.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
+#include "opentxs/network/zeromq/Frame.hpp"
+#include "opentxs/network/zeromq/FrameIterator.hpp"
+#include "opentxs/network/zeromq/FrameSection.hpp"
+#include "opentxs/network/zeromq/Message.hpp"
+#include "ui/List.hpp"
 
 #define OT_METHOD "opentxs::ui::implementation::AccountActivity::"
 
-namespace opentxs
+namespace opentxs::factory
 {
-ui::implementation::AccountActivity* Factory::AccountActivityModel(
+auto AccountActivityModel(
     const api::client::internal::Manager& api,
     const network::zeromq::socket::Publish& publisher,
     const identifier::Nym& nymID,
@@ -53,9 +51,11 @@ ui::implementation::AccountActivity* Factory::AccountActivityModel(
     ,
     const bool qt
 #endif
-)
+    ) noexcept -> std::unique_ptr<ui::implementation::AccountActivity>
 {
-    return new ui::implementation::AccountActivity(
+    using ReturnType = ui::implementation::AccountActivity;
+
+    return std::make_unique<ReturnType>(
         api,
         publisher,
         nymID,
@@ -68,15 +68,16 @@ ui::implementation::AccountActivity* Factory::AccountActivityModel(
 }
 
 #if OT_QT
-ui::AccountActivityQt* Factory::AccountActivityQtModel(
-    ui::implementation::AccountActivity& parent)
+auto AccountActivityQtModel(
+    ui::implementation::AccountActivity& parent) noexcept
+    -> std::unique_ptr<ui::AccountActivityQt>
 {
     using ReturnType = ui::AccountActivityQt;
 
-    return new ReturnType(parent);
+    return std::make_unique<ReturnType>(parent);
 }
 #endif  // OT_QT
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 #if OT_QT
 namespace opentxs::ui
@@ -151,7 +152,7 @@ void* AccountActivity::construct_row(
     names_.emplace(id, index);
     const auto [it, added] = items_[index].emplace(
         id,
-        Factory::BalanceItem(
+        factory::BalanceItem(
             *this,
             api_,
             publisher_,

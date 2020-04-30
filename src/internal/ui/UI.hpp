@@ -5,12 +5,10 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
-#include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/ui/AccountActivity.hpp"
 #include "opentxs/ui/AccountList.hpp"
 #include "opentxs/ui/AccountListItem.hpp"
@@ -18,19 +16,227 @@
 #include "opentxs/ui/AccountSummaryItem.hpp"
 #include "opentxs/ui/ActivitySummary.hpp"
 #include "opentxs/ui/ActivitySummaryItem.hpp"
+#include "opentxs/ui/ActivityThread.hpp"
 #include "opentxs/ui/ActivityThreadItem.hpp"
 #include "opentxs/ui/BalanceItem.hpp"
 #include "opentxs/ui/Contact.hpp"
 #include "opentxs/ui/ContactItem.hpp"
+#include "opentxs/ui/ContactList.hpp"
 #include "opentxs/ui/ContactListItem.hpp"
 #include "opentxs/ui/ContactSection.hpp"
 #include "opentxs/ui/ContactSubsection.hpp"
 #include "opentxs/ui/IssuerItem.hpp"
+#include "opentxs/ui/MessagableList.hpp"
+#include "opentxs/ui/PayableList.hpp"
 #include "opentxs/ui/PayableListItem.hpp"
 #include "opentxs/ui/Profile.hpp"
 #include "opentxs/ui/ProfileItem.hpp"
 #include "opentxs/ui/ProfileSection.hpp"
 #include "opentxs/ui/ProfileSubsection.hpp"
+
+namespace opentxs::ui::internal
+{
+namespace blank
+{
+struct AccountListItem;
+struct AccountSummaryItem;
+struct ActivitySummaryItem;
+struct ActivityThreadItem;
+struct BalanceItem;
+struct ContactItem;
+struct ContactListItem;
+struct ContactSection;
+struct ContactSubsection;
+struct IssuerItem;
+struct PayableListItem;
+struct ProfileItem;
+struct ProfileSection;
+struct ProfileSubsection;
+}  // namespace blank
+
+struct AccountActivity;
+struct AccountList;
+struct AccountListItem;
+struct AccountSummary;
+struct AccountSummaryItem;
+struct ActivitySummary;
+struct ActivitySummaryItem;
+struct ActivityThread;
+struct ActivityThreadItem;
+struct BalanceItem;
+struct Contact;
+struct ContactItem;
+struct ContactList;
+struct ContactListItem;
+struct ContactSection;
+struct ContactSubsection;
+struct IssuerItem;
+struct MessagableList;
+struct PayableList;
+struct PayableListItem;
+struct Profile;
+struct ProfileItem;
+struct ProfileSection;
+struct ProfileSubsection;
+}  // namespace opentxs::ui::internal
+
+namespace opentxs::ui::implementation
+{
+using CustomData = std::vector<const void*>;
+
+// Account activity
+using AccountActivityPrimaryID = OTNymID;
+using AccountActivityExternalInterface = ui::AccountActivity;
+using AccountActivityInternalInterface = ui::internal::AccountActivity;
+/** WorkflowID, state */
+using AccountActivityRowID = std::pair<OTIdentifier, proto::PaymentEventType>;
+using AccountActivityRowInterface = ui::BalanceItem;
+using AccountActivityRowInternal = ui::internal::BalanceItem;
+using AccountActivityRowBlank = ui::internal::blank::BalanceItem;
+using AccountActivitySortKey = std::chrono::system_clock::time_point;
+
+// Account list
+using AccountListPrimaryID = OTNymID;
+using AccountListExternalInterface = ui::AccountList;
+using AccountListInternalInterface = ui::internal::AccountList;
+using AccountListRowID = OTIdentifier;
+using AccountListRowInterface = ui::AccountListItem;
+using AccountListRowInternal = ui::internal::AccountListItem;
+using AccountListRowBlank = ui::internal::blank::AccountListItem;
+// type, notary ID
+using AccountListSortKey = std::pair<proto::ContactItemType, std::string>;
+
+// Account summary
+using AccountSummaryPrimaryID = OTNymID;
+using AccountSummaryExternalInterface = ui::AccountSummary;
+using AccountSummaryInternalInterface = ui::internal::AccountSummary;
+using AccountSummaryRowID = OTNymID;
+using AccountSummaryRowInterface = ui::IssuerItem;
+using AccountSummaryRowInternal = ui::internal::IssuerItem;
+using AccountSummaryRowBlank = ui::internal::blank::IssuerItem;
+using AccountSummarySortKey = std::pair<bool, std::string>;
+
+using IssuerItemPrimaryID = OTNymID;
+using IssuerItemExternalInterface = AccountSummaryRowInterface;
+using IssuerItemInternalInterface = ui::internal::IssuerItem;
+using IssuerItemRowID = std::pair<OTIdentifier, proto::ContactItemType>;
+using IssuerItemRowInterface = ui::AccountSummaryItem;
+using IssuerItemRowInternal = ui::internal::AccountSummaryItem;
+using IssuerItemRowBlank = ui::internal::blank::AccountSummaryItem;
+using IssuerItemSortKey = std::string;
+
+// Activity summary
+using ActivitySummaryPrimaryID = OTNymID;
+using ActivitySummaryExternalInterface = ui::ActivitySummary;
+using ActivitySummaryInternalInterface = ui::internal::ActivitySummary;
+using ActivitySummaryRowID = OTIdentifier;
+using ActivitySummaryRowInterface = ui::ActivitySummaryItem;
+using ActivitySummaryRowInternal = ui::internal::ActivitySummaryItem;
+using ActivitySummaryRowBlank = ui::internal::blank::ActivitySummaryItem;
+using ActivitySummarySortKey =
+    std::pair<std::chrono::system_clock::time_point, std::string>;
+
+// Activity thread
+using ActivityThreadPrimaryID = OTNymID;
+using ActivityThreadExternalInterface = ui::ActivityThread;
+using ActivityThreadInternalInterface = ui::internal::ActivityThread;
+/** item id, box, accountID, taskID */
+using ActivityThreadRowID = std::tuple<OTIdentifier, StorageBox, OTIdentifier>;
+using ActivityThreadRowInterface = ui::ActivityThreadItem;
+using ActivityThreadRowInternal = ui::internal::ActivityThreadItem;
+using ActivityThreadRowBlank = ui::internal::blank::ActivityThreadItem;
+/** timestamp, index */
+using ActivityThreadSortKey =
+    std::pair<std::chrono::system_clock::time_point, std::uint64_t>;
+
+// Contact
+using ContactPrimaryID = OTIdentifier;
+using ContactExternalInterface = ui::Contact;
+using ContactInternalInterface = ui::internal::Contact;
+using ContactRowID = proto::ContactSectionName;
+using ContactRowInterface = ui::ContactSection;
+using ContactRowInternal = ui::internal::ContactSection;
+using ContactRowBlank = ui::internal::blank::ContactSection;
+using ContactSortKey = int;
+
+using ContactSectionPrimaryID = ContactPrimaryID;
+using ContactSectionExternalInterface = ContactRowInterface;
+using ContactSectionInternalInterface = ui::internal::ContactSection;
+using ContactSectionRowID =
+    std::pair<proto::ContactSectionName, proto::ContactItemType>;
+using ContactSectionRowInterface = ui::ContactSubsection;
+using ContactSectionRowInternal = ui::internal::ContactSubsection;
+using ContactSectionRowBlank = ui::internal::blank::ContactSubsection;
+using ContactSectionSortKey = int;
+
+using ContactSubsectionPrimaryID = ContactSectionPrimaryID;
+using ContactSubsectionExternalInterface = ContactSectionRowInterface;
+using ContactSubsectionInternalInterface = ui::internal::ContactSubsection;
+using ContactSubsectionRowID = OTIdentifier;
+using ContactSubsectionRowInterface = ui::ContactItem;
+using ContactSubsectionRowInternal = ui::internal::ContactItem;
+using ContactSubsectionRowBlank = ui::internal::blank::ContactItem;
+using ContactSubsectionSortKey = int;
+
+// Contact list
+using ContactListPrimaryID = OTNymID;
+using ContactListExternalInterface = ui::ContactList;
+using ContactListInternalInterface = ui::internal::ContactList;
+using ContactListRowID = OTIdentifier;
+using ContactListRowInterface = ui::ContactListItem;
+using ContactListRowInternal = ui::internal::ContactListItem;
+using ContactListRowBlank = ui::internal::blank::ContactListItem;
+using ContactListSortKey = std::string;
+
+// Messagable list
+using MessagableListPrimaryID = OTNymID;
+using MessagableExternalInterface = ui::MessagableList;
+using MessagableInternalInterface = ui::internal::MessagableList;
+using MessagableListRowID = ContactListRowID;
+using MessagableListRowInterface = ContactListRowInterface;
+using MessagableListRowInternal = ContactListRowInternal;
+using MessagableListRowBlank = ContactListRowBlank;
+using MessagableListSortKey = std::string;
+
+// Payable list
+using PayablePrimaryID = OTNymID;
+using PayableExternalInterface = ui::PayableList;
+using PayableInternalInterface = ui::internal::PayableList;
+using PayableListRowID = ContactListRowID;
+using PayableListRowInterface = ui::PayableListItem;
+using PayableListRowInternal = ui::internal::PayableListItem;
+using PayableListRowBlank = ui::internal::blank::PayableListItem;
+using PayableListSortKey = std::string;
+
+// Profile
+using ProfilePrimaryID = OTNymID;
+using ProfileExternalInterface = ui::Profile;
+using ProfileInternalInterface = ui::internal::Profile;
+using ProfileRowID = proto::ContactSectionName;
+using ProfileRowInterface = ui::ProfileSection;
+using ProfileRowInternal = ui::internal::ProfileSection;
+using ProfileRowBlank = ui::internal::blank::ProfileSection;
+using ProfileSortKey = int;
+
+using ProfileSectionPrimaryID = ProfilePrimaryID;
+using ProfileSectionExternalInterface = ProfileRowInterface;
+using ProfileSectionInternalInterface = ui::internal::ProfileSection;
+using ProfileSectionRowID =
+    std::pair<proto::ContactSectionName, proto::ContactItemType>;
+using ProfileSectionRowInterface = ui::ProfileSubsection;
+using ProfileSectionRowInternal = ui::internal::ProfileSubsection;
+using ProfileSectionRowBlank = ui::internal::blank::ProfileSubsection;
+using ProfileSectionSortKey = int;
+
+using ProfileSubsectionPrimaryID = ProfileSectionPrimaryID;
+using ProfileSubsectionExternalInterface = ProfileSectionRowInterface;
+using ProfileSubsectionInternalInterface = ui::internal::ProfileSubsection;
+using ProfileSubsectionRowID = OTIdentifier;
+using ProfileSubsectionRowInterface = ui::ProfileItem;
+using ProfileSubsectionRowInternal = ui::internal::ProfileItem;
+using ProfileSubsectionRowBlank = ui::internal::blank::ProfileItem;
+using ProfileSubsectionSortKey = int;
+}  // namespace opentxs::ui::implementation
 
 namespace opentxs
 {
@@ -679,3 +885,314 @@ private:
 };
 }  // namespace blank
 }  // namespace opentxs::ui::internal
+
+namespace opentxs::factory
+{
+auto AccountActivityModel(
+    const api::client::internal::Manager& api,
+    const network::zeromq::socket::Publish& publisher,
+    const identifier::Nym& nymID,
+    const opentxs::Identifier& accountID
+#if OT_QT
+    ,
+    const bool qt
+#endif
+    ) noexcept -> std::unique_ptr<ui::implementation::AccountActivity>;
+#if OT_QT
+auto AccountActivityQtModel(
+    ui::implementation::AccountActivity& parent) noexcept
+    -> std::unique_ptr<ui::AccountActivityQt>;
+#endif
+auto AccountListItem(
+    const ui::implementation::AccountListInternalInterface& parent,
+    const api::client::internal::Manager& api,
+    const network::zeromq::socket::Publish& publisher,
+    const ui::implementation::AccountListRowID& rowID,
+    const ui::implementation::AccountListSortKey& sortKey,
+    const ui::implementation::CustomData& custom) noexcept
+    -> std::shared_ptr<ui::implementation::AccountListRowInternal>;
+auto AccountListModel(
+    const api::client::internal::Manager& api,
+    const network::zeromq::socket::Publish& publisher,
+    const identifier::Nym& nymID
+#if OT_QT
+    ,
+    const bool qt
+#endif
+    ) noexcept -> std::unique_ptr<ui::implementation::AccountList>;
+#if OT_QT
+auto AccountListQtModel(ui::implementation::AccountList& parent) noexcept
+    -> std::unique_ptr<ui::AccountListQt>;
+#endif
+auto AccountSummaryItem(
+    const ui::implementation::IssuerItemInternalInterface& parent,
+    const api::client::internal::Manager& api,
+    const network::zeromq::socket::Publish& publisher,
+    const ui::implementation::IssuerItemRowID& rowID,
+    const ui::implementation::IssuerItemSortKey& sortKey,
+    const ui::implementation::CustomData& custom) noexcept
+    -> std::shared_ptr<ui::implementation::IssuerItemRowInternal>;
+auto AccountSummaryModel(
+    const api::client::internal::Manager& api,
+    const network::zeromq::socket::Publish& publisher,
+    const identifier::Nym& nymID,
+    const proto::ContactItemType currency
+#if OT_QT
+    ,
+    const bool qt
+#endif
+    ) noexcept -> std::unique_ptr<ui::implementation::AccountSummary>;
+#if OT_QT
+auto AccountSummaryQtModel(ui::implementation::AccountSummary& parent) noexcept
+    -> std::unique_ptr<ui::AccountSummaryQt>;
+#endif
+auto ActivitySummaryItem(
+    const ui::implementation::ActivitySummaryInternalInterface& parent,
+    const api::client::internal::Manager& api,
+    const network::zeromq::socket::Publish& publisher,
+    const identifier::Nym& nymID,
+    const ui::implementation::ActivitySummaryRowID& rowID,
+    const ui::implementation::ActivitySummarySortKey& sortKey,
+    const ui::implementation::CustomData& custom,
+    const Flag& running) noexcept
+    -> std::shared_ptr<ui::implementation::ActivitySummaryRowInternal>;
+auto ActivitySummaryModel(
+    const api::client::internal::Manager& api,
+    const network::zeromq::socket::Publish& publisher,
+    const Flag& running,
+    const identifier::Nym& nymID
+#if OT_QT
+    ,
+    const bool qt
+#endif
+    ) noexcept -> std::unique_ptr<ui::implementation::ActivitySummary>;
+#if OT_QT
+auto ActivitySummaryQtModel(
+    ui::implementation::ActivitySummary& parent) noexcept
+    -> std::unique_ptr<ui::ActivitySummaryQt>;
+#endif
+auto ActivityThreadModel(
+    const api::client::internal::Manager& api,
+    const network::zeromq::socket::Publish& publisher,
+    const identifier::Nym& nymID,
+    const opentxs::Identifier& threadID
+#if OT_QT
+    ,
+    const bool qt
+#endif
+    ) noexcept -> std::unique_ptr<ui::implementation::ActivityThread>;
+#if OT_QT
+auto ActivityThreadQtModel(ui::implementation::ActivityThread& parent) noexcept
+    -> std::unique_ptr<ui::ActivityThreadQt>;
+#endif
+auto BalanceItem(
+    const ui::implementation::AccountActivityInternalInterface& parent,
+    const api::client::internal::Manager& api,
+    const network::zeromq::socket::Publish& publisher,
+    const ui::implementation::AccountActivityRowID& rowID,
+    const ui::implementation::AccountActivitySortKey& sortKey,
+    const ui::implementation::CustomData& custom,
+    const identifier::Nym& nymID,
+    const opentxs::Identifier& accountID) noexcept
+    -> std::shared_ptr<ui::implementation::AccountActivityRowInternal>;
+auto ContactItemWidget(
+    const ui::implementation::ContactSubsectionInternalInterface& parent,
+    const api::client::internal::Manager& api,
+    const network::zeromq::socket::Publish& publisher,
+    const ui::implementation::ContactSubsectionRowID& rowID,
+    const ui::implementation::ContactSubsectionSortKey& sortKey,
+    const ui::implementation::CustomData& custom) noexcept
+    -> std::shared_ptr<ui::implementation::ContactSubsectionRowInternal>;
+auto ContactListItem(
+    const ui::implementation::ContactListInternalInterface& parent,
+    const api::client::internal::Manager& api,
+    const network::zeromq::socket::Publish& publisher,
+    const ui::implementation::ContactListRowID& rowID,
+    const ui::implementation::ContactListSortKey& key) noexcept
+    -> std::shared_ptr<ui::implementation::ContactListRowInternal>;
+auto ContactListModel(
+    const api::client::internal::Manager& api,
+    const network::zeromq::socket::Publish& publisher,
+    const identifier::Nym& nymID
+#if OT_QT
+    ,
+    const bool qt
+#endif
+    ) noexcept -> std::unique_ptr<ui::implementation::ContactList>;
+#if OT_QT
+auto ContactListQtModel(ui::implementation::ContactList& parent) noexcept
+    -> std::unique_ptr<ui::ContactListQt>;
+#endif
+auto ContactModel(
+    const api::client::internal::Manager& api,
+    const network::zeromq::socket::Publish& publisher,
+    const opentxs::Identifier& contactID
+#if OT_QT
+    ,
+    const bool qt
+#endif
+    ) noexcept -> std::unique_ptr<ui::implementation::Contact>;
+#if OT_QT
+auto ContactQtModel(ui::implementation::Contact& parent) noexcept
+    -> std::unique_ptr<ui::ContactQt>;
+#endif
+auto ContactSectionWidget(
+    const ui::implementation::ContactInternalInterface& parent,
+    const api::client::internal::Manager& api,
+    const network::zeromq::socket::Publish& publisher,
+    const ui::implementation::ContactRowID& rowID,
+    const ui::implementation::ContactSortKey& key,
+    const ui::implementation::CustomData& custom
+#if OT_QT
+    ,
+    const bool qt
+#endif
+    ) noexcept -> std::shared_ptr<ui::implementation::ContactRowInternal>;
+auto ContactSubsectionWidget(
+    const ui::implementation::ContactSectionInternalInterface& parent,
+    const api::client::internal::Manager& api,
+    const network::zeromq::socket::Publish& publisher,
+    const ui::implementation::ContactSectionRowID& rowID,
+    const ui::implementation::ContactSectionSortKey& key,
+    const ui::implementation::CustomData& custom
+#if OT_QT
+    ,
+    const bool qt
+#endif
+    ) noexcept
+    -> std::shared_ptr<ui::implementation::ContactSectionRowInternal>;
+auto IssuerItem(
+    const ui::implementation::AccountSummaryInternalInterface& parent,
+    const api::client::internal::Manager& api,
+    const network::zeromq::socket::Publish& publisher,
+    const ui::implementation::AccountSummaryRowID& rowID,
+    const ui::implementation::AccountSummarySortKey& sortKey,
+    const ui::implementation::CustomData& custom,
+    const proto::ContactItemType currency
+#if OT_QT
+    ,
+    const bool qt
+#endif
+    ) noexcept
+    -> std::shared_ptr<ui::implementation::AccountSummaryRowInternal>;
+auto MailItem(
+    const ui::implementation::ActivityThreadInternalInterface& parent,
+    const api::client::internal::Manager& api,
+    const network::zeromq::socket::Publish& publisher,
+    const identifier::Nym& nymID,
+    const ui::implementation::ActivityThreadRowID& rowID,
+    const ui::implementation::ActivityThreadSortKey& sortKey,
+    const ui::implementation::CustomData& custom,
+    const bool loading,
+    const bool pending) noexcept
+    -> std::shared_ptr<ui::implementation::ActivityThreadRowInternal>;
+auto MailItem(
+    const ui::implementation::ActivityThreadInternalInterface& parent,
+    const api::client::internal::Manager& api,
+    const network::zeromq::socket::Publish& publisher,
+    const identifier::Nym& nymID,
+    const ui::implementation::ActivityThreadRowID& rowID,
+    const ui::implementation::ActivityThreadSortKey& sortKey,
+    const ui::implementation::CustomData& custom) noexcept
+    -> std::shared_ptr<ui::implementation::ActivityThreadRowInternal>;
+auto MessagableListModel(
+    const api::client::internal::Manager& api,
+    const network::zeromq::socket::Publish& publisher,
+    const identifier::Nym& nymID
+#if OT_QT
+    ,
+    const bool qt
+#endif
+    ) noexcept -> std::unique_ptr<ui::implementation::MessagableList>;
+#if OT_QT
+auto MessagableListQtModel(ui::implementation::MessagableList& parent) noexcept
+    -> std::unique_ptr<ui::MessagableListQt>;
+#endif
+auto PayableListItem(
+    const ui::implementation::PayableInternalInterface& parent,
+    const api::client::internal::Manager& api,
+    const network::zeromq::socket::Publish& publisher,
+    const ui::implementation::PayableListRowID& rowID,
+    const ui::implementation::PayableListSortKey& key,
+    const std::string& paymentcode,
+    const proto::ContactItemType& currency) noexcept
+    -> std::shared_ptr<ui::implementation::PayableListRowInternal>;
+auto PaymentItem(
+    const ui::implementation::ActivityThreadInternalInterface& parent,
+    const api::client::internal::Manager& api,
+    const network::zeromq::socket::Publish& publisher,
+    const identifier::Nym& nymID,
+    const ui::implementation::ActivityThreadRowID& rowID,
+    const ui::implementation::ActivityThreadSortKey& sortKey,
+    const ui::implementation::CustomData& custom) noexcept
+    -> std::shared_ptr<ui::implementation::ActivityThreadRowInternal>;
+auto PayableListModel(
+    const api::client::internal::Manager& api,
+    const network::zeromq::socket::Publish& publisher,
+    const identifier::Nym& nymID,
+    const proto::ContactItemType& currency
+#if OT_QT
+    ,
+    const bool qt
+#endif
+    ) noexcept -> std::unique_ptr<ui::implementation::PayableList>;
+#if OT_QT
+auto PayableListQtModel(ui::implementation::PayableList& parent) noexcept
+    -> std::unique_ptr<ui::PayableListQt>;
+#endif
+auto PendingSend(
+    const ui::implementation::ActivityThreadInternalInterface& parent,
+    const api::client::internal::Manager& api,
+    const network::zeromq::socket::Publish& publisher,
+    const identifier::Nym& nymID,
+    const ui::implementation::ActivityThreadRowID& rowID,
+    const ui::implementation::ActivityThreadSortKey& sortKey,
+    const ui::implementation::CustomData& custom) noexcept
+    -> std::shared_ptr<ui::implementation::ActivityThreadRowInternal>;
+auto ProfileModel(
+    const api::client::internal::Manager& api,
+    const network::zeromq::socket::Publish& publisher,
+    const identifier::Nym& nymID
+#if OT_QT
+    ,
+    const bool qt
+#endif
+    ) noexcept -> std::unique_ptr<ui::implementation::Profile>;
+#if OT_QT
+auto ProfileQtModel(ui::implementation::Profile& parent) noexcept
+    -> std::unique_ptr<ui::ProfileQt>;
+#endif
+auto ProfileItemWidget(
+    const ui::implementation::ProfileSubsectionInternalInterface& parent,
+    const api::client::internal::Manager& api,
+    const network::zeromq::socket::Publish& publisher,
+    const ui::implementation::ProfileSubsectionRowID& rowID,
+    const ui::implementation::ProfileSubsectionSortKey& sortKey,
+    const ui::implementation::CustomData& custom) noexcept
+    -> std::shared_ptr<ui::implementation::ProfileSubsectionRowInternal>;
+auto ProfileSectionWidget(
+    const ui::implementation::ProfileInternalInterface& parent,
+    const api::client::internal::Manager& api,
+    const network::zeromq::socket::Publish& publisher,
+    const ui::implementation::ProfileRowID& rowID,
+    const ui::implementation::ProfileSortKey& key,
+    const ui::implementation::CustomData& custom
+#if OT_QT
+    ,
+    const bool qt
+#endif
+    ) noexcept -> std::shared_ptr<ui::implementation::ProfileRowInternal>;
+auto ProfileSubsectionWidget(
+    const ui::implementation::ProfileSectionInternalInterface& parent,
+    const api::client::internal::Manager& api,
+    const network::zeromq::socket::Publish& publisher,
+    const ui::implementation::ProfileSectionRowID& rowID,
+    const ui::implementation::ProfileSectionSortKey& key,
+    const ui::implementation::CustomData& custom
+#if OT_QT
+    ,
+    const bool qt
+#endif
+    ) noexcept
+    -> std::shared_ptr<ui::implementation::ProfileSectionRowInternal>;
+}  // namespace opentxs::factory

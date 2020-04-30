@@ -3,28 +3,30 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"                          // IWYU pragma: associated
+#include "1_Internal.hpp"                        // IWYU pragma: associated
+#include "storage/drivers/StorageMultiplex.hpp"  // IWYU pragma: associated
 
-#include "opentxs/api/storage/Multiplex.hpp"
-#include "opentxs/api/storage/Plugin.hpp"
-#if OT_STORAGE_FS
-#include "opentxs/core/crypto/OTPassword.hpp"
-#endif
-#include "opentxs/core/Flag.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/String.hpp"
-#include "opentxs/crypto/key/Symmetric.hpp"
-#include "opentxs/Types.hpp"
-
-#include "storage/tree/Root.hpp"
-#include "storage/tree/Tree.hpp"
-#include "storage/StorageConfig.hpp"
-
+#include <algorithm>
+#include <cstdint>
+#include <iosfwd>
 #include <limits>
 #include <memory>
+#include <stdexcept>
 #include <vector>
 
-#include "StorageMultiplex.hpp"
+#include "Factory.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/api/storage/Plugin.hpp"
+#include "opentxs/core/Flag.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/crypto/key/Symmetric.hpp"
+#include "storage/StorageConfig.hpp"
+#include "storage/tree/Root.hpp"
+#include "storage/tree/Tree.hpp"
 
 #define OT_METHOD "opentxs::storage::implementation::StorageMultiplex::"
 

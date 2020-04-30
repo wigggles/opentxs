@@ -5,9 +5,32 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
+#include "opentxs/Bytes.hpp"
+#include "opentxs/Proto.hpp"
 #include "opentxs/crypto/library/AsymmetricProvider.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
+namespace crypto
+{
+namespace key
+{
+class Asymmetric;
+}  // namespace key
+}  // namespace crypto
+
+class PasswordPrompt;
+class Signature;
+class String;
+}  // namespace opentxs
 
 namespace opentxs::crypto::implementation
 {

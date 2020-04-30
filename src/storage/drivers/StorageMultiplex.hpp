@@ -3,9 +3,44 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/storage/drivers/StorageMultiplex.cpp"
+
 #pragma once
 
-#include "Internal.hpp"
+#include <future>
+#include <memory>
+#include <string>
+#include <vector>
+
+#include "opentxs/Bytes.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/Version.hpp"
+#include "opentxs/api/storage/Driver.hpp"
+#include "opentxs/api/storage/Multiplex.hpp"
+#include "opentxs/crypto/key/Symmetric.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace storage
+{
+class Plugin;
+class Storage;
+}  // namespace storage
+}  // namespace api
+
+namespace storage
+{
+class Root;
+}  // namespace storage
+
+class Factory;
+class Flag;
+class StorageConfig;
+class String;
+}  // namespace opentxs
 
 namespace opentxs::storage::implementation
 {

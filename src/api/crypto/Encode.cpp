@@ -3,26 +3,31 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"           // IWYU pragma: associated
+#include "1_Internal.hpp"         // IWYU pragma: associated
+#include "api/crypto/Encode.hpp"  // IWYU pragma: associated
 
-#include "opentxs/api/crypto/Crypto.hpp"
-#include "opentxs/api/crypto/Encode.hpp"
-#include "opentxs/api/crypto/Hash.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/Data.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/String.hpp"
-#include "opentxs/crypto/library/EncodingProvider.hpp"
-#include "opentxs/network/zeromq/Context.hpp"
-#include "opentxs/Types.hpp"
+#include <cstddef>
+#include <memory>
+#include <regex>
+#include <sstream>
+#include <vector>
 
+#include "Factory.hpp"
 #include "base58/base58.h"
 #include "base64/base64.h"
-
-#include <iostream>
-#include <regex>
-
-#include "Encode.hpp"
+#include "opentxs/Bytes.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/api/crypto/Crypto.hpp"
+#include "opentxs/api/crypto/Hash.hpp"
+#include "opentxs/core/Data.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/network/zeromq/Context.hpp"
 
 // #define OT_METHOD opentxs::api::crypto::implementation::Encode::
 

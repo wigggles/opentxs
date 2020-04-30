@@ -6,10 +6,10 @@
 #ifndef OPENTXS_API_CLIENT_BLOCKCHAIN_BALANCELIST_HPP
 #define OPENTXS_API_CLIENT_BLOCKCHAIN_BALANCELIST_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
-#include "opentxs/iterator/Bidirectional.hpp"
 #include "opentxs/Types.hpp"
+#include "opentxs/iterator/Bidirectional.hpp"
 
 namespace opentxs
 {

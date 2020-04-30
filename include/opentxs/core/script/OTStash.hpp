@@ -6,7 +6,7 @@
 #ifndef OPENTXS_CORE_SCRIPT_OTSTASH_HPP
 #define OPENTXS_CORE_SCRIPT_OTSTASH_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <map>
 #include <string>
@@ -25,7 +25,6 @@ typedef IIrrXMLReader<char, IXMLBase> IrrXMLReader;
 
 namespace opentxs
 {
-
 class Identifier;
 class OTStashItem;
 class String;

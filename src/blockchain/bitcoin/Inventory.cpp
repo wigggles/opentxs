@@ -3,9 +3,17 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"                      // IWYU pragma: associated
+#include "1_Internal.hpp"                    // IWYU pragma: associated
+#include "blockchain/bitcoin/Inventory.hpp"  // IWYU pragma: associated
 
-#include "Inventory.hpp"
+#include <cstddef>
+#include <cstring>
+#include <memory>
+#include <stdexcept>
+#include <utility>
+
+#include "opentxs/Pimpl.hpp"
 
 // #define OT_METHOD "opentxs::blockchain::bitcoin::CompactSize::"
 

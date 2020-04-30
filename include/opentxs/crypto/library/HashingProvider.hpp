@@ -6,11 +6,13 @@
 #ifndef OPENTXS_CRYPTO_LIBRARY_HASHINGPROVIDER_HPP
 #define OPENTXS_CRYPTO_LIBRARY_HASHINGPROVIDER_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/Proto.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <cstdint>
+#include <iosfwd>
+
+#include "opentxs/Proto.hpp"
+#include "opentxs/core/String.hpp"
 
 namespace opentxs
 {

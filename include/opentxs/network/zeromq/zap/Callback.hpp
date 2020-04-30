@@ -6,16 +6,31 @@
 #ifndef OPENTXS_NETWORK_ZEROMQ_ZAP_CALLBACK_HPP
 #define OPENTXS_NETWORK_ZEROMQ_ZAP_CALLBACK_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/network/zeromq/zap/Reply.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <functional>
 
+#include "opentxs/network/zeromq/zap/Reply.hpp"
+#include "opentxs/Pimpl.hpp"
+
 namespace opentxs
 {
-using OTZMQZAPCallback = Pimpl<network::zeromq::zap::Callback>;
+namespace network
+{
+namespace zeromq
+{
+namespace zap
+{
+class Callback;
+}  // namespace zap
+}  // namespace zeromq
+}  // namespace network
 
+using OTZMQZAPCallback = Pimpl<network::zeromq::zap::Callback>;
+}  // namespace opentxs
+
+namespace opentxs
+{
 namespace network
 {
 namespace zeromq

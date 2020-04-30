@@ -3,18 +3,19 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
-
-#include "opentxs/core/Log.hpp"
-#include "opentxs/network/zeromq/socket/Pair.hpp"
-#include "opentxs/network/zeromq/socket/Sender.tpp"
-#include "opentxs/network/zeromq/socket/Socket.hpp"
-#include "opentxs/network/zeromq/Context.hpp"
-#include "opentxs/network/zeromq/ListenCallback.hpp"
+#include "0_stdafx.hpp"              // IWYU pragma: associated
+#include "1_Internal.hpp"            // IWYU pragma: associated
+#include "network/zeromq/Proxy.hpp"  // IWYU pragma: associated
 
 #include <zmq.h>
 
-#include "Proxy.hpp"
+#include "Factory.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/network/zeromq/ListenCallback.hpp"
+#include "opentxs/network/zeromq/socket/Pair.hpp"
+#include "opentxs/network/zeromq/socket/Sender.tpp"
+#include "opentxs/network/zeromq/socket/Socket.hpp"
 
 template class opentxs::Pimpl<opentxs::network::zeromq::Proxy>;
 

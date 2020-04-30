@@ -5,13 +5,31 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
-#include "opentxs/crypto/Bip32.hpp"
-
 #include <boost/endian/buffers.hpp>
+#include <string>
 
 #include "HDNode.hpp"
+#include "opentxs/Bytes.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/Version.hpp"
+#include "opentxs/core/Data.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/crypto/Bip32.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+class Crypto;
+}  // namespace api
+
+namespace crypto
+{
+class EcdsaProvider;
+}  // namespace crypto
+
+class OTPassword;
+}  // namespace opentxs
 
 namespace be = boost::endian;
 

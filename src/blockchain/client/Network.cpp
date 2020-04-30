@@ -3,21 +3,29 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"                   // IWYU pragma: associated
+#include "1_Internal.hpp"                 // IWYU pragma: associated
+#include "blockchain/client/Network.hpp"  // IWYU pragma: associated
 
-#include "opentxs/api/Core.hpp"
-#include "opentxs/api/Endpoints.hpp"
+#include <algorithm>
+#include <chrono>
+#include <cstdint>
+#include <utility>
+#include <vector>
+
+#include "Factory.hpp"
+#include "internal/api/Api.hpp"
+#include "opentxs/Pimpl.hpp"
 #include "opentxs/blockchain/block/Header.hpp"
+#include "opentxs/core/Data.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/network/zeromq/socket/Sender.tpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
-#include "opentxs/network/zeromq/FrameIterator.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
-
-#include "internal/api/Api.hpp"
-
-#include "Network.hpp"
+#include "opentxs/network/zeromq/Pipeline.hpp"
 
 #define OT_METHOD "opentxs::blockchain::client::implementation::Network::"
 

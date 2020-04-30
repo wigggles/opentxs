@@ -3,18 +3,14 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef OPENTXS_CRYPTO_LIBRARY_OPENSSL_HPP
-#define OPENTXS_CRYPTO_LIBRARY_OPENSSL_HPP
+#pragma once
 
-#include "Internal.hpp"
-
-#if OT_CRYPTO_USING_OPENSSL
+#include "internal/crypto/library/Pbkdf2.hpp"
+#include "internal/crypto/library/Ripemd160.hpp"
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
 #include "opentxs/crypto/library/AsymmetricProvider.hpp"
 #endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
 #include "opentxs/crypto/library/HashingProvider.hpp"
-#include "opentxs/crypto/library/Pbkdf2.hpp"
-#include "opentxs/crypto/library/Ripemd160.hpp"
 
 namespace opentxs::crypto
 {
@@ -39,6 +35,3 @@ private:
     OpenSSL& operator=(OpenSSL&&) = delete;
 };
 }  // namespace opentxs::crypto
-
-#endif  // OT_CRYPTO_USING_OPENSSL
-#endif

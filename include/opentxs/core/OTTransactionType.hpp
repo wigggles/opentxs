@@ -6,7 +6,9 @@
 #ifndef OPENTXS_CORE_OTTRANSACTIONTYPE_HPP
 #define OPENTXS_CORE_OTTRANSACTIONTYPE_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
+
+#include <cstdint>
 
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
@@ -14,8 +16,7 @@
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/NumList.hpp"
 #include "opentxs/Types.hpp"
-
-#include <cstdint>
+#include "opentxs/core/Identifier.hpp"
 
 namespace opentxs
 {
@@ -26,6 +27,13 @@ namespace internal
 struct Core;
 }  // namespace internal
 }  // namespace api
+
+namespace identity
+{
+class Nym;
+}  // namespace identity
+
+class String;
 
 // OTTransactionType is a base class for OTLedger, OTTransaction, and Item.
 class OTTransactionType : public Contract

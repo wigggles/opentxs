@@ -3,15 +3,23 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"    // IWYU pragma: associated
+#include "1_Internal.hpp"  // IWYU pragma: associated
+#include "api/client/blockchain/database/BlockFilter.hpp"  // IWYU pragma: associated
 
-#include "opentxs/core/Log.hpp"
-#include "opentxs/Proto.tpp"
+#include <cstring>
+#include <stdexcept>
+#include <string>
+#include <utility>
 
-#include "internal/api/Api.hpp"
+#include "Factory.hpp"
+#include "internal/api/Api.hpp"  // IWYU pragma: keep
 #include "internal/blockchain/Blockchain.hpp"
-
-#include "BlockFilter.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Proto.tpp"
+#include "opentxs/core/Data.hpp"
+#include "opentxs/core/Log.hpp"
+#include "util/LMDB.hpp"
 
 // #define OT_METHOD
 // "opentxs::api::client::blockchain::database::implementation::BlockFilter::"

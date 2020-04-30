@@ -6,16 +6,16 @@
 #ifndef OPENTXS_CORE_UTIL_TAG_HPP
 #define OPENTXS_CORE_UTIL_TAG_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
-#include <string>
+#include <algorithm>
 #include <map>
-#include <vector>
 #include <memory>
+#include <string>
+#include <vector>
 
 namespace opentxs
 {
-
 class Tag;
 
 typedef std::shared_ptr<Tag> TagPtr;

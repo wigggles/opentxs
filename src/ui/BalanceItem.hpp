@@ -5,7 +5,58 @@
 
 #pragma once
 
-#include "Internal.hpp"
+#include <chrono>
+#include <memory>
+#include <string>
+#include <thread>
+#include <vector>
+
+#include "1_Internal.hpp"
+#include "internal/ui/UI.hpp"
+#include "opentxs/SharedPimpl.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/Version.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/contract/UnitDefinition.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/ui/BalanceItem.hpp"
+#include "ui/Row.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace client
+{
+namespace internal
+{
+struct Manager;
+}  // namespace internal
+}  // namespace client
+}  // namespace api
+
+namespace network
+{
+namespace zeromq
+{
+namespace socket
+{
+class Publish;
+}  // namespace socket
+}  // namespace zeromq
+}  // namespace network
+
+namespace proto
+{
+class PaymentEvent;
+class PaymentWorkflow;
+}  // namespace proto
+
+namespace ui
+{
+class BalanceItem;
+}  // namespace ui
+}  // namespace opentxs
 
 namespace opentxs::ui::implementation
 {
@@ -82,3 +133,5 @@ private:
     BalanceItem& operator=(BalanceItem&&) = delete;
 };
 }  // namespace opentxs::ui::implementation
+
+template class opentxs::SharedPimpl<opentxs::ui::BalanceItem>;

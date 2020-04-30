@@ -5,15 +5,14 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
-#include "opentxs/core/Data.hpp"
-
-#include "internal/blockchain/p2p/bitcoin/message/Message.hpp"
-
 #include <cstdint>
 #include <map>
 #include <string>
+#include <iosfwd>
+
+#include "internal/blockchain/p2p/bitcoin/message/Message.hpp"
+#include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/core/Data.hpp"
 
 namespace opentxs::blockchain::bitcoin
 {

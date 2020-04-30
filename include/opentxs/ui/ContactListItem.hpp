@@ -6,10 +6,11 @@
 #ifndef OPENTXS_UI_CONTACTLISTITEM_HPP
 #define OPENTXS_UI_CONTACTLISTITEM_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <string>
 
+#include "opentxs/SharedPimpl.hpp"
 #include "ListRow.hpp"
 
 #ifdef SWIG
@@ -21,8 +22,16 @@
 
 namespace opentxs
 {
-using OTUIContactListItem = SharedPimpl<ui::ContactListItem>;
+namespace ui
+{
+class ContactListItem;
+}  // namespace ui
 
+using OTUIContactListItem = SharedPimpl<ui::ContactListItem>;
+}  // namespace opentxs
+
+namespace opentxs
+{
 namespace ui
 {
 class ContactListItem : virtual public ListRow

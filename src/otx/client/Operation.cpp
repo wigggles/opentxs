@@ -3,53 +3,70 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"              // IWYU pragma: associated
+#include "1_Internal.hpp"            // IWYU pragma: associated
+#include "otx/client/Operation.hpp"  // IWYU pragma: associated
 
-#include "opentxs/api/client/Manager.hpp"
-#include "opentxs/api/client/Workflow.hpp"
+#include <cstdint>
+#include <atomic>
+#include <future>
+#include <map>
+#include <memory>
+#include <chrono>
+#include <functional>
+#include <iterator>
+#include <string>
+#include <type_traits>
+#include <utility>
+
+#include "Factory.hpp"
+#include "core/StateMachine.hpp"
+#include "internal/api/client/Client.hpp"
+#include "internal/otx/client/Client.hpp"
+#include "opentxs/Bytes.hpp"
+#include "opentxs/Forward.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Shared.hpp"
+#include "opentxs/SharedPimpl.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Wallet.hpp"
+#include "opentxs/api/client/Activity.hpp"
+#include "opentxs/api/client/Workflow.hpp"
 #if OT_CASH
 #include "opentxs/blind/Mint.hpp"
 #include "opentxs/blind/Purse.hpp"
 #endif  // OT_CASH
 #include "opentxs/client/OT_API.hpp"
+#include "opentxs/consensus/Context.hpp"
 #include "opentxs/consensus/ManagedNumber.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
-#include "opentxs/core/contract/peer/PeerObject.hpp"
-#include "opentxs/core/contract/peer/PeerReply.hpp"
-#include "opentxs/core/contract/peer/PeerRequest.hpp"
-#include "opentxs/core/contract/UnitDefinition.hpp"
-#include "opentxs/core/transaction/Helpers.hpp"
-#include "opentxs/core/identifier/Nym.hpp"
-#include "opentxs/core/identifier/Server.hpp"
-#include "opentxs/core/identifier/UnitDefinition.hpp"
+#include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Cheque.hpp"
-#include "opentxs/core/Flag.hpp"
+#include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Item.hpp"
 #include "opentxs/core/Ledger.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/NymFile.hpp"
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/PasswordPrompt.hpp"
+#include "opentxs/core/contract/ServerContract.hpp"
+#include "opentxs/core/contract/UnitDefinition.hpp"
+#include "opentxs/core/contract/peer/PeerObject.hpp"
+#include "opentxs/core/contract/peer/PeerReply.hpp"
+#include "opentxs/core/contract/peer/PeerRequest.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
+#include "opentxs/core/transaction/Helpers.hpp"
 #include "opentxs/crypto/Envelope.hpp"
 #include "opentxs/ext/OTPayment.hpp"
-#include "opentxs/Proto.tpp"
-
-#include "core/StateMachine.hpp"
-#include "internal/api/client/Client.hpp"
-#include "internal/otx/client/Client.hpp"
-
-#include <atomic>
-#include <future>
-#include <map>
-#include <memory>
-#include <mutex>
-
-#include "Operation.hpp"
+#include "opentxs/identity/Nym.hpp"
 
 #define START()                                                                \
     Lock lock(decision_lock_);                                                 \

@@ -6,7 +6,7 @@
 #ifndef OPENTXS_NETWORK_ZEROMQ_LISTENCALLBACKSWIG_HPP
 #define OPENTXS_NETWORK_ZEROMQ_LISTENCALLBACKSWIG_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #ifdef SWIG
 // clang-format off

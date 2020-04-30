@@ -3,75 +3,15 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"     // IWYU pragma: associated
+#include "1_Internal.hpp"   // IWYU pragma: associated
+#include "api/Factory.hpp"  // IWYU pragma: associated
 
-#include "Internal.hpp"
-
-#include "opentxs/api/crypto/Asymmetric.hpp"
-#include "opentxs/api/crypto/Crypto.hpp"
-#include "opentxs/api/crypto/Encode.hpp"
-#include "opentxs/api/crypto/Symmetric.hpp"
-#include "opentxs/api/Factory.hpp"
-#if OT_CRYPTO_WITH_BIP32
-#include "opentxs/api/HDSeed.hpp"
-#endif
-#if OT_CASH
-#include "opentxs/blind/Mint.hpp"
-#include "opentxs/blind/Purse.hpp"
-#endif
-#if OT_BLOCKCHAIN
-#include "opentxs/blockchain/block/bitcoin/Header.hpp"
-#include "opentxs/blockchain/block/bitcoin/Script.hpp"
-#include "opentxs/blockchain/block/Header.hpp"
-#include "opentxs/blockchain/p2p/Address.hpp"
-#endif  // OT_BLOCKCHAIN
-#include "opentxs/core/contract/basket/Basket.hpp"
-#include "opentxs/core/contract/basket/BasketContract.hpp"
-#include "opentxs/core/contract/peer/BailmentNotice.hpp"
-#include "opentxs/core/contract/peer/BailmentRequest.hpp"
-#include "opentxs/core/contract/peer/BailmentReply.hpp"
-#include "opentxs/core/contract/peer/ConnectionRequest.hpp"
-#include "opentxs/core/contract/peer/ConnectionReply.hpp"
-#include "opentxs/core/contract/peer/NoticeAcknowledgement.hpp"
-#include "opentxs/core/contract/peer/OutBailmentRequest.hpp"
-#include "opentxs/core/contract/peer/OutBailmentReply.hpp"
-#include "opentxs/core/contract/peer/PeerObject.hpp"
-#include "opentxs/core/contract/peer/PeerReply.hpp"
-#include "opentxs/core/contract/peer/PeerRequest.hpp"
-#include "opentxs/core/contract/peer/StoreSecret.hpp"
-#include "opentxs/core/contract/CurrencyContract.hpp"
-#include "opentxs/core/contract/SecurityContract.hpp"
-#include "opentxs/core/contract/ServerContract.hpp"
-#include "opentxs/core/contract/UnitDefinition.hpp"
-#include "opentxs/core/cron/OTCron.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/crypto/OTSignedFile.hpp"
-#include "opentxs/core/crypto/PaymentCode.hpp"
-#include "opentxs/core/identifier/Nym.hpp"
-#include "opentxs/core/identifier/Server.hpp"
-#include "opentxs/core/identifier/UnitDefinition.hpp"
-#include "opentxs/core/recurring/OTAgreement.hpp"
-#include "opentxs/core/recurring/OTPaymentPlan.hpp"
-#include "opentxs/core/script/OTSmartContract.hpp"
-#include "opentxs/core/trade/OTOffer.hpp"
-#include "opentxs/core/trade/OTTrade.hpp"
-#include "opentxs/core/Account.hpp"
-#include "opentxs/core/Cheque.hpp"
-#include "opentxs/core/Contract.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Item.hpp"
-#include "opentxs/core/Ledger.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/Message.hpp"
-#include "opentxs/core/OTTransaction.hpp"
-#include "opentxs/core/OTTransactionType.hpp"
-#include "opentxs/core/PasswordPrompt.hpp"
-#include "opentxs/crypto/key/HD.hpp"
-#include "opentxs/crypto/key/Symmetric.hpp"
-#include "opentxs/crypto/library/EcdsaProvider.hpp"
-#include "opentxs/ext/OTPayment.hpp"
-#include "opentxs/network/zeromq/Pipeline.hpp"
-#include "opentxs/Proto.tpp"
+#include <algorithm>
+#include <array>
+#include <cstring>
+#include <stdexcept>
+#include <utility>
 
 #include "core/crypto/PaymentCode.hpp"
 #include "crypto/key/Null.hpp"
@@ -80,10 +20,73 @@
 #include "internal/blockchain/block/Block.hpp"
 #include "internal/blockchain/p2p/P2P.hpp"
 #endif  // OT_BLOCKCHAIN
-
-#include <array>
-
-#include "Factory.hpp"
+#include "opentxs/Forward.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.tpp"
+#if OT_CRYPTO_WITH_BIP32
+#include "opentxs/api/HDSeed.hpp"
+#endif  // OT_CRYPTO_WITH_BIP32
+#include "opentxs/api/crypto/Asymmetric.hpp"
+#include "opentxs/api/crypto/Crypto.hpp"
+#include "opentxs/api/crypto/Encode.hpp"
+#if OT_CASH
+#include "opentxs/blind/Mint.hpp"
+#include "opentxs/blind/Purse.hpp"
+#endif  // OT_CASH
+#if OT_BLOCKCHAIN
+#include "opentxs/blockchain/block/Header.hpp"
+#include "opentxs/blockchain/block/bitcoin/Script.hpp"
+#include "opentxs/blockchain/p2p/Address.hpp"
+#endif  // OT_BLOCKCHAIN
+#include "opentxs/core/Cheque.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Item.hpp"
+#include "opentxs/core/Ledger.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/Message.hpp"
+#include "opentxs/core/OTTransaction.hpp"
+#include "opentxs/core/OTTransactionType.hpp"
+#include "opentxs/core/PasswordPrompt.hpp"
+#include "opentxs/core/contract/CurrencyContract.hpp"
+#include "opentxs/core/contract/SecurityContract.hpp"
+#include "opentxs/core/contract/ServerContract.hpp"
+#include "opentxs/core/contract/UnitDefinition.hpp"
+#include "opentxs/core/contract/basket/Basket.hpp"
+#include "opentxs/core/contract/basket/BasketContract.hpp"
+#include "opentxs/core/contract/peer/BailmentNotice.hpp"
+#include "opentxs/core/contract/peer/BailmentReply.hpp"
+#include "opentxs/core/contract/peer/BailmentRequest.hpp"
+#include "opentxs/core/contract/peer/ConnectionReply.hpp"
+#include "opentxs/core/contract/peer/ConnectionRequest.hpp"
+#include "opentxs/core/contract/peer/NoticeAcknowledgement.hpp"
+#include "opentxs/core/contract/peer/OutBailmentReply.hpp"
+#include "opentxs/core/contract/peer/OutBailmentRequest.hpp"
+#include "opentxs/core/contract/peer/PeerObject.hpp"
+#include "opentxs/core/contract/peer/PeerReply.hpp"
+#include "opentxs/core/contract/peer/PeerRequest.hpp"
+#include "opentxs/core/contract/peer/StoreSecret.hpp"
+#include "opentxs/core/cron/OTCron.hpp"
+#include "opentxs/core/cron/OTCronItem.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/crypto/OTSignedFile.hpp"
+#include "opentxs/core/crypto/PaymentCode.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
+#include "opentxs/core/recurring/OTPaymentPlan.hpp"
+#include "opentxs/core/script/OTScriptable.hpp"
+#include "opentxs/core/script/OTSmartContract.hpp"
+#include "opentxs/core/trade/OTMarket.hpp"
+#include "opentxs/core/trade/OTOffer.hpp"
+#include "opentxs/core/trade/OTTrade.hpp"
+#include "opentxs/crypto/key/EllipticCurve.hpp"
+#include "opentxs/crypto/key/HD.hpp"
+#include "opentxs/crypto/key/Secp256k1.hpp"
+#include "opentxs/crypto/key/Symmetric.hpp"
+#include "opentxs/ext/OTPayment.hpp"
+#include "opentxs/network/zeromq/Pipeline.hpp"
 
 #define OT_METHOD "opentxs::api::implementation::Factory::"
 

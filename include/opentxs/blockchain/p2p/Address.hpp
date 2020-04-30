@@ -6,17 +6,29 @@
 #ifndef OPENTXS_BLOCKCHAIN_P2P_ADDRESS_HPP
 #define OPENTXS_BLOCKCHAIN_P2P_ADDRESS_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/blockchain/Blockchain.hpp"
-#include "opentxs/Proto.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <set>
 
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/blockchain/Blockchain.hpp"
+
 namespace opentxs
 {
-using OTBlockchainAddress = Pimpl<blockchain::p2p::Address>;
+namespace blockchain
+{
+namespace p2p
+{
+class Address;
+}  // namespace p2p
+}  // namespace blockchain
 
+using OTBlockchainAddress = Pimpl<blockchain::p2p::Address>;
+}  // namespace opentxs
+
+namespace opentxs
+{
 namespace blockchain
 {
 namespace p2p

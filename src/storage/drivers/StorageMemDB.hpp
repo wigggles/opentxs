@@ -5,6 +5,34 @@
 
 #pragma once
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/storage/drivers/StorageMemDB.cpp"
+
+#include <future>
+#include <map>
+#include <string>
+
+#include "opentxs/Bytes.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/api/storage/Driver.hpp"
+#include "opentxs/core/Lockable.hpp"
+#include "storage/Plugin.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace storage
+{
+class Storage;
+}  // namespace storage
+}  // namespace api
+
+class Factory;
+class Flag;
+class StorageConfig;
+}  // namespace opentxs
+
 namespace opentxs::storage::implementation
 {
 // In-memory implementation of opentxs::storage

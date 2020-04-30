@@ -3,7 +3,48 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/api/client/Factory.cpp"
+
 #pragma once
+
+#include <memory>
+#include <string>
+
+#include "api/Factory.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/Version.hpp"
+#include "opentxs/core/contract/peer/PeerReply.hpp"
+#include "opentxs/core/contract/peer/PeerRequest.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace client
+{
+namespace internal
+{
+struct Manager;
+}  // namespace internal
+}  // namespace client
+}  // namespace api
+
+namespace blind
+{
+class Purse;
+}  // namespace blind
+
+namespace proto
+{
+class PeerObject;
+}  // namespace proto
+
+class Armored;
+class Factory;
+class PasswordPrompt;
+class PeerObject;
+}  // namespace opentxs
 
 namespace opentxs::api::client::implementation
 {

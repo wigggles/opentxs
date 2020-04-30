@@ -5,9 +5,47 @@
 
 #pragma once
 
-#include "Internal.hpp"
+#include <memory>
+#include <string>
 
-#include "Asymmetric.hpp"
+#include "crypto/key/Asymmetric.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/Version.hpp"
+#include "opentxs/crypto/key/Asymmetric.hpp"
+#include "opentxs/crypto/key/EllipticCurve.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
+namespace crypto
+{
+namespace key
+{
+class Symmetric;
+}  // namespace key
+
+class EcdsaProvider;
+}  // namespace crypto
+
+namespace proto
+{
+class AsymmetricKey;
+class Ciphertext;
+class HDPath;
+}  // namespace proto
+
+class Data;
+class OTPassword;
+class PasswordPrompt;
+}  // namespace opentxs
 
 namespace opentxs::crypto::key::implementation
 {

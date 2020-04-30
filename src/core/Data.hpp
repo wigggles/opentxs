@@ -5,7 +5,18 @@
 
 #pragma once
 
-#include "Internal.hpp"
+#include <cstddef>
+#include <cstdint>
+#include <string>
+#include <vector>
+
+#include "opentxs/Bytes.hpp"
+#include "opentxs/core/Data.hpp"
+
+namespace opentxs
+{
+class Armored;
+}  // namespace opentxs
 
 namespace opentxs::implementation
 {

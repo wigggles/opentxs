@@ -7,7 +7,7 @@
 #define OPENTXS_UI_LIST_HPP
 
 #ifndef Q_MOC_RUN
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include "opentxs/ui/Widget.hpp"
 #include "opentxs/Types.hpp"

@@ -6,6 +6,8 @@
 #ifndef OPENTXS_PIMPL_HPP
 #define OPENTXS_PIMPL_HPP
 
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
+
 #include <cassert>
 #include <memory>
 

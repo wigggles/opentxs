@@ -3,31 +3,25 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
-#include "Internal.hpp"
+#include "0_stdafx.hpp"    // IWYU pragma: associated
+#include "1_Internal.hpp"  // IWYU pragma: associated
+#include "opentxs/OT.hpp"  // IWYU pragma: associated
 
-#include "opentxs/api/client/Manager.hpp"
-#include "opentxs/api/crypto/Crypto.hpp"
-#include "opentxs/api/crypto/Util.hpp"
-#include "opentxs/api/Context.hpp"
-#include "opentxs/api/HDSeed.hpp"
-#include "opentxs/client/OT_API.hpp"
+#include <stdexcept>
+
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/core/PasswordPrompt.hpp"
-
 #include "internal/api/Api.hpp"
-
-#include <atomic>
-#include <cstdint>
-#include <map>
-#include <stdexcept>
-#include <string>
-
-#include "opentxs/OT.hpp"
 
 namespace opentxs
 {
+namespace api
+{
+class Context;
+}  // namespace api
+
+class OTCaller;
+
 api::internal::Context* instance_pointer_{nullptr};
 OTFlag running_{Flag::Factory(true)};
 

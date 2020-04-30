@@ -3,25 +3,23 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
-
-#include "Internal.hpp"
-
+#include "0_stdafx.hpp"    // IWYU pragma: associated
+#include "1_Internal.hpp"  // IWYU pragma: associated
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
-#include "opentxs/api/crypto/Crypto.hpp"
+#include "crypto/key/Ed25519.hpp"  // IWYU pragma: associated
+
+#include <stdexcept>
+
+#include "Factory.hpp"
+#include "internal/api/Api.hpp"
+#include "opentxs/Pimpl.hpp"
 #include "opentxs/api/crypto/Symmetric.hpp"
-#include "opentxs/api/Core.hpp"
+#include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/core/String.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/crypto/key/Ed25519.hpp"
-#include "opentxs/crypto/key/Symmetric.hpp"
-#include "opentxs/crypto/library/AsymmetricProvider.hpp"
-#include "opentxs/crypto/library/Sodium.hpp"
-
-#include "crypto/key/HD.hpp"
 #include "util/Sodium.hpp"
-
-#include "Ed25519.hpp"
 
 namespace opentxs
 {

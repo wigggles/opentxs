@@ -6,18 +6,19 @@
 #ifndef OPENTXS_CORE_STRING_HPP
 #define OPENTXS_CORE_STRING_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/Bytes.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <cstdarg>
 #include <cstdint>
 #include <iosfwd>
 #include <list>
-#include <utility>
-#include <string>
 #include <map>
+#include <string>
+#include <utility>
 #include <vector>
+
+#include "opentxs/Bytes.hpp"
+#include "opentxs/Pimpl.hpp"
 
 #ifdef __GNUC__
 #define ATTR_PRINTF(a, b) __attribute__((format(printf, a, b)))
@@ -33,8 +34,18 @@
 
 namespace opentxs
 {
-using OTString = Pimpl<String>;
+class Armored;
+class Contract;
+class Identifier;
+class NymFile;
+class Signature;
+class String;
 
+using OTString = Pimpl<String>;
+}  // namespace opentxs
+
+namespace opentxs
+{
 class String
 {
 public:

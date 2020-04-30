@@ -9,16 +9,17 @@
 #define NULL_START 0
 #define NULL_END 0
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/Proto.hpp"
-#include "opentxs/Types.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <chrono>
 #include <cstdint>
 #include <ctime>
 #include <set>
+#include <string>
+
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/core/Identifier.hpp"
 
 namespace opentxs
 {

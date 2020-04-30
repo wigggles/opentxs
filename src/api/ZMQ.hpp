@@ -5,11 +5,21 @@
 
 #pragma once
 
-#include "Internal.hpp"
+#include <memory>
 
 #include "opentxs/api/Endpoints.hpp"
-
 #include "core/Shutdown.hpp"
+
+namespace opentxs
+{
+namespace network
+{
+namespace zeromq
+{
+class Context;
+}  // namespace zeromq
+}  // namespace network
+}  // namespace opentxs
 
 namespace opentxs::api::implementation
 {

@@ -5,9 +5,24 @@
 
 #pragma once
 
-#include "Internal.hpp"
+#include <irrxml/irrXML.hpp>
+#include <cstdint>
 
+#include "core/String.hpp"
 #include "opentxs/core/StringXML.hpp"
+
+namespace irr
+{
+namespace io
+{
+class IFileReadCallBack;
+}  // namespace io
+}  // namespace irr
+
+namespace opentxs
+{
+class String;
+}  // namespace opentxs
 
 namespace opentxs::implementation
 {

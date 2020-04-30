@@ -3,36 +3,39 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
-#include "Internal.hpp"
-
+#include "0_stdafx.hpp"    // IWYU pragma: associated
+#include "1_Internal.hpp"  // IWYU pragma: associated
 #if OT_CASH_USING_LUCRE
-#include "opentxs/api/storage/Storage.hpp"
-#include "opentxs/api/Core.hpp"
-#include "opentxs/api/Factory.hpp"
-#include "opentxs/blind/Mint.hpp"
-#include "opentxs/blind/Purse.hpp"
-#include "opentxs/core/Armored.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/PasswordPrompt.hpp"
-#include "opentxs/core/String.hpp"
-#include "opentxs/crypto/key/Symmetric.hpp"
+#include "blind/token/Lucre.hpp"  // IWYU pragma: associated
+
+extern "C" {
+#include <openssl/bio.h>
+#include <openssl/ossl_typ.h>
+}
+
+#include <algorithm>
+#include <cctype>
+#include <regex>
+#include <stdexcept>
+#include <vector>
 
 #include "blind/Lucre.hpp"
 #include "crypto/library/OpenSSL_BIO.hpp"
 #include "internal/api/Api.hpp"
-
-#include <openssl/bio.h>
-#include <openssl/ossl_typ.h>
-#include <sys/types.h>
-
-#include <algorithm>
-#include <locale>
-#include <regex>
-#include <ostream>
-#include <vector>
-
-#include "Lucre.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Version.hpp"
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/api/storage/Storage.hpp"
+#include "opentxs/blind/Mint.hpp"
+#include "opentxs/blind/Purse.hpp"
+#include "opentxs/core/Armored.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
+#include "opentxs/crypto/key/Symmetric.hpp"
 
 #define LUCRE_TOKEN_VERSION 1
 

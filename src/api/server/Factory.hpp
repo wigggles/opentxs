@@ -3,7 +3,31 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/api/server/Factory.cpp"
+
 #pragma once
+
+#include <memory>
+
+#include "api/Factory.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace server
+{
+namespace internal
+{
+struct Manager;
+}  // namespace internal
+}  // namespace server
+}  // namespace api
+
+class Factory;
+class OTCron;
+}  // namespace opentxs
 
 namespace opentxs::api::server::implementation
 {

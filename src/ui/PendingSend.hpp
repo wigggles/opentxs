@@ -3,11 +3,49 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/ui/PendingSend.cpp"
+
 #pragma once
 
-#include "Internal.hpp"
+#include <string>
 
-#include "ActivityThreadItem.hpp"
+#include "1_Internal.hpp"
+#include "internal/ui/UI.hpp"
+#include "opentxs/Types.hpp"
+#include "ui/ActivityThreadItem.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace client
+{
+namespace internal
+{
+struct Manager;
+}  // namespace internal
+}  // namespace client
+}  // namespace api
+
+namespace identifier
+{
+class Nym;
+}  // namespace identifier
+
+namespace network
+{
+namespace zeromq
+{
+namespace socket
+{
+class Publish;
+}  // namespace socket
+}  // namespace zeromq
+}  // namespace network
+
+class Factory;
+}  // namespace opentxs
 
 namespace opentxs::ui::implementation
 {
@@ -19,6 +57,14 @@ public:
     std::string DisplayAmount() const noexcept final { return display_amount_; }
     std::string Memo() const noexcept final { return memo_; }
 
+    PendingSend(
+        const ActivityThreadInternalInterface& parent,
+        const api::client::internal::Manager& api,
+        const network::zeromq::socket::Publish& publisher,
+        const identifier::Nym& nymID,
+        const ActivityThreadRowID& rowID,
+        const ActivityThreadSortKey& sortKey,
+        const CustomData& custom) noexcept;
     ~PendingSend() = default;
 
 private:
@@ -28,14 +74,6 @@ private:
     std::string display_amount_;
     std::string memo_;
 
-    PendingSend(
-        const ActivityThreadInternalInterface& parent,
-        const api::client::internal::Manager& api,
-        const network::zeromq::socket::Publish& publisher,
-        const identifier::Nym& nymID,
-        const ActivityThreadRowID& rowID,
-        const ActivityThreadSortKey& sortKey,
-        const CustomData& custom) noexcept;
     PendingSend() = delete;
     PendingSend(const PendingSend&) = delete;
     PendingSend(PendingSend&&) = delete;

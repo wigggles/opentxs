@@ -6,7 +6,7 @@
 #ifndef OPENTXS_API_STORAGE_DRIVER_HPP
 #define OPENTXS_API_STORAGE_DRIVER_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <future>
 #include <memory>
@@ -18,7 +18,6 @@ namespace api
 {
 namespace storage
 {
-
 class Driver
 {
 public:

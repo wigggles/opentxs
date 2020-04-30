@@ -5,6 +5,38 @@
 
 #pragma once
 
+#include <iosfwd>
+#include <map>
+#include <memory>
+#include <vector>
+
+#include "internal/identity/wot/verification/Verification.hpp"
+#include "opentxs/Forward.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/identity/wot/verification/Group.hpp"
+#include "opentxs/identity/wot/verification/Item.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
+namespace identity
+{
+class Nym;
+}  // namespace identity
+
+class Factory;
+class PasswordPrompt;
+}  // namespace opentxs
+
 namespace opentxs::identity::wot::verification::implementation
 {
 class Group final : public internal::Group

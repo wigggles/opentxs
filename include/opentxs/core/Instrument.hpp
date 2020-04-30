@@ -6,14 +6,15 @@
 #ifndef OPENTXS_CORE_INSTRUMENT_HPP
 #define OPENTXS_CORE_INSTRUMENT_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
+
+#include <cstdint>
 
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/core/script/OTScriptable.hpp"
 #include "opentxs/core/Contract.hpp"
-
-#include <cstdint>
+#include "opentxs/Types.hpp"
 
 namespace opentxs
 {

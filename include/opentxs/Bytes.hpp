@@ -6,14 +6,17 @@
 #ifndef OPENTXS_BYTES_HPP
 #define OPENTXS_BYTES_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Version.hpp"  // IWYU pragma: associated
 
 #include <cstddef>
+#include <cstdint>
 #include <functional>
 #include <memory>
 #include <mutex>
-#include <tuple>
+#include <string>
 #include <string_view>
+#include <tuple>
+#include <utility>
 #include <vector>
 
 namespace opentxs

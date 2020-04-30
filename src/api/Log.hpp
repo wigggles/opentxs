@@ -3,13 +3,38 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/api/Log.cpp"
+
 #pragma once
 
-#include "Internal.hpp"
+#include <string>
+
+#include "internal/api/Api.hpp"
+#include "opentxs/network/zeromq/ListenCallback.hpp"
+#include "opentxs/network/zeromq/socket/Publish.hpp"
+#include "opentxs/network/zeromq/socket/Pull.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+class Factory;
+}  // namespace api
+
+namespace network
+{
+namespace zeromq
+{
+class Context;
+class Message;
+}  // namespace zeromq
+}  // namespace network
+}  // namespace opentxs
 
 namespace opentxs::api::implementation
 {
-class Log : virtual public api::internal::Log
+class Log final : virtual public api::internal::Log
 {
 public:
     explicit Log(

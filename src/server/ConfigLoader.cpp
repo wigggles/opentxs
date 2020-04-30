@@ -3,23 +3,23 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"             // IWYU pragma: associated
+#include "1_Internal.hpp"           // IWYU pragma: associated
+#include "server/ConfigLoader.hpp"  // IWYU pragma: associated
 
-#include "ConfigLoader.hpp"
-
-#include "opentxs/api/Core.hpp"
-#include "opentxs/api/Settings.hpp"
-#include "opentxs/core/cron/OTCron.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/String.hpp"
-
-#include "internal/api/Api.hpp"
-#include "ServerSettings.hpp"
-
+#include <chrono>
 #include <cstdint>
 #include <memory>
 #include <string>
+
+#include "internal/api/Api.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/api/Settings.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/cron/OTCron.hpp"
+#include "server/ServerSettings.hpp"
 
 #define SERVER_WALLET_FILENAME "notaryServer.xml"
 #define SERVER_MASTER_KEY_TIMEOUT_DEFAULT -1
@@ -27,7 +27,6 @@
 
 namespace opentxs::server
 {
-
 bool ConfigLoader::load(
     const api::internal::Core& api,
     const api::Settings& config,

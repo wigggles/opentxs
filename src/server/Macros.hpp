@@ -5,17 +5,11 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
 #include "opentxs/core/Log.hpp"
+#include "server/ServerSettings.hpp"
 
-#include "ServerSettings.hpp"
-
-namespace opentxs
+namespace opentxs::server
 {
-namespace server
-{
-
 // For NYM_IS_ALLOWED() to evaluate to TRUE, either the boolean value itself is
 // set to true (meaning, "YES any Nym is allowed..") OR (it only continues if
 // that part fails) if the override Nym's ID matches to the Nym ID passed in (as
@@ -39,5 +33,4 @@ namespace server
             return false;                                                      \
         }                                                                      \
     }
-}  // namespace server
-}  // namespace opentxs
+}  // namespace opentxs::server

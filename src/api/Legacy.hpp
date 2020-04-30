@@ -3,9 +3,22 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/api/Legacy.cpp"
+
 #pragma once
 
-#include "Internal.hpp"
+#include <boost/filesystem.hpp>
+#include <iosfwd>
+#include <string>
+
+#include "opentxs/api/Legacy.hpp"
+
+namespace opentxs
+{
+class Factory;
+class String;
+}  // namespace opentxs
 
 namespace fs = boost::filesystem;
 

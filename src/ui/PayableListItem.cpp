@@ -3,46 +3,37 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"            // IWYU pragma: associated
+#include "1_Internal.hpp"          // IWYU pragma: associated
+#include "ui/PayableListItem.hpp"  // IWYU pragma: associated
 
-#include "opentxs/api/client/Contacts.hpp"
-#include "opentxs/api/client/Manager.hpp"
-#include "opentxs/api/Factory.hpp"
-#include "opentxs/contact/Contact.hpp"
-#include "opentxs/contact/ContactData.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Lockable.hpp"
-#include "opentxs/core/PasswordPrompt.hpp"
-#include "opentxs/network/zeromq/socket/Subscribe.hpp"
-#include "opentxs/network/zeromq/Context.hpp"
-#include "opentxs/network/zeromq/ListenCallback.hpp"
-#include "opentxs/network/zeromq/Frame.hpp"
-#include "opentxs/ui/PayableList.hpp"
-#include "opentxs/ui/PayableListItem.hpp"
+#include <memory>
 
 #include "internal/api/client/Client.hpp"
-#include "internal/ui/UI.hpp"
-#include "Row.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/api/client/Contacts.hpp"
+#include "opentxs/contact/Contact.hpp"
+#include "opentxs/core/Log.hpp"
 
-#include "PayableListItem.hpp"
-
-template class opentxs::SharedPimpl<opentxs::ui::PayableListItem>;
-
-namespace opentxs
+namespace opentxs::factory
 {
-ui::internal::PayableListItem* Factory::PayableListItem(
+auto PayableListItem(
     const ui::implementation::PayableInternalInterface& parent,
     const api::client::internal::Manager& api,
     const network::zeromq::socket::Publish& publisher,
     const ui::implementation::PayableListRowID& rowID,
     const ui::implementation::PayableListSortKey& key,
     const std::string& paymentcode,
-    const proto::ContactItemType& currency)
+    const proto::ContactItemType& currency) noexcept
+    -> std::shared_ptr<ui::implementation::PayableListRowInternal>
 {
-    return new ui::implementation::PayableListItem(
+    using ReturnType = ui::implementation::PayableListItem;
+
+    return std::make_shared<ReturnType>(
         parent, api, publisher, rowID, key, paymentcode, currency);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::ui::implementation
 {

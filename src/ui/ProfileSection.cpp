@@ -3,41 +3,36 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"           // IWYU pragma: associated
+#include "1_Internal.hpp"         // IWYU pragma: associated
+#include "ui/ProfileSection.hpp"  // IWYU pragma: associated
 
-#include "opentxs/api/client/Contacts.hpp"
-#include "opentxs/contact/ContactGroup.hpp"
-#include "opentxs/contact/ContactSection.hpp"
-#include "opentxs/core/Flag.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Lockable.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/network/zeromq/socket/Subscribe.hpp"
-#include "opentxs/network/zeromq/Context.hpp"
-#include "opentxs/network/zeromq/ListenCallback.hpp"
-#include "opentxs/network/zeromq/Frame.hpp"
-#include "opentxs/ui/ProfileSection.hpp"
-#include "opentxs/ui/ProfileSubsection.hpp"
-
-#include "internal/ui/UI.hpp"
-#include "Combined.hpp"
-
+#include <algorithm>
 #include <map>
 #include <memory>
 #include <set>
+#include <stdexcept>
 #include <thread>
-#include <tuple>
-#include <vector>
+#include <type_traits>
+#include <utility>
 
-#include "ProfileSection.hpp"
+#include "internal/ui/UI.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/contact/ContactGroup.hpp"
+#include "opentxs/contact/ContactSection.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/ui/ProfileSection.hpp"
+#include "ui/Combined.hpp"
+#include "ui/Widget.hpp"
 
 template class opentxs::SharedPimpl<opentxs::ui::ProfileSection>;
 
 //#define OT_METHOD "opentxs::ui::implementation::ProfileSection::"
 
-namespace opentxs
+namespace opentxs::factory
 {
-ui::implementation::ProfileRowInternal* Factory::ProfileSectionWidget(
+auto ProfileSectionWidget(
     const ui::implementation::ProfileInternalInterface& parent,
     const api::client::internal::Manager& api,
     const network::zeromq::socket::Publish& publisher,
@@ -48,9 +43,11 @@ ui::implementation::ProfileRowInternal* Factory::ProfileSectionWidget(
     ,
     const bool qt
 #endif
-)
+    ) noexcept -> std::shared_ptr<ui::implementation::ProfileRowInternal>
 {
-    return new ui::implementation::ProfileSection(
+    using ReturnType = ui::implementation::ProfileSection;
+
+    return std::make_shared<ReturnType>(
         parent,
         api,
         publisher,
@@ -63,7 +60,7 @@ ui::implementation::ProfileRowInternal* Factory::ProfileSectionWidget(
 #endif
     );
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::ui
 {
@@ -224,7 +221,7 @@ void* ProfileSection::construct_row(
     names_.emplace(id, index);
     const auto [it, added] = items_[index].emplace(
         id,
-        Factory::ProfileSubsectionWidget(
+        factory::ProfileSubsectionWidget(
             *this,
             api_,
             publisher_,

@@ -3,47 +3,56 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"            // IWYU pragma: associated
+#include "1_Internal.hpp"          // IWYU pragma: associated
+#include "api/server/Manager.hpp"  // IWYU pragma: associated
 
-#include "opentxs/api/server/Manager.hpp"
-#include "opentxs/api/crypto/Crypto.hpp"
-#include "opentxs/api/storage/Storage.hpp"
+#include <algorithm>
+#include <atomic>
+#include <chrono>
+#include <deque>
+#include <exception>
+#include <list>
+#include <map>
+#include <mutex>
+#include <set>
+#include <stdexcept>
+#include <string>
+#include <thread>
+#include <type_traits>
+#include <utility>
+
+#include "api/Core.hpp"
+#include "api/Scheduler.hpp"
+#include "api/StorageParent.hpp"
+#include "internal/api/Api.hpp"
+#include "internal/api/storage/Storage.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/api/Wallet.hpp"
+#include "opentxs/api/server/Manager.hpp"
 #if OT_CASH
 #include "opentxs/blind/Mint.hpp"
 #endif  // OT_CASH
-#include "opentxs/core/identifier/Nym.hpp"
-#include "opentxs/core/identifier/Server.hpp"
-#include "opentxs/core/identifier/UnitDefinition.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/Data.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/PasswordPrompt.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/Types.hpp"
-
-#include "api/Core.hpp"
-#include "internal/api/server/Server.hpp"
-#include "internal/api/storage/Storage.hpp"
-#include "internal/api/Api.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"  // IWYU pragma: keep
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
+#include "opentxs/identity/Nym.hpp"
 #include "server/MessageProcessor.hpp"
 #include "server/Server.hpp"
 #include "server/ServerSettings.hpp"
-
-#include <atomic>
-#include <chrono>
-#include <ctime>
-#include <deque>
-#include <map>
-#include <mutex>
-#include <string>
-#include <thread>
-
-#include "Manager.hpp"
 
 #if OT_CASH
 #define SERIES_DIVIDER "."

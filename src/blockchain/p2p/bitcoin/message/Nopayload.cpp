@@ -3,15 +3,13 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"    // IWYU pragma: associated
+#include "1_Internal.hpp"  // IWYU pragma: associated
+#include "blockchain/p2p/bitcoin/message/Nopayload.hpp"  // IWYU pragma: associated
 
-#include "Internal.hpp"
-
-#include "opentxs/core/Data.hpp"
-
-#include "internal/blockchain/p2p/bitcoin/message/Message.hpp"
-
-#include "Nopayload.hpp"
+#include "Factory.hpp"
+#include "blockchain/p2p/bitcoin/Header.hpp"
+#include "internal/blockchain/p2p/bitcoin/message/Message.hpp"  // IWYU pragma: keep
 
 namespace bitcoin = opentxs::blockchain::p2p::bitcoin;
 namespace message = bitcoin::message;

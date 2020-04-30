@@ -3,19 +3,18 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"                 // IWYU pragma: associated
+#include "1_Internal.hpp"               // IWYU pragma: associated
+#include "opentxs/core/Instrument.hpp"  // IWYU pragma: associated
 
-#include "opentxs/core/Instrument.hpp"
-
-#include "opentxs/api/Core.hpp"
-#include "opentxs/api/Factory.hpp"
-#include "opentxs/core/script/OTScriptable.hpp"
-#include "opentxs/core/Contract.hpp"
-#include "opentxs/core/String.hpp"
+#include <chrono>
+#include <cstdint>
 
 #include "internal/api/Api.hpp"
-
-#include <cstdint>
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/script/OTScriptable.hpp"
 
 namespace opentxs
 {

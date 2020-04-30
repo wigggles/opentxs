@@ -6,14 +6,29 @@
 #ifndef OPENTXS_CORE_CONTRACT_PEER_CONNECTIONREPLY_HPP
 #define OPENTXS_CORE_CONTRACT_PEER_CONNECTIONREPLY_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include "opentxs/core/contract/peer/PeerReply.hpp"
+#include "opentxs/SharedPimpl.hpp"
 
 namespace opentxs
 {
-using OTConnectionReply = SharedPimpl<contract::peer::reply::Connection>;
+namespace contract
+{
+namespace peer
+{
+namespace reply
+{
+class Connection;
+}  // namespace reply
+}  // namespace peer
+}  // namespace contract
 
+using OTConnectionReply = SharedPimpl<contract::peer::reply::Connection>;
+}  // namespace opentxs
+
+namespace opentxs
+{
 namespace contract
 {
 namespace peer

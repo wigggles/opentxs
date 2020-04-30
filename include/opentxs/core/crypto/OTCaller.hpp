@@ -6,10 +6,14 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTCALLER_HPP
 #define OPENTXS_CORE_CRYPTO_OTCALLER_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 namespace opentxs
 {
+class OTCallback;
+class OTPassword;
+class PasswordPrompt;
+
 class OTCaller
 {
 public:

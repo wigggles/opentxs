@@ -5,9 +5,21 @@
 
 #pragma once
 
-#include "opentxs/Forward.hpp"
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/network/zeromq/PairEventCallback.cpp"
 
 #include "opentxs/network/zeromq/PairEventCallback.hpp"
+
+namespace opentxs
+{
+namespace network
+{
+namespace zeromq
+{
+class Message;
+}  // namespace zeromq
+}  // namespace network
+}  // namespace opentxs
 
 namespace opentxs::network::zeromq::implementation
 {

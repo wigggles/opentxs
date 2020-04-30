@@ -3,19 +3,20 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "Internal.hpp"
-
-#include "opentxs/api/Periodic.hpp"
-#include "opentxs/core/Flag.hpp"
-#include "opentxs/core/Log.hpp"
+#include "0_stdafx.hpp"      // IWYU pragma: associated
+#include "1_Internal.hpp"    // IWYU pragma: associated
+#include "api/Periodic.hpp"  // IWYU pragma: associated
 
 #include <atomic>
 #include <chrono>
 #include <map>
 #include <tuple>
 #include <thread>
+#include <type_traits>
+#include <utility>
 
-#include "Periodic.hpp"
+#include "opentxs/core/Flag.hpp"
+#include "opentxs/core/Log.hpp"
 
 namespace opentxs::api::implementation
 {

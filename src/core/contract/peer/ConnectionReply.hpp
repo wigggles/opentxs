@@ -3,7 +3,38 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/core/contract/peer/ConnectionReply.cpp"
+
 #pragma once
+
+#include <string>
+
+#include "core/contract/peer/PeerReply.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/core/contract/peer/ConnectionReply.hpp"
+#include "opentxs/core/contract/peer/PeerReply.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
+namespace identifier
+{
+class Nym;
+class Server;
+}  // namespace identifier
+
+class Factory;
+class Identifier;
+class PasswordPrompt;
+}  // namespace opentxs
 
 namespace opentxs::contract::peer::reply::implementation
 {

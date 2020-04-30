@@ -5,13 +5,30 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
-#include "opentxs/core/Armored.hpp"
+#include <cstdint>
+#include <iosfwd>
+#include <memory>
+#include <string>
 
 #include "String.hpp"
+#include "opentxs/core/Armored.hpp"
 
-#include <memory>
+namespace opentxs
+{
+namespace OTDB
+{
+class OTPacker;
+}  // namespace OTDB
+
+namespace crypto
+{
+class Envelope;
+}  // namespace crypto
+
+class Data;
+class Factory;
+class String;
+}  // namespace opentxs
 
 namespace opentxs::implementation
 {

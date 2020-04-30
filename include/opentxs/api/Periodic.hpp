@@ -6,7 +6,9 @@
 #ifndef OPENTXS_API_PERIODIC_HPP
 #define OPENTXS_API_PERIODIC_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
+
+#include "opentxs/Types.hpp"
 
 namespace opentxs
 {

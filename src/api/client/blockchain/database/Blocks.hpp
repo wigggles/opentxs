@@ -6,17 +6,31 @@
 #pragma once
 
 #if OPENTXS_BLOCK_STORAGE_ENABLED
-#include "Internal.hpp"
-
-#include "opentxs/blockchain/Blockchain.hpp"
-
-#include "util/LMDB.hpp"
 
 #include <boost/iostreams/device/mapped_file.hpp>
-
+#include <iosfwd>
 #include <map>
 #include <mutex>
+#include <shared_mutex>
+#include <string>
 #include <vector>
+
+#include "internal/blockchain/client/Client.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/core/Data.hpp"
+#include "util/LMDB.hpp"
+
+namespace opentxs
+{
+namespace storage
+{
+namespace lmdb
+{
+class LMDB;
+}  // namespace lmdb
+}  // namespace storage
+}  // namespace opentxs
 
 namespace opentxs::api::client::blockchain::database::implementation
 {

@@ -3,23 +3,14 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"            // IWYU pragma: associated
+#include "1_Internal.hpp"          // IWYU pragma: associated
+#include "api/client/Factory.hpp"  // IWYU pragma: associated
 
-#include "Internal.hpp"
-
-#include "opentxs/api/client/Contacts.hpp"
-#include "opentxs/api/client/Manager.hpp"
-#include "opentxs/api/crypto/Symmetric.hpp"
-#include "opentxs/api/Factory.hpp"
+#include "api/Factory.hpp"
+#include "internal/api/client/Client.hpp"
 #include "opentxs/core/contract/peer/PeerObject.hpp"
 #include "opentxs/core/contract/peer/PeerReply.hpp"
-#include "opentxs/core/Log.hpp"
-
-#include "internal/api/client/Client.hpp"
-#include "internal/api/Api.hpp"
-#include "api/Factory.hpp"
-
-#include "Factory.hpp"
 
 //#define OT_METHOD "opentxs::api::client::implementation::Factory::"
 

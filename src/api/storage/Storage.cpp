@@ -3,23 +3,40 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"             // IWYU pragma: associated
+#include "1_Internal.hpp"           // IWYU pragma: associated
+#include "api/storage/Storage.hpp"  // IWYU pragma: associated
 
-#include "opentxs/api/storage/Multiplex.hpp"
-#include "opentxs/api/crypto/Crypto.hpp"
-#include "opentxs/api/crypto/Encode.hpp"
-#include "opentxs/api/crypto/Hash.hpp"
+#include <chrono>
+#include <cstdint>
+#include <ctime>
+#include <functional>
+#include <limits>
+#include <map>
+#include <stdexcept>
+#include <string_view>
+#include <thread>
+#include <utility>
+#include <vector>
+
+#include "Factory.hpp"
+#include "opentxs/Pimpl.hpp"
 #include "opentxs/api/Editor.hpp"
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Settings.hpp"
+#include "opentxs/api/crypto/Crypto.hpp"
+#include "opentxs/api/crypto/Encode.hpp"
+#include "opentxs/api/crypto/Hash.hpp"
+#include "opentxs/api/storage/Multiplex.hpp"
+#include "opentxs/core/Flag.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/OTStorage.hpp"
+#include "opentxs/core/String.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
-#include "opentxs/core/Flag.hpp"
-#include "opentxs/core/OTStorage.hpp"
-#include "opentxs/core/String.hpp"
-
-#include "internal/api/storage/Storage.hpp"
+#include "storage/StorageConfig.hpp"
 #include "storage/tree/Accounts.hpp"
 #include "storage/tree/Bip47Channels.hpp"
 #include "storage/tree/BlockchainTransactions.hpp"
@@ -42,25 +59,6 @@
 #include "storage/tree/Tree.hpp"
 #include "storage/tree/Txos.hpp"
 #include "storage/tree/Units.hpp"
-#include "storage/StorageConfig.hpp"
-
-#include <cassert>
-#include <atomic>
-#include <chrono>
-#include <cstdint>
-#include <cstdlib>
-#include <iostream>
-#include <limits>
-#include <list>
-#include <map>
-#include <mutex>
-#include <stdexcept>
-#include <thread>
-#include <tuple>
-#include <utility>
-#include <vector>
-
-#include "Storage.hpp"
 
 #define STORAGE_CONFIG_KEY "storage"
 

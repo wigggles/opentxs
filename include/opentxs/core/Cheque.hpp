@@ -6,14 +6,16 @@
 #ifndef OPENTXS_CORE_CHEQUE_HPP
 #define OPENTXS_CORE_CHEQUE_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
+
+#include <cstdint>
 
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/OTTrackable.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/Types.hpp"
-
-#include <cstdint>
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
 
 namespace opentxs
 {
@@ -29,6 +31,14 @@ namespace internal
 struct Core;
 }  // namespace internal
 }  // namespace api
+
+namespace identifier
+{
+class Server;
+class UnitDefinition;
+}  // namespace identifier
+
+class PasswordPrompt;
 
 class Cheque : public OTTrackable
 {

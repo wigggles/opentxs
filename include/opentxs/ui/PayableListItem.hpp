@@ -6,10 +6,11 @@
 #ifndef OPENTXS_UI_PAYABLELISTITEM_HPP
 #define OPENTXS_UI_PAYABLELISTITEM_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <string>
 
+#include "opentxs/SharedPimpl.hpp"
 #include "ContactListItem.hpp"
 
 #ifdef SWIG
@@ -21,8 +22,16 @@
 
 namespace opentxs
 {
-using OTUIPayableListItem = SharedPimpl<ui::PayableListItem>;
+namespace ui
+{
+class PayableListItem;
+}  // namespace ui
 
+using OTUIPayableListItem = SharedPimpl<ui::PayableListItem>;
+}  // namespace opentxs
+
+namespace opentxs
+{
 namespace ui
 {
 class PayableListItem : virtual public ContactListItem

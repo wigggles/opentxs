@@ -3,23 +3,22 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"                     // IWYU pragma: associated
+#include "1_Internal.hpp"                   // IWYU pragma: associated
+#include "opentxs/contact/ContactData.hpp"  // IWYU pragma: associated
 
-#include "Internal.hpp"
-
-#include "opentxs/contact/ContactData.hpp"
-#include "opentxs/contact/ContactGroup.hpp"
-#include "opentxs/contact/ContactSection.hpp"
-#include "opentxs/contact/ContactItem.hpp"
-#include "opentxs/core/identifier/Nym.hpp"
-#include "opentxs/core/identifier/Server.hpp"
-#include "opentxs/core/identifier/UnitDefinition.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/String.hpp"
-
-#include "internal/api/Api.hpp"
-
+#include <algorithm>
 #include <sstream>
+#include <tuple>
+
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/contact/ContactGroup.hpp"
+#include "opentxs/contact/ContactItem.hpp"
+#include "opentxs/contact/ContactSection.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/identifier/Server.hpp"
 
 #define OT_METHOD "opentxs::ContactData::"
 

@@ -6,7 +6,7 @@
 #ifndef OPENTXS_CRYPTO_KEY_SECP256K1_HPP
 #define OPENTXS_CRYPTO_KEY_SECP256K1_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #include "opentxs/crypto/key/HD.hpp"

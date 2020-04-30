@@ -6,20 +6,26 @@
 #ifndef OPENTXS_CORE_CONTRACT_PEER_PEEROBJECT_HPP
 #define OPENTXS_CORE_CONTRACT_PEER_PEEROBJECT_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/core/contract/peer/PeerReply.hpp"
-#include "opentxs/core/contract/peer/PeerRequest.hpp"
-#include "opentxs/Proto.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <cstdint>
 #include <memory>
 #include <string>
 
+#include "opentxs/core/contract/peer/PeerReply.hpp"
+#include "opentxs/core/contract/peer/PeerRequest.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.hpp"
+
 namespace opentxs
 {
-using OTPeerObject = Pimpl<PeerObject>;
+class PeerObject;
 
+using OTPeerObject = Pimpl<PeerObject>;
+}  // namespace opentxs
+
+namespace opentxs
+{
 class PeerObject
 {
 public:

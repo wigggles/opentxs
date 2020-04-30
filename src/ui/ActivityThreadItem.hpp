@@ -5,7 +5,54 @@
 
 #pragma once
 
-#include "Internal.hpp"
+#include <chrono>
+#include <string>
+
+#include "1_Internal.hpp"
+#include "internal/ui/UI.hpp"
+#include "opentxs/SharedPimpl.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/Version.hpp"
+#include "opentxs/core/Flag.hpp"
+#include "opentxs/ui/ActivityThreadItem.hpp"
+#include "ui/Row.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace client
+{
+namespace internal
+{
+struct Manager;
+}  // namespace internal
+}  // namespace client
+}  // namespace api
+
+namespace identifier
+{
+class Nym;
+}  // namespace identifier
+
+namespace network
+{
+namespace zeromq
+{
+namespace socket
+{
+class Publish;
+}  // namespace socket
+}  // namespace zeromq
+}  // namespace network
+
+namespace ui
+{
+class ActivityThreadItem;
+}  // namespace ui
+
+class Identifier;
+}  // namespace opentxs
 
 namespace opentxs::ui::implementation
 {
@@ -67,3 +114,5 @@ private:
     ActivityThreadItem& operator=(ActivityThreadItem&&) = delete;
 };
 }  // namespace opentxs::ui::implementation
+
+template class opentxs::SharedPimpl<opentxs::ui::ActivityThreadItem>;

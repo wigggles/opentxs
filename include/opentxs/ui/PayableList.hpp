@@ -7,9 +7,10 @@
 #define OPENTXS_UI_PAYABLELIST_HPP
 
 #ifndef Q_MOC_RUN
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include "opentxs/ui/List.hpp"
+#include "opentxs/SharedPimpl.hpp"
 
 #ifdef SWIG
 // clang-format off
@@ -64,6 +65,8 @@ public:
         SectionRole = Qt::UserRole + 1,
     };
 
+    PayableListQt(implementation::PayableList& parent) noexcept;
+
     ~PayableListQt() final = default;
 
 private:
@@ -73,7 +76,6 @@ private:
 
     void notify() const noexcept;
 
-    PayableListQt(implementation::PayableList& parent) noexcept;
     PayableListQt(const PayableListQt&) = delete;
     PayableListQt(PayableListQt&&) = delete;
     PayableListQt& operator=(const PayableListQt&) = delete;

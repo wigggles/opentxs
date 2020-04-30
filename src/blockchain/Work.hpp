@@ -3,7 +3,21 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/blockchain/Work.cpp"
+
 #pragma once
+
+#include <boost/multiprecision/cpp_bin_float.hpp>
+#include <boost/multiprecision/cpp_int.hpp>
+#include <string>
+
+#include "opentxs/blockchain/Work.hpp"
+
+namespace opentxs
+{
+class Factory;
+}  // namespace opentxs
 
 namespace mp = boost::multiprecision;
 

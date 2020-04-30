@@ -3,54 +3,51 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"               // IWYU pragma: associated
+#include "1_Internal.hpp"             // IWYU pragma: associated
+#include "api/client/Blockchain.hpp"  // IWYU pragma: associated
 
-#include "Internal.hpp"
+#include <algorithm>
+#include <cstdint>
+#include <list>
+#include <map>
+#include <set>
+#include <stdexcept>
+#include <thread>
+#include <type_traits>
 
-#include "opentxs/api/storage/Storage.hpp"
-#include "opentxs/api/crypto/Crypto.hpp"
-#include "opentxs/api/crypto/Encode.hpp"
-#include "opentxs/api/crypto/Hash.hpp"
+#include "Factory.hpp"
+#include "internal/api/client/Client.hpp"
+#include "internal/api/client/blockchain/Blockchain.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.hpp"
 #include "opentxs/api/Core.hpp"
 #if OT_BLOCKCHAIN
 #include "opentxs/api/Endpoints.hpp"
 #endif  // OT_BLOCKCHAIN
 #include "opentxs/api/Factory.hpp"
-#include "opentxs/api/HDSeed.hpp"
 #include "opentxs/api/Wallet.hpp"
+#include "opentxs/api/client/Activity.hpp"
+#include "opentxs/api/crypto/Crypto.hpp"
+#include "opentxs/api/crypto/Encode.hpp"
+#include "opentxs/api/crypto/Hash.hpp"
+#include "opentxs/api/storage/Storage.hpp"
+#include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/core/String.hpp"
-#include "opentxs/crypto/key/Asymmetric.hpp"
-#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-#include "opentxs/crypto/key/Secp256k1.hpp"
-#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-#include "opentxs/crypto/Bip32.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/identity/Nym.hpp"
 #if OT_BLOCKCHAIN
-#include "opentxs/network/zeromq/socket/Publish.hpp"
-#include "opentxs/network/zeromq/socket/Pull.hpp"
-#include "opentxs/network/zeromq/socket/Push.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/network/zeromq/socket/Publish.hpp"
+#include "opentxs/network/zeromq/socket/Pull.hpp"
+#include "opentxs/network/zeromq/socket/Push.hpp"
+#include "opentxs/network/zeromq/socket/Socket.hpp"
 #endif  // OT_BLOCKCHAIN
-
-#if OT_BLOCKCHAIN
-#include "api/client/blockchain/database/Database.hpp"
-#endif  // OT_BLOCKCHAIN
-#include "internal/api/client/blockchain/Blockchain.hpp"
-#include "internal/api/client/Client.hpp"
-#if OT_BLOCKCHAIN
-#include "internal/blockchain/Blockchain.hpp"
-#endif  // OT_BLOCKCHAIN
-
-#include <map>
-#include <mutex>
-#include <set>
-
-#include "Blockchain.hpp"
 
 #define LOCK_NYM()                                                             \
     Lock mapLock(lock_);                                                       \

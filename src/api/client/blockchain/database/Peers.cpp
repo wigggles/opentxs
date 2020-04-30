@@ -3,14 +3,27 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"                              // IWYU pragma: associated
+#include "1_Internal.hpp"                            // IWYU pragma: associated
+#include "api/client/blockchain/database/Peers.hpp"  // IWYU pragma: associated
 
-#include "opentxs/core/Log.hpp"
-#include "opentxs/Proto.tpp"
-
+#include <algorithm>
+#include <chrono>
+#include <iterator>
+#include <memory>
+#include <optional>
 #include <random>
+#include <utility>
 
-#include "Peers.hpp"
+#include "Factory.hpp"
+#include "internal/blockchain/p2p/P2P.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Proto.tpp"
+#include "opentxs/blockchain/p2p/Address.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "util/LMDB.hpp"
 
 #define OT_METHOD                                                              \
     "opentxs::api::client::blockchain::database::implementation::Peers::"

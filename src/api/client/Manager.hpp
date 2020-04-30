@@ -3,9 +3,61 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/api/client/Manager.cpp"
+
 #pragma once
 
-#include "Internal.hpp"
+#include <map>
+#include <memory>
+#include <mutex>
+#include <string>
+
+#include "api/Core.hpp"
+#include "internal/api/client/Client.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/api/client/Activity.hpp"
+#include "opentxs/api/client/Blockchain.hpp"
+#include "opentxs/api/client/Contacts.hpp"
+#include "opentxs/api/client/OTX.hpp"
+#include "opentxs/api/client/Pair.hpp"
+#include "opentxs/api/client/ServerAction.hpp"
+#include "opentxs/api/client/UI.hpp"
+#include "opentxs/api/client/Workflow.hpp"
+#include "opentxs/api/network/ZMQ.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace internal
+{
+struct Context;
+}  // namespace internal
+
+class Crypto;
+class Settings;
+}  // namespace api
+
+namespace identifier
+{
+class Nym;
+class Server;
+}  // namespace identifier
+
+namespace network
+{
+namespace zeromq
+{
+class Context;
+}  // namespace zeromq
+}  // namespace network
+
+class Factory;
+class Flag;
+class OTAPI_Exec;
+class OT_API;
+}  // namespace opentxs
 
 namespace opentxs::api::client::implementation
 {

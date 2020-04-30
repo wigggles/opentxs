@@ -6,12 +6,13 @@
 #ifndef OPENTXS_NETWORK_ZEROMQ_PAIREVENTCALLBACK_HPP
 #define OPENTXS_NETWORK_ZEROMQ_PAIREVENTCALLBACK_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/network/zeromq/ListenCallback.hpp"
-#include "opentxs/Proto.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <functional>
+
+#include "opentxs/network/zeromq/ListenCallback.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.hpp"
 
 #ifdef SWIG
 // clang-format off
@@ -26,8 +27,19 @@
 
 namespace opentxs
 {
-using OTZMQPairEventCallback = Pimpl<network::zeromq::PairEventCallback>;
+namespace network
+{
+namespace zeromq
+{
+class PairEventCallback;
+}  // namespace zeromq
+}  // namespace network
 
+using OTZMQPairEventCallback = Pimpl<network::zeromq::PairEventCallback>;
+}  // namespace opentxs
+
+namespace opentxs
+{
 namespace network
 {
 namespace zeromq

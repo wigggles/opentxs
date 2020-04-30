@@ -31,112 +31,11 @@ public:
         const NymParameters& nymParameters,
         const VersionNumber nymVersion,
         const opentxs::PasswordPrompt& reason);
-    static ui::implementation::AccountActivity* AccountActivityModel(
-        const api::client::internal::Manager& api,
-        const network::zeromq::socket::Publish& publisher,
-        const identifier::Nym& nymID,
-        const opentxs::Identifier& accountID
-#if OT_QT
-        ,
-        const bool qt
-#endif
-    );
-#if OT_QT
-    static ui::AccountActivityQt* AccountActivityQtModel(
-        ui::implementation::AccountActivity& parent);
-#endif
-    static ui::implementation::AccountList* AccountListModel(
-        const api::client::internal::Manager& api,
-        const network::zeromq::socket::Publish& publisher,
-        const identifier::Nym& nymID
-#if OT_QT
-        ,
-        const bool qt
-#endif
-    );
-    static ui::implementation::AccountListRowInternal* AccountListItem(
-        const ui::implementation::AccountListInternalInterface& parent,
-        const api::client::internal::Manager& api,
-        const network::zeromq::socket::Publish& publisher,
-        const ui::implementation::AccountListRowID& rowID,
-        const ui::implementation::AccountListSortKey& sortKey,
-        const ui::implementation::CustomData& custom);
-#if OT_QT
-    static ui::AccountListQt* AccountListQtModel(
-        ui::implementation::AccountList& parent);
-#endif
-    static ui::implementation::AccountSummary* AccountSummaryModel(
-        const api::client::internal::Manager& api,
-        const network::zeromq::socket::Publish& publisher,
-        const identifier::Nym& nymID,
-        const proto::ContactItemType currency
-#if OT_QT
-        ,
-        const bool qt
-#endif
-    );
-    static ui::implementation::IssuerItemRowInternal* AccountSummaryItem(
-        const ui::implementation::IssuerItemInternalInterface& parent,
-        const api::client::internal::Manager& api,
-        const network::zeromq::socket::Publish& publisher,
-        const ui::implementation::IssuerItemRowID& rowID,
-        const ui::implementation::IssuerItemSortKey& sortKey,
-        const ui::implementation::CustomData& custom);
-#if OT_QT
-    static ui::AccountSummaryQt* AccountSummaryQtModel(
-        ui::implementation::AccountSummary& parent);
-#endif
     static api::client::internal::Activity* Activity(
         const api::internal::Core& api,
         const api::client::Contacts& contact);
-    static ui::implementation::ActivitySummary* ActivitySummaryModel(
-        const api::client::internal::Manager& api,
-        const network::zeromq::socket::Publish& publisher,
-        const Flag& running,
-        const identifier::Nym& nymID
-#if OT_QT
-        ,
-        const bool qt
-#endif
-    );
-    static ui::implementation::ActivitySummaryRowInternal* ActivitySummaryItem(
-        const ui::implementation::ActivitySummaryInternalInterface& parent,
-        const api::client::internal::Manager& api,
-        const network::zeromq::socket::Publish& publisher,
-        const identifier::Nym& nymID,
-        const ui::implementation::ActivitySummaryRowID& rowID,
-        const ui::implementation::ActivitySummarySortKey& sortKey,
-        const ui::implementation::CustomData& custom,
-        const Flag& running);
-#if OT_QT
-    static ui::ActivitySummaryQt* ActivitySummaryQtModel(
-        ui::implementation::ActivitySummary& parent);
-#endif
-    static ui::implementation::ActivityThread* ActivityThreadModel(
-        const api::client::internal::Manager& api,
-        const network::zeromq::socket::Publish& publisher,
-        const identifier::Nym& nymID,
-        const opentxs::Identifier& threadID
-#if OT_QT
-        ,
-        const bool qt
-#endif
-    );
-#if OT_QT
-    static ui::ActivityThreadQt* ActivityThreadQtModel(
-        ui::implementation::ActivityThread& parent);
-#endif
     static api::crypto::internal::Asymmetric* AsymmetricAPI(
         const api::internal::Core& api);
-    static ui::implementation::AccountActivityRowInternal* BalanceItem(
-        const ui::implementation::AccountActivityInternalInterface& parent,
-        const api::client::internal::Manager& api,
-        const network::zeromq::socket::Publish& publisher,
-        const ui::implementation::AccountActivityRowID& rowID,
-        const ui::implementation::AccountActivitySortKey& sortKey,
-        const ui::implementation::CustomData& custom,
-        const identifier::Nym& nymID,
-        const opentxs::Identifier& accountID);
     static auto BailmentNotice(
         const api::internal::Core& api,
         const Nym_p& nym,
@@ -836,69 +735,6 @@ public:
         const proto::Credential& credential);
     static api::client::internal::Contacts* ContactAPI(
         const api::client::internal::Manager& api);
-    static ui::implementation::ContactListRowInternal* ContactListItem(
-        const ui::implementation::ContactListInternalInterface& parent,
-        const api::client::internal::Manager& api,
-        const network::zeromq::socket::Publish& publisher,
-        const ui::implementation::ContactListRowID& rowID,
-        const ui::implementation::ContactListSortKey& key);
-    static ui::implementation::ContactSubsectionRowInternal* ContactItemWidget(
-        const ui::implementation::ContactSubsectionInternalInterface& parent,
-        const api::client::internal::Manager& api,
-        const network::zeromq::socket::Publish& publisher,
-        const ui::implementation::ContactSubsectionRowID& rowID,
-        const ui::implementation::ContactSubsectionSortKey& sortKey,
-        const ui::implementation::CustomData& custom);
-    static ui::implementation::ContactList* ContactListModel(
-        const api::client::internal::Manager& api,
-        const network::zeromq::socket::Publish& publisher,
-        const identifier::Nym& nymID
-#if OT_QT
-        ,
-        const bool qt
-#endif
-    );
-#if OT_QT
-    static ui::ContactListQt* ContactListQtModel(
-        ui::implementation::ContactList& parent);
-#endif
-    static ui::implementation::Contact* ContactModel(
-        const api::client::internal::Manager& api,
-        const network::zeromq::socket::Publish& publisher,
-        const opentxs::Identifier& contactID
-#if OT_QT
-        ,
-        const bool qt
-#endif
-    );
-#if OT_QT
-    static ui::ContactQt* ContactQtModel(ui::implementation::Contact& parent);
-#endif
-    static ui::implementation::ContactRowInternal* ContactSectionWidget(
-        const ui::implementation::ContactInternalInterface& parent,
-        const api::client::internal::Manager& api,
-        const network::zeromq::socket::Publish& publisher,
-        const ui::implementation::ContactRowID& rowID,
-        const ui::implementation::ContactSortKey& key,
-        const ui::implementation::CustomData& custom
-#if OT_QT
-        ,
-        const bool qt
-#endif
-    );
-    static ui::implementation::ContactSectionRowInternal*
-    ContactSubsectionWidget(
-        const ui::implementation::ContactSectionInternalInterface& parent,
-        const api::client::internal::Manager& api,
-        const network::zeromq::socket::Publish& publisher,
-        const ui::implementation::ContactSectionRowID& rowID,
-        const ui::implementation::ContactSectionSortKey& key,
-        const ui::implementation::CustomData& custom
-#if OT_QT
-        ,
-        const bool qt
-#endif
-    );
     static api::internal::Context* Context(
         Flag& running,
         const ArgList& args,
@@ -1051,19 +887,6 @@ public:
         const api::Wallet& wallet,
         const identifier::Nym& nymID,
         const identifier::Nym& issuerID);
-    static ui::implementation::AccountSummaryRowInternal* IssuerItem(
-        const ui::implementation::AccountSummaryInternalInterface& parent,
-        const api::client::internal::Manager& api,
-        const network::zeromq::socket::Publish& publisher,
-        const ui::implementation::AccountSummaryRowID& rowID,
-        const ui::implementation::AccountSummarySortKey& sortKey,
-        const ui::implementation::CustomData& custom,
-        const proto::ContactItemType currency
-#if OT_QT
-        ,
-        const bool qt
-#endif
-    );
     static auto Keypair() noexcept -> std::unique_ptr<crypto::key::Keypair>;
     static auto Keypair(
         const api::internal::Core& api,
@@ -1075,40 +898,9 @@ public:
     static api::internal::Log* Log(
         const network::zeromq::Context& zmq,
         const std::string& endpoint);
-    static ui::implementation::ActivityThreadRowInternal* MailItem(
-        const ui::implementation::ActivityThreadInternalInterface& parent,
-        const api::client::internal::Manager& api,
-        const network::zeromq::socket::Publish& publisher,
-        const identifier::Nym& nymID,
-        const ui::implementation::ActivityThreadRowID& rowID,
-        const ui::implementation::ActivityThreadSortKey& sortKey,
-        const ui::implementation::CustomData& custom,
-        const bool loading,
-        const bool pending);
-    static ui::implementation::ActivityThreadRowInternal* MailItem(
-        const ui::implementation::ActivityThreadInternalInterface& parent,
-        const api::client::internal::Manager& api,
-        const network::zeromq::socket::Publish& publisher,
-        const identifier::Nym& nymID,
-        const ui::implementation::ActivityThreadRowID& rowID,
-        const ui::implementation::ActivityThreadSortKey& sortKey,
-        const ui::implementation::CustomData& custom);
     static opentxs::ManagedNumber* ManagedNumber(
         const TransactionNumber number,
         opentxs::ServerContext& context);
-    static ui::implementation::MessagableList* MessagableListModel(
-        const api::client::internal::Manager& api,
-        const network::zeromq::socket::Publish& publisher,
-        const identifier::Nym& nymID
-#if OT_QT
-        ,
-        const bool qt
-#endif
-    );
-#if OT_QT
-    static ui::MessagableListQt* MessagableListQtModel(
-        ui::implementation::MessagableList& parent);
-#endif
 #if OT_CASH
     static blind::Mint* MintLucre(const api::internal::Core& core);
     static blind::Mint* MintLucre(
@@ -1223,28 +1015,6 @@ public:
         const network::zeromq::Context& context,
         const network::zeromq::ListenCallback& callback,
         const std::string& endpoint);
-    static ui::implementation::PayableListRowInternal* PayableListItem(
-        const ui::implementation::PayableInternalInterface& parent,
-        const api::client::internal::Manager& api,
-        const network::zeromq::socket::Publish& publisher,
-        const ui::implementation::PayableListRowID& rowID,
-        const ui::implementation::PayableListSortKey& key,
-        const std::string& paymentcode,
-        const proto::ContactItemType& currency);
-    static ui::implementation::PayableList* PayableListModel(
-        const api::client::internal::Manager& api,
-        const network::zeromq::socket::Publish& publisher,
-        const identifier::Nym& nymID,
-        const proto::ContactItemType& currency
-#if OT_QT
-        ,
-        const bool qt
-#endif
-    );
-#if OT_QT
-    static ui::PayableListQt* PayableListQtModel(
-        ui::implementation::PayableList& parent);
-#endif
     static auto PaymentCode(
         const api::internal::Core& api,
         const std::uint8_t version,
@@ -1258,14 +1028,6 @@ public:
         std::unique_ptr<crypto::key::Secp256k1> key
 #endif
         ) noexcept -> std::unique_ptr<opentxs::PaymentCode>;
-    static ui::implementation::ActivityThreadRowInternal* PaymentItem(
-        const ui::implementation::ActivityThreadInternalInterface& parent,
-        const api::client::internal::Manager& api,
-        const network::zeromq::socket::Publish& publisher,
-        const identifier::Nym& nymID,
-        const ui::implementation::ActivityThreadRowID& rowID,
-        const ui::implementation::ActivityThreadSortKey& sortKey,
-        const ui::implementation::CustomData& custom);
     static opentxs::PeerObject* PeerObject(
         const api::internal::Core& api,
         const Nym_p& senderNym,
@@ -1315,14 +1077,6 @@ public:
         const Nym_p& nym,
         const proto::PeerRequest& serialized) noexcept
         -> std::shared_ptr<contract::peer::Request>;
-    static ui::implementation::ActivityThreadRowInternal* PendingSend(
-        const ui::implementation::ActivityThreadInternalInterface& parent,
-        const api::client::internal::Manager& api,
-        const network::zeromq::socket::Publish& publisher,
-        const identifier::Nym& nymID,
-        const ui::implementation::ActivityThreadRowID& rowID,
-        const ui::implementation::ActivityThreadSortKey& sortKey,
-        const ui::implementation::CustomData& custom);
     static opentxs::PIDFile* PIDFile(const std::string& path);
     static opentxs::network::zeromq::Pipeline* Pipeline(
         const api::internal::Core& api,
@@ -1340,50 +1094,6 @@ public:
         identity::internal::Authority& parent,
         const identity::Source& source,
         const proto::Credential& credential);
-    static ui::implementation::ProfileSubsectionRowInternal* ProfileItemWidget(
-        const ui::implementation::ProfileSubsectionInternalInterface& parent,
-        const api::client::internal::Manager& api,
-        const network::zeromq::socket::Publish& publisher,
-        const ui::implementation::ProfileSubsectionRowID& rowID,
-        const ui::implementation::ProfileSubsectionSortKey& sortKey,
-        const ui::implementation::CustomData& custom);
-    static ui::implementation::Profile* ProfileModel(
-        const api::client::internal::Manager& api,
-        const network::zeromq::socket::Publish& publisher,
-        const identifier::Nym& nymID
-#if OT_QT
-        ,
-        const bool qt
-#endif
-    );
-#if OT_QT
-    static ui::ProfileQt* ProfileQtModel(ui::implementation::Profile& parent);
-#endif
-    static ui::implementation::ProfileRowInternal* ProfileSectionWidget(
-        const ui::implementation::ProfileInternalInterface& parent,
-        const api::client::internal::Manager& api,
-        const network::zeromq::socket::Publish& publisher,
-        const ui::implementation::ProfileRowID& rowID,
-        const ui::implementation::ProfileSortKey& key,
-        const ui::implementation::CustomData& custom
-#if OT_QT
-        ,
-        const bool qt
-#endif
-    );
-    static ui::implementation::ProfileSectionRowInternal*
-    ProfileSubsectionWidget(
-        const ui::implementation::ProfileSectionInternalInterface& parent,
-        const api::client::internal::Manager& api,
-        const network::zeromq::socket::Publish& publisher,
-        const ui::implementation::ProfileSectionRowID& rowID,
-        const ui::implementation::ProfileSectionSortKey& key,
-        const ui::implementation::CustomData& custom
-#if OT_QT
-        ,
-        const bool qt
-#endif
-    );
 #if OT_CASH
     OPENTXS_EXPORT static auto Purse(
         const api::internal::Core& api,

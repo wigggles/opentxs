@@ -3,9 +3,34 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/core/Identifier.cpp"
+
 #pragma once
 
-#include "Internal.hpp"
+#include <iosfwd>
+#include <string>
+
+#include "core/Data.hpp"
+#include "opentxs/Bytes.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/core/Data.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
+
+namespace opentxs
+{
+namespace identity
+{
+class Nym;
+}  // namespace identity
+
+class Contract;
+class String;
+}  // namespace opentxs
 
 namespace opentxs::implementation
 {

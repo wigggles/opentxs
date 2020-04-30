@@ -6,15 +6,16 @@
 #ifndef OPENTXS_CLIENT_OTCLIENT_HPP
 #define OPENTXS_CLIENT_OTCLIENT_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
-#include "opentxs/consensus/ServerContext.hpp"
-#include "opentxs/Types.hpp"
-
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <tuple>
 #include <vector>
+
+#include "opentxs/Types.hpp"
+#include "opentxs/consensus/ServerContext.hpp"
 
 namespace opentxs
 {
@@ -25,6 +26,17 @@ namespace internal
 struct Core;
 }  // namespace internal
 }  // namespace api
+
+namespace contract
+{
+class Unit;
+}  // namespace contract
+
+class Account;
+class Identifier;
+class Message;
+class PasswordPrompt;
+class ServerContext;
 
 class OTClient
 {

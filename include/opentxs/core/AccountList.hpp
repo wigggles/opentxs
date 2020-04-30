@@ -6,16 +6,16 @@
 #ifndef OPENTXS_CORE_ACCOUNTLIST_HPP
 #define OPENTXS_CORE_ACCOUNTLIST_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/core/Account.hpp"
-#include "opentxs/core/Contract.hpp"
-#include "opentxs/core/String.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <cstdint>
 #include <map>
 #include <memory>
 #include <string>
+
+#include "opentxs/core/Account.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/String.hpp"
 
 namespace opentxs
 {
@@ -26,6 +26,21 @@ namespace internal
 struct Core;
 }  // namespace internal
 }  // namespace api
+
+namespace identifier
+{
+class Nym;
+class Server;
+class UnitDefinition;
+}  // namespace identifier
+
+namespace identity
+{
+class Nym;
+}  // namespace identity
+
+class PasswordPrompt;
+class Tag;
 
 /** The server needs to store a list of accounts, by instrument definition ID,
  * to store the backing funds for vouchers. The below class is useful for that.

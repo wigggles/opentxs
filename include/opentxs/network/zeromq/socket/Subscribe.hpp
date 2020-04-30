@@ -6,9 +6,10 @@
 #ifndef OPENTXS_NETWORK_ZEROMQ_SOCKET_SUBSCRIBE_HPP
 #define OPENTXS_NETWORK_ZEROMQ_SOCKET_SUBSCRIBE_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include "opentxs/network/zeromq/curve/Client.hpp"
+#include "opentxs/Pimpl.hpp"
 
 #ifdef SWIG
 // clang-format off
@@ -23,8 +24,22 @@
 
 namespace opentxs
 {
-using OTZMQSubscribeSocket = Pimpl<network::zeromq::socket::Subscribe>;
+namespace network
+{
+namespace zeromq
+{
+namespace socket
+{
+class Subscribe;
+}  // namespace socket
+}  // namespace zeromq
+}  // namespace network
 
+using OTZMQSubscribeSocket = Pimpl<network::zeromq::socket::Subscribe>;
+}  // namespace opentxs
+
+namespace opentxs
+{
 namespace network
 {
 namespace zeromq

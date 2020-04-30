@@ -6,18 +6,18 @@
 #ifndef OPENTXS_BLIND_PURSE_HPP
 #define OPENTXS_BLIND_PURSE_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/iterator/Bidirectional.hpp"
-#include "opentxs/Proto.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <chrono>
 #include <cstdint>
 
+#if OT_CASH
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/iterator/Bidirectional.hpp"
+
 namespace opentxs
 {
-using OTPurse = Pimpl<blind::Purse>;
-
 namespace api
 {
 namespace server
@@ -29,6 +29,16 @@ struct Manager;
 }  // namespace server
 }  // namespace api
 
+namespace blind
+{
+class Purse;
+}  // namespace blind
+
+using OTPurse = Pimpl<blind::Purse>;
+}  // namespace opentxs
+
+namespace opentxs
+{
 namespace blind
 {
 class Purse
@@ -99,4 +109,5 @@ private:
 };
 }  // namespace blind
 }  // namespace opentxs
+#endif  // OT_CASH
 #endif

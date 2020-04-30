@@ -6,14 +6,26 @@
 #ifndef OPENTXS_CORE_CONTRACT_BASKET_BASKETCONTRACT_HPP
 #define OPENTXS_CORE_CONTRACT_BASKET_BASKETCONTRACT_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include "opentxs/core/contract/UnitDefinition.hpp"
+#include "opentxs/SharedPimpl.hpp"
 
 namespace opentxs
 {
-using OTBasketContract = SharedPimpl<contract::unit::Basket>;
+namespace contract
+{
+namespace unit
+{
+class Basket;
+}  // namespace unit
+}  // namespace contract
 
+using OTBasketContract = SharedPimpl<contract::unit::Basket>;
+}  // namespace opentxs
+
+namespace opentxs
+{
 namespace contract
 {
 namespace unit

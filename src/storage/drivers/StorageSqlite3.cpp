@@ -3,29 +3,20 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
-
-#include "Internal.hpp"
-
+#include "0_stdafx.hpp"    // IWYU pragma: associated
+#include "1_Internal.hpp"  // IWYU pragma: associated
 #if OT_STORAGE_SQLITE
-#include "opentxs/core/Log.hpp"
+#include "storage/drivers/StorageSqlite3.hpp"  // IWYU pragma: associated
 
-#include "storage/Plugin.hpp"
-#include "storage/StorageConfig.hpp"
-
-extern "C" {
-#include <sqlite3.h>
-}
-
-#include <atomic>
+#include <algorithm>
 #include <iostream>
-#include <mutex>
-#include <sstream>
+#include <memory>
 #include <string>
-#include <tuple>
 #include <vector>
 
-#include "StorageSqlite3.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "storage/StorageConfig.hpp"
 
 #define OT_METHOD "opentxs::StorageSqlite3::"
 

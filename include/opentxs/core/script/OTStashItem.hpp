@@ -6,15 +6,14 @@
 #ifndef OPENTXS_CORE_SCRIPT_OTSTASHITEM_HPP
 #define OPENTXS_CORE_SCRIPT_OTSTASHITEM_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/core/String.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <cstdint>
 
+#include "opentxs/core/String.hpp"
+
 namespace opentxs
 {
-
 class Identifier;
 
 class OTStashItem

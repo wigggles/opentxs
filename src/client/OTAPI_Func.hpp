@@ -5,23 +5,57 @@
 
 #pragma once
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/api/Editor.hpp"
-#include "opentxs/client/ServerAction.hpp"
-#include "opentxs/core/recurring/OTPaymentPlan.hpp"
-#include "opentxs/core/script/OTSmartContract.hpp"
-#include "opentxs/core/Cheque.hpp"
-#include "opentxs/core/Ledger.hpp"
-#include "opentxs/core/Lockable.hpp"
-#include "opentxs/ext/OTPayment.hpp"
-
-#include "internal/api/client/Client.hpp"
-
 #include <atomic>
 #include <cstdint>
 #include <cstdlib>
+#include <iosfwd>
+#include <map>
+#include <memory>
 #include <mutex>
+#include <string>
+
+#include "internal/api/client/Client.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/api/Editor.hpp"
+#include "opentxs/client/ServerAction.hpp"
+#include "opentxs/core/Cheque.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Ledger.hpp"
+#include "opentxs/core/Lockable.hpp"
+#include "opentxs/core/recurring/OTPaymentPlan.hpp"
+#include "opentxs/core/script/OTSmartContract.hpp"
+#include "opentxs/ext/OTPayment.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace client
+{
+namespace internal
+{
+struct Manager;
+}  // namespace internal
+}  // namespace client
+}  // namespace api
+
+namespace identifier
+{
+class Nym;
+class Server;
+class UnitDefinition;
+}  // namespace identifier
+
+class Cheque;
+class Ledger;
+class Message;
+class OTPayment;
+class OTPaymentPlan;
+class OTSmartContract;
+class PasswordPrompt;
+class ServerContext;
+}  // namespace opentxs
 
 bool VerifyStringVal(const std::string&);
 

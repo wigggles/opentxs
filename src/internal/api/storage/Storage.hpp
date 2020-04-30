@@ -5,8 +5,6 @@
 
 #pragma once
 
-#include "opentxs/Forward.hpp"
-
 #include "opentxs/api/storage/Storage.hpp"
 
 namespace opentxs::api::storage

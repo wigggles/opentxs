@@ -3,37 +3,49 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"               // IWYU pragma: associated
+#include "1_Internal.hpp"             // IWYU pragma: associated
+#include "opentxs/client/OT_API.hpp"  // IWYU pragma: associated
 
-#include "opentxs/client/OT_API.hpp"
+#include <cinttypes>
+#include <cstdlib>
+#include <fstream>
+#include <iterator>
+#include <memory>
+#include <string>
+#include <tuple>
 
-#include "opentxs/api/client/Activity.hpp"
-#include "opentxs/api/client/Manager.hpp"
-#include "opentxs/api/client/Pair.hpp"
-#include "opentxs/api/client/Workflow.hpp"
-#include "opentxs/api/crypto/Crypto.hpp"
-#include "opentxs/api/network/ZMQ.hpp"
-#include "opentxs/api/storage/Storage.hpp"
-#include "opentxs/api/Core.hpp"
-#include "opentxs/api/Endpoints.hpp"
+#include "internal/api/Api.hpp"
+#include "internal/api/client/Client.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Shared.hpp"
+#include "opentxs/SharedPimpl.hpp"
+#include "opentxs/api/Editor.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/api/Wallet.hpp"
-#include "opentxs/blind/Mint.hpp"
-#include "opentxs/client/NymData.hpp"
+#include "opentxs/api/client/Workflow.hpp"
+#include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/client/OTClient.hpp"
+#include "opentxs/consensus/Context.hpp"
 #include "opentxs/consensus/ManagedNumber.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
-#include "opentxs/consensus/TransactionStatement.hpp"
-#include "opentxs/contact/ContactData.hpp"
+#include "opentxs/core/Account.hpp"
+#include "opentxs/core/Armored.hpp"
+#include "opentxs/core/Cheque.hpp"
+#include "opentxs/core/Data.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Ledger.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/Message.hpp"
+#include "opentxs/core/NymFile.hpp"
+#include "opentxs/core/OTStorage.hpp"
+#include "opentxs/core/String.hpp"
 #include "opentxs/core/contract/basket/Basket.hpp"
 #include "opentxs/core/contract/basket/BasketContract.hpp"
-#include "opentxs/core/contract/peer/PeerRequest.hpp"
-#include "opentxs/core/contract/peer/PeerReply.hpp"
-#include "opentxs/core/crypto/NymParameters.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/crypto/PaymentCode.hpp"
+#include "opentxs/core/cron/OTCronItem.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
@@ -48,43 +60,7 @@
 #include "opentxs/core/trade/OTOffer.hpp"
 #include "opentxs/core/trade/OTTrade.hpp"
 #include "opentxs/core/transaction/Helpers.hpp"
-#include "opentxs/core/Account.hpp"
-#include "opentxs/core/Armored.hpp"
-#include "opentxs/core/Cheque.hpp"
-#include "opentxs/core/Contract.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Ledger.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/Message.hpp"
-#include "opentxs/core/NumList.hpp"
-#include "opentxs/core/NymFile.hpp"
-#include "opentxs/core/OTStorage.hpp"
-#include "opentxs/core/OTTransactionType.hpp"
-#include "opentxs/core/PasswordPrompt.hpp"
-#include "opentxs/core/String.hpp"
-#if OT_CRYPTO_WITH_BIP32
-#include "opentxs/crypto/Bip32.hpp"
-#endif
-#include "opentxs/ext/OTPayment.hpp"
 #include "opentxs/identity/Nym.hpp"
-#include "opentxs/network/zeromq/Context.hpp"
-#include "opentxs/network/ServerConnection.hpp"
-#include "opentxs/Proto.tpp"
-
-#include "internal/api/client/Client.hpp"
-#include "internal/api/Api.hpp"
-
-#include <cinttypes>
-#include <csignal>
-#include <cstdlib>
-#include <cassert>
-#include <fstream>
-#include <map>
-#include <memory>
-#include <string>
-#ifndef WIN32
-#include <unistd.h>
-#endif
 
 #define CLIENT_MASTER_KEY_TIMEOUT_DEFAULT 300
 

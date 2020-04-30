@@ -6,12 +6,15 @@
 #ifndef OPENTXS_CORE_SCRIPT_OTAGENT_HPP
 #define OPENTXS_CORE_SCRIPT_OTAGENT_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
-#include "opentxs/core/String.hpp"
-#include "opentxs/Types.hpp"
-
+#include <cstdint>
 #include <map>
+#include <string>
+
+#include "opentxs/Types.hpp"
+#include "opentxs/core/Account.hpp"
+#include "opentxs/core/String.hpp"
 
 namespace opentxs
 {
@@ -21,7 +24,29 @@ namespace internal
 {
 struct Core;
 }  // namespace internal
+
+class Wallet;
 }  // namespace api
+
+namespace identifier
+{
+class Server;
+}  // namespace identifier
+
+namespace identity
+{
+class Nym;
+}  // namespace identity
+
+class Context;
+class Contract;
+class Identifier;
+class OTParty;
+class OTPartyAccount;
+class OTSmartContract;
+class PasswordPrompt;
+class ServerContext;
+class Tag;
 
 // Agent is always either the Owner Nym acting in his own interests,
 // or is an employee Nym acting actively in a role on behalf of an Entity formed

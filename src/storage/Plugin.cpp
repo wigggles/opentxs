@@ -3,11 +3,14 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"        // IWYU pragma: associated
+#include "1_Internal.hpp"      // IWYU pragma: associated
+#include "storage/Plugin.hpp"  // IWYU pragma: associated
 
-#include "Plugin.hpp"
+#include <thread>
 
 #include "opentxs/api/storage/Storage.hpp"
+#include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Log.hpp"
 
 #define OT_METHOD "opentxs::Plugin"

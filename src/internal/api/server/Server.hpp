@@ -5,10 +5,7 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
 #include "opentxs/api/server/Manager.hpp"
-
 #include "internal/api/Api.hpp"
 
 namespace opentxs::api::server::internal

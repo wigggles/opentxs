@@ -3,24 +3,27 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"                            // IWYU pragma: associated
+#include "1_Internal.hpp"                          // IWYU pragma: associated
+#include "opentxs/core/script/OTPartyAccount.hpp"  // IWYU pragma: associated
 
-#include "opentxs/core/script/OTPartyAccount.hpp"
+#include <cstdint>
+#include <memory>
+#include <string>
 
 #include "opentxs/api/Wallet.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Shared.hpp"
+#include "opentxs/core/Account.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/core/script/OTAgent.hpp"
 #include "opentxs/core/script/OTParty.hpp"
 #include "opentxs/core/script/OTScript.hpp"
 #include "opentxs/core/util/Tag.hpp"
-#include "opentxs/core/Account.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/String.hpp"
-
-#include <cstdint>
-#include <memory>
-#include <ostream>
-#include <string>
 
 // IDEA: Put a Nym in the Nyms folder for each entity. While it may
 // not have a public key in the pubkey folder, or embedded within it,

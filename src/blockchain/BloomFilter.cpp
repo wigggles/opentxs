@@ -3,28 +3,30 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"                // IWYU pragma: associated
+#include "1_Internal.hpp"              // IWYU pragma: associated
+#include "blockchain/BloomFilter.hpp"  // IWYU pragma: associated
 
-#include "Internal.hpp"
-
-#include "opentxs/api/crypto/Hash.hpp"
-#include "opentxs/api/crypto/Crypto.hpp"
-#include "opentxs/api/Core.hpp"
-#include "opentxs/blockchain/BloomFilter.hpp"
-#include "opentxs/core/Data.hpp"
-
-#include "internal/api/Api.hpp"
-#include "internal/blockchain/Blockchain.hpp"
-
-#include <boost/dynamic_bitset.hpp>
 #include <boost/endian/buffers.hpp>
-
 #include <algorithm>
 #include <cmath>
-#include <cstdint>
 #include <cstddef>
+#include <cstdint>
+#include <cstring>
+#include <iterator>
+#include <type_traits>
+#include <vector>
 
-#include "BloomFilter.hpp"
+#include "Factory.hpp"
+#include "internal/api/Api.hpp"
+#include "internal/blockchain/Blockchain.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/api/crypto/Crypto.hpp"
+#include "opentxs/api/crypto/Hash.hpp"
+#include "opentxs/blockchain/BloomFilter.hpp"
+#include "opentxs/core/Data.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
 
 namespace opentxs
 {

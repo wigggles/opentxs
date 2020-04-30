@@ -6,7 +6,10 @@
 #ifndef OPENTXS_NETWORK_ZEROMQ_CONTEXT_HPP
 #define OPENTXS_NETWORK_ZEROMQ_CONTEXT_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
+
+#include <memory>
+#include <string>
 
 #include "opentxs/network/zeromq/socket/Dealer.hpp"
 #include "opentxs/network/zeromq/socket/Pair.hpp"
@@ -21,10 +24,8 @@
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/Bytes.hpp"
+#include "opentxs/Pimpl.hpp"
 #include "opentxs/Proto.hpp"
-
-#include <memory>
-#include <string>
 
 #ifdef SWIG
 // clang-format off
@@ -41,8 +42,6 @@
 
 namespace opentxs
 {
-using OTZMQContext = Pimpl<network::zeromq::Context>;
-
 namespace api
 {
 namespace internal
@@ -51,6 +50,19 @@ struct Core;
 }  // namespace internal
 }  // namespace api
 
+namespace network
+{
+namespace zeromq
+{
+class Context;
+}  // namespace zeromq
+}  // namespace network
+
+using OTZMQContext = Pimpl<network::zeromq::Context>;
+}  // namespace opentxs
+
+namespace opentxs
+{
 namespace network
 {
 namespace zeromq

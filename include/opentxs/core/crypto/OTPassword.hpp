@@ -6,12 +6,14 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTPASSWORD_HPP
 #define OPENTXS_CORE_CRYPTO_OTPASSWORD_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
-#include "opentxs/Bytes.hpp"
-
+#include <cstdint>
 #include <optional>
 #include <string>
+#include <iosfwd>
+
+#include "opentxs/Bytes.hpp"
 
 #ifdef SWIG
 // clang-format off
@@ -33,6 +35,8 @@
 
 namespace opentxs
 {
+class Data;
+
 /*
  To use:
 

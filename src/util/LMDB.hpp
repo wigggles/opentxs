@@ -5,19 +5,24 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
-#include "opentxs/Bytes.hpp"
-
 #if OT_STORAGE_LMDB
-#include "lmdb.h"
+
+extern "C" {
+#include <lmdb.h>  // IWYU pragma: export
+}
 
 #include <functional>
+#include <iosfwd>
 #include <map>
 #include <mutex>
 #include <optional>
+#include <string>
 #include <tuple>
+#include <utility>
 #include <vector>
+
+#include "opentxs/Bytes.hpp"
+#include "opentxs/Version.hpp"
 
 #if defined(__x86_64__) || defined(__aarch64__) || defined(_WIN64)
 #define OT_LMDB_SIZE 16UL * 1024UL * 1024UL * 1024UL

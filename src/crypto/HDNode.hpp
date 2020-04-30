@@ -5,10 +5,17 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
-#include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/Bytes.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+class Crypto;
+}  // namespace api
+}  // namespace opentxs
 
 namespace opentxs::crypto::implementation
 {

@@ -6,14 +6,14 @@
 #ifndef OPENTXS_CORE_CONTRACT_SIGNABLE_HPP
 #define OPENTXS_CORE_CONTRACT_SIGNABLE_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
+
+#include <string>
 
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
-
-#include <string>
 
 namespace opentxs
 {

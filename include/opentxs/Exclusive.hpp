@@ -6,12 +6,14 @@
 #ifndef OPENTXS_EXCLUSIVE_HPP
 #define OPENTXS_EXCLUSIVE_HPP
 
-#include "opentxs/Types.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <atomic>
 #include <functional>
 #include <memory>
 #include <shared_mutex>
+
+#include "opentxs/Types.hpp"
 
 #ifdef SWIG
 %ignore opentxs::Exclusive::Exclusive(Exclusive&&);

@@ -3,30 +3,36 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
-
-#include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/Data.hpp"
-#include "opentxs/core/Log.hpp"
-#if OT_CRYPTO_SUPPORTED_KEY_ED25519
-#include "opentxs/crypto/key/Asymmetric.hpp"
-#include "opentxs/crypto/key/Ed25519.hpp"
-#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
-#include "opentxs/crypto/library/Sodium.hpp"
-
-#if OT_CRYPTO_SUPPORTED_KEY_ED25519
-#include "util/Sodium.hpp"
-#include "AsymmetricProvider.hpp"
-#include "EcdsaProvider.hpp"
-#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
+#include "0_stdafx.hpp"               // IWYU pragma: associated
+#include "1_Internal.hpp"             // IWYU pragma: associated
+#include "crypto/library/Sodium.hpp"  // IWYU pragma: associated
 
 extern "C" {
 #include <sodium.h>
 }
 
 #include <array>
+#include <functional>
+#include <string>
+#include <string_view>
 
-#include "Sodium.hpp"
+#include "Factory.hpp"
+#if OT_CRYPTO_SUPPORTED_KEY_ED25519
+#include "crypto/library/AsymmetricProvider.hpp"
+#include "crypto/library/EcdsaProvider.hpp"
+#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
+#include "opentxs/Proto.hpp"
+#include "opentxs/core/Data.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
+#if OT_CRYPTO_SUPPORTED_KEY_ED25519
+#include "opentxs/crypto/key/Asymmetric.hpp"
+#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
+#include "opentxs/crypto/library/HashingProvider.hpp"
+#if OT_CRYPTO_SUPPORTED_KEY_ED25519
+#include "util/Sodium.hpp"
+#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 
 #define OT_METHOD "opentxs::crypto::implementation::Sodium::"
 

@@ -3,31 +3,35 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"      // IWYU pragma: associated
+#include "1_Internal.hpp"    // IWYU pragma: associated
+#include "crypto/Bip32.hpp"  // IWYU pragma: associated
 
-#include "Internal.hpp"
-
-#include "opentxs/api/crypto/Crypto.hpp"
-#include "opentxs/api/crypto/Hash.hpp"
-#include "opentxs/api/crypto/Encode.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/Data.hpp"
-#include "opentxs/crypto/key/Asymmetric.hpp"
-#include "opentxs/crypto/library/EcdsaProvider.hpp"
-#include "opentxs/crypto/Bip32.hpp"
-#include "opentxs/crypto/Bip39.hpp"
-
-#include "util/Sodium.hpp"
-
-#include <cstdint>
-#include <iomanip>
+#include <cstddef>
+#include <cstring>
+#include <functional>
 #include <iostream>
+#include <iterator>
 #include <memory>
+#include <stdexcept>
 #include <string>
-#include <sstream>
+#include <string_view>
+#include <tuple>
 #include <vector>
 
-#include "Bip32.hpp"
+#include "crypto/HDNode.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/api/crypto/Crypto.hpp"
+#include "opentxs/api/crypto/Encode.hpp"
+#include "opentxs/api/crypto/Hash.hpp"
+#include "opentxs/core/Data.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/crypto/Bip32.hpp"
+#include "opentxs/crypto/library/EcdsaProvider.hpp"
+#include "util/Sodium.hpp"
 
 #define OT_METHOD "opentxs::crypto::implementation::Bip32::"
 

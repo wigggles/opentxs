@@ -6,14 +6,29 @@
 #ifndef OPENTXS_CORE_CONTRACT_PEER_CONNECTIONREQUEST_HPP
 #define OPENTXS_CORE_CONTRACT_PEER_CONNECTIONREQUEST_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include "opentxs/core/contract/peer/PeerRequest.hpp"
+#include "opentxs/SharedPimpl.hpp"
 
 namespace opentxs
 {
-using OTConnectionRequest = SharedPimpl<contract::peer::request::Connection>;
+namespace contract
+{
+namespace peer
+{
+namespace request
+{
+class Connection;
+}  // namespace request
+}  // namespace peer
+}  // namespace contract
 
+using OTConnectionRequest = SharedPimpl<contract::peer::request::Connection>;
+}  // namespace opentxs
+
+namespace opentxs
+{
 namespace contract
 {
 namespace peer

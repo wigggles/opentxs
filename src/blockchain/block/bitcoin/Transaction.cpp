@@ -3,28 +3,37 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "Internal.hpp"
+#include "0_stdafx.hpp"                              // IWYU pragma: associated
+#include "1_Internal.hpp"                            // IWYU pragma: associated
+#include "blockchain/block/bitcoin/Transaction.hpp"  // IWYU pragma: associated
 
+#include <boost/endian/buffers.hpp>
+#include <algorithm>
+#include <cstring>
+#include <iterator>
+#include <map>
+#include <numeric>
+#include <stdexcept>
+#include <type_traits>
+#include <utility>
+
+#include "Factory.hpp"
+#include "blockchain/bitcoin/CompactSize.hpp"
+#include "internal/blockchain/bitcoin/Bitcoin.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.hpp"
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
-#include "opentxs/blockchain/block/bitcoin/Inputs.hpp"
 #include "opentxs/blockchain/block/bitcoin/Input.hpp"
-#include "opentxs/blockchain/block/bitcoin/Outputs.hpp"
+#include "opentxs/blockchain/block/bitcoin/Inputs.hpp"
 #include "opentxs/blockchain/block/bitcoin/Output.hpp"
+#include "opentxs/blockchain/block/bitcoin/Outputs.hpp"
 #include "opentxs/blockchain/block/bitcoin/Transaction.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
-
-#include "blockchain/bitcoin/CompactSize.hpp"
-#include "internal/blockchain/bitcoin/Bitcoin.hpp"
-
-#include <boost/endian/buffers.hpp>
-
-#include <algorithm>
-#include <numeric>
-
-#include "Transaction.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/iterator/Bidirectional.hpp"
 
 namespace be = boost::endian;
 

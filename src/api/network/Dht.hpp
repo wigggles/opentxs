@@ -3,7 +3,43 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/api/network/Dht.cpp"
+
 #pragma once
+
+#include <memory>
+#include <string>
+
+#include "network/DhtConfig.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/Version.hpp"
+#include "opentxs/api/network/Dht.hpp"
+#include "opentxs/core/contract/ServerContract.hpp"
+#include "opentxs/network/OpenDHT.hpp"
+#include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/network/zeromq/ReplyCallback.hpp"
+#include "opentxs/network/zeromq/socket/Reply.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
+namespace proto
+{
+class Nym;
+class ServerContract;
+class UnitDefinition;
+}  // namespace proto
+
+class Factory;
+}  // namespace opentxs
 
 namespace opentxs::api::network::implementation
 {

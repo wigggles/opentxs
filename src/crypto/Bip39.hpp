@@ -5,9 +5,23 @@
 
 #pragma once
 
-#include "Internal.hpp"
+#include <cstddef>
+#include <cstdint>
+#include <map>
+#include <string>
+#include <vector>
 
 #include "opentxs/crypto/Bip39.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+class Crypto;
+}  // namespace api
+
+class OTPassword;
+}  // namespace opentxs
 
 namespace opentxs::crypto::implementation
 {

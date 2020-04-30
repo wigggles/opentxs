@@ -5,6 +5,17 @@
 
 #pragma once
 
+#include <cstddef>
+#include <cstdint>
+#include <memory>
+#include <optional>
+#include <vector>
+
+#include "opentxs/Bytes.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/blockchain/block/bitcoin/Script.hpp"
+
 namespace opentxs::blockchain::block::bitcoin::implementation
 {
 class Script final : public bitcoin::Script

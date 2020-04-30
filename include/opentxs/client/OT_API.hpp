@@ -6,25 +6,29 @@
 #ifndef OPENTXS_CLIENT_OT_API_HPP
 #define OPENTXS_CLIENT_OT_API_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/api/Wallet.hpp"
-#include "opentxs/consensus/ServerContext.hpp"
-#include "opentxs/core/contract/peer/PeerObject.hpp"
-#include "opentxs/core/crypto/NymParameters.hpp"
-#include "opentxs/core/Item.hpp"
-#include "opentxs/core/Lockable.hpp"
-#include "opentxs/core/OTTransaction.hpp"
-#include "opentxs/core/String.hpp"
-#include "opentxs/network/zeromq/socket/Publish.hpp"
-#include "opentxs/Types.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <chrono>
 #include <cstdint>
 #include <memory>
 #include <mutex>
 #include <set>
+#include <string>
 #include <tuple>
+#include <utility>
+
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/api/Wallet.hpp"
+#include "opentxs/consensus/ServerContext.hpp"
+#include "opentxs/core/Account.hpp"
+#include "opentxs/core/Item.hpp"
+#include "opentxs/core/Lockable.hpp"
+#include "opentxs/core/OTTransaction.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/contract/peer/PeerObject.hpp"
+#include "opentxs/core/crypto/NymParameters.hpp"
+#include "opentxs/network/zeromq/socket/Publish.hpp"
 
 namespace opentxs
 {
@@ -32,6 +36,10 @@ namespace api
 {
 namespace client
 {
+class Activity;
+class Contacts;
+class Workflow;
+
 namespace implementation
 {
 class Manager;
@@ -42,7 +50,46 @@ namespace internal
 struct Core;
 }  // namespace internal
 }  // namespace client
+
+namespace internal
+{
+struct Core;
+}  // namespace internal
+
+namespace network
+{
+class ZMQ;
+}  // namespace network
 }  // namespace api
+
+namespace identifier
+{
+class Nym;
+class Server;
+class UnitDefinition;
+}  // namespace identifier
+
+namespace identity
+{
+class Nym;
+}  // namespace identity
+
+namespace proto
+{
+class UnitDefinition;
+}  // namespace proto
+
+class Armored;
+class Basket;
+class Cheque;
+class Context;
+class Identifier;
+class Ledger;
+class Message;
+class OTClient;
+class OTPaymentPlan;
+class PasswordPrompt;
+class ServerContext;
 
 // The C++ high-level interface to the Open Transactions client-side.
 class OT_API : Lockable

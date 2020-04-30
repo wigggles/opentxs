@@ -5,22 +5,55 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
-#if OT_CRYPTO_USING_OPENSSL
-#include "opentxs/crypto/library/OpenSSL.hpp"
-
-#if OT_CRYPTO_SUPPORTED_KEY_RSA
-#include "AsymmetricProvider.hpp"
-#endif
-
 extern "C" {
 #include <openssl/bio.h>
 #include <openssl/bn.h>
 #include <openssl/dh.h>
 #include <openssl/evp.h>
+#include <openssl/opensslv.h>
+#include <openssl/ossl_typ.h>
 #include <openssl/rsa.h>
 }
+
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <memory>
+
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
+#include "crypto/library/AsymmetricProvider.hpp"
+#endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
+#include "internal/crypto/library/OpenSSL.hpp"
+#include "opentxs/Bytes.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Version.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+
+class Crypto;
+}  // namespace api
+
+namespace crypto
+{
+namespace key
+{
+class Asymmetric;
+}  // namespace key
+}  // namespace crypto
+
+class Data;
+class Factory;
+class NymParameters;
+class OTPassword;
+class PasswordPrompt;
+}  // namespace opentxs
 
 namespace opentxs::crypto
 {
@@ -232,4 +265,3 @@ private:
     OpenSSL& operator=(OpenSSL&&) = delete;
 };
 }  // namespace opentxs::crypto::implementation
-#endif  // OT_CRYPTO_USING_OPENSSL

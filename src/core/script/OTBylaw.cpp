@@ -3,25 +3,24 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
-
-#include "opentxs/core/script/OTBylaw.hpp"
-
-#include "opentxs/core/script/OTClause.hpp"
-#include "opentxs/core/script/OTScriptable.hpp"
-#include "opentxs/core/script/OTVariable.hpp"
-#include "opentxs/core/util/Tag.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/String.hpp"
+#include "0_stdafx.hpp"                     // IWYU pragma: associated
+#include "1_Internal.hpp"                   // IWYU pragma: associated
+#include "opentxs/core/script/OTBylaw.hpp"  // IWYU pragma: associated
 
 #include <cstdint>
 #include <list>
 #include <memory>
-#include <ostream>
 #include <set>
 #include <string>
 #include <utility>
+
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/script/OTClause.hpp"
+#include "opentxs/core/script/OTScriptable.hpp"
+#include "opentxs/core/script/OTVariable.hpp"
+#include "opentxs/core/util/Tag.hpp"
 
 #define OT_METHOD "opentxs::OTBylaw::"
 

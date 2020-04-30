@@ -3,9 +3,62 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/ui/IssuerItem.cpp"
+
 #pragma once
 
-#include "Internal.hpp"
+#include <atomic>
+#include <map>
+#include <memory>
+#include <string>
+#include <utility>
+
+#include "1_Internal.hpp"
+#include "internal/ui/UI.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/SharedPimpl.hpp"
+#include "opentxs/Version.hpp"
+#include "opentxs/api/client/Issuer.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "ui/Combined.hpp"
+#include "ui/List.hpp"
+#include "ui/RowType.hpp"
+#include "ui/Widget.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace client
+{
+namespace internal
+{
+struct Manager;
+}  // namespace internal
+}  // namespace client
+}  // namespace api
+
+namespace network
+{
+namespace zeromq
+{
+namespace socket
+{
+class Publish;
+}  // namespace socket
+
+class Message;
+}  // namespace zeromq
+}  // namespace network
+
+namespace ui
+{
+class IssuerItem;
+}  // namespace ui
+
+class Factory;
+}  // namespace opentxs
 
 namespace opentxs::ui::implementation
 {
@@ -40,6 +93,19 @@ public:
         const AccountSummarySortKey& key,
         const CustomData& custom) noexcept final;
 
+    IssuerItem(
+        const AccountSummaryInternalInterface& parent,
+        const api::client::internal::Manager& api,
+        const network::zeromq::socket::Publish& publisher,
+        const AccountSummaryRowID& rowID,
+        const AccountSummarySortKey& sortKey,
+        const CustomData& custom,
+        const proto::ContactItemType currency
+#if OT_QT
+        ,
+        const bool qt
+#endif
+        ) noexcept;
     ~IssuerItem();
 
 private:
@@ -61,19 +127,6 @@ private:
     void refresh_accounts() noexcept;
     void startup() noexcept;
 
-    IssuerItem(
-        const AccountSummaryInternalInterface& parent,
-        const api::client::internal::Manager& api,
-        const network::zeromq::socket::Publish& publisher,
-        const AccountSummaryRowID& rowID,
-        const AccountSummarySortKey& sortKey,
-        const CustomData& custom,
-        const proto::ContactItemType currency
-#if OT_QT
-        ,
-        const bool qt
-#endif
-        ) noexcept;
     IssuerItem() = delete;
     IssuerItem(const IssuerItem&) = delete;
     IssuerItem(IssuerItem&&) = delete;
@@ -81,3 +134,5 @@ private:
     IssuerItem& operator=(IssuerItem&&) = delete;
 };
 }  // namespace opentxs::ui::implementation
+
+template class opentxs::SharedPimpl<opentxs::ui::IssuerItem>;

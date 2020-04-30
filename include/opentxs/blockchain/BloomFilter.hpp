@@ -6,12 +6,22 @@
 #ifndef OPENTXS_BLOCKCHAIN_BLOOMFILTER_HPP
 #define OPENTXS_BLOCKCHAIN_BLOOMFILTER_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
+
+#include "opentxs/Pimpl.hpp"
 
 namespace opentxs
 {
-using OTBloomFilter = Pimpl<blockchain::BloomFilter>;
+namespace blockchain
+{
+class BloomFilter;
+}  // namespace blockchain
 
+using OTBloomFilter = Pimpl<blockchain::BloomFilter>;
+}  // namespace opentxs
+
+namespace opentxs
+{
 namespace blockchain
 {
 class BloomFilter

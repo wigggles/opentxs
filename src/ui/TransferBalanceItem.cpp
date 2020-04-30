@@ -3,39 +3,34 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"                // IWYU pragma: associated
+#include "1_Internal.hpp"              // IWYU pragma: associated
+#include "ui/TransferBalanceItem.hpp"  // IWYU pragma: associated
 
-#include "opentxs/api/client/Contacts.hpp"
-#include "opentxs/api/client/Manager.hpp"
-#include "opentxs/api/client/OTX.hpp"
-#include "opentxs/api/client/Workflow.hpp"
-#include "opentxs/api/storage/Storage.hpp"
-#include "opentxs/api/Core.hpp"
-#include "opentxs/api/Factory.hpp"
-#include "opentxs/api/Wallet.hpp"
-#include "opentxs/core/contract/UnitDefinition.hpp"
-#include "opentxs/core/Cheque.hpp"
-#include "opentxs/core/Flag.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Lockable.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/PasswordPrompt.hpp"
-#include "opentxs/ui/BalanceItem.hpp"
+#include <cstdint>
+#include <memory>
+#include <string>
+#include <thread>
 
 #include "internal/api/client/Client.hpp"
 #include "internal/ui/UI.hpp"
-#include "Row.hpp"
-
-#include <memory>
-#include <set>
-#include <sstream>
-#include <string>
-#include <thread>
-#include <tuple>
-#include <vector>
-
-#include "BalanceItem.hpp"
-#include "TransferBalanceItem.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/SharedPimpl.hpp"
+#include "opentxs/api/Wallet.hpp"
+#include "opentxs/api/client/OTX.hpp"
+#include "opentxs/api/client/Workflow.hpp"
+#include "opentxs/api/storage/Storage.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/contract/UnitDefinition.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
+#include "ui/BalanceItem.hpp"
+#include "ui/Widget.hpp"
 
 #define OT_METHOD "opentxs::ui::implementation::TransferBalanceItem::"
 

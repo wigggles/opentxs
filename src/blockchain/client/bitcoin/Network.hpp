@@ -5,6 +5,42 @@
 
 #pragma once
 
+#include <memory>
+#include <string>
+
+#include "blockchain/client/Network.hpp"
+#include "opentxs/Bytes.hpp"
+#include "opentxs/Types.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace client
+{
+namespace internal
+{
+struct Blockchain;
+}  // namespace internal
+}  // namespace client
+
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
+namespace blockchain
+{
+namespace block
+{
+class Header;
+}  // namespace block
+}  // namespace blockchain
+
+class Factory;
+}  // namespace opentxs
+
 namespace opentxs::blockchain::client::bitcoin::implementation
 {
 class Network final : public client::implementation::Network

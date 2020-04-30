@@ -5,6 +5,50 @@
 
 #pragma once
 
+#include <future>
+#include <map>
+#include <string>
+
+#include "1_Internal.hpp"
+#include "blockchain/client/HDStateData.hpp"
+#include "core/Executor.hpp"
+#include "internal/api/client/blockchain/Blockchain.hpp"
+#include "internal/blockchain/client/Client.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/network/zeromq/socket/Push.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace client
+{
+namespace internal
+{
+struct Blockchain;
+}  // namespace internal
+}  // namespace client
+
+namespace internal
+{
+struct Core;
+}  // namespace internal
+
+class Core;
+}  // namespace api
+
+namespace network
+{
+namespace zeromq
+{
+class Frame;
+class Message;
+}  // namespace zeromq
+}  // namespace network
+}  // namespace opentxs
+
 namespace opentxs::blockchain::client::implementation
 {
 class Wallet final : virtual public internal::Wallet, Executor<Wallet>

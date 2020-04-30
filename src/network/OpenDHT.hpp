@@ -5,21 +5,36 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
-#if OT_DHT
-#include "opentxs/network/OpenDHT.hpp"
-
-#include "opentxs/core/Flag.hpp"
-
 #include <atomic>
 #include <memory>
 #include <mutex>
+#include <string>
+
+#include "opentxs/Types.hpp"
+#include "opentxs/Version.hpp"
+#include "opentxs/core/Flag.hpp"
+#include "opentxs/network/OpenDHT.hpp"
 
 namespace dht
 {
 class DhtRunner;
-}
+}  // namespace dht
+
+namespace opentxs
+{
+namespace api
+{
+namespace network
+{
+namespace implementation
+{
+class Dht;
+}  // namespace implementation
+}  // namespace network
+}  // namespace api
+
+class DhtConfig;
+}  // namespace opentxs
 
 namespace opentxs::network::implementation
 {
@@ -56,4 +71,3 @@ private:
     OpenDHT& operator=(OpenDHT&&) = delete;
 };
 }  // namespace opentxs::network::implementation
-#endif  // OT_DHT

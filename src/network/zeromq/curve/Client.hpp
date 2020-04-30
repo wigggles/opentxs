@@ -5,14 +5,37 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
-#include "opentxs/network/zeromq/curve/Client.hpp"
-#include "opentxs/Types.hpp"
+#include <iosfwd>
+#include <mutex>
+#include <string>
 
 #include "network/zeromq/socket/Socket.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/network/zeromq/curve/Client.hpp"
 
-#include <mutex>
+namespace opentxs
+{
+namespace contract
+{
+class Server;
+}  // namespace contract
+
+namespace network
+{
+namespace zeromq
+{
+namespace socket
+{
+namespace implementation
+{
+class Socket;
+}  // namespace implementation
+}  // namespace socket
+}  // namespace zeromq
+}  // namespace network
+
+class Data;
+}  // namespace opentxs
 
 namespace opentxs::network::zeromq::curve::implementation
 {

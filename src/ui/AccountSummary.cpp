@@ -3,53 +3,38 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
-
-#include "opentxs/api/client/Contacts.hpp"
-#include "opentxs/api/client/Issuer.hpp"
-#include "opentxs/api/client/Manager.hpp"
-#include "opentxs/api/network/ZMQ.hpp"
-#include "opentxs/api/Core.hpp"
-#include "opentxs/api/Endpoints.hpp"
-#include "opentxs/api/Factory.hpp"
-#include "opentxs/api/Wallet.hpp"
-#include "opentxs/core/Flag.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Lockable.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/PasswordPrompt.hpp"
-#include "opentxs/network/zeromq/socket/Subscribe.hpp"
-#include "opentxs/network/zeromq/Context.hpp"
-#include "opentxs/network/zeromq/ListenCallback.hpp"
-#include "opentxs/network/zeromq/FrameIterator.hpp"
-#include "opentxs/network/zeromq/FrameSection.hpp"
-#include "opentxs/network/zeromq/Frame.hpp"
-#include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/ui/AccountSummary.hpp"
-#include "opentxs/ui/IssuerItem.hpp"
-#include "opentxs/Types.hpp"
-
-#include "internal/api/client/Client.hpp"
-#include "internal/core/identifier/Identifier.hpp"
-#include "internal/ui/UI.hpp"
-#include "List.hpp"
+#include "0_stdafx.hpp"           // IWYU pragma: associated
+#include "1_Internal.hpp"         // IWYU pragma: associated
+#include "ui/AccountSummary.hpp"  // IWYU pragma: associated
 
 #include <map>
 #include <memory>
 #include <set>
 #include <string>
-#include <tuple>
 #include <thread>
-#include <tuple>
-#include <vector>
+#include <utility>
 
-#include "AccountSummary.hpp"
+#include "internal/api/client/Client.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/api/Endpoints.hpp"
+#include "opentxs/api/Wallet.hpp"
+#include "opentxs/api/client/Issuer.hpp"
+#include "opentxs/api/network/ZMQ.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/contract/ServerContract.hpp"
+#include "opentxs/identity/Nym.hpp"
+#include "opentxs/network/zeromq/Frame.hpp"
+#include "opentxs/network/zeromq/FrameIterator.hpp"
+#include "opentxs/network/zeromq/FrameSection.hpp"
+#include "opentxs/network/zeromq/Message.hpp"
+#include "ui/List.hpp"
 
 #define OT_METHOD "opentxs::ui::implementation::AccountSummary::"
 
-namespace opentxs
+namespace opentxs::factory
 {
-ui::implementation::AccountSummary* Factory::AccountSummaryModel(
+auto AccountSummaryModel(
     const api::client::internal::Manager& api,
     const network::zeromq::socket::Publish& publisher,
     const identifier::Nym& nymID,
@@ -58,9 +43,11 @@ ui::implementation::AccountSummary* Factory::AccountSummaryModel(
     ,
     const bool qt
 #endif
-)
+    ) noexcept -> std::unique_ptr<ui::implementation::AccountSummary>
 {
-    return new ui::implementation::AccountSummary(
+    using ReturnType = ui::implementation::AccountSummary;
+
+    return std::make_unique<ReturnType>(
         api,
         publisher,
         nymID,
@@ -73,15 +60,15 @@ ui::implementation::AccountSummary* Factory::AccountSummaryModel(
 }
 
 #if OT_QT
-ui::AccountSummaryQt* Factory::AccountSummaryQtModel(
-    ui::implementation::AccountSummary& parent)
+auto AccountSummaryQtModel(ui::implementation::AccountSummary& parent) noexcept
+    -> std::unique_ptr<ui::AccountSummaryQt>
 {
     using ReturnType = ui::AccountSummaryQt;
 
-    return new ReturnType(parent);
+    return std::make_unique<ReturnType>(parent);
 }
 #endif  // OT_QT
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 #if OT_QT
 namespace opentxs::ui
@@ -148,7 +135,7 @@ void* AccountSummary::construct_row(
     names_.emplace(id, index);
     const auto [it, added] = items_[index].emplace(
         id,
-        Factory::IssuerItem(
+        factory::IssuerItem(
             *this,
             api_,
             publisher_,

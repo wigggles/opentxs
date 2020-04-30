@@ -5,7 +5,44 @@
 
 #pragma once
 
-#if OT_CRYPTO_SUPPORTED_KEY_ED25519
+#include <memory>
+
+#include "crypto/key/HD.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/Version.hpp"
+#include "opentxs/crypto/key/Ed25519.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
+namespace crypto
+{
+namespace key
+{
+class Symmetric;
+}  // namespace key
+
+class EcdsaProvider;
+}  // namespace crypto
+
+namespace proto
+{
+class AsymmetricKey;
+class HDPath;
+}  // namespace proto
+
+class Data;
+class OTPassword;
+class PasswordPrompt;
+}  // namespace opentxs
 
 namespace opentxs::crypto::key::implementation
 {
@@ -65,4 +102,3 @@ private:
     Ed25519& operator=(Ed25519&&) = delete;
 };
 }  // namespace opentxs::crypto::key::implementation
-#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519

@@ -6,29 +6,25 @@
 #ifndef OPENTXS_CORE_SCRIPT_OTSCRIPTCHAI_HPP
 #define OPENTXS_CORE_SCRIPT_OTSCRIPTCHAI_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #if OT_SCRIPT_CHAI
+#include <cstddef>
+#include <string>
+
+#include "opentxs/Version.hpp"
 #include "opentxs/core/script/OTScript.hpp"
-
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable : 4702)  // warning C4702: unreachable code
-#endif
-
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
-
-// SUBCLASS:  CHAI SCRIPT
 
 namespace chaiscript
 {
 class ChaiScript;
-}
+}  // namespace chaiscript
 
 namespace opentxs
 {
+class OTVariable;
+class String;
+
 class OTScriptChai final : public OTScript
 {
 public:

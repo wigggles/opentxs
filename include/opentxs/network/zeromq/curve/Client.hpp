@@ -6,11 +6,11 @@
 #ifndef OPENTXS_NETWORK_ZEROMQ_CURVE_CLIENT_HPP
 #define OPENTXS_NETWORK_ZEROMQ_CURVE_CLIENT_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/network/zeromq/socket/Socket.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <tuple>
+
+#include "opentxs/network/zeromq/socket/Socket.hpp"
 
 #ifdef SWIG
 // clang-format off

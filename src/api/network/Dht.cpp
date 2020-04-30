@@ -3,38 +3,43 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"         // IWYU pragma: associated
+#include "1_Internal.hpp"       // IWYU pragma: associated
+#include "api/network/Dht.hpp"  // IWYU pragma: associated
 
-#include "Internal.hpp"
+#include <cstdint>
+#include <string>
+#include <functional>
+#include <map>
+#include <utility>
 
-#include "opentxs/api/network/Dht.hpp"
-#include "opentxs/api/Core.hpp"
-#include "opentxs/api/Endpoints.hpp"
-#include "opentxs/api/Factory.hpp"
-#include "opentxs/api/Settings.hpp"
-#include "opentxs/api/Wallet.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/PasswordPrompt.hpp"
-#include "opentxs/identity/Nym.hpp"
-#include "opentxs/network/zeromq/socket/Reply.hpp"
-#include "opentxs/network/zeromq/Context.hpp"
-#include "opentxs/network/zeromq/Frame.hpp"
-#include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/network/zeromq/ReplyCallback.hpp"
-#include "opentxs/Proto.tpp"
-#include "opentxs/Types.hpp"
-
+#include "Factory.hpp"
 #include "internal/api/Api.hpp"
 #include "network/DhtConfig.hpp"
 #if OT_DHT
 #include "network/OpenDHT.hpp"
-#endif
-
-#include <cstdint>
-#include <string>
-
-#include "Dht.hpp"
+#endif  // OT_DHT
+#include "opentxs/Forward.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Proto.tpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/api/Endpoints.hpp"
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/api/Settings.hpp"
+#include "opentxs/api/Wallet.hpp"
+#include "opentxs/api/network/Dht.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/identity/Nym.hpp"
+#include "opentxs/network/zeromq/Context.hpp"
+#include "opentxs/network/zeromq/Frame.hpp"
+#include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/network/zeromq/ReplyCallback.hpp"
+#include "opentxs/network/zeromq/socket/Reply.hpp"
+#include "opentxs/network/zeromq/socket/Socket.hpp"
 
 #if OT_DHT
 #define OT_METHOD "opentxs::Dht"

@@ -3,18 +3,21 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"    // IWYU pragma: associated
+#include "1_Internal.hpp"  // IWYU pragma: associated
+#include "internal/blockchain/p2p/bitcoin/Bitcoin.hpp"  // IWYU pragma: associated
 
-#include "Internal.hpp"
+#include <algorithm>
+#include <cstdint>
+#include <cstring>
+#include <iterator>
+#include <memory>
+#include <utility>
+#include <vector>
 
-#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/Pimpl.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
-
-#include "internal/blockchain/p2p/bitcoin/Bitcoin.hpp"
-
-#include <cstring>
-#include <type_traits>
 
 namespace opentxs::blockchain::p2p::bitcoin
 {

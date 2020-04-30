@@ -6,11 +6,13 @@
 #ifndef OPENTXS_SHARED_HPP
 #define OPENTXS_SHARED_HPP
 
-#include "opentxs/Types.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <memory>
 #include <shared_mutex>
 #include <stdexcept>
+
+#include "opentxs/Types.hpp"
 
 #ifdef SWIG
 %ignore opentxs::Shared::Shared(Shared&&);

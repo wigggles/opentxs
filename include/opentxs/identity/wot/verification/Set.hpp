@@ -6,7 +6,7 @@
 #ifndef OPENTXS_IDENTITY_WOT_VERIFICATION_SET_HPP
 #define OPENTXS_IDENTITY_WOT_VERIFICATION_SET_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"

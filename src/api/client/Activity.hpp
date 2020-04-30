@@ -3,9 +3,55 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/api/client/Activity.cpp"
+
 #pragma once
 
-#include "Internal.hpp"
+#include <chrono>
+#include <iosfwd>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <string>
+
+#include "internal/api/client/Client.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/api/client/Activity.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Lockable.hpp"
+#include "opentxs/core/Message.hpp"
+#include "opentxs/core/PasswordPrompt.hpp"
+#include "opentxs/network/zeromq/socket/Publish.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace client
+{
+class Contacts;
+}  // namespace client
+
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
+namespace identifier
+{
+class Nym;
+}  // namespace identifier
+
+namespace proto
+{
+class StorageThread;
+}  // namespace proto
+
+class Contact;
+class Factory;
+}  // namespace opentxs
 
 namespace opentxs::api::client::implementation
 {

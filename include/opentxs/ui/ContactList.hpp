@@ -7,9 +7,10 @@
 #define OPENTXS_UI_CONTACTLIST_HPP
 
 #ifndef Q_MOC_RUN
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include "opentxs/ui/List.hpp"
+#include "opentxs/SharedPimpl.hpp"
 
 #ifdef SWIG
 // clang-format off
@@ -73,6 +74,8 @@ public:
         const QString& paymentCode = "",
         const QString& nymID = "") const noexcept;
 
+    ContactListQt(implementation::ContactList& parent) noexcept;
+
     ~ContactListQt() final = default;
 
 private:
@@ -82,7 +85,6 @@ private:
 
     void notify() const noexcept;
 
-    ContactListQt(implementation::ContactList& parent) noexcept;
     ContactListQt() = delete;
     ContactListQt(const ContactListQt&) = delete;
     ContactListQt(ContactListQt&&) = delete;

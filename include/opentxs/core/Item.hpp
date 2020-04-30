@@ -6,17 +6,20 @@
 #ifndef OPENTXS_CORE_ITEM_HPP
 #define OPENTXS_CORE_ITEM_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/core/Armored.hpp"
-#include "opentxs/core/Contract.hpp"
-#include "opentxs/core/NumList.hpp"
-#include "opentxs/core/OTTransactionType.hpp"
-#include "opentxs/core/String.hpp"
-#include "opentxs/Types.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <cstdint>
 #include <list>
+#include <memory>
+#include <set>
+
+#include "opentxs/Types.hpp"
+#include "opentxs/core/Armored.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/NumList.hpp"
+#include "opentxs/core/OTTransactionType.hpp"
+#include "opentxs/core/String.hpp"
 
 namespace opentxs
 {
@@ -32,6 +35,21 @@ namespace internal
 struct Core;
 }  // namespace internal
 }  // namespace api
+
+namespace identifier
+{
+class Nym;
+}  // namespace identifier
+
+class Account;
+class ClientContext;
+class Data;
+class Item;
+class Ledger;
+class NumList;
+class OTTransaction;
+class PasswordPrompt;
+class String;
 
 typedef std::list<std::shared_ptr<Item>> listOfItems;
 

@@ -3,15 +3,16 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
-
-#include "Internal.hpp"
-
-#include "opentxs/core/crypto/NymParameters.hpp"
-#include "opentxs/core/Log.hpp"
+#include "0_stdafx.hpp"                           // IWYU pragma: associated
+#include "1_Internal.hpp"                         // IWYU pragma: associated
+#include "opentxs/core/crypto/NymParameters.hpp"  // IWYU pragma: associated
 
 #include <cstdint>
 #include <memory>
+#include <cstddef>
+#include <map>
+
+#include "Factory.hpp"
 
 namespace opentxs
 {

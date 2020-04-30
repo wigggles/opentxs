@@ -5,15 +5,24 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
-#include "blockchain/bitcoin/CompactSize.hpp"
-
 #include <boost/endian/buffers.hpp>
-
 #include <array>
+#include <cstddef>
 #include <optional>
 #include <tuple>
+#include <vector>
+
+#include "blockchain/bitcoin/CompactSize.hpp"
+#include "opentxs/Bytes.hpp"
+#include "opentxs/Types.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+class Core;
+}  // namespace api
+}  // namespace opentxs
 
 namespace be = boost::endian;
 

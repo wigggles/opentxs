@@ -3,7 +3,38 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/core/contract/ServerContract.cpp"
+
 #pragma once
+
+#include <cstdint>
+#include <list>
+#include <memory>
+#include <string>
+
+#include "core/contract/Signable.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/core/Data.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/contract/ServerContract.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
+class Factory;
+class OTPassword;
+class PasswordPrompt;
+class String;
+}  // namespace opentxs
 
 namespace opentxs::contract::implementation
 {

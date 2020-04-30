@@ -5,6 +5,48 @@
 
 #pragma once
 
+#include <cstdint>
+#include <map>
+#include <memory>
+#include <tuple>
+#include <vector>
+
+#include "opentxs/Bytes.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/crypto/Envelope.hpp"
+#include "opentxs/crypto/key/Asymmetric.hpp"
+#include "opentxs/crypto/key/Symmetric.hpp"
+#include "opentxs/identity/Nym.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+class Core;
+
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
+namespace identity
+{
+class Authority;
+}  // namespace identity
+
+namespace proto
+{
+class Ciphertext;
+}  // namespace proto
+
+class Armored;
+class PasswordPrompt;
+}  // namespace opentxs
+
 namespace opentxs::crypto::implementation
 {
 class Envelope final : public crypto::Envelope

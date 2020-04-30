@@ -6,9 +6,11 @@
 #ifndef OPENTXS_NETWORK_ZEROMQ_LISTENCALLBACK_HPP
 #define OPENTXS_NETWORK_ZEROMQ_LISTENCALLBACK_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <functional>
+
+#include "opentxs/Pimpl.hpp"
 
 #ifdef SWIG
 // clang-format off
@@ -23,8 +25,19 @@
 
 namespace opentxs
 {
-using OTZMQListenCallback = Pimpl<network::zeromq::ListenCallback>;
+namespace network
+{
+namespace zeromq
+{
+class ListenCallback;
+}  // namespace zeromq
+}  // namespace network
 
+using OTZMQListenCallback = Pimpl<network::zeromq::ListenCallback>;
+}  // namespace opentxs
+
+namespace opentxs
+{
 namespace network
 {
 namespace zeromq
