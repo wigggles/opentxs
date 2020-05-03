@@ -6,24 +6,15 @@
 #ifndef OPENTXS_CORE_SCRIPT_OTSCRIPT_HPP
 #define OPENTXS_CORE_SCRIPT_OTSCRIPT_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
+#include <cstddef>
 #include <map>
 #include <string>
 #include <memory>
 
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable : 4702)  // warning C4702: unreachable code
-#endif
-
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
-
 namespace opentxs
 {
-
 class OTParty;
 class OTPartyAccount;
 class String;

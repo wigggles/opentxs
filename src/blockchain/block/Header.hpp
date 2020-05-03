@@ -5,6 +5,26 @@
 
 #pragma once
 
+#include <map>
+
+#include "opentxs/Types.hpp"
+#include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/blockchain/NumericHash.hpp"
+#include "opentxs/blockchain/Work.hpp"
+#include "opentxs/blockchain/block/Header.hpp"
+#include "opentxs/core/Data.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+}  // namespace opentxs
+
 namespace opentxs::blockchain::block::implementation
 {
 class Header : virtual public block::Header

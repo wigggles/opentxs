@@ -6,18 +6,18 @@
 #ifndef OPENTXS_CRYPTO_BIP32_HPP
 #define OPENTXS_CRYPTO_BIP32_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/Bytes.hpp"
-#include "opentxs/Proto.hpp"
-#include "opentxs/Types.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <cstdint>
 #include <memory>
 #include <string>
 #include <tuple>
 #include <vector>
+
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/Bytes.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
 
 namespace opentxs
 {

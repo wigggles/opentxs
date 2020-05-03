@@ -6,9 +6,7 @@
 #ifndef OPENTXS_EXCLUSIVE_TPP
 #define OPENTXS_EXCLUSIVE_TPP
 
-#include "Internal.hpp"
-
-#include "opentxs/Exclusive.hpp"
+#include "opentxs/Exclusive.hpp"  // IWYU pragma: associated
 
 #include "opentxs/core/Log.hpp"
 

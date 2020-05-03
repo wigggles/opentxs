@@ -6,11 +6,11 @@
 #ifndef OPENTXS_CORE_LOG_HPP
 #define OPENTXS_CORE_LOG_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/core/LogSource.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <chrono>
+
+#include "opentxs/core/LogSource.hpp"
 
 #define OT_TRACE                                                               \
     {                                                                          \

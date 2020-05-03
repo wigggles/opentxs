@@ -6,11 +6,11 @@
 #ifndef OPENTXS_API_NETWORK_ZAP_HPP
 #define OPENTXS_API_NETWORK_ZAP_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/network/zeromq/zap/Callback.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <string>
+
+#include "opentxs/network/zeromq/zap/Callback.hpp"
 
 namespace opentxs
 {

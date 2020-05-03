@@ -6,14 +6,14 @@
 #ifndef OPENTXS_QT_HPP
 #define OPENTXS_QT_HPP
 
-#include "opentxs/Forward.hpp"
+// IWYU pragma: begin_exports
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #if OT_QT
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpragmas"
 #pragma GCC diagnostic ignored "-Wctor-dtor-privacy"
 #pragma GCC diagnostic ignored "-Wdeprecated-copy"
-
 #ifndef Q_MOC_RUN
 #include <QtCore/QAbstractItemModel>
 #include <QtCore/QDateTime>
@@ -21,7 +21,7 @@
 #include <QtCore/QObject>
 #include <QtQml/QQmlEngine>
 #endif
-
 #pragma GCC diagnostic pop
 #endif
 #endif
+// IWYU pragma: end_exports

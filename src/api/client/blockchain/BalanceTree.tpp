@@ -3,7 +3,18 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "BalanceTree.hpp"
+#include "BalanceTree.hpp"  // IWYU pragma: associated
+
+#include "Factory.hpp"
+
+namespace opentxs
+{
+namespace proto
+{
+class HDAccount;
+class HDPath;
+}  // namespace proto
+}  // namespace opentxs
 
 namespace opentxs::api::client::blockchain::implementation
 {

@@ -3,45 +3,35 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
-
-#include "opentxs/api/client/Contacts.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Lockable.hpp"
-#include "opentxs/network/zeromq/socket/Subscribe.hpp"
-#include "opentxs/network/zeromq/Context.hpp"
-#include "opentxs/network/zeromq/ListenCallback.hpp"
-#include "opentxs/network/zeromq/FrameIterator.hpp"
-#include "opentxs/network/zeromq/FrameSection.hpp"
-#include "opentxs/network/zeromq/Frame.hpp"
-#include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/ui/ContactList.hpp"
-#include "opentxs/ui/ContactListItem.hpp"
+#include "0_stdafx.hpp"            // IWYU pragma: associated
+#include "1_Internal.hpp"          // IWYU pragma: associated
+#include "ui/ContactListItem.hpp"  // IWYU pragma: associated
 
 #include <locale>
+#include <memory>
 
 #include "internal/ui/UI.hpp"
-#include "Row.hpp"
-
-#include "ContactListItem.hpp"
-
-template class opentxs::SharedPimpl<opentxs::ui::ContactListItem>;
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/core/Identifier.hpp"
 
 //#define OT_METHOD "opentxs::ui::implementation::ContactListItem::"
 
-namespace opentxs
+namespace opentxs::factory
 {
-ui::internal::ContactListItem* Factory::ContactListItem(
+auto ContactListItem(
     const ui::implementation::ContactListInternalInterface& parent,
     const api::client::internal::Manager& api,
     const network::zeromq::socket::Publish& publisher,
     const ui::implementation::ContactListRowID& rowID,
-    const ui::implementation::ContactListSortKey& key)
+    const ui::implementation::ContactListSortKey& key) noexcept
+    -> std::shared_ptr<ui::implementation::ContactListRowInternal>
 {
-    return new ui::implementation::ContactListItem(
-        parent, api, publisher, rowID, key);
+    using ReturnType = ui::implementation::ContactListItem;
+
+    return std::make_shared<ReturnType>(parent, api, publisher, rowID, key);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::ui::implementation
 {

@@ -6,13 +6,14 @@
 #ifndef OPENTXS_API_CLIENT_SERVERACTION_HPP
 #define OPENTXS_API_CLIENT_SERVERACTION_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/Proto.hpp"
-#include "opentxs/Types.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <chrono>
 #include <string>
+
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
 
 namespace opentxs
 {

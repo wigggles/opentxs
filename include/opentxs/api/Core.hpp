@@ -6,12 +6,12 @@
 #ifndef OPENTXS_API_CORE_HPP
 #define OPENTXS_API_CORE_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
+
+#include <chrono>
 
 #include "opentxs/api/Editor.hpp"
 #include "opentxs/api/Periodic.hpp"
-
-#include <chrono>
 
 namespace opentxs
 {

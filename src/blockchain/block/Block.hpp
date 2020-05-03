@@ -5,10 +5,20 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
 #include "opentxs/blockchain/block/Block.hpp"
 #include "opentxs/blockchain/block/Header.hpp"
+#include "opentxs/blockchain/Blockchain.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+}  // namespace opentxs
 
 namespace opentxs::blockchain::block::implementation
 {

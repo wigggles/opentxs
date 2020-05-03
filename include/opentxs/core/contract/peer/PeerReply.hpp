@@ -6,17 +6,29 @@
 #ifndef OPENTXS_CORE_CONTRACT_PEER_PEERREPLY_HPP
 #define OPENTXS_CORE_CONTRACT_PEER_PEERREPLY_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/core/contract/Signable.hpp"
-#include "opentxs/Proto.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <string>
 
+#include "opentxs/core/contract/Signable.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/SharedPimpl.hpp"
+
 namespace opentxs
 {
-using OTPeerReply = SharedPimpl<contract::peer::Reply>;
+namespace contract
+{
+namespace peer
+{
+class Reply;
+}  // namespace peer
+}  // namespace contract
 
+using OTPeerReply = SharedPimpl<contract::peer::Reply>;
+}  // namespace opentxs
+
+namespace opentxs
+{
 namespace contract
 {
 namespace peer

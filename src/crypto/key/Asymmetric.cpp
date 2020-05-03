@@ -3,47 +3,38 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
-
-#include "opentxs/api/crypto/Crypto.hpp"
-#include "opentxs/api/crypto/Encode.hpp"
-#include "opentxs/api/crypto/Hash.hpp"
-#include "opentxs/api/crypto/Symmetric.hpp"
-#include "opentxs/api/crypto/Util.hpp"
-#include "opentxs/api/Factory.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/crypto/OTSignatureMetadata.hpp"
-#include "opentxs/core/Data.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/String.hpp"
-#if OT_CRYPTO_WITH_BIP32
-#include "opentxs/crypto/Bip32.hpp"
-#endif
-#include "opentxs/crypto/key/Asymmetric.hpp"
-#include "opentxs/crypto/key/Ed25519.hpp"
-#include "opentxs/crypto/key/Keypair.hpp"
-#if OT_CRYPTO_SUPPORTED_KEY_RSA
-#include "opentxs/crypto/key/RSA.hpp"
-#endif
-#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-#include "opentxs/crypto/key/Secp256k1.hpp"
-#endif
-#include "opentxs/crypto/key/Symmetric.hpp"
-#include "opentxs/crypto/library/AsymmetricProvider.hpp"
-#include "opentxs/identity/credential/Key.hpp"
-#include "opentxs/identity/Authority.hpp"
-#include "opentxs/Proto.tpp"
-#include "opentxs/Types.hpp"
-
-#include "Null.hpp"
+#include "0_stdafx.hpp"               // IWYU pragma: associated
+#include "1_Internal.hpp"             // IWYU pragma: associated
+#include "crypto/key/Asymmetric.hpp"  // IWYU pragma: associated
 
 #include <cstdint>
 #include <cstring>
 #include <memory>
-#include <ostream>
+#include <stdexcept>
 #include <string>
+#include <string_view>
+#include <utility>
 
-#include "Asymmetric.hpp"
+#include "crypto/key/Null.hpp"
+#include "internal/api/Api.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/api/crypto/Crypto.hpp"
+#include "opentxs/api/crypto/Hash.hpp"
+#include "opentxs/api/crypto/Symmetric.hpp"
+#include "opentxs/core/Data.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/crypto/OTSignatureMetadata.hpp"
+#include "opentxs/crypto/key/Asymmetric.hpp"
+#include "opentxs/crypto/key/Keypair.hpp"
+#include "opentxs/crypto/key/Symmetric.hpp"
+#include "opentxs/crypto/library/AsymmetricProvider.hpp"
+#include "opentxs/identity/Authority.hpp"
+#include "opentxs/identity/credential/Key.hpp"
 
 template class opentxs::Pimpl<opentxs::crypto::key::Asymmetric>;
 

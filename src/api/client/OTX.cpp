@@ -3,77 +3,83 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"        // IWYU pragma: associated
+#include "1_Internal.hpp"      // IWYU pragma: associated
+#include "api/client/OTX.hpp"  // IWYU pragma: associated
 
-#include "opentxs/api/client/Contacts.hpp"
-#include "opentxs/api/client/Manager.hpp"
-#include "opentxs/api/client/Pair.hpp"
-#include "opentxs/api/client/Workflow.hpp"
-#include "opentxs/api/crypto/Encode.hpp"
-#include "opentxs/api/storage/Storage.hpp"
+#include <algorithm>
+#include <atomic>
+#include <chrono>
+#include <ctime>
+#include <list>
+#include <map>
+#include <memory>
+#include <stdexcept>
+#include <tuple>
+#include <type_traits>
+#include <vector>
+
+#include "Factory.hpp"
+#include "core/StateMachine.hpp"
+#include "internal/api/client/Client.hpp"
+#include "opentxs/Forward.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.tpp"
+#include "opentxs/Shared.hpp"
+#include "opentxs/SharedPimpl.hpp"
+#include "opentxs/api/Editor.hpp"
 #include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/api/Wallet.hpp"
+#include "opentxs/api/client/Contacts.hpp"
+#include "opentxs/api/client/Workflow.hpp"
+#include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/client/NymData.hpp"
 #include "opentxs/client/OT_API.hpp"
-#include "opentxs/client/OTAPI_Exec.hpp"
-#include "opentxs/client/OTClient.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/contact/Contact.hpp"
 #include "opentxs/contact/ContactData.hpp"
-#include "opentxs/contact/ContactGroup.hpp"
+#include "opentxs/contact/ContactGroup.hpp"  // IWYU pragma: keep
 #include "opentxs/contact/ContactItem.hpp"
+#include "opentxs/core/Account.hpp"
+#include "opentxs/core/Cheque.hpp"
+#include "opentxs/core/Data.hpp"
+#include "opentxs/core/Flag.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Lockable.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/PasswordPrompt.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/contract/ServerContract.hpp"
 #include "opentxs/core/contract/peer/BailmentNotice.hpp"
 #include "opentxs/core/contract/peer/BailmentReply.hpp"
 #include "opentxs/core/contract/peer/BailmentRequest.hpp"
 #include "opentxs/core/contract/peer/ConnectionReply.hpp"
 #include "opentxs/core/contract/peer/ConnectionRequest.hpp"
-#include "opentxs/core/contract/peer/PeerReply.hpp"
-#include "opentxs/core/contract/peer/PeerRequest.hpp"
 #include "opentxs/core/contract/peer/NoticeAcknowledgement.hpp"
 #include "opentxs/core/contract/peer/OutBailmentReply.hpp"
 #include "opentxs/core/contract/peer/OutBailmentRequest.hpp"
 #include "opentxs/core/contract/peer/StoreSecret.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
-#include "opentxs/core/Account.hpp"
-#include "opentxs/core/Cheque.hpp"
-#include "opentxs/core/Flag.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Ledger.hpp"
-#include "opentxs/core/Lockable.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/Message.hpp"
-#include "opentxs/core/PasswordPrompt.hpp"
-#include "opentxs/core/String.hpp"
 #include "opentxs/ext/OTPayment.hpp"
-#include "opentxs/network/zeromq/socket/Publish.hpp"
-#include "opentxs/network/zeromq/socket/Pull.hpp"
-#include "opentxs/network/zeromq/socket/Sender.tpp"
-#include "opentxs/network/zeromq/socket/Subscribe.hpp"
+#include "opentxs/identity/Nym.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/FrameIterator.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/network/zeromq/socket/Publish.hpp"
+#include "opentxs/network/zeromq/socket/Pull.hpp"
+#include "opentxs/network/zeromq/socket/Socket.hpp"
+#include "opentxs/network/zeromq/socket/Subscribe.hpp"
 #include "opentxs/otx/Reply.hpp"
-#include "opentxs/Proto.tpp"
-
-#include "internal/api/client/Client.hpp"
+#include "otx/client/PaymentTasks.hpp"
 #include "otx/client/StateMachine.hpp"
-
-#include <atomic>
-#include <chrono>
-#include <memory>
-#include <map>
-#include <thread>
-#include <tuple>
-
-#include "OTX.hpp"
 
 #define CHECK_NYM(a)                                                           \
     {                                                                          \

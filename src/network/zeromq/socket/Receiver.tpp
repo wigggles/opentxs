@@ -4,25 +4,18 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
-#include "stdafx.hpp"
-
-#include "opentxs/core/Flag.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/network/zeromq/Frame.hpp"
-#include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/Types.hpp"
-
-#include "Socket.hpp"
-
-#include <zmq.h>
+#include "network/zeromq/socket/Receiver.hpp"  // IWYU pragma: associated
 
 #include <memory>
 #include <mutex>
 #include <thread>
+#include <zmq.h>
 
-#include "Receiver.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/core/Flag.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/network/zeromq/Frame.hpp"
+#include "opentxs/network/zeromq/Message.hpp"
 
 namespace opentxs::network::zeromq::socket::implementation
 {

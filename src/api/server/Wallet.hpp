@@ -3,7 +3,54 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/api/server/Wallet.cpp"
+
 #pragma once
+
+#include <memory>
+
+#include "api/Wallet.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/api/Editor.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace server
+{
+namespace internal
+{
+struct Manager;
+}  // namespace internal
+}  // namespace server
+
+class Wallet;
+}  // namespace api
+
+namespace identifier
+{
+class Nym;
+class Server;
+}  // namespace identifier
+
+namespace internal
+{
+struct Context;
+}  // namespace internal
+
+namespace proto
+{
+class Context;
+}  // namespace proto
+
+class ClientContext;
+class Context;
+class Factory;
+class Identifier;
+class PasswordPrompt;
+}  // namespace opentxs
 
 namespace opentxs::api::server::implementation
 {

@@ -6,22 +6,45 @@
 #ifndef OPENTXS_BLOCKCHAIN_WORK_HPP
 #define OPENTXS_BLOCKCHAIN_WORK_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <string>
 
+#include "opentxs/Pimpl.hpp"
+
 namespace opentxs
 {
+namespace blockchain
+{
+class Work;
+}  // namespace blockchain
+
 using OTWork = Pimpl<blockchain::Work>;
 
-bool operator==(const OTWork& lhs, const blockchain::Work& rhs) noexcept;
-bool operator!=(const OTWork& lhs, const blockchain::Work& rhs) noexcept;
-bool operator<(const OTWork& lhs, const blockchain::Work& rhs) noexcept;
-bool operator<=(const OTWork& lhs, const blockchain::Work& rhs) noexcept;
-bool operator>(const OTWork& lhs, const blockchain::Work& rhs) noexcept;
-bool operator>=(const OTWork& lhs, const blockchain::Work& rhs) noexcept;
-OTWork operator+(const OTWork& lhs, const blockchain::Work& rhs) noexcept;
+OPENTXS_EXPORT bool operator==(
+    const OTWork& lhs,
+    const blockchain::Work& rhs) noexcept;
+OPENTXS_EXPORT bool operator!=(
+    const OTWork& lhs,
+    const blockchain::Work& rhs) noexcept;
+OPENTXS_EXPORT bool operator<(
+    const OTWork& lhs,
+    const blockchain::Work& rhs) noexcept;
+OPENTXS_EXPORT bool operator<=(
+    const OTWork& lhs,
+    const blockchain::Work& rhs) noexcept;
+OPENTXS_EXPORT bool operator>(
+    const OTWork& lhs,
+    const blockchain::Work& rhs) noexcept;
+OPENTXS_EXPORT bool operator>=(
+    const OTWork& lhs,
+    const blockchain::Work& rhs) noexcept;
+OPENTXS_EXPORT OTWork
+operator+(const OTWork& lhs, const blockchain::Work& rhs) noexcept;
+}  // namespace opentxs
 
+namespace opentxs
+{
 namespace blockchain
 {
 class Work

@@ -3,19 +3,22 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"                           // IWYU pragma: associated
+#include "1_Internal.hpp"                         // IWYU pragma: associated
+#include "api/client/blockchain/BalanceList.hpp"  // IWYU pragma: associated
 
-#include "Internal.hpp"
+#include <algorithm>
+#include <iterator>
+#include <utility>
 
-#include "opentxs/api/storage/Storage.hpp"
-#include "opentxs/api/Core.hpp"
-#include "opentxs/core/identifier/Nym.hpp"
-#include "opentxs/core/Log.hpp"
-
-#include "internal/api/client/blockchain/Blockchain.hpp"
+#include "Factory.hpp"
 #include "internal/api/client/Client.hpp"
-
-#include "BalanceList.hpp"
+#include "internal/api/client/blockchain/Blockchain.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/api/storage/Storage.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/iterator/Bidirectional.hpp"
 
 namespace opentxs
 {

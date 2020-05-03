@@ -3,46 +3,43 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"        // IWYU pragma: associated
+#include "1_Internal.hpp"      // IWYU pragma: associated
+#include "ui/ContactList.hpp"  // IWYU pragma: associated
 
-#include "opentxs/api/client/Contacts.hpp"
-#include "opentxs/api/client/Manager.hpp"
-#include "opentxs/api/client/OTX.hpp"
-#include "opentxs/api/Endpoints.hpp"
-#include "opentxs/api/Factory.hpp"
-#include "opentxs/contact/Contact.hpp"
-#include "opentxs/contact/ContactData.hpp"
-#include "opentxs/core/crypto/PaymentCode.hpp"
-#include "opentxs/core/identifier/Nym.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/PasswordPrompt.hpp"
-#include "opentxs/network/zeromq/socket/Subscribe.hpp"
-#include "opentxs/network/zeromq/Context.hpp"
-#include "opentxs/network/zeromq/ListenCallback.hpp"
-#include "opentxs/network/zeromq/FrameIterator.hpp"
-#include "opentxs/network/zeromq/FrameSection.hpp"
-#include "opentxs/network/zeromq/Frame.hpp"
-#include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/ui/ContactListItem.hpp"
-
-#include "internal/api/client/Client.hpp"
-
+#include <list>
 #include <map>
 #include <memory>
-#include <set>
 #include <string>
 #include <thread>
-#include <tuple>
-#include <vector>
+#include <utility>
 
-#include "ContactList.hpp"
+#include "internal/api/Api.hpp"
+#include "internal/api/client/Client.hpp"
+#include "internal/ui/UI.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/api/Endpoints.hpp"
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/api/client/Contacts.hpp"
+#include "opentxs/api/client/OTX.hpp"
+#include "opentxs/contact/Contact.hpp"
+#include "opentxs/core/Flag.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/crypto/PaymentCode.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/network/zeromq/Frame.hpp"
+#include "opentxs/network/zeromq/FrameIterator.hpp"
+#include "opentxs/network/zeromq/FrameSection.hpp"
+#include "opentxs/network/zeromq/Message.hpp"
+#include "ui/List.hpp"
 
 #define OT_METHOD "opentxs::ui::implementation::ContactList::"
 
-namespace opentxs
+namespace opentxs::factory
 {
-ui::implementation::ContactList* Factory::ContactListModel(
+auto ContactListModel(
     const api::client::internal::Manager& api,
     const network::zeromq::socket::Publish& publisher,
     const identifier::Nym& nymID
@@ -50,9 +47,11 @@ ui::implementation::ContactList* Factory::ContactListModel(
     ,
     const bool qt
 #endif
-)
+    ) noexcept -> std::unique_ptr<ui::implementation::ContactList>
 {
-    return new ui::implementation::ContactList(
+    using ReturnType = ui::implementation::ContactList;
+
+    return std::make_unique<ReturnType>(
         api,
         publisher,
         nymID
@@ -64,15 +63,15 @@ ui::implementation::ContactList* Factory::ContactListModel(
 }
 
 #if OT_QT
-ui::ContactListQt* Factory::ContactListQtModel(
-    ui::implementation::ContactList& parent)
+auto ContactListQtModel(ui::implementation::ContactList& parent) noexcept
+    -> std::unique_ptr<ui::ContactListQt>
 {
     using ReturnType = ui::ContactListQt;
 
-    return new ReturnType(parent);
+    return std::make_unique<ReturnType>(parent);
 }
 #endif  // OT_QT
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 #if OT_QT
 namespace opentxs::ui
@@ -123,8 +122,8 @@ ContactList::ContactList(
     , owner_contact_id_(api_.Contacts().ContactID(nymID))
     , owner_(nullptr)
 {
-    owner_.reset(Factory::ContactListItem(
-        *this, api, publisher_, owner_contact_id_, "Owner"));
+    owner_ = factory::ContactListItem(
+        *this, api, publisher_, owner_contact_id_, "Owner");
 
     OT_ASSERT(owner_)
 
@@ -249,7 +248,7 @@ void* ContactList::construct_row(
 {
     names_.emplace(id, index);
     const auto [it, added] = items_[index].emplace(
-        id, Factory::ContactListItem(*this, api_, publisher_, id, index));
+        id, factory::ContactListItem(*this, api_, publisher_, id, index));
 
     return it->second.get();
 }

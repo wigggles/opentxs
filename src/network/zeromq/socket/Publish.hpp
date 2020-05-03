@@ -5,6 +5,31 @@
 
 #pragma once
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/network/zeromq/socket/Publish.cpp"
+
+#include "network/zeromq/curve/Server.hpp"
+#include "network/zeromq/socket/Sender.hpp"
+#include "opentxs/network/zeromq/socket/Publish.hpp"
+
+namespace opentxs
+{
+namespace network
+{
+namespace zeromq
+{
+namespace socket
+{
+class Publish;
+}  // namespace socket
+
+class Context;
+}  // namespace zeromq
+}  // namespace network
+
+class Factory;
+}  // namespace opentxs
+
 namespace opentxs::network::zeromq::socket::implementation
 {
 class Publish final : public Sender<zeromq::socket::Publish>,

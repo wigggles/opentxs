@@ -6,12 +6,12 @@
 #ifndef OPENTXS_API_CLIENT_BLOCKCHAIN_BALANCENODE_HPP
 #define OPENTXS_API_CLIENT_BLOCKCHAIN_BALANCENODE_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
-#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/Proto.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
-#include "opentxs/Proto.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
 
 namespace opentxs
 {

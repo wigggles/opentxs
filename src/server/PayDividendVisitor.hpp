@@ -5,21 +5,32 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
-#include "opentxs/core/identifier/UnitDefinition.hpp"
-#include "opentxs/core/AccountVisitor.hpp"
-#include "opentxs/core/String.hpp"
-
 #include <cstdint>
+
+#include "opentxs/core/Account.hpp"
+#include "opentxs/core/AccountVisitor.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
 
 namespace opentxs
 {
+namespace identifier
+{
+class Server;
+}  // namespace identifier
+
 namespace server
 {
 class Server;
-}
+}  // namespace server
 
+class PasswordPrompt;
+}  // namespace opentxs
+
+namespace opentxs
+{
 // Note: from OTUnitDefinition.h and .cpp.
 // This is a subclass of AccountVisitor, which is used whenever OTUnitDefinition
 // needs to loop through all the accounts for a given instrument definition (its

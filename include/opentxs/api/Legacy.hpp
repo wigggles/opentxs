@@ -6,7 +6,7 @@
 #ifndef OPENTXS_API_LEGACY_HPP
 #define OPENTXS_API_LEGACY_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <string>
 

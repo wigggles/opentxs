@@ -3,13 +3,23 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/network/zeromq/Frame.cpp"
+
 #pragma once
 
-#include "Internal.hpp"
+#include <iosfwd>
+#include <string>
+#include <zmq.h>
 
 #include "opentxs/network/zeromq/Frame.hpp"
+#include "opentxs/Bytes.hpp"
+#include "opentxs/Proto.hpp"
 
-#include <zmq.h>
+namespace opentxs
+{
+class Factory;
+}  // namespace opentxs
 
 namespace opentxs::network::zeromq::implementation
 {

@@ -3,7 +3,28 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/api/Endpoints.cpp"
+
 #pragma once
+
+#include <string>
+
+#include "opentxs/Types.hpp"
+#include "opentxs/api/Endpoints.hpp"
+
+namespace opentxs
+{
+namespace network
+{
+namespace zeromq
+{
+class Context;
+}  // namespace zeromq
+}  // namespace network
+
+class Factory;
+}  // namespace opentxs
 
 namespace opentxs::api::implementation
 {

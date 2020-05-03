@@ -3,22 +3,25 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"     // IWYU pragma: associated
+#include "1_Internal.hpp"   // IWYU pragma: associated
+#include "otx/Request.hpp"  // IWYU pragma: associated
 
-#include "opentxs/api/Core.hpp"
-#include "opentxs/api/Factory.hpp"
-#include "opentxs/api/Wallet.hpp"
-#include "opentxs/core/identifier/Nym.hpp"
-#include "opentxs/core/identifier/Server.hpp"
-#include "opentxs/core/Flag.hpp"
-#include "opentxs/identity/Nym.hpp"
-#include "opentxs/otx/Request.hpp"
-#include "opentxs/Proto.tpp"
+#include <list>
+#include <memory>
 
 #include "core/contract/Signable.hpp"
 #include "internal/api/Api.hpp"
-
-#include "Request.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/api/Wallet.hpp"
+#include "opentxs/core/Flag.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/identity/Nym.hpp"
+#include "opentxs/otx/Request.hpp"
 
 template class opentxs::Pimpl<opentxs::otx::Request>;
 

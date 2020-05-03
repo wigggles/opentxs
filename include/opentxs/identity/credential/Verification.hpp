@@ -6,7 +6,7 @@
 #ifndef OPENTXS_IDENTITY_CREDENTIAL_VERIFICATION_HPP
 #define OPENTXS_IDENTITY_CREDENTIAL_VERIFICATION_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include "opentxs/identity/credential/Base.hpp"
 #include "opentxs/Proto.hpp"

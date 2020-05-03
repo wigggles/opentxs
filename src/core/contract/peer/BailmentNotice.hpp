@@ -3,7 +3,39 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/core/contract/peer/BailmentNotice.cpp"
+
 #pragma once
+
+#include <string>
+
+#include "core/contract/peer/PeerRequest.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/contract/peer/BailmentNotice.hpp"
+#include "opentxs/core/contract/peer/PeerRequest.hpp"
+#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
+namespace identifier
+{
+class Nym;
+}  // namespace identifier
+
+class Factory;
+class PasswordPrompt;
+}  // namespace opentxs
 
 namespace opentxs::contract::peer::request::implementation
 {

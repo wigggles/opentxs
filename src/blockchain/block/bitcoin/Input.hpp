@@ -5,6 +5,30 @@
 
 #pragma once
 
+#include <cstdint>
+#include <iosfwd>
+#include <memory>
+#include <optional>
+#include <vector>
+
+#include "opentxs/Bytes.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/blockchain/block/bitcoin/Input.hpp"
+#include "opentxs/blockchain/block/bitcoin/Script.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+class Core;
+}  // namespace api
+
+namespace proto
+{
+class BlockchainTransactionInput;
+}  // namespace proto
+}  // namespace opentxs
+
 namespace opentxs::blockchain::block::bitcoin::implementation
 {
 class Input final : public bitcoin::Input

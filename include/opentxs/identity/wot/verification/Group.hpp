@@ -6,7 +6,7 @@
 #ifndef OPENTXS_IDENTITY_WOT_VERIFICATION_GROUP_HPP
 #define OPENTXS_IDENTITY_WOT_VERIFICATION_GROUP_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include "opentxs/identity/wot/verification/Item.hpp"
 #include "opentxs/iterator/Bidirectional.hpp"

@@ -6,12 +6,12 @@
 #ifndef OPENTXS_CLIENT_SERVERACTION_HPP
 #define OPENTXS_CLIENT_SERVERACTION_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/Types.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <memory>
 #include <string>
+
+#include "opentxs/Types.hpp"
 
 namespace opentxs
 {

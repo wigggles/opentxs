@@ -6,7 +6,7 @@
 #ifndef OPENTXS_API_STORAGE_MULTIPLEX_HPP
 #define OPENTXS_API_STORAGE_MULTIPLEX_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include "opentxs/api/storage/Driver.hpp"
 

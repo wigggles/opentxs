@@ -5,7 +5,128 @@
 
 #pragma once
 
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <memory>
+#include <set>
+#include <string>
+#include <vector>
+
+#include "internal/api/Api.hpp"
 #include "internal/api/crypto/Crypto.hpp"
+#include "opentxs/Bytes.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/Version.hpp"
+#include "opentxs/api/crypto/Symmetric.hpp"
+#if OT_BLOCKCHAIN
+#include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/blockchain/p2p/Address.hpp"
+#endif  // OT_BLOCKCHAIN
+#include "opentxs/core/Armored.hpp"
+#include "opentxs/core/Data.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Item.hpp"
+#include "opentxs/core/Ledger.hpp"
+#include "opentxs/core/OTTransaction.hpp"
+#include "opentxs/core/PasswordPrompt.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/contract/CurrencyContract.hpp"
+#include "opentxs/core/contract/SecurityContract.hpp"
+#include "opentxs/core/contract/ServerContract.hpp"
+#include "opentxs/core/contract/UnitDefinition.hpp"
+#include "opentxs/core/contract/basket/BasketContract.hpp"
+#include "opentxs/core/contract/peer/BailmentNotice.hpp"
+#include "opentxs/core/contract/peer/BailmentReply.hpp"
+#include "opentxs/core/contract/peer/BailmentRequest.hpp"
+#include "opentxs/core/contract/peer/ConnectionReply.hpp"
+#include "opentxs/core/contract/peer/ConnectionRequest.hpp"
+#include "opentxs/core/contract/peer/NoticeAcknowledgement.hpp"
+#include "opentxs/core/contract/peer/OutBailmentReply.hpp"
+#include "opentxs/core/contract/peer/OutBailmentRequest.hpp"
+#include "opentxs/core/contract/peer/PeerReply.hpp"
+#include "opentxs/core/contract/peer/PeerRequest.hpp"
+#include "opentxs/core/contract/peer/StoreSecret.hpp"
+#include "opentxs/core/crypto/PaymentCode.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
+#include "opentxs/crypto/Envelope.hpp"
+#include "opentxs/crypto/key/Asymmetric.hpp"
+#include "opentxs/crypto/key/Keypair.hpp"
+#include "opentxs/crypto/key/Symmetric.hpp"
+#include "opentxs/network/zeromq/Pipeline.hpp"
+
+namespace opentxs
+{
+namespace blind
+{
+class Mint;
+class Purse;
+}  // namespace blind
+
+namespace blockchain
+{
+namespace block
+{
+namespace bitcoin
+{
+class Block;
+class Script;
+}  // namespace bitcoin
+
+class Header;
+}  // namespace block
+}  // namespace blockchain
+
+namespace crypto
+{
+namespace key
+{
+class EllipticCurve;
+class Secp256k1;
+}  // namespace key
+
+class SymmetricProvider;
+}  // namespace crypto
+
+namespace identity
+{
+class Nym;
+}  // namespace identity
+
+namespace network
+{
+namespace zeromq
+{
+class Frame;
+class Message;
+}  // namespace zeromq
+}  // namespace network
+
+class Basket;
+class Cheque;
+class Contract;
+class Factory;
+class Message;
+class NumList;
+class NymParameters;
+class OTCron;
+class OTCronItem;
+class OTMarket;
+class OTOffer;
+class OTPassword;
+class OTPayment;
+class OTPaymentPlan;
+class OTScriptable;
+class OTSignedFile;
+class OTSmartContract;
+class OTTrade;
+class OTTransactionType;
+class PeerObject;
+class ServerContext;
+}  // namespace opentxs
 
 namespace opentxs::api::implementation
 {

@@ -3,16 +3,13 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"            // IWYU pragma: associated
+#include "1_Internal.hpp"          // IWYU pragma: associated
+#include "api/server/Factory.hpp"  // IWYU pragma: associated
 
-#include "Internal.hpp"
-
-#include "opentxs/core/cron/OTCron.hpp"
-
-#include "internal/api/server/Server.hpp"
 #include "api/Factory.hpp"
-
-#include "Factory.hpp"
+#include "internal/api/server/Server.hpp"
+#include "opentxs/core/cron/OTCron.hpp"
 
 //#define OT_METHOD "opentxs::api::server::implementation::Factory::"
 

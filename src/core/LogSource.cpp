@@ -3,30 +3,33 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"                // IWYU pragma: associated
+#include "1_Internal.hpp"              // IWYU pragma: associated
+#include "opentxs/core/LogSource.hpp"  // IWYU pragma: associated
 
-#include "opentxs/core/LogSource.hpp"
+#include <boost/stacktrace.hpp>
+#include <chrono>
+#include <cstdlib>
+#include <future>
+#include <memory>
+#include <sstream>
 
+#include "opentxs/OT.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Version.hpp"
 #include "opentxs/api/Context.hpp"
-#include "opentxs/core/identifier/Nym.hpp"
-#include "opentxs/core/identifier/Server.hpp"
-#include "opentxs/core/identifier/UnitDefinition.hpp"
-#include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/StringXML.hpp"
-#include "opentxs/network/zeromq/socket/Push.hpp"
-#include "opentxs/network/zeromq/socket/Sender.tpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
+#include "opentxs/core/util/Common.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/OT.hpp"
-
-#include <boost/stacktrace.hpp>
-
-#include <chrono>
-#include <future>
-#include <sstream>
+#include "opentxs/network/zeromq/socket/Push.hpp"
+#include "opentxs/network/zeromq/socket/Socket.hpp"
 
 #define LOG_SINK "inproc://opentxs/logsink/1"
 

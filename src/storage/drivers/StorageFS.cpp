@@ -3,26 +3,25 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
-
-#include "StorageFS.hpp"
-
+#include "0_stdafx.hpp"    // IWYU pragma: associated
+#include "1_Internal.hpp"  // IWYU pragma: associated
 #if OT_STORAGE_FS
-#include "storage/StorageConfig.hpp"
-
-#include <boost/filesystem.hpp>
-
-#include <cstdio>
-#include <fstream>
-#include <ios>
-#include <iostream>
-#include <thread>
-#include <vector>
+#include "storage/drivers/StorageFS.hpp"  // IWYU pragma: associated
 
 extern "C" {
 #include <fcntl.h>
 #include <unistd.h>
 }
+
+#include <boost/filesystem.hpp>
+#include <boost/system/error_code.hpp>
+#include <cstdint>
+#include <fstream>
+#include <memory>
+#include <vector>
+
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
 
 #define PATH_SEPERATOR "/"
 
@@ -30,7 +29,6 @@ extern "C" {
 
 namespace opentxs
 {
-
 StorageFS::StorageFS(
     const api::storage::Storage& storage,
     const StorageConfig& config,

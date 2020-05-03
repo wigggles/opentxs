@@ -3,7 +3,35 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/api/client/blockchain/BalanceList.cpp"
+
 #pragma once
+
+#include <iosfwd>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <set>
+#include <vector>
+
+#include "internal/api/Api.hpp"
+#include "internal/api/client/Client.hpp"
+#include "internal/api/client/blockchain/Blockchain.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/api/client/blockchain/BalanceList.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+
+namespace opentxs
+{
+namespace proto
+{
+class HDPath;
+}  // namespace proto
+
+class Factory;
+}  // namespace opentxs
 
 namespace opentxs::api::client::blockchain::implementation
 {

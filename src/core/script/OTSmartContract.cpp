@@ -3,6 +3,115 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#include "0_stdafx.hpp"                             // IWYU pragma: associated
+#include "1_Internal.hpp"                           // IWYU pragma: associated
+#include "opentxs/core/script/OTSmartContract.hpp"  // IWYU pragma: associated
+
+#if OT_SCRIPT_CHAI
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wnoexcept"
+#ifdef __clang__
+#pragma GCC diagnostic ignored "-Wdefaulted-function-deleted"
+#endif
+#include <chaiscript/chaiscript.hpp>
+#ifdef OT_USE_CHAI_STDLIB
+#include <chaiscript/chaiscript_stdlib.hpp>  // IWYU pragma: keep
+#endif
+#pragma GCC diagnostic pop
+#endif
+#include <irrxml/irrXML.hpp>
+#include <chrono>
+#include <cinttypes>
+#include <memory>
+#include <type_traits>
+#include <utility>
+
+#include "internal/api/Api.hpp"
+#include "opentxs/Exclusive.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Shared.hpp"
+#include "opentxs/Version.hpp"
+#include "opentxs/api/Editor.hpp"
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/api/Wallet.hpp"
+#include "opentxs/consensus/ClientContext.hpp"
+#include "opentxs/core/Account.hpp"
+#include "opentxs/core/AccountList.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Instrument.hpp"
+#include "opentxs/core/Item.hpp"
+#include "opentxs/core/Ledger.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/OTTransaction.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/StringXML.hpp"
+#include "opentxs/core/cron/OTCron.hpp"
+#include "opentxs/core/cron/OTCronItem.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
+#include "opentxs/core/script/OTAgent.hpp"
+#include "opentxs/core/script/OTBylaw.hpp"
+#include "opentxs/core/script/OTClause.hpp"
+#include "opentxs/core/script/OTParty.hpp"
+#include "opentxs/core/script/OTPartyAccount.hpp"
+#include "opentxs/core/script/OTScript.hpp"
+#if OT_SCRIPT_CHAI
+#include "opentxs/core/script/OTScriptChai.hpp"
+#else
+#include "opentxs/core/script/OTScript.hpp"
+#endif  // OT_SCRIPT_CHAI
+#include "opentxs/core/script/OTScriptable.hpp"
+#include "opentxs/core/script/OTStash.hpp"
+#include "opentxs/core/script/OTStashItem.hpp"
+#include "opentxs/core/script/OTVariable.hpp"
+#include "opentxs/core/util/Common.hpp"
+#include "opentxs/core/util/Tag.hpp"
+#include "opentxs/identity/Nym.hpp"
+
+#ifndef SMART_CONTRACT_PROCESS_INTERVAL
+#define SMART_CONTRACT_PROCESS_INTERVAL                                        \
+    30  // 30 seconds, for testing. Should be: based on fees. Otherwise once per
+        // day should be enough... right?
+#endif
+
+// CALLBACK:  Party may cancel contract?
+//
+// Called in OnRemove and OnExpire,
+// at the bottom.
+//
+#ifndef SMARTCONTRACT_CALLBACK_PARTY_MAY_CANCEL
+#define SMARTCONTRACT_CALLBACK_PARTY_MAY_CANCEL                                \
+    "callback_party_may_cancel_contract"
+
+#endif
+
+// HOOKS
+//
+// The server will call these hooks, from time to time, and give you the
+// opportunity to provide your own scripts linked to these names, which
+// will trigger at those times. (Parties are normally disallowed from
+// directly triggering these special "hook" scripts, as they might normally
+// be allowed to trigger other clauses.)
+//
+
+// Called regularly in OTSmartContract::ProcessCron()
+// based on SMART_CONTRACT_PROCESS_INTERVAL.
+//
+#ifndef SMARTCONTRACT_HOOK_ON_PROCESS
+#define SMARTCONTRACT_HOOK_ON_PROCESS "cron_process"
+#endif
+
+// This is called when the contract is
+// first activated. Todo.
+//
+#ifndef SMARTCONTRACT_HOOK_ON_ACTIVATE
+#define SMARTCONTRACT_HOOK_ON_ACTIVATE "cron_activate"
+#endif
+
+#define OT_METHOD "opentxs::OTSmartContract::"
+
 //////////////////////////////////////////////////////////////////////
 
 // OTSmartContract is derived from OTCronItem.
@@ -462,118 +571,6 @@ receipts directly in response to their server messages, they can still compare
       notes directly with the auditor and each other on the hashes for the
 various sequence numbers. Hm.
  */
-
-#include "stdafx.hpp"
-
-#include "opentxs/core/script/OTSmartContract.hpp"
-
-#include "opentxs/api/Core.hpp"
-#include "opentxs/api/Factory.hpp"
-#include "opentxs/api/Wallet.hpp"
-#include "opentxs/consensus/ClientContext.hpp"
-#include "opentxs/consensus/Context.hpp"
-#include "opentxs/consensus/ServerContext.hpp"
-#include "opentxs/core/Account.hpp"
-#include "opentxs/core/AccountList.hpp"
-#include "opentxs/core/Armored.hpp"
-#include "opentxs/core/Contract.hpp"
-#include "opentxs/core/Item.hpp"
-#include "opentxs/core/Ledger.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/OTTransaction.hpp"
-#include "opentxs/core/PasswordPrompt.hpp"
-#include "opentxs/core/String.hpp"
-#include "opentxs/core/StringXML.hpp"
-#include "opentxs/core/cron/OTCron.hpp"
-#include "opentxs/core/cron/OTCronItem.hpp"
-#include "opentxs/core/identifier/Nym.hpp"
-#include "opentxs/core/script/OTAgent.hpp"
-#include "opentxs/core/script/OTBylaw.hpp"
-#include "opentxs/core/script/OTClause.hpp"
-#include "opentxs/core/script/OTParty.hpp"
-#include "opentxs/core/script/OTPartyAccount.hpp"
-#if OT_SCRIPT_CHAI
-#include "opentxs/core/script/OTScriptChai.hpp"
-#else
-#include "opentxs/core/script/OTScript.hpp"
-#endif
-#include "opentxs/core/script/OTScriptable.hpp"
-#include "opentxs/core/script/OTStash.hpp"
-#include "opentxs/core/script/OTStashItem.hpp"
-#include "opentxs/core/script/OTVariable.hpp"
-#include "opentxs/core/trade/OTMarket.hpp"
-#include "opentxs/core/trade/OTOffer.hpp"
-#include "opentxs/core/util/Common.hpp"
-#include "opentxs/core/util/Tag.hpp"
-#include "opentxs/identity/Nym.hpp"
-
-#include "internal/api/Api.hpp"
-
-#if OT_SCRIPT_CHAI
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wnoexcept"
-#ifdef __clang__
-#pragma GCC diagnostic ignored "-Wdefaulted-function-deleted"
-#endif
-#include <chaiscript/chaiscript.hpp>
-#ifdef OT_USE_CHAI_STDLIB
-#include <chaiscript/chaiscript_stdlib.hpp>
-#endif
-#pragma GCC diagnostic pop
-#endif
-#include <irrxml/irrXML.hpp>
-
-#include <cinttypes>
-#include <ctime>
-#include <memory>
-
-#ifndef SMART_CONTRACT_PROCESS_INTERVAL
-#define SMART_CONTRACT_PROCESS_INTERVAL                                        \
-    30  // 30 seconds, for testing. Should be: based on fees. Otherwise once per
-        // day should be enough... right?
-#endif
-
-// CALLBACK:  Party may cancel contract?
-//
-// Called in OnRemove and OnExpire,
-// at the bottom.
-//
-#ifndef SMARTCONTRACT_CALLBACK_PARTY_MAY_CANCEL
-#define SMARTCONTRACT_CALLBACK_PARTY_MAY_CANCEL                                \
-    "callback_party_may_cancel_contract"
-
-#endif
-
-// FYI:
-//#ifndef SCRIPTABLE_CALLBACK_PARTY_MAY_EXECUTE
-//#define SCRIPTABLE_CALLBACK_PARTY_MAY_EXECUTE
-//"callback_party_may_execute_clause"
-//#endif
-
-// HOOKS
-//
-// The server will call these hooks, from time to time, and give you the
-// opportunity to provide your own scripts linked to these names, which
-// will trigger at those times. (Parties are normally disallowed from
-// directly triggering these special "hook" scripts, as they might normally
-// be allowed to trigger other clauses.)
-//
-
-// Called regularly in OTSmartContract::ProcessCron()
-// based on SMART_CONTRACT_PROCESS_INTERVAL.
-//
-#ifndef SMARTCONTRACT_HOOK_ON_PROCESS
-#define SMARTCONTRACT_HOOK_ON_PROCESS "cron_process"
-#endif
-
-// This is called when the contract is
-// first activated. Todo.
-//
-#ifndef SMARTCONTRACT_HOOK_ON_ACTIVATE
-#define SMARTCONTRACT_HOOK_ON_ACTIVATE "cron_activate"
-#endif
-
-#define OT_METHOD "opentxs::OTSmartContract::"
 
 namespace opentxs
 {

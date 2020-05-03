@@ -3,19 +3,20 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"       // IWYU pragma: associated
+#include "1_Internal.hpp"     // IWYU pragma: associated
+#include "api/Scheduler.hpp"  // IWYU pragma: associated
+
+#include <ctime>
+#include <limits>
+#include <ratio>
 
 #include "opentxs/api/network/Dht.hpp"
 #include "opentxs/api/storage/Storage.hpp"
-#include "opentxs/api/Periodic.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/identity/Nym.hpp"
-
-#include <ctime>
-#include <functional>
-#include <limits>
-
-#include "Scheduler.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/core/Log.hpp"
 
 //#define OT_METHOD "opentxs::api::implementation::Scheduler::"
 

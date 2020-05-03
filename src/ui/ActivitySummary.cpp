@@ -3,42 +3,41 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"            // IWYU pragma: associated
+#include "1_Internal.hpp"          // IWYU pragma: associated
+#include "ui/ActivitySummary.hpp"  // IWYU pragma: associated
 
-#include "opentxs/api/client/Activity.hpp"
-#include "opentxs/api/client/Contacts.hpp"
-#include "opentxs/api/client/Manager.hpp"
-#include "opentxs/api/Factory.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/PasswordPrompt.hpp"
-#include "opentxs/network/zeromq/socket/Subscribe.hpp"
-#include "opentxs/network/zeromq/Context.hpp"
-#include "opentxs/network/zeromq/ListenCallback.hpp"
-#include "opentxs/network/zeromq/FrameIterator.hpp"
-#include "opentxs/network/zeromq/FrameSection.hpp"
-#include "opentxs/network/zeromq/Frame.hpp"
-#include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/ui/ActivitySummaryItem.hpp"
-
-#include "internal/api/client/Client.hpp"
-
+#include <algorithm>
+#include <chrono>
+#include <list>
 #include <map>
 #include <memory>
+#include <ostream>
 #include <set>
 #include <string>
-#include <tuple>
 #include <thread>
-#include <tuple>
-#include <vector>
+#include <utility>
 
-#include "ActivitySummary.hpp"
+#include "internal/api/client/Client.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/api/client/Activity.hpp"
+#include "opentxs/api/client/Contacts.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/network/zeromq/Frame.hpp"
+#include "opentxs/network/zeromq/FrameIterator.hpp"
+#include "opentxs/network/zeromq/FrameSection.hpp"
+#include "opentxs/network/zeromq/Message.hpp"
+#include "ui/List.hpp"
 
 #define OT_METHOD "opentxs::ui::implementation::ActivitySummary::"
 
-namespace opentxs
+namespace opentxs::factory
 {
-ui::implementation::ActivitySummary* Factory::ActivitySummaryModel(
+auto ActivitySummaryModel(
     const api::client::internal::Manager& api,
     const network::zeromq::socket::Publish& publisher,
     const Flag& running,
@@ -47,9 +46,11 @@ ui::implementation::ActivitySummary* Factory::ActivitySummaryModel(
     ,
     const bool qt
 #endif
-)
+    ) noexcept -> std::unique_ptr<ui::implementation::ActivitySummary>
 {
-    return new ui::implementation::ActivitySummary(
+    using ReturnType = ui::implementation::ActivitySummary;
+
+    return std::make_unique<ReturnType>(
         api,
         publisher,
         running,
@@ -62,15 +63,16 @@ ui::implementation::ActivitySummary* Factory::ActivitySummaryModel(
 }
 
 #if OT_QT
-ui::ActivitySummaryQt* Factory::ActivitySummaryQtModel(
-    ui::implementation::ActivitySummary& parent)
+auto ActivitySummaryQtModel(
+    ui::implementation::ActivitySummary& parent) noexcept
+    -> std::unique_ptr<ui::ActivitySummaryQt>
 {
     using ReturnType = ui::ActivitySummaryQt;
 
-    return new ReturnType(parent);
+    return std::make_unique<ReturnType>(parent);
 }
 #endif  // OT_QT
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 #if OT_QT
 namespace opentxs::ui
@@ -123,7 +125,7 @@ void* ActivitySummary::construct_row(
     names_.emplace(id, index);
     const auto [it, added] = items_[index].emplace(
         id,
-        Factory::ActivitySummaryItem(
+        factory::ActivitySummaryItem(
             *this, api_, publisher_, primary_id_, id, index, custom, running_));
 
     return it->second.get();

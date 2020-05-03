@@ -3,7 +3,48 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/api/crypto/Hash.cpp"
+
 #pragma once
+
+#include <cstdint>
+#include <iosfwd>
+#include <string>
+
+#include "opentxs/Proto.hpp"
+#include "opentxs/Bytes.hpp"
+#include "opentxs/api/crypto/Hash.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace crypto
+{
+class Encode;
+}  // namespace crypto
+}  // namespace api
+
+namespace crypto
+{
+class HashingProvider;
+class Pbkdf2;
+class Ripemd160;
+}  // namespace crypto
+
+namespace network
+{
+namespace zeromq
+{
+class Frame;
+}  // namespace zeromq
+}  // namespace network
+
+class Data;
+class Factory;
+class OTPassword;
+}  // namespace opentxs
 
 namespace opentxs::api::crypto::implementation
 {
@@ -52,12 +93,6 @@ public:
         const proto::HashType hashType,
         const std::size_t bytes,
         Data& output) const noexcept final;
-    bool SipHash(
-        const ReadView key,
-        const ReadView data,
-        std::uint64_t& output,
-        const int c,
-        const int d) const noexcept final;
 
     Hash(
         const api::crypto::Encode& encode,

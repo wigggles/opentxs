@@ -5,13 +5,15 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
-#include "opentxs/core/String.hpp"
-
 extern "C" {
 #include <openssl/bio.h>
+#include <openssl/ossl_typ.h>
 }
+
+#include <cstddef>
+#include <vector>
+
+#include "opentxs/core/String.hpp"
 
 namespace opentxs::crypto::implementation
 {

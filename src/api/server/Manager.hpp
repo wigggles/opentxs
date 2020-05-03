@@ -3,9 +3,71 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/api/server/Manager.cpp"
+
 #pragma once
 
-#include "Internal.hpp"
+#include <atomic>
+#include <cstdint>
+#include <deque>
+#include <iosfwd>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <string>
+#include <thread>
+
+#include "api/Core.hpp"
+#include "internal/api/server/Server.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/Version.hpp"
+#include "opentxs/core/PasswordPrompt.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/Server.hpp"
+#include "server/Server.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace internal
+{
+struct Context;
+}  // namespace internal
+
+class Crypto;
+class Settings;
+}  // namespace api
+
+namespace blind
+{
+class Mint;
+}  // namespace blind
+
+namespace identifier
+{
+class Nym;
+class Server;
+class UnitDefinition;
+}  // namespace identifier
+
+namespace network
+{
+namespace zeromq
+{
+class Context;
+}  // namespace zeromq
+}  // namespace network
+
+namespace server
+{
+class MessageProcessor;
+}  // namespace server
+
+class Factory;
+class Flag;
+}  // namespace opentxs
 
 namespace opentxs::api::server::implementation
 {

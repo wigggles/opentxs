@@ -6,14 +6,9 @@
 #ifndef OPENTXS_FORWARD_HPP
 #define OPENTXS_FORWARD_HPP
 
-#include "opentxs/Version.hpp"
-
-#include "opentxs/Exclusive.hpp"
-#include "opentxs/Pimpl.hpp"
-#include "opentxs/Shared.hpp"
-#include "opentxs/SharedPimpl.hpp"
-
-#include <type_traits>
+// IWYU pragma: begin_exports
+#include "opentxs/Version.hpp"  // IWYU pragma: associated
+// IWYU pragma: end_exports
 
 namespace opentxs
 {
@@ -79,13 +74,13 @@ class Storage;
 }  // namespace storage
 
 class Context;
+class Context;
 class Core;
 class Crypto;
 class Endpoints;
 class Factory;
 class HDSeed;
 class Legacy;
-class Context;
 class Periodic;
 class Settings;
 class Wallet;
@@ -111,11 +106,11 @@ class Block;
 class Header;
 class Input;
 class Inputs;
-struct Outpoint;
 class Output;
 class Outputs;
 class Script;
 class Transaction;
+struct Outpoint;
 }  // namespace bitcoin
 
 class Block;
@@ -194,8 +189,8 @@ class Asymmetric;
 class Ed25519;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 class EllipticCurve;
-class Keypair;
 class HD;
+class Keypair;
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
 class RSA;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
@@ -294,10 +289,10 @@ class Request;
 }  // namespace zap
 
 class Context;
+class Frame;
 class FrameIterator;
 class FrameSection;
 class ListenCallback;
-class Frame;
 class Message;
 class PairEventCallback;
 class Pipeline;
@@ -313,15 +308,15 @@ class ZMQ;
 
 namespace OTDB
 {
-class OfferListNym;
 class OTPacker;
+class OfferListNym;
 class TradeListMarket;
 }  // namespace OTDB
 
 namespace otx
 {
-class Request;
 class Reply;
+class Request;
 }  // namespace otx
 
 namespace server
@@ -339,22 +334,22 @@ class Root;
 
 namespace ui
 {
+class AccountActivity;
 class AccountList;
 class AccountListItem;
-class AccountActivity;
 class AccountSummary;
 class AccountSummaryItem;
-class ActivityThread;
-class ActivityThreadItem;
 class ActivitySummary;
 class ActivitySummaryItem;
+class ActivityThread;
+class ActivityThreadItem;
 class BalanceItem;
 class Contact;
 class ContactItem;
-class ContactSection;
-class ContactSubsection;
 class ContactList;
 class ContactListItem;
+class ContactSection;
+class ContactSubsection;
 class IssuerItem;
 class ListRow;
 class MessagableList;
@@ -371,8 +366,8 @@ class AccountListQt;
 class AccountSummaryQt;
 class ActivitySummaryQt;
 class ActivityThreadQt;
-class ContactQt;
 class ContactListQt;
+class ContactQt;
 class MessagableListQt;
 class PayableListQt;
 class ProfileQt;
@@ -408,10 +403,9 @@ class NumList;
 class NymData;
 class NymFile;
 class NymParameters;
-class OT_API;
+class OTAPI_Exec;
 class OTAgent;
 class OTAgreement;
-class OTAPI_Exec;
 class OTBylaw;
 class OTCallback;
 class OTCaller;
@@ -430,7 +424,6 @@ class OTPayment;
 class OTPaymentPlan;
 class OTScript;
 class OTScriptable;
-class Signature;
 class OTSignatureMetadata;
 class OTSignedFile;
 class OTSmartContract;
@@ -441,14 +434,16 @@ class OTTransaction;
 class OTTransactionType;
 class OTVariable;
 class OTWallet;
+class OT_API;
+class PIDFile;
 class PairEventCallbackSwig;
 class PasswordPrompt;
 class PayDividendVisitor;
 class PaymentCode;
 class PeerObject;
-class PIDFile;
 class ServerContext;
 class Signals;
+class Signature;
 class StorageDriver;
 class StoragePlugin;
 class String;

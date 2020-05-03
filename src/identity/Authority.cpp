@@ -3,38 +3,46 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"            // IWYU pragma: associated
+#include "1_Internal.hpp"          // IWYU pragma: associated
+#include "identity/Authority.hpp"  // IWYU pragma: associated
 
-#include "opentxs/api/storage/Storage.hpp"
-#include "opentxs/api/Core.hpp"
+#include <algorithm>
+#include <cstdint>
+#include <iterator>
+#include <map>
+#include <memory>
+#include <set>
+#include <stdexcept>
+#include <string>
+#include <type_traits>
+#include <utility>
+#include <vector>
+
+#include "Factory.hpp"
+#include "internal/api/Api.hpp"
+#include "internal/identity/Identity.hpp"
+#include "internal/identity/credential/Credential.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Version.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
-#include "opentxs/core/crypto/NymParameters.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/PasswordPrompt.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/core/crypto/NymParameters.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/crypto/key/Asymmetric.hpp"
 #include "opentxs/crypto/key/Keypair.hpp"
+#include "opentxs/crypto/key/Symmetric.hpp"
 #include "opentxs/identity/Source.hpp"
-#include "opentxs/Proto.tpp"
-
-#include "internal/api/Api.hpp"
-#include "internal/identity/credential/Credential.hpp"
-#include "internal/identity/Identity.hpp"
-
-#include <algorithm>
-#include <cstddef>
-#include <cstdint>
-#include <map>
-#include <memory>
-#include <ostream>
-#include <string>
-#include <utility>
-
-#include "Authority.hpp"
+#include "opentxs/identity/credential/Key.hpp"
+#include "opentxs/identity/credential/Verification.hpp"
 
 #define OT_METHOD "opentxs::identity::implementation::Authority::"
 

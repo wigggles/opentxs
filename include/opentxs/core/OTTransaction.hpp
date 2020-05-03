@@ -6,15 +6,20 @@
 #ifndef OPENTXS_CORE_OTTRANSACTION_HPP
 #define OPENTXS_CORE_OTTRANSACTION_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
+
+#include <cstdint>
+#include <memory>
 
 #include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/Item.hpp"
 #include "opentxs/Types.hpp"
+#include "opentxs/core/Armored.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
 
 namespace opentxs
 {
-
 namespace api
 {
 namespace implementation
@@ -27,6 +32,24 @@ namespace internal
 struct Core;
 }  // namespace internal
 }  // namespace api
+
+namespace identifier
+{
+class Nym;
+class Server;
+}  // namespace identifier
+
+namespace identity
+{
+class Nym;
+}  // namespace identity
+
+class Ledger;
+class NumList;
+class PasswordPrompt;
+class ServerContext;
+class String;
+class Tag;
 
 /*
 WHEN THE server receives a transaction request, it receives a MESSAGE containing

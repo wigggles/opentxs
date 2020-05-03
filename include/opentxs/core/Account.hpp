@@ -6,21 +6,24 @@
 #ifndef OPENTXS_CORE_ACCOUNT_HPP
 #define OPENTXS_CORE_ACCOUNT_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
-#include "opentxs/core/identifier/UnitDefinition.hpp"
+#include <cstdint>
+#include <memory>
+#include <string>
+
+#include "opentxs/Exclusive.hpp"
+#include "opentxs/Shared.hpp"
+#include "opentxs/Types.hpp"
 #include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Ledger.hpp"
 #include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/String.hpp"
-
-#include <cstdint>
+#include "opentxs/core/identifier/UnitDefinition.hpp"
 
 namespace opentxs
 {
-using ExclusiveAccount = Exclusive<Account>;
-using SharedAccount = Shared<Account>;
-
 namespace api
 {
 namespace implementation
@@ -41,6 +44,30 @@ class Wallet;
 }  // namespace implementation
 }  // namespace server
 }  // namespace api
+
+namespace identifier
+{
+class Nym;
+class Server;
+}  // namespace identifier
+
+namespace identity
+{
+class Nym;
+}  // namespace identity
+
+class Account;
+class Context;
+class Ledger;
+class OTWallet;
+class PasswordPrompt;
+class Tag;
+}  // namespace opentxs
+
+namespace opentxs
+{
+using ExclusiveAccount = Exclusive<Account>;
+using SharedAccount = Shared<Account>;
 
 class Account : public OTTransactionType
 {
@@ -66,7 +93,7 @@ public:
 
     OPENTXS_EXPORT std::string Alias() const;
     OPENTXS_EXPORT bool ConsensusHash(
-        const Context& context,
+        const class Context& context,
         Identifier& theOutput,
         const PasswordPrompt& reason) const;
     OPENTXS_EXPORT bool DisplayStatistics(String& contents) const override;

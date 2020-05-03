@@ -6,14 +6,29 @@
 #ifndef OPENTXS_CORE_CONTRACT_PEER_OUTBAILMENTREQUEST_HPP
 #define OPENTXS_CORE_CONTRACT_PEER_OUTBAILMENTREQUEST_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include "opentxs/core/contract/peer/PeerRequest.hpp"
+#include "opentxs/SharedPimpl.hpp"
 
 namespace opentxs
 {
-using OTOutbailmentRequest = SharedPimpl<contract::peer::request::Outbailment>;
+namespace contract
+{
+namespace peer
+{
+namespace request
+{
+class Outbailment;
+}  // namespace request
+}  // namespace peer
+}  // namespace contract
 
+using OTOutbailmentRequest = SharedPimpl<contract::peer::request::Outbailment>;
+}  // namespace opentxs
+
+namespace opentxs
+{
 namespace contract
 {
 namespace peer

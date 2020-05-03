@@ -5,17 +5,17 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
-#include "opentxs/core/Identifier.hpp"
+#include <map>
+#include <mutex>
 
 #include "core/StateMachine.hpp"
 #include "internal/api/client/Client.hpp"
 #include "internal/otx/client/Client.hpp"
-
-#include "DepositPayment.hpp"
-
-#include <map>
+#include "opentxs/api/client/OTX.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
+#include "opentxs/ext/OTPayment.hpp"
+#include "otx/client/DepositPayment.hpp"
 
 namespace opentxs::otx::client::implementation
 {

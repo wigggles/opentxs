@@ -3,32 +3,38 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"        // IWYU pragma: associated
+#include "1_Internal.hpp"      // IWYU pragma: associated
+#include "blockchain/GCS.hpp"  // IWYU pragma: associated
 
-#include "Internal.hpp"
-
-#include "opentxs/api/crypto/Hash.hpp"
-#include "opentxs/api/crypto/Crypto.hpp"
-#include "opentxs/api/Core.hpp"
-#include "opentxs/api/Factory.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/Data.hpp"
-#include "opentxs/core/Log.hpp"
-
-#include "blockchain/bitcoin/CompactSize.hpp"
-#include "internal/blockchain/Blockchain.hpp"
-
+#include <boost/core/enable_if.hpp>
+#include <boost/cstdint.hpp>
 #include <boost/endian/buffers.hpp>
 #include <boost/multiprecision/cpp_int.hpp>
-
 #include <algorithm>
-#include <array>
+#include <cstddef>
 #include <cstdint>
+#include <iterator>
+#include <limits>
+#include <map>
+#include <memory>
 #include <optional>
-#include <set>
+#include <stdexcept>
+#include <string>
 #include <vector>
 
-#include "GCS.hpp"
+#include "Factory.hpp"
+#include "blockchain/bitcoin/CompactSize.hpp"
+#include "internal/blockchain/Blockchain.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/api/crypto/Crypto.hpp"
+#include "opentxs/api/crypto/Hash.hpp"
+#include "opentxs/core/Data.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
 
 //#define OT_METHOD "opentxs::blockchain::implementation::GCS::"
 

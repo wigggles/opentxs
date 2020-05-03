@@ -5,7 +5,41 @@
 
 #pragma once
 
-#include "Internal.hpp"
+#include <memory>
+#include <string>
+
+#include "identity/credential/Base.hpp"
+#include "identity/credential/Key.hpp"
+#include "internal/identity/credential/Credential.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/identity/credential/Base.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
+namespace identity
+{
+namespace internal
+{
+struct Authority;
+}  // namespace internal
+
+class Source;
+}  // namespace identity
+
+class Factory;
+class Identifier;
+class NymParameters;
+class PasswordPrompt;
+}  // namespace opentxs
 
 namespace opentxs::identity::credential::implementation
 {

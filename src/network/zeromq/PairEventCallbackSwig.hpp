@@ -3,11 +3,25 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/network/zeromq/PairEventCallbackSwig.cpp"
+
 #pragma once
 
-#include "opentxs/Forward.hpp"
-
 #include "opentxs/network/zeromq/PairEventCallback.hpp"
+
+namespace opentxs
+{
+namespace network
+{
+namespace zeromq
+{
+class Message;
+}  // namespace zeromq
+}  // namespace network
+
+class PairEventCallbackSwig;
+}  // namespace opentxs
 
 namespace opentxs::network::zeromq::implementation
 {

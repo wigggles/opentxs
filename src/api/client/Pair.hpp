@@ -3,9 +3,70 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/api/client/Pair.cpp"
+
 #pragma once
 
-#include "Internal.hpp"
+#include <functional>
+#include <future>
+#include <iosfwd>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <set>
+#include <string>
+#include <tuple>
+#include <utility>
+#include <vector>
+
+#include "core/StateMachine.hpp"
+#include "internal/api/client/Client.hpp"
+#include "opentxs/Forward.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/Version.hpp"
+#include "opentxs/api/client/OTX.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Lockable.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
+#include "opentxs/network/zeromq/ListenCallback.hpp"
+#include "opentxs/network/zeromq/socket/Publish.hpp"
+#include "opentxs/network/zeromq/socket/Subscribe.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace client
+{
+class Issuer;
+class Pair;
+}  // namespace client
+}  // namespace api
+
+namespace network
+{
+namespace zeromq
+{
+class Message;
+}  // namespace zeromq
+}  // namespace network
+
+namespace proto
+{
+class PeerReply;
+class PeerRequest;
+}  // namespace proto
+
+class ContactData;
+class ContactSection;
+class Factory;
+class Flag;
+class PasswordPrompt;
+}  // namespace opentxs
 
 namespace zmq = opentxs::network::zeromq;
 

@@ -3,19 +3,32 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"    // IWYU pragma: associated
+#include "1_Internal.hpp"  // IWYU pragma: associated
+#include "blockchain/p2p/bitcoin/message/Cfilter.hpp"  // IWYU pragma: associated
 
-#include "Internal.hpp"
+#include <algorithm>
+#include <cstddef>
+#include <cstring>
+#include <iterator>
+#include <limits>
+#include <utility>
+#include <vector>
 
+#include "Factory.hpp"
+#include "blockchain/p2p/bitcoin/Header.hpp"
+#include "blockchain/p2p/bitcoin/Message.hpp"
+#include "internal/blockchain/Blockchain.hpp"
+#include "internal/blockchain/bitcoin/Bitcoin.hpp"
+#include "internal/blockchain/p2p/bitcoin/Bitcoin.hpp"
+#include "internal/blockchain/p2p/bitcoin/message/Message.hpp"
+#include "opentxs/Pimpl.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
-
-#include "internal/blockchain/p2p/bitcoin/message/Message.hpp"
-#include "internal/blockchain/Blockchain.hpp"
-
-#include "Cfilter.hpp"
+#include "opentxs/core/LogSource.hpp"
 
 // #define OT_METHOD "opentxs::blockchain::p2p::bitcoin::message::Cfilter::"
+
 namespace opentxs
 {
 auto Factory::BitcoinP2PCfilter(

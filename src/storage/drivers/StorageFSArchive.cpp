@@ -3,50 +3,25 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
-
-#include "Internal.hpp"
-
+#include "0_stdafx.hpp"    // IWYU pragma: associated
+#include "1_Internal.hpp"  // IWYU pragma: associated
 #if OT_STORAGE_FS
-#include "opentxs/api/Core.hpp"
-#include "opentxs/api/Factory.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/Data.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/PasswordPrompt.hpp"
-#include "opentxs/core/String.hpp"
-#include "opentxs/crypto/key/Symmetric.hpp"
-#include "opentxs/Proto.hpp"
-
-#include "internal/api/Api.hpp"
-#include "storage/Plugin.hpp"
-#include "storage/StorageConfig.hpp"
-#include "StorageFS.hpp"
+#include "storage/drivers/StorageFSArchive.hpp"  // IWYU pragma: associated
 
 #include <boost/filesystem.hpp>
-#include <boost/iostreams/device/file_descriptor.hpp>
-#include <boost/iostreams/stream.hpp>
-
-#include <cstdio>
-#include <cstdint>
-#include <fstream>
-#include <ios>
-#include <iostream>
+#include <boost/system/error_code.hpp>
 #include <memory>
-#include <thread>
-#include <vector>
 
-#if defined(__APPLE__)
-extern "C" {
-#include <fcntl.h>
-}
-#endif
-
-extern "C" {
-#include <unistd.h>
-}
-
-#include "StorageFSArchive.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Proto.tpp"
+#include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/core/Flag.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/crypto/key/Symmetric.hpp"
+#include "storage/StorageConfig.hpp"
 
 #define ROOT_FILE_EXTENSION ".hash"
 

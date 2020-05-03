@@ -3,30 +3,30 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
-
-#include "opentxs/core/script/OTScript.hpp"
-
-#include "opentxs/core/script/OTParty.hpp"
-#if OT_SCRIPT_CHAI
-#include "opentxs/core/script/OTScriptChai.hpp"
-#endif
-#include "opentxs/core/script/OTVariable.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/String.hpp"
+#include "0_stdafx.hpp"                      // IWYU pragma: associated
+#include "1_Internal.hpp"                    // IWYU pragma: associated
+#include "opentxs/core/script/OTScript.hpp"  // IWYU pragma: associated
 
 #include <cstddef>
 #include <map>
 #include <memory>
-#include <ostream>
 #include <string>
 #include <utility>
+
+#include "opentxs/Version.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/script/OTParty.hpp"
+#if OT_SCRIPT_CHAI
+#include "opentxs/core/script/OTScriptChai.hpp"
+#endif  // OT_SCRIPT_CHAI
+#include "opentxs/core/script/OTVariable.hpp"
 
 #define OT_METHOD "opentxs::OTScript::"
 
 namespace opentxs
 {
-
 // A script should be "Dumb", meaning that you just stick it with its
 // parties and other resources, and it EXPECTS them to be the correct
 // ones.  It uses them low-level style.

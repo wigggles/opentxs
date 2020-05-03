@@ -3,9 +3,68 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/api/client/OTX.cpp"
+
 #pragma once
 
-#include "Internal.hpp"
+#include <atomic>
+#include <cstdint>
+#include <future>
+#include <iosfwd>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <set>
+#include <string>
+#include <utility>
+
+#include "internal/api/client/Client.hpp"
+#include "internal/otx/client/Client.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/Version.hpp"
+#include "opentxs/api/client/OTX.hpp"
+#include "opentxs/core/Cheque.hpp"
+#include "opentxs/core/Flag.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Lockable.hpp"
+#include "opentxs/core/PasswordPrompt.hpp"
+#include "opentxs/core/UniqueQueue.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
+#include "opentxs/ext/OTPayment.hpp"
+#include "opentxs/network/zeromq/ListenCallback.hpp"
+#include "opentxs/network/zeromq/socket/Publish.hpp"
+#include "opentxs/network/zeromq/socket/Pull.hpp"
+#include "opentxs/network/zeromq/socket/Subscribe.hpp"
+#include "otx/client/StateMachine.hpp"
+
+namespace opentxs
+{
+namespace contract
+{
+namespace peer
+{
+class Reply;
+class Request;
+}  // namespace peer
+
+class Server;
+}  // namespace contract
+
+namespace network
+{
+namespace zeromq
+{
+class Message;
+}  // namespace zeromq
+}  // namespace network
+
+class Factory;
+class OTClient;
+}  // namespace opentxs
 
 namespace opentxs::api::client::implementation
 {

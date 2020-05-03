@@ -3,18 +3,25 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
-
+#include "0_stdafx.hpp"    // IWYU pragma: associated
+#include "1_Internal.hpp"  // IWYU pragma: associated
 #if OPENTXS_BLOCK_STORAGE_ENABLED
-#include "opentxs/core/Log.hpp"
-
-#include "Database.hpp"
+#include "api/client/blockchain/database/Blocks.hpp"  // IWYU pragma: associated
 
 #include <boost/filesystem.hpp>
+#include <algorithm>
+#include <cstdint>
+#include <cstring>
+#include <memory>
+#include <stdexcept>
+#include <utility>
 
-#include <tuple>
-
-#include "Blocks.hpp"
+#include "api/client/blockchain/database/Database.hpp"
+#include "internal/api/client/blockchain/Blockchain.hpp"
+#include "opentxs/Bytes.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "util/LMDB.hpp"
 
 #define OT_METHOD                                                              \
     "opentxs::api::client::blockchain::database::implementation::Blocks::"

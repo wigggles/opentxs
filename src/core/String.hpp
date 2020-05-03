@@ -5,9 +5,22 @@
 
 #pragma once
 
-#include "Internal.hpp"
+#include <cstdint>
+#include <iosfwd>
+#include <string>
+#include <vector>
 
+#include "opentxs/Bytes.hpp"
 #include "opentxs/core/String.hpp"
+
+namespace opentxs
+{
+class Armored;
+class Contract;
+class Identifier;
+class NymFile;
+class Signature;
+}  // namespace opentxs
 
 namespace opentxs::implementation
 {

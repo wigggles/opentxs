@@ -9,13 +9,21 @@
 #ifndef OPENTXS_CORE_CRON_OTCRONITEM_HPP
 #define OPENTXS_CORE_CRON_OTCRONITEM_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
-#include "opentxs/core/OTTransactionType.hpp"
-#include "opentxs/core/OTTrackable.hpp"
-#include "opentxs/Types.hpp"
-
+#include <chrono>
+#include <cstdint>
 #include <deque>
+#include <memory>
+#include <string>
+
+#include "opentxs/Types.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/OTTrackable.hpp"
+#include "opentxs/core/OTTransactionType.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
 
 namespace opentxs
 {
@@ -25,7 +33,26 @@ namespace internal
 {
 struct Core;
 }  // namespace internal
+
+class Wallet;
 }  // namespace api
+
+namespace identifier
+{
+class Server;
+class UnitDefinition;
+}  // namespace identifier
+
+namespace identity
+{
+class Nym;
+}  // namespace identity
+
+class ClientContext;
+class NumList;
+class OTCron;
+class PasswordPrompt;
+class ServerContext;
 
 class OTCronItem : public OTTrackable
 {

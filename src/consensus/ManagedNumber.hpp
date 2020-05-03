@@ -5,7 +5,15 @@
 
 #pragma once
 
-#include "Internal.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/consensus/ManagedNumber.hpp"
+#include "opentxs/core/Flag.hpp"
+
+namespace opentxs
+{
+class Factory;
+class ServerContext;
+}  // namespace opentxs
 
 namespace opentxs::implementation
 {

@@ -4,6 +4,56 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #pragma once
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/api/Context.cpp"
+
+#include <chrono>
+#include <cstdint>
+#include <iosfwd>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <string>
+#include <vector>
+
+#include "api/Periodic.hpp"
+#include "internal/api/Api.hpp"
+#include "internal/api/client/Client.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/Version.hpp"
+#include "opentxs/api/Context.hpp"
+#include "opentxs/api/Legacy.hpp"
+#include "opentxs/api/Settings.hpp"
+#include "opentxs/api/crypto/Crypto.hpp"
+#include "opentxs/api/network/ZAP.hpp"
+#include "opentxs/api/server/Manager.hpp"
+#include "opentxs/core/Lockable.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/network/zeromq/Context.hpp"
+
+namespace opentxs
+{
+namespace proto
+{
+class RPCCommand;
+}  // namespace proto
+
+namespace rpc
+{
+namespace internal
+{
+struct RPC;
+}  // namespace internal
+}  // namespace rpc
+
+class Factory;
+class Flag;
+class OTCallback;
+class OTCaller;
+class PIDFile;
+class Signals;
+}  // namespace opentxs
 
 namespace opentxs::api::implementation
 {

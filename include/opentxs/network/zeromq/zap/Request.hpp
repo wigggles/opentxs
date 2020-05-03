@@ -6,18 +6,33 @@
 #ifndef OPENTXS_NETWORK_ZEROMQ_ZAP_REQUEST_HPP
 #define OPENTXS_NETWORK_ZEROMQ_ZAP_REQUEST_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
+
+#include <tuple>
 
 #include "opentxs/core/Data.hpp"
 #include "opentxs/network/zeromq/zap/ZAP.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
-
-#include <tuple>
+#include "opentxs/Pimpl.hpp"
 
 namespace opentxs
 {
-using OTZMQZAPRequest = Pimpl<network::zeromq::zap::Request>;
+namespace network
+{
+namespace zeromq
+{
+namespace zap
+{
+class Request;
+}  // namespace zap
+}  // namespace zeromq
+}  // namespace network
 
+using OTZMQZAPRequest = Pimpl<network::zeromq::zap::Request>;
+}  // namespace opentxs
+
+namespace opentxs
+{
 namespace network
 {
 namespace zeromq

@@ -6,19 +6,21 @@
 #ifndef OPENTXS_CORE_CRYPTO_NYMPARAMETERS_HPP
 #define OPENTXS_CORE_CRYPTO_NYMPARAMETERS_HPP
 
-#include "opentxs/Forward.hpp"
-
-#if OT_CRYPTO_WITH_BIP32
-#include "opentxs/core/crypto/OTPassword.hpp"
-#endif
-#include "opentxs/crypto/key/Keypair.hpp"
-#include "opentxs/identity/credential/Base.hpp"
-#include "opentxs/Bytes.hpp"
-#include "opentxs/Proto.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <cstdint>
-#include <string>
 #include <memory>
+#include <string>
+
+#include "opentxs/Bytes.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/Version.hpp"
+#if OT_CRYPTO_WITH_BIP32
+#include "opentxs/core/crypto/OTPassword.hpp"
+#endif  // OT_CRYPTO_WITH_BIP32
+#include "opentxs/crypto/key/Keypair.hpp"
+#include "opentxs/identity/credential/Base.hpp"
 
 namespace opentxs
 {

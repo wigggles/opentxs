@@ -3,9 +3,25 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/core/crypto/Signature.cpp"
+
 #pragma once
 
-#include "Internal.hpp"
+#include "core/Armored.hpp"
+#include "opentxs/core/crypto/OTSignatureMetadata.hpp"
+#include "opentxs/core/crypto/Signature.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+}  // namespace opentxs
 
 namespace opentxs::implementation
 {

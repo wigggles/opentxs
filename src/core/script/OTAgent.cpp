@@ -3,17 +3,28 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"                     // IWYU pragma: associated
+#include "1_Internal.hpp"                   // IWYU pragma: associated
+#include "opentxs/core/script/OTAgent.hpp"  // IWYU pragma: associated
 
-#include "opentxs/core/script/OTAgent.hpp"
+#include <cstdint>
+#include <memory>
+#include <string>
 
-#include "opentxs/api/Core.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/api/Editor.hpp"
 #include "opentxs/api/Wallet.hpp"
-#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/consensus/Context.hpp"
 #include "opentxs/consensus/ManagedNumber.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
+#include "opentxs/core/Account.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/String.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/recurring/OTAgreement.hpp"
@@ -22,19 +33,7 @@
 #include "opentxs/core/script/OTSmartContract.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/Tag.hpp"
-#include "opentxs/core/Account.hpp"
-#include "opentxs/core/Contract.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/String.hpp"
 #include "opentxs/identity/Nym.hpp"
-#include "opentxs/Types.hpp"
-
-#include <cstdint>
-#include <memory>
-#include <ostream>
-#include <set>
-#include <string>
-#include <utility>
 
 #define OT_METHOD "opentxs::OTAgent::"
 
@@ -48,7 +47,6 @@
 // This function also assumes that once you are done, you will call
 // ClearTemporaryPointers().
 //
-
 namespace opentxs
 {
 OTAgent::OTAgent(const api::Wallet& wallet)

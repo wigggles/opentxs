@@ -5,19 +5,33 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
-#include "opentxs/core/AccountList.hpp"
-#include "opentxs/Types.hpp"
-
 #include <cstdint>
 #include <map>
 #include <memory>
 #include <string>
 
+#include "opentxs/Types.hpp"
+#include "opentxs/core/Account.hpp"
+#include "opentxs/core/AccountList.hpp"
+
 namespace opentxs
 {
+namespace identifier
+{
+class UnitDefinition;
+}  // namespace identifier
+
 namespace server
+{
+class Server;
+}  // namespace server
+
+class ClientContext;
+class Identifier;
+class PasswordPrompt;
+}  // namespace opentxs
+
+namespace opentxs::server
 {
 class Transactor
 {
@@ -84,5 +98,4 @@ private:
 
     Transactor() = delete;
 };
-}  // namespace server
-}  // namespace opentxs
+}  // namespace opentxs::server

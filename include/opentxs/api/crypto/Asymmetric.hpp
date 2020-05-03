@@ -6,7 +6,9 @@
 #ifndef OPENTXS_API_CRYPTO_ASYMMETRIC_HPP
 #define OPENTXS_API_CRYPTO_ASYMMETRIC_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
+
+#include <memory>
 
 #include "opentxs/crypto/key/Asymmetric.hpp"
 #include "opentxs/crypto/key/EllipticCurve.hpp"
@@ -18,8 +20,6 @@
 #endif  // OT_CRYPTO_WITH_BIP32
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
-
-#include <memory>
 
 namespace opentxs
 {

@@ -3,52 +3,45 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"    // IWYU pragma: associated
+#include "1_Internal.hpp"  // IWYU pragma: associated
+#include "ui/Profile.hpp"  // IWYU pragma: associated
 
-#include "opentxs/api/client/Manager.hpp"
-#include "opentxs/api/Wallet.hpp"
-#include "opentxs/api/Endpoints.hpp"
-#include "opentxs/api/Factory.hpp"
-#include "opentxs/client/NymData.hpp"
-#include "opentxs/contact/Contact.hpp"
-#include "opentxs/contact/ContactData.hpp"
-#include "opentxs/contact/ContactSection.hpp"
-#include "opentxs/core/Flag.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Lockable.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/PasswordPrompt.hpp"
-#include "opentxs/identity/Nym.hpp"
-#include "opentxs/network/zeromq/socket/Subscribe.hpp"
-#include "opentxs/network/zeromq/Context.hpp"
-#include "opentxs/network/zeromq/ListenCallback.hpp"
-#include "opentxs/network/zeromq/FrameIterator.hpp"
-#include "opentxs/network/zeromq/FrameSection.hpp"
-#include "opentxs/network/zeromq/Frame.hpp"
-#include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/ui/Profile.hpp"
-#include "opentxs/ui/ProfileSection.hpp"
-
-#include "internal/api/client/Client.hpp"
-#include "internal/ui/UI.hpp"
-#include "List.hpp"
-
+#include <algorithm>
 #include <map>
 #include <memory>
 #include <set>
 #include <thread>
 #include <tuple>
-#include <vector>
+#include <utility>
 
-#include "Profile.hpp"
+#include "internal/api/client/Client.hpp"
+#include "internal/ui/UI.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/api/Endpoints.hpp"
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/api/Wallet.hpp"
+#include "opentxs/client/NymData.hpp"
+#include "opentxs/contact/ContactData.hpp"
+#include "opentxs/contact/ContactSection.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/identity/Nym.hpp"
+#include "opentxs/network/zeromq/Frame.hpp"
+#include "opentxs/network/zeromq/FrameIterator.hpp"
+#include "opentxs/network/zeromq/FrameSection.hpp"
+#include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/ui/Profile.hpp"
+#include "opentxs/ui/ProfileSection.hpp"
+#include "ui/List.hpp"
 
 template struct std::pair<int, std::string>;
 
 #define OT_METHOD "opentxs::ui::implementation::Profile::"
 
-namespace opentxs
+namespace opentxs::factory
 {
-ui::implementation::Profile* Factory::ProfileModel(
+auto ProfileModel(
     const api::client::internal::Manager& api,
     const network::zeromq::socket::Publish& publisher,
     const identifier::Nym& nymID
@@ -56,9 +49,11 @@ ui::implementation::Profile* Factory::ProfileModel(
     ,
     const bool qt
 #endif
-)
+    ) noexcept -> std::unique_ptr<ui::implementation::Profile>
 {
-    return new ui::implementation::Profile(
+    using ReturnType = ui::implementation::Profile;
+
+    return std::make_unique<ReturnType>(
         api,
         publisher,
         nymID
@@ -70,14 +65,15 @@ ui::implementation::Profile* Factory::ProfileModel(
 }
 
 #if OT_QT
-ui::ProfileQt* Factory::ProfileQtModel(ui::implementation::Profile& parent)
+auto ProfileQtModel(ui::implementation::Profile& parent) noexcept
+    -> std::unique_ptr<ui::ProfileQt>
 {
     using ReturnType = ui::ProfileQt;
 
-    return new ReturnType(parent);
+    return std::make_unique<ReturnType>(parent);
 }
 #endif  // OT_QT
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 #if OT_QT
 namespace opentxs::ui
@@ -236,7 +232,7 @@ void* Profile::construct_row(
     names_.emplace(id, index);
     const auto [it, added] = items_[index].emplace(
         id,
-        Factory::ProfileSectionWidget(
+        factory::ProfileSectionWidget(
             *this,
             api_,
             publisher_,

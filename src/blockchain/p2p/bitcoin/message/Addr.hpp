@@ -3,7 +3,49 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/blockchain/p2p/bitcoin/message/Addr.cpp"
+
 #pragma once
+
+#include <iosfwd>
+#include <memory>
+#include <utility>
+#include <vector>
+
+#include "internal/blockchain/p2p/bitcoin/Bitcoin.hpp"
+#include "internal/blockchain/p2p/bitcoin/message/Message.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/core/Data.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
+namespace blockchain
+{
+namespace p2p
+{
+namespace bitcoin
+{
+class Header;
+}  // namespace bitcoin
+
+namespace internal
+{
+struct Address;
+}  // namespace internal
+}  // namespace p2p
+}  // namespace blockchain
+
+class Factory;
+}  // namespace opentxs
 
 namespace opentxs::blockchain::p2p::bitcoin::message::implementation
 {

@@ -6,6 +6,8 @@
 #ifndef OPENTXS_SHAREDPIMPL_HPP
 #define OPENTXS_SHAREDPIMPL_HPP
 
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
+
 #include <cstdlib>
 #include <iostream>
 #include <memory>

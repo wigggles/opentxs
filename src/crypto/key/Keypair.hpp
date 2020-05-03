@@ -5,7 +5,34 @@
 
 #pragma once
 
-#include "Internal.hpp"
+#include <cstdint>
+#include <memory>
+
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/crypto/key/Asymmetric.hpp"
+#include "opentxs/crypto/key/Keypair.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
+namespace proto
+{
+class AsymmetricKey;
+}  // namespace proto
+
+class Data;
+class OTPassword;
+class PasswordPrompt;
+class Signature;
+}  // namespace opentxs
 
 namespace opentxs::crypto::key::implementation
 {

@@ -6,16 +6,7 @@
 #ifndef OPENTXS_CORE_LOGSOURCE_HPP
 #define OPENTXS_CORE_LOGSOURCE_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/core/identifier/Nym.hpp"
-#include "opentxs/core/identifier/Server.hpp"
-#include "opentxs/core/identifier/UnitDefinition.hpp"
-#include "opentxs/core/Armored.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/String.hpp"
-#include "opentxs/core/StringXML.hpp"
-#include "opentxs/network/zeromq/socket/Push.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <atomic>
 #include <map>
@@ -24,6 +15,17 @@
 #include <string>
 #include <thread>
 #include <tuple>
+#include <utility>
+
+#include "opentxs/Types.hpp"
+#include "opentxs/core/Armored.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/StringXML.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
+#include "opentxs/network/zeromq/socket/Push.hpp"
 
 namespace opentxs
 {

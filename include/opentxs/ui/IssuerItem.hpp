@@ -6,12 +6,13 @@
 #ifndef OPENTXS_UI_ISSUERITEM_HPP
 #define OPENTXS_UI_ISSUERITEM_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <string>
 
 #include "opentxs/ui/List.hpp"
 #include "opentxs/ui/ListRow.hpp"
+#include "opentxs/SharedPimpl.hpp"
 
 #ifdef SWIG
 // clang-format off
@@ -22,8 +23,16 @@
 
 namespace opentxs
 {
-using OTUIIssuerItem = SharedPimpl<ui::IssuerItem>;
+namespace ui
+{
+class IssuerItem;
+}  // namespace ui
 
+using OTUIIssuerItem = SharedPimpl<ui::IssuerItem>;
+}  // namespace opentxs
+
+namespace opentxs
+{
 namespace ui
 {
 class IssuerItem : virtual public List, virtual public ListRow

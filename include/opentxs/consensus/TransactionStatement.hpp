@@ -6,20 +6,18 @@
 #ifndef OPENTXS_CONSENSUS_TRANSACTIONSTATEMENT_HPP
 #define OPENTXS_CONSENSUS_TRANSACTIONSTATEMENT_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/core/String.hpp"
-
-#include "opentxs/Pimpl.hpp"
-#include "opentxs/SharedPimpl.hpp"
-#include "opentxs/Types.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <set>
 #include <string>
 
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/SharedPimpl.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/core/String.hpp"
+
 namespace opentxs
 {
-
 class TransactionStatement
 {
 private:

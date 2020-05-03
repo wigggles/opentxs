@@ -3,21 +3,18 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"              // IWYU pragma: associated
+#include "1_Internal.hpp"            // IWYU pragma: associated
+#include "api/crypto/Symmetric.hpp"  // IWYU pragma: associated
 
-#include "opentxs/api/crypto/Symmetric.hpp"
-#include "opentxs/api/crypto/Crypto.hpp"
-#include "opentxs/api/Core.hpp"
+#include "Factory.hpp"
+#include "internal/api/Api.hpp"
 #include "opentxs/api/Factory.hpp"
+#include "opentxs/api/crypto/Crypto.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
 #include "opentxs/crypto/key/Symmetric.hpp"
 #include "opentxs/crypto/library/SymmetricProvider.hpp"
-#include "opentxs/core/Log.hpp"
-
-#include "internal/api/Api.hpp"
-
-#include <string>
-
-#include "Symmetric.hpp"
 
 #define OT_METHOD "opentxs::api::crypto::implementation::Symmetric::"
 

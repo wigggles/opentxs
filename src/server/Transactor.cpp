@@ -3,35 +3,33 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"           // IWYU pragma: associated
+#include "1_Internal.hpp"         // IWYU pragma: associated
+#include "server/Transactor.hpp"  // IWYU pragma: associated
 
-#include "Transactor.hpp"
-
-#include "opentxs/api/Core.hpp"
-#include "opentxs/consensus/ClientContext.hpp"
-#include "opentxs/core/Account.hpp"
-#include "opentxs/core/AccountList.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/String.hpp"
-#include "opentxs/identity/Nym.hpp"
-
-#include "internal/api/Api.hpp"
-#include "MainFile.hpp"
-#include "Server.hpp"
-
-#include <cinttypes>
-#include <cstdint>
 #include <map>
 #include <memory>
 #include <string>
 #include <utility>
 
+#include "opentxs/Exclusive.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/consensus/ClientContext.hpp"
+#include "opentxs/core/Account.hpp"
+#include "opentxs/core/AccountList.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
+#include "opentxs/identity/Nym.hpp"
+#include "server/MainFile.hpp"
+#include "server/Server.hpp"
+
 #define OT_METHOD "opentxs::Transactor::"
 
 namespace opentxs::server
 {
-
 Transactor::Transactor(Server& server, const PasswordPrompt& reason)
     : server_(server)
     , reason_(reason)

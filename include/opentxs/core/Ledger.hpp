@@ -6,15 +6,21 @@
 #ifndef OPENTXS_CORE_LEDGER_HPP
 #define OPENTXS_CORE_LEDGER_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/core/Contract.hpp"
-#include "opentxs/core/OTTransaction.hpp"
-#include "opentxs/core/OTTransactionType.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <cstdint>
 #include <map>
 #include <set>
+#include <memory>
+#include <string>
+#include <tuple>
+
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/OTTransaction.hpp"
+#include "opentxs/core/OTTransactionType.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/core/String.hpp"
 
 namespace opentxs
 {
@@ -30,6 +36,23 @@ namespace internal
 struct Core;
 }  // namespace internal
 }  // namespace api
+
+namespace identifier
+{
+class Nym;
+class Server;
+}  // namespace identifier
+
+namespace identity
+{
+class Nym;
+}  // namespace identity
+
+class Account;
+class Identifier;
+class Item;
+class PasswordPrompt;
+class ServerContext;
 
 // transaction ID is a std::int64_t, assigned by the server. Each transaction
 // has one. FIRST the server issues the ID. THEN we create the blank transaction

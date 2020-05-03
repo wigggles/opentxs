@@ -3,44 +3,38 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"           // IWYU pragma: associated
+#include "1_Internal.hpp"         // IWYU pragma: associated
+#include "ui/MessagableList.hpp"  // IWYU pragma: associated
 
-#include "opentxs/api/client/Contacts.hpp"
-#include "opentxs/api/client/Manager.hpp"
-#include "opentxs/api/client/OTX.hpp"
-#include "opentxs/api/Endpoints.hpp"
-#include "opentxs/core/Flag.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Lockable.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/network/zeromq/socket/Subscribe.hpp"
-#include "opentxs/network/zeromq/Context.hpp"
-#include "opentxs/network/zeromq/ListenCallback.hpp"
-#include "opentxs/network/zeromq/FrameIterator.hpp"
-#include "opentxs/network/zeromq/FrameSection.hpp"
-#include "opentxs/network/zeromq/Frame.hpp"
-#include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/ui/ContactListItem.hpp"
-#include "opentxs/ui/MessagableList.hpp"
-
-#include "internal/api/client/Client.hpp"
-#include "List.hpp"
-
+#include <list>
 #include <map>
 #include <memory>
-#include <set>
 #include <string>
 #include <thread>
-#include <tuple>
-#include <vector>
+#include <utility>
 
-#include "MessagableList.hpp"
+#include "internal/api/client/Client.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/api/Endpoints.hpp"
+#include "opentxs/api/client/Contacts.hpp"
+#include "opentxs/api/client/OTX.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/network/zeromq/Frame.hpp"
+#include "opentxs/network/zeromq/FrameIterator.hpp"
+#include "opentxs/network/zeromq/FrameSection.hpp"
+#include "opentxs/network/zeromq/Message.hpp"
+#include "ui/List.hpp"
 
 #define OT_METHOD "opentxs::ui::implementation::MessagableList::"
 
-namespace opentxs
+namespace opentxs::factory
 {
-ui::implementation::MessagableList* Factory::MessagableListModel(
+auto MessagableListModel(
     const api::client::internal::Manager& api,
     const network::zeromq::socket::Publish& publisher,
     const identifier::Nym& nymID
@@ -48,9 +42,11 @@ ui::implementation::MessagableList* Factory::MessagableListModel(
     ,
     const bool qt
 #endif
-)
+    ) noexcept -> std::unique_ptr<ui::implementation::MessagableList>
 {
-    return new ui::implementation::MessagableList(
+    using ReturnType = ui::implementation::MessagableList;
+
+    return std::make_unique<ReturnType>(
         api,
         publisher,
         nymID
@@ -62,15 +58,15 @@ ui::implementation::MessagableList* Factory::MessagableListModel(
 }
 
 #if OT_QT
-ui::MessagableListQt* Factory::MessagableListQtModel(
-    ui::implementation::MessagableList& parent)
+auto MessagableListQtModel(ui::implementation::MessagableList& parent) noexcept
+    -> std::unique_ptr<ui::MessagableListQt>
 {
     using ReturnType = ui::MessagableListQt;
 
-    return new ReturnType(parent);
+    return std::make_unique<ReturnType>(parent);
 }
 #endif  // OT_QT
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 #if OT_QT
 namespace opentxs::ui
@@ -125,7 +121,7 @@ void* MessagableList::construct_row(
 {
     names_.emplace(id, index);
     const auto [it, added] = items_[index].emplace(
-        id, Factory::ContactListItem(*this, api_, publisher_, id, index));
+        id, factory::ContactListItem(*this, api_, publisher_, id, index));
 
     return it->second.get();
 }

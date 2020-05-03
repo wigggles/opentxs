@@ -3,62 +3,26 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
-
-#include "opentxs/client/OTClient.hpp"
-
-#include "opentxs/api/client/Activity.hpp"
-#include "opentxs/api/client/Contacts.hpp"
-#include "opentxs/api/client/Manager.hpp"
-#include "opentxs/api/client/OTX.hpp"
-#include "opentxs/api/client/Workflow.hpp"
-#include "opentxs/api/storage/Storage.hpp"
-#include "opentxs/api/Factory.hpp"
-#include "opentxs/api/Core.hpp"
-#include "opentxs/api/Settings.hpp"
-#include "opentxs/api/Wallet.hpp"
-#if OT_CASH
-#include "opentxs/blind/Mint.hpp"
-#include "opentxs/blind/Purse.hpp"
-#endif  // OT_CASH
-#include "opentxs/consensus/ManagedNumber.hpp"
-#include "opentxs/consensus/ServerContext.hpp"
-#include "opentxs/consensus/TransactionStatement.hpp"
-#include "opentxs/core/contract/ServerContract.hpp"
-#include "opentxs/core/contract/Signable.hpp"
-#include "opentxs/core/contract/UnitDefinition.hpp"
-#include "opentxs/core/contract/basket/Basket.hpp"
-#include "opentxs/core/contract/peer/PeerObject.hpp"
-#include "opentxs/core/identifier/Nym.hpp"
-#include "opentxs/core/identifier/UnitDefinition.hpp"
-#include "opentxs/core/recurring/OTPaymentPlan.hpp"
-#include "opentxs/core/trade/OTOffer.hpp"
-#include "opentxs/core/trade/OTTrade.hpp"
-#include "opentxs/core/Account.hpp"
-#include "opentxs/core/Armored.hpp"
-#include "opentxs/core/Cheque.hpp"
-#include "opentxs/core/Data.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Item.hpp"
-#include "opentxs/core/Ledger.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/Message.hpp"
-#include "opentxs/core/OTStorage.hpp"
-#include "opentxs/core/OTTransaction.hpp"
-#include "opentxs/core/OTTransactionType.hpp"
-#include "opentxs/core/String.hpp"
-#include "opentxs/crypto/key/Asymmetric.hpp"
-#include "opentxs/ext/OTPayment.hpp"
-#include "opentxs/identity/Nym.hpp"
-#include "opentxs/otx/Reply.hpp"
-#include "opentxs/Types.hpp"
+#include "0_stdafx.hpp"                 // IWYU pragma: associated
+#include "1_Internal.hpp"               // IWYU pragma: associated
+#include "opentxs/client/OTClient.hpp"  // IWYU pragma: associated
 
 #include <cinttypes>
 #include <cstdint>
-#include <cstdio>
-#include <iostream>
 #include <memory>
-#include <string>
+
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/consensus/ServerContext.hpp"
+#include "opentxs/core/Account.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/Message.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/identity/Nym.hpp"
 
 #define OT_METHOD "opentxs::OTClient::"
 

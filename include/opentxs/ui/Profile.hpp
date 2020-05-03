@@ -7,14 +7,15 @@
 #define OPENTXS_UI_PROFILE_HPP
 
 #ifndef Q_MOC_RUN
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/ui/List.hpp"
-#include "opentxs/Proto.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <string>
 #include <tuple>
 #include <vector>
+
+#include "opentxs/ui/List.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/SharedPimpl.hpp"
 
 #ifdef SWIG
 #include <algorithm>
@@ -165,6 +166,8 @@ public:
     OPENTXS_EXPORT QString nymID() const noexcept;
     OPENTXS_EXPORT QString paymentCode() const noexcept;
 
+    ProfileQt(implementation::Profile& parent) noexcept;
+
     ~ProfileQt() final = default;
 
 private:
@@ -174,7 +177,6 @@ private:
 
     void notify() const noexcept;
 
-    ProfileQt(implementation::Profile& parent) noexcept;
     ProfileQt(const ProfileQt&) = delete;
     ProfileQt(ProfileQt&&) = delete;
     ProfileQt& operator=(const ProfileQt&) = delete;

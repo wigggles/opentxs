@@ -6,21 +6,23 @@
 #ifndef OPENTXS_CLIENT_NYMDATA_HPP
 #define OPENTXS_CLIENT_NYMDATA_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
-#include "opentxs/identity/Nym.hpp"
-#include "opentxs/Proto.hpp"
-#include "opentxs/Types.hpp"
-
-#include <cstdint>
-#include <memory>
-#include <string>
-
-#ifdef SWIG
 #include <algorithm>
+#include <cstdint>
+#include <functional>
+#include <memory>
+#include <mutex>
 #include <set>
+#include <set>
+#include <string>
 #include <vector>
 
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/identity/Nym.hpp"
+
+#ifdef SWIG
 // clang-format off
 %template(ProtoTypeList) std::vector<int>;
 %extend opentxs::NymData {
@@ -152,11 +154,23 @@ namespace opentxs
 {
 namespace api
 {
+class Factory;
+
 namespace implementation
 {
 class Wallet;
 }  // namespace implementation
 }  // namespace api
+
+namespace identifier
+{
+class UnitDefinition;
+}  // namespace identifier
+
+class ContactData;
+class Identifier;
+class NymParameters;
+class PasswordPrompt;
 
 class NymData
 {

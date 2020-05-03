@@ -5,20 +5,54 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
-#include "opentxs/api/Editor.hpp"
-#include "opentxs/core/Flag.hpp"
-#include "opentxs/Types.hpp"
-
-#include "Node.hpp"
-
+#include <atomic>
 #include <cstdint>
 #include <map>
+#include <memory>
+#include <mutex>
 #include <set>
 #include <shared_mutex>
 #include <string>
 #include <tuple>
+#include <utility>
+
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/api/Editor.hpp"
+#include "opentxs/core/Flag.hpp"
+#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
+#include "storage/tree/Node.hpp"
+#include "storage/tree/Txos.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace storage
+{
+class Driver;
+}  // namespace storage
+}  // namespace api
+
+namespace identity
+{
+class Nym;
+}  // namespace identity
+
+namespace storage
+{
+class Bip47Channels;
+class Contexts;
+class Issuers;
+class Mailbox;
+class Nyms;
+class PaymentWorkflows;
+class PeerReplies;
+class PeerRequests;
+class Threads;
+}  // namespace storage
+}  // namespace opentxs
 
 namespace opentxs::storage
 {

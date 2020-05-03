@@ -6,8 +6,7 @@
 #ifndef OPENTXS_OPENTXS_HPP
 #define OPENTXS_OPENTXS_HPP
 
-#include <opentxs/Forward.hpp>
-
+// IWYU pragma: begin_exports
 #include <opentxs/api/client/blockchain/BalanceList.hpp>
 #include <opentxs/api/client/blockchain/BalanceNode.hpp>
 #include <opentxs/api/client/blockchain/BalanceTree.hpp>
@@ -53,7 +52,6 @@
 #include <opentxs/client/OTAPI_Exec.hpp>
 #include <opentxs/client/OT_API.hpp>
 #include <opentxs/client/ServerAction.hpp>
-#include <opentxs/client/SwigWrap.hpp>
 #if OT_BLOCKCHAIN
 #include <opentxs/blockchain/block/bitcoin/Block.hpp>
 #include <opentxs/blockchain/block/bitcoin/Header.hpp>
@@ -229,3 +227,4 @@
 #include <opentxs/Qt.hpp>
 #include <opentxs/Types.hpp>
 #endif
+// IWYU pragma: end_exports

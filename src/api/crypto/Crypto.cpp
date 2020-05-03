@@ -3,42 +3,37 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"           // IWYU pragma: associated
+#include "1_Internal.hpp"         // IWYU pragma: associated
+#include "api/crypto/Crypto.hpp"  // IWYU pragma: associated
 
-#include "Crypto.hpp"
+#ifndef _WIN32
+extern "C" {
+#include <sys/resource.h>
+}
+#endif
 
+#include "Factory.hpp"
+#include "crypto/Bip32.hpp"
+#if OT_CRYPTO_USING_OPENSSL
+#include "internal/crypto/library/OpenSSL.hpp"
+#endif  // OT_CRYPTO_USING_OPENSSL
+#if OT_CRYPTO_USING_LIBSECP256K1
+#include "internal/crypto/library/Secp256k1.hpp"
+#endif  // OT_CRYPTO_USING_LIBSECP256K1
+#include "internal/crypto/library/Sodium.hpp"
+#include "opentxs/Pimpl.hpp"
 #include "opentxs/api/crypto/Config.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
-#include "opentxs/core/Identifier.hpp"
+#include "opentxs/api/crypto/Util.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/crypto/key/Symmetric.hpp"
-#include "opentxs/crypto/library/AsymmetricProvider.hpp"
-#if OT_CRYPTO_USING_OPENSSL
-#include "opentxs/crypto/library/OpenSSL.hpp"
-#endif
-#include "opentxs/crypto/library/SymmetricProvider.hpp"
-#if OT_CRYPTO_USING_LIBSECP256K1
-#include "opentxs/crypto/library/Secp256k1.hpp"
-#endif
-#include "opentxs/crypto/library/Ripemd160.hpp"
-#include "opentxs/crypto/library/Sodium.hpp"
+#include "opentxs/core/LogSource.hpp"
 #include "opentxs/crypto/Bip32.hpp"
 #include "opentxs/crypto/Bip39.hpp"
-
-#include "crypto/Bip32.hpp"
-#include "internal/api/crypto/Crypto.hpp"
-
-#include <functional>
-#include <ostream>
-#include <vector>
-
-extern "C" {
-#ifdef _WIN32
-#else
-#include <sys/resource.h>
-#endif
-}
+#include "opentxs/crypto/library/AsymmetricProvider.hpp"
+#include "opentxs/crypto/library/SymmetricProvider.hpp"
+#include "opentxs/crypto/key/Symmetric.hpp"  // IWYU pragma: keep
 
 #define OT_METHOD "opentxs::Crypto::"
 

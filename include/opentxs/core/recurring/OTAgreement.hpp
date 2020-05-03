@@ -8,16 +8,19 @@
 #ifndef OPENTXS_CORE_RECURRING_OTAGREEMENT_HPP
 #define OPENTXS_CORE_RECURRING_OTAGREEMENT_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/core/cron/OTCronItem.hpp"
-#include "opentxs/core/Contract.hpp"
-#include "opentxs/core/OTTransactionType.hpp"
-#include "opentxs/core/String.hpp"
-#include "opentxs/Types.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <cstdint>
 #include <deque>
+
+#include "opentxs/Types.hpp"
+#include "opentxs/core/Account.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/OTTransactionType.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/cron/OTCronItem.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
 
 namespace opentxs
 {
@@ -28,6 +31,22 @@ namespace internal
 struct Core;
 }  // namespace internal
 }  // namespace api
+
+namespace identifier
+{
+class Server;
+class UnitDefinition;
+}  // namespace identifier
+
+namespace identity
+{
+class Nym;
+}  // namespace identity
+
+class ClientContext;
+class NumList;
+class PasswordPrompt;
+class ServerContext;
 
 // An Agreement occurs between TWO PEOPLE, and is for a CONSIDERATION.
 // Thus, we add the RECIPIENT (already have SENDER from OTTrackable.)

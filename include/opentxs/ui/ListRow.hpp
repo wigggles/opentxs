@@ -6,11 +6,11 @@
 #ifndef OPENTXS_UI_LISTROW_HPP
 #define OPENTXS_UI_LISTROW_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/ui/Widget.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <string>
+
+#include "opentxs/ui/Widget.hpp"
 
 #ifdef SWIG
 // clang-format off

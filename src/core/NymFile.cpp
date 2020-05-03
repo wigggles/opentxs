@@ -3,65 +3,39 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"      // IWYU pragma: associated
+#include "1_Internal.hpp"    // IWYU pragma: associated
+#include "core/NymFile.hpp"  // IWYU pragma: associated
 
-#include "opentxs/api/client/Activity.hpp"
-#include "opentxs/api/crypto/Crypto.hpp"
-#include "opentxs/api/storage/Storage.hpp"
-#include "opentxs/api/Core.hpp"
-#include "opentxs/api/Factory.hpp"
-#include "opentxs/api/Legacy.hpp"
-#include "opentxs/api/Wallet.hpp"
-#include "opentxs/consensus/ClientContext.hpp"
-#include "opentxs/consensus/ServerContext.hpp"
-#include "opentxs/contact/ContactData.hpp"
-#include "opentxs/core/crypto/NymParameters.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/crypto/OTSignedFile.hpp"
-#include "opentxs/core/util/Tag.hpp"
-#include "opentxs/core/Armored.hpp"
-#include "opentxs/core/Contract.hpp"
-#include "opentxs/core/Data.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Item.hpp"
-#include "opentxs/core/Ledger.hpp"
-#include "opentxs/core/Lockable.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/Message.hpp"
-#include "opentxs/core/NymFile.hpp"
-#include "opentxs/core/OTStorage.hpp"
-#include "opentxs/core/StringXML.hpp"
-#include "opentxs/core/OTTransaction.hpp"
-#include "opentxs/core/String.hpp"
-#include "opentxs/crypto/key/Keypair.hpp"
-#include "opentxs/ext/OTPayment.hpp"
-#include "opentxs/identity/credential/Base.hpp"
-#include "opentxs/identity/Authority.hpp"
-#include "opentxs/identity/Source.hpp"
-#include "opentxs/Proto.hpp"
-#include "opentxs/Types.hpp"
-
-#include "internal/api/Api.hpp"
-#include "internal/core/Core.hpp"
-
-#include <irrxml/irrXML.hpp>
-#include <sodium/crypto_box.h>
-#include <sys/types.h>
-
-#include <atomic>
-#include <array>
 #include <cstdint>
 #include <deque>
-#include <fstream>
-#include <functional>
+#include <irrxml/irrXML.hpp>
 #include <list>
 #include <map>
 #include <memory>
-#include <mutex>
 #include <set>
 #include <string>
+#include <utility>
 
-#include "NymFile.hpp"
+#include "Factory.hpp"
+#include "internal/api/Api.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/api/Legacy.hpp"
+#include "opentxs/core/Armored.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/Message.hpp"
+#include "opentxs/core/OTStorage.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/StringXML.hpp"
+#include "opentxs/core/crypto/OTSignedFile.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/util/Tag.hpp"
+#include "opentxs/ext/OTPayment.hpp"
+#include "opentxs/identity/Source.hpp"
 
 #define NYMFILE_VERSION "1.1"
 

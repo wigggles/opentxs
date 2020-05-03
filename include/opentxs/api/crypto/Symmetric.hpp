@@ -6,12 +6,12 @@
 #ifndef OPENTXS_API_CRYPTO_SYMMETRIC_HPP
 #define OPENTXS_API_CRYPTO_SYMMETRIC_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
+
+#include <cstdint>
 
 #include "opentxs/crypto/key/Symmetric.hpp"
 #include "opentxs/Proto.hpp"
-
-#include <cstdint>
 
 namespace opentxs
 {

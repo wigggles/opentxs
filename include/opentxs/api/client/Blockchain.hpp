@@ -6,15 +6,15 @@
 #ifndef OPENTXS_API_CLIENT_BLOCKCHAIN_HPP
 #define OPENTXS_API_CLIENT_BLOCKCHAIN_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/core/Data.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/Proto.hpp"
-#include "opentxs/Types.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <cstdint>
 #include <memory>
+
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/core/Data.hpp"
+#include "opentxs/core/Identifier.hpp"
 
 namespace opentxs
 {

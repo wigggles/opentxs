@@ -3,26 +3,24 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"       // IWYU pragma: associated
+#include "1_Internal.hpp"     // IWYU pragma: associated
+#include "api/client/UI.hpp"  // IWYU pragma: associated
 
-#include "Internal.hpp"
+#include <map>
+#include <memory>
+#include <tuple>
 
-#include "opentxs/api/client/Manager.hpp"
-#include "opentxs/api/client/UI.hpp"
-#include "opentxs/api/network/ZMQ.hpp"
+#include "Factory.hpp"
+#include "internal/api/client/Client.hpp"
+#include "internal/ui/UI.hpp"
+#include "opentxs/Types.hpp"
 #include "opentxs/api/Endpoints.hpp"
-#include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Lockable.hpp"
-#include "opentxs/network/zeromq/socket/Reply.hpp"
-#include "opentxs/network/zeromq/socket/Publish.hpp"
-#include "opentxs/network/zeromq/socket/Sender.tpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
-#include "opentxs/network/zeromq/FrameIterator.hpp"
-#include "opentxs/network/zeromq/FrameSection.hpp"
-#include "opentxs/network/zeromq/Frame.hpp"
-#include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/network/zeromq/ReplyCallback.hpp"
+#include "opentxs/network/zeromq/socket/Publish.hpp"
 #include "opentxs/ui/AccountActivity.hpp"
 #include "opentxs/ui/AccountList.hpp"
 #include "opentxs/ui/AccountSummary.hpp"
@@ -33,9 +31,6 @@
 #include "opentxs/ui/MessagableList.hpp"
 #include "opentxs/ui/PayableList.hpp"
 #include "opentxs/ui/Profile.hpp"
-#include "opentxs/Types.hpp"
-
-#include "internal/api/client/Client.hpp"
 #include "ui/AccountActivity.hpp"
 #include "ui/AccountList.hpp"
 #include "ui/AccountSummary.hpp"
@@ -47,16 +42,12 @@
 #include "ui/PayableList.hpp"
 #include "ui/Profile.hpp"
 
-#include <map>
-#include <memory>
-#include <tuple>
-
-#include "UI.hpp"
-
 //#define OT_METHOD "opentxs::api::implementation::UI"
 
 namespace opentxs
 {
+class Flag;
+
 api::client::UI* Factory::UI(
     const api::client::internal::Manager& api,
     const Flag& running
@@ -155,7 +146,7 @@ auto UI::account_activity(
                      std::piecewise_construct,
                      std::forward_as_tuple(std::move(key)),
                      std::forward_as_tuple(
-                         opentxs::Factory::AccountActivityModel(
+                         opentxs::factory::AccountActivityModel(
                              api_,
                              widget_update_publisher_,
                              nymID,
@@ -195,7 +186,7 @@ ui::AccountActivityQt* UI::AccountActivityQt(
         it = accounts_qt_
                  .emplace(
                      std::move(key),
-                     opentxs::Factory::AccountActivityQtModel(
+                     opentxs::factory::AccountActivityQtModel(
                          *account_activity(lock, nymID, accountID)))
                  .first;
 
@@ -217,7 +208,7 @@ auto UI::account_list(const Lock& lock, const identifier::Nym& nymID) const
                  .emplace(
                      std::piecewise_construct,
                      std::forward_as_tuple(std::move(key)),
-                     std::forward_as_tuple(opentxs::Factory::AccountListModel(
+                     std::forward_as_tuple(opentxs::factory::AccountListModel(
                          api_,
                          widget_update_publisher_,
                          nymID
@@ -254,7 +245,7 @@ ui::AccountListQt* UI::AccountListQt(const identifier::Nym& nymID) const
         it = account_lists_qt_
                  .emplace(
                      std::move(key),
-                     opentxs::Factory::AccountListQtModel(
+                     opentxs::factory::AccountListQtModel(
                          *account_list(lock, nymID)))
                  .first;
 
@@ -280,7 +271,7 @@ auto UI::account_summary(
                 .emplace(
                     std::piecewise_construct,
                     std::forward_as_tuple(std::move(key)),
-                    std::forward_as_tuple(opentxs::Factory::AccountSummaryModel(
+                    std::forward_as_tuple(opentxs::factory::AccountSummaryModel(
                         api_,
                         widget_update_publisher_,
                         nymID,
@@ -320,7 +311,7 @@ ui::AccountSummaryQt* UI::AccountSummaryQt(
         it = account_summaries_qt_
                  .emplace(
                      std::move(key),
-                     opentxs::Factory::AccountSummaryQtModel(
+                     opentxs::factory::AccountSummaryQtModel(
                          *account_summary(lock, nymID, currency)))
                  .first;
 
@@ -343,7 +334,7 @@ auto UI::activity_summary(const Lock& lock, const identifier::Nym& nymID) const
                      std::piecewise_construct,
                      std::forward_as_tuple(std::move(key)),
                      std::forward_as_tuple(
-                         opentxs::Factory::ActivitySummaryModel(
+                         opentxs::factory::ActivitySummaryModel(
                              api_,
                              widget_update_publisher_,
                              running_,
@@ -381,7 +372,7 @@ ui::ActivitySummaryQt* UI::ActivitySummaryQt(const identifier::Nym& nymID) const
         it = activity_summaries_qt_
                  .emplace(
                      std::move(key),
-                     opentxs::Factory::ActivitySummaryQtModel(
+                     opentxs::factory::ActivitySummaryQtModel(
                          *activity_summary(lock, nymID)))
                  .first;
 
@@ -407,7 +398,7 @@ auto UI::activity_thread(
                 .emplace(
                     std::piecewise_construct,
                     std::forward_as_tuple(std::move(key)),
-                    std::forward_as_tuple(opentxs::Factory::ActivityThreadModel(
+                    std::forward_as_tuple(opentxs::factory::ActivityThreadModel(
                         api_,
                         widget_update_publisher_,
                         nymID,
@@ -447,7 +438,7 @@ ui::ActivityThreadQt* UI::ActivityThreadQt(
         it = activity_threads_qt_
                  .emplace(
                      std::move(key),
-                     opentxs::Factory::ActivityThreadQtModel(
+                     opentxs::factory::ActivityThreadQtModel(
                          *activity_thread(lock, nymID, threadID)))
                  .first;
 
@@ -469,7 +460,7 @@ auto UI::contact(const Lock& lock, const Identifier& contactID) const noexcept
                  .emplace(
                      std::piecewise_construct,
                      std::forward_as_tuple(std::move(key)),
-                     std::forward_as_tuple(opentxs::Factory::ContactModel(
+                     std::forward_as_tuple(opentxs::factory::ContactModel(
                          api_,
                          widget_update_publisher_,
                          contactID
@@ -505,7 +496,7 @@ ui::ContactQt* UI::ContactQt(const Identifier& contactID) const noexcept
             contacts_qt_
                 .emplace(
                     std::move(key),
-                    opentxs::Factory::ContactQtModel(*contact(lock, contactID)))
+                    opentxs::factory::ContactQtModel(*contact(lock, contactID)))
                 .first;
 
         OT_ASSERT(it->second);
@@ -526,7 +517,7 @@ auto UI::contact_list(const Lock& lock, const identifier::Nym& nymID) const
                  .emplace(
                      std::piecewise_construct,
                      std::forward_as_tuple(std::move(key)),
-                     std::forward_as_tuple(opentxs::Factory::ContactListModel(
+                     std::forward_as_tuple(opentxs::factory::ContactListModel(
                          api_,
                          widget_update_publisher_,
                          nymID
@@ -563,7 +554,7 @@ ui::ContactListQt* UI::ContactListQt(const identifier::Nym& nymID) const
         it = contact_lists_qt_
                  .emplace(
                      std::move(key),
-                     opentxs::Factory::ContactListQtModel(
+                     opentxs::factory::ContactListQtModel(
                          *contact_list(lock, nymID)))
                  .first;
 
@@ -586,7 +577,7 @@ auto UI::messagable_list(const Lock& lock, const identifier::Nym& nymID) const
                 .emplace(
                     std::piecewise_construct,
                     std::forward_as_tuple(std::move(key)),
-                    std::forward_as_tuple(opentxs::Factory::MessagableListModel(
+                    std::forward_as_tuple(opentxs::factory::MessagableListModel(
                         api_,
                         widget_update_publisher_,
                         nymID
@@ -621,7 +612,7 @@ ui::MessagableListQt* UI::MessagableListQt(const identifier::Nym& nymID) const
         it = messagable_lists_qt_
                  .emplace(
                      std::move(key),
-                     opentxs::Factory::MessagableListQtModel(
+                     opentxs::factory::MessagableListQtModel(
                          *messagable_list(lock, nymID)))
                  .first;
 
@@ -646,7 +637,7 @@ auto UI::payable_list(
                  .emplace(
                      std::piecewise_construct,
                      std::forward_as_tuple(std::move(key)),
-                     std::forward_as_tuple(opentxs::Factory::PayableListModel(
+                     std::forward_as_tuple(opentxs::factory::PayableListModel(
                          api_,
                          widget_update_publisher_,
                          nymID,
@@ -684,7 +675,7 @@ ui::PayableListQt* UI::PayableListQt(
         it = payable_lists_qt_
                  .emplace(
                      std::move(key),
-                     opentxs::Factory::PayableListQtModel(
+                     opentxs::factory::PayableListQtModel(
                          *payable_list(lock, nymID, currency)))
                  .first;
 
@@ -706,7 +697,7 @@ auto UI::profile(const Lock& lock, const identifier::Nym& nymID) const noexcept
                  .emplace(
                      std::piecewise_construct,
                      std::forward_as_tuple(std::move(key)),
-                     std::forward_as_tuple(opentxs::Factory::ProfileModel(
+                     std::forward_as_tuple(opentxs::factory::ProfileModel(
                          api_,
                          widget_update_publisher_,
                          nymID
@@ -741,7 +732,7 @@ ui::ProfileQt* UI::ProfileQt(const identifier::Nym& nymID) const noexcept
         it = profiles_qt_
                  .emplace(
                      std::move(key),
-                     opentxs::Factory::ProfileQtModel(*profile(lock, nymID)))
+                     opentxs::factory::ProfileQtModel(*profile(lock, nymID)))
                  .first;
 
         OT_ASSERT(it->second);

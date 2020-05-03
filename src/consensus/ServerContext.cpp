@@ -3,33 +3,68 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"                 // IWYU pragma: associated
+#include "1_Internal.hpp"               // IWYU pragma: associated
+#include "consensus/ServerContext.hpp"  // IWYU pragma: associated
 
-#include "Internal.hpp"
+#include <algorithm>
+#include <atomic>
+#include <cinttypes>
+#include <cstring>
+#include <functional>
+#include <iterator>
+#include <list>
+#include <stdexcept>
+#include <type_traits>
 
-#include "opentxs/api/client/Activity.hpp"
-#include "opentxs/api/client/Contacts.hpp"
-#include "opentxs/api/client/Manager.hpp"
-#include "opentxs/api/client/OTX.hpp"
-#include "opentxs/api/client/Workflow.hpp"
-#include "opentxs/api/network/ZMQ.hpp"
-#include "opentxs/api/storage/Storage.hpp"
-#include "opentxs/api/Core.hpp"
+#include "Factory.hpp"
+#include "consensus/Context.hpp"
+#include "core/StateMachine.hpp"
+#include "internal/api/Api.hpp"
+#include "internal/api/client/Client.hpp"
+#include "opentxs/Exclusive.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.tpp"
+#include "opentxs/Shared.hpp"
+#include "opentxs/SharedPimpl.hpp"
 #include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Wallet.hpp"
+#include "opentxs/api/client/Activity.hpp"
+#include "opentxs/api/client/Contacts.hpp"
+#include "opentxs/api/client/OTX.hpp"
+#include "opentxs/api/client/Workflow.hpp"
+#include "opentxs/api/storage/Storage.hpp"
 #if OT_CASH
 #include "opentxs/blind/Mint.hpp"
 #include "opentxs/blind/Purse.hpp"
 #include "opentxs/blind/Token.hpp"
 #endif  // OT_CASH
-#include "opentxs/client/OT_API.hpp"
-#include "opentxs/client/OTClient.hpp"
 #include "opentxs/consensus/ManagedNumber.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/consensus/TransactionStatement.hpp"
+#include "opentxs/core/Account.hpp"
+#include "opentxs/core/Armored.hpp"
+#include "opentxs/core/Cheque.hpp"
+#include "opentxs/core/Data.hpp"
+#include "opentxs/core/Flag.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Item.hpp"
+#include "opentxs/core/Ledger.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/Message.hpp"
+#include "opentxs/core/NumList.hpp"
+#include "opentxs/core/NymFile.hpp"
+#include "opentxs/core/OTStorage.hpp"
+#include "opentxs/core/OTTransaction.hpp"
+#include "opentxs/core/OTTransactionType.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/contract/ServerContract.hpp"
 #include "opentxs/core/contract/basket/Basket.hpp"
+#include "opentxs/core/contract/basket/BasketItem.hpp"
+#include "opentxs/core/contract/peer/PeerObject.hpp"
 #include "opentxs/core/cron/OTCronItem.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
@@ -37,44 +72,17 @@
 #include "opentxs/core/trade/OTOffer.hpp"
 #include "opentxs/core/trade/OTTrade.hpp"
 #include "opentxs/core/transaction/Helpers.hpp"
-#include "opentxs/core/Account.hpp"
-#include "opentxs/core/Armored.hpp"
-#include "opentxs/core/Cheque.hpp"
-#include "opentxs/core/Flag.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Item.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/Message.hpp"
-#include "opentxs/core/NymFile.hpp"
-#include "opentxs/core/OTStorage.hpp"
-#include "opentxs/core/OTTransaction.hpp"
-#include "opentxs/core/PasswordPrompt.hpp"
-#include "opentxs/core/String.hpp"
 #include "opentxs/crypto/Envelope.hpp"
+#include "opentxs/crypto/key/Asymmetric.hpp"
 #include "opentxs/ext/OTPayment.hpp"
+#include "opentxs/identity/Nym.hpp"
+#include "opentxs/network/ServerConnection.hpp"
+#include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/socket/Publish.hpp"
 #include "opentxs/network/zeromq/socket/Push.hpp"
 #include "opentxs/network/zeromq/socket/Sender.tpp"
-#include "opentxs/network/zeromq/Context.hpp"
-#include "opentxs/network/zeromq/Frame.hpp"
-#include "opentxs/network/zeromq/ListenCallback.hpp"
-#include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/network/ServerConnection.hpp"
+#include "opentxs/network/zeromq/socket/Socket.hpp"
 #include "opentxs/otx/Reply.hpp"
-#include "opentxs/Proto.tpp"
-
-#include "core/StateMachine.hpp"
-#include "internal/api/client/Client.hpp"
-#include "internal/api/Api.hpp"
-#include "Context.hpp"
-
-#include <algorithm>
-#include <atomic>
-#include <cinttypes>
-#include <cstring>
-#include <iterator>
-
-#include "ServerContext.hpp"
 
 #define START()                                                                \
     Lock lock(decision_lock_);                                                 \
@@ -1211,9 +1219,7 @@ std::shared_ptr<OTPayment> ServerContext::
         // successfully.
         // Now we need to decrypt the payment on that message (which contains
         // the instrument
-        // itself that we need to return.) We decrypt it the same way as we do
-        // in SwigWrap::GetNym_MailContentsByIndex():
-        //
+        // itself that we need to return.)
 
         // SENDER:     pMsg->m_strNymID
         // RECIPIENT:  pMsg->m_strNymID2

@@ -3,9 +3,25 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/api/crypto/Config.cpp"
+
 #pragma once
 
-#include "Internal.hpp"
+#include <cstdint>
+#include <string>
+
+#include "opentxs/api/crypto/Config.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+class Settings;
+}  // namespace api
+
+class Factory;
+}  // namespace opentxs
 
 namespace opentxs::api::crypto::implementation
 {

@@ -3,21 +3,29 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"                        // IWYU pragma: associated
+#include "1_Internal.hpp"                      // IWYU pragma: associated
+#include "internal/blockchain/Blockchain.hpp"  // IWYU pragma: associated
 
-#include "Internal.hpp"
+#include <algorithm>
+#include <cstddef>
+#include <cstring>
+#include <iterator>
+#include <map>
+#include <memory>
+#include <set>
+#include <stdexcept>
+#include <thread>
+#include <utility>
 
-#include "opentxs/api/crypto/Crypto.hpp"
-#include "opentxs/api/crypto/Hash.hpp"
+#include "opentxs/Pimpl.hpp"
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
+#include "opentxs/api/crypto/Crypto.hpp"
+#include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
-
-#include "internal/blockchain/Blockchain.hpp"
-
-#include <map>
 
 #define BITMASK(n) ((1 << (n)) - 1)
 

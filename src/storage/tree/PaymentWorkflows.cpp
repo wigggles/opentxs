@@ -3,13 +3,18 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"                       // IWYU pragma: associated
+#include "1_Internal.hpp"                     // IWYU pragma: associated
+#include "storage/tree/PaymentWorkflows.hpp"  // IWYU pragma: associated
 
-#include "PaymentWorkflows.hpp"
+#include <tuple>
+#include <type_traits>
 
+#include "opentxs/api/storage/Driver.hpp"
 #include "opentxs/core/Log.hpp"
-
+#include "opentxs/core/LogSource.hpp"
 #include "storage/Plugin.hpp"
+#include "storage/tree/Node.hpp"
 
 #define CURRENT_VERSION 3
 #define TYPE_VERSION 3

@@ -3,49 +3,37 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
-
-#include "opentxs/api/client/Activity.hpp"
-#include "opentxs/api/client/Contacts.hpp"
-#include "opentxs/api/client/Manager.hpp"
-#include "opentxs/api/Factory.hpp"
-#include "opentxs/core/identifier/Nym.hpp"
-#include "opentxs/core/Flag.hpp"
-#include "opentxs/core/Lockable.hpp"
-#include "opentxs/core/PasswordPrompt.hpp"
-#include "opentxs/core/UniqueQueue.hpp"
-#include "opentxs/network/zeromq/socket/Subscribe.hpp"
-#include "opentxs/network/zeromq/Context.hpp"
-#include "opentxs/network/zeromq/ListenCallback.hpp"
-#include "opentxs/network/zeromq/FrameIterator.hpp"
-#include "opentxs/network/zeromq/FrameSection.hpp"
-#include "opentxs/network/zeromq/Frame.hpp"
-#include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/ui/ActivitySummaryItem.hpp"
-
-#include "internal/api/client/Client.hpp"
-#include "internal/ui/UI.hpp"
-#include "Row.hpp"
+#include "0_stdafx.hpp"                // IWYU pragma: associated
+#include "1_Internal.hpp"              // IWYU pragma: associated
+#include "ui/ActivitySummaryItem.hpp"  // IWYU pragma: associated
 
 #include <atomic>
 #include <memory>
-#include <set>
-#include <sstream>
+#include <mutex>
 #include <string>
 #include <thread>
-#include <tuple>
+#include <utility>
 
-#include "ActivitySummaryItem.hpp"
-
-template class opentxs::SharedPimpl<opentxs::ui::ActivitySummaryItem>;
+#include "internal/api/client/Client.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/api/client/Activity.hpp"
+#include "opentxs/api/client/Contacts.hpp"
+#include "opentxs/core/Flag.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/UniqueQueue.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "ui/Widget.hpp"
 
 #define GET_TEXT_MILLISECONDS 10
 
 #define OT_METHOD "opentxs::ui::implementation::ActivitySummaryItem::"
 
-namespace opentxs
+namespace opentxs::factory
 {
-ui::implementation::ActivitySummaryRowInternal* Factory::ActivitySummaryItem(
+auto ActivitySummaryItem(
     const ui::implementation::ActivitySummaryInternalInterface& parent,
     const api::client::internal::Manager& api,
     const network::zeromq::socket::Publish& publisher,
@@ -53,12 +41,15 @@ ui::implementation::ActivitySummaryRowInternal* Factory::ActivitySummaryItem(
     const ui::implementation::ActivitySummaryRowID& rowID,
     const ui::implementation::ActivitySummarySortKey& sortKey,
     const ui::implementation::CustomData& custom,
-    const Flag& running)
+    const Flag& running) noexcept
+    -> std::shared_ptr<ui::implementation::ActivitySummaryRowInternal>
 {
-    return new ui::implementation::ActivitySummaryItem(
+    using ReturnType = ui::implementation::ActivitySummaryItem;
+
+    return std::make_shared<ReturnType>(
         parent, api, publisher, nymID, rowID, sortKey, custom, running);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::ui::implementation
 {

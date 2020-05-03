@@ -5,8 +5,6 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
 namespace opentxs::ui::implementation
 {
 template <typename InterfaceType, typename ParentType, typename IdentifierType>

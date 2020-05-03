@@ -3,11 +3,46 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/core/contract/peer/PeerObject.cpp"
+
 #pragma once
 
 #include <cstdint>
 #include <memory>
 #include <string>
+
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/Version.hpp"
+#include "opentxs/core/contract/peer/PeerObject.hpp"
+#include "opentxs/core/contract/peer/PeerReply.hpp"
+#include "opentxs/core/contract/peer/PeerRequest.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace client
+{
+class Contacts;
+}  // namespace client
+
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
+namespace blind
+{
+class Purse;
+}  // namespace blind
+
+class Armored;
+class Factory;
+class PasswordPrompt;
+}  // namespace opentxs
 
 namespace opentxs::peer::implementation
 {

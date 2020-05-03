@@ -5,9 +5,50 @@
 
 #pragma once
 
+#include <cstdint>
+
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
 #include "opentxs/blind/Token.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
+namespace blind
+{
+class Mint;
+class Purse;
+
+namespace implementation
+{
+class Purse;
+}  // namespace implementation
+}  // namespace blind
+
+namespace crypto
+{
+namespace key
+{
+class Symmetric;
+}  // namespace key
+}  // namespace crypto
+
+namespace identity
+{
+class Nym;
+}  // namespace identity
+
+class PasswordPrompt;
+}  // namespace opentxs
 
 #define OT_TOKEN_VERSION 1
 

@@ -8,12 +8,13 @@
 
 #ifndef Q_MOC_RUN
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
+
+#include <string>
 
 #include "opentxs/ui/List.hpp"
 #include "opentxs/Proto.hpp"
-
-#include <string>
+#include "opentxs/SharedPimpl.hpp"
 
 #ifdef SWIG
 // clang-format off
@@ -73,6 +74,8 @@ public:
     OPENTXS_EXPORT QString contactID() const noexcept;
     OPENTXS_EXPORT QString paymentCode() const noexcept;
 
+    ContactQt(implementation::Contact& parent) noexcept;
+
     ~ContactQt() final = default;
 
 private:
@@ -82,7 +85,6 @@ private:
 
     void notify() const noexcept;
 
-    ContactQt(implementation::Contact& parent) noexcept;
     ContactQt() = delete;
     ContactQt(const ContactQt&) = delete;
     ContactQt(ContactQt&&) = delete;

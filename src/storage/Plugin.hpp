@@ -5,20 +5,34 @@
 
 #pragma once
 
-#include "Internal.hpp"
+#include <atomic>
+#include <future>
+#include <memory>
+#include <string>
 
+#include "opentxs/Bytes.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Proto.tpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/api/storage/Driver.hpp"
 #include "opentxs/api/storage/Plugin.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/Proto.tpp"
-#include "opentxs/Types.hpp"
-
-#include <atomic>
-#include <string>
+#include "opentxs/core/LogSource.hpp"
 
 namespace opentxs
 {
+namespace api
+{
+namespace storage
+{
+class Storage;
+}  // namespace storage
+}  // namespace api
+
+class Flag;
 class StorageConfig;
+
 class Plugin : virtual public opentxs::api::storage::Plugin
 {
 public:

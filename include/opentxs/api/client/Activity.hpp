@@ -6,16 +6,16 @@
 #ifndef OPENTXS_API_CLIENT_ACTIVITY_HPP
 #define OPENTXS_API_CLIENT_ACTIVITY_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/core/contract/UnitDefinition.hpp"
-#include "opentxs/Proto.hpp"
-#include "opentxs/Types.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <chrono>
 #include <memory>
 #include <string>
 #include <tuple>
+
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/core/contract/UnitDefinition.hpp"
 
 namespace opentxs
 {

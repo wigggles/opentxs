@@ -3,26 +3,40 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"                       // IWYU pragma: associated
+#include "1_Internal.hpp"                     // IWYU pragma: associated
+#include "blockchain/client/BlockOracle.hpp"  // IWYU pragma: associated
 
-#include "Internal.hpp"
+#include <algorithm>
+#include <map>
+#include <memory>
+#include <type_traits>
 
+#include "Factory.hpp"
+#include "core/Executor.hpp"
+#include "internal/blockchain/Blockchain.hpp"
+#include "internal/blockchain/client/Client.hpp"
+#include "opentxs/Pimpl.hpp"
 #include "opentxs/blockchain/block/bitcoin/Block.hpp"
 #include "opentxs/blockchain/client/BlockOracle.hpp"
+#include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
-#include "opentxs/network/zeromq/FrameIterator.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/network/zeromq/Pipeline.hpp"
 
-#include "core/Executor.hpp"
-#include "internal/blockchain/client/Client.hpp"
-#include "internal/blockchain/Blockchain.hpp"
-
-#include <deque>
-#include <map>
-
-#include "BlockOracle.hpp"
+namespace opentxs
+{
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+}  // namespace opentxs
 
 #define OT_METHOD "opentxs::blockchain::client::implementation::BlockOracle::"
 

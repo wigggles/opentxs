@@ -3,26 +3,28 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"         // IWYU pragma: associated
+#include "1_Internal.hpp"       // IWYU pragma: associated
+#include "api/crypto/Hash.hpp"  // IWYU pragma: associated
 
-#include "Internal.hpp"
+#include <cstring>
+#include <iterator>
+#include <memory>
+#include <vector>
 
+#include "Factory.hpp"
+#include "internal/crypto/library/Pbkdf2.hpp"
+#include "internal/crypto/library/Ripemd160.hpp"
+#include "opentxs/Pimpl.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/core/String.hpp"
-#include "opentxs/crypto/library/EncodingProvider.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/crypto/library/HashingProvider.hpp"
-#include "opentxs/crypto/library/Pbkdf2.hpp"
-#include "opentxs/crypto/library/Ripemd160.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
-
-#include "siphash/src/siphash.h"
 #include "smhasher/src/MurmurHash3.h"
-
-#include "Hash.hpp"
 
 #define OT_METHOD "opentxs::api::crypto::implementation::Hash::"
 
@@ -374,46 +376,6 @@ auto Hash::sha_256_double_checksum(
     }
 
     std::memcpy(output, temp.data(), 4);
-
-    return true;
-}
-
-auto Hash::SipHash(
-    const ReadView key,
-    const ReadView data,
-    std::uint64_t& output,
-    const int c,
-    const int d) const noexcept -> bool
-{
-    const bool validKey = 16 == key.size();
-
-    if (false == validKey) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid key size").Flush();
-
-        return false;
-    }
-
-    if (1 > c) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid c").Flush();
-
-        return false;
-    }
-
-    if (1 > d) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid d").Flush();
-
-        return false;
-    }
-
-    auto hasher = ::SipHash{const_cast<char*>(key.data()), c, d};
-    auto it = data.data();
-
-    for (auto i = std::size_t{0}; i < data.size(); ++i) {
-        hasher.update(*it);
-        std::advance(it, 1);
-    }
-
-    output = hasher.digest();
 
     return true;
 }

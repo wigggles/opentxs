@@ -6,18 +6,21 @@
 #ifndef OPENTXS_CORE_MESSAGE_HPP
 #define OPENTXS_CORE_MESSAGE_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/core/Armored.hpp"
-#include "opentxs/core/Contract.hpp"
-#include "opentxs/core/NumList.hpp"
-#include "opentxs/core/String.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <cstdint>
 #include <memory>
 #include <string>
 #include <unordered_map>
 #include <utility>
+#include <map>
+#include <set>
+
+#include "opentxs/core/Armored.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/NumList.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/Types.hpp"
 
 namespace opentxs
 {
@@ -33,6 +36,17 @@ namespace internal
 struct Core;
 }  // namespace internal
 }  // namespace api
+
+namespace identity
+{
+class Nym;
+}  // namespace identity
+
+class Context;
+class Message;
+class PasswordPrompt;
+class ServerContext;
+class Tag;
 
 class OTMessageStrategy
 {

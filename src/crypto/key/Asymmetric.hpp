@@ -5,14 +5,49 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
-#include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/Data.hpp"
+#include <cstdint>
+#include <functional>
+#include <map>
+#include <memory>
+#include <string>
 
 #include "internal/api/Api.hpp"
+#include "opentxs/Bytes.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/core/Data.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/crypto/key/Asymmetric.hpp"
+#include "opentxs/crypto/library/AsymmetricProvider.hpp"
 
-#include <functional>
+namespace opentxs
+{
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
+namespace crypto
+{
+namespace key
+{
+class Symmetric;
+}  // namespace key
+}  // namespace crypto
+
+namespace identity
+{
+class Authority;
+}  // namespace identity
+
+class Identifier;
+class NymParameters;
+class OTSignatureMetadata;
+class PasswordPrompt;
+}  // namespace opentxs
 
 namespace opentxs::crypto::key::implementation
 {

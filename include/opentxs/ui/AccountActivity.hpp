@@ -8,9 +8,10 @@
 
 #ifndef Q_MOC_RUN
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include "opentxs/ui/List.hpp"
+#include "opentxs/SharedPimpl.hpp"
 
 #ifdef SWIG
 // clang-format off
@@ -82,6 +83,8 @@ public:
     OPENTXS_EXPORT int balancePolarity() const noexcept;
     OPENTXS_EXPORT QString displayBalance() const noexcept;
 
+    AccountActivityQt(implementation::AccountActivity& parent) noexcept;
+
     ~AccountActivityQt() final = default;
 
 private:
@@ -91,7 +94,6 @@ private:
 
     void notify() const noexcept;
 
-    AccountActivityQt(implementation::AccountActivity& parent) noexcept;
     AccountActivityQt() = delete;
     AccountActivityQt(const AccountActivityQt&) = delete;
     AccountActivityQt(AccountActivityQt&&) = delete;

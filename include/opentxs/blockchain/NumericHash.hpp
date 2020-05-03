@@ -6,27 +6,37 @@
 #ifndef OPENTXS_BLOCKCHAIN_NUMERIC_HASH_HPP
 #define OPENTXS_BLOCKCHAIN_NUMERIC_HASH_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <string>
 
+#include "opentxs/Pimpl.hpp"
+
 namespace opentxs
 {
+namespace blockchain
+{
+class NumericHash;
+}  // namespace blockchain
+
 using OTNumericHash = Pimpl<blockchain::NumericHash>;
 
-bool operator==(
+OPENTXS_EXPORT bool operator==(
     const OTNumericHash& lhs,
     const blockchain::NumericHash& rhs) noexcept;
-bool operator!=(
+OPENTXS_EXPORT bool operator!=(
     const OTNumericHash& lhs,
     const blockchain::NumericHash& rhs) noexcept;
-bool operator<(
+OPENTXS_EXPORT bool operator<(
     const OTNumericHash& lhs,
     const blockchain::NumericHash& rhs) noexcept;
-bool operator<=(
+OPENTXS_EXPORT bool operator<=(
     const OTNumericHash& lhs,
     const blockchain::NumericHash& rhs) noexcept;
+}  // namespace opentxs
 
+namespace opentxs
+{
 namespace blockchain
 {
 class NumericHash

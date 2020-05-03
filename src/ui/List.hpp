@@ -5,21 +5,18 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
-#include "opentxs/core/identifier/Nym.hpp"
-#include "opentxs/core/Flag.hpp"
-#include "opentxs/core/Lockable.hpp"
-
-#include "internal/api/client/Client.hpp"
-#include "internal/core/Core.hpp"
-#include "internal/ui/UI.hpp"
-#include "Widget.hpp"
-
 #include <future>
 #include <type_traits>
 #include <optional>
 #include <utility>
+
+#include "internal/api/client/Client.hpp"
+#include "internal/core/Core.hpp"
+#include "internal/ui/UI.hpp"
+#include "opentxs/core/Flag.hpp"
+#include "opentxs/core/Lockable.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "ui/Widget.hpp"
 
 #define LIST_METHOD "opentxs::ui::implementation::List::"
 

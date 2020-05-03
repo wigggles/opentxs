@@ -3,18 +3,19 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
-
-#include "opentxs/core/script/OTClause.hpp"
-
-#include "opentxs/core/util/Tag.hpp"
-#include "opentxs/core/Armored.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/String.hpp"
+#include "0_stdafx.hpp"                      // IWYU pragma: associated
+#include "1_Internal.hpp"                    // IWYU pragma: associated
+#include "opentxs/core/script/OTClause.hpp"  // IWYU pragma: associated
 
 #include <memory>
-#include <ostream>
 #include <string>
+
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/core/Armored.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/util/Tag.hpp"
 
 // ------------- OPERATIONS -------------
 // Below this point, have all the actions that a party might do.
@@ -31,7 +32,6 @@
 
 namespace opentxs
 {
-
 OTClause::OTClause()
     : m_strName(String::Factory())
     , m_strCode(String::Factory())

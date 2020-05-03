@@ -3,7 +3,70 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/api/client/UI.cpp"
+
 #pragma once
+
+#include <iosfwd>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <utility>
+
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/Version.hpp"
+#include "opentxs/api/client/UI.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Lockable.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/network/zeromq/socket/Publish.hpp"
+#include "opentxs/ui/AccountActivity.hpp"
+#include "opentxs/ui/AccountList.hpp"
+#include "opentxs/ui/AccountSummary.hpp"
+#include "opentxs/ui/ActivitySummary.hpp"
+#include "opentxs/ui/ActivityThread.hpp"
+#include "opentxs/ui/Contact.hpp"
+#include "opentxs/ui/ContactList.hpp"
+#include "opentxs/ui/List.hpp"
+#include "opentxs/ui/MessagableList.hpp"
+#include "opentxs/ui/PayableList.hpp"
+#include "opentxs/ui/Profile.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace client
+{
+namespace internal
+{
+struct Manager;
+}  // namespace internal
+}  // namespace client
+}  // namespace api
+
+namespace ui
+{
+namespace implementation
+{
+class AccountActivity;
+class AccountList;
+class AccountSummary;
+class ActivitySummary;
+class ActivityThread;
+class Contact;
+class ContactList;
+class MessagableList;
+class PayableList;
+class Profile;
+}  // namespace implementation
+}  // namespace ui
+
+class Factory;
+class Flag;
+}  // namespace opentxs
 
 namespace opentxs::api::client::implementation
 {

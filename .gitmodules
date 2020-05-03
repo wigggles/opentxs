@@ -10,9 +10,6 @@
 [submodule "deps/simpleini"]
 	path = deps/simpleini
 	url = https://github.com/brofield/simpleini.git
-[submodule "deps/siphash"]
-	path = deps/siphash
-	url = https://github.com/whitfin/siphash-cpp
 [submodule "deps/smhasher"]
 	path = deps/smhasher
 	url = https://github.com/aappleby/smhasher

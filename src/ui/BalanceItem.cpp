@@ -3,48 +3,33 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"        // IWYU pragma: associated
+#include "1_Internal.hpp"      // IWYU pragma: associated
+#include "ui/BalanceItem.hpp"  // IWYU pragma: associated
 
-#include "opentxs/api/client/Contacts.hpp"
-#include "opentxs/api/client/Manager.hpp"
-#include "opentxs/api/client/OTX.hpp"
-#include "opentxs/api/client/Workflow.hpp"
-#include "opentxs/api/storage/Storage.hpp"
-#include "opentxs/api/Core.hpp"
-#include "opentxs/api/Factory.hpp"
-#include "opentxs/api/Wallet.hpp"
-#include "opentxs/core/contract/UnitDefinition.hpp"
-#include "opentxs/core/Cheque.hpp"
-#include "opentxs/core/Flag.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Lockable.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/PasswordPrompt.hpp"
-#include "opentxs/ui/BalanceItem.hpp"
-
-#include "internal/api/client/Client.hpp"
-#include "internal/ui/UI.hpp"
-#include "Row.hpp"
-
+#include <algorithm>
 #include <memory>
-#include <set>
-#include <sstream>
 #include <string>
 #include <thread>
-#include <tuple>
 #include <vector>
 
-#include "BalanceItem.hpp"
-#include "ChequeBalanceItem.hpp"
-#include "TransferBalanceItem.hpp"
-
-template class opentxs::SharedPimpl<opentxs::ui::BalanceItem>;
+#include "internal/api/client/Client.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/api/client/Contacts.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/contract/UnitDefinition.hpp"
+#include "ui/ChequeBalanceItem.hpp"
+#include "ui/TransferBalanceItem.hpp"
 
 #define OT_METHOD "opentxs::ui::implementation::BalanceItem::"
 
-namespace opentxs
+namespace opentxs::factory
 {
-ui::implementation::AccountActivityRowInternal* Factory::BalanceItem(
+auto BalanceItem(
     const ui::implementation::AccountActivityInternalInterface& parent,
     const api::client::internal::Manager& api,
     const network::zeromq::socket::Publish& publisher,
@@ -52,7 +37,8 @@ ui::implementation::AccountActivityRowInternal* Factory::BalanceItem(
     const ui::implementation::AccountActivitySortKey& sortKey,
     const ui::implementation::CustomData& custom,
     const identifier::Nym& nymID,
-    const Identifier& accountID)
+    const Identifier& accountID) noexcept
+    -> std::shared_ptr<ui::implementation::AccountActivityRowInternal>
 {
     const auto type =
         ui::implementation::BalanceItem::recover_workflow(custom).type();
@@ -62,7 +48,7 @@ ui::implementation::AccountActivityRowInternal* Factory::BalanceItem(
         case proto::PAYMENTWORKFLOWTYPE_INCOMINGCHEQUE:
         case proto::PAYMENTWORKFLOWTYPE_OUTGOINGINVOICE:
         case proto::PAYMENTWORKFLOWTYPE_INCOMINGINVOICE: {
-            return new ui::implementation::ChequeBalanceItem(
+            return std::make_shared<ui::implementation::ChequeBalanceItem>(
                 parent,
                 api,
                 publisher,
@@ -75,7 +61,7 @@ ui::implementation::AccountActivityRowInternal* Factory::BalanceItem(
         case proto::PAYMENTWORKFLOWTYPE_OUTGOINGTRANSFER:
         case proto::PAYMENTWORKFLOWTYPE_INCOMINGTRANSFER:
         case proto::PAYMENTWORKFLOWTYPE_INTERNALTRANSFER: {
-            return new ui::implementation::TransferBalanceItem(
+            return std::make_shared<ui::implementation::TransferBalanceItem>(
                 parent,
                 api,
                 publisher,
@@ -95,7 +81,7 @@ ui::implementation::AccountActivityRowInternal* Factory::BalanceItem(
 
     return nullptr;
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::ui::implementation
 {

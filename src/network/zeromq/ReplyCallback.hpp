@@ -5,8 +5,7 @@
 
 #pragma once
 
-#include "opentxs/Forward.hpp"
-
+#include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/ReplyCallback.hpp"
 
 namespace opentxs::network::zeromq::implementation

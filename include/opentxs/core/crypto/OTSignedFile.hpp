@@ -6,12 +6,12 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTSIGNEDFILE_HPP
 #define OPENTXS_CORE_CRYPTO_OTSIGNEDFILE_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
+
+#include <cstdint>
 
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/String.hpp"
-
-#include <cstdint>
 
 namespace opentxs
 {
@@ -27,6 +27,8 @@ namespace internal
 struct Core;
 }  // namespace internal
 }  // namespace api
+
+class PasswordPrompt;
 
 class OTSignedFile : public Contract
 {

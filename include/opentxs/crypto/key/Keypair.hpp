@@ -6,19 +6,31 @@
 #ifndef OPENTXS_CRYPTO_KEY_KEYPAIR_HPP
 #define OPENTXS_CRYPTO_KEY_KEYPAIR_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/Proto.hpp"
-#include "opentxs/Types.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <cstdint>
 #include <list>
 #include <memory>
 
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+
 namespace opentxs
 {
-using OTKeypair = Pimpl<crypto::key::Keypair>;
+namespace crypto
+{
+namespace key
+{
+class Keypair;
+}  // namespace key
+}  // namespace crypto
 
+using OTKeypair = Pimpl<crypto::key::Keypair>;
+}  // namespace opentxs
+
+namespace opentxs
+{
 namespace crypto
 {
 namespace key

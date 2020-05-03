@@ -6,13 +6,13 @@
 #ifndef OPENTXS_API_CRYPTO_HASH_HPP
 #define OPENTXS_API_CRYPTO_HASH_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/Bytes.hpp"
-#include "opentxs/Proto.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <cstdint>
 #include <string>
+
+#include "opentxs/Bytes.hpp"
+#include "opentxs/Proto.hpp"
 
 namespace opentxs
 {
@@ -65,12 +65,6 @@ public:
         const proto::HashType hashType,
         const std::size_t bytes,
         Data& output) const noexcept = 0;
-    OPENTXS_EXPORT virtual bool SipHash(
-        const ReadView key,
-        const ReadView data,
-        std::uint64_t& output,
-        const int c = 2,
-        const int d = 4) const noexcept = 0;
 
     OPENTXS_EXPORT virtual ~Hash() = default;
 

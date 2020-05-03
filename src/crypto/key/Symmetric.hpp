@@ -5,7 +5,33 @@
 
 #pragma once
 
-#include "Internal.hpp"
+#include <cstdint>
+#include <iosfwd>
+#include <memory>
+#include <mutex>
+#include <string>
+
+#include "internal/api/Api.hpp"
+#include "opentxs/Bytes.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/api/Core.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/crypto/key/Symmetric.hpp"
+
+namespace opentxs
+{
+namespace crypto
+{
+class SymmetricProvider;
+}  // namespace crypto
+
+class Data;
+class Factory;
+class PasswordPrompt;
+class String;
+}  // namespace opentxs
 
 namespace opentxs::crypto::key::implementation
 {

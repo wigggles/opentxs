@@ -3,25 +3,38 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"                       // IWYU pragma: associated
+#include "1_Internal.hpp"                     // IWYU pragma: associated
+#include "blockchain/client/HDStateData.hpp"  // IWYU pragma: associated
 
-#include "opentxs/api/client/Blockchain.hpp"
-#include "opentxs/api/Factory.hpp"
-#include "opentxs/blockchain/block/bitcoin/Block.hpp"
-#include "opentxs/blockchain/block/bitcoin/Input.hpp"
-#include "opentxs/blockchain/block/bitcoin/Inputs.hpp"
-#include "opentxs/blockchain/block/bitcoin/Outputs.hpp"
-#include "opentxs/blockchain/block/bitcoin/Output.hpp"
-#include "opentxs/blockchain/block/bitcoin/Script.hpp"
-#include "opentxs/blockchain/block/bitcoin/Transaction.hpp"
-#include "opentxs/blockchain/block/Header.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/crypto/key/EllipticCurve.hpp"
+#include <algorithm>
+#include <chrono>
+#include <cstdint>
+#include <future>
+#include <iterator>
+#include <memory>
+#include <set>
+#include <string>
+#include <string_view>
+#include <utility>
 
 #include "internal/api/Api.hpp"
 #include "internal/blockchain/Blockchain.hpp"
-
-#include "HDStateData.hpp"
+#include "opentxs/Bytes.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/api/client/blockchain/HD.hpp"
+#include "opentxs/blockchain/block/Header.hpp"
+#include "opentxs/blockchain/block/bitcoin/Block.hpp"
+#include "opentxs/blockchain/block/bitcoin/Input.hpp"
+#include "opentxs/blockchain/block/bitcoin/Inputs.hpp"
+#include "opentxs/blockchain/block/bitcoin/Output.hpp"
+#include "opentxs/blockchain/block/bitcoin/Outputs.hpp"
+#include "opentxs/blockchain/block/bitcoin/Script.hpp"
+#include "opentxs/blockchain/block/bitcoin/Transaction.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/crypto/key/EllipticCurve.hpp"
 
 #define OT_METHOD "opentxs::blockchain::client::implementation::HDStateData::"
 

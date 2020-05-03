@@ -3,9 +3,9 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
-
-#include "EcdsaProvider.hpp"
+#include "0_stdafx.hpp"                      // IWYU pragma: associated
+#include "1_Internal.hpp"                    // IWYU pragma: associated
+#include "crypto/library/EcdsaProvider.hpp"  // IWYU pragma: associated
 
 // #define OT_METHOD "opentxs::crypto::implementation::EcdsaProvider::"
 

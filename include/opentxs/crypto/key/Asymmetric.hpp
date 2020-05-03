@@ -6,7 +6,12 @@
 #ifndef OPENTXS_CRYPTO_KEY_ASYMMETRIC_HPP
 #define OPENTXS_CRYPTO_KEY_ASYMMETRIC_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
+
+#include <cstdint>
+#include <list>
+#include <memory>
+#include <string>
 
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
@@ -15,15 +20,21 @@
 #include "opentxs/Bytes.hpp"
 #include "opentxs/Proto.hpp"
 
-#include <cstdint>
-#include <list>
-#include <memory>
-#include <string>
+namespace opentxs
+{
+namespace crypto
+{
+namespace key
+{
+class Asymmetric;
+}  // namespace key
+}  // namespace crypto
+
+using OTAsymmetricKey = Pimpl<crypto::key::Asymmetric>;
+}  // namespace opentxs
 
 namespace opentxs
 {
-using OTAsymmetricKey = Pimpl<crypto::key::Asymmetric>;
-
 namespace crypto
 {
 namespace key

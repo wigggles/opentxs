@@ -3,17 +3,26 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"    // IWYU pragma: associated
+#include "1_Internal.hpp"  // IWYU pragma: associated
+#include "blockchain/p2p/bitcoin/message/Merkleblock.hpp"  // IWYU pragma: associated
 
+#include <algorithm>
+#include <cstdint>
+#include <utility>
+
+#include "Factory.hpp"
+#include "blockchain/p2p/bitcoin/Header.hpp"
+#include "internal/blockchain/bitcoin/Bitcoin.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
-
-#include "Merkleblock.hpp"
 
 //#define OT_METHOD " opentxs::blockchain::p2p::bitcoin::message::Merkleblock::"
 
 namespace opentxs
 {
-
 // We have a header and a raw payload. Parse it.
 blockchain::p2p::bitcoin::message::Merkleblock* Factory::BitcoinP2PMerkleblock(
     const api::internal::Core& api,

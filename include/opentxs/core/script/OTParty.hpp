@@ -6,15 +6,15 @@
 #ifndef OPENTXS_CORE_SCRIPT_OTPARTY_HPP
 #define OPENTXS_CORE_SCRIPT_OTPARTY_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/core/Account.hpp"
-#include "opentxs/core/String.hpp"
-#include "opentxs/Types.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <cstdint>
 #include <map>
 #include <string>
+
+#include "opentxs/core/Account.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/Types.hpp"
 
 namespace opentxs
 {
@@ -24,7 +24,30 @@ namespace internal
 {
 struct Core;
 }  // namespace internal
+
+class Wallet;
 }  // namespace api
+
+namespace identifier
+{
+class Server;
+}  // namespace identifier
+
+namespace identity
+{
+class Nym;
+}  // namespace identity
+
+class Contract;
+class Identifier;
+class NumList;
+class OTAgent;
+class OTPartyAccount;
+class OTScript;
+class OTScriptable;
+class PasswordPrompt;
+class ServerContext;
+class Tag;
 
 // Party is always either an Owner Nym, or an Owner Entity formed by Contract.
 //

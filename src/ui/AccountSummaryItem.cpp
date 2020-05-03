@@ -3,51 +3,40 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
-
-#include "opentxs/api/client/Issuer.hpp"
-#include "opentxs/api/client/Manager.hpp"
-#include "opentxs/api/storage/Storage.hpp"
-#include "opentxs/api/Factory.hpp"
-#include "opentxs/api/Wallet.hpp"
-#include "opentxs/core/contract/UnitDefinition.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Lockable.hpp"
-#include "opentxs/core/PasswordPrompt.hpp"
-#include "opentxs/network/zeromq/socket/Subscribe.hpp"
-#include "opentxs/network/zeromq/Context.hpp"
-#include "opentxs/network/zeromq/FrameIterator.hpp"
-#include "opentxs/network/zeromq/FrameSection.hpp"
-#include "opentxs/network/zeromq/Frame.hpp"
-#include "opentxs/network/zeromq/ListenCallback.hpp"
-#include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/ui/AccountSummaryItem.hpp"
-
-#include "internal/api/client/Client.hpp"
-#include "internal/ui/UI.hpp"
-#include "Row.hpp"
+#include "0_stdafx.hpp"               // IWYU pragma: associated
+#include "1_Internal.hpp"             // IWYU pragma: associated
+#include "ui/AccountSummaryItem.hpp"  // IWYU pragma: associated
 
 #include <atomic>
+#include <memory>
+#include <utility>
 
-#include "AccountSummaryItem.hpp"
+#include "internal/api/client/Client.hpp"
+#include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/api/Wallet.hpp"
+#include "opentxs/api/storage/Storage.hpp"
+#include "opentxs/core/contract/UnitDefinition.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
+#include "ui/Widget.hpp"
 
-template class opentxs::SharedPimpl<opentxs::ui::AccountSummaryItem>;
-
-namespace opentxs
+namespace opentxs::factory
 {
-auto Factory::AccountSummaryItem(
+auto AccountSummaryItem(
     const ui::implementation::IssuerItemInternalInterface& parent,
     const api::client::internal::Manager& api,
     const network::zeromq::socket::Publish& publisher,
     const ui::implementation::IssuerItemRowID& rowID,
     const ui::implementation::IssuerItemSortKey& sortKey,
-    const ui::implementation::CustomData& custom)
-    -> ui::implementation::IssuerItemRowInternal*
+    const ui::implementation::CustomData& custom) noexcept
+    -> std::shared_ptr<ui::implementation::IssuerItemRowInternal>
 {
-    return new ui::implementation::AccountSummaryItem(
+    using ReturnType = ui::implementation::AccountSummaryItem;
+
+    return std::make_shared<ReturnType>(
         parent, api, publisher, rowID, sortKey, custom);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::ui::implementation
 {

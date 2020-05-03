@@ -3,13 +3,11 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#pragma once
 
-#include "Internal.hpp"
+#include "network/zeromq/socket/Sender.hpp"  // IWYU pragma: associated
 
-#include "Socket.hpp"
-
-#include "Sender.hpp"
+#include "network/zeromq/socket/Socket.hpp"
 
 //#define OT_METHOD "opentxs::network::zeromq::socket::implementation::Sender::"
 

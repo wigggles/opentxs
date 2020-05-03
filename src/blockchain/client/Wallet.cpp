@@ -3,37 +3,48 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"                  // IWYU pragma: associated
+#include "1_Internal.hpp"                // IWYU pragma: associated
+#include "blockchain/client/Wallet.hpp"  // IWYU pragma: associated
 
-#include "Internal.hpp"
+#include <atomic>
+#include <chrono>
+#include <cstdint>
+#include <future>
+#include <map>
+#include <memory>
+#include <optional>
+#include <queue>
+#include <set>
+#include <type_traits>
+#include <utility>
+#include <vector>
 
-#include "opentxs/api/client/Blockchain.hpp"
-#include "opentxs/api/client/Manager.hpp"
+#include "Factory.hpp"
+#include "blockchain/client/HDStateData.hpp"
+#include "core/Executor.hpp"
+#include "internal/api/Api.hpp"
+#include "internal/api/client/Client.hpp"
+#include "internal/blockchain/Blockchain.hpp"
+#include "internal/blockchain/client/Client.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/api/Core.hpp"
 #include "opentxs/api/Endpoints.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
-#include "opentxs/blockchain/block/bitcoin/Block.hpp"
-#include "opentxs/blockchain/block/Header.hpp"
-#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/api/client/blockchain/BalanceTree.hpp"
+#include "opentxs/api/client/blockchain/HD.hpp"
+#include "opentxs/core/Data.hpp"
+#include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/crypto/key/EllipticCurve.hpp"
-#include "opentxs/network/zeromq/socket/Push.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
-
-#include "blockchain/client/HDStateData.hpp"
-#include "core/Executor.hpp"
-#include "internal/api/client/blockchain/Blockchain.hpp"
-#include "internal/api/client/Client.hpp"
-#include "internal/blockchain/client/Client.hpp"
-#include "internal/blockchain/Blockchain.hpp"
-
-#include <deque>
-#include <future>
-#include <map>
-#include <queue>
-
-#include "Wallet.hpp"
+#include "opentxs/network/zeromq/socket/Push.hpp"
+#include "opentxs/network/zeromq/socket/Socket.hpp"
 
 #define OT_METHOD "opentxs::blockchain::client::implementation::Wallet::"
 

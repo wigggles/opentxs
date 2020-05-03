@@ -14,10 +14,10 @@
 #define WIN32_LEAN_AND_MEAN
 #endif
 
+#include <ShlObj.h>
 #include <WinSock2.h>
 #include <Windows.h>
 #include <direct.h>
-#include <ShlObj.h>
 #include <xstring>
 #endif
 
@@ -27,6 +27,7 @@
 #endif
 
 #include <cstdint>
+#include <memory>
 
 #ifdef __cplusplus
 extern "C" {

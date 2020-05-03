@@ -3,43 +3,42 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"       // IWYU pragma: associated
+#include "1_Internal.hpp"     // IWYU pragma: associated
+#include "ui/IssuerItem.hpp"  // IWYU pragma: associated
 
-#include "opentxs/api/client/Issuer.hpp"
-#include "opentxs/api/client/Manager.hpp"
-#include "opentxs/api/storage/Storage.hpp"
-#include "opentxs/api/Core.hpp"
-#include "opentxs/api/Endpoints.hpp"
-#include "opentxs/api/Factory.hpp"
-#include "opentxs/api/Wallet.hpp"
-#include "opentxs/core/Flag.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Lockable.hpp"
-#include "opentxs/core/PasswordPrompt.hpp"
-#include "opentxs/network/zeromq/socket/Subscribe.hpp"
-#include "opentxs/network/zeromq/Context.hpp"
-#include "opentxs/network/zeromq/FrameIterator.hpp"
-#include "opentxs/network/zeromq/FrameSection.hpp"
-#include "opentxs/network/zeromq/Frame.hpp"
-#include "opentxs/network/zeromq/ListenCallback.hpp"
-#include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/ui/IssuerItem.hpp"
+#include <algorithm>
+#include <atomic>
+#include <iterator>
+#include <set>
+#include <thread>
+#include <utility>
 
 #include "internal/api/client/Client.hpp"
-#include "internal/ui/UI.hpp"
-#include "Combined.hpp"
-
-#include <atomic>
-
-#include "IssuerItem.hpp"
-
-template class opentxs::SharedPimpl<opentxs::ui::IssuerItem>;
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Shared.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/api/Endpoints.hpp"
+#include "opentxs/api/Wallet.hpp"
+#include "opentxs/api/client/Issuer.hpp"
+#include "opentxs/api/storage/Storage.hpp"
+#include "opentxs/core/Account.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
+#include "opentxs/network/zeromq/Frame.hpp"
+#include "opentxs/network/zeromq/FrameSection.hpp"
+#include "opentxs/network/zeromq/Message.hpp"
+#include "ui/Combined.hpp"
 
 #define OT_METHOD "opentxs::ui::implementation::IssuerItem::"
 
-namespace opentxs
+namespace opentxs::factory
 {
-ui::implementation::AccountSummaryRowInternal* Factory::IssuerItem(
+auto IssuerItem(
     const ui::implementation::AccountSummaryInternalInterface& parent,
     const api::client::internal::Manager& api,
     const network::zeromq::socket::Publish& publisher,
@@ -51,9 +50,11 @@ ui::implementation::AccountSummaryRowInternal* Factory::IssuerItem(
     ,
     const bool qt
 #endif
-)
+    ) noexcept -> std::shared_ptr<ui::implementation::AccountSummaryRowInternal>
 {
-    return new ui::implementation::IssuerItem(
+    using ReturnType = ui::implementation::IssuerItem;
+
+    return std::make_shared<ReturnType>(
         parent,
         api,
         publisher,
@@ -67,7 +68,7 @@ ui::implementation::AccountSummaryRowInternal* Factory::IssuerItem(
 #endif
     );
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::ui::implementation
 {
@@ -127,7 +128,7 @@ void* IssuerItem::construct_row(
     names_.emplace(id, index);
     const auto [it, added] = items_[index].emplace(
         id,
-        Factory::AccountSummaryItem(
+        factory::AccountSummaryItem(
             *this, api_, publisher_, id, index, custom));
 
     return it->second.get();

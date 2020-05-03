@@ -3,16 +3,66 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/ui/ActivitySummary.cpp"
+
 #pragma once
 
-#include "Internal.hpp"
+#include <map>
+#include <string>
+#include <utility>
 
+#include "1_Internal.hpp"
+#include "internal/ui/UI.hpp"
+#include "opentxs/SharedPimpl.hpp"
+#include "opentxs/Version.hpp"
 #include "opentxs/core/Flag.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
 #include "opentxs/ui/ActivitySummary.hpp"
+#include "ui/List.hpp"
+#include "ui/Widget.hpp"
 
-#include "internal/ui/UI.hpp"
-#include "List.hpp"
+namespace opentxs
+{
+namespace api
+{
+namespace client
+{
+namespace internal
+{
+struct Manager;
+}  // namespace internal
+}  // namespace client
+}  // namespace api
+
+namespace identifier
+{
+class Nym;
+}  // namespace identifier
+
+namespace network
+{
+namespace zeromq
+{
+namespace socket
+{
+class Publish;
+}  // namespace socket
+
+class Message;
+}  // namespace zeromq
+}  // namespace network
+
+namespace proto
+{
+class StorageThread;
+class StorageThreadItem;
+}  // namespace proto
+
+class Factory;
+class Flag;
+}  // namespace opentxs
 
 namespace opentxs::ui::implementation
 {
@@ -29,6 +79,17 @@ using ActivitySummaryList = List<
 class ActivitySummary final : public ActivitySummaryList
 {
 public:
+    ActivitySummary(
+        const api::client::internal::Manager& api,
+        const network::zeromq::socket::Publish& publisher,
+        const Flag& running,
+        const identifier::Nym& nymID
+#if OT_QT
+        ,
+        const bool qt
+#endif
+        ) noexcept;
+
     ~ActivitySummary() final;
 
 private:
@@ -51,16 +112,6 @@ private:
     void process_thread(const network::zeromq::Message& message) noexcept;
     void startup() noexcept;
 
-    ActivitySummary(
-        const api::client::internal::Manager& api,
-        const network::zeromq::socket::Publish& publisher,
-        const Flag& running,
-        const identifier::Nym& nymID
-#if OT_QT
-        ,
-        const bool qt
-#endif
-        ) noexcept;
     ActivitySummary() = delete;
     ActivitySummary(const ActivitySummary&) = delete;
     ActivitySummary(ActivitySummary&&) = delete;

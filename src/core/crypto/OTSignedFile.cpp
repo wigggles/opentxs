@@ -3,29 +3,26 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
-
-#include "opentxs/core/crypto/OTSignedFile.hpp"
-
-#include "opentxs/api/Core.hpp"
-#include "opentxs/api/Factory.hpp"
-#include "opentxs/core/util/Tag.hpp"
-#include "opentxs/core/Armored.hpp"
-#include "opentxs/core/Contract.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/OTStorage.hpp"
-#include "opentxs/core/StringXML.hpp"
-#include "opentxs/core/String.hpp"
-
-#include "internal/api/Api.hpp"
+#include "0_stdafx.hpp"                          // IWYU pragma: associated
+#include "1_Internal.hpp"                        // IWYU pragma: associated
+#include "opentxs/core/crypto/OTSignedFile.hpp"  // IWYU pragma: associated
 
 #include <irrxml/irrXML.hpp>
-
 #include <cstdint>
 #include <cstring>
-#include <ostream>
+#include <memory>
 #include <string>
+
+#include "internal/api/Api.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/core/Armored.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/OTStorage.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/StringXML.hpp"
+#include "opentxs/core/util/Tag.hpp"
 
 #define OT_METHOD "opentxs::OTSignedFile::"
 

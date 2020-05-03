@@ -5,17 +5,35 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
-#include "opentxs/core/Lockable.hpp"
-
-#include "internal/api/Api.hpp"
-
+#include <chrono>
 #include <cstdint>
 #include <list>
 #include <memory>
-#include <tuple>
 #include <thread>
+#include <tuple>
+
+#include "internal/api/Api.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/api/Periodic.hpp"
+#include "opentxs/core/Lockable.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace network
+{
+class Dht;
+}  // namespace network
+
+namespace storage
+{
+class Storage;
+}  // namespace storage
+}  // namespace api
+
+class Flag;
+}  // namespace opentxs
 
 namespace opentxs::api::implementation
 {

@@ -3,9 +3,54 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/ui/AccountSummary.cpp"
+
 #pragma once
 
-#include "Internal.hpp"
+#include <map>
+#include <set>
+#include <utility>
+
+#include "1_Internal.hpp"
+#include "internal/ui/UI.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/SharedPimpl.hpp"
+#include "opentxs/Version.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/Server.hpp"
+#include "ui/List.hpp"
+#include "ui/Widget.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace client
+{
+namespace internal
+{
+struct Manager;
+}  // namespace internal
+}  // namespace client
+}  // namespace api
+
+namespace network
+{
+namespace zeromq
+{
+namespace socket
+{
+class Publish;
+}  // namespace socket
+
+class Message;
+}  // namespace zeromq
+}  // namespace network
+
+class Factory;
+}  // namespace opentxs
 
 namespace opentxs::ui::implementation
 {
@@ -31,6 +76,17 @@ public:
     }
 #endif
     const identifier::Nym& NymID() const noexcept final { return primary_id_; }
+
+    AccountSummary(
+        const api::client::internal::Manager& api,
+        const network::zeromq::socket::Publish& publisher,
+        const identifier::Nym& nymID,
+        const proto::ContactItemType currency
+#if OT_QT
+        ,
+        const bool qt
+#endif
+        ) noexcept;
 
     ~AccountSummary();
 
@@ -59,16 +115,6 @@ private:
     void process_server(const identifier::Server& serverID) noexcept;
     void startup() noexcept;
 
-    AccountSummary(
-        const api::client::internal::Manager& api,
-        const network::zeromq::socket::Publish& publisher,
-        const identifier::Nym& nymID,
-        const proto::ContactItemType currency
-#if OT_QT
-        ,
-        const bool qt
-#endif
-        ) noexcept;
     AccountSummary() = delete;
     AccountSummary(const AccountSummary&) = delete;
     AccountSummary(AccountSummary&&) = delete;

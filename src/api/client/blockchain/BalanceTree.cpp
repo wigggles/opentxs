@@ -3,20 +3,26 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"                           // IWYU pragma: associated
+#include "1_Internal.hpp"                         // IWYU pragma: associated
+#include "api/client/blockchain/BalanceTree.tpp"  // IWYU pragma: associated
 
-#include "Internal.hpp"
+#include <algorithm>
+#include <optional>
+#include <set>
+#include <stdexcept>
+#include <string>
+#include <tuple>
+#include <type_traits>
+#include <utility>
 
-#include "opentxs/api/storage/Storage.hpp"
-#include "opentxs/api/Core.hpp"
-#include "opentxs/api/Factory.hpp"
-#include "opentxs/core/identifier/Nym.hpp"
-#include "opentxs/core/Log.hpp"
-
-#include "internal/api/client/blockchain/Blockchain.hpp"
+#include "api/client/blockchain/BalanceTree.hpp"
 #include "internal/api/Api.hpp"
-
-#include "BalanceTree.tpp"
+#include "internal/api/client/blockchain/Blockchain.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/api/storage/Storage.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
 
 #define OT_METHOD                                                              \
     "opentxs::api::client::blockchain::implementation::BalanceTree::"

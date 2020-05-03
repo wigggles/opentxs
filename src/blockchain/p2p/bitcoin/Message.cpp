@@ -3,17 +3,18 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"                        // IWYU pragma: associated
+#include "1_Internal.hpp"                      // IWYU pragma: associated
+#include "blockchain/p2p/bitcoin/Message.hpp"  // IWYU pragma: associated
 
-#include "Internal.hpp"
+#include <cstdint>
+#include <limits>
+#include <memory>
+#include <stdexcept>
+#include <utility>
 
-#include "opentxs/api/crypto/Crypto.hpp"
-#include "opentxs/api/crypto/Hash.hpp"
-#include "opentxs/api/Core.hpp"
-#include "opentxs/api/Factory.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/blockchain/Blockchain.hpp"
-
+#include "Factory.hpp"
+#include "blockchain/p2p/bitcoin/Header.hpp"
 #include "blockchain/p2p/bitcoin/message/Cmpctblock.hpp"
 #include "blockchain/p2p/bitcoin/message/Feefilter.hpp"
 #include "blockchain/p2p/bitcoin/message/Getblocks.hpp"
@@ -22,14 +23,12 @@
 #include "blockchain/p2p/bitcoin/message/Reject.hpp"
 #include "blockchain/p2p/bitcoin/message/Sendcmpct.hpp"
 #include "blockchain/p2p/bitcoin/message/Tx.hpp"
-#include "blockchain/p2p/bitcoin/Header.hpp"
-#include "blockchain/p2p/bitcoin/Message.hpp"
 #include "internal/api/Api.hpp"
 #include "internal/blockchain/p2p/bitcoin/message/Message.hpp"
-
-#include <algorithm>
-#include <limits>
-#include <memory>
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
 
 #define OT_METHOD "opentxs::blockchain::p2p::bitcoin::Message::"
 

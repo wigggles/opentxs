@@ -3,29 +3,24 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-// A market has a list of OTOffers for all the bids, and another list of
-// OTOffers for all the asks.
-// Presumably the server will have different markets for different instrument
-// definitions.
-
 #ifndef OPENTXS_CORE_TRADE_OTMARKET_HPP
 #define OPENTXS_CORE_TRADE_OTMARKET_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/api/Core.hpp"
-#include "opentxs/api/Factory.hpp"
-#include "opentxs/core/cron/OTCron.hpp"
-#include "opentxs/core/identifier/Server.hpp"
-#include "opentxs/core/identifier/UnitDefinition.hpp"
-#include "opentxs/core/trade/OTOffer.hpp"
-#include "opentxs/core/Contract.hpp"
-#include "opentxs/core/OTStorage.hpp"
-#include "opentxs/Types.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <cstdint>
 #include <map>
 #include <string>
+
+#include "opentxs/Types.hpp"
+#include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/OTStorage.hpp"
+#include "opentxs/core/cron/OTCron.hpp"
+#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
+#include "opentxs/core/trade/OTOffer.hpp"
 
 namespace opentxs
 {
@@ -40,7 +35,28 @@ namespace internal
 {
 struct Core;
 }  // namespace internal
+
+class Wallet;
 }  // namespace api
+
+namespace identifier
+{
+class Nym;
+}  // namespace identifier
+
+namespace OTDB
+{
+class OfferListNym;
+class TradeListMarket;
+}  // namespace OTDB
+
+class Account;
+class Armored;
+class Identifier;
+class OTCron;
+class OTOffer;
+class OTTrade;
+class PasswordPrompt;
 
 #define MAX_MARKET_QUERY_DEPTH                                                 \
     50  // todo add this to the ini file. (Now that we actually have one.)
@@ -52,6 +68,11 @@ struct Core;
 typedef std::multimap<std::int64_t, OTOffer*> mapOfOffers;
 // The same offers are also mapped (uniquely) to transaction number.
 typedef std::map<std::int64_t, OTOffer*> mapOfOffersTrnsNum;
+
+// A market has a list of OTOffers for all the bids, and another list of
+// OTOffers for all the asks.
+// Presumably the server will have different markets for different instrument
+// definitions.
 
 class OTMarket : public Contract
 {

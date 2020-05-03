@@ -3,19 +3,14 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"                           // IWYU pragma: associated
+#include "1_Internal.hpp"                         // IWYU pragma: associated
+#include "blockchain/client/bitcoin/Network.hpp"  // IWYU pragma: associated
 
-#include "Internal.hpp"
-
-#include "opentxs/api/Endpoints.hpp"
-#include "opentxs/blockchain/block/Header.hpp"
-#include "opentxs/network/zeromq/Frame.hpp"
-#include "opentxs/Proto.tpp"
-
-#include "blockchain/client/Network.hpp"
+#include "Factory.hpp"
 #include "internal/blockchain/block/Block.hpp"
-
-#include "Network.hpp"
+#include "opentxs/Proto.tpp"
+#include "opentxs/blockchain/block/Header.hpp"
 
 // #define OT_METHOD
 // "opentxs::blockchain::client::bitcoin::implementation::Network::"

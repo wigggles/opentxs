@@ -5,11 +5,39 @@
 
 #pragma once
 
-#include "Internal.hpp"
+#include <cstring>
+#include <iosfwd>
+#include <map>
+#include <mutex>
+#include <set>
+#include <stdexcept>
+#include <string>
+#include <vector>
 
 #include "internal/api/client/blockchain/Blockchain.hpp"
 #include "internal/blockchain/p2p/P2P.hpp"
+#include "opentxs/Bytes.hpp"
+#include "opentxs/Types.hpp"
 #include "util/LMDB.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
+namespace storage
+{
+namespace lmdb
+{
+class LMDB;
+}  // namespace lmdb
+}  // namespace storage
+}  // namespace opentxs
 
 namespace opentxs::api::client::blockchain::database::implementation
 {

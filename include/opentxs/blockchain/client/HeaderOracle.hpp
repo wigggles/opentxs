@@ -6,14 +6,14 @@
 #ifndef OPENTXS_BLOCKCHAIN_CLIENT_HEADERORACLE_HPP
 #define OPENTXS_BLOCKCHAIN_CLIENT_HEADERORACLE_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <cstdint>
 #include <string>
 #include <set>
 #include <tuple>
+
+#include "opentxs/blockchain/Blockchain.hpp"
 
 namespace opentxs
 {

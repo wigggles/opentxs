@@ -3,35 +3,21 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"                  // IWYU pragma: associated
+#include "1_Internal.hpp"                // IWYU pragma: associated
+#include "crypto/key/EllipticCurve.hpp"  // IWYU pragma: associated
 
-#include "opentxs/api/crypto/Crypto.hpp"
-#include "opentxs/api/crypto/Hash.hpp"
-#include "opentxs/api/crypto/Symmetric.hpp"
-#include "opentxs/api/Core.hpp"
-#include "opentxs/api/Factory.hpp"
-#include "opentxs/core/crypto/NymParameters.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/crypto/OTSignatureMetadata.hpp"
-#include "opentxs/core/crypto/Signature.hpp"
-#include "opentxs/core/Data.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/PasswordPrompt.hpp"
-#include "opentxs/core/String.hpp"
-#include "opentxs/crypto/key/EllipticCurve.hpp"
-#include "opentxs/crypto/key/Keypair.hpp"
-#include "opentxs/crypto/key/Symmetric.hpp"
-#include "opentxs/crypto/library/EcdsaProvider.hpp"
-#include "opentxs/crypto/Bip32.hpp"
+#include <stdexcept>
+#include <utility>
+
+#include "crypto/key/Asymmetric.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
-
-extern "C" {
-#include <sodium/crypto_box.h>
-}
-
-#include "EllipticCurve.hpp"
+#include "opentxs/core/Data.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/crypto/key/EllipticCurve.hpp"
+#include "opentxs/crypto/library/EcdsaProvider.hpp"
 
 // #define OT_METHOD "opentxs::crypto::key::implementation::EllipticCurve::"
 

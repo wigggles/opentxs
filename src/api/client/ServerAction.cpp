@@ -3,25 +3,20 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"                 // IWYU pragma: associated
+#include "1_Internal.hpp"               // IWYU pragma: associated
+#include "api/client/ServerAction.hpp"  // IWYU pragma: associated
 
-#include "opentxs/api/client/Manager.hpp"
-#include "opentxs/api/client/ServerAction.hpp"
-#include "opentxs/api/Core.hpp"
-#include "opentxs/api/Factory.hpp"
-#include "opentxs/client/OT_API.hpp"
-#include "opentxs/core/recurring/OTPaymentPlan.hpp"
-#include "opentxs/core/script/OTSmartContract.hpp"
-#include "opentxs/core/Cheque.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Ledger.hpp"
-#include "opentxs/core/String.hpp"
-#include "opentxs/ext/OTPayment.hpp"
-
+#include "Factory.hpp"
 #include "client/OTAPI_Func.hpp"
 #include "internal/api/client/Client.hpp"
-
-#include "ServerAction.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Shared.hpp"
+#include "opentxs/api/Wallet.hpp"
+#include "opentxs/api/client/ServerAction.hpp"
+#include "opentxs/core/Account.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/Server.hpp"
 
 //#define OT_METHOD "opentxs::api::client::implementation::ServerAction::"
 

@@ -3,25 +3,16 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
-
-#include "Internal.hpp"
-
-#include "opentxs/core/Log.hpp"
-#include "opentxs/util/PIDFile.hpp"
-
-#ifndef WIN32
-#include <sys/types.h>
-#include <csignal>
-#include <unistd.h>
-#endif
+#include "0_stdafx.hpp"      // IWYU pragma: associated
+#include "1_Internal.hpp"    // IWYU pragma: associated
+#include "util/PIDFile.hpp"  // IWYU pragma: associated
 
 #include <atomic>
-#include <cstdlib>
+#include <csignal>
 #include <fstream>
-
-#include "PIDFile.hpp"
-
+#ifndef WIN32
+#include <unistd.h>
+#endif
 // On certain platforms we can actually check to see if the PID is running, and
 // if not, we can proceed even if the PID is in the file. (To spare the user
 // from having to delete the pid file by hand.)
@@ -32,12 +23,16 @@
 #if TARGET_OS_MAC
 #include <sys/wait.h>
 #define OT_CHECK_PID 1
-#endif
+#endif  // if TARGET_OS_MAC
 #else
 #include <sys/wait.h>
 #define OT_CHECK_PID 1
-#endif
-#endif
+#endif  // elif defined(TARGET_OS_MAC)
+#endif  // PREDEF_PLATFORM_UNIX
+
+#include "Factory.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
 
 #define OT_METHOD "opentxs::implementation::PIDFile::"
 

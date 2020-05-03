@@ -6,20 +6,21 @@
 #ifndef OPENTXS_CORE_SCRIPT_OTSMARTCONTRACT_HPP
 #define OPENTXS_CORE_SCRIPT_OTSMARTCONTRACT_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/core/cron/OTCronItem.hpp"
-#include "opentxs/core/script/OTScriptable.hpp"
-#include "opentxs/core/AccountList.hpp"
-#include "opentxs/core/Contract.hpp"
-#include "opentxs/core/OTTransactionType.hpp"
-#include "opentxs/core/String.hpp"
-#include "opentxs/Types.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <cstdint>
 #include <map>
 #include <set>
 #include <string>
+
+#include "opentxs/Types.hpp"
+#include "opentxs/core/Account.hpp"
+#include "opentxs/core/AccountList.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/OTTransactionType.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/cron/OTCronItem.hpp"
+#include "opentxs/core/script/OTScriptable.hpp"
 
 namespace opentxs
 {
@@ -35,6 +36,26 @@ namespace internal
 struct Core;
 }  // namespace internal
 }  // namespace api
+
+namespace identifier
+{
+class Nym;
+class Server;
+}  // namespace identifier
+
+namespace identity
+{
+class Nym;
+}  // namespace identity
+
+class ClientContext;
+class Identifier;
+class NumList;
+class OTParty;
+class OTScript;
+class OTStash;
+class PasswordPrompt;
+class ServerContext;
 
 class OTSmartContract : public OTCronItem
 {

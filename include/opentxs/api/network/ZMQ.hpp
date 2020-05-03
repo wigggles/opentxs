@@ -6,14 +6,14 @@
 #ifndef OPENTXS_API_NETWORK_ZMQ_HPP
 #define OPENTXS_API_NETWORK_ZMQ_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/Proto.hpp"
-#include "opentxs/Types.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <chrono>
 #include <memory>
 #include <string>
+
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
 
 namespace opentxs
 {

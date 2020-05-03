@@ -3,34 +3,34 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"                 // IWYU pragma: associated
+#include "1_Internal.hpp"               // IWYU pragma: associated
+#include "opentxs/contact/Contact.hpp"  // IWYU pragma: associated
 
-#include "Internal.hpp"
+#include <algorithm>
+#include <sstream>
+#include <stdexcept>
+#include <utility>
 
-#include "opentxs/contact/Contact.hpp"
-
-#include "opentxs/api/client/Blockchain.hpp"
-#include "opentxs/api/client/Manager.hpp"
-#include "opentxs/api/crypto/Crypto.hpp"
-#include "opentxs/api/crypto/Encode.hpp"
-#include "opentxs/api/Core.hpp"
+#include "internal/api/Api.hpp"
+#include "internal/api/client/Client.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Types.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
+#include "opentxs/api/client/Blockchain.hpp"
+#include "opentxs/api/crypto/Crypto.hpp"
+#include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/contact/ContactGroup.hpp"
 #include "opentxs/contact/ContactItem.hpp"
-#include "opentxs/contact/ContactSection.hpp"
-#include "opentxs/core/crypto/PaymentCode.hpp"
-#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/contact/ContactSection.hpp"  // IWYU pragma: keep
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/Types.hpp"
-
-#include "internal/api/client/Client.hpp"
-#include "internal/api/Api.hpp"
-
-#include <sstream>
-#include <stdexcept>
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/crypto/PaymentCode.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
 
 #define ID_BYTES 32
 

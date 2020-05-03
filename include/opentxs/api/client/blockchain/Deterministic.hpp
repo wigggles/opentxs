@@ -6,14 +6,13 @@
 #ifndef OPENTXS_API_CLIENT_BLOCKCHAIN_DETERMINISTIC_HPP
 #define OPENTXS_API_CLIENT_BLOCKCHAIN_DETERMINISTIC_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/core/Identifier.hpp"
-
-#include "BalanceNode.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <optional>
 #include <string>
+
+#include "opentxs/api/client/blockchain/BalanceNode.hpp"
+#include "opentxs/core/Identifier.hpp"
 
 namespace opentxs
 {

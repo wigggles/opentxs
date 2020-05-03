@@ -3,28 +3,20 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
-
-#include "opentxs/core/script/OTStashItem.hpp"
-
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/String.hpp"
+#include "0_stdafx.hpp"                         // IWYU pragma: associated
+#include "1_Internal.hpp"                       // IWYU pragma: associated
+#include "opentxs/core/script/OTStashItem.hpp"  // IWYU pragma: associated
 
 #include <cstdint>
-#include <ostream>
+
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/String.hpp"
 
 #define OT_METHOD "opentxs::OTStashItem"
+
 namespace opentxs
 {
-
-/*
- std::int64_t GetAmount() const { return m_lAmount; }
- void SetAmount( std::int64_t lAmount) { m_lAmount = lAmount; }
-
- const OTString& GetInstrumentDefinitionID() { return
- m_strInstrumentDefinitionID; }
- */
-
 OTStashItem::OTStashItem()
     : m_strInstrumentDefinitionID(String::Factory())
     , m_lAmount(0)

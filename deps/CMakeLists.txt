@@ -45,11 +45,9 @@ if(CASH_LUCRE_EXPORT)
   set_property(TARGET lucre PROPERTY POSITION_INDEPENDENT_CODE 1)
 endif(CASH_LUCRE_EXPORT)
 
-set(hashes-sources ${CMAKE_CURRENT_SOURCE_DIR}/siphash/src/siphash.cpp
-                   ${CMAKE_CURRENT_SOURCE_DIR}/smhasher/src/MurmurHash3.cpp)
+set(hashes-sources ${CMAKE_CURRENT_SOURCE_DIR}/smhasher/src/MurmurHash3.cpp)
 
-set(hashes-headers ${CMAKE_CURRENT_SOURCE_DIR}/siphash/src/siphash.h
-                   ${CMAKE_CURRENT_SOURCE_DIR}/smhasher/src/MurmurHash3.h)
+set(hashes-headers ${CMAKE_CURRENT_SOURCE_DIR}/smhasher/src/MurmurHash3.h)
 
 add_library(external-hashes OBJECT ${hashes-sources} ${hashes-headers})
 

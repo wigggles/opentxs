@@ -6,7 +6,7 @@
 #ifndef OPENTXS_BLOCKCHAIN_NETWORK_HPP
 #define OPENTXS_BLOCKCHAIN_NETWORK_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 namespace opentxs
 {

@@ -6,14 +6,29 @@
 #ifndef OPENTXS_CORE_CONTRACT_PEER_BAILMENTREQUEST_HPP
 #define OPENTXS_CORE_CONTRACT_PEER_BAILMENTREQUEST_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include "opentxs/core/contract/peer/PeerRequest.hpp"
+#include "opentxs/SharedPimpl.hpp"
 
 namespace opentxs
 {
-using OTBailmentRequest = SharedPimpl<contract::peer::request::Bailment>;
+namespace contract
+{
+namespace peer
+{
+namespace request
+{
+class Bailment;
+}  // namespace request
+}  // namespace peer
+}  // namespace contract
 
+using OTBailmentRequest = SharedPimpl<contract::peer::request::Bailment>;
+}  // namespace opentxs
+
+namespace opentxs
+{
 namespace contract
 {
 namespace peer

@@ -3,23 +3,29 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"                // IWYU pragma: associated
+#include "1_Internal.hpp"              // IWYU pragma: associated
+#include "opentxs/core/OTStorage.hpp"  // IWYU pragma: associated
 
-#include "opentxs/core/OTStorage.hpp"
+#include <algorithm>
+#include <cstdio>
+#include <fstream>
+#include <typeinfo>
 
-#include "opentxs/api/Core.hpp"
+#include "Bitcoin.pb.h"
+#include "Generics.pb.h"
+#include "Markets.pb.h"
+#include "Moneychanger.pb.h"
+#include "internal/api/Api.hpp"
+#include "opentxs/Pimpl.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
 #include "opentxs/core/OTStoragePB.hpp"
-
-#include "internal/api/Api.hpp"
-
-#include <fstream>
-#include <sstream>
-#include <typeinfo>
+#include "opentxs/core/String.hpp"
 
 #define OT_METHOD "opentxs::Storage"
 
@@ -1122,17 +1128,6 @@ AddressBook::~AddressBook()
     //      while (GetContactCount() > 0)
     //          RemoveContact(0);
 }
-
-//
-// Interface:  IStorableMsgpack
-//
-//
-// Msgpack packer.
-#if defined(OTDB_MESSAGE_PACK)
-
-// look into git history for old (dead) code.
-
-#endif  // defined (OTDB_MESSAGE_PACK)
 
 /* Protocol Buffers notes.
 

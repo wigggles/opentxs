@@ -5,17 +5,29 @@
 
 #pragma once
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/api/Core.hpp"
-#include "opentxs/api/Factory.hpp"
-
-#include "internal/blockchain/p2p/bitcoin/Bitcoin.hpp"
-#include "Header.hpp"
-
 #include <cstdint>
+#include <iosfwd>
 #include <memory>
 #include <string>
+
+#include "blockchain/p2p/bitcoin/Header.hpp"
+#include "internal/blockchain/p2p/bitcoin/Bitcoin.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/Version.hpp"
+#include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/core/Data.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+}  // namespace opentxs
 
 namespace ot = opentxs;
 

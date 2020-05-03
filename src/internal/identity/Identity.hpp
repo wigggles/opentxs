@@ -5,8 +5,6 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
 #include "opentxs/identity/Authority.hpp"
 #include "opentxs/identity/Nym.hpp"
 

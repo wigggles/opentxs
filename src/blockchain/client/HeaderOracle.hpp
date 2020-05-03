@@ -5,6 +5,46 @@
 
 #pragma once
 
+#include <map>
+#include <memory>
+#include <mutex>
+#include <set>
+#include <string>
+#include <utility>
+#include <vector>
+
+#include "internal/blockchain/client/Client.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/core/Data.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
+namespace blockchain
+{
+namespace block
+{
+class Header;
+}  // namespace block
+
+namespace client
+{
+class UpdateTransaction;
+}  // namespace client
+}  // namespace blockchain
+
+class Factory;
+}  // namespace opentxs
+
 namespace opentxs::blockchain::client::implementation
 {
 class HeaderOracle final : virtual public internal::HeaderOracle

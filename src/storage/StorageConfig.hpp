@@ -5,8 +5,6 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
 #include <chrono>
 #include <cstdint>
 #include <functional>

@@ -6,10 +6,11 @@
 #ifndef OPENTXS_NETWORK_ZEROMQ_SOCKET_PUBLISH_HPP
 #define OPENTXS_NETWORK_ZEROMQ_SOCKET_PUBLISH_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include "opentxs/network/zeromq/curve/Server.hpp"
 #include "opentxs/network/zeromq/socket/Sender.hpp"
+#include "opentxs/Pimpl.hpp"
 
 #ifdef SWIG
 // clang-format off
@@ -24,8 +25,22 @@
 
 namespace opentxs
 {
-using OTZMQPublishSocket = Pimpl<network::zeromq::socket::Publish>;
+namespace network
+{
+namespace zeromq
+{
+namespace socket
+{
+class Publish;
+}  // namespace socket
+}  // namespace zeromq
+}  // namespace network
 
+using OTZMQPublishSocket = Pimpl<network::zeromq::socket::Publish>;
+}  // namespace opentxs
+
+namespace opentxs
+{
 namespace network
 {
 namespace zeromq

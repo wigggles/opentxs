@@ -6,12 +6,14 @@
 #ifndef OPENTXS_CORE_RECURRING_OTPAYMENTPLAN_HPP
 #define OPENTXS_CORE_RECURRING_OTPAYMENTPLAN_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
+
+#include <cstdint>
+#include <chrono>
 
 #include "opentxs/core/recurring/OTAgreement.hpp"
 #include "opentxs/core/Contract.hpp"
-
-#include <cstdint>
+#include "opentxs/Types.hpp"
 
 namespace opentxs
 {
@@ -26,7 +28,25 @@ namespace internal
 {
 struct Core;
 }  // namespace internal
+
+class Wallet;
 }  // namespace api
+
+namespace identifier
+{
+class Nym;
+class Server;
+class UnitDefinition;
+}  // namespace identifier
+
+namespace identity
+{
+class Nym;
+}  // namespace identity
+
+class ClientContext;
+class Identifier;
+class PasswordPrompt;
 
 /*
  OTPaymentPlan

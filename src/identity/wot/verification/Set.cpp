@@ -3,20 +3,19 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
-
-#include "Internal.hpp"
-
-#include "opentxs/api/Core.hpp"
-#include "opentxs/api/Factory.hpp"
-#include "opentxs/core/identifier/Nym.hpp"
-
-#include "internal/identity/wot/verification/Verification.hpp"
+#include "0_stdafx.hpp"                       // IWYU pragma: associated
+#include "1_Internal.hpp"                     // IWYU pragma: associated
+#include "identity/wot/verification/Set.hpp"  // IWYU pragma: associated
 
 #include <memory>
 #include <stdexcept>
+#include <utility>
 
-#include "Set.hpp"
+#include "Factory.hpp"
+#include "internal/identity/wot/verification/Verification.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
 
 #define OT_METHOD "opentxs::identity::wot::verification::implementation::Set::"
 

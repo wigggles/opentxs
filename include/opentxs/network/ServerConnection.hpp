@@ -6,17 +6,16 @@
 #ifndef OPENTXS_NETWORK_SERVERCONNECTION_HPP
 #define OPENTXS_NETWORK_SERVERCONNECTION_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/Proto.hpp"
-#include "opentxs/Types.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <string>
 
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+
 namespace opentxs
 {
-using OTServerConnection = Pimpl<network::ServerConnection>;
-
 namespace api
 {
 namespace internal
@@ -25,6 +24,16 @@ struct Core;
 }  // namespace internal
 }  // namespace api
 
+namespace network
+{
+class ServerConnection;
+}  // namespace network
+
+using OTServerConnection = Pimpl<network::ServerConnection>;
+}  // namespace opentxs
+
+namespace opentxs
+{
 namespace network
 {
 class ServerConnection

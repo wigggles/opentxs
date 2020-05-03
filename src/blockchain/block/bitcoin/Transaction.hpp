@@ -5,6 +5,28 @@
 
 #pragma once
 
+#include <cstdint>
+#include <cstddef>
+#include <memory>
+#include <optional>
+#include <vector>
+
+#include "opentxs/Bytes.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/blockchain/block/bitcoin/Inputs.hpp"
+#include "opentxs/blockchain/block/bitcoin/Outputs.hpp"
+#include "opentxs/blockchain/block/bitcoin/Transaction.hpp"
+#include "opentxs/core/Identifier.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+class Core;
+}  // namespace api
+}  // namespace opentxs
+
 namespace opentxs::blockchain::block::bitcoin::implementation
 {
 class Transaction final : public bitcoin::Transaction

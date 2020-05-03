@@ -3,35 +3,40 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"                      // IWYU pragma: associated
+#include "1_Internal.hpp"                    // IWYU pragma: associated
+#include "core/contract/UnitDefinition.hpp"  // IWYU pragma: associated
 
+#include <algorithm>
+#include <cctype>
+#include <cmath>  // IWYU pragma: keep
+#include <cstdint>
+#include <deque>
+#include <fstream>
+#include <iomanip>
+#include <list>
+#include <memory>
+#include <set>
+#include <utility>
+
+#include "Factory.hpp"
+#include "internal/api/Api.hpp"
+#include "internal/core/contract/Contract.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Shared.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Wallet.hpp"
-#include "opentxs/core/contract/CurrencyContract.hpp"
-#include "opentxs/core/contract/SecurityContract.hpp"
-#include "opentxs/core/contract/basket/BasketContract.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/AccountVisitor.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/identity/Nym.hpp"
-#include "opentxs/Proto.tpp"
-
-#include "internal/api/Api.hpp"
-#include "internal/core/contract/Contract.hpp"
-
-#include <cmath>
-#include <cstddef>
-#include <deque>
-#include <fstream>
-#include <iomanip>
-#include <memory>
-#include <sstream>
-#include <utility>
-
-#include "UnitDefinition.hpp"
 
 #define OT_METHOD "opentxs::contract::implementation::Unit::"
 

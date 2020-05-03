@@ -5,16 +5,54 @@
 
 #pragma once
 
-#include "opentxs/crypto/key/Symmetric.hpp"
-
-#include "internal/api/crypto/Crypto.hpp"
-#include "internal/api/Api.hpp"
-
-#include "StorageParent.hpp"
-#include "Scheduler.hpp"
-#include "ZMQ.hpp"
-
+#include <atomic>
+#include <chrono>
+#include <memory>
 #include <mutex>
+#include <string>
+#include <thread>
+
+#include "api/Scheduler.hpp"
+#include "api/StorageParent.hpp"
+#include "api/ZMQ.hpp"
+#include "internal/api/Api.hpp"
+#include "internal/api/crypto/Crypto.hpp"
+#include "opentxs/Forward.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/api/Endpoints.hpp"
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/api/HDSeed.hpp"
+#include "opentxs/api/Wallet.hpp"
+#include "opentxs/api/crypto/Asymmetric.hpp"
+#include "opentxs/api/crypto/Crypto.hpp"
+#include "opentxs/api/crypto/Symmetric.hpp"
+#include "opentxs/api/network/Dht.hpp"
+#include "opentxs/api/storage/Storage.hpp"
+#include "opentxs/crypto/key/Symmetric.hpp"
+#include "opentxs/network/zeromq/Context.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace crypto
+{
+class Asymmetric;
+}  // namespace crypto
+
+class Legacy;
+class Settings;
+}  // namespace api
+
+namespace proto
+{
+class Ciphertext;
+}  // namespace proto
+
+class Flag;
+class OTPassword;
+class PasswordPrompt;
+}  // namespace opentxs
 
 namespace opentxs::api::implementation
 {

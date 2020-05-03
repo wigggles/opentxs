@@ -6,15 +6,38 @@
 #ifndef OPENTXS_CORE_TRANSACTION_HELPERS_HPP
 #define OPENTXS_CORE_TRANSACTION_HELPERS_HPP
 
-#include "opentxs/Forward.hpp"
-#include "opentxs/Types.hpp"
-
-#include "opentxs/core/OTTransaction.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <cstdint>
+#include <memory>
+#include <string>
+
+#include "opentxs/Types.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/OTTransaction.hpp"
 
 namespace opentxs
 {
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
+namespace identifier
+{
+class Nym;
+class Server;
+}  // namespace identifier
+
+class Identifier;
+class Ledger;
+class NumList;
+class OTTransaction;
+class String;
+
 OPENTXS_EXPORT const char* GetTransactionTypeString(
     int transactionTypeIndex);  // enum transactionType
 OPENTXS_EXPORT const char* GetOriginTypeToString(

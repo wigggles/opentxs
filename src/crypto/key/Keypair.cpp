@@ -3,30 +3,21 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"            // IWYU pragma: associated
+#include "1_Internal.hpp"          // IWYU pragma: associated
+#include "crypto/key/Keypair.hpp"  // IWYU pragma: associated
 
-#include "opentxs/api/crypto/Crypto.hpp"
-#include "opentxs/api/Core.hpp"
-#include "opentxs/api/Factory.hpp"
-#include "opentxs/core/crypto/NymParameters.hpp"
+#include <stdexcept>
+#include <utility>
+
+#include "Factory.hpp"
+#include "crypto/key/Null.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/core/Log.hpp"
 #include "opentxs/core/crypto/OTSignatureMetadata.hpp"
 #include "opentxs/core/crypto/Signature.hpp"
-#include "opentxs/core/Contract.hpp"
-#include "opentxs/core/Data.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/PasswordPrompt.hpp"
-#include "opentxs/core/String.hpp"
 #include "opentxs/crypto/key/Asymmetric.hpp"
-#include "opentxs/crypto/key/EllipticCurve.hpp"
 #include "opentxs/crypto/key/Keypair.hpp"
-
-#include "internal/api/Api.hpp"
-#include "Null.hpp"
-
-#include <ostream>
-
-#include "Keypair.hpp"
 
 // #define OT_METHOD "opentxs::crypto::key::implementation::Keypair::"
 

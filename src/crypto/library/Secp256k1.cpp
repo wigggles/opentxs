@@ -3,27 +3,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
-
-#include "Internal.hpp"
-
+#include "0_stdafx.hpp"    // IWYU pragma: associated
+#include "1_Internal.hpp"  // IWYU pragma: associated
 #if OT_CRYPTO_USING_LIBSECP256K1
-#include "opentxs/api/crypto/Crypto.hpp"
-#include "opentxs/api/crypto/Hash.hpp"
-#include "opentxs/api/crypto/Util.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/Armored.hpp"
-#include "opentxs/core/Data.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/String.hpp"
-#include "opentxs/crypto/key/Asymmetric.hpp"
-#include "opentxs/crypto/key/Secp256k1.hpp"
-#include "opentxs/crypto/library/Secp256k1.hpp"
-#include "opentxs/crypto/library/SymmetricProvider.hpp"
-#include "opentxs/Proto.hpp"
-
-#include "AsymmetricProvider.hpp"
-#include "EcdsaProvider.hpp"
+#include "crypto/library/Secp256k1.hpp"  // IWYU pragma: associated
 
 extern "C" {
 #include "secp256k1.h"
@@ -31,10 +14,24 @@ extern "C" {
 }
 
 #include <array>
+#include <cstddef>
 #include <cstdint>
-#include <ostream>
+#include <cstring>
+#include <stdexcept>
+#include <string_view>
 
-#include "Secp256k1.hpp"
+#include "Factory.hpp"
+#include "crypto/library/EcdsaProvider.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/api/crypto/Crypto.hpp"
+#include "opentxs/api/crypto/Hash.hpp"
+#include "opentxs/api/crypto/Util.hpp"
+#include "opentxs/core/Data.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/crypto/key/Asymmetric.hpp"
 
 #define OT_METHOD "opentxs::crypto::implementation::Secp256k1::"
 

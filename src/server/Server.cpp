@@ -3,57 +3,58 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"       // IWYU pragma: associated
+#include "1_Internal.hpp"     // IWYU pragma: associated
+#include "server/Server.hpp"  // IWYU pragma: associated
 
-#include "Server.hpp"
+#include <cstdint>
+#include <regex>
+#include <string>
+#include <algorithm>
+#include <list>
+#include <stdexcept>
+#include <vector>
 
-#include "opentxs/api/crypto/Crypto.hpp"
-#include "opentxs/api/crypto/Encode.hpp"
-#include "opentxs/api/server/Manager.hpp"
-#include "opentxs/api/storage/Storage.hpp"
-#include "opentxs/api/Core.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Proto.tpp"
+#include "opentxs/SharedPimpl.hpp"
+#include "opentxs/Version.hpp"
 #include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Factory.hpp"
 #if OT_CRYPTO_WITH_BIP32
 #include "opentxs/api/HDSeed.hpp"
-#endif
-#include "opentxs/api/Factory.hpp"
+#endif  // OT_CRYPTO_WITH_BIP32
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/api/Wallet.hpp"
+#include "opentxs/api/crypto/Crypto.hpp"
+#include "opentxs/api/crypto/Encode.hpp"
+#include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/client/NymData.hpp"
-#include "opentxs/core/cron/OTCron.hpp"
-#include "opentxs/core/crypto/NymParameters.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/Armored.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Ledger.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/core/contract/ServerContract.hpp"
+#include "opentxs/core/cron/OTCron.hpp"
+#include "opentxs/core/crypto/NymParameters.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/crypto/Envelope.hpp"
 #include "opentxs/ext/OTPayment.hpp"
 #include "opentxs/identity/Nym.hpp"
-#include "opentxs/network/zeromq/socket/Push.hpp"
-#include "opentxs/network/zeromq/socket/Sender.tpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/Proto.tpp"
-
-#include "ConfigLoader.hpp"
-#include "Transactor.hpp"
-
-#include <sys/types.h>
-#ifndef WIN32
-#include <unistd.h>
-#endif
-
-#include <cinttypes>
-#include <cstdint>
-#include <fstream>
-#include <regex>
-#include <string>
+#include "opentxs/network/zeromq/socket/Push.hpp"
+#include "opentxs/network/zeromq/socket/Sender.tpp"
+#include "opentxs/network/zeromq/socket/Socket.hpp"
+#include "server/ConfigLoader.hpp"
+#include "server/MainFile.hpp"
+#include "server/Transactor.hpp"
 
 #define OTX_PUSH_VERSION 1
 #define SEED_BACKUP_FILE "seed_backup.json"

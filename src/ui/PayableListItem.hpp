@@ -3,11 +3,51 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/ui/PayableListItem.cpp"
+
 #pragma once
 
-#include "Internal.hpp"
+#include <string>
 
-#include "ContactListItem.hpp"
+#include "1_Internal.hpp"
+#include "internal/ui/UI.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/SharedPimpl.hpp"
+#include "opentxs/Version.hpp"
+#include "ui/ContactListItem.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace client
+{
+namespace internal
+{
+struct Manager;
+}  // namespace internal
+}  // namespace client
+}  // namespace api
+
+namespace network
+{
+namespace zeromq
+{
+namespace socket
+{
+class Publish;
+}  // namespace socket
+}  // namespace zeromq
+}  // namespace network
+
+namespace ui
+{
+class PayableListItem;
+}  // namespace ui
+
+class Factory;
+}  // namespace opentxs
 
 namespace opentxs::ui::implementation
 {
@@ -21,6 +61,14 @@ public:
     QVariant qt_data(const int column, const int role) const noexcept final;
 #endif
 
+    PayableListItem(
+        const PayableInternalInterface& parent,
+        const api::client::internal::Manager& api,
+        const network::zeromq::socket::Publish& publisher,
+        const PayableListRowID& rowID,
+        const PayableListSortKey& key,
+        const std::string& paymentcode,
+        const proto::ContactItemType& currency) noexcept;
     ~PayableListItem() = default;
 
 private:
@@ -35,14 +83,6 @@ private:
         const ContactListSortKey& key,
         const CustomData& custom) noexcept final;
 
-    PayableListItem(
-        const PayableInternalInterface& parent,
-        const api::client::internal::Manager& api,
-        const network::zeromq::socket::Publish& publisher,
-        const PayableListRowID& rowID,
-        const PayableListSortKey& key,
-        const std::string& paymentcode,
-        const proto::ContactItemType& currency) noexcept;
     PayableListItem() = delete;
     PayableListItem(const PayableListItem&) = delete;
     PayableListItem(PayableListItem&&) = delete;
@@ -50,3 +90,5 @@ private:
     PayableListItem& operator=(PayableListItem&&) = delete;
 };
 }  // namespace opentxs::ui::implementation
+
+template class opentxs::SharedPimpl<opentxs::ui::PayableListItem>;

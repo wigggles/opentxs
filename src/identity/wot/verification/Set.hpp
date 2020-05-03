@@ -5,6 +5,37 @@
 
 #pragma once
 
+#include <map>
+#include <memory>
+
+#include "internal/identity/wot/verification/Verification.hpp"
+#include "opentxs/Forward.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/identity/wot/verification/Group.hpp"
+#include "opentxs/identity/wot/verification/Item.hpp"
+#include "opentxs/identity/wot/verification/Set.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
+namespace identity
+{
+class Nym;
+}  // namespace identity
+
+class Factory;
+class PasswordPrompt;
+}  // namespace opentxs
+
 namespace opentxs::identity::wot::verification::implementation
 {
 class Set final : public internal::Set

@@ -6,15 +6,16 @@
 #ifndef OPENTXS_CORE_SCRIPT_OTSCRIPTABLE_HPP
 #define OPENTXS_CORE_SCRIPT_OTSCRIPTABLE_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/core/Contract.hpp"
-#include "opentxs/core/String.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <cstdint>
 #include <map>
 #include <string>
 #include <vector>
+
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/Account.hpp"
 
 namespace opentxs
 {
@@ -25,6 +26,29 @@ namespace internal
 struct Core;
 }  // namespace internal
 }  // namespace api
+
+namespace identifier
+{
+class Nym;
+class Server;
+}  // namespace identifier
+
+namespace identity
+{
+class Nym;
+}  // namespace identity
+
+class Identifier;
+class OTAgent;
+class OTBylaw;
+class OTClause;
+class OTParty;
+class OTPartyAccount;
+class OTScript;
+class OTVariable;
+class PasswordPrompt;
+class ServerContext;
+class Tag;
 
 typedef std::map<std::string, OTBylaw*> mapOfBylaws;
 typedef std::map<std::string, OTClause*> mapOfClauses;

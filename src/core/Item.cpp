@@ -3,17 +3,23 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"           // IWYU pragma: associated
+#include "1_Internal.hpp"         // IWYU pragma: associated
+#include "opentxs/core/Item.hpp"  // IWYU pragma: associated
 
-#include "opentxs/core/Item.hpp"
+#include <cstdint>
+#include <cstring>
+#include <irrxml/irrXML.hpp>
+#include <memory>
+#include <string>
 
-#include "opentxs/api/Core.hpp"
+#include "internal/api/Api.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Types.hpp"
 #include "opentxs/api/Factory.hpp"
-#include "opentxs/api/Wallet.hpp"
 #include "opentxs/consensus/ClientContext.hpp"
+#include "opentxs/consensus/Context.hpp"
 #include "opentxs/consensus/TransactionStatement.hpp"
-#include "opentxs/core/transaction/Helpers.hpp"
-#include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Cheque.hpp"
@@ -21,24 +27,15 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Ledger.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
 #include "opentxs/core/NumList.hpp"
-#include "opentxs/core/StringXML.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/identity/Nym.hpp"
-#include "opentxs/Types.hpp"
-
-#include "internal/api/Api.hpp"
-
-#include <irrxml/irrXML.hpp>
-
-#include <cstdint>
-#include <cstring>
-#include <memory>
-#include <ostream>
-#include <string>
-#include <utility>
+#include "opentxs/core/StringXML.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/core/util/Tag.hpp"
 
 #define OT_METHOD "opentxs::Item::"
 

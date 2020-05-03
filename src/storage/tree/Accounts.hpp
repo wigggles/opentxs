@@ -5,16 +5,29 @@
 
 #pragma once
 
-#include "Internal.hpp"
+#include <map>
+#include <set>
+#include <string>
+#include <tuple>
 
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
+#include "storage/tree/Node.hpp"
 
-#include "Node.hpp"
-
-#include <map>
-#include <set>
+namespace opentxs
+{
+namespace api
+{
+namespace storage
+{
+class Driver;
+}  // namespace storage
+}  // namespace api
+}  // namespace opentxs
 
 namespace opentxs::storage
 {

@@ -5,13 +5,29 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
-#include "opentxs/blockchain/Blockchain.hpp"
+#include <memory>
+#include <optional>
 
 #include "internal/blockchain/client/Client.hpp"
+#include "opentxs/blockchain/Blockchain.hpp"
 
-#include <optional>
+namespace opentxs
+{
+namespace api
+{
+class Core;
+}  // namespace api
+
+namespace blockchain
+{
+namespace block
+{
+class Header;
+}  // namespace block
+}  // namespace blockchain
+
+class Factory;
+}  // namespace opentxs
 
 namespace opentxs::blockchain::client
 {

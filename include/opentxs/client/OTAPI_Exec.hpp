@@ -6,12 +6,7 @@
 #ifndef OPENTXS_CLIENT_OTAPI_EXEC_HPP
 #define OPENTXS_CLIENT_OTAPI_EXEC_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/client/OT_API.hpp"
-#include "opentxs/core/Lockable.hpp"
-#include "opentxs/Proto.hpp"
-#include "opentxs/Types.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <chrono>
 #include <cstdint>
@@ -19,18 +14,39 @@
 #include <set>
 #include <string>
 
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/client/OT_API.hpp"
+#include "opentxs/core/Lockable.hpp"
+#include "opentxs/core/contract/UnitDefinition.hpp"
+
 namespace opentxs
 {
 namespace api
 {
 namespace client
 {
+class Activity;
+class Contacts;
+
 namespace implementation
 {
 class Manager;
 }  // namespace implementation
 }  // namespace client
+
+namespace internal
+{
+struct Core;
+}  // namespace internal
+
+namespace network
+{
+class ZMQ;
+}  // namespace network
 }  // namespace api
+
+class OT_API;
 
 class OTAPI_Exec : Lockable
 {

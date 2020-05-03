@@ -3,42 +3,9 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
-
-#include "Internal.hpp"
-
-#include "opentxs/api/network/ZMQ.hpp"
-#include "opentxs/api/Core.hpp"
-#include "opentxs/api/Endpoints.hpp"
-#include "opentxs/api/Factory.hpp"
-#include "opentxs/consensus/ServerContext.hpp"
-#include "opentxs/core/contract/ServerContract.hpp"
-#include "opentxs/core/identifier/Nym.hpp"
-#include "opentxs/core/identifier/Server.hpp"
-#include "opentxs/core/Armored.hpp"
-#include "opentxs/core/Flag.hpp"
-#include "opentxs/core/Lockable.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/Message.hpp"
-#include "opentxs/core/PasswordPrompt.hpp"
-#include "opentxs/core/String.hpp"
-#include "opentxs/network/zeromq/socket/Dealer.hpp"
-#include "opentxs/network/zeromq/socket/Publish.hpp"
-#include "opentxs/network/zeromq/socket/Push.hpp"
-#include "opentxs/network/zeromq/socket/Request.tpp"
-#include "opentxs/network/zeromq/socket/Sender.tpp"
-#include "opentxs/network/zeromq/Context.hpp"
-#include "opentxs/network/zeromq/FrameIterator.hpp"
-#include "opentxs/network/zeromq/FrameSection.hpp"
-#include "opentxs/network/zeromq/Frame.hpp"
-#include "opentxs/network/zeromq/ListenCallback.hpp"
-#include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/network/ServerConnection.hpp"
-#include "opentxs/otx/Reply.hpp"
-#include "opentxs/otx/Request.hpp"
-#include "opentxs/Proto.tpp"
-
-#include "internal/api/Api.hpp"
+#include "0_stdafx.hpp"                  // IWYU pragma: associated
+#include "1_Internal.hpp"                // IWYU pragma: associated
+#include "network/ServerConnection.hpp"  // IWYU pragma: associated
 
 #include <atomic>
 #include <chrono>
@@ -46,10 +13,44 @@
 #include <ctime>
 #include <map>
 #include <memory>
-#include <mutex>
 #include <thread>
 
-#include "ServerConnection.hpp"
+#include "internal/api/Api.hpp"
+#include "opentxs/Forward.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Proto.tpp"
+#include "opentxs/api/Endpoints.hpp"
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/api/network/ZMQ.hpp"
+#include "opentxs/consensus/ServerContext.hpp"
+#include "opentxs/core/Armored.hpp"
+#include "opentxs/core/Data.hpp"
+#include "opentxs/core/Flag.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/Message.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/contract/ServerContract.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/identity/Nym.hpp"
+#include "opentxs/network/ServerConnection.hpp"
+#include "opentxs/network/zeromq/Context.hpp"
+#include "opentxs/network/zeromq/Frame.hpp"
+#include "opentxs/network/zeromq/FrameIterator.hpp"
+#include "opentxs/network/zeromq/FrameSection.hpp"
+#include "opentxs/network/zeromq/ListenCallback.hpp"
+#include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/network/zeromq/curve/Client.hpp"
+#include "opentxs/network/zeromq/socket/Dealer.hpp"
+#include "opentxs/network/zeromq/socket/Publish.hpp"
+#include "opentxs/network/zeromq/socket/Push.hpp"
+#include "opentxs/network/zeromq/socket/Request.tpp"
+#include "opentxs/network/zeromq/socket/Sender.tpp"
+#include "opentxs/network/zeromq/socket/Socket.hpp"
+#include "opentxs/otx/Reply.hpp"
+#include "opentxs/otx/Request.hpp"
 
 namespace zmq = opentxs::network::zeromq;
 

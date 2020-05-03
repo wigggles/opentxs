@@ -3,50 +3,57 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"         // IWYU pragma: associated
+#include "1_Internal.hpp"       // IWYU pragma: associated
+#include "api/client/Pair.hpp"  // IWYU pragma: associated
 
-#include "opentxs/api/client/Issuer.hpp"
-#include "opentxs/api/client/ServerAction.hpp"
-#include "opentxs/api/storage/Storage.hpp"
+#include <algorithm>
+#include <chrono>
+#include <ctime>
+#include <iterator>
+#include <list>
+#include <map>
+#include <memory>
+#include <set>
+#include <type_traits>
+
+#include "Factory.hpp"
+#include "core/StateMachine.hpp"
+#include "internal/api/client/Client.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Proto.tpp"
+#include "opentxs/SharedPimpl.hpp"
+#include "opentxs/api/Editor.hpp"
 #include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/HDSeed.hpp"
 #include "opentxs/api/Wallet.hpp"
-#include "opentxs/client/OT_API.hpp"
-#include "opentxs/client/OTAPI_Exec.hpp"
-#include "opentxs/client/ServerAction.hpp"
+#include "opentxs/api/client/Issuer.hpp"
+#include "opentxs/api/client/Pair.hpp"
+#include "opentxs/api/storage/Storage.hpp"
+#include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/contact/ContactGroup.hpp"
 #include "opentxs/contact/ContactItem.hpp"
 #include "opentxs/contact/ContactSection.hpp"
-#include "opentxs/core/contract/peer/PeerReply.hpp"
-#include "opentxs/core/contract/peer/PeerRequest.hpp"
-#include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Lockable.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
 #include "opentxs/core/Message.hpp"
-#include "opentxs/core/PasswordPrompt.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/contract/ServerContract.hpp"
+#include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/identity/Nym.hpp"
-#include "opentxs/network/zeromq/socket/Publish.hpp"
-#include "opentxs/network/zeromq/socket/Sender.tpp"
-#include "opentxs/network/zeromq/socket/Subscribe.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
-#include "opentxs/Proto.tpp"
-
-#include "core/StateMachine.hpp"
-#include "internal/api/client/Client.hpp"
-
-#include <atomic>
-#include <memory>
-#include <map>
-#include <set>
-#include <thread>
-
-#include "Pair.hpp"
+#include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/network/zeromq/socket/Publish.hpp"
+#include "opentxs/network/zeromq/socket/Sender.tpp"
+#include "opentxs/network/zeromq/socket/Subscribe.hpp"
 
 #define MINIMUM_UNUSED_BAILMENTS 3
 

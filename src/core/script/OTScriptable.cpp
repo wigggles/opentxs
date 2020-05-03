@@ -3,35 +3,12 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"                          // IWYU pragma: associated
+#include "1_Internal.hpp"                        // IWYU pragma: associated
+#include "opentxs/core/script/OTScriptable.hpp"  // IWYU pragma: associated
 
-#include "opentxs/core/script/OTScriptable.hpp"
-
-#include "opentxs/api/Core.hpp"
-#include "opentxs/api/Factory.hpp"
-#include "opentxs/core/cron/OTCronItem.hpp"
-#include "opentxs/core/script/OTAgent.hpp"
-#include "opentxs/core/script/OTBylaw.hpp"
-#include "opentxs/core/script/OTClause.hpp"
-#include "opentxs/core/script/OTParty.hpp"
-#include "opentxs/core/script/OTPartyAccount.hpp"
-#if OT_SCRIPT_CHAI
-#include "opentxs/core/script/OTScriptChai.hpp"
-#else
-#include "opentxs/core/script/OTScript.hpp"
-#endif
-#include "opentxs/core/script/OTSmartContract.hpp"
-#include "opentxs/core/script/OTVariable.hpp"
-#include "opentxs/core/util/Common.hpp"
-#include "opentxs/core/util/Tag.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/Contract.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/StringXML.hpp"
-#include "opentxs/core/String.hpp"
-
-#include "internal/api/Api.hpp"
-
+#include <algorithm>
+#include <cctype>
 #if OT_SCRIPT_CHAI
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wnoexcept"
@@ -40,19 +17,45 @@
 #endif
 #include <chaiscript/chaiscript.hpp>
 #ifdef OT_USE_CHAI_STDLIB
-#include <chaiscript/chaiscript_stdlib.hpp>
+#include <chaiscript/chaiscript_stdlib.hpp>  // IWYU pragma: keep
 #endif
 #pragma GCC diagnostic pop
 #endif
 #include <irrxml/irrXML.hpp>
-
-#include <cctype>
-#include <cinttypes>
 #include <cstdint>
 #include <cstdlib>
+#include <cstring>
 #include <memory>
-#include <string>
 #include <sstream>
+#include <string>
+#include <utility>
+
+#include "internal/api/Api.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/Version.hpp"
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/StringXML.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/script/OTAgent.hpp"
+#include "opentxs/core/script/OTBylaw.hpp"
+#include "opentxs/core/script/OTClause.hpp"
+#include "opentxs/core/script/OTParty.hpp"
+#include "opentxs/core/script/OTPartyAccount.hpp"
+#include "opentxs/core/script/OTScript.hpp"
+#if OT_SCRIPT_CHAI
+#include "opentxs/core/script/OTScriptChai.hpp"
+#else
+#include "opentxs/core/script/OTScript.hpp"
+#endif  // OT_SCRIPT_CHAI
+#include "opentxs/core/script/OTVariable.hpp"
+#include "opentxs/core/util/Common.hpp"
+#include "opentxs/core/util/Tag.hpp"
 
 #define OT_METHOD "opentxs::OTScriptable"
 

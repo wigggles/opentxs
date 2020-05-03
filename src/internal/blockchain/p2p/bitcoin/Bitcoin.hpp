@@ -5,16 +5,21 @@
 
 #pragma once
 
-#include "Internal.hpp"
+#include <boost/asio.hpp>
+#include <boost/asio/ip/address_v6.hpp>
+#include <boost/endian/buffers.hpp>
+#include <array>
+#include <cstddef>
+#include <cstdint>
+#include <map>
+#include <set>
+#include <string>
 
+#include "blockchain/bitcoin/CompactSize.hpp"
 #include "internal/blockchain/bitcoin/Bitcoin.hpp"
 #include "internal/blockchain/p2p/P2P.hpp"
-
-#include <boost/endian/buffers.hpp>
-
-#include <array>
-#include <map>
-#include <string>
+#include "opentxs/Types.hpp"
+#include "opentxs/core/Data.hpp"
 
 namespace be = boost::endian;
 

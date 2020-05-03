@@ -6,7 +6,7 @@
 #ifndef OPENTXS_BLOCKCHAIN_BLOCK_BITCOIN_HEADER_HPP
 #define OPENTXS_BLOCKCHAIN_BLOCK_BITCOIN_HEADER_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include "opentxs/blockchain/block/Header.hpp"
 #include "opentxs/Types.hpp"

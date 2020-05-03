@@ -7,7 +7,6 @@ add_subdirectory(bitcoin)
 add_subdirectory(block)
 add_subdirectory(client)
 add_subdirectory(p2p)
-add_subdirectory(transaction)
 
 set(
   cxx-sources

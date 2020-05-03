@@ -5,18 +5,41 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
-#include "opentxs/api/Core.hpp"
-#include "opentxs/api/Factory.hpp"
-
-#include "internal/blockchain/p2p/bitcoin/Bitcoin.hpp"
-
 #include <cstdint>
+#include <iosfwd>
 #include <map>
 #include <mutex>
 #include <string>
 #include <tuple>
+
+#include "internal/blockchain/p2p/bitcoin/Bitcoin.hpp"
+#include "opentxs/Forward.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/Version.hpp"
+#include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/core/Data.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
+namespace network
+{
+namespace zeromq
+{
+class Frame;
+}  // namespace zeromq
+}  // namespace network
+
+class Factory;
+}  // namespace opentxs
 
 namespace ot = opentxs;
 namespace zmq = opentxs::network::zeromq;

@@ -3,31 +3,28 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"         // IWYU pragma: associated
+#include "1_Internal.hpp"       // IWYU pragma: associated
+#include "api/network/ZMQ.hpp"  // IWYU pragma: associated
 
-#include "Internal.hpp"
+#include <cstdint>
+#include <atomic>
+#include <map>
+#include <utility>
 
-#include "opentxs/api/network/ZMQ.hpp"
-#include "opentxs/api/Core.hpp"
+#include "Factory.hpp"
+#include "internal/api/Api.hpp"
+#include "opentxs/Pimpl.hpp"
 #include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/api/Wallet.hpp"
-#include "opentxs/core/Flag.hpp"
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/network/zeromq/socket/Publish.hpp"
-#include "opentxs/network/zeromq/socket/Sender.tpp"
-#include "opentxs/network/zeromq/Context.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/network/ServerConnection.hpp"
-
-#include "internal/api/Api.hpp"
-
-#include <atomic>
-#include <map>
-#include <memory>
-#include <mutex>
-
-#include "ZMQ.hpp"
+#include "opentxs/network/zeromq/Context.hpp"
+#include "opentxs/network/zeromq/socket/Publish.hpp"
 
 #define CLIENT_SEND_TIMEOUT_SECONDS 20
 #if OT_VALGRIND

@@ -5,7 +5,44 @@
 
 #pragma once
 
-#include "Internal.hpp"
+#include <algorithm>
+#include <cstdint>
+#include <deque>
+#include <map>
+#include <memory>
+#include <set>
+#include <string>
+
+#include "internal/core/Core.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Lockable.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/identity/Nym.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
+namespace identifier
+{
+class Nym;
+}  // namespace identifier
+
+class Factory;
+class Message;
+class OTPassword;
+class OTPayment;
+class PasswordPrompt;
+}  // namespace opentxs
 
 namespace opentxs::implementation
 {

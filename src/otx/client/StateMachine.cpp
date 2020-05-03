@@ -3,27 +3,52 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"                 // IWYU pragma: associated
+#include "1_Internal.hpp"               // IWYU pragma: associated
+#include "otx/client/StateMachine.tpp"  // IWYU pragma: associated
 
-#include "opentxs/api/client/Manager.hpp"
-#include "opentxs/api/client/Pair.hpp"
+#include <algorithm>
+#include <atomic>
+#include <chrono>
+#include <deque>
+#include <functional>
+#include <future>
+#include <limits>
+#include <memory>
+#include <new>
+#include <string>
+#include <tuple>
+#include <type_traits>
+#include <utility>
+
+#include "core/StateMachine.hpp"
+#include "internal/api/client/Client.hpp"
+#include "internal/otx/client/Client.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/SharedPimpl.hpp"
+#include "opentxs/api/Editor.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/client/NymData.hpp"
 #include "opentxs/client/OT_API.hpp"
-#include "opentxs/core/contract/UnitDefinition.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/core/Cheque.hpp"
-#include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/PasswordPrompt.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/UniqueQueue.hpp"
+#include "opentxs/core/contract/ServerContract.hpp"
+#include "opentxs/core/contract/UnitDefinition.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/ext/OTPayment.hpp"
-
-#include "internal/api/client/Client.hpp"
-#include "internal/otx/client/Client.hpp"
-
-#include "StateMachine.tpp"
+#include "opentxs/identity/Nym.hpp"
+#include "otx/client/StateMachine.hpp"
 
 #define CONTRACT_DOWNLOAD_MILLISECONDS 10000
 #define NYM_REGISTRATION_MILLISECONDS 10000

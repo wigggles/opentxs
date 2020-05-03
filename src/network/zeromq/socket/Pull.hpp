@@ -3,7 +3,40 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/network/zeromq/socket/Pull.cpp"
+
 #pragma once
+
+#include <map>
+#include <ostream>
+
+#include "network/zeromq/curve/Server.hpp"
+#include "network/zeromq/socket/Receiver.hpp"
+#include "network/zeromq/socket/Socket.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/network/zeromq/socket/Pull.hpp"
+#include "opentxs/network/zeromq/socket/Socket.hpp"
+
+namespace opentxs
+{
+namespace network
+{
+namespace zeromq
+{
+namespace socket
+{
+class Pull;
+}  // namespace socket
+
+class Context;
+class ListenCallback;
+class Message;
+}  // namespace zeromq
+}  // namespace network
+
+class Factory;
+}  // namespace opentxs
 
 namespace opentxs::network::zeromq::socket::implementation
 {

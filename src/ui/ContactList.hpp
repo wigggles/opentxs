@@ -3,14 +3,61 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/ui/ContactList.cpp"
+
 #pragma once
 
-#include "Internal.hpp"
+#include <map>
+#include <memory>
+#include <string>
+#include <utility>
 
-#include "opentxs/ui/ContactList.hpp"
-
+#include "1_Internal.hpp"
 #include "internal/ui/UI.hpp"
-#include "List.hpp"
+#include "opentxs/SharedPimpl.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/Version.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/crypto/PaymentCode.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/ui/ContactList.hpp"
+#include "ui/List.hpp"
+#include "ui/Widget.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace client
+{
+namespace internal
+{
+struct Manager;
+}  // namespace internal
+}  // namespace client
+
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
+namespace network
+{
+namespace zeromq
+{
+namespace socket
+{
+class Publish;
+}  // namespace socket
+
+class Message;
+}  // namespace zeromq
+}  // namespace network
+
+class Factory;
+}  // namespace opentxs
 
 namespace opentxs::ui::implementation
 {
@@ -39,6 +86,15 @@ public:
         const QModelIndex& parent = QModelIndex()) const noexcept final;
 #endif
 
+    ContactList(
+        const api::client::internal::Manager& api,
+        const network::zeromq::socket::Publish& publisher,
+        const identifier::Nym& nymID
+#if OT_QT
+        ,
+        const bool qt
+#endif
+        ) noexcept;
     ~ContactList() final;
 
 private:
@@ -87,15 +143,6 @@ private:
 
     void startup() noexcept;
 
-    ContactList(
-        const api::client::internal::Manager& api,
-        const network::zeromq::socket::Publish& publisher,
-        const identifier::Nym& nymID
-#if OT_QT
-        ,
-        const bool qt
-#endif
-        ) noexcept;
     ContactList() = delete;
     ContactList(const ContactList&) = delete;
     ContactList(ContactList&&) = delete;

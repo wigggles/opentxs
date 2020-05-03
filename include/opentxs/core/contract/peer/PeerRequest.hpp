@@ -6,17 +6,29 @@
 #ifndef OPENTXS_CORE_CONTRACT_PEER_PEERREQUEST_HPP
 #define OPENTXS_CORE_CONTRACT_PEER_PEERREQUEST_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/core/contract/Signable.hpp"
-#include "opentxs/Proto.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <string>
 
+#include "opentxs/core/contract/Signable.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/SharedPimpl.hpp"
+
 namespace opentxs
 {
-using OTPeerRequest = SharedPimpl<contract::peer::Request>;
+namespace contract
+{
+namespace peer
+{
+class Request;
+}  // namespace peer
+}  // namespace contract
 
+using OTPeerRequest = SharedPimpl<contract::peer::Request>;
+}  // namespace opentxs
+
+namespace opentxs
+{
 namespace contract
 {
 namespace peer

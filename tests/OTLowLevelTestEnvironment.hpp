@@ -5,9 +5,11 @@
 
 #pragma once
 
-#include <opentxs/opentxs.hpp>
-
+// IWYU pragma: begin_exports
 #include <gtest/gtest.h>
+#include <opentxs/opentxs.hpp>
+#include <string>
+// IWYU pragma: end_exports
 
 namespace ot = opentxs;
 

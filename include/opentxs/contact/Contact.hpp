@@ -6,12 +6,7 @@
 #ifndef OPENTXS_CONTACT_CONTACT_HPP
 #define OPENTXS_CONTACT_CONTACT_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/identity/Nym.hpp"
-#include "opentxs/core/Data.hpp"
-#include "opentxs/Proto.hpp"
-#include "opentxs/Types.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <atomic>
 #include <cstdint>
@@ -21,6 +16,16 @@
 #include <string>
 #include <tuple>
 #include <vector>
+#include <map>
+#include <memory>
+
+#include "opentxs/identity/Nym.hpp"
+#include "opentxs/core/Data.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/contact/ContactData.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
 
 namespace opentxs
 {
@@ -33,11 +38,16 @@ namespace internal
 struct Manager;
 }  // namespace internal
 }  // namespace client
+
 namespace internal
 {
 struct Core;
 }  // namespace internal
 }  // namespace api
+
+class ContactGroup;
+class ContactItem;
+class PaymentCode;
 
 class Contact
 {

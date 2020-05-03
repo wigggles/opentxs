@@ -3,14 +3,68 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/ui/AccountActivity.cpp"
+
 #pragma once
 
-#include "Internal.hpp"
+#include <atomic>
+#include <set>
+#include <string>
+#include <utility>
+#include <vector>
 
-#include "opentxs/ui/AccountActivity.hpp"
-
+#include "1_Internal.hpp"
 #include "internal/ui/UI.hpp"
-#include "List.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/SharedPimpl.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/Version.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/contract/UnitDefinition.hpp"
+#include "opentxs/ui/AccountActivity.hpp"
+#include "ui/List.hpp"
+#include "ui/Widget.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace client
+{
+namespace internal
+{
+struct Manager;
+}  // namespace internal
+}  // namespace client
+}  // namespace api
+
+namespace identifier
+{
+class Nym;
+}  // namespace identifier
+
+namespace network
+{
+namespace zeromq
+{
+namespace socket
+{
+class Publish;
+}  // namespace socket
+
+class Message;
+}  // namespace zeromq
+}  // namespace network
+
+namespace proto
+{
+class PaymentEvent;
+class PaymentWorkflow;
+}  // namespace proto
+
+class Factory;
+}  // namespace opentxs
 
 namespace opentxs::ui::implementation
 {
@@ -46,6 +100,17 @@ public:
     Amount Balance() const noexcept final { return balance_.load(); }
     std::string DisplayBalance() const noexcept final;
 
+    AccountActivity(
+        const api::client::internal::Manager& api,
+        const network::zeromq::socket::Publish& publisher,
+        const identifier::Nym& nymID,
+        const Identifier& accountID
+#if OT_QT
+        ,
+        const bool qt
+#endif
+        ) noexcept;
+
     ~AccountActivity() final;
 
 private:
@@ -78,16 +143,6 @@ private:
     void process_workflow(const network::zeromq::Message& message) noexcept;
     void startup() noexcept;
 
-    AccountActivity(
-        const api::client::internal::Manager& api,
-        const network::zeromq::socket::Publish& publisher,
-        const identifier::Nym& nymID,
-        const Identifier& accountID
-#if OT_QT
-        ,
-        const bool qt
-#endif
-        ) noexcept;
     AccountActivity() = delete;
     AccountActivity(const AccountActivity&) = delete;
     AccountActivity(AccountActivity&&) = delete;

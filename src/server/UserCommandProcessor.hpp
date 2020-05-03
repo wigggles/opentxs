@@ -5,17 +5,62 @@
 
 #pragma once
 
-#include "Internal.hpp"
+#include <cstdint>
+#include <memory>
+#include <vector>
 
 #include "internal/api/server/Server.hpp"
 #include "opentxs/Types.hpp"
-
-#include <cstdint>
-#include <memory>
+#include "opentxs/Version.hpp"
+#include "opentxs/core/Message.hpp"
 
 namespace opentxs
 {
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+
 namespace server
+{
+namespace internal
+{
+struct Manager;
+}  // namespace internal
+}  // namespace server
+
+class Wallet;
+}  // namespace api
+
+namespace identifier
+{
+class Nym;
+class Server;
+}  // namespace identifier
+
+namespace identity
+{
+class Nym;
+}  // namespace identity
+
+namespace server
+{
+class ReplyMessage;
+class Server;
+}  // namespace server
+
+class ClientContext;
+class Identifier;
+class Ledger;
+class NumList;
+class OTAgent;
+class OTTransaction;
+class PasswordPrompt;
+}  // namespace opentxs
+
+namespace opentxs::server
 {
 class UserCommandProcessor
 {
@@ -176,5 +221,4 @@ private:
     UserCommandProcessor& operator=(const UserCommandProcessor&) = delete;
     UserCommandProcessor& operator=(UserCommandProcessor&&) = delete;
 };
-}  // namespace server
-}  // namespace opentxs
+}  // namespace opentxs::server

@@ -5,16 +5,11 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
 #include <cstdint>
 #include <string>
 
-namespace opentxs
+namespace opentxs::server
 {
-namespace server
-{
-
 struct ServerSettings {
     static std::int64_t GetMinMarketScale() { return __min_market_scale; }
 
@@ -114,5 +109,4 @@ struct ServerSettings {
 
     static bool __cmd_request_admin;
 };
-}  // namespace server
-}  // namespace opentxs
+}  // namespace opentxs::server

@@ -3,28 +3,34 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"             // IWYU pragma: associated
+#include "1_Internal.hpp"           // IWYU pragma: associated
+#include "blockchain/p2p/Peer.hpp"  // IWYU pragma: associated
 
-#include "opentxs/api/crypto/Crypto.hpp"
-#include "opentxs/api/crypto/Encode.hpp"
-#include "opentxs/api/network/ZMQ.hpp"
-#include "opentxs/api/Core.hpp"
+#include <boost/asio.hpp>
+#include <array>
+#include <chrono>
+#include <cstddef>
+#include <cstring>
+#include <functional>
+#include <stdexcept>
+#include <type_traits>
+
+#include "internal/api/Api.hpp"
+#include "internal/blockchain/Blockchain.hpp"
+#include "opentxs/Pimpl.hpp"
 #include "opentxs/api/Endpoints.hpp"
-#include "opentxs/api/Factory.hpp"
+#include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/network/zeromq/socket/Subscribe.hpp"
+#include "opentxs/core/LogSource.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
-
-#include "internal/api/Api.hpp"
-#include "internal/blockchain/Blockchain.hpp"
-
-#include <functional>
-
-#include "Peer.hpp"
+#include "opentxs/network/zeromq/Pipeline.hpp"
+#include "opentxs/network/zeromq/socket/Socket.hpp"
 
 #define OT_BLOCKCHAIN_PEER_PING_SECONDS 30
 #define OT_BLOCKCHAIN_PEER_DISCONNECT_SECONDS 40

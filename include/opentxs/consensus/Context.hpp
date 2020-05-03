@@ -6,15 +6,15 @@
 #ifndef OPENTXS_CONSENSUS_CONTEXT_HPP
 #define OPENTXS_CONSENSUS_CONTEXT_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
+
+#include <memory>
+#include <set>
 
 #include "opentxs/api/Editor.hpp"
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
-
-#include <memory>
-#include <set>
 
 namespace opentxs
 {

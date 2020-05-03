@@ -6,11 +6,12 @@
 #ifndef OPENTXS_CORE_STRINGXML_HPP
 #define OPENTXS_CORE_STRINGXML_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/core/String.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <cstdint>
+
+#include "opentxs/core/String.hpp"
+#include "opentxs/Pimpl.hpp"
 
 namespace irr
 {
@@ -22,8 +23,13 @@ class IFileReadCallBack;
 
 namespace opentxs
 {
-using OTStringXML = Pimpl<StringXML>;
+class StringXML;
 
+using OTStringXML = Pimpl<StringXML>;
+}  // namespace opentxs
+
+namespace opentxs
+{
 class StringXML : virtual public String
 {
 public:

@@ -6,18 +6,29 @@
 #ifndef OPENTXS_CORE_CRON_OTCRON_HPP
 #define OPENTXS_CORE_CRON_OTCRON_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/core/identifier/Server.hpp"
-#include "opentxs/core/Contract.hpp"
-#include "opentxs/core/Log.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <chrono>
+#include <cstdint>
+#include <list>
+#include <map>
+#include <memory>
+#include <string>
+
+#include "opentxs/Types.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/identifier/Server.hpp"
 
 namespace opentxs
 {
 namespace api
 {
+namespace internal
+{
+struct Core;
+}  // namespace internal
+
 namespace server
 {
 namespace implementation
@@ -31,6 +42,18 @@ struct Manager;
 }  // namespace internal
 }  // namespace server
 }  // namespace api
+
+namespace identifier
+{
+class Nym;
+class UnitDefinition;
+}  // namespace identifier
+
+class Armored;
+class Identifier;
+class OTCronItem;
+class OTMarket;
+class PasswordPrompt;
 
 /** mapOfCronItems:      Mapped (uniquely) to transaction number. */
 typedef std::map<std::int64_t, std::shared_ptr<OTCronItem>> mapOfCronItems;

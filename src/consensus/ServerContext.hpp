@@ -3,7 +3,102 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/consensus/ServerContext.cpp"
+
 #pragma once
+
+#include <atomic>
+#include <cstdint>
+#include <future>
+#include <iosfwd>
+#include <memory>
+#include <mutex>
+#include <set>
+#include <string>
+#include <utility>
+#include <vector>
+
+#include "consensus/Context.hpp"
+#include "core/StateMachine.hpp"
+#include "internal/consensus/Consensus.hpp"
+#include "opentxs/Forward.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/Version.hpp"
+#include "opentxs/api/Editor.hpp"
+#include "opentxs/consensus/Context.hpp"
+#include "opentxs/consensus/ManagedNumber.hpp"
+#include "opentxs/consensus/ServerContext.hpp"
+#include "opentxs/consensus/TransactionStatement.hpp"
+#include "opentxs/core/Flag.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Item.hpp"
+#include "opentxs/core/Message.hpp"
+#include "opentxs/core/OTTransaction.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/network/ServerConnection.hpp"
+#include "opentxs/network/zeromq/socket/Push.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace client
+{
+namespace internal
+{
+struct Manager;
+}  // namespace internal
+}  // namespace client
+
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
+namespace blind
+{
+class Purse;
+}  // namespace blind
+
+namespace identifier
+{
+class Nym;
+class Server;
+class UnitDefinition;
+}  // namespace identifier
+
+namespace identity
+{
+class Nym;
+}  // namespace identity
+
+namespace network
+{
+namespace zeromq
+{
+namespace socket
+{
+class Publish;
+}  // namespace socket
+}  // namespace zeromq
+}  // namespace network
+
+namespace otx
+{
+class Reply;
+}  // namespace otx
+
+class Armored;
+class Factory;
+class Ledger;
+class OTPayment;
+class PasswordPrompt;
+class PeerObject;
+class String;
+}  // namespace opentxs
 
 namespace zmq = opentxs::network::zeromq;
 

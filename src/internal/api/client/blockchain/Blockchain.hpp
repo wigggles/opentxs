@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "Internal.hpp"
+#include <optional>
 
 #include "opentxs/api/client/blockchain/BalanceList.hpp"
 #include "opentxs/api/client/blockchain/BalanceNode.hpp"
@@ -14,10 +14,7 @@
 #include "opentxs/api/client/blockchain/HD.hpp"
 #include "opentxs/api/client/blockchain/Imported.hpp"
 #include "opentxs/api/client/blockchain/PaymentCode.hpp"
-
 #include "internal/blockchain/client/Client.hpp"
-
-#include <optional>
 
 namespace std
 {

@@ -3,12 +3,12 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"                      // IWYU pragma: associated
+#include "1_Internal.hpp"                    // IWYU pragma: associated
+#include "network/zeromq/ReplyCallback.hpp"  // IWYU pragma: associated
 
-#include "opentxs/network/zeromq/Frame.hpp"
+#include "opentxs/Pimpl.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
-
-#include "ReplyCallback.hpp"
 
 template class opentxs::Pimpl<opentxs::network::zeromq::ReplyCallback>;
 

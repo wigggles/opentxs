@@ -6,14 +6,13 @@
 #ifndef OPENTXS_CORE_CRYPTO_SIGNATURE_HPP
 #define OPENTXS_CORE_CRYPTO_SIGNATURE_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include "opentxs/core/Armored.hpp"
+#include "opentxs/Pimpl.hpp"
 
 namespace opentxs
 {
-using OTSignature = Pimpl<Signature>;
-
 namespace api
 {
 namespace internal
@@ -22,6 +21,13 @@ struct Core;
 }  // namespace internal
 }  // namespace api
 
+class Signature;
+
+using OTSignature = Pimpl<Signature>;
+}  // namespace opentxs
+
+namespace opentxs
+{
 class Signature : virtual public Armored
 {
 public:

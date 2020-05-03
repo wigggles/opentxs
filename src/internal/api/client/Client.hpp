@@ -5,7 +5,9 @@
 
 #pragma once
 
-#include "Internal.hpp"
+#include <future>
+#include <string>
+#include <tuple>
 
 #include "opentxs/api/client/Activity.hpp"
 #include "opentxs/api/client/Blockchain.hpp"
@@ -19,14 +21,9 @@
 #include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/UniqueQueue.hpp"
-
 #include "internal/api/Api.hpp"
 #include "internal/core/identifier/Identifier.hpp"
 #include "internal/core/Core.hpp"
-
-#include <future>
-#include <string>
-#include <tuple>
 
 namespace opentxs::api::client::internal
 {

@@ -6,11 +6,11 @@
 #ifndef OPENTXS_UI_WIDGET_HPP
 #define OPENTXS_UI_WIDGET_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/core/Identifier.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <string>
+
+#include "opentxs/core/Identifier.hpp"
 
 #ifdef SWIG
 // clang-format off

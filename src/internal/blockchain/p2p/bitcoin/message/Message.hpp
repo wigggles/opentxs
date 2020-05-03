@@ -5,18 +5,55 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
-#include "opentxs/blockchain/BloomFilter.hpp"
-#include "opentxs/iterator/Bidirectional.hpp"
-#include "opentxs/Bytes.hpp"
-
-#include "blockchain/p2p/bitcoin/Message.hpp"
-#include "internal/blockchain/p2p/bitcoin/Bitcoin.hpp"
-
+#include <boost/endian/buffers.hpp>
 #include <array>
+#include <cstddef>
+#include <cstdint>
 #include <set>
+#include <string>
 #include <tuple>
+
+#include "1_Internal.hpp"
+#include "blockchain/p2p/bitcoin/Message.hpp"
+#include "internal/blockchain/p2p/P2P.hpp"
+#include "internal/blockchain/p2p/bitcoin/Bitcoin.hpp"
+#include "opentxs/Bytes.hpp"
+#include "opentxs/Forward.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/blockchain/BloomFilter.hpp"
+#include "opentxs/core/Data.hpp"
+#include "opentxs/iterator/Bidirectional.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
+namespace blockchain
+{
+namespace p2p
+{
+namespace bitcoin
+{
+class Header;
+}  // namespace bitcoin
+}  // namespace p2p
+}  // namespace blockchain
+
+namespace network
+{
+namespace zeromq
+{
+class Frame;
+}  // namespace zeromq
+}  // namespace network
+}  // namespace opentxs
 
 namespace opentxs::blockchain::p2p::bitcoin::message
 {

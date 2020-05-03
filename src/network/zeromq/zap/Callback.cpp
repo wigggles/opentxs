@@ -3,18 +3,22 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
-
-#include "opentxs/core/Log.hpp"
-#include "opentxs/network/zeromq/zap/Reply.hpp"
-#include "opentxs/network/zeromq/zap/Request.hpp"
-#include "opentxs/network/zeromq/Frame.hpp"
-#include "opentxs/network/zeromq/FrameIterator.hpp"
-#include "opentxs/network/zeromq/FrameSection.hpp"
+#include "0_stdafx.hpp"                     // IWYU pragma: associated
+#include "1_Internal.hpp"                   // IWYU pragma: associated
+#include "network/zeromq/zap/Callback.hpp"  // IWYU pragma: associated
 
 #include <atomic>
+#include <functional>
+#include <memory>
+#include <utility>
 
-#include "Callback.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/network/zeromq/zap/Reply.hpp"
+#include "opentxs/network/zeromq/zap/Request.hpp"
+#include "opentxs/network/zeromq/zap/ZAP.hpp"
 
 template class opentxs::Pimpl<opentxs::network::zeromq::zap::Callback>;
 

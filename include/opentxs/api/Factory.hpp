@@ -6,13 +6,26 @@
 #ifndef OPENTXS_API_FACTORY_HPP
 #define OPENTXS_API_FACTORY_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
+#include <cstdint>
+#include <string>
+
+#include "opentxs/Bytes.hpp"
+#include "opentxs/Proto.hpp"
 #if OT_BLOCKCHAIN
-#include "opentxs/blockchain/p2p/Address.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/blockchain/p2p/Address.hpp"
 #endif  // OT_BLOCKCHAIN
-#include "opentxs/crypto/key/Asymmetric.hpp"
+#include "opentxs/core/Armored.hpp"
+#include "opentxs/core/Data.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/PasswordPrompt.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/contract/CurrencyContract.hpp"
+#include "opentxs/core/contract/SecurityContract.hpp"
+#include "opentxs/core/contract/ServerContract.hpp"
+#include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/contract/basket/BasketContract.hpp"
 #include "opentxs/core/contract/peer/BailmentNotice.hpp"
 #include "opentxs/core/contract/peer/BailmentReply.hpp"
@@ -26,28 +39,15 @@
 #include "opentxs/core/contract/peer/PeerReply.hpp"
 #include "opentxs/core/contract/peer/PeerRequest.hpp"
 #include "opentxs/core/contract/peer/StoreSecret.hpp"
-#include "opentxs/core/contract/CurrencyContract.hpp"
-#include "opentxs/core/contract/SecurityContract.hpp"
-#include "opentxs/core/contract/ServerContract.hpp"
-#include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/crypto/PaymentCode.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
-#include "opentxs/core/Armored.hpp"
-#include "opentxs/core/Data.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/String.hpp"
-#include "opentxs/core/PasswordPrompt.hpp"
+#include "opentxs/crypto/Envelope.hpp"
+#include "opentxs/crypto/key/Asymmetric.hpp"
 #include "opentxs/crypto/key/Keypair.hpp"
 #include "opentxs/crypto/key/Symmetric.hpp"
-#include "opentxs/crypto/Envelope.hpp"
 #include "opentxs/network/zeromq/Pipeline.hpp"
-#include "opentxs/Bytes.hpp"
-#include "opentxs/Proto.hpp"
-
-#include <cstdint>
-#include <string>
 
 namespace opentxs
 {

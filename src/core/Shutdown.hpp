@@ -5,16 +5,25 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
-#include "opentxs/network/zeromq/socket/Publish.hpp"
-#include "opentxs/network/zeromq/socket/Subscribe.hpp"
-#include "opentxs/network/zeromq/ListenCallback.hpp"
-
 #include <functional>
 #include <future>
 #include <string>
 #include <vector>
+
+#include "opentxs/network/zeromq/ListenCallback.hpp"
+#include "opentxs/network/zeromq/socket/Publish.hpp"
+#include "opentxs/network/zeromq/socket/Subscribe.hpp"
+
+namespace opentxs
+{
+namespace network
+{
+namespace zeromq
+{
+class Context;
+}  // namespace zeromq
+}  // namespace network
+}  // namespace opentxs
 
 namespace opentxs::internal
 {

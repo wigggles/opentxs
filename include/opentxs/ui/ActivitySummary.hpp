@@ -8,9 +8,10 @@
 
 #ifndef Q_MOC_RUN
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include "opentxs/ui/List.hpp"
+#include "opentxs/SharedPimpl.hpp"
 
 #ifdef SWIG
 // clang-format off
@@ -61,6 +62,8 @@ signals:
     void updated() const;
 
 public:
+    ActivitySummaryQt(implementation::ActivitySummary& parent) noexcept;
+
     ~ActivitySummaryQt() final = default;
 
 private:
@@ -70,7 +73,6 @@ private:
 
     void notify() const noexcept;
 
-    ActivitySummaryQt(implementation::ActivitySummary& parent) noexcept;
     ActivitySummaryQt(const ActivitySummaryQt&) = delete;
     ActivitySummaryQt(ActivitySummaryQt&&) = delete;
     ActivitySummaryQt& operator=(const ActivitySummaryQt&) = delete;

@@ -6,7 +6,7 @@
 #ifndef OPENTXS_UTIL_PIDFILE_HPP
 #define OPENTXS_UTIL_PIDFILE_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <cstdint>
 #include <string>

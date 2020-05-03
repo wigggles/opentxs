@@ -5,13 +5,31 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
-#include "opentxs/network/zeromq/curve/Server.hpp"
+#include <iosfwd>
+#include <mutex>
+#include <string>
 
 #include "network/zeromq/socket/Socket.hpp"
+#include "opentxs/network/zeromq/curve/Server.hpp"
 
-#include <mutex>
+namespace opentxs
+{
+namespace network
+{
+namespace zeromq
+{
+namespace socket
+{
+namespace implementation
+{
+class Socket;
+}  // namespace implementation
+}  // namespace socket
+}  // namespace zeromq
+}  // namespace network
+
+class OTPassword;
+}  // namespace opentxs
 
 namespace opentxs::network::zeromq::curve::implementation
 {

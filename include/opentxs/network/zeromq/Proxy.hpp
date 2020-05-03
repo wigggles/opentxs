@@ -6,7 +6,9 @@
 #ifndef OPENTXS_NETWORK_ZEROMQ_PROXY_HPP
 #define OPENTXS_NETWORK_ZEROMQ_PROXY_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
+
+#include "opentxs/Pimpl.hpp"
 
 #ifdef SWIG
 // clang-format off
@@ -22,8 +24,19 @@
 
 namespace opentxs
 {
-using OTZMQProxy = Pimpl<network::zeromq::Proxy>;
+namespace network
+{
+namespace zeromq
+{
+class Proxy;
+}  // namespace zeromq
+}  // namespace network
 
+using OTZMQProxy = Pimpl<network::zeromq::Proxy>;
+}  // namespace opentxs
+
+namespace opentxs
+{
 namespace network
 {
 namespace zeromq

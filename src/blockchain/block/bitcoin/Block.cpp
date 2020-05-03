@@ -3,35 +3,40 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
-
-#include "Internal.hpp"
-
-#include "opentxs/api/crypto/Crypto.hpp"
-#include "opentxs/api/crypto/Hash.hpp"
-#include "opentxs/api/Factory.hpp"
-#include "opentxs/blockchain/block/bitcoin/Block.hpp"
-#include "opentxs/blockchain/block/bitcoin/Transaction.hpp"
-#include "opentxs/core/Data.hpp"
-#include "opentxs/core/Log.hpp"
-
-#include "blockchain/block/Block.hpp"
-#include "internal/api/Api.hpp"
-#include "internal/blockchain/bitcoin/Bitcoin.hpp"
-#include "internal/blockchain/block/Block.hpp"
+#include "0_stdafx.hpp"                        // IWYU pragma: associated
+#include "1_Internal.hpp"                      // IWYU pragma: associated
+#include "blockchain/block/bitcoin/Block.hpp"  // IWYU pragma: associated
 
 #include <boost/endian/buffers.hpp>
-
 #include <algorithm>
+#include <cstddef>
+#include <cstdint>
 #include <cstring>
+#include <functional>
+#include <iterator>
+#include <limits>
 #include <map>
 #include <numeric>
 #include <optional>
 #include <stdexcept>
-#include <tuple>
+#include <string>
+#include <string_view>
+#include <type_traits>
 #include <vector>
 
-#include "Block.hpp"
+#include "Factory.hpp"
+#include "blockchain/block/Block.hpp"
+#include "internal/api/Api.hpp"
+#include "internal/blockchain/bitcoin/Bitcoin.hpp"
+#include "internal/blockchain/block/Block.hpp"
+#include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/blockchain/block/bitcoin/Block.hpp"
+#include "opentxs/blockchain/block/bitcoin/Transaction.hpp"
+#include "opentxs/core/Data.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
 
 #define OT_METHOD "opentxs::blockchain::block::bitcoin::implementation::Block::"
 

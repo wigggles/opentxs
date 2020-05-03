@@ -6,13 +6,13 @@
 #ifndef OPENTXS_API_CRYPTO_ENCODE_HPP
 #define OPENTXS_API_CRYPTO_ENCODE_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/core/Data.hpp"
-#include "opentxs/core/String.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <cstdint>
 #include <string>
+
+#include "opentxs/core/Data.hpp"
+#include "opentxs/core/String.hpp"
 
 namespace opentxs
 {

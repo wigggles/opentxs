@@ -3,25 +3,31 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"                        // IWYU pragma: associated
+#include "1_Internal.hpp"                      // IWYU pragma: associated
+#include "blockchain/block/bitcoin/Input.hpp"  // IWYU pragma: associated
 
-#include "Internal.hpp"
+#include <boost/endian/buffers.hpp>
+#include <algorithm>
+#include <array>
+#include <cstddef>
+#include <cstdint>
+#include <cstring>
+#include <iterator>
+#include <optional>
+#include <stdexcept>
+#include <string>
+#include <utility>
 
+#include "Factory.hpp"
+#include "blockchain/bitcoin/CompactSize.hpp"
+#include "internal/blockchain/block/Block.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/blockchain/block/bitcoin/Input.hpp"
 #include "opentxs/blockchain/block/bitcoin/Script.hpp"
 #include "opentxs/core/Log.hpp"
-
-#include "blockchain/bitcoin/CompactSize.hpp"
-#include "internal/blockchain/block/Block.hpp"
-
-#include <boost/endian/buffers.hpp>
-
-#include <algorithm>
-#include <cstring>
-#include <limits>
-#include <optional>
-
-#include "Input.hpp"
+#include "opentxs/core/LogSource.hpp"
 
 namespace be = boost::endian;
 

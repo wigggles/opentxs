@@ -6,13 +6,15 @@
 #ifndef OPENTXS_CONTACT_CONTACTSECTION_HPP
 #define OPENTXS_CONTACT_CONTACTSECTION_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/Proto.hpp"
-#include "opentxs/Types.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <map>
 #include <memory>
+#include <iosfwd>
+#include <string>
+
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
 
 namespace opentxs
 {
@@ -23,6 +25,10 @@ namespace internal
 struct Core;
 }  // namespace internal
 }  // namespace api
+
+class ContactGroup;
+class ContactItem;
+class Identifier;
 
 class ContactSection
 {
@@ -100,5 +106,4 @@ private:
     ContactSection& operator=(ContactSection&&) = delete;
 };
 }  // namespace opentxs
-
 #endif

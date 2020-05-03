@@ -3,32 +3,34 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"                     // IWYU pragma: associated
+#include "1_Internal.hpp"                   // IWYU pragma: associated
+#include "opentxs/core/script/OTParty.hpp"  // IWYU pragma: associated
 
-#include "opentxs/core/script/OTParty.hpp"
+#include <cstdint>
+#include <map>
+#include <memory>
+#include <set>
+#include <string>
+#include <utility>
 
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Shared.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
+#include "opentxs/core/Account.hpp"
+#include "opentxs/core/Armored.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/NumList.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/script/OTAgent.hpp"
 #include "opentxs/core/script/OTPartyAccount.hpp"
 #include "opentxs/core/script/OTScriptable.hpp"
 #include "opentxs/core/script/OTSmartContract.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/Tag.hpp"
-#include "opentxs/core/Account.hpp"
-#include "opentxs/core/Armored.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/NumList.hpp"
-#include "opentxs/core/String.hpp"
 #include "opentxs/identity/Nym.hpp"
-
-#include <cstdint>
-#include <map>
-#include <memory>
-#include <ostream>
-#include <set>
-#include <string>
-#include <utility>
 
 #define OT_METHOD "opentxs::OTParty"
 

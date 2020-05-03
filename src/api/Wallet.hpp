@@ -5,23 +5,99 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
-#include "opentxs/api/Wallet.hpp"
-#include "opentxs/core/identifier/Nym.hpp"
-#include "opentxs/core/identifier/Server.hpp"
-#include "opentxs/core/identifier/UnitDefinition.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Lockable.hpp"
-#include "opentxs/network/zeromq/socket/Publish.hpp"
-#include "opentxs/network/zeromq/socket/Request.tpp"
-#include "opentxs/network/zeromq/socket/Sender.tpp"
+#include <chrono>
+#include <cstdint>
+#include <ctime>
+#include <iosfwd>
+#include <list>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <set>
+#include <shared_mutex>
+#include <string>
+#include <tuple>
+#include <utility>
 
 #include "internal/consensus/Consensus.hpp"
 #include "internal/identity/Identity.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/Version.hpp"
+#include "opentxs/api/Editor.hpp"
+#include "opentxs/api/Wallet.hpp"
+#include "opentxs/client/NymData.hpp"
+#include "opentxs/core/Account.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Lockable.hpp"
+#include "opentxs/core/contract/ServerContract.hpp"
+#include "opentxs/core/contract/UnitDefinition.hpp"
+#include "opentxs/core/contract/basket/BasketContract.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
+#include "opentxs/network/zeromq/socket/Publish.hpp"
+#include "opentxs/network/zeromq/socket/Push.hpp"
+#include "opentxs/network/zeromq/socket/Request.hpp"
+#include "opentxs/network/zeromq/socket/Request.tpp"
+#include "opentxs/network/zeromq/socket/Sender.tpp"
 
-#include <map>
-#include <tuple>
+namespace opentxs
+{
+namespace api
+{
+namespace client
+{
+class Issuer;
+}  // namespace client
+
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
+namespace blind
+{
+class Purse;
+}  // namespace blind
+
+namespace identity
+{
+namespace internal
+{
+struct Nym;
+}  // namespace internal
+
+class Nym;
+}  // namespace identity
+
+namespace internal
+{
+struct Context;
+}  // namespace internal
+
+namespace proto
+{
+class Context;
+class Credential;
+class Nym;
+class PeerReply;
+class PeerRequest;
+class ServerContract;
+class UnitDefinition;
+}  // namespace proto
+
+class ClientContext;
+class Context;
+class Factory;
+class NymFile;
+class NymParameters;
+class PasswordPrompt;
+class PeerObject;
+class ServerContext;
+class String;
+}  // namespace opentxs
 
 namespace opentxs::api::implementation
 {

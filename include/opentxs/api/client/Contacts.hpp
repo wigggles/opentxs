@@ -6,14 +6,14 @@
 #ifndef OPENTXS_API_CLIENT_CONTACTS_HPP
 #define OPENTXS_API_CLIENT_CONTACTS_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/api/Editor.hpp"
-#include "opentxs/identity/Nym.hpp"
-#include "opentxs/Proto.hpp"
-#include "opentxs/Types.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <memory>
+
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/api/Editor.hpp"
+#include "opentxs/identity/Nym.hpp"
 
 namespace opentxs
 {

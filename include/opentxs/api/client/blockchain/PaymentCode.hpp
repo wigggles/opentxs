@@ -6,11 +6,10 @@
 #ifndef OPENTXS_API_CLIENT_BLOCKCHAIN_PAYMENTCODE_HPP
 #define OPENTXS_API_CLIENT_BLOCKCHAIN_PAYMENTCODE_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
+#include "opentxs/api/client/blockchain/Deterministic.hpp"
 #include "opentxs/core/crypto/PaymentCode.hpp"
-
-#include "Deterministic.hpp"
 
 namespace opentxs
 {

@@ -5,13 +5,40 @@
 
 #pragma once
 
-#include "Internal.hpp"
+#include <irrxml/irrXML.hpp>
+#include <cstdint>
+#include <iosfwd>
+#include <map>
 
+#include "opentxs/Types.hpp"
 #include "opentxs/blind/Mint.hpp"
+#include "opentxs/core/Armored.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
 
-#include <map>
+namespace opentxs
+{
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+
+class Wallet;
+}  // namespace api
+
+namespace identity
+{
+class Nym;
+}  // namespace identity
+
+class PasswordPrompt;
+class String;
+}  // namespace opentxs
 
 namespace opentxs::blind::mint::implementation
 {

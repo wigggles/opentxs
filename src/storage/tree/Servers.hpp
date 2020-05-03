@@ -5,15 +5,30 @@
 
 #pragma once
 
-#include "Internal.hpp"
+#include <memory>
+#include <mutex>
+#include <string>
 
-#include "opentxs/api/storage/Storage.hpp"
+#include "opentxs/Proto.hpp"
 #include "opentxs/api/Editor.hpp"
-
-#include "Node.hpp"
+#include "opentxs/api/storage/Storage.hpp"
+#include "storage/tree/Node.hpp"
 
 namespace opentxs
 {
+namespace api
+{
+namespace storage
+{
+class Driver;
+}  // namespace storage
+}  // namespace api
+
+namespace proto
+{
+class ServerContract;
+}  // namespace proto
+
 namespace storage
 {
 class Servers final : public Node

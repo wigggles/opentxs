@@ -3,16 +3,20 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
-
-#include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/Log.hpp"
-
-#include <zmq.h>
+#include "0_stdafx.hpp"                     // IWYU pragma: associated
+#include "1_Internal.hpp"                   // IWYU pragma: associated
+#include "network/zeromq/curve/Server.hpp"  // IWYU pragma: associated
 
 #include <array>
+#include <cstdint>
+#include <utility>
+#include <zmq.h>
 
-#include "Server.hpp"
+#include "network/zeromq/socket/Socket.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
 
 #define OT_METHOD "opentxs::network::zeromq::curve::implementation::Server::"
 

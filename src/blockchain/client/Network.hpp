@@ -5,20 +5,72 @@
 
 #pragma once
 
-#include "Internal.hpp"
+#include <atomic>
+#include <future>
+#include <iosfwd>
+#include <memory>
+#include <string>
 
-#include "opentxs/core/Flag.hpp"
-#include "opentxs/network/zeromq/socket/Publish.hpp"
-#include "opentxs/network/zeromq/socket/Subscribe.hpp"
-#include "opentxs/network/zeromq/ListenCallback.hpp"
-#include "opentxs/network/zeromq/Pipeline.hpp"
-
-#include "core/Shutdown.hpp"
 #include "core/Executor.hpp"
+#include "core/Shutdown.hpp"
+#include "internal/api/Api.hpp"
 #include "internal/api/client/Client.hpp"
 #include "internal/blockchain/Blockchain.hpp"
+#include "internal/blockchain/client/Client.hpp"
+#include "opentxs/Bytes.hpp"
+#include "opentxs/Forward.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/core/Flag.hpp"
+#include "opentxs/network/zeromq/ListenCallback.hpp"
+#include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/network/zeromq/Pipeline.hpp"
+#include "opentxs/network/zeromq/socket/Publish.hpp"
+#include "opentxs/network/zeromq/socket/Subscribe.hpp"
 
-#include <atomic>
+namespace opentxs
+{
+namespace api
+{
+namespace client
+{
+namespace blockchain
+{
+class BalanceTree;
+class PaymentCode;
+}  // namespace blockchain
+}  // namespace client
+
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
+namespace blockchain
+{
+namespace block
+{
+class Header;
+}  // namespace block
+
+namespace p2p
+{
+class Address;
+}  // namespace p2p
+}  // namespace blockchain
+
+namespace network
+{
+namespace zeromq
+{
+namespace socket
+{
+class Publish;
+}  // namespace socket
+}  // namespace zeromq
+}  // namespace network
+}  // namespace opentxs
 
 namespace zmq = opentxs::network::zeromq;
 

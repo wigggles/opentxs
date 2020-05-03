@@ -6,7 +6,13 @@
 #ifndef OPENTXS_IDENTITY_NYM_HPP
 #define OPENTXS_IDENTITY_NYM_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
+
+#include <cstdint>
+#include <memory>
+#include <set>
+#include <string>
+#include <tuple>
 
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -14,12 +20,6 @@
 #include "opentxs/iterator/Bidirectional.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
-
-#include <cstdint>
-#include <memory>
-#include <set>
-#include <string>
-#include <tuple>
 
 namespace opentxs
 {

@@ -5,19 +5,15 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
-#include <opentxs/blockchain/p2p/Address.hpp>
-#include "opentxs/blockchain/p2p/Peer.hpp"
-#include "opentxs/blockchain/Blockchain.hpp"
-
 #include <boost/asio.hpp>
-
-#include "core/StateMachine.hpp"
-
 #include <cstdint>
 #include <future>
 #include <set>
+
+#include "core/StateMachine.hpp"
+#include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/blockchain/p2p/Address.hpp"
+#include "opentxs/blockchain/p2p/Peer.hpp"
 
 namespace ba = boost::asio;
 namespace ip = ba::ip;

@@ -3,39 +3,40 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"        // IWYU pragma: associated
+#include "1_Internal.hpp"      // IWYU pragma: associated
+#include "ui/ProfileItem.hpp"  // IWYU pragma: associated
 
-#include "opentxs/api/client/Manager.hpp"
+#include <set>
+#include <tuple>
+
+#include "internal/api/client/Client.hpp"
+#include "internal/ui/UI.hpp"
+#include "opentxs/Proto.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/client/NymData.hpp"
 #include "opentxs/contact/ContactItem.hpp"
-#include "opentxs/core/Flag.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Lockable.hpp"
-#include "opentxs/core/PasswordPrompt.hpp"
-#include "opentxs/ui/ProfileItem.hpp"
+#include "opentxs/core/Log.hpp"
+#include "ui/Widget.hpp"
 
-#include "internal/api/client/Client.hpp"
-#include "internal/ui/UI.hpp"
-#include "Row.hpp"
-
-#include "ProfileItem.hpp"
-
-namespace opentxs
+namespace opentxs::factory
 {
-ui::implementation::ProfileSubsectionRowInternal* Factory::ProfileItemWidget(
+auto ProfileItemWidget(
     const ui::implementation::ProfileSubsectionInternalInterface& parent,
     const api::client::internal::Manager& api,
     const network::zeromq::socket::Publish& publisher,
     const ui::implementation::ProfileSubsectionRowID& rowID,
     const ui::implementation::ProfileSubsectionSortKey& sortKey,
-    const ui::implementation::CustomData& custom)
+    const ui::implementation::CustomData& custom) noexcept
+    -> std::shared_ptr<ui::implementation::ProfileSubsectionRowInternal>
 {
-    return new ui::implementation::ProfileItem(
+    using ReturnType = ui::implementation::ProfileItem;
+
+    return std::make_shared<ReturnType>(
         parent, api, publisher, rowID, sortKey, custom);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::ui::implementation
 {

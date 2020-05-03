@@ -3,9 +3,43 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/storage/drivers/StorageFSArchive.cpp"
+
 #pragma once
 
-#if OT_STORAGE_FS
+#include <string>
+
+#include "opentxs/Bytes.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/Version.hpp"
+#include "opentxs/api/storage/Driver.hpp"
+#include "storage/drivers/StorageFS.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace storage
+{
+class Plugin;
+class Storage;
+}  // namespace storage
+}  // namespace api
+
+namespace crypto
+{
+namespace key
+{
+class Symmetric;
+}  // namespace key
+}  // namespace crypto
+
+class Factory;
+class Flag;
+class StorageConfig;
+}  // namespace opentxs
+
 namespace opentxs::storage::implementation
 {
 class StorageFSArchive final : public StorageFS,
@@ -53,5 +87,3 @@ private:
     StorageFSArchive& operator=(StorageFSArchive&&) = delete;
 };
 }  // namespace opentxs::storage::implementation
-
-#endif  // OT_STORAGE_FS

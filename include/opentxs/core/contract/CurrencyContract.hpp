@@ -6,14 +6,26 @@
 #ifndef OPENTXS_CORE_CONTRACT_CURRENCYCONTRACT_HPP
 #define OPENTXS_CORE_CONTRACT_CURRENCYCONTRACT_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include "opentxs/core/contract/UnitDefinition.hpp"
+#include "opentxs/SharedPimpl.hpp"
 
 namespace opentxs
 {
-using OTCurrencyContract = SharedPimpl<contract::unit::Currency>;
+namespace contract
+{
+namespace unit
+{
+class Currency;
+}  // namespace unit
+}  // namespace contract
 
+using OTCurrencyContract = SharedPimpl<contract::unit::Currency>;
+}  // namespace opentxs
+
+namespace opentxs
+{
 namespace contract
 {
 namespace unit

@@ -6,14 +6,20 @@
 #ifndef OPENTXS_EXT_OTPAYMENT_HPP
 #define OPENTXS_EXT_OTPAYMENT_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
-#include "opentxs/core/identifier/Nym.hpp"
-#include "opentxs/core/Contract.hpp"
-#include "opentxs/core/String.hpp"
-#include "opentxs/Types.hpp"
-
+#include <cstdint>
 #include <memory>
+
+#include "opentxs/Types.hpp"
+#include "opentxs/core/Cheque.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/OTTransaction.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/recurring/OTPaymentPlan.hpp"
+#include "opentxs/core/script/OTSmartContract.hpp"
 
 namespace opentxs
 {
@@ -29,6 +35,11 @@ namespace internal
 struct Core;
 }  // namespace internal
 }  // namespace api
+
+class NumList;
+class OTTrackable;
+class PasswordPrompt;
+
 /*
   The PAYMENT can be of types:
     - CHEQUE, INVOICE, VOUCHER (these are all forms of cheque)

@@ -6,11 +6,14 @@
 #ifndef OPENTXS_CORE_UNIQUEQUEUE_HPP
 #define OPENTXS_CORE_UNIQUEQUEUE_HPP
 
-#include "opentxs/Version.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <deque>
 #include <mutex>
 #include <set>
+
+#include "opentxs/Types.hpp"
+#include "opentxs/core/Log.hpp"
 
 namespace opentxs
 {

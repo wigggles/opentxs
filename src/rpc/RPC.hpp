@@ -3,9 +3,69 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/rpc/rpc.tpp"
+
 #pragma once
 
-#include "Internal.hpp"
+#include <cstdint>
+#include <functional>
+#include <iosfwd>
+#include <map>
+#include <mutex>
+#include <string>
+#include <tuple>
+
+#include "internal/rpc/RPC.hpp"
+#include "opentxs/Forward.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/api/client/OTX.hpp"
+#include "opentxs/core/Lockable.hpp"
+#include "opentxs/core/Message.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/network/zeromq/ListenCallback.hpp"
+#include "opentxs/network/zeromq/socket/Publish.hpp"
+#include "opentxs/network/zeromq/socket/Pull.hpp"
+#include "opentxs/network/zeromq/socket/Subscribe.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace client
+{
+namespace internal
+{
+struct Manager;
+}  // namespace internal
+}  // namespace client
+
+namespace server
+{
+class Manager;
+}  // namespace server
+
+class Context;
+class Core;
+}  // namespace api
+
+namespace identifier
+{
+class Server;
+class UnitDefinition;
+}  // namespace identifier
+
+namespace network
+{
+namespace zeromq
+{
+class Message;
+}  // namespace zeromq
+}  // namespace network
+
+class Factory;
+}  // namespace opentxs
 
 namespace zmq = opentxs::network::zeromq;
 

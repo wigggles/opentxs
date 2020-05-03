@@ -5,26 +5,27 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
 namespace opentxs
 {
-class String;
-
 namespace api
 {
-class Crypto;
 class Settings;
+
+namespace internal
+{
+struct Core;
+}  // namespace internal
 }  // namespace api
 
-namespace server
-{
+class String;
+}  // namespace opentxs
 
+namespace opentxs::server
+{
 struct ConfigLoader {
     static bool load(
         const api::internal::Core& api,
         const api::Settings& config,
         String& walletFilename);
 };
-}  // namespace server
-}  // namespace opentxs
+}  // namespace opentxs::server

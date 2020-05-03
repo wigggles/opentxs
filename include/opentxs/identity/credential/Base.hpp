@@ -6,15 +6,15 @@
 #ifndef OPENTXS_IDENTITY_CREDENTIAL_BASE_HPP
 #define OPENTXS_IDENTITY_CREDENTIAL_BASE_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/core/contract/Signable.hpp"
-#include "opentxs/Proto.hpp"
-#include "opentxs/Types.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <cstdint>
 #include <memory>
 #include <string>
+
+#include "opentxs/core/contract/Signable.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
 
 namespace opentxs
 {

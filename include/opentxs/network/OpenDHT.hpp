@@ -6,12 +6,12 @@
 #ifndef OPENTXS_NETWORK_OPENDHT_HPP
 #define OPENTXS_NETWORK_OPENDHT_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #if OT_DHT
-#include "opentxs/Types.hpp"
-
 #include <string>
+
+#include "opentxs/Types.hpp"
 
 namespace opentxs
 {

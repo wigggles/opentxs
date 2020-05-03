@@ -6,17 +6,26 @@
 #ifndef OPENTXS_CRYPTO_ENVELOPE_HPP
 #define OPENTXS_CRYPTO_ENVELOPE_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/Bytes.hpp"
-#include "opentxs/Proto.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <set>
 
+#include "opentxs/Bytes.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Pimpl.hpp"
+
 namespace opentxs
 {
-using OTEnvelope = Pimpl<crypto::Envelope>;
+namespace crypto
+{
+class Envelope;
+}  // namespace crypto
 
+using OTEnvelope = Pimpl<crypto::Envelope>;
+}  // namespace opentxs
+
+namespace opentxs
+{
 namespace crypto
 {
 class Envelope

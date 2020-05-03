@@ -6,15 +6,17 @@
 #ifndef OPENTXS_CORE_CONTRACT_BASKET_BASKETITEM_HPP
 #define OPENTXS_CORE_CONTRACT_BASKET_BASKETITEM_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
+
+#include <deque>
 
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/Types.hpp"
 
-#include <deque>
-
 namespace opentxs
 {
+class BasketItem;
+
 using dequeOfBasketItems = std::deque<BasketItem*>;
 
 class BasketItem

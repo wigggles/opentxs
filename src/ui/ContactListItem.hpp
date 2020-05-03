@@ -5,7 +5,46 @@
 
 #pragma once
 
-#include "Internal.hpp"
+#include <string>
+
+#include "1_Internal.hpp"
+#include "internal/ui/UI.hpp"
+#include "opentxs/SharedPimpl.hpp"
+#include "opentxs/Version.hpp"
+#include "opentxs/ui/ContactListItem.hpp"
+#include "ui/Row.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace client
+{
+namespace internal
+{
+struct Manager;
+}  // namespace internal
+}  // namespace client
+}  // namespace api
+
+namespace network
+{
+namespace zeromq
+{
+namespace socket
+{
+class Publish;
+}  // namespace socket
+}  // namespace zeromq
+}  // namespace network
+
+namespace ui
+{
+class ContactListItem;
+}  // namespace ui
+
+class Factory;
+}  // namespace opentxs
 
 namespace opentxs::ui::implementation
 {
@@ -28,17 +67,16 @@ public:
         const ContactListSortKey&,
         const CustomData&) noexcept override;
 
-    ~ContactListItem() override = default;
-
-protected:
-    ContactListSortKey key_;
-
     ContactListItem(
         const ContactListInternalInterface& parent,
         const api::client::internal::Manager& api,
         const network::zeromq::socket::Publish& publisher,
         const ContactListRowID& rowID,
         const ContactListSortKey& key) noexcept;
+    ~ContactListItem() override = default;
+
+protected:
+    ContactListSortKey key_;
 
 private:
     friend opentxs::Factory;
@@ -50,3 +88,5 @@ private:
     ContactListItem& operator=(ContactListItem&&) = delete;
 };
 }  // namespace opentxs::ui::implementation
+
+template class opentxs::SharedPimpl<opentxs::ui::ContactListItem>;

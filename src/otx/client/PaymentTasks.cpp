@@ -3,15 +3,28 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"                 // IWYU pragma: associated
+#include "1_Internal.hpp"               // IWYU pragma: associated
+#include "otx/client/PaymentTasks.hpp"  // IWYU pragma: associated
 
-#include "opentxs/api/Core.hpp"
+#include <algorithm>
+#include <chrono>
+#include <functional>
+#include <future>
+#include <memory>
+#include <tuple>
+#include <utility>
+#include <vector>
+
+#include "internal/api/Api.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Types.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/core/Cheque.hpp"
-#include "opentxs/core/PasswordPrompt.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
 #include "opentxs/ext/OTPayment.hpp"
-
-#include "PaymentTasks.hpp"
+#include "otx/client/DepositPayment.hpp"
 
 #define OT_METHOD "opentxs::otx::client::implementation::PaymentTasks::"
 

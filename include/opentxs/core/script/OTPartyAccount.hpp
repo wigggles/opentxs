@@ -6,18 +6,31 @@
 #ifndef OPENTXS_CORE_SCRIPT_OTPARTYACCOUNT_HPP
 #define OPENTXS_CORE_SCRIPT_OTPARTYACCOUNT_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/core/Account.hpp"
-#include "opentxs/core/String.hpp"
-#include "opentxs/Types.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <cstdint>
 #include <map>
 #include <string>
 
+#include "opentxs/Types.hpp"
+#include "opentxs/core/Account.hpp"
+#include "opentxs/core/String.hpp"
+
 namespace opentxs
 {
+namespace api
+{
+class Wallet;
+}  // namespace api
+
+class Identifier;
+class OTAgent;
+class OTParty;
+class OTScript;
+class OTSmartContract;
+class PasswordPrompt;
+class Tag;
+
 // Each party has a list of accounts. Just as the agent, depending on context,
 // MAY
 // have an unowned-but-useful pointer to its active Nym, similarly a

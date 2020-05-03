@@ -5,16 +5,50 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
-#include "opentxs/api/Editor.hpp"
-
-#include "Node.hpp"
-
 #include <atomic>
 #include <cstdint>
 #include <memory>
 #include <mutex>
+#include <string>
+
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/api/Editor.hpp"
+#include "storage/tree/Node.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace implementation
+{
+class Storage;
+}  // namespace implementation
+
+namespace storage
+{
+class Driver;
+}  // namespace storage
+}  // namespace api
+
+namespace proto
+{
+class Ciphertext;
+}  // namespace proto
+
+namespace storage
+{
+class Accounts;
+class BlockchainTransactions;
+class Contacts;
+class Credentials;
+class Notary;
+class Nyms;
+class Seeds;
+class Servers;
+class Units;
+}  // namespace storage
+}  // namespace opentxs
 
 namespace opentxs::storage
 {

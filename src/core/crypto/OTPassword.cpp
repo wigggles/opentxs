@@ -3,9 +3,20 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"                        // IWYU pragma: associated
+#include "1_Internal.hpp"                      // IWYU pragma: associated
+#include "opentxs/core/crypto/OTPassword.hpp"  // IWYU pragma: associated
 
-#include "opentxs/core/crypto/OTPassword.hpp"
+#include <cstdint>
+#include <cstring>
+#include <string>
+#include <vector>
+#ifndef _WIN32
+#include <sys/mman.h>
+#ifndef PAGESIZE
+#include <unistd.h>
+#endif  // ndef PAGESIZE
+#endif  // ndef _WIN32
 
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Util.hpp"
@@ -14,26 +25,15 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/OT.hpp"
+#include "opentxs/core/LogSource.hpp"
 
 // For SecureZeroMemory
-#ifdef _WIN32
-#else  // not _WIN32
-
-#include <sys/mman.h>
-
+#ifndef _WIN32
 #ifndef PAGESIZE
-#include <unistd.h>
-
-#include <cstdint>
-#include <cstring>
-#include <ostream>
-#include <string>
-
 #define PAGESIZE sysconf(_SC_PAGESIZE)
-#endif
+#endif  // ndef PAGESIZE
 
 // FT: Credit to the Bitcoin team for the mlock / munlock defines.
-
 #define mlock(a, b)                                                            \
     mlock(                                                                     \
         (reinterpret_cast<void*>(                                              \
@@ -48,13 +48,12 @@
         ((((reinterpret_cast<std::size_t>(a)) + (b)-1) | ((PAGESIZE)-1)) +     \
          1) -                                                                  \
             ((reinterpret_cast<std::size_t>(a)) & (~((PAGESIZE)-1))))
-#endif
+#endif  // ndef _WIN32
 
 #define OT_METHOD "opentxs::OTPassword::"
 
 namespace opentxs
 {
-
 // For everything but Windows:
 //
 #ifndef _WIN32

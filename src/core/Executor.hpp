@@ -5,8 +5,12 @@
 
 #pragma once
 
-#include "Internal.hpp"
+#include <chrono>
+#include <functional>
+#include <future>
 
+#include "core/StateMachine.hpp"
+#include "internal/api/Api.hpp"
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Factory.hpp"
@@ -16,13 +20,6 @@
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/Pipeline.hpp"
-
-#include "core/StateMachine.hpp"
-#include "internal/api/Api.hpp"
-
-#include <chrono>
-#include <functional>
-#include <future>
 
 namespace opentxs
 {

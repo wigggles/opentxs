@@ -6,7 +6,13 @@
 #ifndef OPENTXS_NETWORK_ZEROMQ_FRAMESECTION_HPP
 #define OPENTXS_NETWORK_ZEROMQ_FRAMESECTION_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
+
+#include <iosfwd>
+#include <iterator>
+
+#include "opentxs/network/zeromq/Frame.hpp"
+#include "opentxs/network/zeromq/FrameIterator.hpp"
 
 #ifdef SWIG
 // clang-format off
@@ -20,6 +26,8 @@ namespace network
 {
 namespace zeromq
 {
+class Message;
+
 class FrameSection
 {
 public:

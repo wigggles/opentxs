@@ -3,9 +3,43 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/storage/drivers/StorageSqlite3.cpp"
+
 #pragma once
 
-#if OT_STORAGE_SQLITE
+extern "C" {
+#include <sqlite3.h>
+}
+
+#include <future>
+#include <iosfwd>
+#include <mutex>
+#include <string>
+#include <utility>
+#include <vector>
+
+#include "opentxs/Bytes.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/Version.hpp"
+#include "opentxs/api/storage/Driver.hpp"
+#include "opentxs/core/Flag.hpp"
+#include "storage/Plugin.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace storage
+{
+class Storage;
+}  // namespace storage
+}  // namespace api
+
+class Factory;
+class StorageConfig;
+}  // namespace opentxs
+
 namespace opentxs::storage::implementation
 {
 // SQLite3 implementation of opentxs::storage
@@ -81,4 +115,3 @@ private:
     StorageSqlite3& operator=(StorageSqlite3&&) = delete;
 };
 }  // namespace opentxs::storage::implementation
-#endif  // OT_STORAGE_SQLITE

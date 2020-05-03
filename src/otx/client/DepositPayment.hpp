@@ -5,13 +5,20 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
-#include "opentxs/Types.hpp"
-
 #include "core/StateMachine.hpp"
 #include "internal/api/client/Client.hpp"
 #include "internal/otx/client/Client.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/api/client/OTX.hpp"
+#include "opentxs/core/Identifier.hpp"
+
+namespace opentxs
+{
+namespace identifier
+{
+class UnitDefinition;
+}  // namespace identifier
+}  // namespace opentxs
 
 namespace opentxs::otx::client::implementation
 {

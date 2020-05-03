@@ -3,21 +3,24 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
-
-#include "opentxs/core/crypto/NymParameters.hpp"
-#include "opentxs/core/Log.hpp"
-
-#include "crypto/library/OpenSSL.hpp"
-#include "internal/api/Api.hpp"
-
-#include "RSA.hpp"
-
-extern "C" {
-#include <openssl/pem.h>
-}
-
+#include "0_stdafx.hpp"    // IWYU pragma: associated
+#include "1_Internal.hpp"  // IWYU pragma: associated
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
+#include "crypto/key/RSA.hpp"  // IWYU pragma: associated
+
+#include <stdexcept>
+#include <string>
+#include <utility>
+
+#include "Factory.hpp"
+#include "crypto/key/Asymmetric.hpp"
+#include "internal/api/Api.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/crypto/key/Asymmetric.hpp"
+
 namespace opentxs
 {
 using ReturnType = crypto::key::implementation::RSA;

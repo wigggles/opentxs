@@ -3,9 +3,54 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/network/zeromq/Context.cpp"
+
 #pragma once
 
-#include "Internal.hpp"
+#include <functional>
+#include <iosfwd>
+#include <string>
+
+#include "opentxs/Proto.hpp"
+#include "opentxs/network/zeromq/Context.hpp"
+#include "opentxs/network/zeromq/Frame.hpp"
+#include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/network/zeromq/Pipeline.hpp"
+#include "opentxs/network/zeromq/Proxy.hpp"
+#include "opentxs/network/zeromq/socket/Dealer.hpp"
+#include "opentxs/network/zeromq/socket/Pair.hpp"
+#include "opentxs/network/zeromq/socket/Publish.hpp"
+#include "opentxs/network/zeromq/socket/Pull.hpp"
+#include "opentxs/network/zeromq/socket/Push.hpp"
+#include "opentxs/network/zeromq/socket/Reply.hpp"
+#include "opentxs/network/zeromq/socket/Request.hpp"
+#include "opentxs/network/zeromq/socket/Router.hpp"
+#include "opentxs/network/zeromq/socket/Socket.hpp"
+#include "opentxs/network/zeromq/socket/Subscribe.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
+namespace network
+{
+namespace zeromq
+{
+class ListenCallback;
+class PairEventCallback;
+class ReplyCallback;
+}  // namespace zeromq
+}  // namespace network
+
+class Factory;
+}  // namespace opentxs
 
 namespace opentxs::network::zeromq::implementation
 {

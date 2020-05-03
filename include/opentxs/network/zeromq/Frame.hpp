@@ -6,13 +6,14 @@
 #ifndef OPENTXS_NETWORK_ZEROMQ_FRAME_HPP
 #define OPENTXS_NETWORK_ZEROMQ_FRAME_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/Bytes.hpp"
-#include "opentxs/Proto.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <string>
 #include <type_traits>
+
+#include "opentxs/Bytes.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.hpp"
 
 struct zmq_msg_t;
 
@@ -33,8 +34,19 @@ struct zmq_msg_t;
 
 namespace opentxs
 {
-using OTZMQFrame = Pimpl<network::zeromq::Frame>;
+namespace network
+{
+namespace zeromq
+{
+class Frame;
+}  // namespace zeromq
+}  // namespace network
 
+using OTZMQFrame = Pimpl<network::zeromq::Frame>;
+}  // namespace opentxs
+
+namespace opentxs
+{
 namespace network
 {
 namespace zeromq

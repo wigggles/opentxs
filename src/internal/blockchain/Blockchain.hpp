@@ -5,20 +5,29 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
-#include "opentxs/core/Data.hpp"
-#include "opentxs/Bytes.hpp"
-#include "opentxs/Proto.hpp"
-
-#include "internal/blockchain/client/Client.hpp"
-
 #include <boost/endian/buffers.hpp>
-
 #include <array>
 #include <cstdint>
+#include <functional>
+#include <iosfwd>
 #include <string>
 #include <tuple>
+#include <vector>
+
+#include "internal/blockchain/client/Client.hpp"
+#include "opentxs/Bytes.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/core/Data.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+class Core;
+}  // namespace api
+}  // namespace opentxs
 
 namespace be = boost::endian;
 

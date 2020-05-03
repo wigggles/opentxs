@@ -3,18 +3,27 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"         // IWYU pragma: associated
+#include "1_Internal.hpp"       // IWYU pragma: associated
+#include "api/network/ZAP.hpp"  // IWYU pragma: associated
 
+#include "Factory.hpp"
 #include "opentxs/api/network/ZAP.hpp"
 #include "opentxs/network/zeromq/zap/Callback.hpp"
 #include "opentxs/network/zeromq/zap/Handler.hpp"
-
-#include "ZAP.hpp"
 
 //#define OT_METHOD "opentxs::api::network::ZAP::"
 
 namespace opentxs
 {
+namespace network
+{
+namespace zeromq
+{
+class Context;
+}  // namespace zeromq
+}  // namespace network
+
 api::network::ZAP* Factory::ZAP(const network::zeromq::Context& context)
 {
     return new api::network::implementation::ZAP(context);

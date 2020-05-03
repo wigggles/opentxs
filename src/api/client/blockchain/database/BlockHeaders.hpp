@@ -5,10 +5,37 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
 #include "internal/api/client/blockchain/Blockchain.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/blockchain/Blockchain.hpp"
 #include "util/LMDB.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
+namespace blockchain
+{
+namespace block
+{
+class Header;
+}  // namespace block
+}  // namespace blockchain
+
+namespace storage
+{
+namespace lmdb
+{
+class LMDB;
+}  // namespace lmdb
+}  // namespace storage
+}  // namespace opentxs
 
 namespace opentxs::api::client::blockchain::database::implementation
 {

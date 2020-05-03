@@ -5,7 +5,59 @@
 
 #pragma once
 
-#include "Internal.hpp"
+#include <atomic>
+#include <cstdint>
+#include <iosfwd>
+#include <map>
+#include <memory>
+#include <set>
+#include <string>
+
+#include "internal/identity/Identity.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/contact/ContactData.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Lockable.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/crypto/NymParameters.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/crypto/key/Asymmetric.hpp"
+#include "opentxs/crypto/key/Keypair.hpp"
+#include "opentxs/identity/Nym.hpp"
+#include "opentxs/identity/Source.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
+namespace crypto
+{
+namespace key
+{
+class Symmetric;
+}  // namespace key
+}  // namespace crypto
+
+namespace identifier
+{
+class UnitDefinition;
+}  // namespace identifier
+
+class Data;
+class Factory;
+class OTPassword;
+class PasswordPrompt;
+class PaymentCode;
+class Signature;
+class Tag;
+}  // namespace opentxs
 
 namespace opentxs::identity::implementation
 {

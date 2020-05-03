@@ -3,21 +3,26 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"                           // IWYU pragma: associated
+#include "1_Internal.hpp"                         // IWYU pragma: associated
+#include "internal/blockchain/client/Client.hpp"  // IWYU pragma: associated
 
-#include "Internal.hpp"
+#include <boost/asio.hpp>
+#include <boost/bind.hpp>
+#include <algorithm>
+#include <functional>
+#include <thread>
 
+#include "opentxs/Pimpl.hpp"
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Endpoints.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
-#include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
+#include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
-
-#include "internal/blockchain/client/Client.hpp"
-
-#include <boost/bind.hpp>
+#include "opentxs/network/zeromq/socket/Socket.hpp"
 
 namespace opentxs::blockchain::client::internal
 {

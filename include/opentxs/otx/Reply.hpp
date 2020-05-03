@@ -6,18 +6,17 @@
 #ifndef OPENTXS_OTX_REPLY_HPP
 #define OPENTXS_OTX_REPLY_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/core/contract/Signable.hpp"
-#include "opentxs/Proto.hpp"
-#include "opentxs/Types.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <memory>
 
+#include "opentxs/core/contract/Signable.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+
 namespace opentxs
 {
-using OTXReply = Pimpl<otx::Reply>;
-
 namespace api
 {
 namespace internal
@@ -26,6 +25,16 @@ struct Core;
 }  // namespace internal
 }  // namespace api
 
+namespace otx
+{
+class Reply;
+}  // namespace otx
+
+using OTXReply = Pimpl<otx::Reply>;
+}  // namespace opentxs
+
+namespace opentxs
+{
 namespace otx
 {
 class Reply : virtual public opentxs::contract::Signable

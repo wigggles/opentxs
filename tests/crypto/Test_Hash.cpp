@@ -21,7 +21,6 @@ public:
     static const std::vector<HMACVector> hmac_sha2_;
     static const std::vector<MurmurVector> murmur_;
     static const std::vector<PbkdfVector> pbkdf_;
-    static const std::vector<SiphashVector> siphash_;
 
     const ot::api::Crypto& crypto_;
 
@@ -104,18 +103,6 @@ const std::vector<Test_Hash::PbkdfVector> Test_Hash::pbkdf_{
      "0x3d2eec4fe41c849b80c8d83662c0e44a8b291a964cf2f07038"},
 };
 
-// https://hexdocs.pm/siphash/1.0.0/SipHash.html
-const std::vector<Test_Hash::SiphashVector> Test_Hash::siphash_{
-    {2, 4, "0123456789ABCDEF", "hello", 4402678656023170274UL},
-    {2,
-     4,
-     "0123456789ABCDEF",
-     "this is a longer input",
-     14399935048454461917UL},
-    {2, 4, "0123456789ABCDEF", "zymotechnics", 699588702094987020UL},
-    {4, 8, "0123456789ABCDEF", "hello", 14986662229302055855UL},
-};
-
 TEST_F(Test_Hash, MurmurHash3)
 {
     for (const auto& [input, seed, expected] : murmur_) {
@@ -124,19 +111,6 @@ TEST_F(Test_Hash, MurmurHash3)
         crypto_.Hash().MurmurHash3_32(seed, plaintext, calculated);
 
         EXPECT_EQ(calculated, expected);
-    }
-}
-
-TEST_F(Test_Hash, SipHash)
-{
-    for (const auto& [c, d, keyStr, data, expected] : siphash_) {
-        const auto plaintext = ot::Data::Factory(data, ot::Data::Mode::Raw);
-        const auto key = ot::Data::Factory(keyStr, ot::Data::Mode::Raw);
-        auto output = std::uint64_t{};
-
-        EXPECT_TRUE(crypto_.Hash().SipHash(
-            key->Bytes(), plaintext->Bytes(), output, c, d));
-        EXPECT_EQ(output, expected);
     }
 }
 

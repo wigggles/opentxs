@@ -6,18 +6,27 @@
 #ifndef OPENTXS_CORE_CONTRACT_UNITDEFINITION_HPP
 #define OPENTXS_CORE_CONTRACT_UNITDEFINITION_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/core/contract/Signable.hpp"
-#include "opentxs/Proto.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <cstdint>
 #include <string>
 
+#include "opentxs/core/contract/Signable.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/SharedPimpl.hpp"
+
 namespace opentxs
 {
-using OTUnitDefinition = SharedPimpl<contract::Unit>;
+namespace contract
+{
+class Unit;
+}  // namespace contract
 
+using OTUnitDefinition = SharedPimpl<contract::Unit>;
+}  // namespace opentxs
+
+namespace opentxs
+{
 namespace contract
 {
 class Unit : virtual public opentxs::contract::Signable

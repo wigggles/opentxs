@@ -3,16 +3,14 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
-
-#include "Internal.hpp"
-
-#include "opentxs/core/Flag.hpp"
-#include "opentxs/Types.hpp"
+#include "0_stdafx.hpp"    // IWYU pragma: associated
+#include "1_Internal.hpp"  // IWYU pragma: associated
+#include "core/Flag.hpp"   // IWYU pragma: associated
 
 #include <atomic>
 
-#include "Flag.hpp"
+#include "opentxs/core/Flag.hpp"
+#include "opentxs/Pimpl.hpp"
 
 template class opentxs::Pimpl<opentxs::Flag>;
 

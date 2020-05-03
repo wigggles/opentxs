@@ -3,7 +3,61 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/blind/Purse.cpp"
+
 #pragma once
+
+#include <iosfwd>
+#include <memory>
+#include <vector>
+
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/blind/Purse.hpp"
+#include "opentxs/blind/Token.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
+#include "opentxs/crypto/Envelope.hpp"
+#include "opentxs/crypto/key/Symmetric.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+
+namespace server
+{
+namespace internal
+{
+struct Manager;
+}  // namespace internal
+}  // namespace server
+}  // namespace api
+
+namespace blind
+{
+class Mint;
+}  // namespace blind
+
+namespace identifier
+{
+class Nym;
+}  // namespace identifier
+
+namespace identity
+{
+class Nym;
+}  // namespace identity
+
+class Factory;
+class PasswordPrompt;
+}  // namespace opentxs
 
 namespace opentxs::blind::implementation
 {

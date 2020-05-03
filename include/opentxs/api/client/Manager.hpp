@@ -6,11 +6,11 @@
 #ifndef OPENTXS_API_CLIENT_MANAGER_HPP
 #define OPENTXS_API_CLIENT_MANAGER_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/api/Core.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <string>
+
+#include "opentxs/api/Core.hpp"
 
 namespace opentxs
 {

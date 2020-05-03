@@ -5,8 +5,6 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
 #include "opentxs/crypto/library/AsymmetricProvider.hpp"
 
 namespace opentxs::crypto::implementation

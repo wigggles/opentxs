@@ -3,30 +3,35 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"    // IWYU pragma: associated
+#include "1_Internal.hpp"  // IWYU pragma: associated
+#include "api/HDSeed.hpp"  // IWYU pragma: associated
 
-#include "Internal.hpp"
-
-#include "opentxs/api/crypto/Asymmetric.hpp"
-#include "opentxs/api/crypto/Symmetric.hpp"
-#include "opentxs/api/storage/Storage.hpp"
-#include "opentxs/api/Factory.hpp"
-#include "opentxs/api/HDSeed.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/Data.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/crypto/key/EllipticCurve.hpp"
-#include "opentxs/crypto/key/HD.hpp"
-#include "opentxs/crypto/key/Symmetric.hpp"
-#include "opentxs/crypto/Bip32.hpp"
-#include "opentxs/crypto/Bip39.hpp"
-
+#include <algorithm>
 #include <iomanip>
 #include <iostream>
 #include <memory>
 #include <string>
+#include <utility>
+#include <vector>
 
-#include "HDSeed.hpp"
+#include "Factory.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/api/HDSeed.hpp"
+#include "opentxs/api/crypto/Asymmetric.hpp"
+#include "opentxs/api/crypto/Symmetric.hpp"
+#include "opentxs/api/storage/Storage.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/crypto/Bip32.hpp"
+#include "opentxs/crypto/Bip39.hpp"
+#include "opentxs/crypto/key/HD.hpp"
+#include "opentxs/crypto/key/Secp256k1.hpp"
+#include "opentxs/crypto/key/Symmetric.hpp"
 
 #define OT_METHOD "opentxs::api::implementation::HDSeed::"
 

@@ -3,33 +3,36 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"                        // IWYU pragma: associated
+#include "1_Internal.hpp"                      // IWYU pragma: associated
+#include "blockchain/client/FilterOracle.hpp"  // IWYU pragma: associated
 
-#include "Internal.hpp"
+#include <algorithm>
+#include <cstdint>
+#include <iterator>
+#include <string_view>
+#include <tuple>
+#include <type_traits>
 
-#include "opentxs/api/Core.hpp"
-#include "opentxs/api/Endpoints.hpp"
-#include "opentxs/blockchain/block/Header.hpp"
-#include "opentxs/core/Flag.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/network/zeromq/socket/Publish.hpp"
-#include "opentxs/network/zeromq/socket/Subscribe.hpp"
-#include "opentxs/network/zeromq/Context.hpp"
-#include "opentxs/network/zeromq/Frame.hpp"
-#include "opentxs/network/zeromq/FrameIterator.hpp"
-#include "opentxs/network/zeromq/FrameSection.hpp"
-#include "opentxs/network/zeromq/ListenCallback.hpp"
-#include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/network/zeromq/Pipeline.hpp"
-#include "opentxs/Proto.tpp"
-
+#include "Factory.hpp"
 #include "core/Executor.hpp"
 #include "internal/api/Api.hpp"
 #include "internal/blockchain/Blockchain.hpp"
-
-#include <mutex>
-
-#include "FilterOracle.hpp"
+#include "opentxs/Bytes.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/api/Endpoints.hpp"
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/blockchain/block/Header.hpp"
+#include "opentxs/blockchain/client/HeaderOracle.hpp"
+#include "opentxs/core/Flag.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/network/zeromq/Context.hpp"
+#include "opentxs/network/zeromq/Frame.hpp"
+#include "opentxs/network/zeromq/FrameSection.hpp"
+#include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/network/zeromq/Pipeline.hpp"
+#include "opentxs/network/zeromq/socket/Publish.hpp"
 
 #define OT_METHOD "opentxs::blockchain::client::implementation::FilterOracle::"
 

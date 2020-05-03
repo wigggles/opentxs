@@ -3,9 +3,29 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/api/network/ZAP.cpp"
+
 #pragma once
 
-#include "Internal.hpp"
+#include <string>
+
+#include "opentxs/api/network/ZAP.hpp"
+#include "opentxs/network/zeromq/zap/Callback.hpp"
+#include "opentxs/network/zeromq/zap/Handler.hpp"
+
+namespace opentxs
+{
+namespace network
+{
+namespace zeromq
+{
+class Context;
+}  // namespace zeromq
+}  // namespace network
+
+class Factory;
+}  // namespace opentxs
 
 namespace opentxs::api::network::implementation
 {

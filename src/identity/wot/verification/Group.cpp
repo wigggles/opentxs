@@ -3,21 +3,24 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"                         // IWYU pragma: associated
+#include "1_Internal.hpp"                       // IWYU pragma: associated
+#include "identity/wot/verification/Group.hpp"  // IWYU pragma: associated
 
-#include "Internal.hpp"
-
-#include "opentxs/api/Core.hpp"
-#include "opentxs/api/Factory.hpp"
-#include "opentxs/core/identifier/Nym.hpp"
-#include "opentxs/core/Log.hpp"
-
-#include "internal/identity/wot/verification/Verification.hpp"
-
+#include <algorithm>
 #include <map>
+#include <stdexcept>
+#include <utility>
 #include <vector>
 
-#include "Group.hpp"
+#include "Factory.hpp"
+#include "internal/identity/wot/verification/Verification.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/identity/wot/verification/Nym.hpp"
 
 #define OT_METHOD                                                              \
     "opentxs::identity::wot::verification::implementation::Group::"

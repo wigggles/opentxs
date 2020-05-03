@@ -3,9 +3,30 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/api/Settings.cpp"
+
 #pragma once
 
-#include "Internal.hpp"
+#include <cstdint>
+#include <memory>
+#include <mutex>
+#include <string>
+
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/api/Settings.hpp"
+#include "opentxs/core/Flag.hpp"
+#include "opentxs/core/String.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+class Legacy;
+}  // namespace api
+
+class Factory;
+}  // namespace opentxs
 
 namespace opentxs::api::implementation
 {

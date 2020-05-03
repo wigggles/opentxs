@@ -5,6 +5,35 @@
 
 #pragma once
 
+#include <boost/endian/buffers.hpp>
+#include <array>
+#include <cstdint>
+#include <memory>
+#include <string>
+
+#include "blockchain/block/Header.hpp"
+#include "internal/blockchain/block/Block.hpp"
+#include "opentxs/Bytes.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/blockchain/NumericHash.hpp"
+#include "opentxs/blockchain/Work.hpp"
+#include "opentxs/blockchain/block/Header.hpp"
+#include "opentxs/core/Data.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
+class Factory;
+}  // namespace opentxs
+
 namespace be = boost::endian;
 
 namespace opentxs::blockchain::block::bitcoin::implementation

@@ -3,56 +3,59 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"    // IWYU pragma: associated
+#include "1_Internal.hpp"  // IWYU pragma: associated
+#include "api/Wallet.hpp"  // IWYU pragma: associated
 
-#include "opentxs/api/client/Issuer.hpp"
-#include "opentxs/api/client/Manager.hpp"
-#include "opentxs/api/network/Dht.hpp"
-#include "opentxs/api/network/ZMQ.hpp"
-#include "opentxs/api/server/Manager.hpp"
-#include "opentxs/api/storage/Storage.hpp"
-#include "opentxs/api/Core.hpp"
+#include <functional>
+#include <stdexcept>
+#include <algorithm>
+#include <iterator>
+#include <thread>
+#include <type_traits>
+
+#include "Exclusive.tpp"
+#include "Factory.hpp"
+#include "internal/api/Api.hpp"
+#include "internal/consensus/Consensus.hpp"
+#include "internal/core/Core.hpp"
+#include "internal/identity/Identity.hpp"
+#include "opentxs/Exclusive.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Shared.hpp"
+#include "opentxs/SharedPimpl.hpp"
+#include "opentxs/Types.hpp"
 #include "opentxs/api/Endpoints.hpp"
-#include "opentxs/api/Factory.hpp"
+#include "opentxs/api/client/Issuer.hpp"
+#include "opentxs/api/storage/Storage.hpp"
 #if OT_CASH
 #include "opentxs/blind/Purse.hpp"
 #endif
 #include "opentxs/client/NymData.hpp"
-#include "opentxs/client/OT_API.hpp"
-#include "opentxs/consensus/ClientContext.hpp"
-#include "opentxs/consensus/Context.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
-#include "opentxs/contact/Contact.hpp"
-#include "opentxs/contact/ContactData.hpp"
+#include "opentxs/core/Account.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Data.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/NymFile.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/contract/basket/BasketContract.hpp"
 #include "opentxs/core/contract/peer/PeerObject.hpp"
 #include "opentxs/core/contract/peer/PeerReply.hpp"
 #include "opentxs/core/contract/peer/PeerRequest.hpp"
-#include "opentxs/core/contract/CurrencyContract.hpp"
-#include "opentxs/core/contract/SecurityContract.hpp"
-#include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
-#include "opentxs/core/Account.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/Message.hpp"
-#include "opentxs/core/OTTransactionType.hpp"
-#include "opentxs/core/String.hpp"
 #include "opentxs/identity/Nym.hpp"
-#include "opentxs/network/zeromq/socket/Push.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/Types.hpp"
-
-#include "internal/api/client/Client.hpp"
-#include "internal/core/Core.hpp"
-#include "Exclusive.tpp"
-
-#include <functional>
-#include <stdexcept>
-
-#include "Wallet.hpp"
+#include "opentxs/network/zeromq/socket/Push.hpp"
+#include "opentxs/network/zeromq/socket/Request.tpp"
+#include "opentxs/network/zeromq/socket/Sender.tpp"
+#include "opentxs/network/zeromq/socket/Socket.hpp"
 
 template class opentxs::Exclusive<opentxs::Account>;
 template class opentxs::Shared<opentxs::Account>;

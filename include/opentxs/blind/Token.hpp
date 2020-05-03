@@ -6,17 +6,27 @@
 #ifndef OPENTXS_BLIND_TOKEN_HPP
 #define OPENTXS_BLIND_TOKEN_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/Proto.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <chrono>
 #include <cstdint>
 
+#if OT_CASH
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.hpp"
+
 namespace opentxs
 {
-using OTToken = Pimpl<blind::Token>;
+namespace blind
+{
+class Token;
+}  // namespace blind
 
+using OTToken = Pimpl<blind::Token>;
+}  // namespace opentxs
+
+namespace opentxs
+{
 namespace blind
 {
 class Token
@@ -68,4 +78,5 @@ private:
 };
 }  // namespace blind
 }  // namespace opentxs
+#endif  // OT_CASH
 #endif

@@ -5,16 +5,30 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
-#include "opentxs/core/Flag.hpp"
-#include "opentxs/core/Lockable.hpp"
-#include "opentxs/network/zeromq/socket/Socket.hpp"
-
+#include <atomic>
+#include <chrono>
 #include <functional>
 #include <map>
 #include <mutex>
 #include <set>
+#include <string>
+
+#include "opentxs/Types.hpp"
+#include "opentxs/core/Flag.hpp"
+#include "opentxs/core/Lockable.hpp"
+#include "opentxs/network/zeromq/Context.hpp"
+#include "opentxs/network/zeromq/socket/Socket.hpp"
+
+namespace opentxs
+{
+namespace network
+{
+namespace zeromq
+{
+class Message;
+}  // namespace zeromq
+}  // namespace network
+}  // namespace opentxs
 
 #define CURVE_KEY_BYTES 32
 #define CURVE_KEY_Z85_BYTES 40

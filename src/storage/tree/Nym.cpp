@@ -3,26 +3,30 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
-
-#include "Nym.hpp"
-
-#include "opentxs/core/identifier/Server.hpp"
-#include "opentxs/core/identifier/UnitDefinition.hpp"
-
-#include "storage/Plugin.hpp"
-#include "Bip47Channels.hpp"
-#include "Contexts.hpp"
-#include "Issuers.hpp"
-#include "Mailbox.hpp"
-#include "PaymentWorkflows.hpp"
-#include "PeerReplies.hpp"
-#include "PeerRequests.hpp"
-#include "Thread.hpp"
-#include "Threads.hpp"
-#include "Txos.hpp"
+#include "0_stdafx.hpp"          // IWYU pragma: associated
+#include "1_Internal.hpp"        // IWYU pragma: associated
+#include "storage/tree/Nym.hpp"  // IWYU pragma: associated
 
 #include <functional>
+
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/api/storage/Driver.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
+#include "storage/Plugin.hpp"
+#include "storage/tree/Bip47Channels.hpp"
+#include "storage/tree/Contexts.hpp"
+#include "storage/tree/Issuers.hpp"
+#include "storage/tree/Mailbox.hpp"
+#include "storage/tree/Node.hpp"
+#include "storage/tree/PaymentWorkflows.hpp"
+#include "storage/tree/PeerReplies.hpp"
+#include "storage/tree/PeerRequests.hpp"
+#include "storage/tree/Thread.hpp"  // IWYU pragma: keep
+#include "storage/tree/Threads.hpp"
+#include "storage/tree/Txos.hpp"
 
 #define CURRENT_VERSION 9
 #define BLOCKCHAIN_INDEX_VERSION 1

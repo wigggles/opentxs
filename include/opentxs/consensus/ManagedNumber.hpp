@@ -6,16 +6,24 @@
 #ifndef OPENTXS_CONSENSUS_MANAGEDNUMBER_HPP
 #define OPENTXS_CONSENSUS_MANAGEDNUMBER_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
+#include "opentxs/Pimpl.hpp"
 #include "opentxs/Types.hpp"
 
 namespace opentxs
 {
+class ManagedNumber;
+
 using OTManagedNumber = Pimpl<ManagedNumber>;
 
-bool operator<(const OTManagedNumber& lhs, const OTManagedNumber& rhs);
+OPENTXS_EXPORT bool operator<(
+    const OTManagedNumber& lhs,
+    const OTManagedNumber& rhs);
+}  // namespace opentxs
 
+namespace opentxs
+{
 class ManagedNumber
 {
 public:

@@ -3,34 +3,33 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
-
-#include "Internal.hpp"
-
-#include "opentxs/api/Core.hpp"
-#include "opentxs/api/Factory.hpp"
-#include "opentxs/core/crypto/NymParameters.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/crypto/PaymentCode.hpp"
-#include "opentxs/core/identifier/Nym.hpp"
-#include "opentxs/core/Armored.hpp"
-#include "opentxs/core/Data.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/crypto/key/Asymmetric.hpp"
-#include "opentxs/core/String.hpp"
-#include "opentxs/identity/credential/Base.hpp"
-#include "opentxs/identity/credential/Primary.hpp"
-#include "opentxs/identity/Source.hpp"
-#include "opentxs/Proto.tpp"
-#include "opentxs/Types.hpp"
-
-#include "internal/api/Api.hpp"
+#include "0_stdafx.hpp"         // IWYU pragma: associated
+#include "1_Internal.hpp"       // IWYU pragma: associated
+#include "identity/Source.hpp"  // IWYU pragma: associated
 
 #include <memory>
-#include <ostream>
+#include <cstdint>
+#include <stdexcept>
+#include <string>
 
-#include "Source.hpp"
+#include "Factory.hpp"
+#include "internal/api/Api.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/Version.hpp"
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/core/Armored.hpp"
+#include "opentxs/core/Data.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/crypto/NymParameters.hpp"
+#include "opentxs/core/crypto/PaymentCode.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/crypto/key/Asymmetric.hpp"
+#include "opentxs/crypto/key/Keypair.hpp"
+#include "opentxs/crypto/library/AsymmetricProvider.hpp"
+#include "opentxs/identity/credential/Primary.hpp"
 
 #define OT_METHOD "opentxs::identity::Source::"
 

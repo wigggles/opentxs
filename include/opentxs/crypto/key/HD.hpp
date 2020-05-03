@@ -6,17 +6,29 @@
 #ifndef OPENTXS_CRYPTO_KEY_HD_HPP
 #define OPENTXS_CRYPTO_KEY_HD_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/crypto/key/EllipticCurve.hpp"
-#include "opentxs/Bytes.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <string>
 
+#include "opentxs/crypto/key/EllipticCurve.hpp"
+#include "opentxs/Bytes.hpp"
+#include "opentxs/Pimpl.hpp"
+
 namespace opentxs
 {
-using OTHDKey = Pimpl<crypto::key::HD>;
+namespace crypto
+{
+namespace key
+{
+class HD;
+}  // namespace key
+}  // namespace crypto
 
+using OTHDKey = Pimpl<crypto::key::HD>;
+}  // namespace opentxs
+
+namespace opentxs
+{
 namespace crypto
 {
 namespace key

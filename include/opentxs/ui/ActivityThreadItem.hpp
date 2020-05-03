@@ -6,14 +6,14 @@
 #ifndef OPENTXS_UI_ACTIVITYTHREADITEM_HPP
 #define OPENTXS_UI_ACTIVITYTHREADITEM_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/Types.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <cstdint>
 #include <chrono>
 #include <string>
 
+#include "opentxs/SharedPimpl.hpp"
+#include "opentxs/Types.hpp"
 #include "ListRow.hpp"
 
 #ifdef SWIG
@@ -32,8 +32,16 @@
 
 namespace opentxs
 {
-using OTUIActivityThreadItem = SharedPimpl<ui::ActivityThreadItem>;
+namespace ui
+{
+class ActivityThreadItem;
+}  // namespace ui
 
+using OTUIActivityThreadItem = SharedPimpl<ui::ActivityThreadItem>;
+}  // namespace opentxs
+
+namespace opentxs
+{
 namespace ui
 {
 class ActivityThreadItem : virtual public ListRow

@@ -3,9 +3,9 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
-
-#include "opentxs/core/util/Tag.hpp"
+#include "0_stdafx.hpp"               // IWYU pragma: associated
+#include "1_Internal.hpp"             // IWYU pragma: associated
+#include "opentxs/core/util/Tag.hpp"  // IWYU pragma: associated
 
 #include <memory>
 #include <string>
@@ -13,7 +13,6 @@
 
 namespace opentxs
 {
-
 void Tag::add_attribute(
     const std::string& str_att_name,
     const char* sz_att_value)

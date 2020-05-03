@@ -6,21 +6,21 @@
 #ifndef OPENTXS_CORE_CONTRACT_HPP
 #define OPENTXS_CORE_CONTRACT_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/core/crypto/Signature.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/StringXML.hpp"
-#include "opentxs/core/String.hpp"
-#include "opentxs/identity/Nym.hpp"
-#include "opentxs/Proto.hpp"
-#include "opentxs/Types.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <cstdint>
 #include <iosfwd>
 #include <list>
 #include <map>
 #include <string>
+
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/StringXML.hpp"
+#include "opentxs/core/crypto/Signature.hpp"
+#include "opentxs/identity/Nym.hpp"
 
 namespace irr
 {
@@ -44,6 +44,23 @@ namespace internal
 struct Core;
 }  // namespace internal
 }  // namespace api
+
+namespace crypto
+{
+namespace key
+{
+class Asymmetric;
+}  // namespace key
+}  // namespace crypto
+
+namespace identity
+{
+class Nym;
+}  // namespace identity
+
+class Armored;
+class PasswordPrompt;
+class Tag;
 
 typedef std::list<OTSignature> listOfSignatures;
 

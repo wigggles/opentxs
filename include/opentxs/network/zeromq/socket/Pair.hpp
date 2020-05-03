@@ -6,11 +6,12 @@
 #ifndef OPENTXS_NETWORK_ZEROMQ_SOCKET_PAIR_HPP
 #define OPENTXS_NETWORK_ZEROMQ_SOCKET_PAIR_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/network/zeromq/socket/Sender.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <string>
+
+#include "opentxs/network/zeromq/socket/Sender.hpp"
+#include "opentxs/Pimpl.hpp"
 
 #ifdef SWIG
 // clang-format off
@@ -25,8 +26,22 @@
 
 namespace opentxs
 {
-using OTZMQPairSocket = Pimpl<network::zeromq::socket::Pair>;
+namespace network
+{
+namespace zeromq
+{
+namespace socket
+{
+class Pair;
+}  // namespace socket
+}  // namespace zeromq
+}  // namespace network
 
+using OTZMQPairSocket = Pimpl<network::zeromq::socket::Pair>;
+}  // namespace opentxs
+
+namespace opentxs
+{
 namespace network
 {
 namespace zeromq

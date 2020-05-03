@@ -3,47 +3,38 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
-
-#include "opentxs/api/client/Activity.hpp"
-#include "opentxs/api/client/Manager.hpp"
-#include "opentxs/api/client/OTX.hpp"
-#include "opentxs/api/Factory.hpp"
-#include "opentxs/core/contract/UnitDefinition.hpp"
-#include "opentxs/core/Cheque.hpp"
-#include "opentxs/core/Flag.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Lockable.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/Message.hpp"
-#include "opentxs/ext/OTPayment.hpp"
-#include "opentxs/ui/ActivityThreadItem.hpp"
-
-#include "internal/ui/UI.hpp"
-#include "Row.hpp"
+#include "0_stdafx.hpp"        // IWYU pragma: associated
+#include "1_Internal.hpp"      // IWYU pragma: associated
+#include "ui/PendingSend.hpp"  // IWYU pragma: associated
 
 #include <memory>
-#include <thread>
 
-#include "PendingSend.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "ui/ActivityThreadItem.hpp"
+#include "ui/Widget.hpp"
 
 //#define OT_METHOD "opentxs::ui::implementation::PendingSend::"
 
-namespace opentxs
+namespace opentxs::factory
 {
-ui::implementation::ActivityThreadRowInternal* Factory::PendingSend(
+auto PendingSend(
     const ui::implementation::ActivityThreadInternalInterface& parent,
     const api::client::internal::Manager& api,
     const network::zeromq::socket::Publish& publisher,
     const identifier::Nym& nymID,
     const ui::implementation::ActivityThreadRowID& rowID,
     const ui::implementation::ActivityThreadSortKey& sortKey,
-    const ui::implementation::CustomData& custom)
+    const ui::implementation::CustomData& custom) noexcept
+    -> std::shared_ptr<ui::implementation::ActivityThreadRowInternal>
 {
-    return new ui::implementation::PendingSend(
+    using ReturnType = ui::implementation::PendingSend;
+
+    return std::make_shared<ReturnType>(
         parent, api, publisher, nymID, rowID, sortKey, custom);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::ui::implementation
 {

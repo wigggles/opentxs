@@ -3,32 +3,27 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
-
-#include "OpenDHT.hpp"
-
-#include "opentxs/core/Log.hpp"
-#include "opentxs/Types.hpp"
-
-#include "DhtConfig.hpp"
-
+#include "0_stdafx.hpp"    // IWYU pragma: associated
+#include "1_Internal.hpp"  // IWYU pragma: associated
 #if OT_DHT
-#include <opendht.h>
-#include <opendht/value.h>
-#endif
+#include "network/OpenDHT.hpp"  // IWYU pragma: associated
 
+#include <opendht.h>
+#include <algorithm>
+#include <cstdint>
 #include <iostream>
 #include <stdexcept>
 #include <vector>
 
-#if OT_DHT
+#include "network/DhtConfig.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+
 #define OT_METHOD "opentxs::OpenDHT::"
-#endif
 
 namespace opentxs::network::implementation
 {
-#if OT_DHT
-
 OpenDHT::OpenDHT(const DhtConfig& config)
     : config_(new DhtConfig(config))
     , node_(new dht::DhtRunner)
@@ -169,5 +164,5 @@ OpenDHT::~OpenDHT()
 {
     if (node_) { node_->join(); }
 }
-#endif
 }  // namespace opentxs::network::implementation
+#endif

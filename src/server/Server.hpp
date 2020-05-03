@@ -5,25 +5,65 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
-#include "opentxs/core/cron/OTCron.hpp"
-#include "opentxs/core/identifier/Server.hpp"
-#include "opentxs/core/OTTransaction.hpp"
-#include "opentxs/identity/Nym.hpp"
-#include "opentxs/network/zeromq/socket/Push.hpp"
-
-#include "Transactor.hpp"
-#include "Notary.hpp"
-#include "MainFile.hpp"
-#include "UserCommandProcessor.hpp"
-
 #include <chrono>
 #include <cstddef>
+#include <cstdint>
 #include <map>
 #include <memory>
 #include <string>
 #include <tuple>
+#include <utility>
+
+#include "internal/api/server/Server.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/core/Message.hpp"
+#include "opentxs/core/OTTransaction.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/cron/OTCron.hpp"
+#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/ext/OTPayment.hpp"
+#include "opentxs/identity/Nym.hpp"
+#include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/network/zeromq/socket/Push.hpp"
+#include "server/MainFile.hpp"
+#include "server/Notary.hpp"
+#include "server/Transactor.hpp"
+#include "server/UserCommandProcessor.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+
+namespace server
+{
+namespace implementation
+{
+class Manager;
+}  // namespace implementation
+}  // namespace server
+}  // namespace api
+
+namespace identifier
+{
+class Nym;
+}  // namespace identifier
+
+namespace identity
+{
+class Nym;
+}  // namespace identity
+
+class Data;
+class OTPassword;
+class PasswordPrompt;
+}  // namespace opentxs
 
 namespace opentxs::server
 {

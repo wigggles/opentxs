@@ -6,18 +6,24 @@
 #ifndef OPENTXS_CORE_CRYPTO_PAYMENTCODE_HPP
 #define OPENTXS_CORE_CRYPTO_PAYMENTCODE_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/Proto.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <cstdint>
 #include <memory>
 #include <string>
 
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.hpp"
+
 namespace opentxs
 {
-using OTPaymentCode = Pimpl<PaymentCode>;
+class PaymentCode;
 
+using OTPaymentCode = Pimpl<PaymentCode>;
+}  // namespace opentxs
+
+namespace opentxs
+{
 class PaymentCode
 {
 public:

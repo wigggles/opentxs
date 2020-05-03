@@ -6,11 +6,11 @@
 #ifndef OPENTXS_API_STORAGE_PLUGIN_HPP
 #define OPENTXS_API_STORAGE_PLUGIN_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/api/storage/Driver.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <string>
+
+#include "opentxs/api/storage/Driver.hpp"
 
 namespace opentxs
 {
@@ -18,7 +18,6 @@ namespace api
 {
 namespace storage
 {
-
 class Plugin : public virtual Driver
 {
 public:

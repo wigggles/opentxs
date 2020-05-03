@@ -6,12 +6,12 @@
 #ifndef OPENTXS_UI_PROFILEITEM_HPP
 #define OPENTXS_UI_PROFILEITEM_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/Types.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <string>
 
+#include "opentxs/SharedPimpl.hpp"
+#include "opentxs/Types.hpp"
 #include "ListRow.hpp"
 
 #ifdef SWIG
@@ -23,8 +23,16 @@
 
 namespace opentxs
 {
-using OTUIProfileItem = SharedPimpl<ui::ProfileItem>;
+namespace ui
+{
+class ProfileItem;
+}  // namespace ui
 
+using OTUIProfileItem = SharedPimpl<ui::ProfileItem>;
+}  // namespace opentxs
+
+namespace opentxs
+{
 namespace ui
 {
 class ProfileItem : virtual public ListRow

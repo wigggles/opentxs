@@ -6,11 +6,38 @@
 #ifndef OPENTXS_CORE_CONTRACT_BASKET_BASKET_HPP
 #define OPENTXS_CORE_CONTRACT_BASKET_BASKET_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
+
+#include <cstdint>
 
 #include "opentxs/core/contract/basket/BasketItem.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/Types.hpp"
+#include "opentxs/core/Identifier.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace implementation
+{
+class Factory;
+}  // namespace implementation
+
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
+namespace identifier
+{
+class Server;
+}  // namespace identifier
+
+class PasswordPrompt;
+class ServerContext;
+class StringXML;
 
 /*
  I figured this one out, it's easy.
@@ -59,22 +86,6 @@
  all the users of that basket currency.
 
  */
-
-namespace opentxs
-{
-namespace api
-{
-namespace implementation
-{
-class Factory;
-}  // namespace implementation
-
-namespace internal
-{
-struct Core;
-}  // namespace internal
-}  // namespace api
-
 class Basket final : public Contract
 {
 public:

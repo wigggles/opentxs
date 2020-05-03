@@ -6,16 +6,7 @@
 #ifndef OPENTXS_API_WALLET_HPP
 #define OPENTXS_API_WALLET_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/api/Editor.hpp"
-#include "opentxs/core/contract/basket/BasketContract.hpp"
-#include "opentxs/core/contract/ServerContract.hpp"
-#include "opentxs/core/contract/UnitDefinition.hpp"
-#include "opentxs/core/crypto/NymParameters.hpp"
-#include "opentxs/core/Account.hpp"
-#include "opentxs/Proto.hpp"
-#include "opentxs/Types.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <chrono>
 #include <cstdint>
@@ -24,6 +15,15 @@
 #include <memory>
 #include <set>
 #include <string>
+
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/api/Editor.hpp"
+#include "opentxs/core/Account.hpp"
+#include "opentxs/core/contract/ServerContract.hpp"
+#include "opentxs/core/contract/UnitDefinition.hpp"
+#include "opentxs/core/contract/basket/BasketContract.hpp"
+#include "opentxs/core/crypto/NymParameters.hpp"
 
 namespace opentxs
 {

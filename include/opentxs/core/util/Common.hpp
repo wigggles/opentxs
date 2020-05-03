@@ -6,11 +6,11 @@
 #ifndef OPENTXS_CORE_UTIL_COMMON_HPP
 #define OPENTXS_CORE_UTIL_COMMON_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/Types.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <string>
+
+#include "opentxs/Types.hpp"
 
 std::string formatBool(bool in);
 std::string formatTimestamp(const opentxs::Time in);

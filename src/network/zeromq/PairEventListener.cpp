@@ -3,17 +3,17 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"                          // IWYU pragma: associated
+#include "1_Internal.hpp"                        // IWYU pragma: associated
+#include "network/zeromq/PairEventListener.hpp"  // IWYU pragma: associated
 
-#include "opentxs/api/Core.hpp"
-#include "opentxs/api/Endpoints.hpp"
-#include "opentxs/network/zeromq/socket/Socket.hpp"
-#include "opentxs/network/zeromq/Context.hpp"
-#include "opentxs/network/zeromq/PairEventCallback.hpp"
-
-#include "PairEventListener.hpp"
+#include <memory>
 
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/network/zeromq/Context.hpp"
+#include "opentxs/network/zeromq/ListenCallback.hpp"
+#include "opentxs/network/zeromq/PairEventCallback.hpp"
 
 #define PAIR_EVENT_ENDPOINT_PATH "pairevent"
 #define PAIR_EVENT_ENDPOINT_VERSION 1

@@ -6,14 +6,14 @@
 #ifndef OPENTXS_BLOCKCHAIN_BLOCK_BITCOIN_INPUT_HPP
 #define OPENTXS_BLOCKCHAIN_BLOCK_BITCOIN_INPUT_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/blockchain/block/bitcoin/Transaction.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <array>
 #include <cstddef>
 #include <cstdint>
 #include <vector>
+
+#include "opentxs/blockchain/block/bitcoin/Transaction.hpp"
 
 namespace opentxs
 {

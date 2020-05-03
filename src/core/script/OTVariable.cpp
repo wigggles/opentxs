@@ -3,27 +3,27 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
-
-#include "opentxs/core/script/OTVariable.hpp"
-
-#include "opentxs/core/script/OTScript.hpp"
-#include "opentxs/core/util/Common.hpp"
-#include "opentxs/core/util/Tag.hpp"
-#include "opentxs/core/Armored.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/String.hpp"
+#include "0_stdafx.hpp"                        // IWYU pragma: associated
+#include "1_Internal.hpp"                      // IWYU pragma: associated
+#include "opentxs/core/script/OTVariable.hpp"  // IWYU pragma: associated
 
 #include <cstdint>
 #include <memory>
-#include <ostream>
 #include <string>
+
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/core/Armored.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/script/OTScript.hpp"
+#include "opentxs/core/util/Common.hpp"
+#include "opentxs/core/util/Tag.hpp"
 
 #define OT_METHOD "opentxs::OTVariable::"
 
 namespace opentxs
 {
-
 void OTVariable::Serialize(Tag& parent, bool bCalculatingID) const
 {
     std::string str_access(""), str_type("");

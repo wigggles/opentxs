@@ -5,25 +5,54 @@
 
 #pragma once
 
-#include "Internal.hpp"
+#include <atomic>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <shared_mutex>
+#include <string>
+#include <thread>
 
-#include "opentxs/core/Lockable.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/core/Data.hpp"
 #include "opentxs/core/Flag.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Lockable.hpp"
+#include "opentxs/network/zeromq/ListenCallback.hpp"
+#include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/network/zeromq/ReplyCallback.hpp"
 #include "opentxs/network/zeromq/socket/Dealer.hpp"
-#include "opentxs/network/zeromq/socket/Socket.hpp"
 #include "opentxs/network/zeromq/socket/Pull.hpp"
 #include "opentxs/network/zeromq/socket/Push.hpp"
 #include "opentxs/network/zeromq/socket/Reply.hpp"
 #include "opentxs/network/zeromq/socket/Router.hpp"
 #include "opentxs/network/zeromq/socket/Sender.tpp"
-#include "opentxs/network/zeromq/ListenCallback.hpp"
-#include "opentxs/network/zeromq/ReplyCallback.hpp"
-#include "opentxs/Proto.hpp"
+#include "opentxs/network/zeromq/socket/Socket.hpp"
 
-#include <atomic>
-#include <memory>
-#include <string>
-#include <thread>
+namespace opentxs
+{
+namespace identifier
+{
+class Nym;
+}  // namespace identifier
+
+namespace network
+{
+namespace zeromq
+{
+class Frame;
+}  // namespace zeromq
+}  // namespace network
+
+namespace server
+{
+class Server;
+}  // namespace server
+
+class Flag;
+class OTPassword;
+class PasswordPrompt;
+}  // namespace opentxs
 
 namespace opentxs::server
 {

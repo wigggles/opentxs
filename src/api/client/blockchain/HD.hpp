@@ -3,7 +3,47 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/api/client/blockchain/HD.cpp"
+
 #pragma once
+
+#include <atomic>
+#include <cstdint>
+#include <map>
+#include <set>
+#include <string>
+#include <vector>
+
+#include "api/client/blockchain/BalanceNode.hpp"
+#include "api/client/blockchain/Deterministic.hpp"
+#include "internal/api/client/blockchain/Blockchain.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/Version.hpp"
+#include "opentxs/core/Identifier.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace client
+{
+namespace internal
+{
+struct Blockchain;
+}  // namespace internal
+}  // namespace client
+}  // namespace api
+
+namespace proto
+{
+class HDPath;
+}  // namespace proto
+
+class Factory;
+class PasswordPrompt;
+}  // namespace opentxs
 
 namespace opentxs::api::client::blockchain::implementation
 {

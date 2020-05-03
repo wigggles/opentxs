@@ -6,11 +6,12 @@
 #ifndef OPENTXS_CORE_OTTRACKABLE_HPP
 #define OPENTXS_CORE_OTTRACKABLE_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/Instrument.hpp"
 #include "opentxs/Types.hpp"
+#include "opentxs/core/Identifier.hpp"
 
 namespace opentxs
 {
@@ -21,6 +22,15 @@ namespace internal
 struct Core;
 }  // namespace internal
 }  // namespace api
+
+namespace identifier
+{
+class Server;
+class UnitDefinition;
+}  // namespace identifier
+
+class NumList;
+class PasswordPrompt;
 
 // OTTrackable is very similar to OTInstrument.
 // The difference is, it may have identifying info on it:

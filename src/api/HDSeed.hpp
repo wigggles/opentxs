@@ -3,7 +3,61 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/api/HDSeed.cpp"
+
 #pragma once
+
+#include <memory>
+#include <string>
+
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/Version.hpp"
+#include "opentxs/api/HDSeed.hpp"
+#include "opentxs/crypto/key/EllipticCurve.hpp"
+#include "opentxs/crypto/key/Symmetric.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+class Factory;
+
+namespace crypto
+{
+class Asymmetric;
+class Symmetric;
+}  // namespace crypto
+
+namespace storage
+{
+class Storage;
+}  // namespace storage
+}  // namespace api
+
+namespace crypto
+{
+namespace key
+{
+class HD;
+class Secp256k1;
+}  // namespace key
+
+class Bip32;
+class Bip39;
+}  // namespace crypto
+
+namespace proto
+{
+class HDPath;
+class Seed;
+}  // namespace proto
+
+class Factory;
+class OTPassword;
+class PasswordPrompt;
+}  // namespace opentxs
 
 namespace opentxs::api::implementation
 {

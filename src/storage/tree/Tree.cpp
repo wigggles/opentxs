@@ -3,21 +3,28 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"           // IWYU pragma: associated
+#include "1_Internal.hpp"         // IWYU pragma: associated
+#include "storage/tree/Tree.hpp"  // IWYU pragma: associated
 
-#include "Tree.hpp"
+#include <functional>
 
+#include "opentxs/Proto.hpp"
+#include "opentxs/api/storage/Driver.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
 #include "storage/Plugin.hpp"
-#include "Accounts.hpp"
-#include "BlockchainTransactions.hpp"
-#include "Contacts.hpp"
-#include "Credentials.hpp"
-#include "Notary.hpp"
-#include "Nym.hpp"
-#include "Nyms.hpp"
-#include "Seeds.hpp"
-#include "Servers.hpp"
-#include "Units.hpp"
+#include "storage/tree/Accounts.hpp"
+#include "storage/tree/BlockchainTransactions.hpp"
+#include "storage/tree/Contacts.hpp"
+#include "storage/tree/Credentials.hpp"
+#include "storage/tree/Node.hpp"
+#include "storage/tree/Notary.hpp"
+#include "storage/tree/Nym.hpp"  // IWYU pragma: keep
+#include "storage/tree/Nyms.hpp"
+#include "storage/tree/Seeds.hpp"
+#include "storage/tree/Servers.hpp"
+#include "storage/tree/Units.hpp"
 
 #define TREE_VERSION 6
 

@@ -6,15 +6,7 @@
 #ifndef OPENTXS_API_STORAGE_STORAGE_HPP
 #define OPENTXS_API_STORAGE_STORAGE_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/core/Data.hpp"
-#include "opentxs/core/identifier/Nym.hpp"
-#include "opentxs/core/identifier/Server.hpp"
-#include "opentxs/core/identifier/UnitDefinition.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/Proto.hpp"
-#include "opentxs/Types.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <chrono>
 #include <cstdint>
@@ -23,6 +15,14 @@
 #include <memory>
 #include <set>
 #include <string>
+
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/core/Data.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
 
 namespace opentxs
 {

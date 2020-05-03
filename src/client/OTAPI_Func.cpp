@@ -3,33 +3,31 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"           // IWYU pragma: associated
+#include "1_Internal.hpp"         // IWYU pragma: associated
+#include "client/OTAPI_Func.hpp"  // IWYU pragma: associated
 
-#include "OTAPI_Func.hpp"
+#include <cstdint>
+#include <map>
+#include <string>
 
-#include "opentxs/api/client/Manager.hpp"
-#include "opentxs/api/client/Workflow.hpp"
-#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
-#include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
-#include "opentxs/consensus/ServerContext.hpp"
-#include "opentxs/core/contract/peer/PeerReply.hpp"
-#include "opentxs/core/contract/peer/PeerRequest.hpp"
-#include "opentxs/core/script/OTVariable.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
-#include "opentxs/core/OTStorage.hpp"
 #include "opentxs/ext/OTPayment.hpp"
-#include "opentxs/identity/Nym.hpp"
-
-#include <cstdint>
-#include <iostream>
-#include <map>
-#include <string>
-#include <utility>
-#include <vector>
+#include "internal/api/client/Client.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/core/Cheque.hpp"
+#include "opentxs/core/Ledger.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
+#include "opentxs/core/recurring/OTPaymentPlan.hpp"
+#include "opentxs/core/script/OTSmartContract.hpp"
 
 #define OT_METHOD "opentxs::OTAPI_Func::"
 

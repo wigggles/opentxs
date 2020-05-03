@@ -6,9 +6,10 @@
 #ifndef OPENTXS_NETWORK_ZEROMQ_SOCKET_REPLY_HPP
 #define OPENTXS_NETWORK_ZEROMQ_SOCKET_REPLY_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include "opentxs/network/zeromq/curve/Server.hpp"
+#include "opentxs/Pimpl.hpp"
 
 #ifdef SWIG
 // clang-format off
@@ -23,8 +24,22 @@
 
 namespace opentxs
 {
-using OTZMQReplySocket = Pimpl<network::zeromq::socket::Reply>;
+namespace network
+{
+namespace zeromq
+{
+namespace socket
+{
+class Reply;
+}  // namespace socket
+}  // namespace zeromq
+}  // namespace network
 
+using OTZMQReplySocket = Pimpl<network::zeromq::socket::Reply>;
+}  // namespace opentxs
+
+namespace opentxs
+{
 namespace network
 {
 namespace zeromq

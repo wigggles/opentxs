@@ -5,6 +5,17 @@
 
 #pragma once
 
+#include <cstdint>
+#include <atomic>
+#include <string>
+
+#include "opentxs/util/PIDFile.hpp"
+
+namespace opentxs
+{
+class Factory;
+}  // namespace opentxs
+
 namespace opentxs::implementation
 {
 class PIDFile final : virtual public opentxs::PIDFile

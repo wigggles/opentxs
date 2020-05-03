@@ -21,9 +21,9 @@ set(
 set(
   cxx-headers
   ${cxx-install-headers}
-  "${opentxs_SOURCE_DIR}/include/opentxs/crypto/library/Pbkdf2.hpp"
-  "${opentxs_SOURCE_DIR}/include/opentxs/crypto/library/Ripemd160.hpp"
-  "${opentxs_SOURCE_DIR}/include/opentxs/crypto/library/Sodium.hpp"
+  "${opentxs_SOURCE_DIR}/src/internal/crypto/library/Pbkdf2.hpp"
+  "${opentxs_SOURCE_DIR}/src/internal/crypto/library/Ripemd160.hpp"
+  "${opentxs_SOURCE_DIR}/src/internal/crypto/library/Sodium.hpp"
   AsymmetricProvider.hpp
   AsymmetricProviderNull.hpp
   EcdsaProvider.hpp
@@ -41,7 +41,7 @@ if(LIBSECP256K1_EXPORT)
   add_library(
     opentxs-crypto-library-libsecp256k1 OBJECT
     Secp256k1.cpp Secp256k1.hpp
-    "${opentxs_SOURCE_DIR}/include/opentxs/crypto/library/Secp256k1.hpp"
+    "${opentxs_SOURCE_DIR}/src/internal/crypto/library/Secp256k1.hpp"
   )
   target_include_directories(
     opentxs-crypto-library-libsecp256k1 SYSTEM
@@ -60,7 +60,7 @@ if(OPENSSL_EXPORT)
     OpenSSL_BIO.cpp
     OpenSSL.hpp
     OpenSSL_BIO.hpp
-    "${opentxs_SOURCE_DIR}/include/opentxs/crypto/library/OpenSSL.hpp"
+    "${opentxs_SOURCE_DIR}/src/internal/crypto/library/OpenSSL.hpp"
   )
   target_include_directories(
     opentxs-crypto-library-openssl SYSTEM

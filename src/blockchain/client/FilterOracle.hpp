@@ -5,6 +5,61 @@
 
 #pragma once
 
+#include <chrono>
+#include <future>
+#include <iosfwd>
+#include <map>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
+
+#include "1_Internal.hpp"
+#include "core/Executor.hpp"
+#include "internal/blockchain/client/Client.hpp"
+#include "opentxs/Forward.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/core/Data.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/network/zeromq/socket/Publish.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+
+class Core;
+}  // namespace api
+
+namespace blockchain
+{
+namespace client
+{
+class HeaderOracle;
+}  // namespace client
+
+namespace internal
+{
+struct GCS;
+}  // namespace internal
+}  // namespace blockchain
+
+namespace network
+{
+namespace zeromq
+{
+class Message;
+}  // namespace zeromq
+}  // namespace network
+
+class Factory;
+}  // namespace opentxs
+
 namespace zmq = opentxs::network::zeromq;
 
 namespace opentxs::blockchain::client::implementation

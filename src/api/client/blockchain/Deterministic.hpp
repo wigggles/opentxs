@@ -5,14 +5,32 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
-#include "opentxs/crypto/key/HD.hpp"
-#include "opentxs/Proto.hpp"
-
-#include "BalanceNode.hpp"
-
 #include <atomic>
+#include <map>
+#include <optional>
+#include <string>
+#include <vector>
+
+#include "api/client/blockchain/BalanceNode.hpp"
+#include "internal/api/client/blockchain/Blockchain.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/Version.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/crypto/key/HD.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
+class PasswordPrompt;
+}  // namespace opentxs
 
 namespace opentxs::api::client::blockchain::implementation
 {

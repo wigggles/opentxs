@@ -5,8 +5,6 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
 #include "opentxs/api/Context.hpp"
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"

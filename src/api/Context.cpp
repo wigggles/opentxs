@@ -3,56 +3,9 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
-
-#include "Internal.hpp"
-
-#include "opentxs/api/client/Activity.hpp"
-#include "opentxs/api/client/Manager.hpp"
-#include "opentxs/api/crypto/Crypto.hpp"
-#include "opentxs/api/crypto/Encode.hpp"
-#include "opentxs/api/crypto/Hash.hpp"
-#include "opentxs/api/server/Manager.hpp"
-#include "opentxs/api/network/ZAP.hpp"
-#include "opentxs/api/Context.hpp"
-#if OT_CRYPTO_WITH_BIP32
-#include "opentxs/api/HDSeed.hpp"
-#endif
-#include "opentxs/api/Legacy.hpp"
-#include "opentxs/api/Settings.hpp"
-#include "opentxs/api/Wallet.hpp"
-#include "opentxs/client/OT_API.hpp"
-#include "opentxs/core/crypto/OTCallback.hpp"
-#include "opentxs/core/crypto/OTCaller.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Flag.hpp"
-#include "opentxs/core/Lockable.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/LogSource.hpp"
-#include "opentxs/core/OTStorage.hpp"
-#include "opentxs/core/PasswordPrompt.hpp"
-#include "opentxs/core/String.hpp"
-#include "opentxs/crypto/key/Symmetric.hpp"
-#include "opentxs/network/zeromq/Context.hpp"
-#include "opentxs/network/ServerConnection.hpp"
-#include "opentxs/ui/ActivitySummary.hpp"
-#include "opentxs/ui/ActivityThread.hpp"
-#include "opentxs/ui/ContactList.hpp"
-#include "opentxs/ui/MessagableList.hpp"
-#include "opentxs/ui/PayableList.hpp"
-#include "opentxs/util/PIDFile.hpp"
-#include "opentxs/util/Signals.hpp"
-#include "opentxs/Types.hpp"
-
-#include "internal/api/client/Client.hpp"
-#include "internal/api/storage/Storage.hpp"
-#include "internal/api/Api.hpp"
-#include "internal/rpc/RPC.hpp"
-#include "network/OpenDHT.hpp"
-#include "storage/StorageConfig.hpp"
-#include "Periodic.hpp"
-#include "Scheduler.hpp"
+#include "0_stdafx.hpp"     // IWYU pragma: associated
+#include "1_Internal.hpp"   // IWYU pragma: associated
+#include "api/Context.hpp"  // IWYU pragma: associated
 
 #ifndef _WIN32
 extern "C" {
@@ -60,16 +13,31 @@ extern "C" {
 }
 #endif  // _WIN32
 
+#include <cassert>
 #include <algorithm>
-#include <atomic>
-#include <ctime>
-#include <limits>
 #include <map>
 #include <mutex>
 #include <string>
 #include <vector>
+#include <functional>
+#include <set>
+#include <utility>
 
-#include "Context.hpp"
+#include "internal/rpc/RPC.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/api/Context.hpp"
+#include "opentxs/api/Factory.hpp"
+#if OT_CRYPTO_WITH_BIP32
+#include "opentxs/api/HDSeed.hpp"
+#endif  // OT_CRYPTO_WITH_BIP32
+#include "opentxs/core/Flag.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/crypto/OTCallback.hpp"
+#include "opentxs/core/crypto/OTCaller.hpp"
+#include "opentxs/util/PIDFile.hpp"
+#include "opentxs/util/Signals.hpp"
 
 // #define OT_METHOD "opentxs::api::implementation::Context::"
 

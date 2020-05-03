@@ -6,13 +6,14 @@
 #ifndef OPENTXS_UI_PROFILESUBSECTION_HPP
 #define OPENTXS_UI_PROFILESUBSECTION_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
+
+#include <string>
 
 #include "opentxs/ui/List.hpp"
 #include "opentxs/ui/ListRow.hpp"
 #include "opentxs/Proto.hpp"
-
-#include <string>
+#include "opentxs/SharedPimpl.hpp"
 
 #ifdef SWIG
 // clang-format off
@@ -31,8 +32,16 @@
 
 namespace opentxs
 {
-using OTUIProfileSubsection = SharedPimpl<ui::ProfileSubsection>;
+namespace ui
+{
+class ProfileSubsection;
+}  // namespace ui
 
+using OTUIProfileSubsection = SharedPimpl<ui::ProfileSubsection>;
+}  // namespace opentxs
+
+namespace opentxs
+{
 namespace ui
 {
 class ProfileSubsection : virtual public List, virtual public ListRow

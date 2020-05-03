@@ -6,15 +6,16 @@
 #ifndef OPENTXS_IDENTITY_AUTHORITY_HPP
 #define OPENTXS_IDENTITY_AUTHORITY_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/crypto/key/Keypair.hpp"
-#include "opentxs/identity/Nym.hpp"
-#include "opentxs/Bytes.hpp"
-#include "opentxs/Proto.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <cstdint>
 #include <memory>
+
+#include "opentxs/Bytes.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/crypto/key/Keypair.hpp"
+#include "opentxs/identity/Nym.hpp"
 
 namespace opentxs
 {

@@ -3,38 +3,39 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
-
-#include "Internal.hpp"
-
+#include "0_stdafx.hpp"    // IWYU pragma: associated
+#include "1_Internal.hpp"  // IWYU pragma: associated
 #if OT_CASH_USING_LUCRE
-#include "opentxs/api/Core.hpp"
-#include "opentxs/blind/Mint.hpp"
-#include "opentxs/blind/Token.hpp"
-#include "opentxs/core/Armored.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/String.hpp"
-#include "opentxs/crypto/Envelope.hpp"
-#include "opentxs/identity/Nym.hpp"
+#include "blind/mint/Lucre.hpp"  // IWYU pragma: associated
 
-#include "blind/token/Lucre.hpp"
-#include "blind/Lucre.hpp"
-#include "blind/Mint.hpp"
-#include "crypto/library/OpenSSL_BIO.hpp"
-#include "internal/api/Api.hpp"
-
+extern "C" {
 #include <openssl/bio.h>
 #include <openssl/bn.h>
 #include <openssl/ossl_typ.h>
-#include <stdio.h>
-#include <sys/types.h>
-#include <ostream>
-#endif
+}
 
-#include "Lucre.hpp"
+#include <utility>
 
-#if OT_CASH_USING_LUCRE
+#include "Factory.hpp"
+#include "blind/Lucre.hpp"
+#include "blind/Mint.hpp"
+#include "blind/token/Lucre.hpp"
+#include "crypto/library/OpenSSL_BIO.hpp"
+#include "internal/api/Api.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Version.hpp"
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/blind/Token.hpp"
+#include "opentxs/core/Armored.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/crypto/Envelope.hpp"
+#include "opentxs/identity/Nym.hpp"
+
 #ifdef __APPLE__
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
@@ -66,7 +67,6 @@ blind::Mint* Factory::MintLucre(
     return new blind::mint::implementation::Lucre(
         core, strNotaryID, strServerNymID, strInstrumentDefinitionID);
 }
-
 }  // namespace opentxs
 
 namespace opentxs::blind::mint::implementation

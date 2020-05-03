@@ -3,24 +3,24 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"      // IWYU pragma: associated
+#include "1_Internal.hpp"    // IWYU pragma: associated
+#include "api/Settings.hpp"  // IWYU pragma: associated
 
-#include "opentxs/api/Legacy.hpp"
-#include "opentxs/api/Settings.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/Types.hpp"
-
-#include <cinttypes>
 // NOTE: cstdlib HAS to be included here above SimpleIni, since for some reason
 // it uses stdlib functions without including that header.
-#include <cstdlib>
+#include <cstdlib>  // IWYU pragma: keep
 #include <simpleini/SimpleIni.h>
+#include <cinttypes>
 #include <cstdint>
 #include <memory>
-#include <mutex>
 #include <ostream>
 
-#include "Settings.hpp"
+#include "Factory.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/api/Legacy.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
 
 #define OT_METHOD "opentxs::Settings"
 

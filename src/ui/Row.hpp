@@ -5,10 +5,9 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
-#include "RowType.hpp"
-#include "Widget.hpp"
+#include "opentxs/core/Lockable.hpp"
+#include "ui/RowType.hpp"
+#include "ui/Widget.hpp"
 
 namespace opentxs::ui::implementation
 {

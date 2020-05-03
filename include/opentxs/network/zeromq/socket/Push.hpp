@@ -6,10 +6,11 @@
 #ifndef OPENTXS_NETWORK_ZEROMQ_SOCKET_PUSH_HPP
 #define OPENTXS_NETWORK_ZEROMQ_SOCKET_PUSH_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include "opentxs/network/zeromq/curve/Client.hpp"
 #include "opentxs/network/zeromq/socket/Sender.hpp"
+#include "opentxs/Pimpl.hpp"
 #include "opentxs/Proto.hpp"
 
 #ifdef SWIG
@@ -25,8 +26,22 @@
 
 namespace opentxs
 {
-using OTZMQPushSocket = Pimpl<network::zeromq::socket::Push>;
+namespace network
+{
+namespace zeromq
+{
+namespace socket
+{
+class Push;
+}  // namespace socket
+}  // namespace zeromq
+}  // namespace network
 
+using OTZMQPushSocket = Pimpl<network::zeromq::socket::Push>;
+}  // namespace opentxs
+
+namespace opentxs
+{
 namespace network
 {
 namespace zeromq

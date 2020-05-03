@@ -3,18 +3,78 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/ui/ActivityThread.cpp"
+
 #pragma once
 
-#include "Internal.hpp"
+#include <functional>
+#include <future>
+#include <memory>
+#include <mutex>
+#include <set>
+#include <string>
+#include <thread>
+#include <tuple>
+#include <utility>
+#include <vector>
 
-#include "opentxs/api/client/OTX.hpp"
-#include "opentxs/ui/ActivityThread.hpp"
-
+#include "1_Internal.hpp"
 #include "core/StateMachine.hpp"
 #include "internal/ui/UI.hpp"
-#include "List.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/SharedPimpl.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/Version.hpp"
+#include "opentxs/api/client/OTX.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/ui/ActivityThread.hpp"
+#include "ui/List.hpp"
+#include "ui/Widget.hpp"
 
-#include <future>
+namespace opentxs
+{
+namespace api
+{
+namespace client
+{
+namespace internal
+{
+struct Manager;
+}  // namespace internal
+}  // namespace client
+
+class Core;
+}  // namespace api
+
+namespace identifier
+{
+class Nym;
+}  // namespace identifier
+
+namespace network
+{
+namespace zeromq
+{
+namespace socket
+{
+class Publish;
+}  // namespace socket
+
+class Message;
+}  // namespace zeromq
+}  // namespace network
+
+namespace proto
+{
+class StorageThread;
+class StorageThreadItem;
+}  // namespace proto
+
+class Contact;
+class Factory;
+}  // namespace opentxs
 
 namespace std
 {
@@ -104,6 +164,17 @@ public:
     bool SetDraft(const std::string& draft) const noexcept final;
     std::string ThreadID() const noexcept final;
 
+    ActivityThread(
+        const api::client::internal::Manager& api,
+        const network::zeromq::socket::Publish& publisher,
+        const identifier::Nym& nymID,
+        const Identifier& threadID
+#if OT_QT
+        ,
+        const bool qt
+#endif
+        ) noexcept;
+
     ~ActivityThread() final;
 
 private:
@@ -140,17 +211,6 @@ private:
     bool process_drafts() noexcept;
     void process_thread(const network::zeromq::Message& message) noexcept;
     void startup() noexcept;
-
-    ActivityThread(
-        const api::client::internal::Manager& api,
-        const network::zeromq::socket::Publish& publisher,
-        const identifier::Nym& nymID,
-        const Identifier& threadID
-#if OT_QT
-        ,
-        const bool qt
-#endif
-        ) noexcept;
 
     ActivityThread() = delete;
     ActivityThread(const ActivityThread&) = delete;

@@ -7,9 +7,10 @@
 #define OPENTXS_UI_MESSAGABLELIST_HPP
 
 #ifndef Q_MOC_RUN
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include "opentxs/ui/List.hpp"
+#include "opentxs/SharedPimpl.hpp"
 
 #ifdef SWIG
 // clang-format off
@@ -64,6 +65,8 @@ public:
         SectionRole = Qt::UserRole + 1,
     };
 
+    MessagableListQt(implementation::MessagableList& parent) noexcept;
+
     ~MessagableListQt() final = default;
 
 private:
@@ -73,7 +76,6 @@ private:
 
     void notify() const noexcept;
 
-    MessagableListQt(implementation::MessagableList& parent) noexcept;
     MessagableListQt() = delete;
     MessagableListQt(const MessagableListQt&) = delete;
     MessagableListQt(MessagableListQt&&) = delete;

@@ -5,16 +5,45 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
-#include "opentxs/core/identifier/Server.hpp"
+#include <atomic>
+#include <cstdint>
+#include <iosfwd>
+#include <memory>
+#include <set>
+#include <string>
 
 #include "core/contract/Signable.hpp"
 #include "internal/api/Api.hpp"
 #include "internal/consensus/Consensus.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/api/Editor.hpp"
+#include "opentxs/core/Data.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/identity/Nym.hpp"
 
-#include <atomic>
-#include <cstdint>
+namespace opentxs
+{
+namespace api
+{
+class Core;
+
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
+namespace identifier
+{
+class Nym;
+}  // namespace identifier
+
+class Factory;
+class NymFile;
+class PasswordPrompt;
+}  // namespace opentxs
 
 namespace opentxs::implementation
 {

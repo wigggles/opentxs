@@ -6,7 +6,7 @@
 #ifndef OPENTXS_CORE_OTSTORAGEPB_HPP
 #define OPENTXS_CORE_OTSTORAGEPB_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <deque>
 #include <iostream>
@@ -44,10 +44,8 @@
 
 namespace opentxs
 {
-
 namespace OTDB
 {
-
 // Interface:    IStorablePB
 //
 class IStorablePB : public IStorable

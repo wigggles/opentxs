@@ -3,31 +3,29 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
-
-#include "Internal.hpp"
-
-#include "opentxs/api/crypto/Crypto.hpp"
-#include "opentxs/api/crypto/Hash.hpp"
-#include "opentxs/api/Core.hpp"
-#include "opentxs/api/Factory.hpp"
-#include "opentxs/blockchain/block/bitcoin/Header.hpp"
-#include "opentxs/blockchain/NumericHash.hpp"
-#include "opentxs/blockchain/Work.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/Data.hpp"
-#include "opentxs/core/Log.hpp"
-
-#include "internal/api/Api.hpp"
-#include "internal/blockchain/block/Block.hpp"
-#include "internal/core/Core.hpp"
-#include "blockchain/block/Header.hpp"
+#include "0_stdafx.hpp"                         // IWYU pragma: associated
+#include "1_Internal.hpp"                       // IWYU pragma: associated
+#include "blockchain/block/bitcoin/Header.hpp"  // IWYU pragma: associated
 
 #include <boost/endian/buffers.hpp>
-
 #include <array>
+#include <cstring>
+#include <ctime>
+#include <stdexcept>
 
-#include "Header.hpp"
+#include "Factory.hpp"
+#include "internal/api/Api.hpp"
+#include "internal/blockchain/block/Block.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/blockchain/NumericHash.hpp"
+#include "opentxs/blockchain/Work.hpp"
+#include "opentxs/blockchain/block/bitcoin/Header.hpp"
+#include "opentxs/core/Data.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
 
 #define OT_BITCOIN_BLOCK_HEADER_SIZE 80
 

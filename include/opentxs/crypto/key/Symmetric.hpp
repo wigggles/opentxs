@@ -6,19 +6,31 @@
 #ifndef OPENTXS_CRYPTO_KEY_SYMMETRIC_HPP
 #define OPENTXS_CRYPTO_KEY_SYMMETRIC_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/Bytes.hpp"
-#include "opentxs/Proto.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <cstdint>
 #include <string>
 
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/Bytes.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.hpp"
+
 namespace opentxs
 {
-using OTSymmetricKey = Pimpl<crypto::key::Symmetric>;
+namespace crypto
+{
+namespace key
+{
+class Symmetric;
+}  // namespace key
+}  // namespace crypto
 
+using OTSymmetricKey = Pimpl<crypto::key::Symmetric>;
+}  // namespace opentxs
+
+namespace opentxs
+{
 namespace crypto
 {
 namespace key

@@ -3,16 +3,19 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"             // IWYU pragma: associated
+#include "1_Internal.hpp"           // IWYU pragma: associated
+#include "storage/tree/Thread.hpp"  // IWYU pragma: associated
 
-#include "Thread.hpp"
+#include <memory>
+#include <utility>
 
-#include "opentxs/core/Identifier.hpp"
+#include "opentxs/api/storage/Driver.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/core/String.hpp"
-
+#include "opentxs/core/LogSource.hpp"
 #include "storage/Plugin.hpp"
-#include "Mailbox.hpp"
+#include "storage/tree/Mailbox.hpp"
+#include "storage/tree/Node.hpp"
 
 #define OT_METHOD "opentxs::storage::Thread::"
 

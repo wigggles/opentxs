@@ -6,11 +6,11 @@
 #ifndef OPENTXS_CORE_NYMIDSOURCE_HPP
 #define OPENTXS_CORE_NYMIDSOURCE_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/Proto.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <memory>
+
+#include "opentxs/Proto.hpp"
 
 namespace opentxs
 {

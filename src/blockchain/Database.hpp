@@ -3,7 +3,77 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/blockchain/Database.cpp"
+
 #pragma once
+
+#include <boost/container/flat_set.hpp>
+#include <algorithm>
+#include <cstdint>
+#include <iosfwd>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <set>
+#include <string>
+#include <utility>
+#include <vector>
+
+#include "api/client/blockchain/database/Database.hpp"
+#include "internal/api/client/blockchain/Blockchain.hpp"
+#include "internal/blockchain/Blockchain.hpp"
+#include "internal/blockchain/client/Client.hpp"
+#include "opentxs/Bytes.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/blockchain/block/bitcoin/Input.hpp"
+#include "opentxs/core/Data.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "util/LMDB.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+
+class Core;
+}  // namespace api
+
+namespace blockchain
+{
+namespace block
+{
+class Block;
+class Header;
+
+namespace bitcoin
+{
+class Block;
+class Transaction;
+}  // namespace bitcoin
+}  // namespace block
+
+namespace client
+{
+class UpdateTransaction;
+}  // namespace client
+}  // namespace blockchain
+
+namespace proto
+{
+class BlockchainTransactionOutput;
+}  // namespace proto
+
+class Factory;
+}  // namespace opentxs
 
 namespace opentxs::blockchain::implementation
 {

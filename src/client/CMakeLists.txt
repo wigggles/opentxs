@@ -10,7 +10,6 @@ set(
   OTAPI_Exec.cpp
   OTAPI_Func.cpp
   OTClient.cpp
-  SwigWrap.cpp
 )
 set(
   cxx-install-headers
@@ -19,7 +18,6 @@ set(
   "${opentxs_SOURCE_DIR}/include/opentxs/client/OT_API.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/client/OTClient.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/client/ServerAction.hpp"
-  "${opentxs_SOURCE_DIR}/include/opentxs/client/SwigWrap.hpp"
 )
 set(cxx-headers ${cxx-install-headers} OTAPI_Func.hpp)
 

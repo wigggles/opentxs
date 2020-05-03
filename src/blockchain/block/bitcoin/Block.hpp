@@ -5,6 +5,33 @@
 
 #pragma once
 
+#include <iosfwd>
+#include <map>
+#include <memory>
+#include <optional>
+#include <utility>
+#include <vector>
+
+#include "1_Internal.hpp"
+#include "blockchain/bitcoin/CompactSize.hpp"
+#include "blockchain/block/Block.hpp"
+#include "internal/blockchain/block/Block.hpp"
+#include "opentxs/Bytes.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/blockchain/block/Block.hpp"
+#include "opentxs/blockchain/block/bitcoin/Block.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+}  // namespace opentxs
+
 namespace bb = opentxs::blockchain::bitcoin;
 
 namespace opentxs::blockchain::block::bitcoin::implementation

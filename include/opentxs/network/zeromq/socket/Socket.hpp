@@ -6,10 +6,7 @@
 #ifndef OPENTXS_NETWORK_ZEROMQ_SOCKET_SOCKET_HPP
 #define OPENTXS_NETWORK_ZEROMQ_SOCKET_SOCKET_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/Types.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <cstdint>
 #include <chrono>
@@ -17,6 +14,9 @@
 #include <memory>
 #include <string>
 #include <tuple>
+
+#include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/Types.hpp"
 
 #ifdef SWIG
 // clang-format off

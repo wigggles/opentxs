@@ -6,9 +6,10 @@
 #ifndef OPENTXS_NETWORK_ZEROMQ_SOCKET_PULL_HPP
 #define OPENTXS_NETWORK_ZEROMQ_SOCKET_PULL_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include "opentxs/network/zeromq/curve/Server.hpp"
+#include "opentxs/Pimpl.hpp"
 
 #ifdef SWIG
 // clang-format off
@@ -23,8 +24,22 @@
 
 namespace opentxs
 {
-using OTZMQPullSocket = Pimpl<network::zeromq::socket::Pull>;
+namespace network
+{
+namespace zeromq
+{
+namespace socket
+{
+class Pull;
+}  // namespace socket
+}  // namespace zeromq
+}  // namespace network
 
+using OTZMQPullSocket = Pimpl<network::zeromq::socket::Pull>;
+}  // namespace opentxs
+
+namespace opentxs
+{
 namespace network
 {
 namespace zeromq

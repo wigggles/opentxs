@@ -3,35 +3,31 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "stdafx.hpp"
+#include "0_stdafx.hpp"        // IWYU pragma: associated
+#include "1_Internal.hpp"      // IWYU pragma: associated
+#include "ui/ContactItem.hpp"  // IWYU pragma: associated
 
 #include "opentxs/contact/ContactItem.hpp"
-#include "opentxs/core/Flag.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Lockable.hpp"
-#include "opentxs/ui/ContactItem.hpp"
+#include "opentxs/core/Log.hpp"
+#include "ui/Widget.hpp"
 
-#include "internal/ui/UI.hpp"
-#include "Row.hpp"
-
-#include "ContactItem.hpp"
-
-template class opentxs::SharedPimpl<opentxs::ui::ContactItem>;
-
-namespace opentxs
+namespace opentxs::factory
 {
-ui::implementation::ContactSubsectionRowInternal* Factory::ContactItemWidget(
+auto ContactItemWidget(
     const ui::implementation::ContactSubsectionInternalInterface& parent,
     const api::client::internal::Manager& api,
     const network::zeromq::socket::Publish& publisher,
     const ui::implementation::ContactSubsectionRowID& rowID,
     const ui::implementation::ContactSubsectionSortKey& sortKey,
-    const ui::implementation::CustomData& custom)
+    const ui::implementation::CustomData& custom) noexcept
+    -> std::shared_ptr<ui::implementation::ContactSubsectionRowInternal>
 {
-    return new ui::implementation::ContactItem(
+    using ReturnType = ui::implementation::ContactItem;
+
+    return std::make_shared<ReturnType>(
         parent, api, publisher, rowID, sortKey, custom);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::ui::implementation
 {

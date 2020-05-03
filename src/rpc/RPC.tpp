@@ -3,6 +3,24 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/rpc/rpc.cpp"
+
+#include "RPC.hpp"  // IWYU pragma: associated
+
+#include <memory>
+#include <type_traits>
+#include <utility>
+
+#include "internal/api/client/Client.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/core/Armored.hpp"
+#include "opentxs/core/Ledger.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/OTTransaction.hpp"
+#include "opentxs/core/String.hpp"
+
 #define OT_METHOD "opentxs::rpc::implementation::RPC::"
 
 namespace opentxs::rpc::implementation

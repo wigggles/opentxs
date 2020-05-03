@@ -5,7 +5,64 @@
 
 #pragma once
 
-#include "Internal.hpp"
+#include <atomic>
+#include <future>
+#include <iosfwd>
+#include <map>
+#include <memory>
+#include <set>
+
+#include "core/StateMachine.hpp"
+#include "internal/otx/client/Client.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/Version.hpp"
+#include "opentxs/api/Editor.hpp"
+#include "opentxs/consensus/ManagedNumber.hpp"
+#include "opentxs/consensus/ServerContext.hpp"
+#include "opentxs/core/Account.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Ledger.hpp"
+#include "opentxs/core/Message.hpp"
+#include "opentxs/core/PasswordPrompt.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/contract/peer/PeerReply.hpp"
+#include "opentxs/core/contract/peer/PeerRequest.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace client
+{
+namespace internal
+{
+struct Manager;
+}  // namespace internal
+}  // namespace client
+}  // namespace api
+
+namespace blind
+{
+class Purse;
+}  // namespace blind
+
+namespace proto
+{
+class UnitDefinition;
+}  // namespace proto
+
+class Armored;
+class Cheque;
+class Context;
+class Factory;
+class OTPayment;
+class OTTransaction;
+class PeerObject;
+}  // namespace opentxs
 
 namespace opentxs::otx::client::implementation
 {
