@@ -13,6 +13,7 @@
 #include "opentxs/Types.hpp"
 #include "opentxs/core/contract/peer/ConnectionRequest.hpp"
 #include "opentxs/core/contract/peer/PeerRequest.hpp"
+#include "opentxs/protobuf/PeerEnums.pb.h"
 
 namespace opentxs
 {

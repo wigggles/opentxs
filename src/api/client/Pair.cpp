@@ -54,6 +54,13 @@
 #include "opentxs/network/zeromq/socket/Publish.hpp"
 #include "opentxs/network/zeromq/socket/Sender.tpp"
 #include "opentxs/network/zeromq/socket/Subscribe.hpp"
+#include "opentxs/protobuf/Check.hpp"
+#include "opentxs/protobuf/ConsensusEnums.pb.h"
+#include "opentxs/protobuf/ContactEnums.pb.h"
+#include "opentxs/protobuf/PeerEnums.pb.h"
+#include "opentxs/protobuf/ZMQEnums.pb.h"
+#include "opentxs/protobuf/verify/PeerReply.hpp"
+#include "opentxs/protobuf/verify/PeerRequest.hpp"
 
 #define MINIMUM_UNUSED_BAILMENTS 3
 

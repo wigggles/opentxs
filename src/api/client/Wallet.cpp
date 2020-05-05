@@ -29,6 +29,7 @@
 #include "opentxs/identity/Nym.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/socket/Publish.hpp"
+#include "opentxs/protobuf/ConsensusEnums.pb.h"
 
 //#define OT_METHOD "opentxs::api::client::implementation::Wallet::"
 

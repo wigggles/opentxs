@@ -7,8 +7,8 @@
 #include "1_Internal.hpp"  // IWYU pragma: associated
 #include "blockchain/p2p/bitcoin/message/Getblocks.hpp"  // IWYU pragma: associated
 
-#include <cstdint>
 #include <cstddef>
+#include <cstdint>
 #include <utility>
 
 #include "Factory.hpp"

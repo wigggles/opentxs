@@ -15,6 +15,7 @@
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/crypto/key/Keypair.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
 
 namespace opentxs
 {

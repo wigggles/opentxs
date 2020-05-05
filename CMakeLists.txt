@@ -153,7 +153,6 @@ if(OPENTXS_BUILD_TESTS)
 endif()
 
 find_package(Protobuf REQUIRED)
-find_package(opentxs-proto REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(
   Boost 1.66.0 REQUIRED
@@ -242,7 +241,6 @@ endif()
 
 set_common_defines()
 hide_symbols("OPENTXS_EXPORT")
-include_directories("${CMAKE_CURRENT_BINARY_DIR}/src")
 
 if(APPLE)
   add_definitions(-DBOOST_STACKTRACE_GNU_SOURCE_NOT_REQUIRED)
@@ -424,12 +422,16 @@ install(
 # -----------------------------------------------------------------------------
 # Build source
 
-include_directories("${opentxs_SOURCE_DIR}/include" "${opentxs_SOURCE_DIR}/src"
-                    "${opentxs_BINARY_DIR}/include")
-include_directories(SYSTEM "${Protobuf_INCLUDE_DIRS}")
-include_directories(SYSTEM "${opentxs-proto_INCLUDE_DIRS}")
+include_directories(
+  "${opentxs_BINARY_DIR}/include"
+  "${opentxs_BINARY_DIR}/serialization"
+  "${opentxs_BINARY_DIR}/src"
+  "${opentxs_SOURCE_DIR}/include"
+  "${opentxs_SOURCE_DIR}/src"
+)
 
 add_subdirectory(deps)
+add_subdirectory(serialization)
 add_subdirectory(src)
 
 if(OT_SWIG)

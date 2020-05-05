@@ -31,6 +31,7 @@
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/crypto/Bip32.hpp"
 #include "opentxs/crypto/library/EcdsaProvider.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
 #include "util/Sodium.hpp"
 
 #define OT_METHOD "opentxs::crypto::implementation::Bip32::"

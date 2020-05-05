@@ -15,6 +15,7 @@
 #include "opentxs/Proto.hpp"
 #include "opentxs/SharedPimpl.hpp"
 #include "opentxs/Version.hpp"
+#include "opentxs/protobuf/ContactEnums.pb.h"
 #include "ui/ContactListItem.hpp"
 
 namespace opentxs

@@ -7,8 +7,8 @@
 #include "1_Internal.hpp"       // IWYU pragma: associated
 #include "api/network/ZMQ.hpp"  // IWYU pragma: associated
 
-#include <cstdint>
 #include <atomic>
+#include <cstdint>
 #include <map>
 #include <utility>
 
@@ -25,6 +25,7 @@
 #include "opentxs/network/ServerConnection.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/socket/Publish.hpp"
+#include "opentxs/protobuf/ContractEnums.pb.h"
 
 #define CLIENT_SEND_TIMEOUT_SECONDS 20
 #if OT_VALGRIND

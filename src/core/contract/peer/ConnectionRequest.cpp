@@ -16,6 +16,9 @@
 #include "opentxs/Proto.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
+#include "opentxs/protobuf/Check.hpp"
+#include "opentxs/protobuf/PeerEnums.pb.h"
+#include "opentxs/protobuf/verify/PeerRequest.hpp"
 
 #define CURRENT_VERSION 4
 

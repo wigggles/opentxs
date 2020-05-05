@@ -7,14 +7,14 @@
 #include "1_Internal.hpp"            // IWYU pragma: associated
 #include "otx/client/Operation.hpp"  // IWYU pragma: associated
 
-#include <cstdint>
 #include <atomic>
+#include <chrono>
+#include <cstdint>
+#include <functional>
 #include <future>
+#include <iterator>
 #include <map>
 #include <memory>
-#include <chrono>
-#include <functional>
-#include <iterator>
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -67,6 +67,12 @@
 #include "opentxs/crypto/Envelope.hpp"
 #include "opentxs/ext/OTPayment.hpp"
 #include "opentxs/identity/Nym.hpp"
+#include "opentxs/protobuf/Check.hpp"
+#include "opentxs/protobuf/ConsensusEnums.pb.h"
+#include "opentxs/protobuf/ContactEnums.pb.h"
+#include "opentxs/protobuf/PaymentWorkflowEnums.pb.h"
+#include "opentxs/protobuf/PeerEnums.pb.h"
+#include "opentxs/protobuf/verify/UnitDefinition.hpp"
 
 #define START()                                                                \
     Lock lock(decision_lock_);                                                 \

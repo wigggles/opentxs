@@ -39,6 +39,7 @@
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/network/ServerConnection.hpp"
 #include "opentxs/network/zeromq/socket/Push.hpp"
+#include "opentxs/protobuf/ConsensusEnums.pb.h"
 
 namespace opentxs
 {

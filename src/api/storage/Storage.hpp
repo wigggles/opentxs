@@ -34,6 +34,8 @@
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
+#include "opentxs/protobuf/ContactEnums.pb.h"
+#include "opentxs/protobuf/PaymentWorkflowEnums.pb.h"
 #include "storage/StorageConfig.hpp"
 
 namespace opentxs
@@ -53,6 +55,28 @@ namespace key
 class Symmetric;
 }  // namespace key
 }  // namespace crypto
+
+namespace proto
+{
+class Bip47Channel;
+class BlockchainTransaction;
+class Ciphertext;
+class Contact;
+class Context;
+class Credential;
+class HDAccount;
+class Issuer;
+class Nym;
+class PaymentWorkflow;
+class PeerReply;
+class PeerRequest;
+class Purse;
+class Seed;
+class ServerContract;
+class StorageBlockchainTxo;
+class StorageThread;
+class UnitDefinition;
+}  // namespace proto
 
 namespace storage
 {

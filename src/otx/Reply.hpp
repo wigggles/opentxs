@@ -19,6 +19,7 @@
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/otx/Reply.hpp"
+#include "opentxs/protobuf/OTXEnums.pb.h"
 
 namespace opentxs
 {

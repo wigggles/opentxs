@@ -43,6 +43,10 @@
 #include "opentxs/identity/Source.hpp"
 #include "opentxs/identity/credential/Key.hpp"
 #include "opentxs/identity/credential/Verification.hpp"
+#include "opentxs/protobuf/Check.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
+#include "opentxs/protobuf/verify/Credential.hpp"
+#include "opentxs/protobuf/verify/VerifyContacts.hpp"
 
 #define OT_METHOD "opentxs::identity::implementation::Authority::"
 

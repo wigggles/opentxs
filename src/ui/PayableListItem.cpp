@@ -15,6 +15,7 @@
 #include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/contact/Contact.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/protobuf/ContactEnums.pb.h"
 
 namespace opentxs::factory
 {

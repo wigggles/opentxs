@@ -48,6 +48,9 @@
 #include "opentxs/network/zeromq/socket/Push.hpp"
 #include "opentxs/network/zeromq/socket/Socket.hpp"
 #endif  // OT_BLOCKCHAIN
+#include "opentxs/protobuf/BlockchainEnums.pb.h"
+#include "opentxs/protobuf/ContactEnums.pb.h"
+#include "opentxs/protobuf/Enums.pb.h"
 
 #define LOCK_NYM()                                                             \
     Lock mapLock(lock_);                                                       \

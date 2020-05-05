@@ -6,6 +6,8 @@
 #ifndef OPENTXS_CONSENSUS_CONTEXT_HPP
 #define OPENTXS_CONSENSUS_CONTEXT_HPP
 
+// IWYU pragma: no_include "opentxs/Proto.hpp"
+
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <memory>

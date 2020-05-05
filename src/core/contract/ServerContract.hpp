@@ -19,6 +19,7 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/contract/ServerContract.hpp"
+#include "opentxs/protobuf/ContractEnums.pb.h"
 
 namespace opentxs
 {

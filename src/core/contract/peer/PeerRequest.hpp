@@ -15,6 +15,7 @@
 #include "opentxs/core/contract/peer/PeerRequest.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/protobuf/PeerEnums.pb.h"
 
 namespace opentxs
 {

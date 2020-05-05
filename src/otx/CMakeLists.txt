@@ -11,6 +11,7 @@ set(cxx-install-headers "${opentxs_SOURCE_DIR}/include/opentxs/otx/Reply.hpp"
 set(cxx-headers ${cxx-install-headers} Reply.hpp Request.hpp)
 
 add_library(opentxs-otx OBJECT ${cxx-sources} ${cxx-headers})
+target_link_libraries(opentxs-otx PRIVATE opentxs::messages)
 set_property(TARGET opentxs-otx PROPERTY POSITION_INDEPENDENT_CODE 1)
 
 install(

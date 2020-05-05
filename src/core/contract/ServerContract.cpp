@@ -26,6 +26,10 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/identity/Nym.hpp"
+#include "opentxs/protobuf/Check.hpp"
+#include "opentxs/protobuf/ContractEnums.pb.h"
+#include "opentxs/protobuf/Enums.pb.h"
+#include "opentxs/protobuf/verify/ServerContract.hpp"
 
 #define OT_METHOD "opentxs::contract::implementation::Server::"
 

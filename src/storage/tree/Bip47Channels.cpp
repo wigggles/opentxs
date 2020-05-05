@@ -17,6 +17,10 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
+#include "opentxs/protobuf/Check.hpp"
+#include "opentxs/protobuf/ContactEnums.pb.h"
+#include "opentxs/protobuf/verify/StorageBip47ChannelList.hpp"
+#include "opentxs/protobuf/verify/StorageBip47Contexts.hpp"
 #include "storage/Plugin.hpp"
 #include "storage/tree/Node.hpp"
 

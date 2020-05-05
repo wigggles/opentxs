@@ -17,6 +17,7 @@ target_include_directories(
   opentxs-core-contract-basket SYSTEM
   PRIVATE "${opentxs_SOURCE_DIR}/deps/"
 )
+target_link_libraries(opentxs-core-contract-basket PRIVATE opentxs::messages)
 set_property(
   TARGET opentxs-core-contract-basket
   PROPERTY POSITION_INDEPENDENT_CODE 1

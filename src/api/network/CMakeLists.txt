@@ -19,6 +19,7 @@ set(
 )
 
 add_library(opentxs-api-network OBJECT ${cxx-sources} ${cxx-headers})
+target_link_libraries(opentxs-api-network PRIVATE opentxs::messages)
 set_property(TARGET opentxs-api-network PROPERTY POSITION_INDEPENDENT_CODE 1)
 
 install(

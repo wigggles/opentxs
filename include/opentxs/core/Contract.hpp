@@ -6,6 +6,8 @@
 #ifndef OPENTXS_CORE_CONTRACT_HPP
 #define OPENTXS_CORE_CONTRACT_HPP
 
+// IWYU pragma: no_include "opentxs/Proto.hpp"
+
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <cstdint>
@@ -21,6 +23,7 @@
 #include "opentxs/core/StringXML.hpp"
 #include "opentxs/core/crypto/Signature.hpp"
 #include "opentxs/identity/Nym.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
 
 namespace irr
 {
@@ -61,7 +64,10 @@ class Nym;
 class Armored;
 class PasswordPrompt;
 class Tag;
+}  // namespace opentxs
 
+namespace opentxs
+{
 typedef std::list<OTSignature> listOfSignatures;
 
 OTString trim(const String& str);

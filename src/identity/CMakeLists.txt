@@ -20,6 +20,7 @@ target_include_directories(
   opentxs-identity SYSTEM
   PRIVATE "${opentxs_SOURCE_DIR}/deps/" "${sodium_INCLUDE_DIR}"
 )
+target_link_libraries(opentxs-identity PRIVATE opentxs::messages)
 set_property(TARGET opentxs-identity PROPERTY POSITION_INDEPENDENT_CODE 1)
 
 install(

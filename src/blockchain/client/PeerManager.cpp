@@ -7,11 +7,11 @@
 #include "1_Internal.hpp"                     // IWYU pragma: associated
 #include "blockchain/client/PeerManager.hpp"  // IWYU pragma: associated
 
+#include <boost/asio.hpp>
+#include <boost/system/system_error.hpp>
 #include <algorithm>
 #include <array>
 #include <atomic>
-#include <boost/asio.hpp>
-#include <boost/system/system_error.hpp>
 #include <chrono>
 #include <iterator>
 #include <map>

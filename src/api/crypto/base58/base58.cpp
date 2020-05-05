@@ -5,11 +5,11 @@
 
 #include "base58.h"  // IWYU pragma: associated
 
-#include <cctype>
 #include <cassert>
+#include <cctype>
 #include <cstring>
-#include <vector>
 #include <string>
+#include <vector>
 
 namespace bitcoin_base58
 {

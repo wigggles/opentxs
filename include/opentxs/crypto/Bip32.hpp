@@ -6,6 +6,8 @@
 #ifndef OPENTXS_CRYPTO_BIP32_HPP
 #define OPENTXS_CRYPTO_BIP32_HPP
 
+// IWYU pragma: no_include "opentxs/Proto.hpp"
+
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <cstdint>

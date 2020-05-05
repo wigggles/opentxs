@@ -20,6 +20,8 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/protobuf/ConsensusEnums.pb.h"
+#include "opentxs/protobuf/RPCEnums.pb.h"
 
 #define OT_METHOD "opentxs::rpc::implementation::RPC::"
 

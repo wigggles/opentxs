@@ -8,15 +8,14 @@
 #include "api/client/Contacts.hpp"  // IWYU pragma: associated
 
 #include <functional>
-#include <map>
 #include <list>
+#include <map>
 #include <stdexcept>
 #include <vector>
 
 #include "Factory.hpp"
 #include "internal/api/client/Client.hpp"
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
@@ -34,6 +33,7 @@
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/socket/Publish.hpp"
 #include "opentxs/network/zeromq/socket/Sender.tpp"
+#include "opentxs/protobuf/ContactEnums.pb.h"
 
 #define OT_METHOD "opentxs::api::implementation::Contacts::"
 

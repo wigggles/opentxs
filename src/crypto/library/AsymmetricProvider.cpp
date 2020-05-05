@@ -19,6 +19,7 @@ extern "C" {
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/Signature.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
 #include "util/Sodium.hpp"
 
 #define OT_METHOD "opentxs::crypto::AsymmetricProvider::"

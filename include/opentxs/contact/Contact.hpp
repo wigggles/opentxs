@@ -6,26 +6,29 @@
 #ifndef OPENTXS_CONTACT_CONTACT_HPP
 #define OPENTXS_CONTACT_CONTACT_HPP
 
+// IWYU pragma: no_include "opentxs/Proto.hpp"
+
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <atomic>
 #include <cstdint>
 #include <ctime>
+#include <map>
+#include <memory>
 #include <mutex>
 #include <set>
 #include <string>
 #include <tuple>
 #include <vector>
-#include <map>
-#include <memory>
 
-#include "opentxs/identity/Nym.hpp"
-#include "opentxs/core/Data.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/contact/ContactData.hpp"
+#include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/identity/Nym.hpp"
+#include "opentxs/protobuf/ContactEnums.pb.h"
 
 namespace opentxs
 {

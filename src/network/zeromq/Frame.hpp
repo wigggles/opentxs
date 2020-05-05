@@ -8,13 +8,13 @@
 
 #pragma once
 
+#include <zmq.h>
 #include <iosfwd>
 #include <string>
-#include <zmq.h>
 
-#include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/Bytes.hpp"
 #include "opentxs/Proto.hpp"
+#include "opentxs/network/zeromq/Frame.hpp"
 
 namespace opentxs
 {

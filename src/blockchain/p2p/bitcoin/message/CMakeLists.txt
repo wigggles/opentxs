@@ -73,7 +73,7 @@ add_library(opentxs-blockchain-p2p-bitcoin-message OBJECT ${cxx-sources}
                                                           ${cxx-headers})
 target_link_libraries(
   opentxs-blockchain-p2p-bitcoin-message
-  PRIVATE Boost::headers
+  PRIVATE Boost::headers opentxs::messages
 )
 set_property(
   TARGET opentxs-blockchain-p2p-bitcoin-message

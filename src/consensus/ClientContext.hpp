@@ -19,6 +19,7 @@
 #include "opentxs/Types.hpp"
 #include "opentxs/consensus/TransactionStatement.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/protobuf/ConsensusEnums.pb.h"
 
 namespace opentxs
 {

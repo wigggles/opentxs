@@ -20,6 +20,7 @@
 #include "opentxs/blind/Token.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/protobuf/CashEnums.pb.h"
 
 namespace opentxs
 {

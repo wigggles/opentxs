@@ -37,6 +37,10 @@
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #include "opentxs/crypto/library/AsymmetricProvider.hpp"
 #include "opentxs/identity/credential/Base.hpp"
+#include "opentxs/protobuf/Check.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
+#include "opentxs/protobuf/verify/Credential.hpp"
+#include "opentxs/protobuf/verify/PaymentCode.hpp"
 
 template class opentxs::Pimpl<opentxs::PaymentCode>;
 

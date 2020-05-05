@@ -19,6 +19,7 @@
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/crypto/key/Asymmetric.hpp"
 #include "opentxs/crypto/library/AsymmetricProvider.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
 
 namespace opentxs
 {

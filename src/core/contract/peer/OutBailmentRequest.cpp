@@ -23,6 +23,9 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
+#include "opentxs/protobuf/Check.hpp"
+#include "opentxs/protobuf/PeerEnums.pb.h"
+#include "opentxs/protobuf/verify/PeerRequest.hpp"
 
 #define CURRENT_VERSION 4
 

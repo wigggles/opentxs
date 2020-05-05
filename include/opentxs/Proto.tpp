@@ -7,13 +7,13 @@
 #define OPENTXS_PROTO_TPP
 
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
+#include "opentxs/Proto.hpp"    // IWYU pragma: associated
 
 #include <iostream>
 #include <memory>
 #include <string>
 
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/String.hpp"

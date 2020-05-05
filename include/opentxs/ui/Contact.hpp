@@ -8,6 +8,8 @@
 
 #ifndef Q_MOC_RUN
 
+// IWYU pragma: no_include "opentxs/Proto.hpp"
+
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <string>

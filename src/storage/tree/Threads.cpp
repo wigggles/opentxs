@@ -8,18 +8,20 @@
 #include "storage/tree/Threads.hpp"  // IWYU pragma: associated
 
 #include <cstdlib>
-#include <utility>
-#include <string>
-#include <memory>
 #include <functional>
-#include <map>
 #include <iostream>
+#include <map>
+#include <memory>
+#include <string>
 #include <tuple>
+#include <utility>
 
 #include "opentxs/Proto.hpp"
 #include "opentxs/api/storage/Driver.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
+#include "opentxs/protobuf/Check.hpp"
+#include "opentxs/protobuf/verify/StorageNymList.hpp"
 #include "storage/Plugin.hpp"
 #include "storage/tree/Node.hpp"
 #include "storage/tree/Thread.hpp"

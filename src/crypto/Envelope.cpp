@@ -38,6 +38,7 @@
 #include "opentxs/crypto/key/Symmetric.hpp"
 #include "opentxs/identity/Authority.hpp"
 #include "opentxs/identity/Nym.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
 
 #define OT_METHOD "opentxs::crypto::implementation::Envelope::"
 

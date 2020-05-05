@@ -9,9 +9,9 @@
 
 #include <stdexcept>
 
+#include "internal/api/Api.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Log.hpp"
-#include "internal/api/Api.hpp"
 
 namespace opentxs
 {

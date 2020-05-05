@@ -19,6 +19,7 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/crypto/key/Symmetric.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
 
 namespace opentxs
 {

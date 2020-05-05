@@ -7,11 +7,11 @@
 #include "1_Internal.hpp"                  // IWYU pragma: associated
 #include "network/zeromq/zap/Request.hpp"  // IWYU pragma: associated
 
+#include <algorithm>
+#include <memory>
 #include <set>
 #include <sstream>
 #include <string>
-#include <algorithm>
-#include <memory>
 #include <vector>
 
 #include "network/zeromq/Message.hpp"

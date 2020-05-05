@@ -7,9 +7,9 @@
 #include "1_Internal.hpp"    // IWYU pragma: associated
 #include "core/NymFile.hpp"  // IWYU pragma: associated
 
+#include <irrxml/irrXML.hpp>
 #include <cstdint>
 #include <deque>
-#include <irrxml/irrXML.hpp>
 #include <list>
 #include <map>
 #include <memory>

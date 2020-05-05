@@ -22,6 +22,7 @@
 #include "opentxs/core/Lockable.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/network/zeromq/socket/Publish.hpp"
+#include "opentxs/protobuf/ContactEnums.pb.h"
 #include "opentxs/ui/AccountActivity.hpp"
 #include "opentxs/ui/AccountList.hpp"
 #include "opentxs/ui/AccountSummary.hpp"

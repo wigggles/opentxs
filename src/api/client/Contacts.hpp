@@ -20,6 +20,7 @@
 #include "opentxs/api/Editor.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/network/zeromq/socket/Publish.hpp"
+#include "opentxs/protobuf/ContactEnums.pb.h"
 
 namespace opentxs
 {

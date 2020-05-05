@@ -16,6 +16,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/identity/Nym.hpp"
+#include "opentxs/protobuf/ConsensusEnums.pb.h"
 
 #define CURRENT_VERSION 1
 

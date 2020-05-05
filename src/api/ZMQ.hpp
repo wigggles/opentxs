@@ -7,8 +7,8 @@
 
 #include <memory>
 
-#include "opentxs/api/Endpoints.hpp"
 #include "core/Shutdown.hpp"
+#include "opentxs/api/Endpoints.hpp"
 
 namespace opentxs
 {

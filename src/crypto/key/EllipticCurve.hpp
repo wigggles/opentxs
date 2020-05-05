@@ -14,6 +14,7 @@
 #include "opentxs/Version.hpp"
 #include "opentxs/crypto/key/Asymmetric.hpp"
 #include "opentxs/crypto/key/EllipticCurve.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
 
 namespace opentxs
 {

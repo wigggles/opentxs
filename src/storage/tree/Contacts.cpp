@@ -16,6 +16,11 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
+#include "opentxs/protobuf/Check.hpp"
+#include "opentxs/protobuf/ContactEnums.pb.h"
+#include "opentxs/protobuf/verify/Contact.hpp"
+#include "opentxs/protobuf/verify/StorageContacts.hpp"
+#include "opentxs/protobuf/verify/VerifyContacts.hpp"
 #include "storage/Plugin.hpp"
 #include "storage/tree/Node.hpp"
 

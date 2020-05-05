@@ -29,6 +29,10 @@ set(
 
 add_library(opentxs-identity-wot-verification OBJECT ${cxx-sources}
                                                      ${cxx-headers})
+target_link_libraries(
+  opentxs-identity-wot-verification
+  PRIVATE opentxs::messages
+)
 set_property(
   TARGET opentxs-identity-wot-verification
   PROPERTY POSITION_INDEPENDENT_CODE 1

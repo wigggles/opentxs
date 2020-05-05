@@ -8,6 +8,7 @@
 #include "opentxs/Bytes.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/crypto/library/AsymmetricProvider.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
 
 namespace opentxs
 {

@@ -31,6 +31,10 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/crypto/PaymentCode.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/protobuf/Check.hpp"
+#include "opentxs/protobuf/ContactEnums.pb.h"
+#include "opentxs/protobuf/verify/ContactItem.hpp"
+#include "opentxs/protobuf/verify/VerifyContacts.hpp"
 
 #define ID_BYTES 32
 

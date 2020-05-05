@@ -51,6 +51,10 @@
 #include "opentxs/network/zeromq/socket/Socket.hpp"
 #include "opentxs/otx/Reply.hpp"
 #include "opentxs/otx/Request.hpp"
+#include "opentxs/protobuf/Check.hpp"
+#include "opentxs/protobuf/ContractEnums.pb.h"
+#include "opentxs/protobuf/OTXEnums.pb.h"
+#include "opentxs/protobuf/verify/ServerReply.hpp"
 
 namespace zmq = opentxs::network::zeromq;
 

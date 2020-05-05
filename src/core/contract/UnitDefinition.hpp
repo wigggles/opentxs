@@ -16,6 +16,8 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
+#include "opentxs/protobuf/ContactEnums.pb.h"
+#include "opentxs/protobuf/ContractEnums.pb.h"
 
 namespace opentxs
 {
@@ -26,6 +28,11 @@ namespace internal
 struct Core;
 }  // namespace internal
 }  // namespace api
+
+namespace proto
+{
+class Signature;
+}  // namespace proto
 
 class AccountVisitor;
 class Factory;

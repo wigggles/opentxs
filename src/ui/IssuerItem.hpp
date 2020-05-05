@@ -21,6 +21,7 @@
 #include "opentxs/Version.hpp"
 #include "opentxs/api/client/Issuer.hpp"
 #include "opentxs/core/Identifier.hpp"
+#include "opentxs/protobuf/ContactEnums.pb.h"
 #include "ui/Combined.hpp"
 #include "ui/List.hpp"
 #include "ui/RowType.hpp"

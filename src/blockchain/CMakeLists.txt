@@ -38,7 +38,10 @@ set(
 )
 
 add_library(opentxs-blockchain OBJECT ${cxx-sources} ${cxx-headers})
-target_link_libraries(opentxs-blockchain PRIVATE Boost::headers)
+target_link_libraries(
+  opentxs-blockchain
+  PRIVATE Boost::headers opentxs::messages
+)
 target_include_directories(
   opentxs-blockchain SYSTEM
   PRIVATE ${LMDB_INCLUDE_DIR}

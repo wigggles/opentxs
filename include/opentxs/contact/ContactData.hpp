@@ -6,6 +6,8 @@
 #ifndef OPENTXS_CONTACT_CONTACTDATA_HPP
 #define OPENTXS_CONTACT_CONTACTDATA_HPP
 
+// IWYU pragma: no_include "opentxs/Proto.hpp"
+
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <map>
@@ -19,6 +21,7 @@
 #include "opentxs/Types.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/protobuf/ContactEnums.pb.h"
 
 namespace opentxs
 {

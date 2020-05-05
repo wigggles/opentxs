@@ -38,4 +38,5 @@ target_include_directories(
   opentxs-server SYSTEM
   PRIVATE "${opentxs_SOURCE_DIR}/deps/"
 )
+target_link_libraries(opentxs-server PRIVATE opentxs::messages)
 set_property(TARGET opentxs-server PROPERTY POSITION_INDEPENDENT_CODE 1)

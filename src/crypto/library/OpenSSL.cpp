@@ -20,7 +20,6 @@ extern "C" {
 #include <string_view>
 
 #include "crypto/library/AsymmetricProvider.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
@@ -28,6 +27,7 @@ extern "C" {
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/crypto/key/Asymmetric.hpp"
 #include "opentxs/crypto/library/HashingProvider.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
 
 #define OT_METHOD "opentxs::OpenSSL::"
 

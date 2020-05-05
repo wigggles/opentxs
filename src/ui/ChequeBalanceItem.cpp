@@ -27,6 +27,7 @@
 #include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/protobuf/PaymentWorkflowEnums.pb.h"
 #include "ui/BalanceItem.hpp"
 #include "ui/Widget.hpp"
 

@@ -14,6 +14,8 @@
 #include "opentxs/contact/ContactItem.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
+#include "opentxs/protobuf/ContactEnums.pb.h"
+#include "opentxs/protobuf/verify/VerifyContacts.hpp"
 
 #define OT_METHOD "opentxs::ContactSection::"
 

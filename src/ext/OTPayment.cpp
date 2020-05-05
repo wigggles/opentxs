@@ -7,9 +7,9 @@
 #include "1_Internal.hpp"             // IWYU pragma: associated
 #include "opentxs/ext/OTPayment.hpp"  // IWYU pragma: associated
 
+#include <irrxml/irrXML.hpp>
 #include <chrono>
 #include <cstdint>
-#include <irrxml/irrXML.hpp>
 #include <memory>
 #include <string>
 #include <vector>

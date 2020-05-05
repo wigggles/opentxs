@@ -7,8 +7,8 @@
 #include "1_Internal.hpp"                 // IWYU pragma: associated
 #include "server/PayDividendVisitor.hpp"  // IWYU pragma: associated
 
-#include <cstdint>
 #include <chrono>
+#include <cstdint>
 #include <memory>
 
 #include "internal/api/Api.hpp"

@@ -6,6 +6,8 @@
 #ifndef OPENTXS_IDENTITY_CREDENTIAL_BASE_HPP
 #define OPENTXS_IDENTITY_CREDENTIAL_BASE_HPP
 
+// IWYU pragma: no_include "opentxs/Proto.hpp"
+
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <cstdint>

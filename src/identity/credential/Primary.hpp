@@ -14,6 +14,7 @@
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/identity/credential/Base.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
 
 namespace opentxs
 {

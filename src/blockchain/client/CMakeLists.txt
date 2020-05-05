@@ -39,7 +39,10 @@ set(
 )
 
 add_library(opentxs-blockchain-client OBJECT ${cxx-sources} ${cxx-headers})
-target_link_libraries(opentxs-blockchain-client PRIVATE Boost::headers)
+target_link_libraries(
+  opentxs-blockchain-client
+  PRIVATE Boost::headers opentxs::messages
+)
 set_property(
   TARGET opentxs-blockchain-client
   PROPERTY POSITION_INDEPENDENT_CODE 1

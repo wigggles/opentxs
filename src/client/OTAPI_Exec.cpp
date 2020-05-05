@@ -44,6 +44,7 @@
 #include "opentxs/core/script/OTPartyAccount.hpp"
 #include "opentxs/core/script/OTScriptable.hpp"
 #include "opentxs/core/script/OTVariable.hpp"
+#include "opentxs/protobuf/ContactEnums.pb.h"
 
 #define OT_ERROR_AMOUNT INT64_MIN
 

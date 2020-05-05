@@ -18,6 +18,7 @@
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/crypto/key/EllipticCurve.hpp"
 #include "opentxs/crypto/library/EcdsaProvider.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
 
 // #define OT_METHOD "opentxs::crypto::key::implementation::EllipticCurve::"
 

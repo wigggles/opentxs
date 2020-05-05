@@ -21,6 +21,8 @@
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/identity/wot/verification/Nym.hpp"
+#include "opentxs/protobuf/Basic.hpp"
+#include "opentxs/protobuf/verify/VerifyContacts.hpp"
 
 #define OT_METHOD                                                              \
     "opentxs::identity::wot::verification::implementation::Group::"

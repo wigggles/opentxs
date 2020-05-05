@@ -15,6 +15,7 @@
 #include "opentxs/Types.hpp"
 #include "opentxs/core/contract/peer/PeerRequest.hpp"
 #include "opentxs/core/contract/peer/StoreSecret.hpp"
+#include "opentxs/protobuf/PeerEnums.pb.h"
 
 namespace opentxs
 {

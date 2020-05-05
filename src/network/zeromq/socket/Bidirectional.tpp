@@ -7,10 +7,10 @@
 
 #include "network/zeromq/socket/Bidirectional.hpp"  // IWYU pragma: associated
 
+#include <zmq.h>
 #include <memory>
 #include <mutex>
 #include <thread>
-#include <zmq.h>
 
 #include "network/zeromq/socket/Receiver.tpp"
 #include "network/zeromq/socket/Sender.tpp"

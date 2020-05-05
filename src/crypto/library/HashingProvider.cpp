@@ -9,6 +9,7 @@
 
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
 
 namespace opentxs::crypto
 {

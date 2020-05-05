@@ -6,6 +6,8 @@
 #ifndef OPENTXS_CLIENT_NYMDATA_HPP
 #define OPENTXS_CLIENT_NYMDATA_HPP
 
+// IWYU pragma: no_include "opentxs/Proto.hpp"
+
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <algorithm>
@@ -21,6 +23,7 @@
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/identity/Nym.hpp"
+#include "opentxs/protobuf/ContactEnums.pb.h"
 
 #ifdef SWIG
 // clang-format off
@@ -167,11 +170,19 @@ namespace identifier
 class UnitDefinition;
 }  // namespace identifier
 
+namespace proto
+{
+class ContactData;
+}  // namespace proto
+
 class ContactData;
 class Identifier;
 class NymParameters;
 class PasswordPrompt;
+}  // namespace opentxs
 
+namespace opentxs
+{
 class NymData
 {
 public:

@@ -15,6 +15,7 @@
 #include "opentxs/Proto.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
 
 #define OT_METHOD "opentxs::identity::credential::implementation::Secondary::"
 

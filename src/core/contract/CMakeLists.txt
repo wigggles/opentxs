@@ -33,6 +33,7 @@ set(
   UnitDefinition.hpp
 )
 add_library(opentxs-core-contract OBJECT ${cxx-sources} ${cxx-headers})
+target_link_libraries(opentxs-core-contract PRIVATE opentxs::messages)
 set_property(TARGET opentxs-core-contract PROPERTY POSITION_INDEPENDENT_CODE 1)
 
 install(

@@ -41,6 +41,8 @@
 #include "opentxs/network/zeromq/socket/Request.hpp"
 #include "opentxs/network/zeromq/socket/Request.tpp"
 #include "opentxs/network/zeromq/socket/Sender.tpp"
+#include "opentxs/protobuf/CashEnums.pb.h"
+#include "opentxs/protobuf/ContactEnums.pb.h"
 
 namespace opentxs
 {

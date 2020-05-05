@@ -19,6 +19,7 @@
 #include "opentxs/api/Editor.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
+#include "opentxs/protobuf/ContactEnums.pb.h"
 #include "storage/tree/Node.hpp"
 
 namespace opentxs

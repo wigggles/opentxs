@@ -11,9 +11,9 @@
 #include <memory>
 #include <string>
 
-#include "opentxs/api/Wallet.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Shared.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"

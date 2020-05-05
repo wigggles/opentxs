@@ -25,6 +25,7 @@
 #include "opentxs/blockchain/block/bitcoin/Script.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
+#include "opentxs/protobuf/BlockchainTransactionOutput.pb.h"
 
 #define OT_METHOD                                                              \
     "opentxs::blockchain::block::bitcoin::implementation::Output::"

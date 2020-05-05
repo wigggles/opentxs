@@ -61,6 +61,7 @@
 #include "opentxs/core/trade/OTTrade.hpp"
 #include "opentxs/core/transaction/Helpers.hpp"
 #include "opentxs/identity/Nym.hpp"
+#include "opentxs/protobuf/ContractEnums.pb.h"
 
 #define CLIENT_MASTER_KEY_TIMEOUT_DEFAULT 300
 

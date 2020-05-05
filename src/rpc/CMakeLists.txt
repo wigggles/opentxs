@@ -14,4 +14,5 @@ set(
 )
 
 add_library(opentxs-rpc OBJECT ${cxx-sources} ${cxx-headers})
+target_link_libraries(opentxs-rpc PRIVATE opentxs::messages)
 set_property(TARGET opentxs-rpc PROPERTY POSITION_INDEPENDENT_CODE 1)

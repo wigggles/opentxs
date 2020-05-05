@@ -5,8 +5,8 @@
 
 #pragma once
 
-#include "ui/RowType.hpp"
 #include "ui/List.hpp"
+#include "ui/RowType.hpp"
 
 namespace opentxs::ui::implementation
 {

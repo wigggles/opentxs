@@ -1,0 +1,29 @@
+// Copyright (c) 2020 The Open-Transactions developers
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+syntax = "proto2";
+
+package opentxs.proto;
+option java_package = "org.opentransactions.proto";
+option java_outer_classname = "OTHDAccount";
+option optimize_for = LITE_RUNTIME;
+
+import public "BlockchainAddress.proto";
+import public "ContactEnums.proto";
+import public "HDPath.proto";
+
+message HDAccount {
+    optional uint32 version = 1;
+    optional string id = 2;
+    optional ContactItemType type = 3;
+    optional uint64 revision = 4;
+    optional HDPath path = 5;
+    optional uint32 internalindex = 6;
+    optional uint32 externalindex = 7;
+    repeated BlockchainAddress internaladdress = 8;
+    repeated BlockchainAddress externaladdress = 9;
+    repeated BlockchainActivity incoming = 10;
+    repeated BlockchainActivity outgoing = 11;
+}

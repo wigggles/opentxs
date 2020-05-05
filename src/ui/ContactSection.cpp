@@ -19,6 +19,7 @@
 #include "opentxs/contact/ContactSection.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/protobuf/ContactEnums.pb.h"
 #include "ui/Combined.hpp"
 #include "ui/Widget.hpp"
 

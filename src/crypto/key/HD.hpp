@@ -16,6 +16,7 @@
 #include "opentxs/Version.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/crypto/key/HD.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
 
 namespace opentxs
 {

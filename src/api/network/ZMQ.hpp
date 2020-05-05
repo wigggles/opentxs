@@ -21,6 +21,7 @@
 #include "opentxs/network/ServerConnection.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/socket/Publish.hpp"
+#include "opentxs/protobuf/ContractEnums.pb.h"
 
 namespace opentxs
 {

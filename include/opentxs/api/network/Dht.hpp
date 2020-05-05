@@ -6,6 +6,8 @@
 #ifndef OPENTXS_API_NETWORK_DHT_HPP
 #define OPENTXS_API_NETWORK_DHT_HPP
 
+// IWYU pragma: no_include "opentxs/Proto.hpp"
+
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <functional>

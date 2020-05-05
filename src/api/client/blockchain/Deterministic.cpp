@@ -20,6 +20,7 @@
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/crypto/key/EllipticCurve.hpp"
 #include "opentxs/crypto/key/HD.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
 
 #if OT_CRYPTO_WITH_BIP32
 #define OT_METHOD                                                              \

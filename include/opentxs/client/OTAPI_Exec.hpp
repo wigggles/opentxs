@@ -6,6 +6,8 @@
 #ifndef OPENTXS_CLIENT_OTAPI_EXEC_HPP
 #define OPENTXS_CLIENT_OTAPI_EXEC_HPP
 
+// IWYU pragma: no_include "opentxs/Proto.hpp"
+
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <chrono>

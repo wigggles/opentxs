@@ -59,4 +59,5 @@ set(
 )
 
 add_library(opentxs-storage-tree OBJECT ${cxx-sources} ${cxx-headers})
+target_link_libraries(opentxs-storage-tree PRIVATE opentxs::messages)
 set_property(TARGET opentxs-storage-tree PROPERTY POSITION_INDEPENDENT_CODE 1)

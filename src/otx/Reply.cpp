@@ -23,6 +23,10 @@
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/identity/Nym.hpp"
 #include "opentxs/otx/Reply.hpp"
+#include "opentxs/protobuf/Check.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
+#include "opentxs/protobuf/OTXEnums.pb.h"
+#include "opentxs/protobuf/verify/ServerReply.hpp"
 
 template class opentxs::Pimpl<opentxs::otx::Reply>;
 

@@ -7,10 +7,10 @@
 #include "1_Internal.hpp"  // IWYU pragma: associated
 #include "api/Wallet.hpp"  // IWYU pragma: associated
 
-#include <functional>
-#include <stdexcept>
 #include <algorithm>
+#include <functional>
 #include <iterator>
+#include <stdexcept>
 #include <thread>
 #include <type_traits>
 
@@ -56,6 +56,13 @@
 #include "opentxs/network/zeromq/socket/Request.tpp"
 #include "opentxs/network/zeromq/socket/Sender.tpp"
 #include "opentxs/network/zeromq/socket/Socket.hpp"
+#include "opentxs/protobuf/CashEnums.pb.h"
+#include "opentxs/protobuf/Check.hpp"
+#include "opentxs/protobuf/ConsensusEnums.pb.h"
+#include "opentxs/protobuf/ContactEnums.pb.h"
+#include "opentxs/protobuf/PeerEnums.pb.h"
+#include "opentxs/protobuf/verify/Nym.hpp"
+#include "opentxs/protobuf/verify/Purse.hpp"
 
 template class opentxs::Exclusive<opentxs::Account>;
 template class opentxs::Shared<opentxs::Account>;

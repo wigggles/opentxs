@@ -9,8 +9,8 @@
 
 #include <algorithm>
 #include <chrono>
-#include <memory>
 #include <iterator>
+#include <memory>
 #include <type_traits>
 
 #include "Factory.hpp"
@@ -44,6 +44,11 @@
 #include "opentxs/network/zeromq/socket/Push.hpp"
 #include "opentxs/network/zeromq/socket/Sender.tpp"
 #include "opentxs/network/zeromq/socket/Socket.hpp"
+#include "opentxs/protobuf/Check.hpp"
+#include "opentxs/protobuf/PaymentWorkflowEnums.pb.h"
+#include "opentxs/protobuf/RPCEnums.pb.h"
+#include "opentxs/protobuf/verify/PaymentWorkflow.hpp"
+#include "opentxs/protobuf/verify/RPCPush.hpp"
 
 #define RPC_ACCOUNT_EVENT_VERSION 1
 #define RPC_PUSH_VERSION 1

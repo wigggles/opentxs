@@ -6,9 +6,9 @@
 #pragma once
 
 #include <cstdint>
+#include <iosfwd>
 #include <map>
 #include <string>
-#include <iosfwd>
 
 #include "internal/blockchain/p2p/bitcoin/message/Message.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"

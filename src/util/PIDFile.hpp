@@ -5,8 +5,8 @@
 
 #pragma once
 
-#include <cstdint>
 #include <atomic>
+#include <cstdint>
 #include <string>
 
 #include "opentxs/util/PIDFile.hpp"

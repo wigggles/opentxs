@@ -22,6 +22,7 @@ set(
 set(cxx-headers ${cxx-install-headers})
 
 add_library(opentxs-contact OBJECT ${cxx-sources} ${cxx-headers})
+target_link_libraries(opentxs-contact PRIVATE opentxs::messages)
 set_property(TARGET opentxs-contact PROPERTY POSITION_INDEPENDENT_CODE 1)
 
 install(
