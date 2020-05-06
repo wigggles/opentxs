@@ -269,6 +269,7 @@ if(ANDROID)
       "${SODIUM_LIBRARIES}"
       "${ZMQ_LIBRARIES}"
       "${Protobuf_LITE_LIBRARIES}"
+      "${ZLIB_LIBRARIES}"
     DESTINATION ${CMAKE_INSTALL_LIBDIR}
     COMPONENT main
   )
