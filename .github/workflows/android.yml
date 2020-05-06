@@ -6,7 +6,7 @@ jobs:
   build:
     strategy:
       matrix:
-        docker: [v3]
+        docker: [v5]
         platform: [ubuntu-18.04, ubuntu-latest]
         include:
           - platform: ubuntu-latest
