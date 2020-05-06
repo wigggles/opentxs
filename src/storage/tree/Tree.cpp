@@ -13,6 +13,8 @@
 #include "opentxs/api/storage/Driver.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
+#include "opentxs/protobuf/Check.hpp"
+#include "opentxs/protobuf/verify/StorageItems.hpp"
 #include "storage/Plugin.hpp"
 #include "storage/tree/Accounts.hpp"
 #include "storage/tree/BlockchainTransactions.hpp"

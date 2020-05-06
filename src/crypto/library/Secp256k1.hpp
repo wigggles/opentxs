@@ -17,6 +17,7 @@ extern "C" {
 #include "opentxs/Proto.hpp"
 #include "opentxs/Version.hpp"
 #include "opentxs/core/Data.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
 
 namespace opentxs
 {

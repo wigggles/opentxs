@@ -6,6 +6,8 @@
 #ifndef OPENTXS_CORE_CRYPTO_PAYMENTCODE_HPP
 #define OPENTXS_CORE_CRYPTO_PAYMENTCODE_HPP
 
+// IWYU pragma: no_include "opentxs/Proto.hpp"
+
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <cstdint>

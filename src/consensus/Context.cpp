@@ -24,6 +24,8 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/identity/Nym.hpp"
+#include "opentxs/protobuf/ConsensusEnums.pb.h"
+#include "opentxs/protobuf/Enums.pb.h"
 
 #ifndef OT_MAX_ACK_NUMS
 #define OT_MAX_ACK_NUMS 100

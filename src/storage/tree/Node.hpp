@@ -21,6 +21,7 @@
 #include "opentxs/api/storage/Driver.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
+#include "opentxs/protobuf/StorageEnums.pb.h"
 #include "storage/Plugin.hpp"
 
 namespace opentxs
@@ -33,6 +34,17 @@ class Driver;
 }  // namespace storage
 }  // namespace api
 
+namespace proto
+{
+class Contact;
+class Nym;
+class Seed;
+class StorageItemHash;
+}  // namespace proto
+}  // namespace opentxs
+
+namespace opentxs
+{
 namespace storage
 {
 class Root;

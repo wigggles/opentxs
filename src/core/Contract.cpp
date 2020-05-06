@@ -37,6 +37,7 @@
 #include "opentxs/crypto/library/AsymmetricProvider.hpp"
 #include "opentxs/crypto/library/HashingProvider.hpp"
 #include "opentxs/identity/Nym.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
 
 using namespace irr;
 using namespace io;

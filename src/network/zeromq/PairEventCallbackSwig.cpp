@@ -14,6 +14,7 @@
 #include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/PairEventCallbackSwig.hpp"
+#include "opentxs/protobuf/ZMQEnums.pb.h"
 
 #define OT_METHOD                                                              \
     "opentxs::network::zeromq::implementation::PairEventCallbackSwig::"

@@ -22,6 +22,7 @@ add_subdirectory(identity)
 add_subdirectory(iterator)
 add_subdirectory(network)
 add_subdirectory(otx)
+add_subdirectory(protobuf)
 add_subdirectory(rpc)
 add_subdirectory(server)
 add_subdirectory(storage)
@@ -64,6 +65,7 @@ list(
     $<TARGET_OBJECTS:base64>
     $<TARGET_OBJECTS:external-hashes>
     $<TARGET_OBJECTS:irrxml>
+    $<TARGET_OBJECTS:messages>
     $<TARGET_OBJECTS:opentxs-api-client-blockchain>
     $<TARGET_OBJECTS:opentxs-api-client>
     $<TARGET_OBJECTS:opentxs-api-crypto-base58>
@@ -87,8 +89,8 @@ list(
     $<TARGET_OBJECTS:opentxs-crypto-library>
     $<TARGET_OBJECTS:opentxs-crypto>
     $<TARGET_OBJECTS:opentxs-ext>
-    $<TARGET_OBJECTS:opentxs-identity-wot-verification>
     $<TARGET_OBJECTS:opentxs-identity-credential>
+    $<TARGET_OBJECTS:opentxs-identity-wot-verification>
     $<TARGET_OBJECTS:opentxs-identity>
     $<TARGET_OBJECTS:opentxs-iterator>
     $<TARGET_OBJECTS:opentxs-network-zeromq-curve>
@@ -109,6 +111,7 @@ list(
     $<TARGET_OBJECTS:opentxs-ui>
     $<TARGET_OBJECTS:opentxs-util>
     $<TARGET_OBJECTS:otprotob>
+    $<TARGET_OBJECTS:proto-verify>
 )
 
 set(
@@ -149,7 +152,6 @@ add_library(opentxs::libopentxs ALIAS opentxs)
 
 target_link_libraries(
   opentxs
-  PUBLIC libopentxs-proto
   PRIVATE
     Threads::Threads
     ZLIB::ZLIB
@@ -218,6 +220,7 @@ if(OT_WITH_QT)
 endif()
 
 target_include_directories(opentxs SYSTEM PRIVATE "${opentxs_SOURCE_DIR}/deps/")
+target_include_directories(opentxs SYSTEM PUBLIC "${Protobuf_INCLUDE_DIRS}")
 set_target_properties(
   opentxs
   PROPERTIES
@@ -226,6 +229,10 @@ set_target_properties(
     SOVERSION
     1
 )
+
+add_custom_target(generated_code)
+add_dependencies(generated_code otprotob)
+add_dependencies(generated_code messages)
 
 include(GenerateExportHeader)
 generate_export_header(
@@ -252,8 +259,6 @@ if(ANDROID)
                       IMPORTED_LOCATION_${BUILD_TYPE_SUFFIX})
   get_target_property(Boost_thread_LIBRARY Boost::thread
                       IMPORTED_LOCATION_${BUILD_TYPE_SUFFIX})
-  get_target_property(opentxs-proto_LIBRARY libopentxs-proto
-                      IMPORTED_LOCATION_${BUILD_TYPE_SUFFIX})
 
   install(
     FILES
@@ -264,7 +269,6 @@ if(ANDROID)
       "${SODIUM_LIBRARIES}"
       "${ZMQ_LIBRARIES}"
       "${Protobuf_LITE_LIBRARIES}"
-      "${opentxs-proto_LIBRARY}"
     DESTINATION ${CMAKE_INSTALL_LIBDIR}
     COMPONENT main
   )

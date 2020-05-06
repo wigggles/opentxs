@@ -6,6 +6,8 @@
 #ifndef OPENTXS_CRYPTO_LIBRARY_HASHINGPROVIDER_HPP
 #define OPENTXS_CRYPTO_LIBRARY_HASHINGPROVIDER_HPP
 
+// IWYU pragma: no_include "opentxs/Proto.hpp"
+
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <cstdint>
@@ -13,6 +15,7 @@
 
 #include "opentxs/Proto.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
 
 namespace opentxs
 {
@@ -20,7 +23,6 @@ namespace crypto
 {
 class HashingProvider
 {
-
 public:
     static proto::HashType StringToHashType(const String& inputString);
     static OTString HashTypeToString(const proto::HashType hashType);

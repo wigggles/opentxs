@@ -17,13 +17,12 @@
 #include "opentxs/api/HDSeed.hpp"
 #include "opentxs/crypto/key/EllipticCurve.hpp"
 #include "opentxs/crypto/key/Symmetric.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
 
 namespace opentxs
 {
 namespace api
 {
-class Factory;
-
 namespace crypto
 {
 class Asymmetric;
@@ -34,6 +33,8 @@ namespace storage
 {
 class Storage;
 }  // namespace storage
+
+class Factory;
 }  // namespace api
 
 namespace crypto

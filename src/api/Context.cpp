@@ -13,15 +13,15 @@ extern "C" {
 }
 #endif  // _WIN32
 
-#include <cassert>
 #include <algorithm>
+#include <cassert>
+#include <functional>
 #include <map>
 #include <mutex>
-#include <string>
-#include <vector>
-#include <functional>
 #include <set>
+#include <string>
 #include <utility>
+#include <vector>
 
 #include "internal/rpc/RPC.hpp"
 #include "opentxs/Pimpl.hpp"

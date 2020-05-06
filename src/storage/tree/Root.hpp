@@ -8,10 +8,10 @@
 #include <atomic>
 #include <cstdint>
 #include <limits>
-#include <string>
-#include <thread>
 #include <memory>
 #include <mutex>
+#include <string>
+#include <thread>
 
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"

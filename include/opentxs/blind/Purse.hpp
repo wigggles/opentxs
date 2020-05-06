@@ -6,6 +6,8 @@
 #ifndef OPENTXS_BLIND_PURSE_HPP
 #define OPENTXS_BLIND_PURSE_HPP
 
+// IWYU pragma: no_include "opentxs/Proto.hpp"
+
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <chrono>

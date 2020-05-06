@@ -14,6 +14,7 @@
 #include "opentxs/Bytes.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Version.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
 
 namespace opentxs
 {

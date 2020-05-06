@@ -18,6 +18,7 @@
 #include "opentxs/core/contract/peer/PeerObject.hpp"
 #include "opentxs/core/contract/peer/PeerReply.hpp"
 #include "opentxs/core/contract/peer/PeerRequest.hpp"
+#include "opentxs/protobuf/PeerEnums.pb.h"
 
 namespace opentxs
 {

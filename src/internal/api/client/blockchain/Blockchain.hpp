@@ -7,6 +7,7 @@
 
 #include <optional>
 
+#include "internal/blockchain/client/Client.hpp"
 #include "opentxs/api/client/blockchain/BalanceList.hpp"
 #include "opentxs/api/client/blockchain/BalanceNode.hpp"
 #include "opentxs/api/client/blockchain/BalanceTree.hpp"
@@ -14,7 +15,6 @@
 #include "opentxs/api/client/blockchain/HD.hpp"
 #include "opentxs/api/client/blockchain/Imported.hpp"
 #include "opentxs/api/client/blockchain/PaymentCode.hpp"
-#include "internal/blockchain/client/Client.hpp"
 
 namespace std
 {

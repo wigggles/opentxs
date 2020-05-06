@@ -53,6 +53,7 @@ if(OPENSSL_EXPORT)
   )
 endif()
 
+target_link_libraries(opentxs-crypto-key PRIVATE opentxs::messages)
 set_property(TARGET opentxs-crypto-key PROPERTY POSITION_INDEPENDENT_CODE 1)
 
 install(

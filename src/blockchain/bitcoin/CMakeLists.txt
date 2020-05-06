@@ -12,7 +12,10 @@ set(
 )
 
 add_library(opentxs-blockchain-bitcoin OBJECT ${cxx-sources} ${cxx-headers})
-target_link_libraries(opentxs-blockchain-bitcoin PRIVATE Boost::headers)
+target_link_libraries(
+  opentxs-blockchain-bitcoin
+  PRIVATE Boost::headers opentxs::messages
+)
 set_property(
   TARGET opentxs-blockchain-bitcoin
   PROPERTY POSITION_INDEPENDENT_CODE 1

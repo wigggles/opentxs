@@ -16,6 +16,10 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
+#include "opentxs/protobuf/Check.hpp"
+#include "opentxs/protobuf/StorageEnums.pb.h"
+#include "opentxs/protobuf/verify/SpentTokenList.hpp"
+#include "opentxs/protobuf/verify/StorageNotary.hpp"
 #include "storage/Plugin.hpp"
 #include "storage/tree/Node.hpp"
 

@@ -15,6 +15,7 @@
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/crypto/key/Symmetric.hpp"
 #include "opentxs/crypto/library/SymmetricProvider.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
 
 #define OT_METHOD "opentxs::api::crypto::implementation::Symmetric::"
 

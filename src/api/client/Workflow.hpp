@@ -29,6 +29,8 @@
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/network/zeromq/socket/Publish.hpp"
 #include "opentxs/network/zeromq/socket/Push.hpp"
+#include "opentxs/protobuf/PaymentWorkflowEnums.pb.h"
+#include "opentxs/protobuf/RPCEnums.pb.h"
 
 namespace opentxs
 {
@@ -56,6 +58,11 @@ namespace identifier
 class Nym;
 class Server;
 }  // namespace identifier
+
+namespace proto
+{
+class PaymentWorkflow;
+}  // namespace proto
 
 class Factory;
 }  // namespace opentxs

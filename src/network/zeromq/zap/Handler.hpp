@@ -9,8 +9,8 @@
 #pragma once
 
 #include <map>
-#include <string>
 #include <ostream>
+#include <string>
 
 #include "network/zeromq/curve/Server.hpp"
 #include "network/zeromq/socket/Receiver.hpp"

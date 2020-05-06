@@ -7,10 +7,10 @@
 #include "1_Internal.hpp"                  // IWYU pragma: associated
 #include "opentxs/core/trade/OTTrade.hpp"  // IWYU pragma: associated
 
+#include <irrxml/irrXML.hpp>
 #include <chrono>
 #include <cstdlib>
 #include <cstring>
-#include <irrxml/irrXML.hpp>
 #include <memory>
 #include <string>
 #include <type_traits>

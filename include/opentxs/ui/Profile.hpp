@@ -6,6 +6,8 @@
 #ifndef OPENTXS_UI_PROFILE_HPP
 #define OPENTXS_UI_PROFILE_HPP
 
+// IWYU pragma: no_include "opentxs/Proto.hpp"
+
 #ifndef Q_MOC_RUN
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 

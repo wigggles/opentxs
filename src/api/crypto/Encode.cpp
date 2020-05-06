@@ -18,7 +18,6 @@
 #include "base64/base64.h"
 #include "opentxs/Bytes.hpp"
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
@@ -28,6 +27,7 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
 
 // #define OT_METHOD opentxs::api::crypto::implementation::Encode::
 

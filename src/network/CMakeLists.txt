@@ -26,6 +26,7 @@ if(DHT_EXPORT)
   )
 endif()
 
+target_link_libraries(opentxs-network PRIVATE opentxs::messages)
 set_property(TARGET opentxs-network PROPERTY POSITION_INDEPENDENT_CODE 1)
 
 install(

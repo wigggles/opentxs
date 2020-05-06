@@ -13,6 +13,9 @@
 #include "opentxs/api/storage/Driver.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
+#include "opentxs/protobuf/Check.hpp"
+#include "opentxs/protobuf/PaymentWorkflowEnums.pb.h"
+#include "opentxs/protobuf/verify/StoragePaymentWorkflows.hpp"
 #include "storage/Plugin.hpp"
 #include "storage/tree/Node.hpp"
 

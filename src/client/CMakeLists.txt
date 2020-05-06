@@ -22,6 +22,7 @@ set(
 set(cxx-headers ${cxx-install-headers} OTAPI_Func.hpp)
 
 add_library(opentxs-client OBJECT ${cxx-sources} ${cxx-headers})
+target_link_libraries(opentxs-client PRIVATE opentxs::messages)
 set_property(TARGET opentxs-client PROPERTY POSITION_INDEPENDENT_CODE 1)
 
 install(

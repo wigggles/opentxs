@@ -20,6 +20,7 @@
 #include "opentxs/SharedPimpl.hpp"
 #include "opentxs/Version.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/protobuf/ContactEnums.pb.h"
 #include "opentxs/ui/Profile.hpp"
 #include "ui/List.hpp"
 #include "ui/Widget.hpp"

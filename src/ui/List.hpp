@@ -6,8 +6,8 @@
 #pragma once
 
 #include <future>
-#include <type_traits>
 #include <optional>
+#include <type_traits>
 #include <utility>
 
 #include "internal/api/client/Client.hpp"

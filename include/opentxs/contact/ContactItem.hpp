@@ -9,6 +9,8 @@
 #define NULL_START 0
 #define NULL_END 0
 
+// IWYU pragma: no_include "opentxs/Proto.hpp"
+
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <chrono>
@@ -20,6 +22,7 @@
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/core/Identifier.hpp"
+#include "opentxs/protobuf/ContactEnums.pb.h"
 
 namespace opentxs
 {
@@ -30,7 +33,10 @@ namespace internal
 struct Core;
 }  // namespace internal
 }  // namespace api
+}  // namespace opentxs
 
+namespace opentxs
+{
 class ContactItem
 {
 public:

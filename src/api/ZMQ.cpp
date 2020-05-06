@@ -7,8 +7,8 @@
 #include "1_Internal.hpp"  // IWYU pragma: associated
 #include "api/ZMQ.hpp"     // IWYU pragma: associated
 
-#include "opentxs/core/Log.hpp"
 #include "Factory.hpp"
+#include "opentxs/core/Log.hpp"
 
 namespace opentxs::api::implementation
 {

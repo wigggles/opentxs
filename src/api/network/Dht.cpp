@@ -8,9 +8,9 @@
 #include "api/network/Dht.hpp"  // IWYU pragma: associated
 
 #include <cstdint>
-#include <string>
 #include <functional>
 #include <map>
+#include <string>
 #include <utility>
 
 #include "Factory.hpp"

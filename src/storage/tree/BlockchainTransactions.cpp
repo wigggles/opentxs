@@ -16,6 +16,9 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/protobuf/Check.hpp"
+#include "opentxs/protobuf/verify/BlockchainTransaction.hpp"
+#include "opentxs/protobuf/verify/StorageBlockchainTransactions.hpp"
 #include "storage/Plugin.hpp"
 #include "storage/tree/Node.hpp"
 

@@ -7,11 +7,11 @@
 #include "1_Internal.hpp"          // IWYU pragma: associated
 #include "api/client/Manager.hpp"  // IWYU pragma: associated
 
+#include <functional>
 #include <map>
 #include <memory>
 #include <mutex>
 #include <string>
-#include <functional>
 #include <utility>
 
 #include "Factory.hpp"

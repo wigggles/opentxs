@@ -26,6 +26,10 @@ target_include_directories(
   opentxs-api-client-blockchain-database SYSTEM
   PRIVATE ${LMDB_INCLUDE_DIR}
 )
+target_link_libraries(
+  opentxs-api-client-blockchain-database
+  PRIVATE opentxs::messages
+)
 
 if(OPENTXS_BLOCK_STORAGE_ENABLED)
   target_link_libraries(

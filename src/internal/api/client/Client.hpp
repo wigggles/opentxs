@@ -9,6 +9,9 @@
 #include <string>
 #include <tuple>
 
+#include "internal/api/Api.hpp"
+#include "internal/core/Core.hpp"
+#include "internal/core/identifier/Identifier.hpp"
 #include "opentxs/api/client/Activity.hpp"
 #include "opentxs/api/client/Blockchain.hpp"
 #include "opentxs/api/client/Contacts.hpp"
@@ -16,14 +19,11 @@
 #include "opentxs/api/client/OTX.hpp"
 #include "opentxs/api/client/Pair.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/UniqueQueue.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/UniqueQueue.hpp"
-#include "internal/api/Api.hpp"
-#include "internal/core/identifier/Identifier.hpp"
-#include "internal/core/Core.hpp"
 
 namespace opentxs::api::client::internal
 {

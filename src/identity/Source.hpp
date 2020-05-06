@@ -16,6 +16,7 @@
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/crypto/key/Asymmetric.hpp"
 #include "opentxs/identity/Source.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
 
 namespace opentxs
 {
@@ -31,6 +32,14 @@ namespace credential
 class Primary;
 }  // namespace credential
 }  // namespace identity
+
+namespace proto
+{
+class AsymmetricKey;
+class Credential;
+class NymIDSource;
+class Signature;
+}  // namespace proto
 
 class Factory;
 class NymParameters;

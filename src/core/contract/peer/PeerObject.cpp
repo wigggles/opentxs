@@ -28,6 +28,9 @@
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/crypto/Envelope.hpp"
 #include "opentxs/identity/Nym.hpp"
+#include "opentxs/protobuf/Check.hpp"
+#include "opentxs/protobuf/PeerEnums.pb.h"
+#include "opentxs/protobuf/verify/PeerObject.hpp"
 
 #define OT_METHOD "opentxs::peer::implementation::Object::"
 

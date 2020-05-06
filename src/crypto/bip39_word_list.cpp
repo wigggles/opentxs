@@ -5,6 +5,7 @@
 
 #include "0_stdafx.hpp"    // IWYU pragma: associated
 #include "1_Internal.hpp"  // IWYU pragma: associated
+
 #include "crypto/Bip39.hpp"
 
 namespace opentxs::crypto::implementation

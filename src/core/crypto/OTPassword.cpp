@@ -18,14 +18,14 @@
 #endif  // ndef PAGESIZE
 #endif  // ndef _WIN32
 
+#include "opentxs/OT.hpp"
+#include "opentxs/api/Context.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Util.hpp"
-#include "opentxs/api/Context.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/core/String.hpp"
-#include "opentxs/OT.hpp"
 #include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/String.hpp"
 
 // For SecureZeroMemory
 #ifndef _WIN32

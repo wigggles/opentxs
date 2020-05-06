@@ -35,6 +35,8 @@
 #include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/crypto/key/Symmetric.hpp"
 #include "opentxs/identity/Nym.hpp"
+#include "opentxs/protobuf/CashEnums.pb.h"
+#include "opentxs/protobuf/Enums.pb.h"
 
 #define OT_PURSE_VERSION 1
 

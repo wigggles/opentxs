@@ -15,6 +15,7 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/contract/Signable.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
 
 namespace opentxs
 {

@@ -37,6 +37,11 @@
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/identity/Nym.hpp"
+#include "opentxs/protobuf/Check.hpp"
+#include "opentxs/protobuf/Contact.hpp"
+#include "opentxs/protobuf/ContractEnums.pb.h"
+#include "opentxs/protobuf/Enums.pb.h"
+#include "opentxs/protobuf/verify/UnitDefinition.hpp"
 
 #define OT_METHOD "opentxs::contract::implementation::Unit::"
 

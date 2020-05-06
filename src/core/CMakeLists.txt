@@ -99,7 +99,7 @@ target_include_directories(
     "${opentxs_SOURCE_DIR}/deps/"
     "${sodium_INCLUDE_DIR}"
 )
-target_link_libraries(opentxs-core PRIVATE Boost::headers)
+target_link_libraries(opentxs-core PRIVATE Boost::headers opentxs::messages)
 set_property(TARGET opentxs-core PROPERTY POSITION_INDEPENDENT_CODE 1)
 add_dependencies(opentxs-core otprotob)
 

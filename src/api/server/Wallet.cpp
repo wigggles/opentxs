@@ -17,7 +17,6 @@
 #include "internal/api/server/Server.hpp"
 #include "internal/consensus/Consensus.hpp"
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/SharedPimpl.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/consensus/ClientContext.hpp"
@@ -33,6 +32,7 @@
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/identity/Nym.hpp"
+#include "opentxs/protobuf/ConsensusEnums.pb.h"
 
 #define OT_METHOD "opentxs::api::server::implementation::Wallet::"
 

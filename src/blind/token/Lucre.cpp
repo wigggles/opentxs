@@ -36,6 +36,7 @@ extern "C" {
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/crypto/key/Symmetric.hpp"
+#include "opentxs/protobuf/CashEnums.pb.h"
 
 #define LUCRE_TOKEN_VERSION 1
 

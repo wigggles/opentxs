@@ -5,9 +5,9 @@
 
 #pragma once
 
+#include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/blockchain/block/Block.hpp"
 #include "opentxs/blockchain/block/Header.hpp"
-#include "opentxs/blockchain/Blockchain.hpp"
 
 namespace opentxs
 {

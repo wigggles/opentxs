@@ -32,6 +32,7 @@
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/protobuf/ContactEnums.pb.h"
 #include "ui/Combined.hpp"
 
 #define OT_METHOD "opentxs::ui::implementation::IssuerItem::"

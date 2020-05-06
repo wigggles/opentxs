@@ -9,6 +9,7 @@
 
 #include "opentxs/api/storage/Driver.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/protobuf/StorageEnums.pb.h"
 
 #define OT_METHOD "opentxs::storage::Node::"
 

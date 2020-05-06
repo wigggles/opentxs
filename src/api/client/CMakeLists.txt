@@ -60,7 +60,10 @@ if(OT_BLOCKCHAIN_EXPORT)
   )
 endif()
 
-target_link_libraries(opentxs-api-client PRIVATE Boost::headers)
+target_link_libraries(
+  opentxs-api-client
+  PRIVATE Boost::headers opentxs::messages
+)
 set_property(TARGET opentxs-api-client PROPERTY POSITION_INDEPENDENT_CODE 1)
 
 install(

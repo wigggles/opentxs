@@ -7,8 +7,8 @@
 #include "1_Internal.hpp"       // IWYU pragma: associated
 #include "identity/Source.hpp"  // IWYU pragma: associated
 
-#include <memory>
 #include <cstdint>
+#include <memory>
 #include <stdexcept>
 #include <string>
 
@@ -30,6 +30,7 @@
 #include "opentxs/crypto/key/Keypair.hpp"
 #include "opentxs/crypto/library/AsymmetricProvider.hpp"
 #include "opentxs/identity/credential/Primary.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
 
 #define OT_METHOD "opentxs::identity::Source::"
 

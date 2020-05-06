@@ -7,12 +7,13 @@
 #include "1_Internal.hpp"                         // IWYU pragma: associated
 #include "opentxs/core/crypto/NymParameters.hpp"  // IWYU pragma: associated
 
-#include <cstdint>
-#include <memory>
 #include <cstddef>
+#include <cstdint>
 #include <map>
+#include <memory>
 
 #include "Factory.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
 
 namespace opentxs
 {

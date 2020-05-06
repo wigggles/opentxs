@@ -7,10 +7,10 @@
 #include "1_Internal.hpp"           // IWYU pragma: associated
 #include "api/client/Activity.hpp"  // IWYU pragma: associated
 
-#include <map>
-#include <thread>
 #include <list>
+#include <map>
 #include <set>
+#include <thread>
 #include <type_traits>
 #include <utility>
 
@@ -42,6 +42,7 @@
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/socket/Publish.hpp"
 #include "opentxs/network/zeromq/socket/Sender.tpp"
+#include "opentxs/protobuf/PaymentWorkflowEnums.pb.h"
 
 #define OT_METHOD "opentxs::api::client::implementation::Activity::"
 

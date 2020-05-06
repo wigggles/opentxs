@@ -7,11 +7,11 @@
 #include "1_Internal.hpp"                  // IWYU pragma: associated
 #include "opentxs/core/OTTransaction.hpp"  // IWYU pragma: associated
 
+#include <irrxml/irrXML.hpp>
 #include <chrono>
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
-#include <irrxml/irrXML.hpp>
 #include <memory>
 #include <set>
 #include <string>

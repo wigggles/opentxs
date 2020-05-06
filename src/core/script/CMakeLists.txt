@@ -42,6 +42,7 @@ target_include_directories(
     "${opentxs_SOURCE_DIR}/deps/ChaiScript/include"
     "${opentxs_SOURCE_DIR}/deps/"
 )
+target_link_libraries(opentxs-script PRIVATE opentxs::messages)
 set_property(TARGET opentxs-script PROPERTY POSITION_INDEPENDENT_CODE 1)
 
 install(

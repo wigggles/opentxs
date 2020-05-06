@@ -56,6 +56,7 @@ target_include_directories(
   opentxs-network-zeromq SYSTEM
   PRIVATE ${ZMQ_INCLUDE_DIRS}
 )
+target_link_libraries(opentxs-network-zeromq PRIVATE opentxs::messages)
 set_property(TARGET opentxs-network-zeromq PROPERTY POSITION_INDEPENDENT_CODE 1)
 
 install(

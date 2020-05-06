@@ -27,6 +27,7 @@
 #include "opentxs/network/zeromq/FrameIterator.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/protobuf/ContactEnums.pb.h"
 #include "ui/List.hpp"
 
 #define OT_METHOD "opentxs::ui::implementation::Contact::"

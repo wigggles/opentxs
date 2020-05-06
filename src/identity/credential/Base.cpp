@@ -30,6 +30,7 @@
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/identity/Source.hpp"
 #include "opentxs/identity/credential/Primary.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
 
 #define OT_METHOD "opentxs::identity::credential::implementation::Base::"
 

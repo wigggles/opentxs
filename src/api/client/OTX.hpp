@@ -39,6 +39,9 @@
 #include "opentxs/network/zeromq/socket/Publish.hpp"
 #include "opentxs/network/zeromq/socket/Pull.hpp"
 #include "opentxs/network/zeromq/socket/Subscribe.hpp"
+#include "opentxs/protobuf/ConsensusEnums.pb.h"
+#include "opentxs/protobuf/ContactEnums.pb.h"
+#include "opentxs/protobuf/PeerEnums.pb.h"
 #include "otx/client/StateMachine.hpp"
 
 namespace opentxs

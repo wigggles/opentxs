@@ -22,6 +22,7 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/identity/Nym.hpp"
+#include "opentxs/protobuf/ConsensusEnums.pb.h"
 
 namespace opentxs
 {

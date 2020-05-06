@@ -32,6 +32,9 @@
 #include "opentxs/crypto/key/HD.hpp"
 #include "opentxs/crypto/key/Secp256k1.hpp"
 #include "opentxs/crypto/key/Symmetric.hpp"
+#include "opentxs/protobuf/Check.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
+#include "opentxs/protobuf/verify/Seed.hpp"
 
 #define OT_METHOD "opentxs::api::implementation::HDSeed::"
 

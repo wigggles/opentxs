@@ -32,6 +32,8 @@
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/identity/Nym.hpp"
+#include "opentxs/protobuf/ContactEnums.pb.h"
+#include "opentxs/protobuf/Enums.pb.h"
 
 template class opentxs::Pimpl<opentxs::Identifier>;
 template class std::set<opentxs::OTIdentifier>;

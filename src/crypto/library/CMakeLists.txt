@@ -35,6 +35,7 @@ target_include_directories(
   opentxs-crypto-library SYSTEM
   PRIVATE "${sodium_INCLUDE_DIR}"
 )
+target_link_libraries(opentxs-crypto-library PRIVATE opentxs::messages)
 set_property(TARGET opentxs-crypto-library PROPERTY POSITION_INDEPENDENT_CODE 1)
 
 if(LIBSECP256K1_EXPORT)
@@ -42,6 +43,10 @@ if(LIBSECP256K1_EXPORT)
     opentxs-crypto-library-libsecp256k1 OBJECT
     Secp256k1.cpp Secp256k1.hpp
     "${opentxs_SOURCE_DIR}/src/internal/crypto/library/Secp256k1.hpp"
+  )
+  target_link_libraries(
+    opentxs-crypto-library-libsecp256k1
+    PRIVATE opentxs::messages
   )
   target_include_directories(
     opentxs-crypto-library-libsecp256k1 SYSTEM
@@ -66,7 +71,10 @@ if(OPENSSL_EXPORT)
     opentxs-crypto-library-openssl SYSTEM
     PRIVATE "${OPENSSL_INCLUDE_DIR}"
   )
-  target_link_libraries(opentxs-crypto-library-openssl PRIVATE Boost::headers)
+  target_link_libraries(
+    opentxs-crypto-library-openssl
+    PRIVATE Boost::headers opentxs::messages
+  )
   set_property(
     TARGET opentxs-crypto-library-openssl
     PROPERTY POSITION_INDEPENDENT_CODE 1

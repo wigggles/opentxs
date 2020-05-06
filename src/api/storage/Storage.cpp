@@ -36,6 +36,8 @@
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
+#include "opentxs/protobuf/ContactEnums.pb.h"
+#include "opentxs/protobuf/PaymentWorkflowEnums.pb.h"
 #include "storage/StorageConfig.hpp"
 #include "storage/tree/Accounts.hpp"
 #include "storage/tree/Bip47Channels.hpp"

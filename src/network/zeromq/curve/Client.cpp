@@ -7,11 +7,11 @@
 #include "1_Internal.hpp"                   // IWYU pragma: associated
 #include "network/zeromq/curve/Client.hpp"  // IWYU pragma: associated
 
+#include <zmq.h>
 #include <array>
 #include <cstdint>
 #include <type_traits>
 #include <utility>
-#include <zmq.h>
 
 #include "network/zeromq/socket/Socket.hpp"
 #include "opentxs/Types.hpp"

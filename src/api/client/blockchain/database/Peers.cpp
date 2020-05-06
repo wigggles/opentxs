@@ -23,6 +23,8 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
+#include "opentxs/protobuf/Check.hpp"
+#include "opentxs/protobuf/verify/BlockchainPeerAddress.hpp"
 #include "util/LMDB.hpp"
 
 #define OT_METHOD                                                              \

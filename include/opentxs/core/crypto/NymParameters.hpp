@@ -6,6 +6,8 @@
 #ifndef OPENTXS_CORE_CRYPTO_NYMPARAMETERS_HPP
 #define OPENTXS_CORE_CRYPTO_NYMPARAMETERS_HPP
 
+// IWYU pragma: no_include "opentxs/Proto.hpp"
+
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <cstdint>
@@ -21,6 +23,16 @@
 #endif  // OT_CRYPTO_WITH_BIP32
 #include "opentxs/crypto/key/Keypair.hpp"
 #include "opentxs/identity/credential/Base.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
+
+namespace opentxs
+{
+namespace proto
+{
+class ContactData;
+class VerificationSet;
+}  // namespace proto
+}  // namespace opentxs
 
 namespace opentxs
 {

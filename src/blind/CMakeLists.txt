@@ -27,6 +27,7 @@ set(
 )
 
 add_library(opentxs-blind OBJECT ${cxx-sources} ${cxx-headers})
+target_link_libraries(opentxs-blind PRIVATE opentxs::messages)
 
 if(OT_OPENSSL_FLAVOR_LIBRESSL)
   target_compile_definitions(opentxs-blind PRIVATE OT_BUNDLED_LIBRESSL)

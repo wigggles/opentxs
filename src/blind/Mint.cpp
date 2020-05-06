@@ -9,11 +9,11 @@
 #include "blind/Mint.hpp"  // IWYU pragma: associated
 
 #include <irrxml/irrXML.hpp>
+#include <chrono>
 #include <cstdlib>
 #include <memory>
 #include <string>
 #include <utility>
-#include <chrono>
 
 #include "internal/api/Api.hpp"
 #include "opentxs/Exclusive.hpp"

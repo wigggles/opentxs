@@ -20,6 +20,10 @@
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/contract/basket/BasketContract.hpp"
+#include "opentxs/protobuf/Check.hpp"
+#include "opentxs/protobuf/ContactEnums.pb.h"
+#include "opentxs/protobuf/ContractEnums.pb.h"
+#include "opentxs/protobuf/verify/UnitDefinition.hpp"
 
 using ReturnType = opentxs::contract::unit::implementation::Basket;
 

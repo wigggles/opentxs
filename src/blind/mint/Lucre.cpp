@@ -23,7 +23,6 @@ extern "C" {
 #include "crypto/library/OpenSSL_BIO.hpp"
 #include "internal/api/Api.hpp"
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/Version.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/blind/Token.hpp"
@@ -35,6 +34,7 @@ extern "C" {
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/crypto/Envelope.hpp"
 #include "opentxs/identity/Nym.hpp"
+#include "opentxs/protobuf/CashEnums.pb.h"
 
 #ifdef __APPLE__
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"

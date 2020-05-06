@@ -18,6 +18,7 @@
 #include "opentxs/Proto.hpp"
 #include "opentxs/SharedPimpl.hpp"
 #include "opentxs/Version.hpp"
+#include "opentxs/protobuf/ContactEnums.pb.h"
 #include "ui/List.hpp"
 #include "ui/Widget.hpp"
 

@@ -11,23 +11,24 @@
 #include <map>
 #include <string>
 
-#include "opentxs/api/Wallet.hpp"
-#include "opentxs/client/OTAPI_Exec.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/Message.hpp"
-#include "opentxs/ext/OTPayment.hpp"
 #include "internal/api/client/Client.hpp"
 #include "opentxs/Pimpl.hpp"
+#include "opentxs/api/Wallet.hpp"
+#include "opentxs/client/OTAPI_Exec.hpp"
 #include "opentxs/core/Cheque.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Ledger.hpp"
+#include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/Message.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/core/recurring/OTPaymentPlan.hpp"
 #include "opentxs/core/script/OTSmartContract.hpp"
+#include "opentxs/ext/OTPayment.hpp"
+#include "opentxs/protobuf/PeerEnums.pb.h"
 
 #define OT_METHOD "opentxs::OTAPI_Func::"
 

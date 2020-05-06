@@ -27,6 +27,7 @@
 #include "opentxs/network/zeromq/socket/Dealer.hpp"
 #include "opentxs/network/zeromq/socket/Push.hpp"
 #include "opentxs/network/zeromq/socket/Request.hpp"
+#include "opentxs/protobuf/ContractEnums.pb.h"
 
 namespace opentxs
 {

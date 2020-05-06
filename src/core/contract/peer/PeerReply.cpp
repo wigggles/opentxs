@@ -25,6 +25,10 @@
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/identity/Nym.hpp"
+#include "opentxs/protobuf/Check.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
+#include "opentxs/protobuf/PeerEnums.pb.h"
+#include "opentxs/protobuf/verify/PeerReply.hpp"
 
 #define OT_METHOD "opentxs::contract::peer::implementation::Reply::"
 

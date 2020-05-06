@@ -22,6 +22,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
+#include "opentxs/protobuf/PaymentWorkflowEnums.pb.h"
 #include "ui/ChequeBalanceItem.hpp"
 #include "ui/TransferBalanceItem.hpp"
 

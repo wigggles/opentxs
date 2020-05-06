@@ -29,6 +29,7 @@
 #include "opentxs/Version.hpp"
 #include "opentxs/api/client/OTX.hpp"
 #include "opentxs/core/Identifier.hpp"
+#include "opentxs/protobuf/ContactEnums.pb.h"
 #include "opentxs/ui/ActivityThread.hpp"
 #include "ui/List.hpp"
 #include "ui/Widget.hpp"

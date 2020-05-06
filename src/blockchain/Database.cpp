@@ -7,9 +7,9 @@
 #include "1_Internal.hpp"           // IWYU pragma: associated
 #include "blockchain/Database.hpp"  // IWYU pragma: associated
 
-#include <algorithm>
 #include <boost/container/flat_set.hpp>
 #include <boost/container/vector.hpp>
+#include <algorithm>
 #include <cstring>
 #include <iterator>
 #include <map>
@@ -44,20 +44,6 @@
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/socket/Publish.hpp"
 #include "util/LMDB.hpp"
-
-namespace opentxs
-{
-namespace blockchain
-{
-namespace block
-{
-namespace bitcoin
-{
-class Block;
-}  // namespace bitcoin
-}  // namespace block
-}  // namespace blockchain
-}  // namespace opentxs
 
 #define OT_METHOD "opentxs::blockchain::implementation::Database::"
 

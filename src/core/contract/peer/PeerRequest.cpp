@@ -24,6 +24,10 @@
 #include "opentxs/core/contract/peer/PeerRequest.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/identity/Nym.hpp"
+#include "opentxs/protobuf/Check.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
+#include "opentxs/protobuf/PeerEnums.pb.h"
+#include "opentxs/protobuf/verify/PeerRequest.hpp"
 
 #define OT_METHOD "opentxs::contract::peer::implementation::Request::"
 

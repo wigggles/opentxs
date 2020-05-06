@@ -27,6 +27,7 @@
 #include "opentxs/identity/Nym.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/socket/Push.hpp"
+#include "opentxs/protobuf/ContractEnums.pb.h"
 #include "server/MainFile.hpp"
 #include "server/Notary.hpp"
 #include "server/Transactor.hpp"

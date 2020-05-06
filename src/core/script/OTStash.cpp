@@ -7,10 +7,10 @@
 #include "1_Internal.hpp"                   // IWYU pragma: associated
 #include "opentxs/core/script/OTStash.hpp"  // IWYU pragma: associated
 
+#include <irrxml/irrXML.hpp>
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
-#include <irrxml/irrXML.hpp>
 #include <map>
 #include <memory>
 #include <string>

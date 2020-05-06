@@ -20,6 +20,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/crypto/key/Asymmetric.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
 
 namespace opentxs
 {

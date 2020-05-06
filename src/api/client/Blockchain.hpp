@@ -42,6 +42,7 @@
 #include "opentxs/network/zeromq/socket/Publish.hpp"
 #include "opentxs/network/zeromq/socket/Pull.hpp"
 #include "opentxs/network/zeromq/socket/Push.hpp"
+#include "opentxs/protobuf/ContactEnums.pb.h"
 
 namespace opentxs
 {

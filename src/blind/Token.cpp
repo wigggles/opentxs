@@ -22,6 +22,8 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/crypto/key/Symmetric.hpp"
+#include "opentxs/protobuf/CashEnums.pb.h"
+#include "opentxs/protobuf/Enums.pb.h"
 
 #define OT_METHOD "opentxs::blind::token::implementation::Token::"
 

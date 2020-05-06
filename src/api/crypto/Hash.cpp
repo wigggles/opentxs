@@ -8,7 +8,6 @@
 #include "api/crypto/Hash.hpp"  // IWYU pragma: associated
 
 #include <cstring>
-#include <iterator>
 #include <memory>
 #include <vector>
 
@@ -24,6 +23,7 @@
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/crypto/library/HashingProvider.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
 #include "smhasher/src/MurmurHash3.h"
 
 #define OT_METHOD "opentxs::api::crypto::implementation::Hash::"

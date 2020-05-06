@@ -19,6 +19,7 @@
 #include "opentxs/Version.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
+#include "opentxs/protobuf/ContactEnums.pb.h"
 #include "opentxs/ui/AccountSummaryItem.hpp"
 #include "ui/Row.hpp"
 

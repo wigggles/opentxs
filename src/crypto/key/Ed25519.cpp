@@ -19,6 +19,7 @@
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/crypto/key/Ed25519.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
 #include "util/Sodium.hpp"
 
 namespace opentxs

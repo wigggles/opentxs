@@ -12,9 +12,10 @@
 #include <iosfwd>
 #include <string>
 
-#include "opentxs/Proto.hpp"
 #include "opentxs/Bytes.hpp"
+#include "opentxs/Proto.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
 
 namespace opentxs
 {

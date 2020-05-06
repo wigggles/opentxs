@@ -30,6 +30,7 @@
 #include "opentxs/crypto/key/Asymmetric.hpp"
 #include "opentxs/crypto/key/Keypair.hpp"
 #include "opentxs/crypto/library/AsymmetricProvider.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
 
 #define OT_METHOD "opentxs::identity::credential::implementation::Key::"
 

@@ -83,6 +83,13 @@
 #include "opentxs/network/zeromq/socket/Sender.tpp"
 #include "opentxs/network/zeromq/socket/Socket.hpp"
 #include "opentxs/otx/Reply.hpp"
+#include "opentxs/protobuf/Check.hpp"
+#include "opentxs/protobuf/ConsensusEnums.pb.h"
+#include "opentxs/protobuf/OTXEnums.pb.h"
+#include "opentxs/protobuf/PaymentWorkflowEnums.pb.h"
+#include "opentxs/protobuf/PeerEnums.pb.h"
+#include "opentxs/protobuf/verify/Context.hpp"
+#include "opentxs/protobuf/verify/Purse.hpp"
 
 #define START()                                                                \
     Lock lock(decision_lock_);                                                 \

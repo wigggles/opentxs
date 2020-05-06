@@ -17,7 +17,6 @@
 
 #include "internal/api/Api.hpp"
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/api/storage/Storage.hpp"
@@ -26,6 +25,7 @@
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/protobuf/ConsensusEnums.pb.h"
 #include "otx/client/PaymentTasks.hpp"
 
 #define OT_METHOD "opentxs::otx::client::implementation::DepositPayment::"

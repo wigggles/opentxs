@@ -14,6 +14,7 @@
 #include "opentxs/Proto.hpp"
 #include "opentxs/api/crypto/Symmetric.hpp"
 #include "opentxs/crypto/key/Symmetric.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
 
 namespace opentxs
 {

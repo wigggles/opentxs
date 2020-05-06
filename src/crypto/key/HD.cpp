@@ -29,6 +29,7 @@
 #include "opentxs/crypto/Bip32.hpp"
 #include "opentxs/crypto/key/HD.hpp"
 #include "opentxs/crypto/key/Symmetric.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
 
 #define OT_METHOD "opentxs::crypto::key::implementation::HD::"
 

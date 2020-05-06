@@ -19,6 +19,8 @@
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/protobuf/Contact.hpp"
+#include "opentxs/protobuf/verify/VerifyContacts.hpp"
 
 #define OT_METHOD "opentxs::ContactData::"
 

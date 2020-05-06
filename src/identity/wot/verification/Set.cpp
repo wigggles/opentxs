@@ -16,6 +16,8 @@
 #include "opentxs/Proto.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
+#include "opentxs/protobuf/Basic.hpp"
+#include "opentxs/protobuf/verify/VerifyContacts.hpp"
 
 #define OT_METHOD "opentxs::identity::wot::verification::implementation::Set::"
 

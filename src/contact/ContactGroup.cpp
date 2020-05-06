@@ -14,6 +14,7 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
+#include "opentxs/protobuf/ContactEnums.pb.h"
 
 #define OT_METHOD "opentxs::ContactGroup::"
 

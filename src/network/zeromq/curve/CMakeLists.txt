@@ -16,6 +16,7 @@ target_include_directories(
   opentxs-network-zeromq-curve SYSTEM
   PRIVATE ${ZMQ_INCLUDE_DIRS}
 )
+target_link_libraries(opentxs-network-zeromq-curve PRIVATE opentxs::messages)
 set_property(
   TARGET opentxs-network-zeromq-curve
   PROPERTY POSITION_INDEPENDENT_CODE 1

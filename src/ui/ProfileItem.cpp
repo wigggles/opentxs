@@ -12,12 +12,12 @@
 
 #include "internal/api/client/Client.hpp"
 #include "internal/ui/UI.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/client/NymData.hpp"
 #include "opentxs/contact/ContactItem.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/protobuf/ContactEnums.pb.h"
 #include "ui/Widget.hpp"
 
 namespace opentxs::factory

@@ -28,6 +28,11 @@
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/identity/Nym.hpp"
+#include "opentxs/protobuf/Check.hpp"
+#include "opentxs/protobuf/ContactEnums.pb.h"
+#include "opentxs/protobuf/PeerEnums.pb.h"
+#include "opentxs/protobuf/verify/Issuer.hpp"
+#include "opentxs/protobuf/verify/VerifyContacts.hpp"
 
 #define CURRENT_VERSION 1
 

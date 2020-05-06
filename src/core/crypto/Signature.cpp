@@ -7,8 +7,8 @@
 #include "1_Internal.hpp"             // IWYU pragma: associated
 #include "core/crypto/Signature.hpp"  // IWYU pragma: associated
 
-#include "opentxs/core/crypto/Signature.hpp"
 #include "core/Armored.hpp"
+#include "opentxs/core/crypto/Signature.hpp"
 
 // template class opentxs::Pimpl<opentxs::Signature>;
 

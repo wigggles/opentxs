@@ -43,6 +43,11 @@ namespace blockchain
 {
 namespace block
 {
+namespace bitcoin
+{
+class Block;
+}  // namespace bitcoin
+
 class Header;
 }  // namespace block
 

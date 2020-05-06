@@ -23,6 +23,7 @@
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/identity/credential/Verification.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
 
 #define OT_METHOD "opentxs::identity::credential::Verification::"
 

@@ -7,12 +7,12 @@
 #include "1_Internal.hpp"     // IWYU pragma: associated
 #include "server/Server.hpp"  // IWYU pragma: associated
 
-#include <cstdint>
-#include <regex>
-#include <string>
 #include <algorithm>
+#include <cstdint>
 #include <list>
+#include <regex>
 #include <stdexcept>
+#include <string>
 #include <vector>
 
 #include "opentxs/Proto.hpp"
@@ -52,6 +52,9 @@
 #include "opentxs/network/zeromq/socket/Push.hpp"
 #include "opentxs/network/zeromq/socket/Sender.tpp"
 #include "opentxs/network/zeromq/socket/Socket.hpp"
+#include "opentxs/protobuf/ContactEnums.pb.h"
+#include "opentxs/protobuf/ContractEnums.pb.h"
+#include "opentxs/protobuf/OTXEnums.pb.h"
 #include "server/ConfigLoader.hpp"
 #include "server/MainFile.hpp"
 #include "server/Transactor.hpp"

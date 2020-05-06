@@ -1,5 +1,4 @@
 [
-{ "include": ["@<opentxs-proto/.*>", "private", "\"opentxs/Proto.hpp\"", "public"] },
 { "include": ["@<google/protobuf/.*>", "private", "\"opentxs/Proto.hpp\"", "public"] },
 { "include": ["@<boost/asio/.*>", "private", "<boost/asio.hpp>", "public"] },
 { "include": ["@<boost/bind/.*>", "private", "<boost/bind.hpp>", "public"] },

@@ -20,6 +20,7 @@
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/identity/Nym.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
 
 namespace opentxs
 {

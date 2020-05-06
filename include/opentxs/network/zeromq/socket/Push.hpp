@@ -6,6 +6,8 @@
 #ifndef OPENTXS_NETWORK_ZEROMQ_SOCKET_PUSH_HPP
 #define OPENTXS_NETWORK_ZEROMQ_SOCKET_PUSH_HPP
 
+// IWYU pragma: no_include "opentxs/Proto.hpp"
+
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include "opentxs/network/zeromq/curve/Client.hpp"

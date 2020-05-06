@@ -3,6 +3,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: no_include "opentxs/Proto.hpp"
+
 #pragma once
 
 // IWYU pragma: begin_exports
@@ -21,11 +23,11 @@
 #if OT_BLOCKCHAIN
 #include "opentxs/blockchain/Blockchain.hpp"
 #endif  // OT_BLOCKCHAIN
-#include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/Version.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/protobuf/ContactEnums.pb.h"
 
 #define PAYMENT_CODE_VERSION 1
 #define PEER_MESSAGE_VERSION 2

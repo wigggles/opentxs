@@ -87,6 +87,13 @@
 #include "opentxs/crypto/key/Symmetric.hpp"
 #include "opentxs/ext/OTPayment.hpp"
 #include "opentxs/network/zeromq/Pipeline.hpp"
+#include "opentxs/protobuf/CashEnums.pb.h"
+#include "opentxs/protobuf/Check.hpp"
+#include "opentxs/protobuf/ContactEnums.pb.h"
+#include "opentxs/protobuf/Enums.pb.h"
+#include "opentxs/protobuf/PeerEnums.pb.h"
+#include "opentxs/protobuf/verify/BlockchainBlockHeader.hpp"
+#include "opentxs/protobuf/verify/Envelope.hpp"
 
 #define OT_METHOD "opentxs::api::implementation::Factory::"
 

@@ -23,7 +23,6 @@ extern "C" {
 #include "Factory.hpp"
 #include "crypto/library/EcdsaProvider.hpp"
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/api/crypto/Util.hpp"
@@ -32,6 +31,7 @@ extern "C" {
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/crypto/key/Asymmetric.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
 
 #define OT_METHOD "opentxs::crypto::implementation::Secp256k1::"
 

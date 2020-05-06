@@ -31,9 +31,9 @@ extern "C" {
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/crypto/Bip32.hpp"
 #include "opentxs/crypto/Bip39.hpp"
+#include "opentxs/crypto/key/Symmetric.hpp"  // IWYU pragma: keep
 #include "opentxs/crypto/library/AsymmetricProvider.hpp"
 #include "opentxs/crypto/library/SymmetricProvider.hpp"
-#include "opentxs/crypto/key/Symmetric.hpp"  // IWYU pragma: keep
 
 #define OT_METHOD "opentxs::Crypto::"
 

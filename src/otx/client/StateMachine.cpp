@@ -48,6 +48,9 @@
 #include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/ext/OTPayment.hpp"
 #include "opentxs/identity/Nym.hpp"
+#include "opentxs/protobuf/ConsensusEnums.pb.h"
+#include "opentxs/protobuf/ContactEnums.pb.h"
+#include "opentxs/protobuf/UnitDefinition.pb.h"
 #include "otx/client/StateMachine.hpp"
 
 #define CONTRACT_DOWNLOAD_MILLISECONDS 10000

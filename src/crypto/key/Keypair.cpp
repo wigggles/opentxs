@@ -18,6 +18,7 @@
 #include "opentxs/core/crypto/Signature.hpp"
 #include "opentxs/crypto/key/Asymmetric.hpp"
 #include "opentxs/crypto/key/Keypair.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
 
 // #define OT_METHOD "opentxs::crypto::key::implementation::Keypair::"
 

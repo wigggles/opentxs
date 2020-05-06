@@ -26,6 +26,7 @@
 #include "opentxs/core/recurring/OTPaymentPlan.hpp"
 #include "opentxs/core/script/OTSmartContract.hpp"
 #include "opentxs/ext/OTPayment.hpp"
+#include "opentxs/protobuf/PeerEnums.pb.h"
 
 namespace opentxs
 {

@@ -12,6 +12,8 @@
 #include "opentxs/blind/Token.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
+#include "opentxs/protobuf/CashEnums.pb.h"
+#include "opentxs/protobuf/Enums.pb.h"
 
 namespace opentxs
 {

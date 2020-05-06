@@ -19,6 +19,7 @@
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
+#include "opentxs/protobuf/Check.hpp"
 
 namespace opentxs
 {

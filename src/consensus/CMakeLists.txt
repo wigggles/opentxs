@@ -30,6 +30,7 @@ set(
 )
 
 add_library(opentxs-consensus OBJECT ${cxx-sources} ${cxx-headers})
+target_link_libraries(opentxs-consensus PRIVATE opentxs::messages)
 target_include_directories(
   opentxs-consensus SYSTEM
   PRIVATE "${opentxs_SOURCE_DIR}/deps/"

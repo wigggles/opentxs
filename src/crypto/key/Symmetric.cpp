@@ -29,6 +29,9 @@
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/crypto/key/Symmetric.hpp"
 #include "opentxs/crypto/library/SymmetricProvider.hpp"
+#include "opentxs/protobuf/Check.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
+#include "opentxs/protobuf/verify/SymmetricKey.hpp"
 
 template class opentxs::Pimpl<opentxs::crypto::key::Symmetric>;
 

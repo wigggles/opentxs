@@ -7,9 +7,9 @@
 #include "1_Internal.hpp"                           // IWYU pragma: associated
 #include "blockchain/p2p/bitcoin/message/Pong.hpp"  // IWYU pragma: associated
 
+#include <cstddef>
 #include <cstdint>
 #include <cstring>
-#include <cstddef>
 #include <utility>
 
 #include "Factory.hpp"

@@ -121,6 +121,7 @@ else()
 endif()
 
 add_library(opentxs-ui OBJECT ${cxx-sources} ${cxx-headers} ${MOC_SRCS})
+target_link_libraries(opentxs-ui PRIVATE opentxs::messages)
 set_property(TARGET opentxs-ui PROPERTY POSITION_INDEPENDENT_CODE 1)
 
 install(

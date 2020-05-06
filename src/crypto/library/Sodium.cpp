@@ -30,6 +30,7 @@ extern "C" {
 #include "opentxs/crypto/key/Asymmetric.hpp"
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 #include "opentxs/crypto/library/HashingProvider.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
 #include "util/Sodium.hpp"
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519

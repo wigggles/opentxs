@@ -6,15 +6,16 @@
 #pragma once
 
 #include <map>
+#include <memory>
 #include <set>
 #include <shared_mutex>
-#include <tuple>
-#include <memory>
 #include <string>
+#include <tuple>
 
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/core/Identifier.hpp"
+#include "opentxs/protobuf/ContactEnums.pb.h"
 #include "storage/tree/Node.hpp"
 
 namespace opentxs

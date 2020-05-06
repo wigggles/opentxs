@@ -7,8 +7,8 @@
 #include "1_Internal.hpp"            // IWYU pragma: associated
 #include "opentxs/core/Message.hpp"  // IWYU pragma: associated
 
-#include <cstdint>
 #include <irrxml/irrXML.hpp>
+#include <cstdint>
 #include <map>
 #include <memory>
 #include <string>

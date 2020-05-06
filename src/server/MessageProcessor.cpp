@@ -7,11 +7,11 @@
 #include "1_Internal.hpp"               // IWYU pragma: associated
 #include "server/MessageProcessor.hpp"  // IWYU pragma: associated
 
-#include <ostream>
-#include <string>
 #include <chrono>
 #include <memory>
+#include <ostream>
 #include <stdexcept>
+#include <string>
 #include <utility>
 
 #include "internal/api/Api.hpp"
@@ -44,6 +44,9 @@
 #include "opentxs/network/zeromq/socket/Socket.hpp"
 #include "opentxs/otx/Reply.hpp"
 #include "opentxs/otx/Request.hpp"
+#include "opentxs/protobuf/Check.hpp"
+#include "opentxs/protobuf/OTXEnums.pb.h"
+#include "opentxs/protobuf/verify/ServerRequest.hpp"
 #include "server/Server.hpp"
 #include "server/UserCommandProcessor.hpp"
 

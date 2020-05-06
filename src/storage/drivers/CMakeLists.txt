@@ -46,6 +46,7 @@ if(OT_STORAGE_LMDB)
   )
 endif()
 
+target_link_libraries(opentxs-storage-drivers PRIVATE opentxs::messages)
 set_property(
   TARGET opentxs-storage-drivers
   PROPERTY POSITION_INDEPENDENT_CODE 1

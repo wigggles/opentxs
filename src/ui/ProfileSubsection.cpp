@@ -19,6 +19,7 @@
 #include "opentxs/contact/ContactItem.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/protobuf/verify/VerifyContacts.hpp"
 #include "ui/Combined.hpp"
 #include "ui/Widget.hpp"
 

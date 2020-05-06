@@ -23,4 +23,5 @@ set(
 )
 
 add_library(opentxs-otx-client OBJECT ${cxx-sources} ${cxx-headers})
+target_link_libraries(opentxs-otx-client PRIVATE opentxs::messages)
 set_property(TARGET opentxs-otx-client PROPERTY POSITION_INDEPENDENT_CODE 1)

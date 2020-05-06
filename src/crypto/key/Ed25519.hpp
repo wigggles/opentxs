@@ -12,6 +12,7 @@
 #include "opentxs/Types.hpp"
 #include "opentxs/Version.hpp"
 #include "opentxs/crypto/key/Ed25519.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
 
 namespace opentxs
 {

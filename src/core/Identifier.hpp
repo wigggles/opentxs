@@ -20,6 +20,8 @@
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
+#include "opentxs/protobuf/ContactEnums.pb.h"
+#include "opentxs/protobuf/Enums.pb.h"
 
 namespace opentxs
 {
@@ -27,6 +29,11 @@ namespace identity
 {
 class Nym;
 }  // namespace identity
+
+namespace proto
+{
+class HDPath;
+}  // namespace proto
 
 class Contract;
 class String;

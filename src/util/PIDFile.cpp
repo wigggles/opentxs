@@ -22,10 +22,12 @@
 #elif defined(TARGET_OS_MAC)
 #if TARGET_OS_MAC
 #include <sys/wait.h>
+
 #define OT_CHECK_PID 1
 #endif  // if TARGET_OS_MAC
 #else
 #include <sys/wait.h>
+
 #define OT_CHECK_PID 1
 #endif  // elif defined(TARGET_OS_MAC)
 #endif  // PREDEF_PLATFORM_UNIX

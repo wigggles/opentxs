@@ -6,10 +6,10 @@
 
 #include "network/zeromq/socket/Receiver.hpp"  // IWYU pragma: associated
 
+#include <zmq.h>
 #include <memory>
 #include <mutex>
 #include <thread>
-#include <zmq.h>
 
 #include "opentxs/Types.hpp"
 #include "opentxs/core/Flag.hpp"
