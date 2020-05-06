@@ -5,8 +5,10 @@
 
 #pragma once
 
-#include "opentxs/protobuf/Types.hpp"  // IWYU pragma: associated
+#include "opentxs/Proto.hpp"  // IWYU pragma: associated
 
+#include <map>
+#include <set>
 #include <sstream>
 
 #include "opentxs/protobuf/Check.hpp"
