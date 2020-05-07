@@ -57,8 +57,6 @@ namespace ui
 {
 class IssuerItem;
 }  // namespace ui
-
-class Factory;
 }  // namespace opentxs
 
 namespace opentxs::ui::implementation
@@ -110,8 +108,6 @@ public:
     ~IssuerItem();
 
 private:
-    friend opentxs::Factory;
-
     const ListenerDefinitions listeners_;
     const std::string& name_;
     std::atomic<bool> connection_;

@@ -43,8 +43,6 @@ class Publish;
 }  // namespace socket
 }  // namespace zeromq
 }  // namespace network
-
-class Factory;
 }  // namespace opentxs
 
 namespace opentxs::ui::implementation
@@ -73,8 +71,6 @@ public:
     ~MailItem();
 
 private:
-    friend opentxs::Factory;
-
     std::unique_ptr<std::thread> load_;
 
     void load() noexcept;

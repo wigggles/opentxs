@@ -9,18 +9,18 @@
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <cstdint>
+#include <map>
 #include <memory>
+#include <set>
 #include <string>
 #include <unordered_map>
 #include <utility>
-#include <map>
-#include <set>
 
+#include "opentxs/Types.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/NumList.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/Types.hpp"
 
 namespace opentxs
 {
@@ -146,7 +146,7 @@ public:
     // So the message can get the list of numbers from the Nym, before sending,
     // that should be listed as acknowledged that the server reply has already
     // been seen for those request numbers.
-    OPENTXS_EXPORT void SetAcknowledgments(const Context& context);
+    OPENTXS_EXPORT void SetAcknowledgments(const class Context& context);
     OPENTXS_EXPORT void SetAcknowledgments(
         const std::set<RequestNumber>& numbers);
 

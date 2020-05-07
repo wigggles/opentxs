@@ -61,8 +61,6 @@ namespace ui
 {
 class BlockchainAccountListItem;
 }  // namespace ui
-
-class Factory;
 }  // namespace opentxs
 
 namespace opentxs::ui::implementation
@@ -117,8 +115,6 @@ public:
     ~BlockchainAccountListItem() = default;
 
 private:
-    friend opentxs::Factory;
-
     const AccountType type_;
     const proto::ContactItemType unit_;
     const Amount balance_;

@@ -27,6 +27,19 @@ namespace implementation
 class ContactList;
 }  // namespace implementation
 
+class ContactList;
+class ContactListItem;
+
+#if OT_QT
+class ContactListQt;
+#endif
+}  // namespace ui
+}  // namespace opentxs
+
+namespace opentxs
+{
+namespace ui
+{
 class ContactList : virtual public List
 {
 public:

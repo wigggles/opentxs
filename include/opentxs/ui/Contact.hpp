@@ -33,6 +33,19 @@ namespace implementation
 class Contact;
 }  // namespace implementation
 
+class Contact;
+class ContactSection;
+
+#if OT_QT
+class ContactQt;
+#endif
+}  // namespace ui
+}  // namespace opentxs
+
+namespace opentxs
+{
+namespace ui
+{
 class Contact : virtual public List
 {
 public:

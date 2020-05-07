@@ -47,6 +47,8 @@
 #include "opentxs/ui/ProfileItem.hpp"
 #include "opentxs/ui/ProfileSection.hpp"
 #include "opentxs/ui/ProfileSubsection.hpp"
+#include "opentxs/ui/UnitList.hpp"
+#include "opentxs/ui/UnitListItem.hpp"
 #include "opentxs/ui/Widget.hpp"
 
 namespace opentxs
@@ -93,6 +95,7 @@ class ContactList;
 class MessagableList;
 class PayableList;
 class Profile;
+class UnitList;
 }  // namespace implementation
 }  // namespace ui
 
@@ -117,6 +120,7 @@ struct PayableListItem;
 struct ProfileItem;
 struct ProfileSection;
 struct ProfileSubsection;
+struct UnitListItem;
 }  // namespace blank
 
 struct AccountActivity;
@@ -143,6 +147,8 @@ struct Profile;
 struct ProfileItem;
 struct ProfileSection;
 struct ProfileSubsection;
+struct UnitList;
+struct UnitListItem;
 }  // namespace opentxs::ui::internal
 
 #if OT_BLOCKCHAIN
@@ -314,6 +320,16 @@ using ProfileSubsectionRowInterface = ui::ProfileItem;
 using ProfileSubsectionRowInternal = ui::internal::ProfileItem;
 using ProfileSubsectionRowBlank = ui::internal::blank::ProfileItem;
 using ProfileSubsectionSortKey = int;
+
+// Unit list
+using UnitListPrimaryID = OTNymID;
+using UnitListExternalInterface = ui::UnitList;
+using UnitListInternalInterface = ui::internal::UnitList;
+using UnitListRowID = proto::ContactItemType;
+using UnitListRowInterface = ui::UnitListItem;
+using UnitListRowInternal = ui::internal::UnitListItem;
+using UnitListRowBlank = ui::internal::blank::UnitListItem;
+using UnitListSortKey = std::string;
 }  // namespace opentxs::ui::implementation
 
 namespace opentxs
@@ -613,6 +629,19 @@ struct ProfileItem : virtual public Row, virtual public ui::ProfileItem {
         const implementation::CustomData& custom) noexcept = 0;
 
     ~ProfileItem() override = default;
+};
+struct UnitList : virtual public List, virtual public ui::UnitList {
+    virtual bool last(const implementation::UnitListRowID& id) const
+        noexcept = 0;
+
+    ~UnitList() override = default;
+};
+struct UnitListItem : virtual public Row, virtual public ui::UnitListItem {
+    virtual void reindex(
+        const implementation::UnitListSortKey& key,
+        const implementation::CustomData& custom) noexcept = 0;
+
+    ~UnitListItem() override = default;
 };
 
 #if OT_QT
@@ -964,6 +993,17 @@ struct ProfileSubsection : public List<
 private:
     const OTNymID nym_id_{identifier::Nym::Factory()};
 };
+struct UnitListItem final : virtual public Row,
+                            virtual public internal::UnitListItem {
+    std::string Name() const noexcept final { return {}; }
+    proto::ContactItemType Unit() const noexcept final { return {}; }
+
+    void reindex(
+        const implementation::UnitListSortKey&,
+        const implementation::CustomData&) noexcept final
+    {
+    }
+};
 }  // namespace blank
 }  // namespace opentxs::ui::internal
 
@@ -1286,4 +1326,25 @@ auto ProfileSubsectionWidget(
 #endif
     ) noexcept
     -> std::shared_ptr<ui::implementation::ProfileSectionRowInternal>;
+auto UnitListItem(
+    const ui::implementation::UnitListInternalInterface& parent,
+    const api::client::internal::Manager& api,
+    const network::zeromq::socket::Publish& publisher,
+    const ui::implementation::UnitListRowID& rowID,
+    const ui::implementation::UnitListSortKey& sortKey,
+    const ui::implementation::CustomData& custom) noexcept
+    -> std::shared_ptr<ui::implementation::UnitListRowInternal>;
+auto UnitListModel(
+    const api::client::internal::Manager& api,
+    const network::zeromq::socket::Publish& publisher,
+    const identifier::Nym& nymID
+#if OT_QT
+    ,
+    const bool qt
+#endif
+    ) noexcept -> std::unique_ptr<ui::implementation::UnitList>;
+#if OT_QT
+auto UnitListQtModel(ui::implementation::UnitList& parent) noexcept
+    -> std::unique_ptr<ui::UnitListQt>;
+#endif
 }  // namespace opentxs::factory

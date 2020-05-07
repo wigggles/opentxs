@@ -60,7 +60,6 @@ class StorageThread;
 class StorageThreadItem;
 }  // namespace proto
 
-class Factory;
 class Flag;
 }  // namespace opentxs
 
@@ -93,8 +92,6 @@ public:
     ~ActivitySummary() final;
 
 private:
-    friend opentxs::Factory;
-
     const ListenerDefinitions listeners_;
     const Flag& running_;
 

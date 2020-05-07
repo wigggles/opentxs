@@ -4,7 +4,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 // IWYU pragma: private
-// IWYU pragma: friend ".*src/ui/AccountList.cpp"
+// IWYU pragma: friend ".*src/ui/UnitList.cpp"
 
 #pragma once
 
@@ -22,7 +22,7 @@
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/socket/Dealer.hpp"
 #endif  // OT_BLOCKCHAIN
-#include "opentxs/ui/AccountList.hpp"
+#include "opentxs/ui/UnitList.hpp"
 #include "ui/List.hpp"
 #include "ui/Widget.hpp"
 
@@ -57,25 +57,25 @@ class Message;
 }  // namespace zeromq
 }  // namespace network
 
-class Factory;
+class Identifier;
 }  // namespace opentxs
 
 namespace opentxs::ui::implementation
 {
-using AccountListList = List<
-    AccountListExternalInterface,
-    AccountListInternalInterface,
-    AccountListRowID,
-    AccountListRowInterface,
-    AccountListRowInternal,
-    AccountListRowBlank,
-    AccountListSortKey,
-    AccountListPrimaryID>;
+using UnitListList = List<
+    UnitListExternalInterface,
+    UnitListInternalInterface,
+    UnitListRowID,
+    UnitListRowInterface,
+    UnitListRowInternal,
+    UnitListRowBlank,
+    UnitListSortKey,
+    UnitListPrimaryID>;
 
-class AccountList final : public AccountListList
+class UnitList final : public UnitListList
 {
 public:
-    AccountList(
+    UnitList(
         const api::client::internal::Manager& api,
         const network::zeromq::socket::Publish& publisher,
         const identifier::Nym& nymID
@@ -85,7 +85,7 @@ public:
 #endif
         ) noexcept;
 
-    ~AccountList() final;
+    ~UnitList() final;
 
 private:
 #if OT_BLOCKCHAIN
@@ -95,31 +95,28 @@ private:
     const ListenerDefinitions listeners_;
 
     auto construct_row(
-        const AccountListRowID& id,
-        const AccountListSortKey& index,
+        const UnitListRowID& id,
+        const UnitListSortKey& index,
         const CustomData& custom) const noexcept -> void* final;
 
-    auto process_account(const Identifier& id) noexcept -> void;
-    auto process_account(const Identifier& id, const Amount balance) noexcept
-        -> void;
-    auto process_account(
-        const Identifier& id,
-        const Amount balance,
-        const std::string& name) noexcept -> void;
     auto process_account(const network::zeromq::Message& message) noexcept
         -> void;
+    auto process_account(const Identifier& id) noexcept -> void;
 #if OT_BLOCKCHAIN
     auto process_blockchain_balance(
         const network::zeromq::Message& message) noexcept -> void;
+#endif  // OT_BLOCKCHAIN
+    auto process_unit(const UnitListRowID& id) noexcept -> void;
+#if OT_BLOCKCHAIN
     auto setup_listeners(const ListenerDefinitions& definitions) noexcept
         -> void final;
 #endif  // OT_BLOCKCHAIN
     auto startup() noexcept -> void;
 
-    AccountList() = delete;
-    AccountList(const AccountList&) = delete;
-    AccountList(AccountList&&) = delete;
-    AccountList& operator=(const AccountList&) = delete;
-    AccountList& operator=(AccountList&&) = delete;
+    UnitList() = delete;
+    UnitList(const UnitList&) = delete;
+    UnitList(UnitList&&) = delete;
+    UnitList& operator=(const UnitList&) = delete;
+    UnitList& operator=(UnitList&&) = delete;
 };
 }  // namespace opentxs::ui::implementation

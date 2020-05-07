@@ -49,8 +49,6 @@ namespace ui
 {
 class ProfileItem;
 }  // namespace ui
-
-class Factory;
 }  // namespace opentxs
 
 template class opentxs::SharedPimpl<opentxs::ui::ProfileItem>;
@@ -108,8 +106,6 @@ public:
     ~ProfileItem() = default;
 
 private:
-    friend opentxs::Factory;
-
     std::unique_ptr<opentxs::ContactItem> item_;
 
     bool add_claim(const Claim& claim) const noexcept;

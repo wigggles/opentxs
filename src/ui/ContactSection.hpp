@@ -56,7 +56,6 @@ class ContactSection;
 }  // namespace ui
 
 class ContactSection;
-class Factory;
 }  // namespace opentxs
 
 namespace opentxs::ui::implementation
@@ -110,8 +109,6 @@ public:
     ~ContactSection() = default;
 
 private:
-    friend opentxs::Factory;
-
     static const std::
         map<proto::ContactSectionName, std::set<proto::ContactItemType>>
             allowed_types_;

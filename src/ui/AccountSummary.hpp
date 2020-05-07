@@ -49,8 +49,6 @@ class Publish;
 class Message;
 }  // namespace zeromq
 }  // namespace network
-
-class Factory;
 }  // namespace opentxs
 
 namespace opentxs::ui::implementation
@@ -92,8 +90,6 @@ public:
     ~AccountSummary();
 
 private:
-    friend opentxs::Factory;
-
     const ListenerDefinitions listeners_;
     const proto::ContactItemType currency_;
     std::set<OTNymID> issuers_;

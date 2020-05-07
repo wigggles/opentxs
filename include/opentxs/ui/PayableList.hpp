@@ -27,6 +27,19 @@ namespace implementation
 class PayableList;
 }  // namespace implementation
 
+class PayableList;
+class PayableListItem;
+
+#if OT_QT
+class PayableListQt;
+#endif
+}  // namespace ui
+}  // namespace opentxs
+
+namespace opentxs
+{
+namespace ui
+{
 class PayableList : virtual public List
 {
 public:

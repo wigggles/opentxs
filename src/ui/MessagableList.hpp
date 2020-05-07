@@ -50,8 +50,6 @@ class Publish;
 class Message;
 }  // namespace zeromq
 }  // namespace network
-
-class Factory;
 }  // namespace opentxs
 
 namespace opentxs::ui::implementation
@@ -83,8 +81,6 @@ public:
     ~MessagableList() final;
 
 private:
-    friend opentxs::Factory;
-
     const ListenerDefinitions listeners_;
     const OTIdentifier owner_contact_id_;
 

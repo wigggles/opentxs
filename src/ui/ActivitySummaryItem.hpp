@@ -59,7 +59,6 @@ namespace ui
 class ActivitySummaryItem;
 }  // namespace ui
 
-class Factory;
 class Flag;
 class PasswordPrompt;
 }  // namespace opentxs
@@ -102,7 +101,6 @@ public:
     ~ActivitySummaryItem() final;
 
 private:
-    friend opentxs::Factory;
     // id, box, account
     using ItemLocator = std::tuple<std::string, StorageBox, std::string>;
 

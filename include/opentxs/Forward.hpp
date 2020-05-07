@@ -332,48 +332,6 @@ namespace storage
 class Root;
 }  // namespace storage
 
-namespace ui
-{
-class AccountActivity;
-class AccountList;
-class AccountListItem;
-class AccountSummary;
-class AccountSummaryItem;
-class ActivitySummary;
-class ActivitySummaryItem;
-class ActivityThread;
-class ActivityThreadItem;
-class BalanceItem;
-class Contact;
-class ContactItem;
-class ContactList;
-class ContactListItem;
-class ContactSection;
-class ContactSubsection;
-class IssuerItem;
-class ListRow;
-class MessagableList;
-class PayableList;
-class PayableListItem;
-class Profile;
-class ProfileItem;
-class ProfileSection;
-class ProfileSubsection;
-
-#if OT_QT
-class AccountActivityQt;
-class AccountListQt;
-class AccountSummaryQt;
-class ActivitySummaryQt;
-class ActivityThreadQt;
-class ContactListQt;
-class ContactQt;
-class MessagableListQt;
-class PayableListQt;
-class ProfileQt;
-#endif
-}  // namespace ui
-
 class Account;
 class AccountList;
 class AccountVisitor;

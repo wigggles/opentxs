@@ -34,6 +34,7 @@
 #include "opentxs/ui/MessagableList.hpp"
 #include "opentxs/ui/PayableList.hpp"
 #include "opentxs/ui/Profile.hpp"
+#include "opentxs/ui/UnitList.hpp"
 
 namespace opentxs
 {
@@ -62,6 +63,7 @@ class ContactList;
 class MessagableList;
 class PayableList;
 class Profile;
+class UnitList;
 }  // namespace implementation
 }  // namespace ui
 
@@ -74,59 +76,73 @@ namespace opentxs::api::client::implementation
 class UI final : virtual public opentxs::api::client::UI, Lockable
 {
 public:
-    const ui::AccountActivity& AccountActivity(
+    auto AccountActivity(
         const identifier::Nym& nymID,
-        const Identifier& accountID) const noexcept final;
-    const ui::AccountList& AccountList(const identifier::Nym& nym) const
-        noexcept final;
-    const ui::AccountSummary& AccountSummary(
+        const Identifier& accountID) const noexcept
+        -> const ui::AccountActivity& final;
+    auto AccountList(const identifier::Nym& nym) const noexcept
+        -> const ui::AccountList& final;
+    auto AccountSummary(
         const identifier::Nym& nymID,
-        const proto::ContactItemType currency) const noexcept final;
-    const ui::ActivitySummary& ActivitySummary(
-        const identifier::Nym& nymID) const noexcept final;
-    const ui::ActivityThread& ActivityThread(
+        const proto::ContactItemType currency) const noexcept
+        -> const ui::AccountSummary& final;
+    auto ActivitySummary(const identifier::Nym& nymID) const noexcept
+        -> const ui::ActivitySummary& final;
+    auto ActivityThread(
         const identifier::Nym& nymID,
-        const Identifier& threadID) const noexcept final;
-    const ui::Contact& Contact(const Identifier& contactID) const
-        noexcept final;
-    const ui::ContactList& ContactList(const identifier::Nym& nymID) const
-        noexcept final;
-    const ui::MessagableList& MessagableList(const identifier::Nym& nymID) const
-        noexcept final;
-    const ui::PayableList& PayableList(
+        const Identifier& threadID) const noexcept
+        -> const ui::ActivityThread& final;
+    auto Contact(const Identifier& contactID) const noexcept
+        -> const ui::Contact& final;
+    auto ContactList(const identifier::Nym& nymID) const noexcept
+        -> const ui::ContactList& final;
+    auto MessagableList(const identifier::Nym& nymID) const noexcept
+        -> const ui::MessagableList& final;
+    auto PayableList(
         const identifier::Nym& nymID,
-        const proto::ContactItemType currency) const noexcept final;
-    const ui::Profile& Profile(const identifier::Nym& nymID) const
-        noexcept final;
+        const proto::ContactItemType currency) const noexcept
+        -> const ui::PayableList& final;
+    auto Profile(const identifier::Nym& nymID) const noexcept
+        -> const ui::Profile& final;
+    auto UnitList(const identifier::Nym& nym) const noexcept
+        -> const ui::UnitList& final;
 
 #if OT_QT
-    ui::AccountActivityQt* AccountActivityQt(
+    auto AccountActivityQt(
         const identifier::Nym& nymID,
-        const Identifier& accountID) const noexcept final;
-    ui::AccountListQt* AccountListQt(const identifier::Nym& nym) const
-        noexcept final;
-    ui::AccountSummaryQt* AccountSummaryQt(
+        const Identifier& accountID) const noexcept
+        -> ui::AccountActivityQt* final;
+    auto AccountListQt(const identifier::Nym& nym) const noexcept
+        -> ui::AccountListQt* final;
+    auto AccountSummaryQt(
         const identifier::Nym& nymID,
-        const proto::ContactItemType currency) const noexcept final;
-    ui::ActivitySummaryQt* ActivitySummaryQt(const identifier::Nym& nymID) const
-        noexcept final;
-    ui::ActivityThreadQt* ActivityThreadQt(
+        const proto::ContactItemType currency) const noexcept
+        -> ui::AccountSummaryQt* final;
+    auto ActivitySummaryQt(const identifier::Nym& nymID) const noexcept
+        -> ui::ActivitySummaryQt* final;
+    auto ActivityThreadQt(
         const identifier::Nym& nymID,
-        const Identifier& threadID) const noexcept final;
-    QAbstractItemModel* BlankModel(const std::size_t columns) const
-        noexcept final
+        const Identifier& threadID) const noexcept
+        -> ui::ActivityThreadQt* final;
+    auto BlankModel(const std::size_t columns) const noexcept
+        -> QAbstractItemModel* final
     {
         return blank_.get(columns);
     }
-    ui::ContactQt* ContactQt(const Identifier& contactID) const noexcept final;
-    ui::ContactListQt* ContactListQt(const identifier::Nym& nymID) const
-        noexcept final;
-    ui::MessagableListQt* MessagableListQt(const identifier::Nym& nymID) const
-        noexcept final;
-    ui::PayableListQt* PayableListQt(
+    auto ContactQt(const Identifier& contactID) const noexcept
+        -> ui::ContactQt* final;
+    auto ContactListQt(const identifier::Nym& nymID) const noexcept
+        -> ui::ContactListQt* final;
+    auto MessagableListQt(const identifier::Nym& nymID) const noexcept
+        -> ui::MessagableListQt* final;
+    auto PayableListQt(
         const identifier::Nym& nymID,
-        const proto::ContactItemType currency) const noexcept final;
-    ui::ProfileQt* ProfileQt(const identifier::Nym& nymID) const noexcept final;
+        const proto::ContactItemType currency) const noexcept
+        -> ui::PayableListQt* final;
+    auto ProfileQt(const identifier::Nym& nymID) const noexcept
+        -> ui::ProfileQt* final;
+    auto UnitListQt(const identifier::Nym& nym) const noexcept
+        -> ui::UnitListQt* final;
 #endif  // OT_QT
 
     ~UI() final = default;
@@ -147,6 +163,7 @@ private:
     /** NymID, currency*/
     using PayableListKey = std::pair<OTNymID, proto::ContactItemType>;
     using ProfileKey = OTNymID;
+    using UnitListKey = OTNymID;
 
     using AccountActivityValue =
         std::unique_ptr<ui::implementation::AccountActivity>;
@@ -175,6 +192,8 @@ private:
     using MessagableListMap = std::map<MessagableListKey, MessagableListValue>;
     using PayableListMap = std::map<PayableListKey, PayableListValue>;
     using ProfileMap = std::map<ProfileKey, ProfileValue>;
+    using UnitListValue = std::unique_ptr<ui::implementation::UnitList>;
+    using UnitListMap = std::map<UnitListKey, UnitListValue>;
 
 #if OT_QT
     using AccountActivityQtValue = std::unique_ptr<ui::AccountActivityQt>;
@@ -187,6 +206,7 @@ private:
     using MessagableListQtValue = std::unique_ptr<ui::MessagableListQt>;
     using PayableListQtValue = std::unique_ptr<ui::PayableListQt>;
     using ProfileQtValue = std::unique_ptr<ui::ProfileQt>;
+    using UnitListQtValue = std::unique_ptr<ui::UnitListQt>;
     using AccountActivityQtMap =
         std::map<AccountActivityKey, AccountActivityQtValue>;
     using AccountListQtMap = std::map<AccountListKey, AccountListQtValue>;
@@ -202,9 +222,10 @@ private:
         std::map<MessagableListKey, MessagableListQtValue>;
     using PayableListQtMap = std::map<PayableListKey, PayableListQtValue>;
     using ProfileQtMap = std::map<ProfileKey, ProfileQtValue>;
+    using UnitListQtMap = std::map<UnitListKey, UnitListQtValue>;
 
     struct Blank {
-        ui::BlankModel* get(const std::size_t columns) noexcept;
+        auto get(const std::size_t columns) noexcept -> ui::BlankModel*;
 
     private:
         std::mutex lock_{};
@@ -227,6 +248,7 @@ private:
     mutable PayableListMap payable_lists_;
     mutable ActivityThreadMap activity_threads_;
     mutable ProfileMap profiles_;
+    mutable UnitListMap unit_lists_;
 #if OT_QT
     mutable Blank blank_;
     mutable AccountActivityQtMap accounts_qt_;
@@ -239,43 +261,44 @@ private:
     mutable PayableListQtMap payable_lists_qt_;
     mutable ActivityThreadQtMap activity_threads_qt_;
     mutable ProfileQtMap profiles_qt_;
+    mutable UnitListQtMap unit_lists_qt_;
 #endif  // OT_QT
     OTZMQPublishSocket widget_update_publisher_;
 
-    AccountActivityMap::mapped_type& account_activity(
+    auto account_activity(
         const Lock& lock,
         const identifier::Nym& nymID,
-        const Identifier& accountID) const noexcept;
-    AccountListMap::mapped_type& account_list(
-        const Lock& lock,
-        const identifier::Nym& nymID) const noexcept;
-    AccountSummaryMap::mapped_type& account_summary(
-        const Lock& lock,
-        const identifier::Nym& nymID,
-        const proto::ContactItemType currency) const noexcept;
-    ActivitySummaryMap::mapped_type& activity_summary(
-        const Lock& lock,
-        const identifier::Nym& nymID) const noexcept;
-    ActivityThreadMap::mapped_type& activity_thread(
+        const Identifier& accountID) const noexcept
+        -> AccountActivityMap::mapped_type&;
+    auto account_list(const Lock& lock, const identifier::Nym& nymID) const
+        noexcept -> AccountListMap::mapped_type&;
+    auto account_summary(
         const Lock& lock,
         const identifier::Nym& nymID,
-        const Identifier& threadID) const noexcept;
-    ContactMap::mapped_type& contact(
-        const Lock& lock,
-        const Identifier& contactID) const noexcept;
-    ContactListMap::mapped_type& contact_list(
-        const Lock& lock,
-        const identifier::Nym& nymID) const noexcept;
-    MessagableListMap::mapped_type& messagable_list(
-        const Lock& lock,
-        const identifier::Nym& nymID) const noexcept;
-    PayableListMap::mapped_type& payable_list(
+        const proto::ContactItemType currency) const noexcept
+        -> AccountSummaryMap::mapped_type&;
+    auto activity_summary(const Lock& lock, const identifier::Nym& nymID) const
+        noexcept -> ActivitySummaryMap::mapped_type&;
+    auto activity_thread(
         const Lock& lock,
         const identifier::Nym& nymID,
-        const proto::ContactItemType currency) const noexcept;
-    ProfileMap::mapped_type& profile(
+        const Identifier& threadID) const noexcept
+        -> ActivityThreadMap::mapped_type&;
+    auto contact(const Lock& lock, const Identifier& contactID) const noexcept
+        -> ContactMap::mapped_type&;
+    auto contact_list(const Lock& lock, const identifier::Nym& nymID) const
+        noexcept -> ContactListMap::mapped_type&;
+    auto messagable_list(const Lock& lock, const identifier::Nym& nymID) const
+        noexcept -> MessagableListMap::mapped_type&;
+    auto payable_list(
         const Lock& lock,
-        const identifier::Nym& nymID) const noexcept;
+        const identifier::Nym& nymID,
+        const proto::ContactItemType currency) const noexcept
+        -> PayableListMap::mapped_type&;
+    auto profile(const Lock& lock, const identifier::Nym& nymID) const noexcept
+        -> ProfileMap::mapped_type&;
+    auto unit_list(const Lock& lock, const identifier::Nym& nymID) const
+        noexcept -> UnitListMap::mapped_type&;
 
     UI(const api::client::internal::Manager& api,
        const Flag& running

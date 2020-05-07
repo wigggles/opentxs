@@ -49,7 +49,6 @@ class Message;
 }  // namespace network
 
 class Contact;
-class Factory;
 class Identifier;
 }  // namespace opentxs
 
@@ -91,8 +90,6 @@ public:
     ~Contact();
 
 private:
-    friend opentxs::Factory;
-
     static const std::set<proto::ContactSectionName> allowed_types_;
     static const std::map<proto::ContactSectionName, int> sort_keys_;
 

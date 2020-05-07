@@ -28,6 +28,19 @@ namespace implementation
 class AccountActivity;
 }  // namespace implementation
 
+class AccountActivity;
+class BalanceItem;
+
+#if OT_QT
+class AccountActivityQt;
+#endif
+}  // namespace ui
+}  // namespace opentxs
+
+namespace opentxs
+{
+namespace ui
+{
 class AccountActivity : virtual public List
 {
 public:

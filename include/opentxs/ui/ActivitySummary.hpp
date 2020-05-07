@@ -28,6 +28,19 @@ namespace implementation
 class ActivitySummary;
 }  // namespace implementation
 
+class ActivitySummary;
+class ActivitySummaryItem;
+
+#if OT_QT
+class ActivitySummaryQt;
+#endif
+}  // namespace ui
+}  // namespace opentxs
+
+namespace opentxs
+{
+namespace ui
+{
 class ActivitySummary : virtual public List
 {
 public:

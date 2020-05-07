@@ -28,6 +28,19 @@ namespace implementation
 class AccountList;
 }  // namespace implementation
 
+class AccountList;
+class AccountListItem;
+
+#if OT_QT
+class AccountListQt;
+#endif
+}  // namespace ui
+}  // namespace opentxs
+
+namespace opentxs
+{
+namespace ui
+{
 class AccountList : virtual public List
 {
 public:
@@ -81,8 +94,6 @@ public:
     ~AccountListQt() final = default;
 
 private:
-    friend opentxs::Factory;
-
     implementation::AccountList& parent_;
 
     void notify() const noexcept;

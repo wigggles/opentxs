@@ -46,7 +46,6 @@ class Publish;
 }  // namespace zeromq
 }  // namespace network
 
-class Factory;
 class OTPayment;
 }  // namespace opentxs
 
@@ -71,8 +70,6 @@ public:
     ~PaymentItem();
 
 private:
-    friend opentxs::Factory;
-
     std::string display_amount_;
     std::string memo_;
     opentxs::Amount amount_;

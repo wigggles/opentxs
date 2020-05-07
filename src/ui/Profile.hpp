@@ -57,8 +57,6 @@ class Publish;
 class Message;
 }  // namespace zeromq
 }  // namespace network
-
-class Factory;
 }  // namespace opentxs
 
 namespace opentxs::ui::implementation
@@ -128,8 +126,6 @@ public:
     ~Profile();
 
 private:
-    friend opentxs::Factory;
-
     const ListenerDefinitions listeners_;
     std::string name_;
     std::string payment_code_;

@@ -620,12 +620,12 @@ private:
 
     void AddHashesToTransaction(
         OTTransaction& transaction,
-        const Context& context,
+        const class Context& context,
         const Account& account,
         const PasswordPrompt& reason) const;
     void AddHashesToTransaction(
         OTTransaction& transaction,
-        const Context& context,
+        const class Context& context,
         const Identifier& accountid,
         const PasswordPrompt& reason) const;
 
