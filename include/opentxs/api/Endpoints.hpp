@@ -36,6 +36,23 @@ public:
      */
     OPENTXS_EXPORT virtual std::string AccountUpdate() const noexcept = 0;
 
+    /** Blockchain balance notifications
+     *
+     *  A dealer socket can connect to this endpoint to request balance
+     *  information and receive updates as the balance changes
+     *
+     *  Request message bodies consist of one frames.
+     *   * The frame contains the chain type
+     *
+     *  Reply message bodies consist of three frames.
+     *   * The first frame contains the chain type
+     *   * The second frame contains the confirmed balance
+     *   * The second frame contains the unconfirmed balance
+     *
+     *  This endpoint is active for client sessions only.
+     */
+    OPENTXS_EXPORT virtual std::string BlockchainBalance() const noexcept = 0;
+
     /** Blockchain reorg notifications
      *
      *  A subscribe socket can connect to this endpoint to be notified when

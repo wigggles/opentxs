@@ -18,6 +18,10 @@
 #include "opentxs/Types.hpp"
 #include "opentxs/Version.hpp"
 #include "opentxs/core/Identifier.hpp"
+#if OT_BLOCKCHAIN
+#include "opentxs/network/zeromq/ListenCallback.hpp"
+#include "opentxs/network/zeromq/socket/Dealer.hpp"
+#endif  // OT_BLOCKCHAIN
 #include "opentxs/ui/AccountList.hpp"
 #include "ui/List.hpp"
 #include "ui/Widget.hpp"
@@ -86,21 +90,33 @@ public:
 private:
     friend opentxs::Factory;
 
+#if OT_BLOCKCHAIN
+    OTZMQListenCallback blockchain_balance_cb_;
+    OTZMQDealerSocket blockchain_balance_;
+#endif  // OT_BLOCKCHAIN
     const ListenerDefinitions listeners_;
 
-    void* construct_row(
+    auto construct_row(
         const AccountListRowID& id,
         const AccountListSortKey& index,
-        const CustomData& custom) const noexcept final;
+        const CustomData& custom) const noexcept -> void* final;
 
-    void process_account(const Identifier& id) noexcept;
-    void process_account(const Identifier& id, const Amount balance) noexcept;
-    void process_account(
+    auto process_account(const Identifier& id) noexcept -> void;
+    auto process_account(const Identifier& id, const Amount balance) noexcept
+        -> void;
+    auto process_account(
         const Identifier& id,
         const Amount balance,
-        const std::string& name) noexcept;
-    void process_account(const network::zeromq::Message& message) noexcept;
-    void startup() noexcept;
+        const std::string& name) noexcept -> void;
+    auto process_account(const network::zeromq::Message& message) noexcept
+        -> void;
+#if OT_BLOCKCHAIN
+    auto process_blockchain_balance(
+        const network::zeromq::Message& message) noexcept -> void;
+    auto setup_listeners(const ListenerDefinitions& definitions) noexcept
+        -> void final;
+#endif  // OT_BLOCKCHAIN
+    auto startup() noexcept -> void;
 
     AccountList() = delete;
     AccountList(const AccountList&) = delete;

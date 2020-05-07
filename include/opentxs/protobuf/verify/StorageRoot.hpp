@@ -14,12 +14,8 @@ namespace opentxs
 {
 namespace proto
 {
-OPENTXS_EXPORT bool CheckProto_1(
-    const StorageRoot& root,
-    const bool silent);
-OPENTXS_EXPORT bool CheckProto_2(
-    const StorageRoot& root,
-    const bool silent);
+OPENTXS_EXPORT bool CheckProto_1(const StorageRoot& root, const bool silent);
+OPENTXS_EXPORT bool CheckProto_2(const StorageRoot& root, const bool silent);
 OPENTXS_EXPORT bool CheckProto_3(const StorageRoot&, const bool);
 OPENTXS_EXPORT bool CheckProto_4(const StorageRoot&, const bool);
 OPENTXS_EXPORT bool CheckProto_5(const StorageRoot&, const bool);

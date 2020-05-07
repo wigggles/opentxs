@@ -5,6 +5,10 @@
 
 #include "opentxs/Proto.hpp"  // IWYU pragma: associated
 
+#include <set>
+
+#include "opentxs/protobuf/Contact.hpp"
+#include "opentxs/protobuf/verify/CreateInstrumentDefinition.hpp"
 #include "protobuf/Check.hpp"
 
 #define PROTO_NAME "create instrument definition"

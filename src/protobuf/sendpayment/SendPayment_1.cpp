@@ -5,6 +5,8 @@
 
 #include "opentxs/Proto.hpp"  // IWYU pragma: associated
 
+#include "opentxs/protobuf/RPCEnums.pb.h"
+#include "opentxs/protobuf/verify/SendPayment.hpp"
 #include "protobuf/Check.hpp"
 
 #define PROTO_NAME "send payment"

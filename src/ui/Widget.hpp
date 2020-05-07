@@ -126,7 +126,8 @@ protected:
     const network::zeromq::socket::Publish& publisher_;
     const OTIdentifier widget_id_;
 
-    void setup_listeners(const ListenerDefinitions& definitions) noexcept;
+    virtual void setup_listeners(
+        const ListenerDefinitions& definitions) noexcept;
     void UpdateNotify() const noexcept;
 
     Widget(

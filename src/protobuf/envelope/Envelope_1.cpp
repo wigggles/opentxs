@@ -5,6 +5,13 @@
 
 #include "opentxs/Proto.hpp"  // IWYU pragma: associated
 
+#include <cstdint>
+#include <map>
+#include <set>
+
+#include "opentxs/protobuf/Basic.hpp"
+#include "opentxs/protobuf/verify/Envelope.hpp"
+#include "opentxs/protobuf/verify/VerifyCredentials.hpp"
 #include "protobuf/Check.hpp"
 
 #define PROTO_NAME "envelope"

@@ -5,6 +5,11 @@
 
 #include "opentxs/Proto.hpp"  // IWYU pragma: associated
 
+#include "opentxs/protobuf/Basic.hpp"
+#include "opentxs/protobuf/Contact.hpp"
+#include "opentxs/protobuf/verify/AddClaim.hpp"
+#include "opentxs/protobuf/verify/VerifyContacts.hpp"
+#include "opentxs/protobuf/verify/VerifyRPC.hpp"
 #include "protobuf/Check.hpp"
 
 #define PROTO_NAME "add claim"

@@ -17,63 +17,25 @@ namespace proto
 OPENTXS_EXPORT bool CheckProto_1(
     const BlockchainInputWitness& output,
     const bool silent);
-OPENTXS_EXPORT bool CheckProto_2(
-    const BlockchainInputWitness&,
-    const bool);
-OPENTXS_EXPORT bool CheckProto_3(
-    const BlockchainInputWitness&,
-    const bool);
-OPENTXS_EXPORT bool CheckProto_4(
-    const BlockchainInputWitness&,
-    const bool);
-OPENTXS_EXPORT bool CheckProto_5(
-    const BlockchainInputWitness&,
-    const bool);
-OPENTXS_EXPORT bool CheckProto_6(
-    const BlockchainInputWitness&,
-    const bool);
-OPENTXS_EXPORT bool CheckProto_7(
-    const BlockchainInputWitness&,
-    const bool);
-OPENTXS_EXPORT bool CheckProto_8(
-    const BlockchainInputWitness&,
-    const bool);
-OPENTXS_EXPORT bool CheckProto_9(
-    const BlockchainInputWitness&,
-    const bool);
-OPENTXS_EXPORT bool CheckProto_10(
-    const BlockchainInputWitness&,
-    const bool);
-OPENTXS_EXPORT bool CheckProto_11(
-    const BlockchainInputWitness&,
-    const bool);
-OPENTXS_EXPORT bool CheckProto_12(
-    const BlockchainInputWitness&,
-    const bool);
-OPENTXS_EXPORT bool CheckProto_13(
-    const BlockchainInputWitness&,
-    const bool);
-OPENTXS_EXPORT bool CheckProto_14(
-    const BlockchainInputWitness&,
-    const bool);
-OPENTXS_EXPORT bool CheckProto_15(
-    const BlockchainInputWitness&,
-    const bool);
-OPENTXS_EXPORT bool CheckProto_16(
-    const BlockchainInputWitness&,
-    const bool);
-OPENTXS_EXPORT bool CheckProto_17(
-    const BlockchainInputWitness&,
-    const bool);
-OPENTXS_EXPORT bool CheckProto_18(
-    const BlockchainInputWitness&,
-    const bool);
-OPENTXS_EXPORT bool CheckProto_19(
-    const BlockchainInputWitness&,
-    const bool);
-OPENTXS_EXPORT bool CheckProto_20(
-    const BlockchainInputWitness&,
-    const bool);
+OPENTXS_EXPORT bool CheckProto_2(const BlockchainInputWitness&, const bool);
+OPENTXS_EXPORT bool CheckProto_3(const BlockchainInputWitness&, const bool);
+OPENTXS_EXPORT bool CheckProto_4(const BlockchainInputWitness&, const bool);
+OPENTXS_EXPORT bool CheckProto_5(const BlockchainInputWitness&, const bool);
+OPENTXS_EXPORT bool CheckProto_6(const BlockchainInputWitness&, const bool);
+OPENTXS_EXPORT bool CheckProto_7(const BlockchainInputWitness&, const bool);
+OPENTXS_EXPORT bool CheckProto_8(const BlockchainInputWitness&, const bool);
+OPENTXS_EXPORT bool CheckProto_9(const BlockchainInputWitness&, const bool);
+OPENTXS_EXPORT bool CheckProto_10(const BlockchainInputWitness&, const bool);
+OPENTXS_EXPORT bool CheckProto_11(const BlockchainInputWitness&, const bool);
+OPENTXS_EXPORT bool CheckProto_12(const BlockchainInputWitness&, const bool);
+OPENTXS_EXPORT bool CheckProto_13(const BlockchainInputWitness&, const bool);
+OPENTXS_EXPORT bool CheckProto_14(const BlockchainInputWitness&, const bool);
+OPENTXS_EXPORT bool CheckProto_15(const BlockchainInputWitness&, const bool);
+OPENTXS_EXPORT bool CheckProto_16(const BlockchainInputWitness&, const bool);
+OPENTXS_EXPORT bool CheckProto_17(const BlockchainInputWitness&, const bool);
+OPENTXS_EXPORT bool CheckProto_18(const BlockchainInputWitness&, const bool);
+OPENTXS_EXPORT bool CheckProto_19(const BlockchainInputWitness&, const bool);
+OPENTXS_EXPORT bool CheckProto_20(const BlockchainInputWitness&, const bool);
 }  // namespace proto
 }  // namespace opentxs
 

@@ -5,6 +5,7 @@
 
 #include "opentxs/Proto.hpp"  // IWYU pragma: associated
 
+#include "opentxs/protobuf/verify/Bip47Address.hpp"
 #include "protobuf/Check.hpp"
 
 #define PROTO_NAME "bip47 address"

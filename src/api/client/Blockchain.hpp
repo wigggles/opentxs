@@ -42,6 +42,9 @@
 #include "opentxs/network/zeromq/socket/Publish.hpp"
 #include "opentxs/network/zeromq/socket/Pull.hpp"
 #include "opentxs/network/zeromq/socket/Push.hpp"
+#if OT_BLOCKCHAIN
+#include "opentxs/network/zeromq/socket/Router.hpp"
+#endif  // OT_BLOCKCHAIN
 #include "opentxs/protobuf/ContactEnums.pb.h"
 
 namespace opentxs
@@ -67,6 +70,7 @@ namespace network
 {
 namespace zeromq
 {
+class Context;
 class Message;
 }  // namespace zeromq
 }  // namespace network
@@ -177,6 +181,14 @@ public:
 #endif  // OT_BLOCKCHAIN
     std::shared_ptr<proto::BlockchainTransaction> Transaction(
         const std::string& id) const noexcept final;
+#if OT_BLOCKCHAIN
+    auto UpdateBalance(
+        const opentxs::blockchain::Type chain,
+        const opentxs::blockchain::Balance balance) const noexcept -> void
+    {
+        balances_.UpdateBalance(chain, balance);
+    }
+#endif  // OT_BLOCKCHAIN
     bool UpdateTransactions(const std::map<OTData, OTIdentifier>& changed) const
         noexcept final;
 
@@ -230,6 +242,32 @@ private:
             std::unique_ptr<client::blockchain::internal::BalanceList>>
             lists_;
     };
+#if OT_BLOCKCHAIN
+    struct BalanceOracle {
+        using Balance = opentxs::blockchain::Balance;
+        using Chain = opentxs::blockchain::Type;
+
+        auto UpdateBalance(const Chain chain, const Balance balance) const
+            noexcept -> void;
+
+        BalanceOracle(
+            const api::client::internal::Blockchain& parent,
+            const api::Core& api) noexcept;
+
+    private:
+        const api::client::internal::Blockchain& parent_;
+        const api::Core& api_;
+        const opentxs::network::zeromq::Context& zmq_;
+        OTZMQListenCallback cb_;
+        OTZMQRouterSocket socket_;
+        mutable std::mutex lock_;
+        mutable std::map<Chain, std::set<OTData>> subscribers_;
+
+        auto cb(opentxs::network::zeromq::Message& message) noexcept -> void;
+
+        BalanceOracle() = delete;
+    };
+#endif  // OT_BLOCKCHAIN
     struct Txo final : virtual public internal::Blockchain::TxoDB {
         bool AddSpent(
             const identifier::Nym& nym,
@@ -347,6 +385,7 @@ private:
         Chain,
         std::unique_ptr<opentxs::blockchain::client::internal::Network>>
         networks_;
+    BalanceOracle balances_;
 #endif  // OT_BLOCKCHAIN
 
     OTData address_prefix(const Style style, const Chain chain) const

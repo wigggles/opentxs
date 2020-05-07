@@ -201,7 +201,7 @@ set_target_properties(
 
 install(
   DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-  DESTINATION include/opentxs/protobuf
+  DESTINATION include/opentxs
   COMPONENT dev
   FILES_MATCHING
   PATTERN "*.h"

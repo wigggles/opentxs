@@ -14,33 +14,15 @@ namespace opentxs
 {
 namespace proto
 {
-OPENTXS_EXPORT bool CheckProto_1(
-    const StorageNotary& input,
-    const bool silent);
-OPENTXS_EXPORT bool CheckProto_2(
-    const StorageNotary& input,
-    const bool silent);
-OPENTXS_EXPORT bool CheckProto_3(
-    const StorageNotary& input,
-    const bool silent);
-OPENTXS_EXPORT bool CheckProto_4(
-    const StorageNotary& input,
-    const bool silent);
-OPENTXS_EXPORT bool CheckProto_5(
-    const StorageNotary& input,
-    const bool silent);
-OPENTXS_EXPORT bool CheckProto_6(
-    const StorageNotary& input,
-    const bool silent);
-OPENTXS_EXPORT bool CheckProto_7(
-    const StorageNotary& input,
-    const bool silent);
-OPENTXS_EXPORT bool CheckProto_8(
-    const StorageNotary& input,
-    const bool silent);
-OPENTXS_EXPORT bool CheckProto_9(
-    const StorageNotary& input,
-    const bool silent);
+OPENTXS_EXPORT bool CheckProto_1(const StorageNotary& input, const bool silent);
+OPENTXS_EXPORT bool CheckProto_2(const StorageNotary& input, const bool silent);
+OPENTXS_EXPORT bool CheckProto_3(const StorageNotary& input, const bool silent);
+OPENTXS_EXPORT bool CheckProto_4(const StorageNotary& input, const bool silent);
+OPENTXS_EXPORT bool CheckProto_5(const StorageNotary& input, const bool silent);
+OPENTXS_EXPORT bool CheckProto_6(const StorageNotary& input, const bool silent);
+OPENTXS_EXPORT bool CheckProto_7(const StorageNotary& input, const bool silent);
+OPENTXS_EXPORT bool CheckProto_8(const StorageNotary& input, const bool silent);
+OPENTXS_EXPORT bool CheckProto_9(const StorageNotary& input, const bool silent);
 OPENTXS_EXPORT bool CheckProto_10(
     const StorageNotary& input,
     const bool silent);

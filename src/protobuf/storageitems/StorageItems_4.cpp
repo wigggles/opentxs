@@ -5,6 +5,7 @@
 
 #include "opentxs/Proto.hpp"  // IWYU pragma: associated
 
+#include "opentxs/protobuf/verify/StorageItems.hpp"
 #include "protobuf/Check.hpp"
 
 #define PROTO_NAME "storage item index"

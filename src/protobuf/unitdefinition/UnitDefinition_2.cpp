@@ -5,6 +5,22 @@
 
 #include "opentxs/Proto.hpp"  // IWYU pragma: associated
 
+#include <set>
+#include <stdexcept>
+#include <string>
+#include <utility>
+
+#include "opentxs/protobuf/Basic.hpp"
+#include "opentxs/protobuf/Check.hpp"
+#include "opentxs/protobuf/Contact.hpp"
+#include "opentxs/protobuf/ContractEnums.pb.h"
+#include "opentxs/protobuf/verify/BasketParams.hpp"
+#include "opentxs/protobuf/verify/CurrencyParams.hpp"
+#include "opentxs/protobuf/verify/EquityParams.hpp"
+#include "opentxs/protobuf/verify/Nym.hpp"
+#include "opentxs/protobuf/verify/Signature.hpp"
+#include "opentxs/protobuf/verify/UnitDefinition.hpp"
+#include "opentxs/protobuf/verify/VerifyContracts.hpp"
 #include "protobuf/Check.hpp"
 
 #define PROTO_NAME "unit definition"

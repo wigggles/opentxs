@@ -24,6 +24,7 @@
 #include "blockchain/client/UpdateTransaction.hpp"
 #include "core/Executor.hpp"
 #include "internal/api/Api.hpp"
+#include "internal/api/client/Client.hpp"
 #include "internal/blockchain/Blockchain.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Proto.tpp"
@@ -47,10 +48,11 @@
 
 #define OT_METHOD "opentxs::blockchain::implementation::Database::"
 
-namespace opentxs
+namespace opentxs::factory
 {
-auto Factory::BlockchainDatabase(
+auto BlockchainDatabase(
     const api::internal::Core& api,
+    const api::client::internal::Blockchain& blockchain,
     const blockchain::client::internal::Network& network,
     const api::client::blockchain::database::implementation::Database& common,
     const blockchain::Type type) noexcept
@@ -58,9 +60,9 @@ auto Factory::BlockchainDatabase(
 {
     using ReturnType = blockchain::implementation::Database;
 
-    return std::make_unique<ReturnType>(api, network, common, type);
+    return std::make_unique<ReturnType>(api, blockchain, network, common, type);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::blockchain::client::internal
 {
@@ -123,6 +125,7 @@ const std::map<
 
 Database::Database(
     const api::internal::Core& api,
+    const api::client::internal::Blockchain& blockchain,
     const client::internal::Network& network,
     const Common& common,
     const blockchain::Type type) noexcept
@@ -144,7 +147,7 @@ Database::Database(
     , blocks_(api, common_, type)
     , filters_(api, common_, lmdb_, type)
     , headers_(api, network, common_, lmdb_, type)
-    , wallet_(api)
+    , wallet_(api, blockchain, chain_)
 {
     init_db();
 }
@@ -190,8 +193,13 @@ Database::Headers::Headers(
     OT_ASSERT(HeaderExists(best().second));
 }
 
-Database::Wallet::Wallet(const api::Core& api) noexcept
+Database::Wallet::Wallet(
+    const api::Core& api,
+    const api::client::internal::Blockchain& blockchain,
+    const blockchain::Type chain) noexcept
     : api_(api)
+    , blockchain_(blockchain)
+    , chain_(chain)
     , lock_()
     , patterns_()
     , subchain_pattern_index_()
@@ -968,6 +976,8 @@ auto Database::Wallet::AddConfirmedTransaction(
         }
     }
 
+    blockchain_.UpdateBalance(chain_, get_balance(lock));
+
     return true;
 }
 
@@ -1023,21 +1033,9 @@ auto Database::Wallet::find_output(
     }
 }
 
-auto Database::Wallet::get_patterns(
-    const Lock& lock,
-    const NodeID& balanceNode,
-    const Subchain subchain,
-    const FilterType type,
-    const VersionNumber version) const noexcept(false) -> const IDSet&
+auto Database::Wallet::get_balance(const Lock&) const noexcept -> Balance
 {
-    return subchain_pattern_index_.at(
-        subchain_id(balanceNode, subchain, type, version));
-}
-
-auto Database::Wallet::GetBalance() const noexcept -> BalanceData
-{
-    Lock lock(lock_);
-    auto output = BalanceData{};
+    auto output = Balance{};
     auto& [confirmed, unconfirmed] = output;
     auto cb = [this](const auto previous, const auto& in) -> auto
     {
@@ -1062,6 +1060,24 @@ auto Database::Wallet::GetBalance() const noexcept -> BalanceData
         cb);
 
     return output;
+}
+
+auto Database::Wallet::get_patterns(
+    const Lock& lock,
+    const NodeID& balanceNode,
+    const Subchain subchain,
+    const FilterType type,
+    const VersionNumber version) const noexcept(false) -> const IDSet&
+{
+    return subchain_pattern_index_.at(
+        subchain_id(balanceNode, subchain, type, version));
+}
+
+auto Database::Wallet::GetBalance() const noexcept -> Balance
+{
+    Lock lock(lock_);
+
+    return get_balance(lock);
 }
 
 auto Database::Wallet::GetPatterns(

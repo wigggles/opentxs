@@ -5,6 +5,14 @@
 
 #include "opentxs/Proto.hpp"  // IWYU pragma: associated
 
+#include <stdexcept>
+#include <utility>
+
+#include "opentxs/protobuf/Basic.hpp"
+#include "opentxs/protobuf/Check.hpp"
+#include "opentxs/protobuf/verify/Ciphertext.hpp"
+#include "opentxs/protobuf/verify/SymmetricKey.hpp"
+#include "opentxs/protobuf/verify/VerifyCredentials.hpp"
 #include "protobuf/Check.hpp"
 
 #define PROTO_NAME "symmetric key"

@@ -22,6 +22,7 @@ set(
   ActivityThread.cpp
   ActivityThreadItem.cpp
   BalanceItem.cpp
+  BlockchainAccountListItem.cpp
   ChequeBalanceItem.cpp
   Contact.cpp
   ContactItem.cpp
@@ -41,6 +42,7 @@ set(
   ProfileSection.cpp
   ProfileSubsection.cpp
   TransferBalanceItem.cpp
+  UI.cpp
   Widget.cpp
 )
 set(

@@ -5,6 +5,15 @@
 
 #include "opentxs/Proto.hpp"  // IWYU pragma: associated
 
+#include <stdexcept>
+#include <string>
+#include <utility>
+
+#include "opentxs/protobuf/Basic.hpp"
+#include "opentxs/protobuf/Check.hpp"
+#include "opentxs/protobuf/verify/StorageItemHash.hpp"
+#include "opentxs/protobuf/verify/StorageSeeds.hpp"
+#include "opentxs/protobuf/verify/VerifyStorage.hpp"
 #include "protobuf/Check.hpp"
 
 #define PROTO_NAME "seed storage index"

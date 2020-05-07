@@ -14,33 +14,15 @@ namespace opentxs
 {
 namespace proto
 {
-OPENTXS_EXPORT bool CheckProto_1(
-    const PurseExchange& input,
-    const bool silent);
-OPENTXS_EXPORT bool CheckProto_2(
-    const PurseExchange& input,
-    const bool silent);
-OPENTXS_EXPORT bool CheckProto_3(
-    const PurseExchange& input,
-    const bool silent);
-OPENTXS_EXPORT bool CheckProto_4(
-    const PurseExchange& input,
-    const bool silent);
-OPENTXS_EXPORT bool CheckProto_5(
-    const PurseExchange& input,
-    const bool silent);
-OPENTXS_EXPORT bool CheckProto_6(
-    const PurseExchange& input,
-    const bool silent);
-OPENTXS_EXPORT bool CheckProto_7(
-    const PurseExchange& input,
-    const bool silent);
-OPENTXS_EXPORT bool CheckProto_8(
-    const PurseExchange& input,
-    const bool silent);
-OPENTXS_EXPORT bool CheckProto_9(
-    const PurseExchange& input,
-    const bool silent);
+OPENTXS_EXPORT bool CheckProto_1(const PurseExchange& input, const bool silent);
+OPENTXS_EXPORT bool CheckProto_2(const PurseExchange& input, const bool silent);
+OPENTXS_EXPORT bool CheckProto_3(const PurseExchange& input, const bool silent);
+OPENTXS_EXPORT bool CheckProto_4(const PurseExchange& input, const bool silent);
+OPENTXS_EXPORT bool CheckProto_5(const PurseExchange& input, const bool silent);
+OPENTXS_EXPORT bool CheckProto_6(const PurseExchange& input, const bool silent);
+OPENTXS_EXPORT bool CheckProto_7(const PurseExchange& input, const bool silent);
+OPENTXS_EXPORT bool CheckProto_8(const PurseExchange& input, const bool silent);
+OPENTXS_EXPORT bool CheckProto_9(const PurseExchange& input, const bool silent);
 OPENTXS_EXPORT bool CheckProto_10(
     const PurseExchange& input,
     const bool silent);

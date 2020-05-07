@@ -20,7 +20,6 @@
 #include <utility>
 #include <vector>
 
-#include "Factory.hpp"
 #include "blockchain/client/HDStateData.hpp"
 #include "core/Executor.hpp"
 #include "internal/api/Api.hpp"
@@ -48,9 +47,9 @@
 
 #define OT_METHOD "opentxs::blockchain::client::implementation::Wallet::"
 
-namespace opentxs
+namespace opentxs::factory
 {
-auto Factory::BlockchainWallet(
+auto BlockchainWallet(
     const api::internal::Core& api,
     const api::client::internal::Blockchain& blockchain,
     const blockchain::client::internal::Network& parent,
@@ -63,7 +62,7 @@ auto Factory::BlockchainWallet(
     return std::make_unique<ReturnType>(
         api, blockchain, parent, chain, shutdown);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::blockchain::client::internal
 {

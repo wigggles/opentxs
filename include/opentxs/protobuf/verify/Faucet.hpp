@@ -17,9 +17,7 @@ namespace proto
 OPENTXS_EXPORT bool CheckProto_1(const Faucet&, const bool);
 OPENTXS_EXPORT bool CheckProto_2(const Faucet&, const bool);
 OPENTXS_EXPORT bool CheckProto_3(const Faucet&, const bool);
-OPENTXS_EXPORT bool CheckProto_4(
-    const Faucet& request,
-    const bool silent);
+OPENTXS_EXPORT bool CheckProto_4(const Faucet& request, const bool silent);
 OPENTXS_EXPORT bool CheckProto_5(const Faucet&, const bool);
 OPENTXS_EXPORT bool CheckProto_6(const Faucet&, const bool);
 OPENTXS_EXPORT bool CheckProto_7(const Faucet&, const bool);

@@ -5,6 +5,11 @@
 
 #include "opentxs/Proto.hpp"  // IWYU pragma: associated
 
+#include <string>
+
+#include "opentxs/protobuf/Basic.hpp"
+#include "opentxs/protobuf/verify/BlockchainBlockHeader.hpp"
+#include "opentxs/protobuf/verify/VerifyBlockchain.hpp"
 #include "protobuf/Check.hpp"
 
 #define PROTO_NAME "blockchain block header"

@@ -5,6 +5,10 @@
 
 #include "opentxs/Proto.hpp"  // IWYU pragma: associated
 
+#include <string>
+
+#include "opentxs/protobuf/StorageEnums.pb.h"
+#include "opentxs/protobuf/verify/StorageItemHash.hpp"
 #include "protobuf/Check.hpp"
 
 #define PROTO_NAME "storage item hash"

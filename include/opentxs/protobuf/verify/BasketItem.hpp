@@ -22,38 +22,14 @@ OPENTXS_EXPORT bool CheckProto_1(
     const BasketItem& item,
     const bool silent,
     BasketItemMap& map);
-OPENTXS_EXPORT bool CheckProto_2(
-    const BasketItem&,
-    const bool,
-    BasketItemMap&);
-OPENTXS_EXPORT bool CheckProto_3(
-    const BasketItem&,
-    const bool,
-    BasketItemMap&);
-OPENTXS_EXPORT bool CheckProto_4(
-    const BasketItem&,
-    const bool,
-    BasketItemMap&);
-OPENTXS_EXPORT bool CheckProto_5(
-    const BasketItem&,
-    const bool,
-    BasketItemMap&);
-OPENTXS_EXPORT bool CheckProto_6(
-    const BasketItem&,
-    const bool,
-    BasketItemMap&);
-OPENTXS_EXPORT bool CheckProto_7(
-    const BasketItem&,
-    const bool,
-    BasketItemMap&);
-OPENTXS_EXPORT bool CheckProto_8(
-    const BasketItem&,
-    const bool,
-    BasketItemMap&);
-OPENTXS_EXPORT bool CheckProto_9(
-    const BasketItem&,
-    const bool,
-    BasketItemMap&);
+OPENTXS_EXPORT bool CheckProto_2(const BasketItem&, const bool, BasketItemMap&);
+OPENTXS_EXPORT bool CheckProto_3(const BasketItem&, const bool, BasketItemMap&);
+OPENTXS_EXPORT bool CheckProto_4(const BasketItem&, const bool, BasketItemMap&);
+OPENTXS_EXPORT bool CheckProto_5(const BasketItem&, const bool, BasketItemMap&);
+OPENTXS_EXPORT bool CheckProto_6(const BasketItem&, const bool, BasketItemMap&);
+OPENTXS_EXPORT bool CheckProto_7(const BasketItem&, const bool, BasketItemMap&);
+OPENTXS_EXPORT bool CheckProto_8(const BasketItem&, const bool, BasketItemMap&);
+OPENTXS_EXPORT bool CheckProto_9(const BasketItem&, const bool, BasketItemMap&);
 OPENTXS_EXPORT bool CheckProto_10(
     const BasketItem&,
     const bool,

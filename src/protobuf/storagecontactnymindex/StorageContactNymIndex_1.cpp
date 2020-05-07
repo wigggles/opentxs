@@ -5,6 +5,9 @@
 
 #include "opentxs/Proto.hpp"  // IWYU pragma: associated
 
+#include <string>
+
+#include "opentxs/protobuf/verify/StorageContactNymIndex.hpp"
 #include "protobuf/Check.hpp"
 
 #define PROTO_NAME "storage contact nym index"

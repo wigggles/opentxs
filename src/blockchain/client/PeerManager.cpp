@@ -44,9 +44,9 @@
 
 #define OT_METHOD "opentxs::blockchain::client::implementation::PeerManager::"
 
-namespace opentxs
+namespace opentxs::factory
 {
-auto Factory::BlockchainPeerManager(
+auto BlockchainPeerManager(
     const api::internal::Core& api,
     const blockchain::client::internal::Network& network,
     const blockchain::client::internal::PeerDatabase& database,
@@ -61,7 +61,7 @@ auto Factory::BlockchainPeerManager(
     return std::make_unique<ReturnType>(
         api, network, database, io, type, seednode, shutdown);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::blockchain::client::implementation
 {

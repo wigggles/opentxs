@@ -46,6 +46,25 @@ namespace opentxs
 {
 namespace api
 {
+namespace client
+{
+namespace blockchain
+{
+namespace database
+{
+namespace implementation
+{
+class Database;
+}  // namespace implementation
+}  // namespace database
+}  // namespace blockchain
+
+namespace internal
+{
+struct Blockchain;
+}  // namespace internal
+}  // namespace client
+
 namespace internal
 {
 struct Core;
@@ -325,6 +344,8 @@ struct Network : virtual public opentxs::blockchain::Network {
     };
 
     virtual auto API() const noexcept -> const api::internal::Core& = 0;
+    virtual auto Blockchain() const noexcept
+        -> const api::client::internal::Blockchain& = 0;
     virtual auto BlockOracle() const noexcept
         -> const internal::BlockOracle& = 0;
     virtual auto Chain() const noexcept -> Type = 0;
@@ -464,9 +485,6 @@ struct WalletDatabase {
     using UTXO = std::pair<
         blockchain::block::bitcoin::Outpoint,
         proto::BlockchainTransactionOutput>;
-    using ConfirmedBalance = std::uint64_t;
-    using UnconfirmedBalance = std::uint64_t;
-    using BalanceData = std::pair<ConfirmedBalance, UnconfirmedBalance>;
 
     static const VersionNumber DefaultIndexVersion;
 
@@ -475,7 +493,7 @@ struct WalletDatabase {
         const std::vector<std::uint32_t> outputIndices,
         const block::bitcoin::Transaction& transaction) const noexcept
         -> bool = 0;
-    virtual auto GetBalance() const noexcept -> BalanceData = 0;
+    virtual auto GetBalance() const noexcept -> Balance = 0;
     virtual auto GetPatterns(
         const NodeID& balanceNode,
         const Subchain subchain,
@@ -543,3 +561,58 @@ struct WalletDatabase {
 };
 #endif  // OT_BLOCKCHAIN
 }  // namespace opentxs::blockchain::client::internal
+
+#if OT_BLOCKCHAIN
+namespace opentxs::factory
+{
+auto BlockchainDatabase(
+    const api::internal::Core& api,
+    const api::client::internal::Blockchain& blockchain,
+    const blockchain::client::internal::Network& network,
+    const api::client::blockchain::database::implementation::Database& db,
+    const blockchain::Type type) noexcept
+    -> std::unique_ptr<blockchain::internal::Database>;
+auto BlockchainFilterOracle(
+    const api::internal::Core& api,
+    const blockchain::client::internal::Network& network,
+    const blockchain::client::internal::FilterDatabase& database,
+    const blockchain::Type type,
+    const std::string& shutdown) noexcept
+    -> std::unique_ptr<blockchain::client::internal::FilterOracle>;
+OPENTXS_EXPORT auto BlockchainNetworkBitcoin(
+    const api::internal::Core& api,
+    const api::client::internal::Blockchain& blockchain,
+    const blockchain::Type type,
+    const std::string& seednode,
+    const std::string& shutdown) noexcept
+    -> std::unique_ptr<blockchain::client::internal::Network>;
+auto BlockchainPeerManager(
+    const api::internal::Core& api,
+    const blockchain::client::internal::Network& network,
+    const blockchain::client::internal::PeerDatabase& database,
+    const blockchain::client::internal::IO& io,
+    const blockchain::Type type,
+    const std::string& seednode,
+    const std::string& shutdown) noexcept
+    -> std::unique_ptr<blockchain::client::internal::PeerManager>;
+OPENTXS_EXPORT auto BlockchainWallet(
+    const api::internal::Core& api,
+    const api::client::internal::Blockchain& blockchain,
+    const blockchain::client::internal::Network& parent,
+    const blockchain::Type chain,
+    const std::string& shutdown)
+    -> std::unique_ptr<blockchain::client::internal::Wallet>;
+auto BlockOracle(
+    const api::internal::Core& api,
+    const blockchain::client::internal::Network& network,
+    const blockchain::Type type,
+    const std::string& shutdown) noexcept
+    -> std::unique_ptr<blockchain::client::internal::BlockOracle>;
+auto HeaderOracle(
+    const api::internal::Core& api,
+    const blockchain::client::internal::Network& network,
+    const blockchain::client::internal::HeaderDatabase& database,
+    const blockchain::Type type) noexcept
+    -> std::unique_ptr<blockchain::client::internal::HeaderOracle>;
+}  // namespace opentxs::factory
+#endif  // OT_BLOCKCHAIN

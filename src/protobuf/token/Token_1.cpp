@@ -5,11 +5,19 @@
 
 #include "opentxs/Proto.hpp"  // IWYU pragma: associated
 
+#include <cstdint>
+
+#include "opentxs/protobuf/Basic.hpp"
+#include "opentxs/protobuf/CashEnums.pb.h"
+#include "opentxs/protobuf/verify/Token.hpp"
+#include "opentxs/protobuf/verify/VerifyCash.hpp"
 #include "protobuf/Check.hpp"
 
 #define PROTO_NAME "token"
 
 #include <algorithm>
+#include <set>
+#include <string>
 
 namespace opentxs
 {

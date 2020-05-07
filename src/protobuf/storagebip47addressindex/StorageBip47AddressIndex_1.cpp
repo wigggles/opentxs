@@ -5,6 +5,7 @@
 
 #include "opentxs/Proto.hpp"  // IWYU pragma: associated
 
+#include "opentxs/protobuf/verify/StorageBip47AddressIndex.hpp"
 #include "protobuf/Check.hpp"
 
 #define PROTO_NAME "storage bip47 address index"

@@ -14,33 +14,15 @@ namespace opentxs
 {
 namespace proto
 {
-OPENTXS_EXPORT bool CheckProto_1(
-    const ServerRequest& input,
-    const bool silent);
-OPENTXS_EXPORT bool CheckProto_2(
-    const ServerRequest& input,
-    const bool silent);
-OPENTXS_EXPORT bool CheckProto_3(
-    const ServerRequest& input,
-    const bool silent);
-OPENTXS_EXPORT bool CheckProto_4(
-    const ServerRequest& input,
-    const bool silent);
-OPENTXS_EXPORT bool CheckProto_5(
-    const ServerRequest& input,
-    const bool silent);
-OPENTXS_EXPORT bool CheckProto_6(
-    const ServerRequest& input,
-    const bool silent);
-OPENTXS_EXPORT bool CheckProto_7(
-    const ServerRequest& input,
-    const bool silent);
-OPENTXS_EXPORT bool CheckProto_8(
-    const ServerRequest& input,
-    const bool silent);
-OPENTXS_EXPORT bool CheckProto_9(
-    const ServerRequest& input,
-    const bool silent);
+OPENTXS_EXPORT bool CheckProto_1(const ServerRequest& input, const bool silent);
+OPENTXS_EXPORT bool CheckProto_2(const ServerRequest& input, const bool silent);
+OPENTXS_EXPORT bool CheckProto_3(const ServerRequest& input, const bool silent);
+OPENTXS_EXPORT bool CheckProto_4(const ServerRequest& input, const bool silent);
+OPENTXS_EXPORT bool CheckProto_5(const ServerRequest& input, const bool silent);
+OPENTXS_EXPORT bool CheckProto_6(const ServerRequest& input, const bool silent);
+OPENTXS_EXPORT bool CheckProto_7(const ServerRequest& input, const bool silent);
+OPENTXS_EXPORT bool CheckProto_8(const ServerRequest& input, const bool silent);
+OPENTXS_EXPORT bool CheckProto_9(const ServerRequest& input, const bool silent);
 OPENTXS_EXPORT bool CheckProto_10(
     const ServerRequest& input,
     const bool silent);

@@ -13,7 +13,6 @@
 #include <map>
 #include <type_traits>
 
-#include "Factory.hpp"
 #include "blockchain/client/UpdateTransaction.hpp"
 #include "internal/api/Api.hpp"
 #include "internal/core/Core.hpp"
@@ -26,9 +25,9 @@
 
 #define OT_METHOD "opentxs::blockchain::client::implementation::HeaderOracle::"
 
-namespace opentxs
+namespace opentxs::factory
 {
-auto Factory::HeaderOracle(
+auto HeaderOracle(
     const api::internal::Core& api,
     const blockchain::client::internal::Network& network,
     const blockchain::client::internal::HeaderDatabase& database,
@@ -39,7 +38,7 @@ auto Factory::HeaderOracle(
 
     return std::make_unique<ReturnType>(api, network, database, type);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::blockchain::client
 {

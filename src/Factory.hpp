@@ -617,47 +617,6 @@ public:
         const api::internal::Core& api,
         const proto::BlockchainPeerAddress serialized) noexcept
         -> std::unique_ptr<blockchain::p2p::internal::Address>;
-    static auto BlockchainDatabase(
-        const api::internal::Core& api,
-        const blockchain::client::internal::Network& network,
-        const api::client::blockchain::database::implementation::Database& db,
-        const blockchain::Type type) noexcept
-        -> std::unique_ptr<blockchain::internal::Database>;
-    static auto BlockchainFilterOracle(
-        const api::internal::Core& api,
-        const blockchain::client::internal::Network& network,
-        const blockchain::client::internal::FilterDatabase& database,
-        const blockchain::Type type,
-        const std::string& shutdown) noexcept
-        -> std::unique_ptr<blockchain::client::internal::FilterOracle>;
-    OPENTXS_EXPORT static auto BlockchainNetworkBitcoin(
-        const api::internal::Core& api,
-        const api::client::internal::Blockchain& blockchain,
-        const blockchain::Type type,
-        const std::string& seednode,
-        const std::string& shutdown) -> blockchain::client::internal::Network*;
-    static auto BlockchainPeerManager(
-        const api::internal::Core& api,
-        const blockchain::client::internal::Network& network,
-        const blockchain::client::internal::PeerDatabase& database,
-        const blockchain::client::internal::IO& io,
-        const blockchain::Type type,
-        const std::string& seednode,
-        const std::string& shutdown) noexcept
-        -> std::unique_ptr<blockchain::client::internal::PeerManager>;
-    OPENTXS_EXPORT static auto BlockchainWallet(
-        const api::internal::Core& api,
-        const api::client::internal::Blockchain& blockchain,
-        const blockchain::client::internal::Network& parent,
-        const blockchain::Type chain,
-        const std::string& shutdown)
-        -> std::unique_ptr<blockchain::client::internal::Wallet>;
-    static auto BlockOracle(
-        const api::internal::Core& api,
-        const blockchain::client::internal::Network& network,
-        const blockchain::Type type,
-        const std::string& shutdown) noexcept
-        -> std::unique_ptr<blockchain::client::internal::BlockOracle>;
     OPENTXS_EXPORT static auto BloomFilter(
         const api::internal::Core& api,
         const std::uint32_t tweak,
@@ -871,14 +830,6 @@ public:
         const api::storage::Storage& storage,
         const crypto::Bip32& bip32,
         const crypto::Bip39& bip39);
-#if OT_BLOCKCHAIN
-    static auto HeaderOracle(
-        const api::internal::Core& api,
-        const blockchain::client::internal::Network& network,
-        const blockchain::client::internal::HeaderDatabase& database,
-        const blockchain::Type type) noexcept
-        -> std::unique_ptr<blockchain::client::internal::HeaderOracle>;
-#endif  // OT_BLOCKCHAIN
     static api::client::Issuer* Issuer(
         const api::Wallet& wallet,
         const identifier::Nym& nymID,

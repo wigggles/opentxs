@@ -5,6 +5,11 @@
 
 #include "opentxs/Proto.hpp"  // IWYU pragma: associated
 
+#include <string>
+
+#include "opentxs/protobuf/Basic.hpp"
+#include "opentxs/protobuf/verify/BlindedSeriesList.hpp"
+#include "opentxs/protobuf/verify/VerifyStorage.hpp"
 #include "protobuf/Check.hpp"
 
 #define PROTO_NAME "blinded series list"
