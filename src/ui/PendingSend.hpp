@@ -43,8 +43,6 @@ class Publish;
 }  // namespace socket
 }  // namespace zeromq
 }  // namespace network
-
-class Factory;
 }  // namespace opentxs
 
 namespace opentxs::ui::implementation
@@ -68,8 +66,6 @@ public:
     ~PendingSend() = default;
 
 private:
-    friend opentxs::Factory;
-
     opentxs::Amount amount_;
     std::string display_amount_;
     std::string memo_;

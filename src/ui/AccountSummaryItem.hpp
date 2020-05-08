@@ -53,8 +53,6 @@ namespace ui
 {
 class AccountSummaryItem;
 }  // namespace ui
-
-class Factory;
 }  // namespace opentxs
 
 namespace opentxs::ui::implementation
@@ -89,8 +87,6 @@ public:
     ~AccountSummaryItem() final = default;
 
 private:
-    friend opentxs::Factory;
-
     const Identifier& account_id_;
     const proto::ContactItemType& currency_;
     mutable std::atomic<Amount> balance_;

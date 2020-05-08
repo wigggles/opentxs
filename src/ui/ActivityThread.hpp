@@ -74,7 +74,6 @@ class StorageThreadItem;
 }  // namespace proto
 
 class Contact;
-class Factory;
 }  // namespace opentxs
 
 namespace std
@@ -179,8 +178,6 @@ public:
     ~ActivityThread() final;
 
 private:
-    friend opentxs::Factory;
-
     const ListenerDefinitions listeners_;
     const OTIdentifier threadID_;
     std::set<OTIdentifier> participants_;

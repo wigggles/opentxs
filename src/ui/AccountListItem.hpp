@@ -60,8 +60,6 @@ namespace ui
 {
 class AccountListItem;
 }  // namespace ui
-
-class Factory;
 }  // namespace opentxs
 
 namespace opentxs::ui::implementation
@@ -109,8 +107,6 @@ public:
     ~AccountListItem() = default;
 
 private:
-    friend opentxs::Factory;
-
     const AccountType type_;
     const proto::ContactItemType unit_;
     const Amount balance_;

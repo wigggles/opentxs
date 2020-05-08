@@ -42,8 +42,6 @@ namespace ui
 {
 class ContactListItem;
 }  // namespace ui
-
-class Factory;
 }  // namespace opentxs
 
 namespace opentxs::ui::implementation
@@ -79,8 +77,6 @@ protected:
     ContactListSortKey key_;
 
 private:
-    friend opentxs::Factory;
-
     ContactListItem() = delete;
     ContactListItem(const ContactListItem&) = delete;
     ContactListItem(ContactListItem&&) = delete;

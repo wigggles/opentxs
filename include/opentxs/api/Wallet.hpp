@@ -94,7 +94,8 @@ public:
      *    \returns A smart pointer to the object. The smart pointer will not be
      *             instantiated if the object does not exist or is invalid.
      */
-    OPENTXS_EXPORT virtual std::shared_ptr<const opentxs::Context> Context(
+    OPENTXS_EXPORT virtual std::shared_ptr<const class opentxs::Context>
+    Context(
         const identifier::Server& notaryID,
         const identifier::Nym& clientNymID) const = 0;
 
@@ -133,7 +134,7 @@ public:
      *    \param[in] clientNymID context identifier (usually the other party's
      *                           nym id)
      */
-    OPENTXS_EXPORT virtual Editor<opentxs::Context> mutable_Context(
+    OPENTXS_EXPORT virtual Editor<class opentxs::Context> mutable_Context(
         const identifier::Server& notaryID,
         const identifier::Nym& clientNymID,
         const PasswordPrompt& reason) const = 0;

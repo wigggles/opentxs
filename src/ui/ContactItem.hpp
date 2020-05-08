@@ -49,8 +49,6 @@ namespace ui
 {
 class ContactItem;
 }  // namespace ui
-
-class Factory;
 }  // namespace opentxs
 
 namespace opentxs::ui::implementation
@@ -102,8 +100,6 @@ public:
     ~ContactItem() = default;
 
 private:
-    friend opentxs::Factory;
-
     std::unique_ptr<opentxs::ContactItem> item_;
 
     ContactItem() = delete;

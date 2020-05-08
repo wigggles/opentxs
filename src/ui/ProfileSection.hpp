@@ -55,7 +55,6 @@ class Publish;
 }  // namespace network
 
 class ContactSection;
-class Factory;
 }  // namespace opentxs
 
 namespace opentxs::ui::implementation
@@ -126,8 +125,6 @@ public:
     ~ProfileSection() = default;
 
 private:
-    friend opentxs::Factory;
-
     static int sort_key(const ProfileSectionRowID type) noexcept;
     static bool check_type(const ProfileSectionRowID type) noexcept;
 

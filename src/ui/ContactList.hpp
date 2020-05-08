@@ -55,8 +55,6 @@ class Publish;
 class Message;
 }  // namespace zeromq
 }  // namespace network
-
-class Factory;
 }  // namespace opentxs
 
 namespace opentxs::ui::implementation
@@ -98,8 +96,6 @@ public:
     ~ContactList() final;
 
 private:
-    friend opentxs::Factory;
-
     struct ParsedArgs {
         OTNymID nym_id_;
         OTPaymentCode payment_code_;

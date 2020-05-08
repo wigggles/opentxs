@@ -53,7 +53,6 @@ class ContactSubsection;
 }  // namespace ui
 
 class ContactGroup;
-class Factory;
 }  // namespace opentxs
 
 namespace opentxs::ui::implementation
@@ -103,8 +102,6 @@ public:
     ~ContactSubsection() = default;
 
 private:
-    friend opentxs::Factory;
-
     static bool check_type(const ContactSubsectionRowID type) noexcept;
 
     void* construct_row(

@@ -39,6 +39,53 @@
 
 namespace opentxs
 {
+namespace ui
+{
+class AccountActivity;
+class AccountList;
+class AccountListItem;
+class AccountSummary;
+class AccountSummaryItem;
+class ActivitySummary;
+class ActivitySummaryItem;
+class ActivityThread;
+class ActivityThreadItem;
+class BalanceItem;
+class Contact;
+class ContactItem;
+class ContactList;
+class ContactListItem;
+class ContactSection;
+class ContactSubsection;
+class IssuerItem;
+class ListRow;
+class MessagableList;
+class PayableList;
+class PayableListItem;
+class Profile;
+class ProfileItem;
+class ProfileSection;
+class ProfileSubsection;
+class UnitList;
+
+#if OT_QT
+class AccountActivityQt;
+class AccountListQt;
+class AccountSummaryQt;
+class ActivitySummaryQt;
+class ActivityThreadQt;
+class ContactListQt;
+class ContactQt;
+class MessagableListQt;
+class PayableListQt;
+class ProfileQt;
+class UnitListQt;
+#endif
+}  // namespace ui
+}  // namespace opentxs
+
+namespace opentxs
+{
 namespace api
 {
 namespace client
@@ -70,6 +117,8 @@ public:
         const proto::ContactItemType currency) const noexcept = 0;
     OPENTXS_EXPORT virtual const ui::Profile& Profile(
         const identifier::Nym& nymID) const noexcept = 0;
+    OPENTXS_EXPORT virtual const ui::UnitList& UnitList(
+        const identifier::Nym& nym) const noexcept = 0;
 
 #if OT_QT
     /// Caller does not own this pointer
@@ -109,6 +158,9 @@ public:
     /// Caller does not own this pointer
     OPENTXS_EXPORT virtual ui::ProfileQt* ProfileQt(
         const identifier::Nym& nymID) const noexcept = 0;
+    /// Caller does not own this pointer
+    OPENTXS_EXPORT virtual ui::UnitListQt* UnitListQt(
+        const identifier::Nym& nym) const noexcept = 0;
 #endif
 
     virtual ~UI() = default;

@@ -52,8 +52,6 @@ class Publish;
 class Message;
 }  // namespace zeromq
 }  // namespace network
-
-class Factory;
 }  // namespace opentxs
 
 namespace opentxs::ui::implementation
@@ -86,8 +84,6 @@ public:
     ~PayableList() final;
 
 private:
-    friend opentxs::Factory;
-
     const ListenerDefinitions listeners_;
     const OTIdentifier owner_contact_id_;
     const proto::ContactItemType currency_;

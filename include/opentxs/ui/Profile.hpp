@@ -90,6 +90,19 @@ namespace implementation
 class Profile;
 }  // namespace implementation
 
+class Profile;
+class ProfileSection;
+
+#if OT_QT
+class ProfileQt;
+#endif
+}  // namespace ui
+}  // namespace opentxs
+
+namespace opentxs
+{
+namespace ui
+{
 class Profile : virtual public List
 {
 public:

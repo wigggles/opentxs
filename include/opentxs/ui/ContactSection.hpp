@@ -37,6 +37,7 @@ namespace opentxs
 namespace ui
 {
 class ContactSection;
+class ContactSubsection;
 }  // namespace ui
 
 using OTUIContactSection = SharedPimpl<ui::ContactSection>;

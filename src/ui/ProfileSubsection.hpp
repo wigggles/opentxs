@@ -60,7 +60,6 @@ class ProfileSubsection;
 }  // namespace ui
 
 class ContactGroup;
-class Factory;
 }  // namespace opentxs
 
 namespace opentxs::ui::implementation
@@ -126,8 +125,6 @@ public:
     ~ProfileSubsection() = default;
 
 private:
-    friend opentxs::Factory;
-
     static bool check_type(const ProfileSubsectionRowID type);
 
     void* construct_row(

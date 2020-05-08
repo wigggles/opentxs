@@ -46,7 +46,6 @@ class Publish;
 }  // namespace zeromq
 }  // namespace network
 
-class Factory;
 class Identifier;
 }  // namespace opentxs
 
@@ -76,8 +75,6 @@ public:
     ~ChequeBalanceItem() = default;
 
 private:
-    friend opentxs::Factory;
-
     std::unique_ptr<const opentxs::Cheque> cheque_;
 
     opentxs::Amount effective_amount() const noexcept final;

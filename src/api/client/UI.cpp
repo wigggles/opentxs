@@ -32,6 +32,7 @@
 #include "opentxs/ui/MessagableList.hpp"
 #include "opentxs/ui/PayableList.hpp"
 #include "opentxs/ui/Profile.hpp"
+#include "opentxs/ui/UnitList.hpp"
 #include "ui/AccountActivity.hpp"
 #include "ui/AccountList.hpp"
 #include "ui/AccountSummary.hpp"
@@ -42,21 +43,20 @@
 #include "ui/MessagableList.hpp"
 #include "ui/PayableList.hpp"
 #include "ui/Profile.hpp"
+#include "ui/UnitList.hpp"
 
 //#define OT_METHOD "opentxs::api::implementation::UI"
 
 namespace opentxs
 {
-class Flag;
-
-api::client::UI* Factory::UI(
+auto Factory::UI(
     const api::client::internal::Manager& api,
     const Flag& running
 #if OT_QT
     ,
     const bool qt
 #endif
-)
+    ) -> api::client::UI*
 {
     return new api::client::implementation::UI(
         api,
@@ -94,6 +94,7 @@ UI::UI(
     , payable_lists_()
     , activity_threads_()
     , profiles_()
+    , unit_lists_()
 #if OT_QT
     , blank_()
     , accounts_qt_()
@@ -106,6 +107,7 @@ UI::UI(
     , payable_lists_qt_()
     , activity_threads_qt_()
     , profiles_qt_()
+    , unit_lists_qt_()
 #endif  // OT_QT
     , widget_update_publisher_(api_.ZeroMQ().PublishSocket())
 {
@@ -114,7 +116,7 @@ UI::UI(
 }
 
 #if OT_QT
-ui::BlankModel* UI::Blank::get(const std::size_t columns) noexcept
+auto UI::Blank::get(const std::size_t columns) noexcept -> ui::BlankModel*
 {
     Lock lock(lock_);
 
@@ -165,9 +167,9 @@ auto UI::account_activity(
     return it->second;
 }
 
-const ui::AccountActivity& UI::AccountActivity(
+auto UI::AccountActivity(
     const identifier::Nym& nymID,
-    const Identifier& accountID) const noexcept
+    const Identifier& accountID) const noexcept -> const ui::AccountActivity&
 {
     Lock lock(lock_);
 
@@ -175,9 +177,9 @@ const ui::AccountActivity& UI::AccountActivity(
 }
 
 #if OT_QT
-ui::AccountActivityQt* UI::AccountActivityQt(
+auto UI::AccountActivityQt(
     const identifier::Nym& nymID,
-    const Identifier& accountID) const noexcept
+    const Identifier& accountID) const noexcept -> ui::AccountActivityQt*
 {
     Lock lock(lock_);
     auto key = AccountActivityKey{nymID, accountID};
@@ -226,8 +228,8 @@ auto UI::account_list(const Lock& lock, const identifier::Nym& nymID) const
     return it->second;
 }
 
-const ui::AccountList& UI::AccountList(const identifier::Nym& nymID) const
-    noexcept
+auto UI::AccountList(const identifier::Nym& nymID) const noexcept
+    -> const ui::AccountList&
 {
     Lock lock(lock_);
 
@@ -235,8 +237,8 @@ const ui::AccountList& UI::AccountList(const identifier::Nym& nymID) const
 }
 
 #if OT_QT
-ui::AccountListQt* UI::AccountListQt(const identifier::Nym& nymID) const
-    noexcept
+auto UI::AccountListQt(const identifier::Nym& nymID) const noexcept
+    -> ui::AccountListQt*
 {
     Lock lock(lock_);
     auto key = AccountListKey{nymID};
@@ -290,9 +292,10 @@ auto UI::account_summary(
     return it->second;
 }
 
-const ui::AccountSummary& UI::AccountSummary(
+auto UI::AccountSummary(
     const identifier::Nym& nymID,
     const proto::ContactItemType currency) const noexcept
+    -> const ui::AccountSummary&
 {
     Lock lock(lock_);
 
@@ -300,9 +303,10 @@ const ui::AccountSummary& UI::AccountSummary(
 }
 
 #if OT_QT
-ui::AccountSummaryQt* UI::AccountSummaryQt(
+auto UI::AccountSummaryQt(
     const identifier::Nym& nymID,
     const proto::ContactItemType currency) const noexcept
+    -> ui::AccountSummaryQt*
 {
     Lock lock(lock_);
     auto key = AccountSummaryKey{nymID, currency};
@@ -353,8 +357,8 @@ auto UI::activity_summary(const Lock& lock, const identifier::Nym& nymID) const
     return it->second;
 }
 
-const ui::ActivitySummary& UI::ActivitySummary(
-    const identifier::Nym& nymID) const noexcept
+auto UI::ActivitySummary(const identifier::Nym& nymID) const noexcept
+    -> const ui::ActivitySummary&
 {
     Lock lock(lock_);
 
@@ -362,8 +366,8 @@ const ui::ActivitySummary& UI::ActivitySummary(
 }
 
 #if OT_QT
-ui::ActivitySummaryQt* UI::ActivitySummaryQt(const identifier::Nym& nymID) const
-    noexcept
+auto UI::ActivitySummaryQt(const identifier::Nym& nymID) const noexcept
+    -> ui::ActivitySummaryQt*
 {
     Lock lock(lock_);
     auto key = ActivitySummaryKey{nymID};
@@ -417,9 +421,9 @@ auto UI::activity_thread(
     return it->second;
 }
 
-const ui::ActivityThread& UI::ActivityThread(
+auto UI::ActivityThread(
     const identifier::Nym& nymID,
-    const Identifier& threadID) const noexcept
+    const Identifier& threadID) const noexcept -> const ui::ActivityThread&
 {
     Lock lock(lock_);
 
@@ -427,9 +431,9 @@ const ui::ActivityThread& UI::ActivityThread(
 }
 
 #if OT_QT
-ui::ActivityThreadQt* UI::ActivityThreadQt(
+auto UI::ActivityThreadQt(
     const identifier::Nym& nymID,
-    const Identifier& threadID) const noexcept
+    const Identifier& threadID) const noexcept -> ui::ActivityThreadQt*
 {
     Lock lock(lock_);
     auto key = ActivityThreadKey{nymID, threadID};
@@ -478,7 +482,8 @@ auto UI::contact(const Lock& lock, const Identifier& contactID) const noexcept
     return it->second;
 }
 
-const ui::Contact& UI::Contact(const Identifier& contactID) const noexcept
+auto UI::Contact(const Identifier& contactID) const noexcept
+    -> const ui::Contact&
 {
     Lock lock(lock_);
 
@@ -486,7 +491,7 @@ const ui::Contact& UI::Contact(const Identifier& contactID) const noexcept
 }
 
 #if OT_QT
-ui::ContactQt* UI::ContactQt(const Identifier& contactID) const noexcept
+auto UI::ContactQt(const Identifier& contactID) const noexcept -> ui::ContactQt*
 {
     Lock lock(lock_);
     auto key = ContactKey{contactID};
@@ -535,8 +540,8 @@ auto UI::contact_list(const Lock& lock, const identifier::Nym& nymID) const
     return it->second;
 }
 
-const ui::ContactList& UI::ContactList(const identifier::Nym& nymID) const
-    noexcept
+auto UI::ContactList(const identifier::Nym& nymID) const noexcept
+    -> const ui::ContactList&
 {
     Lock lock(lock_);
 
@@ -544,8 +549,8 @@ const ui::ContactList& UI::ContactList(const identifier::Nym& nymID) const
 }
 
 #if OT_QT
-ui::ContactListQt* UI::ContactListQt(const identifier::Nym& nymID) const
-    noexcept
+auto UI::ContactListQt(const identifier::Nym& nymID) const noexcept
+    -> ui::ContactListQt*
 {
     Lock lock(lock_);
     auto key = ContactListKey{nymID};
@@ -593,8 +598,8 @@ auto UI::messagable_list(const Lock& lock, const identifier::Nym& nymID) const
     return it->second;
 }
 
-const ui::MessagableList& UI::MessagableList(const identifier::Nym& nymID) const
-    noexcept
+auto UI::MessagableList(const identifier::Nym& nymID) const noexcept
+    -> const ui::MessagableList&
 {
     Lock lock(lock_);
 
@@ -602,8 +607,8 @@ const ui::MessagableList& UI::MessagableList(const identifier::Nym& nymID) const
 }
 
 #if OT_QT
-ui::MessagableListQt* UI::MessagableListQt(const identifier::Nym& nymID) const
-    noexcept
+auto UI::MessagableListQt(const identifier::Nym& nymID) const noexcept
+    -> ui::MessagableListQt*
 {
     Lock lock(lock_);
     auto key = MessagableListKey{nymID};
@@ -654,9 +659,9 @@ auto UI::payable_list(
     return it->second;
 }
 
-const ui::PayableList& UI::PayableList(
+auto UI::PayableList(
     const identifier::Nym& nymID,
-    proto::ContactItemType currency) const noexcept
+    proto::ContactItemType currency) const noexcept -> const ui::PayableList&
 {
     Lock lock(lock_);
 
@@ -664,9 +669,9 @@ const ui::PayableList& UI::PayableList(
 }
 
 #if OT_QT
-ui::PayableListQt* UI::PayableListQt(
+auto UI::PayableListQt(
     const identifier::Nym& nymID,
-    proto::ContactItemType currency) const noexcept
+    proto::ContactItemType currency) const noexcept -> ui::PayableListQt*
 {
     Lock lock(lock_);
     auto key = PayableListKey{nymID, currency};
@@ -715,7 +720,8 @@ auto UI::profile(const Lock& lock, const identifier::Nym& nymID) const noexcept
     return it->second;
 }
 
-const ui::Profile& UI::Profile(const identifier::Nym& nymID) const noexcept
+auto UI::Profile(const identifier::Nym& nymID) const noexcept
+    -> const ui::Profile&
 {
     Lock lock(lock_);
 
@@ -723,7 +729,8 @@ const ui::Profile& UI::Profile(const identifier::Nym& nymID) const noexcept
 }
 
 #if OT_QT
-ui::ProfileQt* UI::ProfileQt(const identifier::Nym& nymID) const noexcept
+auto UI::ProfileQt(const identifier::Nym& nymID) const noexcept
+    -> ui::ProfileQt*
 {
     Lock lock(lock_);
     auto key = ProfileKey{nymID};
@@ -734,6 +741,64 @@ ui::ProfileQt* UI::ProfileQt(const identifier::Nym& nymID) const noexcept
                  .emplace(
                      std::move(key),
                      opentxs::factory::ProfileQtModel(*profile(lock, nymID)))
+                 .first;
+
+        OT_ASSERT(it->second);
+    }
+
+    return it->second.get();
+}
+#endif
+
+auto UI::unit_list(const Lock& lock, const identifier::Nym& nymID) const
+    noexcept -> UnitListMap::mapped_type&
+{
+    auto key = UnitListKey{nymID};
+    auto it = unit_lists_.find(key);
+
+    if (unit_lists_.end() == it) {
+        it = unit_lists_
+                 .emplace(
+                     std::piecewise_construct,
+                     std::forward_as_tuple(std::move(key)),
+                     std::forward_as_tuple(opentxs::factory::UnitListModel(
+                         api_,
+                         widget_update_publisher_,
+                         nymID
+#if OT_QT
+                         ,
+                         enable_qt_
+#endif  // OT_QT
+                         )))
+                 .first;
+
+        OT_ASSERT(it->second);
+    }
+
+    return it->second;
+}
+
+auto UI::UnitList(const identifier::Nym& nymID) const noexcept
+    -> const ui::UnitList&
+{
+    Lock lock(lock_);
+
+    return *unit_list(lock, nymID);
+}
+
+#if OT_QT
+auto UI::UnitListQt(const identifier::Nym& nymID) const noexcept
+    -> ui::UnitListQt*
+{
+    Lock lock(lock_);
+    auto key = UnitListKey{nymID};
+    auto it = unit_lists_qt_.find(key);
+
+    if (unit_lists_qt_.end() == it) {
+        it = unit_lists_qt_
+                 .emplace(
+                     std::move(key),
+                     opentxs::factory::UnitListQtModel(*unit_list(lock, nymID)))
                  .first;
 
         OT_ASSERT(it->second);

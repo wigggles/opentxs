@@ -63,8 +63,6 @@ namespace proto
 class PaymentEvent;
 class PaymentWorkflow;
 }  // namespace proto
-
-class Factory;
 }  // namespace opentxs
 
 namespace opentxs::ui::implementation
@@ -115,8 +113,6 @@ public:
     ~AccountActivity() final;
 
 private:
-    friend opentxs::Factory;
-
     using EventRow =
         std::pair<AccountActivitySortKey, const proto::PaymentEvent*>;
     using RowKey = std::pair<proto::PaymentEventType, EventRow>;

@@ -43,6 +43,8 @@ set(
   ProfileSubsection.cpp
   TransferBalanceItem.cpp
   UI.cpp
+  UnitList.cpp
+  UnitListItem.cpp
   Widget.cpp
 )
 set(
@@ -58,6 +60,7 @@ set(
   "${opentxs_SOURCE_DIR}/include/opentxs/ui/MessagableList.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/ui/PayableList.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/ui/Profile.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/ui/UnitList.hpp"
 )
 set(
   cxx-install-headers
@@ -77,6 +80,7 @@ set(
   "${opentxs_SOURCE_DIR}/include/opentxs/ui/ProfileItem.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/ui/ProfileSection.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/ui/ProfileSubsection.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/ui/UnitListItem.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/ui/Widget.hpp"
 )
 set(
@@ -113,6 +117,8 @@ set(
   ProfileSubsection.hpp
   Row.hpp
   RowType.hpp
+  UnitList.hpp
+  UnitListItem.hpp
   Widget.hpp
 )
 

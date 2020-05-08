@@ -46,8 +46,6 @@ namespace ui
 {
 class PayableListItem;
 }  // namespace ui
-
-class Factory;
 }  // namespace opentxs
 
 namespace opentxs::ui::implementation
@@ -73,8 +71,6 @@ public:
     ~PayableListItem() = default;
 
 private:
-    friend opentxs::Factory;
-
     using ot_super = ContactListItem;
 
     std::string payment_code_;

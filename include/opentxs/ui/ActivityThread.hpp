@@ -41,6 +41,19 @@ namespace implementation
 class ActivityThread;
 }  // namespace implementation
 
+class ActivityThread;
+class ActivityThreadItem;
+
+#if OT_QT
+class ActivityThreadQt;
+#endif
+}  // namespace ui
+}  // namespace opentxs
+
+namespace opentxs
+{
+namespace ui
+{
 class ActivityThread : virtual public List
 {
 public:

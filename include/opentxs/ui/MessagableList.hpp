@@ -27,6 +27,19 @@ namespace implementation
 class MessagableList;
 }  // namespace implementation
 
+class ContactListItem;
+class MessagableList;
+
+#if OT_QT
+class MessagableListQt;
+#endif
+}  // namespace ui
+}  // namespace opentxs
+
+namespace opentxs
+{
+namespace ui
+{
 class MessagableList : virtual public List
 {
 public:

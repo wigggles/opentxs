@@ -27,6 +27,19 @@ namespace implementation
 class AccountSummary;
 }  // namespace implementation
 
+class AccountSummary;
+class IssuerItem;
+
+#if OT_QT
+class AccountSummaryQt;
+#endif
+}  // namespace ui
+}  // namespace opentxs
+
+namespace opentxs
+{
+namespace ui
+{
 class AccountSummary : virtual public List
 {
 public:

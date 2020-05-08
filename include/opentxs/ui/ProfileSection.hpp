@@ -92,6 +92,7 @@ namespace opentxs
 namespace ui
 {
 class ProfileSection;
+class ProfileSubsection;
 }  // namespace ui
 
 using OTUIProfileSection = SharedPimpl<ui::ProfileSection>;
