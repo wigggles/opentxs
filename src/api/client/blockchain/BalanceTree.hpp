@@ -23,6 +23,7 @@
 #include "internal/api/Api.hpp"
 #include "internal/api/client/blockchain/Blockchain.hpp"
 #include "opentxs/Types.hpp"
+#include "opentxs/api/client/blockchain/BalanceNode.hpp"
 #include "opentxs/api/client/blockchain/BalanceTree.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
@@ -54,6 +55,10 @@ public:
     opentxs::blockchain::Type Chain() const noexcept final { return chain_; }
     void ClaimAccountID(const std::string& id, internal::BalanceNode* node)
         const noexcept final;
+    std::string GetDepositAddress(const std::string& memo) const noexcept final;
+    std::string GetDepositAddress(
+        const Identifier& contact,
+        const std::string& memo) const noexcept final;
     const HDAccounts& GetHD() const noexcept final { return hd_; }
     const ImportedAccounts& GetImported() const noexcept final
     {
@@ -226,6 +231,9 @@ private:
     mutable internal::ActivityMap spent_;
 
     void init(const std::set<OTIdentifier>& HDAccounts) noexcept;
+
+    auto find_best_deposit_address() const noexcept
+        -> const blockchain::BalanceNode::Element&;
 
     BalanceTree(
         const internal::BalanceList& parent,

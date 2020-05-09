@@ -157,6 +157,8 @@ namespace opentxs::ui
 auto AccountID(const api::Core& api, const blockchain::Type chain) noexcept
     -> const Identifier&;
 auto AccountName(const blockchain::Type chain) noexcept -> std::string;
+auto Chain(const api::Core& api, const Identifier& account) noexcept
+    -> blockchain::Type;
 auto NotaryID(const api::Core& api, const blockchain::Type chain) noexcept
     -> const identifier::Server&;
 auto UnitID(const api::Core& api, const blockchain::Type chain) noexcept
@@ -407,7 +409,6 @@ struct Row : virtual public ui::ListRow {
 };
 struct AccountActivity : virtual public List,
                          virtual public ui::AccountActivity {
-    virtual const Identifier& AccountID() const = 0;
     virtual bool last(const implementation::AccountActivityRowID& id) const
         noexcept = 0;
 
@@ -1107,6 +1108,16 @@ auto ActivityThreadQtModel(ui::implementation::ActivityThread& parent) noexcept
     -> std::unique_ptr<ui::ActivityThreadQt>;
 #endif
 #if OT_BLOCKCHAIN
+auto BlockchainAccountActivityModel(
+    const api::client::internal::Manager& api,
+    const network::zeromq::socket::Publish& publisher,
+    const identifier::Nym& nymID,
+    const opentxs::Identifier& accountID
+#if OT_QT
+    ,
+    const bool qt
+#endif
+    ) noexcept -> std::unique_ptr<ui::implementation::AccountActivity>;
 auto BlockchainAccountListItem(
     const ui::implementation::AccountListInternalInterface& parent,
     const api::client::internal::Manager& api,
