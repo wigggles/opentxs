@@ -12,6 +12,7 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <utility>
 
 #include "opentxs/Proto.hpp"
@@ -288,6 +289,10 @@ private:
         -> ContactMap::mapped_type&;
     auto contact_list(const Lock& lock, const identifier::Nym& nymID) const
         noexcept -> ContactListMap::mapped_type&;
+#if OT_BLOCKCHAIN
+    auto is_blockchain_account(const Identifier& id) const noexcept
+        -> std::optional<opentxs::blockchain::Type>;
+#endif  // OT_BLOCKCHAIN
     auto messagable_list(const Lock& lock, const identifier::Nym& nymID) const
         noexcept -> MessagableListMap::mapped_type&;
     auto payable_list(

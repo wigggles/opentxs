@@ -34,8 +34,7 @@ target_link_libraries(
 if(OPENTXS_BLOCK_STORAGE_ENABLED)
   target_link_libraries(
     opentxs-api-client-blockchain-database
-    PRIVATE Boost::iostreams
-    Boost::headers Boost::filesystem
+    PRIVATE Boost::iostreams Boost::headers Boost::filesystem
   )
 endif()
 set_property(

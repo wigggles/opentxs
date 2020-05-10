@@ -142,6 +142,11 @@ auto UI::account_activity(
 {
     auto key = AccountActivityKey{nymID, accountID};
     auto it = accounts_.find(key);
+#if OT_BLOCKCHAIN
+    const auto chain = is_blockchain_account(accountID);
+#endif  // OT_BLOCKCHAIN
+
+    // FIXME
 
     if (accounts_.end() == it) {
         it = accounts_
@@ -149,16 +154,22 @@ auto UI::account_activity(
                      std::piecewise_construct,
                      std::forward_as_tuple(std::move(key)),
                      std::forward_as_tuple(
-                         opentxs::factory::AccountActivityModel(
-                             api_,
-                             widget_update_publisher_,
-                             nymID,
-                             accountID
+#if OT_BLOCKCHAIN
+                         (chain.has_value()
+                              ? opentxs::factory::BlockchainAccountActivityModel
+                              : opentxs::factory::AccountActivityModel)
+#else   // OT_BLOCKCHAIN
+                         (opentxs::factory::AccountActivityModel)
+#endif  // OT_BLOCKCHAIN
+                             (api_,
+                              widget_update_publisher_,
+                              nymID,
+                              accountID
 #if OT_QT
-                             ,
-                             enable_qt_
+                              ,
+                              enable_qt_
 #endif  // OT_QT
-                             )))
+                              )))
                  .first;
 
         OT_ASSERT(it->second);
@@ -570,6 +581,18 @@ auto UI::ContactListQt(const identifier::Nym& nymID) const noexcept
     return it->second.get();
 }
 #endif
+
+#if OT_BLOCKCHAIN
+auto UI::is_blockchain_account(const Identifier& id) const noexcept
+    -> std::optional<opentxs::blockchain::Type>
+{
+    const auto type = ui::Chain(api_, id);
+
+    if (opentxs::blockchain::Type::Unknown == type) { return {}; }
+
+    return type;
+}
+#endif  // OT_BLOCKCHAIN
 
 auto UI::messagable_list(const Lock& lock, const identifier::Nym& nymID) const
     noexcept -> MessagableListMap::mapped_type&

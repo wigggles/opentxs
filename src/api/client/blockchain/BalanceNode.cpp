@@ -53,7 +53,7 @@ BalanceNode::Element::Element(
     const client::internal::Blockchain& api,
     const opentxs::blockchain::Type chain,
     const VersionNumber version,
-    const Subchain subchain,
+    const blockchain::Subchain subchain,
     const Bip32Index index,
     const std::string label,
     const OTIdentifier contact,
@@ -77,7 +77,7 @@ BalanceNode::Element::Element(
     const internal::BalanceNode& parent,
     const client::internal::Blockchain& api,
     const opentxs::blockchain::Type chain,
-    const Subchain subchain,
+    const blockchain::Subchain subchain,
     const Bip32Index index,
     std::unique_ptr<opentxs::crypto::key::HD> key) noexcept(false)
     : Element(
@@ -97,7 +97,7 @@ BalanceNode::Element::Element(
     const internal::BalanceNode& parent,
     const client::internal::Blockchain& api,
     const opentxs::blockchain::Type chain,
-    const Subchain subchain,
+    const blockchain::Subchain subchain,
     const SerializedType& address) noexcept(false)
     : Element(
           parent,

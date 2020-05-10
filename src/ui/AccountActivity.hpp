@@ -3,9 +3,6 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-// IWYU pragma: private
-// IWYU pragma: friend ".*src/ui/AccountActivity.cpp"
-
 #pragma once
 
 #include <atomic>
@@ -85,60 +82,53 @@ using AccountActivityList = List<
     their type, but others may have multiple entries corresponding to different
     states.
  */
-class AccountActivity final : public AccountActivityList
+class AccountActivity : public AccountActivityList
 {
 public:
-    const Identifier& AccountID() const noexcept final
+    auto AccountID() const noexcept -> std::string final
     {
-        return account_id_.get();
+        return account_id_->str();
     }
-    int BalancePolarity() const noexcept final
+    auto Balance() const noexcept -> Amount final { return balance_.load(); }
+    auto BalancePolarity() const noexcept -> int final
     {
         return polarity(balance_.load());
     }
-    Amount Balance() const noexcept final { return balance_.load(); }
-    std::string DisplayBalance() const noexcept final;
+#if OT_BLOCKCHAIN
+    auto DepositAddress(const blockchain::Type) const noexcept
+        -> std::string override
+    {
+        return {};
+    }
+    auto DepositChains() const noexcept
+        -> std::vector<blockchain::Type> override
+    {
+        return {};
+    }
+#endif  // OT_BLOCKCHAIN
+    auto Type() const noexcept -> AccountType final { return type_; }
+
+    ~AccountActivity() override;
+
+protected:
+    const ListenerDefinitions listeners_;
+    mutable std::atomic<Amount> balance_;
+    const OTIdentifier account_id_;
+    const AccountType type_;
 
     AccountActivity(
         const api::client::internal::Manager& api,
         const network::zeromq::socket::Publish& publisher,
         const identifier::Nym& nymID,
-        const Identifier& accountID
+        const Identifier& accountID,
+        const AccountType type,
 #if OT_QT
-        ,
-        const bool qt
+        const bool qt,
 #endif
-        ) noexcept;
-
-    ~AccountActivity() final;
+        ListenerDefinitions&& listeners) noexcept;
 
 private:
-    using EventRow =
-        std::pair<AccountActivitySortKey, const proto::PaymentEvent*>;
-    using RowKey = std::pair<proto::PaymentEventType, EventRow>;
-
-    const ListenerDefinitions listeners_;
-    mutable std::atomic<Amount> balance_;
-    const OTIdentifier account_id_;
-    OTUnitDefinition contract_;
-
-    static EventRow extract_event(
-        const proto::PaymentEventType event,
-        const proto::PaymentWorkflow& workflow) noexcept;
-    static std::vector<RowKey> extract_rows(
-        const proto::PaymentWorkflow& workflow) noexcept;
-
-    void* construct_row(
-        const AccountActivityRowID& id,
-        const AccountActivitySortKey& index,
-        const CustomData& custom) const noexcept final;
-
-    void process_balance(const network::zeromq::Message& message) noexcept;
-    void process_workflow(
-        const Identifier& workflowID,
-        std::set<AccountActivityRowID>& active) noexcept;
-    void process_workflow(const network::zeromq::Message& message) noexcept;
-    void startup() noexcept;
+    virtual auto startup() noexcept -> void = 0;
 
     AccountActivity() = delete;
     AccountActivity(const AccountActivity&) = delete;

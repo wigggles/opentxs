@@ -44,13 +44,28 @@ namespace ui
 class AccountActivity : virtual public List
 {
 public:
+    OPENTXS_EXPORT virtual std::string AccountID() const noexcept = 0;
     OPENTXS_EXPORT virtual Amount Balance() const noexcept = 0;
     OPENTXS_EXPORT virtual int BalancePolarity() const noexcept = 0;
+    OPENTXS_EXPORT virtual std::string ContractID() const noexcept = 0;
+#if OT_BLOCKCHAIN
+    OPENTXS_EXPORT virtual std::string DepositAddress(
+        const blockchain::Type chain = blockchain::Type::Unknown) const
+        noexcept = 0;
+    OPENTXS_EXPORT virtual std::vector<blockchain::Type> DepositChains() const
+        noexcept = 0;
+#endif  // OT_BLOCKCHAIN
     OPENTXS_EXPORT virtual std::string DisplayBalance() const noexcept = 0;
+    OPENTXS_EXPORT virtual std::string DisplayUnit() const noexcept = 0;
     OPENTXS_EXPORT virtual opentxs::SharedPimpl<opentxs::ui::BalanceItem>
     First() const noexcept = 0;
+    OPENTXS_EXPORT virtual std::string Name() const noexcept = 0;
     OPENTXS_EXPORT virtual opentxs::SharedPimpl<opentxs::ui::BalanceItem> Next()
         const noexcept = 0;
+    OPENTXS_EXPORT virtual std::string NotaryID() const noexcept = 0;
+    OPENTXS_EXPORT virtual std::string NotaryName() const noexcept = 0;
+    OPENTXS_EXPORT virtual AccountType Type() const noexcept = 0;
+    OPENTXS_EXPORT virtual proto::ContactItemType Unit() const noexcept = 0;
 
     OPENTXS_EXPORT ~AccountActivity() override = default;
 
@@ -72,6 +87,9 @@ class opentxs::ui::AccountActivityQt final : public QIdentityProxyModel
 {
     Q_OBJECT
     Q_PROPERTY(int balancePolarity READ balancePolarity NOTIFY updated)
+#if OT_BLOCKCHAIN
+    Q_PROPERTY(QList<int> depositChains READ depositChains NOTIFY updated)
+#endif  // OT_BLOCKCHAIN
     Q_PROPERTY(QString displayBalance READ displayBalance NOTIFY updated)
 
 signals:
@@ -94,7 +112,14 @@ public:
     };
 
     OPENTXS_EXPORT int balancePolarity() const noexcept;
+#if OT_BLOCKCHAIN
+    OPENTXS_EXPORT QList<int> depositChains() const noexcept;
+#endif  // OT_BLOCKCHAIN
     OPENTXS_EXPORT QString displayBalance() const noexcept;
+#if OT_BLOCKCHAIN
+    OPENTXS_EXPORT Q_INVOKABLE QString
+    getDepositAddress(const int chain = 0) const noexcept;
+#endif  // OT_BLOCKCHAIN
 
     AccountActivityQt(implementation::AccountActivity& parent) noexcept;
 

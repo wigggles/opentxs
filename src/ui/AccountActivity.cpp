@@ -7,67 +7,12 @@
 #include "1_Internal.hpp"          // IWYU pragma: associated
 #include "ui/AccountActivity.hpp"  // IWYU pragma: associated
 
-#include <algorithm>
-#include <atomic>
-#include <chrono>
-#include <map>
-#include <memory>
-#include <set>
-#include <string>
-#include <thread>
-#include <vector>
+#include <utility>
 
-#include "internal/api/client/Client.hpp"
-#include "opentxs/Pimpl.hpp"
-#include "opentxs/Proto.hpp"
-#include "opentxs/Shared.hpp"
-#include "opentxs/api/Endpoints.hpp"
-#include "opentxs/api/Factory.hpp"
-#include "opentxs/api/Wallet.hpp"
-#include "opentxs/api/client/Workflow.hpp"
-#include "opentxs/api/storage/Storage.hpp"
-#include "opentxs/core/Account.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/LogSource.hpp"
-#include "opentxs/core/contract/UnitDefinition.hpp"
-#include "opentxs/core/identifier/UnitDefinition.hpp"
-#include "opentxs/network/zeromq/Frame.hpp"
-#include "opentxs/network/zeromq/FrameIterator.hpp"
-#include "opentxs/network/zeromq/FrameSection.hpp"
-#include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/protobuf/PaymentWorkflowEnums.pb.h"
-#include "ui/List.hpp"
-
-#define OT_METHOD "opentxs::ui::implementation::AccountActivity::"
+// #define OT_METHOD "opentxs::ui::implementation::AccountActivity::"
 
 namespace opentxs::factory
 {
-auto AccountActivityModel(
-    const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
-    const identifier::Nym& nymID,
-    const Identifier& accountID
-#if OT_QT
-    ,
-    const bool qt
-#endif
-    ) noexcept -> std::unique_ptr<ui::implementation::AccountActivity>
-{
-    using ReturnType = ui::implementation::AccountActivity;
-
-    return std::make_unique<ReturnType>(
-        api,
-        publisher,
-        nymID,
-        accountID
-#if OT_QT
-        ,
-        qt
-#endif
-    );
-}
-
 #if OT_QT
 auto AccountActivityQtModel(
     ui::implementation::AccountActivity& parent) noexcept
@@ -85,14 +30,33 @@ namespace opentxs::ui
 {
 QT_PROXY_MODEL_WRAPPER(AccountActivityQt, implementation::AccountActivity)
 
-int AccountActivityQt::balancePolarity() const noexcept
+auto AccountActivityQt::balancePolarity() const noexcept -> int
 {
     return parent_.BalancePolarity();
 }
-QString AccountActivityQt::displayBalance() const noexcept
+#if OT_BLOCKCHAIN
+auto AccountActivityQt::depositChains() const noexcept -> QList<int>
+{
+    const auto input = parent_.DepositChains();
+    auto output = QList<int>{};
+    std::transform(
+        std::begin(input), std::end(input), std::back_inserter(output), [
+        ](const auto& in) -> auto { return static_cast<int>(in); });
+
+    return output;
+}
+#endif  // OT_BLOCKCHAIN
+auto AccountActivityQt::displayBalance() const noexcept -> QString
 {
     return parent_.DisplayBalance().c_str();
 }
+#if OT_BLOCKCHAIN
+auto AccountActivityQt::getDepositAddress(const int chain) const noexcept
+    -> QString
+{
+    return parent_.DepositAddress(static_cast<blockchain::Type>(chain)).c_str();
+}
+#endif  // OT_BLOCKCHAIN
 }  // namespace opentxs::ui
 #endif
 
@@ -102,12 +66,12 @@ AccountActivity::AccountActivity(
     const api::client::internal::Manager& api,
     const network::zeromq::socket::Publish& publisher,
     const identifier::Nym& nymID,
-    const Identifier& accountID
+    const Identifier& accountID,
+    const AccountType type,
 #if OT_QT
-    ,
-    const bool qt
-#endif
-    ) noexcept
+    const bool qt,
+#endif  // OT_QT
+    ListenerDefinitions&& listeners) noexcept
     : AccountActivityList(
           api,
           publisher,
@@ -122,378 +86,15 @@ AccountActivity::AccountActivity(
               {AccountActivityQt::TypeRole, "type"},
           },
           5
-#endif
+#endif  // OT_QT
           )
-    , listeners_({
-          {api_.Endpoints().WorkflowAccountUpdate(),
-           new MessageProcessor<AccountActivity>(
-               &AccountActivity::process_workflow)},
-          {api_.Endpoints().AccountUpdate(),
-           new MessageProcessor<AccountActivity>(
-               &AccountActivity::process_balance)},
-      })
+    , listeners_(std::move(listeners))
     , balance_(0)
     , account_id_(accountID)
-    , contract_(api.Factory().UnitDefinition())
+    , type_(type)
 {
     init();
     setup_listeners(listeners_);
-    startup_.reset(new std::thread(&AccountActivity::startup, this));
-
-    OT_ASSERT(startup_)
-}
-
-void* AccountActivity::construct_row(
-    const AccountActivityRowID& id,
-    const AccountActivitySortKey& index,
-    const CustomData& custom) const noexcept
-{
-    OT_ASSERT(2 == custom.size())
-
-    names_.emplace(id, index);
-    const auto [it, added] = items_[index].emplace(
-        id,
-        factory::BalanceItem(
-            *this,
-            api_,
-            publisher_,
-            id,
-            index,
-            custom,
-            primary_id_,
-            account_id_));
-
-    return it->second.get();
-}
-
-std::string AccountActivity::DisplayBalance() const noexcept
-{
-    sLock lock(shared_lock_);
-
-    if (0 < contract_->Version()) {
-        const auto amount = balance_.load();
-        std::string output{};
-        const auto formatted =
-            contract_->FormatAmountLocale(amount, output, ",", ".");
-
-        if (formatted) { return output; }
-
-        return std::to_string(amount);
-    }
-
-    return {};
-}
-
-AccountActivity::EventRow AccountActivity::extract_event(
-    const proto::PaymentEventType eventType,
-    const proto::PaymentWorkflow& workflow) noexcept
-{
-    bool success{false};
-    bool found{false};
-    EventRow output{};
-    auto& [time, event_p] = output;
-
-    for (const auto& event : workflow.event()) {
-        const auto eventTime =
-            std::chrono::system_clock::from_time_t(event.time());
-
-        if (eventType != event.type()) { continue; }
-
-        if (eventTime > time) {
-            if (success) {
-                if (event.success()) {
-                    time = eventTime;
-                    event_p = &event;
-                    found = true;
-                }
-            } else {
-                time = eventTime;
-                event_p = &event;
-                success = event.success();
-                found = true;
-            }
-        } else {
-            if (false == success) {
-                if (event.success()) {
-                    // This is a weird case. It probably shouldn't happen
-                    time = eventTime;
-                    event_p = &event;
-                    success = true;
-                    found = true;
-                }
-            }
-        }
-    }
-
-    if (false == found) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Workflow ")(workflow.id())(
-            ", type ")(workflow.type())(", state ")(workflow.state())(
-            " does not contain an event of type ")(eventType)
-            .Flush();
-
-        OT_FAIL;
-    }
-
-    return output;
-}
-
-std::vector<AccountActivity::RowKey> AccountActivity::extract_rows(
-    const proto::PaymentWorkflow& workflow) noexcept
-{
-    std::vector<AccountActivity::RowKey> output;
-
-    switch (workflow.type()) {
-        case proto::PAYMENTWORKFLOWTYPE_OUTGOINGCHEQUE: {
-            switch (workflow.state()) {
-                case proto::PAYMENTWORKFLOWSTATE_UNSENT:
-                case proto::PAYMENTWORKFLOWSTATE_CONVEYED:
-                case proto::PAYMENTWORKFLOWSTATE_EXPIRED: {
-                    output.emplace_back(
-                        proto::PAYMENTEVENTTYPE_CREATE,
-                        extract_event(
-                            proto::PAYMENTEVENTTYPE_CREATE, workflow));
-                } break;
-                case proto::PAYMENTWORKFLOWSTATE_CANCELLED: {
-                    output.emplace_back(
-                        proto::PAYMENTEVENTTYPE_CREATE,
-                        extract_event(
-                            proto::PAYMENTEVENTTYPE_CREATE, workflow));
-                    output.emplace_back(
-                        proto::PAYMENTEVENTTYPE_CANCEL,
-                        extract_event(
-                            proto::PAYMENTEVENTTYPE_CANCEL, workflow));
-                } break;
-                case proto::PAYMENTWORKFLOWSTATE_ACCEPTED:
-                case proto::PAYMENTWORKFLOWSTATE_COMPLETED: {
-                    output.emplace_back(
-                        proto::PAYMENTEVENTTYPE_CREATE,
-                        extract_event(
-                            proto::PAYMENTEVENTTYPE_CREATE, workflow));
-                    output.emplace_back(
-                        proto::PAYMENTEVENTTYPE_ACCEPT,
-                        extract_event(
-                            proto::PAYMENTEVENTTYPE_ACCEPT, workflow));
-                } break;
-                case proto::PAYMENTWORKFLOWSTATE_ERROR:
-                case proto::PAYMENTWORKFLOWSTATE_INITIATED:
-                default: {
-                    LogOutput(OT_METHOD)(__FUNCTION__)(
-                        ": Invalid workflow state (")(workflow.state())(")")
-                        .Flush();
-                }
-            }
-        } break;
-        case proto::PAYMENTWORKFLOWTYPE_INCOMINGCHEQUE: {
-            switch (workflow.state()) {
-                case proto::PAYMENTWORKFLOWSTATE_CONVEYED:
-                case proto::PAYMENTWORKFLOWSTATE_EXPIRED:
-                case proto::PAYMENTWORKFLOWSTATE_COMPLETED: {
-                    output.emplace_back(
-                        proto::PAYMENTEVENTTYPE_CONVEY,
-                        extract_event(
-                            proto::PAYMENTEVENTTYPE_CONVEY, workflow));
-                } break;
-                case proto::PAYMENTWORKFLOWSTATE_ERROR:
-                case proto::PAYMENTWORKFLOWSTATE_UNSENT:
-                case proto::PAYMENTWORKFLOWSTATE_CANCELLED:
-                case proto::PAYMENTWORKFLOWSTATE_ACCEPTED:
-                case proto::PAYMENTWORKFLOWSTATE_INITIATED:
-                default: {
-                    LogOutput(OT_METHOD)(__FUNCTION__)(
-                        ": Invalid workflow state (")(workflow.state())(")")
-                        .Flush();
-                }
-            }
-        } break;
-        case proto::PAYMENTWORKFLOWTYPE_OUTGOINGTRANSFER: {
-            switch (workflow.state()) {
-                case proto::PAYMENTWORKFLOWSTATE_ACKNOWLEDGED:
-                case proto::PAYMENTWORKFLOWSTATE_ACCEPTED: {
-                    output.emplace_back(
-                        proto::PAYMENTEVENTTYPE_ACKNOWLEDGE,
-                        extract_event(
-                            proto::PAYMENTEVENTTYPE_ACKNOWLEDGE, workflow));
-                } break;
-                case proto::PAYMENTWORKFLOWSTATE_COMPLETED: {
-                    output.emplace_back(
-                        proto::PAYMENTEVENTTYPE_ACKNOWLEDGE,
-                        extract_event(
-                            proto::PAYMENTEVENTTYPE_ACKNOWLEDGE, workflow));
-                    output.emplace_back(
-                        proto::PAYMENTEVENTTYPE_COMPLETE,
-                        extract_event(
-                            proto::PAYMENTEVENTTYPE_COMPLETE, workflow));
-                } break;
-                case proto::PAYMENTWORKFLOWSTATE_INITIATED:
-                case proto::PAYMENTWORKFLOWSTATE_ABORTED: {
-                } break;
-                case proto::PAYMENTWORKFLOWSTATE_ERROR:
-                case proto::PAYMENTWORKFLOWSTATE_UNSENT:
-                case proto::PAYMENTWORKFLOWSTATE_CONVEYED:
-                case proto::PAYMENTWORKFLOWSTATE_CANCELLED:
-                case proto::PAYMENTWORKFLOWSTATE_EXPIRED:
-                default: {
-                    LogOutput(OT_METHOD)(__FUNCTION__)(
-                        ": Invalid workflow state (")(workflow.state())(")")
-                        .Flush();
-                }
-            }
-        } break;
-        case proto::PAYMENTWORKFLOWTYPE_INCOMINGTRANSFER: {
-            switch (workflow.state()) {
-                case proto::PAYMENTWORKFLOWSTATE_CONVEYED: {
-                    output.emplace_back(
-                        proto::PAYMENTEVENTTYPE_CONVEY,
-                        extract_event(
-                            proto::PAYMENTEVENTTYPE_CONVEY, workflow));
-                } break;
-                case proto::PAYMENTWORKFLOWSTATE_COMPLETED: {
-                    output.emplace_back(
-                        proto::PAYMENTEVENTTYPE_CONVEY,
-                        extract_event(
-                            proto::PAYMENTEVENTTYPE_CONVEY, workflow));
-                    output.emplace_back(
-                        proto::PAYMENTEVENTTYPE_ACCEPT,
-                        extract_event(
-                            proto::PAYMENTEVENTTYPE_ACCEPT, workflow));
-                } break;
-                case proto::PAYMENTWORKFLOWSTATE_ERROR:
-                case proto::PAYMENTWORKFLOWSTATE_UNSENT:
-                case proto::PAYMENTWORKFLOWSTATE_CANCELLED:
-                case proto::PAYMENTWORKFLOWSTATE_ACCEPTED:
-                case proto::PAYMENTWORKFLOWSTATE_EXPIRED:
-                case proto::PAYMENTWORKFLOWSTATE_INITIATED:
-                case proto::PAYMENTWORKFLOWSTATE_ABORTED:
-                case proto::PAYMENTWORKFLOWSTATE_ACKNOWLEDGED:
-                default: {
-                    LogOutput(OT_METHOD)(__FUNCTION__)(
-                        ": Invalid workflow state (")(workflow.state())(")")
-                        .Flush();
-                }
-            }
-        } break;
-        case proto::PAYMENTWORKFLOWTYPE_INTERNALTRANSFER: {
-            switch (workflow.state()) {
-                case proto::PAYMENTWORKFLOWSTATE_ACKNOWLEDGED:
-                case proto::PAYMENTWORKFLOWSTATE_CONVEYED:
-                case proto::PAYMENTWORKFLOWSTATE_ACCEPTED: {
-                    output.emplace_back(
-                        proto::PAYMENTEVENTTYPE_ACKNOWLEDGE,
-                        extract_event(
-                            proto::PAYMENTEVENTTYPE_ACKNOWLEDGE, workflow));
-                } break;
-                case proto::PAYMENTWORKFLOWSTATE_COMPLETED: {
-                    output.emplace_back(
-                        proto::PAYMENTEVENTTYPE_ACKNOWLEDGE,
-                        extract_event(
-                            proto::PAYMENTEVENTTYPE_ACKNOWLEDGE, workflow));
-                    output.emplace_back(
-                        proto::PAYMENTEVENTTYPE_COMPLETE,
-                        extract_event(
-                            proto::PAYMENTEVENTTYPE_COMPLETE, workflow));
-                } break;
-                case proto::PAYMENTWORKFLOWSTATE_INITIATED:
-                case proto::PAYMENTWORKFLOWSTATE_ABORTED: {
-                } break;
-                case proto::PAYMENTWORKFLOWSTATE_ERROR:
-                case proto::PAYMENTWORKFLOWSTATE_UNSENT:
-                case proto::PAYMENTWORKFLOWSTATE_CANCELLED:
-                case proto::PAYMENTWORKFLOWSTATE_EXPIRED:
-                default: {
-                    LogOutput(OT_METHOD)(__FUNCTION__)(
-                        ": Invalid workflow state (")(workflow.state())(")")
-                        .Flush();
-                }
-            }
-        } break;
-        case proto::PAYMENTWORKFLOWTYPE_ERROR:
-        case proto::PAYMENTWORKFLOWTYPE_OUTGOINGINVOICE:
-        case proto::PAYMENTWORKFLOWTYPE_INCOMINGINVOICE:
-        default: {
-            LogOutput(OT_METHOD)(__FUNCTION__)(": Unsupported workflow type (")(
-                workflow.type())(")")
-                .Flush();
-        }
-    }
-
-    return output;
-}
-
-void AccountActivity::process_balance(
-    const opentxs::network::zeromq::Message& message) noexcept
-{
-    wait_for_startup();
-
-    OT_ASSERT(2 == message.Body().size())
-
-    const auto accountID = Identifier::Factory(message.Body().at(0));
-
-    if (account_id_ != accountID) { return; }
-
-    const auto& balance = message.Body().at(1);
-
-    OT_ASSERT(balance.size() == sizeof(Amount))
-
-    balance_.store(*static_cast<const Amount*>(balance.data()));
-    UpdateNotify();
-}
-
-void AccountActivity::process_workflow(
-    const Identifier& workflowID,
-    std::set<AccountActivityRowID>& active) noexcept
-{
-    const auto workflow = api_.Workflow().LoadWorkflow(primary_id_, workflowID);
-
-    OT_ASSERT(workflow)
-
-    const auto rows = extract_rows(*workflow);
-
-    for (const auto& [type, row] : rows) {
-        const auto& [time, event_p] = row;
-        AccountActivityRowID key{Identifier::Factory(workflowID), type};
-        CustomData custom{new proto::PaymentWorkflow(*workflow),
-                          new proto::PaymentEvent(*event_p)};
-        add_item(key, time, custom);
-        active.emplace(std::move(key));
-    }
-}
-
-void AccountActivity::process_workflow(
-    const network::zeromq::Message& message) noexcept
-{
-    wait_for_startup();
-
-    OT_ASSERT(1 == message.Body().size());
-
-    const std::string id(*message.Body().begin());
-    const auto accountID = Identifier::Factory(id);
-
-    OT_ASSERT(false == accountID->empty())
-
-    if (account_id_ == accountID) { startup(); }
-}
-
-void AccountActivity::startup() noexcept
-{
-    auto account = api_.Wallet().Account(account_id_);
-
-    if (account) {
-        balance_.store(account.get().GetBalance());
-        UpdateNotify();
-        eLock lock(shared_lock_);
-        contract_ = api_.Wallet().UnitDefinition(
-            api_.Storage().AccountContract(account_id_));
-    }
-
-    account.Release();
-    const auto workflows =
-        api_.Workflow().WorkflowsByAccount(primary_id_, account_id_);
-    std::set<AccountActivityRowID> active{};
-
-    for (const auto& id : workflows) { process_workflow(id, active); }
-
-    delete_inactive(active);
-    finish_startup();
 }
 
 AccountActivity::~AccountActivity()

@@ -22,6 +22,7 @@ set(
   ActivityThread.cpp
   ActivityThreadItem.cpp
   BalanceItem.cpp
+  BlockchainAccountActivity.cpp
   BlockchainAccountListItem.cpp
   ChequeBalanceItem.cpp
   Contact.cpp
@@ -30,6 +31,7 @@ set(
   ContactListItem.cpp
   ContactSection.cpp
   ContactSubsection.cpp
+  CustodialAccountActivity.cpp
   IssuerItem.cpp
   MailItem.cpp
   MessagableList.cpp
@@ -97,6 +99,7 @@ set(
   ActivityThread.hpp
   ActivityThreadItem.hpp
   BalanceItem.hpp
+  BlockchainAccountActivity.hpp
   Combined.hpp
   Contact.hpp
   ContactItem.hpp
@@ -104,6 +107,7 @@ set(
   ContactListItem.hpp
   ContactSection.hpp
   ContactSubsection.hpp
+  CustodialAccountActivity.hpp
   IssuerItem.hpp
   List.hpp
   MailItem.hpp

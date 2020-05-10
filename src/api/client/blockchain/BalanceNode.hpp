@@ -14,6 +14,7 @@
 #include "internal/api/client/blockchain/Blockchain.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
+#include "opentxs/api/client/blockchain/BalanceNode.hpp"
 #include "opentxs/api/client/blockchain/BalanceTree.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -95,14 +96,23 @@ protected:
         std::set<OTData> Elements() const noexcept final;
         const Identifier& ID() const noexcept final { return parent_.ID(); }
         std::set<std::string> IncomingTransactions() const noexcept final;
+        Bip32Index Index() const noexcept final { return index_; }
         ECKey Key() const noexcept final;
         std::string Label() const noexcept final;
         const identifier::Nym& NymID() const noexcept final
         {
             return parent_.Parent().NymID();
         }
+        const blockchain::BalanceNode& Parent() const noexcept final
+        {
+            return parent_;
+        }
         OTData PubkeyHash() const noexcept final;
         SerializedType Serialize() const noexcept final;
+        blockchain::Subchain Subchain() const noexcept final
+        {
+            return subchain_;
+        }
 
         void SetContact(const Identifier& id) noexcept final;
         void SetLabel(const std::string& label) noexcept final;
@@ -114,14 +124,14 @@ protected:
             const internal::BalanceNode& parent,
             const client::internal::Blockchain& api,
             const opentxs::blockchain::Type chain,
-            const Subchain subchain,
+            const blockchain::Subchain subchain,
             const Bip32Index index,
             std::unique_ptr<opentxs::crypto::key::HD> key) noexcept(false);
         Element(
             const internal::BalanceNode& parent,
             const client::internal::Blockchain& api,
             const opentxs::blockchain::Type chain,
-            const Subchain subchain,
+            const blockchain::Subchain subchain,
             const SerializedType& address) noexcept(false);
         ~Element() final = default;
 
@@ -133,7 +143,7 @@ protected:
         const opentxs::blockchain::Type chain_;
         mutable std::mutex lock_;
         const VersionNumber version_;
-        const Subchain subchain_;
+        const blockchain::Subchain subchain_;
         const Bip32Index index_;
         std::string label_;
         OTIdentifier contact_;
@@ -149,7 +159,7 @@ protected:
             const client::internal::Blockchain& api,
             const opentxs::blockchain::Type chain,
             const VersionNumber version,
-            const Subchain subchain,
+            const blockchain::Subchain subchain,
             const Bip32Index index,
             const std::string label,
             const OTIdentifier contact,

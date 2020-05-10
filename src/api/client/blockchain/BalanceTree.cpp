@@ -18,8 +18,10 @@
 
 #include "api/client/blockchain/BalanceTree.hpp"
 #include "internal/api/Api.hpp"
+#include "internal/api/client/Client.hpp"
 #include "internal/api/client/blockchain/Blockchain.hpp"
 #include "opentxs/Pimpl.hpp"
+#include "opentxs/api/client/blockchain/HD.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
@@ -63,9 +65,9 @@ BalanceTree::BalanceTree(
     init(accounts);
 }
 
-void BalanceTree::NodeIndex::Add(
+auto BalanceTree::NodeIndex::Add(
     const std::string& id,
-    internal::BalanceNode* node) noexcept
+    internal::BalanceNode* node) noexcept -> void
 {
     OT_ASSERT(nullptr != node);
 
@@ -73,8 +75,8 @@ void BalanceTree::NodeIndex::Add(
     index_[id] = node;
 }
 
-internal::BalanceNode* BalanceTree::NodeIndex::Find(const std::string& id) const
-    noexcept
+auto BalanceTree::NodeIndex::Find(const std::string& id) const noexcept
+    -> internal::BalanceNode*
 {
     Lock lock(lock_);
 
@@ -87,11 +89,11 @@ internal::BalanceNode* BalanceTree::NodeIndex::Find(const std::string& id) const
     }
 }
 
-bool BalanceTree::AssociateTransaction(
+auto BalanceTree::AssociateTransaction(
     const std::vector<Activity>& unspent,
     const std::vector<Activity>& spent,
     std::set<OTIdentifier>& contacts,
-    const PasswordPrompt& reason) const noexcept
+    const PasswordPrompt& reason) const noexcept -> bool
 {
     using ActivityVector = std::vector<Activity>;
     using ActivityPair = std::pair<ActivityVector, ActivityVector>;
@@ -162,14 +164,73 @@ bool BalanceTree::AssociateTransaction(
     return true;
 }
 
-void BalanceTree::ClaimAccountID(
+auto BalanceTree::ClaimAccountID(
     const std::string& id,
-    internal::BalanceNode* node) const noexcept
+    internal::BalanceNode* node) const noexcept -> void
 {
     node_index_.Add(id, node);
 }
 
-void BalanceTree::init(const std::set<OTIdentifier>& accounts) noexcept
+auto BalanceTree::find_best_deposit_address() const noexcept
+    -> const blockchain::BalanceNode::Element&
+{
+    // TODO Find the next unused address instead of always returning the first
+    // address. Also add a mechanism for setting a default subaccount in case
+    // more than one is present. Also handle cases where only an imported
+    // subaccount exists
+
+    OT_ASSERT(0 < hd_.size());
+
+    const auto& account = *hd_.begin();
+
+    return account.BalanceElement(Subchain::External, 0);
+}
+
+auto BalanceTree::GetDepositAddress(const std::string& memo) const noexcept
+    -> std::string
+{
+    const auto& element = find_best_deposit_address();
+
+    if (false == memo.empty()) {
+        parent_.Parent().AssignLabel(
+            nym_id_,
+            element.Parent().ID(),
+            element.Subchain(),
+            element.Index(),
+            memo);
+    }
+
+    return element.Address(AddressStyle::P2PKH);  // TODO
+}
+
+auto BalanceTree::GetDepositAddress(
+    const Identifier& contact,
+    const std::string& memo) const noexcept -> std::string
+{
+    const auto& element = find_best_deposit_address();
+
+    if (false == contact.empty()) {
+        parent_.Parent().AssignContact(
+            nym_id_,
+            element.Parent().ID(),
+            element.Subchain(),
+            element.Index(),
+            contact);
+    }
+
+    if (false == memo.empty()) {
+        parent_.Parent().AssignLabel(
+            nym_id_,
+            element.Parent().ID(),
+            element.Subchain(),
+            element.Index(),
+            memo);
+    }
+
+    return element.Address(AddressStyle::P2PKH);  // TODO
+}
+
+auto BalanceTree::init(const std::set<OTIdentifier>& accounts) noexcept -> void
 {
     for (const auto& accountID : accounts) {
         std::shared_ptr<proto::HDAccount> account{};
@@ -186,8 +247,8 @@ void BalanceTree::init(const std::set<OTIdentifier>& accounts) noexcept
     }
 }
 
-std::optional<std::pair<Key, Amount>> BalanceTree::LookupUTXO(
-    const Coin& coin) const noexcept
+auto BalanceTree::LookupUTXO(const Coin& coin) const noexcept
+    -> std::optional<std::pair<Key, Amount>>
 {
     Lock lock(lock_);
 
@@ -200,8 +261,8 @@ std::optional<std::pair<Key, Amount>> BalanceTree::LookupUTXO(
     }
 }
 
-internal::BalanceNode& BalanceTree::Node(const Identifier& id) const
-    noexcept(false)
+auto BalanceTree::Node(const Identifier& id) const noexcept(false)
+    -> internal::BalanceNode&
 {
     auto* output = node_index_.Find(id.str());
 

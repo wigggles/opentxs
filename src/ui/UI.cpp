@@ -9,6 +9,8 @@
 
 #include <map>
 #include <mutex>
+#include <optional>
+#include <set>
 
 #if OT_BLOCKCHAIN
 #include "internal/blockchain/Blockchain.hpp"
@@ -16,6 +18,7 @@
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
+#include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
@@ -50,6 +53,38 @@ auto AccountName([[maybe_unused]] const blockchain::Type chain) noexcept
     -> std::string
 {
     return "This device";
+}
+
+auto Chain(const api::Core& api, const Identifier& account) noexcept
+    -> blockchain::Type
+{
+    using Map = std::map<OTIdentifier, blockchain::Type>;
+    using Storage = std::optional<Map>;
+    static std::mutex mutex_;
+    static const auto map = Storage{};
+
+    {
+        Lock lock(mutex_);
+
+        if (false == map.has_value()) {
+            const_cast<Storage&>(map) = Map{};
+            auto& data = const_cast<Map&>(map.value());
+
+            for (const auto& chain : blockchain::SupportedChains()) {
+                data.emplace(AccountID(api, chain), chain);
+            }
+        }
+    }
+
+    const auto& data = map.value();
+
+    try {
+
+        return data.at(account);
+    } catch (...) {
+
+        return blockchain::Type::Unknown;
+    }
 }
 
 auto NotaryID(const api::Core& api, const blockchain::Type chain) noexcept

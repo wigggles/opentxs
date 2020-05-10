@@ -80,7 +80,7 @@ opentxs::Amount TransferBalanceItem::effective_amount() const noexcept
         } break;
         case StorageBox::INTERNALTRANSFER: {
             const auto in =
-                parent_.AccountID() == transfer_->GetDestinationAcctID();
+                parent_.AccountID() == transfer_->GetDestinationAcctID().str();
 
             if (in) {
                 sign = 1;
@@ -115,7 +115,8 @@ bool TransferBalanceItem::get_contract() const noexcept
     if (0 < contract_->Version()) { return true; }
 
     auto contractID = identifier::UnitDefinition::Factory();
-    const auto in = parent_.AccountID() == transfer_->GetDestinationAcctID();
+    const auto in =
+        parent_.AccountID() == transfer_->GetDestinationAcctID().str();
 
     if (in) {
         contractID =
@@ -226,7 +227,7 @@ void TransferBalanceItem::startup(const CustomData& custom) noexcept
         } break;
         case StorageBox::INTERNALTRANSFER: {
             const auto in =
-                parent_.AccountID() == transfer_->GetDestinationAcctID();
+                parent_.AccountID() == transfer_->GetDestinationAcctID().str();
 
             switch (event.type()) {
                 case proto::PAYMENTEVENTTYPE_ACKNOWLEDGE: {
