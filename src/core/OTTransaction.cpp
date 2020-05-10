@@ -442,7 +442,7 @@ void OTTransaction::SetClosingNum(std::int64_t lClosingNum)
 //
 auto OTTransaction::VerifyAccount(const identity::Nym& theNym) -> bool
 {
-    Ledger* pParent = const_cast<Ledger*>(m_pParent);
+    auto* pParent = const_cast<Ledger*>(m_pParent);
 
     // Make sure that the supposed AcctID matches the one read from the file.
     //
@@ -1779,7 +1779,7 @@ auto OTTransaction::VerifyBalanceReceipt(
 
     // At this point, pContents is successfully loaded and verified, containing
     // the last transaction receipt.
-    OTTransaction* pTrans = dynamic_cast<OTTransaction*>(pContents.get());
+    auto* pTrans = dynamic_cast<OTTransaction*>(pContents.get());
 
     if (nullptr == pTrans) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -5957,9 +5957,8 @@ auto OTTransaction::GetReferenceNumForDisplay() -> std::int64_t
                 if (false != bool(pCronItem)) {
                     lReferenceNum = pCronItem->GetTransactionNum();
                     // -------------------------------------------
-                    OTPaymentPlan* pPlan =
-                        dynamic_cast<OTPaymentPlan*>(pCronItem.get());
-                    OTSmartContract* pSmartContract =
+                    auto* pPlan = dynamic_cast<OTPaymentPlan*>(pCronItem.get());
+                    auto* pSmartContract =
                         dynamic_cast<OTSmartContract*>(pCronItem.get());
 
                     if (nullptr != pPlan) {
@@ -6076,8 +6075,7 @@ auto OTTransaction::GetSenderNymIDForDisplay(Identifier& theReturnID) -> bool
 
             const auto pCronItem{api_.Factory().CronItem(strUpdatedCronItem)};
 
-            OTSmartContract* pSmart =
-                dynamic_cast<OTSmartContract*>(pCronItem.get());
+            auto* pSmart = dynamic_cast<OTSmartContract*>(pCronItem.get());
 
             if (nullptr != pSmart)  // if it's a smart contract...
             {
@@ -6129,8 +6127,7 @@ auto OTTransaction::GetSenderNymIDForDisplay(Identifier& theReturnID) -> bool
 
             const auto pCronItem{api_.Factory().CronItem(strUpdatedCronItem)};
 
-            OTSmartContract* pSmart =
-                dynamic_cast<OTSmartContract*>(pCronItem.get());
+            auto* pSmart = dynamic_cast<OTSmartContract*>(pCronItem.get());
 
             if (nullptr != pSmart)  // if it's a smart contract...
             {
@@ -6327,10 +6324,8 @@ auto OTTransaction::GetRecipientNymIDForDisplay(Identifier& theReturnID) -> bool
 
             const auto pCronItem{api_.Factory().CronItem(strUpdatedCronItem)};
 
-            OTSmartContract* pSmart =
-                dynamic_cast<OTSmartContract*>(pCronItem.get());
-            OTPaymentPlan* pPlan =
-                dynamic_cast<OTPaymentPlan*>(pCronItem.get());
+            auto* pSmart = dynamic_cast<OTSmartContract*>(pCronItem.get());
+            auto* pPlan = dynamic_cast<OTPaymentPlan*>(pCronItem.get());
 
             if (nullptr != pSmart)  // if it's a smart contract...
             {
@@ -6381,10 +6376,8 @@ auto OTTransaction::GetRecipientNymIDForDisplay(Identifier& theReturnID) -> bool
 
             const auto pCronItem{api_.Factory().CronItem(strUpdatedCronItem)};
 
-            OTSmartContract* pSmart =
-                dynamic_cast<OTSmartContract*>(pCronItem.get());
-            OTPaymentPlan* pPlan =
-                dynamic_cast<OTPaymentPlan*>(pCronItem.get());
+            auto* pSmart = dynamic_cast<OTSmartContract*>(pCronItem.get());
+            auto* pPlan = dynamic_cast<OTPaymentPlan*>(pCronItem.get());
 
             if (nullptr != pSmart)  // if it's a smart contract...
             {
@@ -6574,8 +6567,7 @@ auto OTTransaction::GetSenderAcctIDForDisplay(Identifier& theReturnID) -> bool
 
             const auto pCronItem{api_.Factory().CronItem(strUpdatedCronItem)};
 
-            OTSmartContract* pSmart =
-                dynamic_cast<OTSmartContract*>(pCronItem.get());
+            auto* pSmart = dynamic_cast<OTSmartContract*>(pCronItem.get());
 
             if (nullptr != pSmart)  // if it's a smart contract...
             {
@@ -6717,10 +6709,8 @@ auto OTTransaction::GetRecipientAcctIDForDisplay(Identifier& theReturnID)
 
             const auto pCronItem{api_.Factory().CronItem(strUpdatedCronItem)};
 
-            OTSmartContract* pSmart =
-                dynamic_cast<OTSmartContract*>(pCronItem.get());
-            OTPaymentPlan* pPlan =
-                dynamic_cast<OTPaymentPlan*>(pCronItem.get());
+            auto* pSmart = dynamic_cast<OTSmartContract*>(pCronItem.get());
+            auto* pPlan = dynamic_cast<OTPaymentPlan*>(pCronItem.get());
 
             if (nullptr != pSmart)  // if it's a smart contract...
             {
@@ -6847,10 +6837,8 @@ auto OTTransaction::GetMemo(String& strMemo) -> bool
 
             const auto pCronItem{api_.Factory().CronItem(strUpdatedCronItem)};
 
-            OTSmartContract* pSmart =
-                dynamic_cast<OTSmartContract*>(pCronItem.get());
-            OTPaymentPlan* pPlan =
-                dynamic_cast<OTPaymentPlan*>(pCronItem.get());
+            auto* pSmart = dynamic_cast<OTSmartContract*>(pCronItem.get());
+            auto* pPlan = dynamic_cast<OTPaymentPlan*>(pCronItem.get());
 
             if (nullptr != pSmart)  // if it's a smart contract...
             {

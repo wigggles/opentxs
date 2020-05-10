@@ -876,8 +876,7 @@ auto OT_API::SmartContract_ConfirmAccount(
             .Flush();
         return false;
     }
-    OTSmartContract* contract =
-        dynamic_cast<OTSmartContract*>(pScriptable.get());
+    auto* contract = dynamic_cast<OTSmartContract*>(pScriptable.get());
     if (nullptr == contract) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Failure casting to Smart Contract. "
@@ -1110,7 +1109,7 @@ auto OT_API::SmartContract_ConfirmParty(
         }
     }
 
-    OTParty* pNewParty = new OTParty(
+    auto* pNewParty = new OTParty(
         api_.Wallet(),
         api_.DataFolder(),
         party->GetPartyName(),

@@ -79,7 +79,7 @@ OTParty::OTParty(
                    strRoleID = String::Factory(""),
                    strGroupName = String::Factory("");
 
-        OTAgent* pAgent = new OTAgent(
+        auto* pAgent = new OTAgent(
             wallet_,
             true /*bNymRepresentsSelf*/,
             true /*bIsAnIndividual*/,
@@ -133,7 +133,7 @@ OTParty::OTParty(
     theNym.GetIdentifier(strNymID);
     m_str_owner_id = strNymID->Get();
 
-    OTAgent* pAgent = new OTAgent(
+    auto* pAgent = new OTAgent(
         wallet_, str_agent_name, theNym);  // (The third arg, bRepresentsSelf,
                                            // defaults here to true.)
     OT_ASSERT(nullptr != pAgent);
@@ -265,7 +265,7 @@ auto OTParty::AddAccount(
     const String& strInstrumentDefinitionID,
     std::int64_t lClosingTransNo) -> bool
 {
-    OTPartyAccount* pPartyAccount = new OTPartyAccount(
+    auto* pPartyAccount = new OTPartyAccount(
         wallet_,
         data_folder_,
         strName,
@@ -289,7 +289,7 @@ auto OTParty::AddAccount(
     Account& theAccount,
     std::int64_t lClosingTransNo) -> bool
 {
-    OTPartyAccount* pPartyAccount = new OTPartyAccount(
+    auto* pPartyAccount = new OTPartyAccount(
         wallet_,
         data_folder_,
         szAcctName,
@@ -308,8 +308,7 @@ auto OTParty::AddAccount(
 
 auto OTParty::RemoveAccount(const std::string str_Name) -> bool
 {
-    for (mapOfPartyAccounts::iterator it = m_mapPartyAccounts.begin();
-         it != m_mapPartyAccounts.end();
+    for (auto it = m_mapPartyAccounts.begin(); it != m_mapPartyAccounts.end();
          ++it) {
         OTPartyAccount* pAcct = it->second;
         OT_ASSERT(nullptr != pAcct);

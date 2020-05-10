@@ -131,7 +131,7 @@ void Basket::AddRequestSubContract(
     const Identifier& SUB_ACCOUNT_ID,
     const std::int64_t& lClosingTransactionNo)
 {
-    BasketItem* pItem = new BasketItem;
+    auto* pItem = new BasketItem;
 
     OT_ASSERT_MSG(
         nullptr != pItem,
@@ -159,7 +159,7 @@ void Basket::AddSubContract(
     const Identifier& SUB_CONTRACT_ID,
     std::int64_t lMinimumTransferAmount)
 {
-    BasketItem* pItem = new BasketItem;
+    auto* pItem = new BasketItem;
 
     OT_ASSERT_MSG(
         nullptr != pItem,
@@ -250,7 +250,7 @@ auto Basket::ProcessXMLNode(irr::io::IrrXMLReader*& xml) -> std::int32_t
 
         return 1;
     } else if (strNodeName->Compare("basketItem")) {
-        BasketItem* pItem = new BasketItem;
+        auto* pItem = new BasketItem;
 
         OT_ASSERT_MSG(
             nullptr != pItem,

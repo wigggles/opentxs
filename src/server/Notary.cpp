@@ -4486,7 +4486,7 @@ void Notary::NotarizeExchangeBasket(
                                  i++) {
                                 BasketItem* item = theRequestBasket->At(i);
                                 OT_ASSERT(nullptr != item);
-                                std::set<OTIdentifier>::iterator it_account =
+                                auto it_account =
                                     setOfAccounts.find(item->SUB_ACCOUNT_ID);
 
                                 if (setOfAccounts.end() !=

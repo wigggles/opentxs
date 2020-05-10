@@ -114,7 +114,7 @@ Ledger::Ledger(const api::internal::Core& core)
 
 auto Ledger::_GetTypeString(ledgerType theType) -> char const*
 {
-    std::int32_t nType = static_cast<std::int32_t>(theType);
+    auto nType = static_cast<std::int32_t>(theType);
     return __TypeStringsLedger[nType];
 }
 
@@ -146,8 +146,7 @@ auto Ledger::VerifyAccount(const identity::Nym& theNym) -> bool
                                             // suppressing errors here.
         } break;
         default: {
-            const std::int32_t nLedgerType =
-                static_cast<std::int32_t>(GetType());
+            const auto nLedgerType = static_cast<std::int32_t>(GetType());
             const auto theNymID = Identifier::Factory(theNym);
             const auto strNymID = String::Factory(theNymID);
             auto strAccountID = String::Factory();
@@ -2273,7 +2272,7 @@ auto Ledger::ProcessXMLNode(irr::io::IrrXMLReader*& xml) -> std::int32_t
                         m_bLoadedLegacyData =
                             true;  // Only place this is set true.
 
-                        const std::int32_t nBoxType =
+                        const auto nBoxType =
                             static_cast<std::int32_t>(GetType());
 
                         const bool bBoxReceiptAlreadyExists =
@@ -2301,7 +2300,7 @@ auto Ledger::ProcessXMLNode(irr::io::IrrXMLReader*& xml) -> std::int32_t
                                 "(yet). Creating it in local storage...")
                                 .Flush();
 
-                            const std::int64_t lBoxType =
+                            const auto lBoxType =
                                 static_cast<std::int64_t>(nBoxType);
 
                             if (false == transaction->SaveBoxReceipt(

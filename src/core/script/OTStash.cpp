@@ -44,7 +44,7 @@ OTStash::OTStash(const String& strInstrumentDefinitionID, std::int64_t lAmount)
     : m_str_stash_name()
     , m_mapStashItems()
 {
-    OTStashItem* pItem = new OTStashItem(strInstrumentDefinitionID, lAmount);
+    auto* pItem = new OTStashItem(strInstrumentDefinitionID, lAmount);
     OT_ASSERT(nullptr != pItem);
 
     m_mapStashItems.insert(std::pair<std::string, OTStashItem*>(
@@ -57,7 +57,7 @@ OTStash::OTStash(
     : m_str_stash_name()
     , m_mapStashItems()
 {
-    OTStashItem* pItem = new OTStashItem(theInstrumentDefinitionID, lAmount);
+    auto* pItem = new OTStashItem(theInstrumentDefinitionID, lAmount);
     OT_ASSERT(nullptr != pItem);
 
     auto strInstrumentDefinitionID = String::Factory(theInstrumentDefinitionID);
@@ -192,7 +192,7 @@ auto OTStash::GetStash(const std::string& str_instrument_definition_id)
     {
         const auto strInstrumentDefinitionID =
             String::Factory(str_instrument_definition_id.c_str());
-        OTStashItem* pStashItem = new OTStashItem(strInstrumentDefinitionID);
+        auto* pStashItem = new OTStashItem(strInstrumentDefinitionID);
         OT_ASSERT(nullptr != pStashItem);
 
         m_mapStashItems.insert(std::pair<std::string, OTStashItem*>(

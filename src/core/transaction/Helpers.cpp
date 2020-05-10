@@ -302,7 +302,7 @@ auto VerifyBoxReceiptExists(
     const std::int32_t nBoxType,    // 0/nymbox, 1/inbox, 2/outbox
     const std::int64_t& lTransactionNum) -> bool
 {
-    const std::int64_t lLedgerType = static_cast<std::int64_t>(nBoxType);
+    const auto lLedgerType = static_cast<std::int64_t>(nBoxType);
 
     const auto strNotaryID = String::Factory(NOTARY_ID),
                strUserOrAcctID = String::Factory(
@@ -352,8 +352,7 @@ auto LoadBoxReceipt(
     OTTransaction& theAbbrev,
     Ledger& theLedger) -> std::unique_ptr<OTTransaction>
 {
-    const std::int64_t lLedgerType =
-        static_cast<std::int64_t>(theLedger.GetType());
+    const auto lLedgerType = static_cast<std::int64_t>(theLedger.GetType());
     return LoadBoxReceipt(api, theAbbrev, lLedgerType);
 }
 

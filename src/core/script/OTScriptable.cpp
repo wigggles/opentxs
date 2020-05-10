@@ -259,7 +259,7 @@ void OTScriptable::RegisterOTNativeCallsWithScript([
     // In the future, this will be polymorphic.
     // But for now, I'm forcing things...
 
-    OTScriptChai* pScript = dynamic_cast<OTScriptChai*>(&theScript);
+    auto* pScript = dynamic_cast<OTScriptChai*>(&theScript);
 
     if (nullptr != pScript) {
         OT_ASSERT(nullptr != pScript->chai_)
@@ -2453,7 +2453,7 @@ auto OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml) -> std::int32_t
                             ": Expected openingTransNo in party.")
                             .Flush();
 
-                    OTParty* pParty = new OTParty(
+                    auto* pParty = new OTParty(
                         api_.Wallet(),
                         api_.DataFolder(),
                         strName->Exists() ? strName->Get() : "PARTY_ERROR_NAME",
@@ -2590,7 +2590,7 @@ auto OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml) -> std::int32_t
                                 // OTScriptable for ALL the agents on the
                                 // already-loaded parties.
 
-                                OTAgent* pAgent = new OTAgent(
+                                auto* pAgent = new OTAgent(
                                     api_.Wallet(),
                                     bRepsHimself,
                                     bIsIndividual,
@@ -2843,7 +2843,7 @@ auto OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml) -> std::int32_t
                                                // initiate, when it needs
                                                // answers.
 
-                    OTBylaw* pBylaw =
+                    auto* pBylaw =
                         new OTBylaw(strName->Get(), strLanguage->Get());
 
                     OT_ASSERT(nullptr != pBylaw);

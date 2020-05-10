@@ -238,7 +238,7 @@ auto OTScriptChai::ExecuteScript(OTVariable* pReturnVar) -> bool
             {
                 switch (pReturnVar->GetType()) {
                     case OTVariable::Var_Integer: {
-                        std::int32_t nResult = chai_->eval<int32_t>(
+                        auto nResult = chai_->eval<int32_t>(
                             m_str_script.c_str(),
                             exception_specification<const std::exception&>(),
                             m_str_display_filename);
@@ -254,7 +254,7 @@ auto OTScriptChai::ExecuteScript(OTVariable* pReturnVar) -> bool
                     } break;
 
                     case OTVariable::Var_String: {
-                        std::string str_Result = chai_->eval<std::string>(
+                        auto str_Result = chai_->eval<std::string>(
                             m_str_script.c_str(),
                             exception_specification<const std::exception&>(),
                             m_str_display_filename);

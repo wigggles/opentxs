@@ -670,8 +670,7 @@ auto OTMarket::RemoveOffer(
         // list to remove. Todo.
         OTOffer* pSameOffer = nullptr;
 
-        for (mapOfOffers::iterator iii = pMap->begin(); iii != pMap->end();
-             ++iii) {
+        for (auto iii = pMap->begin(); iii != pMap->end(); ++iii) {
             pSameOffer = iii->second;
 
             OT_ASSERT_MSG(
@@ -945,7 +944,7 @@ auto OTMarket::GetHighestBidPrice() -> std::int64_t
 {
     std::int64_t lPrice = 0;
 
-    mapOfOffers::reverse_iterator rr = m_mapBids.rbegin();
+    auto rr = m_mapBids.rbegin();
 
     if (rr != m_mapBids.rend()) { lPrice = rr->first; }
 
@@ -2434,9 +2433,7 @@ auto OTMarket::ProcessTrade(
         // other hand, is first in line.  So we start there, and loop
         // backwards until there are no other bids within my price
         // range.
-        for (mapOfOffers::reverse_iterator rr = m_mapBids.rbegin();
-             rr != m_mapBids.rend();
-             ++rr) {
+        for (auto rr = m_mapBids.rbegin(); rr != m_mapBids.rend(); ++rr) {
             // then I want to start at the highest bidder and loop DOWN
             // until hitting my price limit.
             OTOffer* pBid = rr->second;

@@ -392,7 +392,7 @@ auto OTPaymentPlan::CompareAgreement(const OTAgreement& rhs) const -> bool
     if (!ot_super::CompareAgreement(rhs)) return false;
 
     // Compare OTPaymentPlan specific info here.
-    const OTPaymentPlan* pPlan = dynamic_cast<const OTPaymentPlan*>(&rhs);
+    const auto* pPlan = dynamic_cast<const OTPaymentPlan*>(&rhs);
 
     if ((nullptr != pPlan) &&
         (HasInitialPayment() == pPlan->HasInitialPayment()) &&
@@ -747,7 +747,7 @@ auto OTPaymentPlan::ProcessPayment(
     // SIGNED the original request. FYI, their signatures wouldn't be on the
     // updated version in Cron--the server signs that one--which is *this.
 
-    OTPaymentPlan* pPlan = dynamic_cast<OTPaymentPlan*>(pOrigCronItem.get());
+    auto* pPlan = dynamic_cast<OTPaymentPlan*>(pOrigCronItem.get());
 
     if ((nullptr == pPlan) || !pPlan->VerifyMerchantSignature(*pRecipientNym) ||
         !pPlan->VerifyCustomerSignature(*pSenderNym)) {

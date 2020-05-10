@@ -935,7 +935,7 @@ auto OTPacker::GetType() const -> PackType
 //
 auto OTPacker::Pack(Storable& inObj) -> PackedBuffer*
 {
-    IStorable* pStorable = dynamic_cast<IStorable*>(&inObj);
+    auto* pStorable = dynamic_cast<IStorable*>(&inObj);
 
     if (nullptr == pStorable)  // ALL Storables should implement SOME
                                // subinterface of IStorable
@@ -978,7 +978,7 @@ auto OTPacker::Pack(Storable& inObj) -> PackedBuffer*
 //
 auto OTPacker::Unpack(PackedBuffer& inBuf, Storable& outObj) -> bool
 {
-    IStorable* pStorable = dynamic_cast<IStorable*>(&outObj);
+    auto* pStorable = dynamic_cast<IStorable*>(&outObj);
 
     if (nullptr == pStorable) return false;
 
@@ -1376,7 +1376,7 @@ auto IStorablePB::onPack(
     Storable&) -> bool  // buffer is OUTPUT.
 {
     // check here to make sure theBuffer is the right TYPE.
-    BufferPB* pBuffer = dynamic_cast<BufferPB*>(&theBuffer);
+    auto* pBuffer = dynamic_cast<BufferPB*>(&theBuffer);
 
     if (nullptr == pBuffer)  // Buffer is wrong type!!
         return false;
@@ -1395,7 +1395,7 @@ auto IStorablePB::onUnpack(
     Storable&) -> bool  // buffer is INPUT.
 {
     // check here to make sure theBuffer is the right TYPE.
-    BufferPB* pBuffer = dynamic_cast<BufferPB*>(&theBuffer);
+    auto* pBuffer = dynamic_cast<BufferPB*>(&theBuffer);
 
     if (nullptr == pBuffer)  // Buffer is wrong type!!
         return false;
@@ -1426,7 +1426,7 @@ auto BufferPB::PackString(const std::string& theString) -> bool
 
     if (nullptr == pMessage) return false;
 
-    String_InternalPB* pBuffer = dynamic_cast<String_InternalPB*>(pMessage);
+    auto* pBuffer = dynamic_cast<String_InternalPB*>(pMessage);
 
     if (nullptr == pBuffer)  // Buffer is wrong type!!
         return false;
@@ -1446,7 +1446,7 @@ auto BufferPB::UnpackString(std::string& theString) -> bool
 
     if (nullptr == pMessage) return false;
 
-    String_InternalPB* pBuffer = dynamic_cast<String_InternalPB*>(pMessage);
+    auto* pBuffer = dynamic_cast<String_InternalPB*>(pMessage);
 
     if (nullptr == pBuffer)  // Buffer is wrong type!!
         return false;
@@ -1461,7 +1461,7 @@ auto BufferPB::UnpackString(std::string& theString) -> bool
 auto BufferPB::ReadFromIStream(std::istream& inStream, std::int64_t lFilesize)
     -> bool
 {
-    unsigned long size = static_cast<unsigned long>(lFilesize);
+    auto size = static_cast<unsigned long>(lFilesize);
 
     char* buf = new char[size];
     OT_ASSERT(nullptr != buf);

@@ -765,7 +765,7 @@ void OTSmartContract::RegisterOTNativeCallsWithScript(OTScript& theScript)
 #if OT_SCRIPT_CHAI
     using namespace chaiscript;
 
-    OTScriptChai* pScript = dynamic_cast<OTScriptChai*>(&theScript);
+    auto* pScript = dynamic_cast<OTScriptChai*>(&theScript);
 
     if (nullptr != pScript) {
         OT_ASSERT(nullptr != pScript->chai_)
@@ -3694,7 +3694,7 @@ void OTSmartContract::ExecuteClauses(
                 }
                 // else (it's already "")
 
-                OTVariable* pVar = new OTVariable(
+                auto* pVar = new OTVariable(
                     str_Name, str_Value, OTVariable::Var_Constant);
                 OT_ASSERT(nullptr != pVar);
                 theVarAngel.reset(pVar);
@@ -5038,7 +5038,7 @@ auto OTSmartContract::GetStash(std::string str_stash_name) -> OTStash*
 
     if (m_mapStashes.end() == it)  // It's not there. Create it.
     {
-        OTStash* pStash = new OTStash(str_stash_name);
+        auto* pStash = new OTStash(str_stash_name);
         OT_ASSERT(nullptr != pStash);
 
         m_mapStashes.insert(
@@ -5131,8 +5131,7 @@ auto OTSmartContract::Compare(OTScriptable& rhs) const -> bool
     }
 
     // Compare OTSmartContract specific info here.
-    const OTSmartContract* pSmartContract =
-        dynamic_cast<const OTSmartContract*>(&rhs);
+    const auto* pSmartContract = dynamic_cast<const OTSmartContract*>(&rhs);
 
     if (nullptr != pSmartContract) {
         if (pSmartContract->GetCountStashes() > 0) {
@@ -5454,7 +5453,7 @@ auto OTSmartContract::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             String::Factory(xml->getAttributeValue("count"));
 
         const std::string str_stash_name = strStashName->Get();
-        OTStash* pStash = new OTStash(str_stash_name);
+        auto* pStash = new OTStash(str_stash_name);
         OT_ASSERT(nullptr != pStash);
 
         if ((-1) == pStash->ReadFromXMLNode(xml, strStashName, strItemCount)) {

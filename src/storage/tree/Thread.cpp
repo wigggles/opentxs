@@ -221,7 +221,7 @@ auto Thread::Remove(const std::string& id) -> bool
     if (items_.end() == it) { return false; }
 
     auto& item = it->second;
-    StorageBox box = static_cast<StorageBox>(item.box());
+    auto box = static_cast<StorageBox>(item.box());
     items_.erase(it);
 
     switch (box) {

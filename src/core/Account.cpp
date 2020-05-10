@@ -137,7 +137,7 @@ Account::Account(
 
 auto Account::_GetTypeString(AccountType accountType) -> char const*
 {
-    std::int32_t index = static_cast<std::int32_t>(accountType);
+    auto index = static_cast<std::int32_t>(accountType);
     return __TypeStringsAccount[index];
 }
 

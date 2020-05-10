@@ -125,7 +125,7 @@ OTPayment::OTPayment(const api::internal::Core& core, const String& strPayment)
 // static
 auto OTPayment::_GetTypeString(paymentType theType) -> const char*
 {
-    std::int32_t nType = static_cast<std::int32_t>(theType);
+    auto nType = static_cast<std::int32_t>(theType);
     return __TypeStringsPayment[nType];
 }
 
@@ -378,9 +378,8 @@ auto OTPayment::SetTempValuesFromNotice(
         }
         std::unique_ptr<OTTrackable> theTrackableAngel(pTrackable);
         // -------------------------------------------
-        OTPaymentPlan* pPlan = dynamic_cast<OTPaymentPlan*>(pTrackable);
-        OTSmartContract* pSmartContract =
-            dynamic_cast<OTSmartContract*>(pTrackable);
+        auto* pPlan = dynamic_cast<OTPaymentPlan*>(pTrackable);
+        auto* pSmartContract = dynamic_cast<OTSmartContract*>(pTrackable);
 
         if (nullptr != pPlan) {
             lowLevelSetTempValuesFromPaymentPlan(*pPlan);
@@ -640,9 +639,8 @@ auto OTPayment::GetAllTransactionNumbers(
         }  // Below THIS POINT, MUST DELETE pTrackable!
         std::unique_ptr<OTTrackable> theTrackableAngel(pTrackable);
 
-        OTPaymentPlan* pPlan = dynamic_cast<OTPaymentPlan*>(pTrackable);
-        OTSmartContract* pSmartContract =
-            dynamic_cast<OTSmartContract*>(pTrackable);
+        auto* pPlan = dynamic_cast<OTPaymentPlan*>(pTrackable);
+        auto* pSmartContract = dynamic_cast<OTSmartContract*>(pTrackable);
 
         if (nullptr != pPlan) {
             pPlan->GetAllTransactionNumbers(numlistOutput);
@@ -1719,7 +1717,7 @@ auto OTPayment::InstantiateNotice() const -> OTTransaction*
             return nullptr;
         }
 
-        OTTransaction* pNotice = dynamic_cast<OTTransaction*>(pType.release());
+        auto* pNotice = dynamic_cast<OTTransaction*>(pType.release());
 
         if (nullptr == pNotice) {
             LogOutput(OT_METHOD)(__FUNCTION__)(

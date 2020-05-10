@@ -906,7 +906,7 @@ auto OTBylaw::AddVariable(
     bool bValue,
     OTVariable::OTVariable_Access theAccess) -> bool
 {
-    OTVariable* pVar = new OTVariable(str_Name, bValue, theAccess);
+    auto* pVar = new OTVariable(str_Name, bValue, theAccess);
     OT_ASSERT(nullptr != pVar);
 
     if (!AddVariable(*pVar)) {
@@ -922,7 +922,7 @@ auto OTBylaw::AddVariable(
     std::string str_Value,
     OTVariable::OTVariable_Access theAccess) -> bool
 {
-    OTVariable* pVar = new OTVariable(str_Name, str_Value, theAccess);
+    auto* pVar = new OTVariable(str_Name, str_Value, theAccess);
     OT_ASSERT(nullptr != pVar);
 
     if (!AddVariable(*pVar)) {
@@ -938,7 +938,7 @@ auto OTBylaw::AddVariable(
     std::int32_t nValue,
     OTVariable::OTVariable_Access theAccess) -> bool
 {
-    OTVariable* pVar = new OTVariable(str_Name, nValue, theAccess);
+    auto* pVar = new OTVariable(str_Name, nValue, theAccess);
     OT_ASSERT(nullptr != pVar);
 
     if (!AddVariable(*pVar)) {
@@ -957,7 +957,7 @@ auto OTBylaw::AddClause(const char* szName, const char* szCode) -> bool
     // Note: name is validated in the AddClause call below.
     // (So I don't validate it here.)
 
-    OTClause* pClause = new OTClause(szName, szCode);
+    auto* pClause = new OTClause(szName, szCode);
     OT_ASSERT(nullptr != pClause);
 
     if (!AddClause(*pClause)) {

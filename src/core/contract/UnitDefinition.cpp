@@ -887,7 +887,7 @@ auto Unit::VisitAccountRecords(
         "",
         ""));
 
-    OTDB::StringMap* pMap = dynamic_cast<OTDB::StringMap*>(pStorable.get());
+    auto* pMap = dynamic_cast<OTDB::StringMap*>(pStorable.get());
 
     // There was definitely a StringMap loaded from local storage.
     // (Even an empty one, possibly.) This is the only block that matters in

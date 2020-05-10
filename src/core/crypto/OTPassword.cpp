@@ -67,7 +67,7 @@ auto ot_secure_memset(void* v, std::uint8_t c, std::uint32_t n) -> void*
 {
     OT_ASSERT((nullptr != v) && (n > 0));
 
-    volatile std::uint8_t* p = static_cast<volatile uint8_t*>(v);
+    volatile auto* p = static_cast<volatile uint8_t*>(v);
     while (n--) *p++ = c;
 
     return v;
@@ -174,7 +174,7 @@ void OTPassword::zeroMemory(void* vMemory, std::uint32_t theSize)
     // 0.");
 
     if ((nullptr != vMemory) && (theSize > 0)) {
-        std::uint8_t* szMemory = static_cast<uint8_t*>(vMemory);
+        auto* szMemory = static_cast<uint8_t*>(vMemory);
         OTPassword::zeroMemory(szMemory, theSize);
     }
 }
@@ -307,7 +307,7 @@ auto OTPassword::CreateTextBuffer() -> OTPassword*  // asserts already.
     // at a certain password size, so we can pass that buffer and size on to any
     // C-style function that needs them to "already exist."
     //
-    OTPassword* pPassUserInput = new OTPassword(
+    auto* pPassUserInput = new OTPassword(
         &(throwaway_text[0]), OT_DEFAULT_BLOCKSIZE - 1);  // text mode.
     OT_ASSERT_MSG(
         nullptr != pPassUserInput,

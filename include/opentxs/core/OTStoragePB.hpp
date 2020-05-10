@@ -146,8 +146,7 @@ public:
     {
         std::unique_ptr<OTPacker> pPacker(
             OTPacker::Create(PACK_PROTOCOL_BUFFERS));
-        const OTDB::Storable* pIntermediate =
-            dynamic_cast<const OTDB::Storable*>(this);
+        const auto* pIntermediate = dynamic_cast<const OTDB::Storable*>(this);
 
         if (!pPacker) { OT_FAIL; }
 
