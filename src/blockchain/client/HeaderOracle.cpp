@@ -15,6 +15,7 @@
 
 #include "blockchain/client/UpdateTransaction.hpp"
 #include "internal/api/Api.hpp"
+#include "internal/blockchain/Blockchain.hpp"
 #include "internal/core/Core.hpp"
 #include "opentxs/blockchain/Work.hpp"
 #include "opentxs/blockchain/block/Header.hpp"
@@ -80,22 +81,27 @@ namespace opentxs::blockchain::client::implementation
 {
 const std::map<blockchain::Type, std::pair<block::Height, std::string>>
     HeaderOracle::checkpoints_{
+        {blockchain::Type::Bitcoin,
+         {630000,
+          "6de9d737a62ea1c197000edb02c252089969dfd8ea4b02000000000000000000"}},
+        {blockchain::Type::Bitcoin_testnet3,
+         {1740000,
+          "f758e6307382affd044c64e2bead2efdd2d9222bce9d232ae3fc000000000000"}},
         {blockchain::Type::BitcoinCash,
-         {609136,
-          "b1c55b4f69aa2e3209c91ae413c355c65aacfa07b28bb4000000000000000000"}},
+         {635259,
+          "f73075b2c598f49b3a19558c070b52d5a5d6c21fefdf33000000000000000000"}},
         {blockchain::Type::BitcoinCash_testnet3,
-         {1341712,
-          "5ba3af2992073940ed9e5a9d9eef9194bbfba905d92b202eea44fcff00000000"}},
+         {1378461,
+          "d715e9fab7bbdf301081eeadbe6e931db282cf6b92b1365f9b50f59900000000"}},
     };
 
 HeaderOracle::HeaderOracle(
     const api::internal::Core& api,
-    const internal::Network& network,
+    [[maybe_unused]] const internal::Network& network,
     const internal::HeaderDatabase& database,
     const blockchain::Type type) noexcept
     : internal::HeaderOracle()
     , api_(api)
-    , network_(network)
     , database_(database)
     , chain_(type)
     , lock_()
@@ -226,13 +232,21 @@ auto HeaderOracle::apply_checkpoint(
     if (position > best.Height()) { return true; }
 
     try {
+        const auto& siblings = update.EffectiveSiblingHashes();
+        auto count = std::atomic<std::size_t>{siblings.size()};
+        LogNormal("* Comparing current chain and ")(count)(
+            " sibling chains to checkpoint")
+            .Flush();
         const auto& ancestor = update.Stage(position - 1);
         auto candidates = Candidates{};
+        candidates.reserve(count + 1u);
         stage_candidate(lock, ancestor, candidates, update, best);
+        LogNormal("  * ")(count)(" remaining").Flush();
 
-        for (const auto& hash : update.EffectiveSiblingHashes()) {
+        for (const auto& hash : siblings) {
             stage_candidate(
                 lock, ancestor, candidates, update, update.Stage(hash));
+            LogNormal("  * ")(--count)(" remaining").Flush();
         }
 
         for (auto& [invalid, chain] : candidates) {
@@ -474,11 +488,53 @@ auto HeaderOracle::evaluate_candidate(
     return candidate.Work() > current.Work();
 }
 
+auto HeaderOracle::get_default_checkpoint() const noexcept -> block::Position
+{
+    const auto& data = checkpoints_.at(chain_);
+
+    return block::Position{data.first,
+                           api_.Factory().Data(data.second, StringStyle::Hex)};
+}
+
 auto HeaderOracle::GetCheckpoint() const noexcept -> block::Position
 {
     Lock lock(lock_);
 
     return database_.CurrentCheckpoint();
+}
+
+auto HeaderOracle::Init() noexcept -> void
+{
+    static const auto null = make_blank<block::Position>::value(api_);
+    const auto existing = GetCheckpoint();
+    const auto expected = get_default_checkpoint();
+
+    // A checkpoint has been set that is newer than the default
+    if (existing.first > expected.first) { return; }
+
+    // The existing checkpoint matches the default checkpoint
+    if ((existing.first == expected.first) &&
+        (existing.second == expected.second)) {
+        return;
+    }
+
+    // Remove existing checkpoint if it is set
+    if (existing.first != null.first) {
+        LogNormal(blockchain::internal::DisplayString(chain_))(
+            ": Removing obsolete checkpoint at height ")(existing.first)
+            .Flush();
+        const auto deleted = DeleteCheckpoint();
+
+        OT_ASSERT(deleted);
+    }
+
+    LogNormal(blockchain::internal::DisplayString(chain_))(
+        ": Updating checkpoint to hash ")(expected.second->asHex())(
+        " at height ")(expected.first)
+        .Flush();
+    const auto added = AddCheckpoint(expected.first, expected.second);
+
+    OT_ASSERT(added);
 }
 
 auto HeaderOracle::initialize_candidate(

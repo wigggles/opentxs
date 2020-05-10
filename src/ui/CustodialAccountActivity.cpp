@@ -93,10 +93,10 @@ CustodialAccountActivity::CustodialAccountActivity(
           qt,
 #endif
           {
-              {api_.Endpoints().WorkflowAccountUpdate(),
+              {api.Endpoints().WorkflowAccountUpdate(),
                new MessageProcessor<CustodialAccountActivity>(
                    &CustodialAccountActivity::process_workflow)},
-              {api_.Endpoints().AccountUpdate(),
+              {api.Endpoints().AccountUpdate(),
                new MessageProcessor<CustodialAccountActivity>(
                    &CustodialAccountActivity::process_balance)},
           })

@@ -254,6 +254,7 @@ public:
         , header_oracle_(network_->HeaderOracle())
         , test_blocks_()
     {
+        header_oracle_.DeleteCheckpoint();
     }
 };
 

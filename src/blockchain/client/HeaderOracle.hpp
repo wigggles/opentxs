@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <deque>
 #include <map>
 #include <memory>
 #include <mutex>
@@ -73,6 +74,7 @@ public:
     auto AddHeaders(std::vector<std::unique_ptr<block::Header>>&) noexcept
         -> bool final;
     auto DeleteCheckpoint() noexcept -> bool final;
+    auto Init() noexcept -> void;
 
     HeaderOracle(
         const api::internal::Core& api,
@@ -83,11 +85,9 @@ public:
     ~HeaderOracle() final = default;
 
 private:
-    friend opentxs::Factory;
-
     struct Candidate {
         bool blacklisted_{false};
-        std::vector<block::Position> chain_{};
+        std::deque<block::Position> chain_{};
     };
 
     using Candidates = std::vector<Candidate>;
@@ -97,7 +97,6 @@ private:
             checkpoints_;
 
     const api::internal::Core& api_;
-    const internal::Network& network_;
     const internal::HeaderDatabase& database_;
     const blockchain::Type chain_;
     mutable std::mutex lock_;
@@ -107,6 +106,7 @@ private:
         const block::Header& candidate) noexcept -> bool;
 
     auto best_chain(const Lock& lock) const noexcept -> block::Position;
+    auto get_default_checkpoint() const noexcept -> block::Position;
     auto is_in_best_chain(const Lock& lock, const block::Hash& hash) const
         noexcept -> bool;
 

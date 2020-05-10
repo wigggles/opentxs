@@ -88,6 +88,8 @@ Network::Network(
     OT_ASSERT(block_p_);
     OT_ASSERT(wallet_p_);
 
+    header_.Init();
+
     init_executor({});
 }
 

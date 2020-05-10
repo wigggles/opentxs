@@ -262,6 +262,8 @@ struct FilterOracle {
 };
 
 struct HeaderOracle : virtual public opentxs::blockchain::client::HeaderOracle {
+    virtual auto Init() noexcept -> void = 0;
+
     virtual ~HeaderOracle() = default;
 };
 
