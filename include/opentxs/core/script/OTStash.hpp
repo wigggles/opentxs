@@ -19,7 +19,7 @@ namespace io
 template <class char_type, class super_class>
 class IIrrXMLReader;
 class IXMLBase;
-typedef IIrrXMLReader<char, IXMLBase> IrrXMLReader;
+using IrrXMLReader = IIrrXMLReader<char, IXMLBase>;
 }  // namespace io
 }  // namespace irr
 
@@ -30,7 +30,7 @@ class OTStashItem;
 class String;
 class Tag;
 
-typedef std::map<std::string, OTStashItem*> mapOfStashItems;
+using mapOfStashItems = std::map<std::string, OTStashItem*>;
 
 class OTStash
 {

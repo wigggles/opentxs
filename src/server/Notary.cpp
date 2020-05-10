@@ -87,7 +87,7 @@ namespace zmq = opentxs::network::zeromq;
 
 namespace opentxs::server
 {
-typedef std::vector<ExclusiveAccount> listOfAccounts;
+using listOfAccounts = std::vector<ExclusiveAccount>;
 
 Notary::Notary(
     Server& server,

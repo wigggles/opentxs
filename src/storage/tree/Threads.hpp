@@ -35,7 +35,7 @@ class Nym;
 class Threads final : public Node
 {
 private:
-    typedef Node ot_super;
+    using ot_super = Node;
     friend Nym;
 
     mutable std::map<std::string, std::unique_ptr<class Thread>> threads_;

@@ -243,8 +243,8 @@ public:
 private:
     friend opentxs::Factory;
 
-    typedef std::map<OTIdentifier, std::shared_ptr<const std::string>>
-        MailCache;
+    using MailCache =
+        std::map<OTIdentifier, std::shared_ptr<const std::string>>;
 
     const api::internal::Core& api_;
     const client::Contacts& contact_;

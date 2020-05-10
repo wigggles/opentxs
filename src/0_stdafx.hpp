@@ -33,8 +33,8 @@
 extern "C" {
 #endif
 
-typedef std::uint8_t BYTE;
-typedef uint16_t USHORT;
+using BYTE = std::uint8_t;
+using USHORT = uint16_t;
 
 #ifdef __cplusplus
 }

@@ -710,10 +710,8 @@ DONE cron_activate        (Triggers when the smart contract is first activated.)
 // OTSmartContract::ExecuteClauses: Error while running script: process_clause
 
 // Class member, with string parameter.
-typedef bool (OTSmartContract::*OT_SM_RetBool_ThrStr)(
-    std::string from_acct_name,
-    std::string to_acct_name,
-    std::string str_Amount);
+using OT_SM_RetBool_ThrStr =
+    bool (OTSmartContract::*)(std::string, std::string, std::string);
 
 // TEST RESULT: WORKS calling Chaiscript
 // Cron: Processing smart contract clauses for hook: cron_process

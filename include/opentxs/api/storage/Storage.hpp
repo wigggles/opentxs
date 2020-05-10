@@ -28,9 +28,9 @@
 
 namespace opentxs
 {
-typedef std::function<void(const proto::Nym&)> NymLambda;
-typedef std::function<void(const proto::ServerContract&)> ServerLambda;
-typedef std::function<void(const proto::UnitDefinition&)> UnitLambda;
+using NymLambda = std::function<void(const proto::Nym&)>;
+using ServerLambda = std::function<void(const proto::ServerContract&)>;
+using UnitLambda = std::function<void(const proto::UnitDefinition&)>;
 
 namespace api
 {

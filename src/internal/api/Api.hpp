@@ -14,11 +14,8 @@ namespace
 /** Callbacks in this form allow OpenSSL to query opentxs to get key encryption
  *  and decryption passwords*/
 extern "C" {
-typedef std::int32_t INTERNAL_PASSWORD_CALLBACK(
-    char* buf,
-    std::int32_t size,
-    std::int32_t rwflag,
-    void* userdata);
+using INTERNAL_PASSWORD_CALLBACK =
+    std::int32_t(char*, std::int32_t, std::int32_t, void*);
 }
 }  // namespace
 

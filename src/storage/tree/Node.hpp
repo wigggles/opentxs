@@ -49,19 +49,19 @@ namespace storage
 {
 class Root;
 
-typedef std::function<bool(const std::string&)> keyFunction;
+using keyFunction = std::function<bool(const std::string&)>;
 /** A set of metadata associated with a stored object
  *  * string: hash
  *  * string: alias
  *  * uint64: revision
  *  * bool:   private
  */
-typedef std::tuple<std::string, std::string, std::uint64_t, bool> Metadata;
+using Metadata = std::tuple<std::string, std::string, std::uint64_t, bool>;
 /** Maps a logical id to the stored metadata for the object
  *  * string: id of the stored object
  *  * Metadata: metadata for the stored object
  */
-typedef std::map<std::string, Metadata> Index;
+using Index = std::map<std::string, Metadata>;
 
 class Node
 {

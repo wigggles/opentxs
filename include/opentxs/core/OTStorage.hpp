@@ -171,9 +171,9 @@ public:
 // Resulting in: pFunctionMap (Instance of mapOfFunctions, created in the OTDB
 // constructor.)
 //
-typedef Storable*(InstantiateFunc)();  // Each storable has one of these as a
-                                       // static method.
-typedef std::pair<PackType, StoredObjectType> InstantiateFuncKey;  // Those
+using InstantiateFunc = Storable*();  // Each storable has one of these as a
+                                      // static method.
+using InstantiateFuncKey = std::pair<PackType, StoredObjectType>;  // Those
 // methods are
 // stored as
 // function
@@ -183,8 +183,9 @@ typedef std::pair<PackType, StoredObjectType> InstantiateFuncKey;  // Those
 // indexed by Pack Type and Stored Object Type. So if you know "LoomAcct" and
 // "protocol buffers", those form the KEY for looking up the LoomAcctPB
 // instantiator.
-typedef std::map<InstantiateFuncKey, InstantiateFunc*>
-    mapOfFunctions;  //...basically implementing my own vtable, eh?
+using mapOfFunctions =
+    std::map<InstantiateFuncKey, InstantiateFunc*>;  //...basically implementing
+                                                     // my own vtable, eh?
 
 // OTDB Namespace PRIVATE MEMBERS
 // this "details" naming is a common C++ idiom for "private" in a namespace.

@@ -36,8 +36,8 @@ class Thread final : public Node
 {
 private:
     friend class Threads;
-    typedef std::tuple<std::size_t, std::int64_t, std::string> SortKey;
-    typedef std::map<SortKey, const proto::StorageThreadItem*> SortedItems;
+    using SortKey = std::tuple<std::size_t, std::int64_t, std::string>;
+    using SortedItems = std::map<SortKey, const proto::StorageThreadItem*>;
 
     std::string id_;
     std::string alias_;

@@ -89,7 +89,7 @@ public:
 
 // Protocol Buffers packer.
 //
-typedef PackerSubclass<BufferPB> PackerPB;
+using PackerPB = PackerSubclass<BufferPB>;
 
 // Used for subclassing IStorablePB:
 //
@@ -192,8 +192,8 @@ public:
     template <>                                                                \
     void ProtobufSubclass<theBaseType, theInternalType, theObjectType>::       \
         hookAfterUnpack();                                                     \
-    typedef ProtobufSubclass<theBaseType, theInternalType, theObjectType>      \
-        theNewType
+    using theNewType =                                                         \
+        ProtobufSubclass<theBaseType, theInternalType, theObjectType>
 
 // THE ACTUAL SUBCLASSES:
 
@@ -315,8 +315,8 @@ DECLARE_PROTOBUF_SUBCLASS(
     TradeListNymPB,
     STORED_OBJ_TRADE_LIST_NYM);
 
-typedef OfferDataMarket_InternalPB BidData_InternalPB;
-typedef OfferDataMarket_InternalPB AskData_InternalPB;
+using BidData_InternalPB = OfferDataMarket_InternalPB;
+using AskData_InternalPB = OfferDataMarket_InternalPB;
 
 // !! ALL OF THESE have to provide implementations for hookBeforePack() and
 // hookAfterUnpack().

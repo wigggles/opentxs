@@ -75,7 +75,7 @@ class ServerContext;
 class OTAgreement : public OTCronItem
 {
 private:  // Private prevents erroneous use by other classes.
-    typedef OTCronItem ot_super;
+    using ot_super = OTCronItem;
 
 private:
     OTIdentifier m_RECIPIENT_ACCT_ID;

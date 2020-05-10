@@ -36,7 +36,7 @@ public:
 
 private:
     friend zeromq::implementation::Context;
-    typedef socket::implementation::Subscribe ot_super;
+    using ot_super = socket::implementation::Subscribe;
 
     const int instance_;
 

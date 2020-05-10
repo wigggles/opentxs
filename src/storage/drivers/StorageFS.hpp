@@ -37,7 +37,7 @@ namespace opentxs
 class StorageFS : public Plugin
 {
 private:
-    typedef Plugin ot_super;
+    using ot_super = Plugin;
 
 public:
     auto LoadFromBucket(
@@ -68,8 +68,8 @@ protected:
         const Flag& bucket);
 
 private:
-    typedef boost::iostreams::stream<boost::iostreams::file_descriptor_sink>
-        File;
+    using File =
+        boost::iostreams::stream<boost::iostreams::file_descriptor_sink>;
 
     virtual auto calculate_path(
         const std::string& key,

@@ -97,9 +97,9 @@ public:
     ~Issuer() final;
 
 private:
-    typedef std::map<OTIdentifier, std::pair<OTIdentifier, bool>> Workflow;
-    typedef std::map<proto::PeerRequestType, Workflow> WorkflowMap;
-    typedef std::pair<OTUnitID, OTIdentifier> UnitAccountPair;
+    using Workflow = std::map<OTIdentifier, std::pair<OTIdentifier, bool>>;
+    using WorkflowMap = std::map<proto::PeerRequestType, Workflow>;
+    using UnitAccountPair = std::pair<OTUnitID, OTIdentifier>;
 
     friend opentxs::Factory;
     const api::Wallet& wallet_;

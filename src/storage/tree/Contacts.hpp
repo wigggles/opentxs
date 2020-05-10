@@ -61,8 +61,8 @@ public:
 
 private:
     friend class Tree;
-    typedef Node ot_super;
-    typedef std::pair<proto::ContactItemType, std::string> Address;
+    using ot_super = Node;
+    using Address = std::pair<proto::ContactItemType, std::string>;
 
     static const VersionNumber CurrentVersion{2};
     static const VersionNumber AddressIndexVersion{1};

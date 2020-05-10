@@ -223,7 +223,7 @@ protected:
 private:
     friend api::implementation::Factory;
 
-    typedef Instrument ot_super;
+    using ot_super = Instrument;
 
     Time m_tDateAddedToMarket;
 

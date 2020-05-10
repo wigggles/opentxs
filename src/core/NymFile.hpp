@@ -46,8 +46,8 @@ class PasswordPrompt;
 
 namespace opentxs::implementation
 {
-typedef std::deque<std::shared_ptr<Message>> dequeOfMail;
-typedef std::map<std::string, OTIdentifier> mapOfIdentifiers;
+using dequeOfMail = std::deque<std::shared_ptr<Message>>;
+using mapOfIdentifiers = std::map<std::string, OTIdentifier>;
 
 class NymFile final : public opentxs::internal::NymFile, Lockable
 {

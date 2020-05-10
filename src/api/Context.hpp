@@ -97,7 +97,7 @@ public:
 private:
     friend opentxs::Factory;
 
-    typedef std::map<std::string, std::unique_ptr<api::Settings>> ConfigMap;
+    using ConfigMap = std::map<std::string, std::unique_ptr<api::Settings>>;
 
     const std::chrono::seconds gc_interval_;
     const std::string home_;

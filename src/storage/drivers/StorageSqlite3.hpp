@@ -62,7 +62,7 @@ public:
     ~StorageSqlite3() final;
 
 private:
-    typedef Plugin ot_super;
+    using ot_super = Plugin;
 
     friend Factory;
 

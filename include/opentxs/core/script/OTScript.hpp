@@ -20,9 +20,9 @@ class OTPartyAccount;
 class String;
 class OTVariable;
 
-typedef std::map<std::string, OTParty*> mapOfParties;
-typedef std::map<std::string, OTPartyAccount*> mapOfPartyAccounts;
-typedef std::map<std::string, OTVariable*> mapOfVariables;
+using mapOfParties = std::map<std::string, OTParty*>;
+using mapOfPartyAccounts = std::map<std::string, OTPartyAccount*>;
+using mapOfVariables = std::map<std::string, OTVariable*>;
 
 // A script should be "Dumb", meaning that you just stick it with its
 // parties and other resources, and it EXPECTS them to be the correct

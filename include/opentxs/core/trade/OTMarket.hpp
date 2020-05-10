@@ -65,9 +65,9 @@ class PasswordPrompt;
 // Using multi-map since there will be more than one offer for each single
 // price.
 // (Map would only allow a single item on the map for each price.)
-typedef std::multimap<std::int64_t, OTOffer*> mapOfOffers;
+using mapOfOffers = std::multimap<std::int64_t, OTOffer*>;
 // The same offers are also mapped (uniquely) to transaction number.
-typedef std::map<std::int64_t, OTOffer*> mapOfOffersTrnsNum;
+using mapOfOffersTrnsNum = std::map<std::int64_t, OTOffer*>;
 
 // A market has a list of OTOffers for all the bids, and another list of
 // OTOffers for all the asks.
@@ -197,7 +197,7 @@ public:
 private:
     friend api::implementation::Factory;
 
-    typedef Contract ot_super;
+    using ot_super = Contract;
 
     OTCron* m_pCron{nullptr};  // The Cron object that owns this Market.
 

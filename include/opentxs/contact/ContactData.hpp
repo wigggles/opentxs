@@ -40,8 +40,8 @@ class ContactSection;
 class ContactData
 {
 public:
-    typedef std::map<proto::ContactSectionName, std::shared_ptr<ContactSection>>
-        SectionMap;
+    using SectionMap =
+        std::map<proto::ContactSectionName, std::shared_ptr<ContactSection>>;
 
     OPENTXS_EXPORT static std::string PrintContactData(
         const proto::ContactData& data);
@@ -141,9 +141,8 @@ public:
     OPENTXS_EXPORT ~ContactData() = default;
 
 private:
-    typedef std::
-        pair<proto::ContactItemType, std::shared_ptr<const ContactGroup>>
-            Scope;
+    using Scope =
+        std::pair<proto::ContactItemType, std::shared_ptr<const ContactGroup>>;
 
     const api::internal::Core& api_;
     const VersionNumber version_{0};

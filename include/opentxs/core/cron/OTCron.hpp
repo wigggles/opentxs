@@ -56,14 +56,14 @@ class OTMarket;
 class PasswordPrompt;
 
 /** mapOfCronItems:      Mapped (uniquely) to transaction number. */
-typedef std::map<std::int64_t, std::shared_ptr<OTCronItem>> mapOfCronItems;
+using mapOfCronItems = std::map<std::int64_t, std::shared_ptr<OTCronItem>>;
 /** multimapOfCronItems: Mapped to date the item was added to Cron. */
-typedef std::multimap<Time, std::shared_ptr<OTCronItem>> multimapOfCronItems;
+using multimapOfCronItems = std::multimap<Time, std::shared_ptr<OTCronItem>>;
 /** Mapped (uniquely) to market ID. */
-typedef std::map<std::string, std::shared_ptr<OTMarket>> mapOfMarkets;
+using mapOfMarkets = std::map<std::string, std::shared_ptr<OTMarket>>;
 /** Cron stores a bunch of these on this list, which the server refreshes from
  * time to time. */
-typedef std::list<std::int64_t> listOfLongNumbers;
+using listOfLongNumbers = std::list<std::int64_t>;
 
 /** OTCron has a list of OTCronItems. (Really subclasses of that such as OTTrade
  * and OTAgreement.) */
@@ -184,7 +184,7 @@ public:
     void UpdateContents(const PasswordPrompt& reason) final;
 
 private:
-    typedef Contract ot_super;
+    using ot_super = Contract;
 
     friend api::server::implementation::Factory;
 

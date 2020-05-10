@@ -88,7 +88,7 @@ public:
     class MessageProcessor : virtual public MessageFunctor
     {
     public:
-        typedef void (T::*Function)(const network::zeromq::Message&);
+        using Function = void (T::*)(const network::zeromq::Message&);
 
         void operator()(Widget* object, const network::zeromq::Message& message)
             const noexcept final

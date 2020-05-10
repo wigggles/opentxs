@@ -28,9 +28,9 @@ namespace client
 class Issuer
 {
 public:
-    typedef std::pair<OTIdentifier, proto::BailmentReply> BailmentDetails;
-    typedef std::pair<OTIdentifier, proto::ConnectionInfoReply>
-        ConnectionDetails;
+    using BailmentDetails = std::pair<OTIdentifier, proto::BailmentReply>;
+    using ConnectionDetails =
+        std::pair<OTIdentifier, proto::ConnectionInfoReply>;
 
     enum class RequestStatus : std::int32_t {
         All = -1,

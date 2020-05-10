@@ -115,7 +115,7 @@ private:
     friend opentxs::Factory;
 
 #if OT_CASH
-    typedef std::map<std::string, std::shared_ptr<blind::Mint>> MintSeries;
+    using MintSeries = std::map<std::string, std::shared_ptr<blind::Mint>>;
 #endif  // OT_CASH
 
     const OTPasswordPrompt reason_;

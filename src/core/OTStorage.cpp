@@ -1029,9 +1029,9 @@ auto OTPacker::Unpack(PackedBuffer& inBuf, std::string& outObj) -> bool
 
 #define IMPLEMENT_GET_ADD_REMOVE(scope, name)                                  \
                                                                                \
-    typedef std::shared_ptr<name> PointerTo##name;                             \
+    using PointerTo##name = std::shared_ptr<name>;                             \
                                                                                \
-    typedef std::deque<PointerTo##name> listOf##name##s;                       \
+    using listOf##name##s = std::deque<PointerTo##name>;                       \
                                                                                \
     size_t scope Get##name##Count() { return list_##name##s.size(); }          \
                                                                                \

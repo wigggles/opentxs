@@ -61,7 +61,7 @@ class StorageExample : public virtual Plugin,
                        public virtual opentxs::api::storage::Driver
 {
 private:
-    typedef Plugin ot_super;  // Used for constructor delegation
+    using ot_super = Plugin;  // Used for constructor delegation
 
     friend Storage;  // Allows access private constructor
 

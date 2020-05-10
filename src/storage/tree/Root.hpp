@@ -45,7 +45,7 @@ class StorageMultiplex;
 class Root final : public Node
 {
 private:
-    typedef Node ot_super;
+    using ot_super = Node;
     friend class opentxs::storage::implementation::StorageMultiplex;
     friend class api::storage::implementation::Storage;
 

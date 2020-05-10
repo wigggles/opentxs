@@ -349,7 +349,7 @@ protected:
         const PasswordPrompt& reason);
 
 private:
-    typedef OTAgreement ot_super;
+    using ot_super = OTAgreement;
 
     // "INITIAL PAYMENT" private MEMBERS
     bool m_bInitialPayment;      // Will there be an initial payment?

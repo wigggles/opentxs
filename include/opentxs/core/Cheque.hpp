@@ -125,7 +125,7 @@ protected:
 private:  // Private prevents erroneous use by other classes.
     friend api::implementation::Factory;
 
-    typedef OTTrackable ot_super;
+    using ot_super = OTTrackable;
 
     OPENTXS_EXPORT Cheque(const api::internal::Core& core);
     OPENTXS_EXPORT Cheque(

@@ -39,7 +39,7 @@ class StorageFSGC final : public StorageFS,
                           public virtual opentxs::api::storage::Driver
 {
 private:
-    typedef StorageFS ot_super;
+    using ot_super = StorageFS;
 
 public:
     auto EmptyBucket(const bool bucket) const -> bool final;

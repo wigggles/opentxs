@@ -34,7 +34,7 @@ namespace opentxs
 class ContactGroup
 {
 public:
-    typedef std::map<OTIdentifier, std::shared_ptr<ContactItem>> ItemMap;
+    using ItemMap = std::map<OTIdentifier, std::shared_ptr<ContactItem>>;
 
     OPENTXS_EXPORT ContactGroup(
         const std::string& nym,

@@ -87,7 +87,7 @@ protected:
     Request(const Request&) noexcept;
 
 private:
-    typedef Signable ot_super;
+    using ot_super = Signable;
 
     const OTNymID initiator_;
     const OTNymID recipient_;

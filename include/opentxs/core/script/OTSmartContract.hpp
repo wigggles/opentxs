@@ -60,7 +60,7 @@ class ServerContext;
 class OTSmartContract : public OTCronItem
 {
 private:  // Private prevents erroneous use by other classes.
-    typedef OTCronItem ot_super;
+    using ot_super = OTCronItem;
 
 public:
     using mapOfAccounts = std::map<std::string, SharedAccount>;

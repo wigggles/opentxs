@@ -86,7 +86,7 @@ public:
         -> ExclusiveAccount;
 
 private:
-    typedef std::map<std::string, std::string> BasketsMap;
+    using BasketsMap = std::map<std::string, std::string>;
 
     Server& server_;
     const PasswordPrompt& reason_;

@@ -80,7 +80,7 @@ public:
     ~AccountList();
 
 private:
-    typedef std::map<std::string, std::weak_ptr<Account>> MapOfWeakAccounts;
+    using MapOfWeakAccounts = std::map<std::string, std::weak_ptr<Account>>;
 
     const api::internal::Core& api_;
     Account::AccountType acctType_;

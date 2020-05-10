@@ -51,7 +51,7 @@ class OTTransaction;
 class PasswordPrompt;
 class String;
 
-typedef std::list<std::shared_ptr<Item>> listOfItems;
+using listOfItems = std::list<std::shared_ptr<Item>>;
 
 // Item as in "Transaction Item"
 // An OTLedger contains a list of transactions (pending transactions, inbox or
@@ -235,7 +235,7 @@ protected:
 private:  // Private prevents erroneous use by other classes.
     friend api::implementation::Factory;
 
-    typedef OTTransactionType ot_super;
+    using ot_super = OTTransactionType;
 
     itemType GetItemTypeFromString(const String& strType);
 
