@@ -26,12 +26,12 @@ namespace be = boost::endian;
 
 namespace opentxs
 {
-blockchain::p2p::bitcoin::message::Reject* Factory::BitcoinP2PReject(
+auto Factory::BitcoinP2PReject(
     const api::internal::Core& api,
     std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
     const blockchain::p2p::bitcoin::ProtocolVersion version,
     const void* payload,
-    const std::size_t size)
+    const std::size_t size) -> blockchain::p2p::bitcoin::message::Reject*
 {
     namespace bitcoin = blockchain::p2p::bitcoin;
     using ReturnType = bitcoin::message::Reject;
@@ -159,13 +159,13 @@ blockchain::p2p::bitcoin::message::Reject* Factory::BitcoinP2PReject(
     }
 }
 
-blockchain::p2p::bitcoin::message::Reject* Factory::BitcoinP2PReject(
+auto Factory::BitcoinP2PReject(
     const api::internal::Core& api,
     const blockchain::Type network,
     const std::string& message,
     const std::uint8_t code,
     const std::string& reason,
-    const Data& extra)
+    const Data& extra) -> blockchain::p2p::bitcoin::message::Reject*
 {
     namespace bitcoin = blockchain::p2p::bitcoin;
     using ReturnType = bitcoin::message::Reject;
@@ -215,7 +215,7 @@ Reject::Reject(
     verify_checksum();
 }
 
-OTData Reject::payload() const noexcept
+auto Reject::payload() const noexcept -> OTData
 {
     auto output = Data::Factory(BitcoinString(message_));
 

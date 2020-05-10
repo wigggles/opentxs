@@ -15,8 +15,8 @@
 
 namespace opentxs
 {
-api::internal::Factory* Factory::FactoryAPIServer(
-    const api::server::internal::Manager& api)
+auto Factory::FactoryAPIServer(const api::server::internal::Manager& api)
+    -> api::internal::Factory*
 {
     return new api::server::implementation::Factory(api);
 }
@@ -30,7 +30,7 @@ Factory::Factory(const api::server::internal::Manager& server)
 {
 }
 
-std::unique_ptr<OTCron> Factory::Cron() const
+auto Factory::Cron() const -> std::unique_ptr<OTCron>
 {
     auto output = std::unique_ptr<opentxs::OTCron>{};
     output.reset(new opentxs::OTCron(server_));

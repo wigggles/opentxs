@@ -189,7 +189,7 @@ Cfilter::Cfilter(
 {
 }
 
-OTData Cfilter::payload() const noexcept
+auto Cfilter::payload() const noexcept -> OTData
 {
     try {
         auto raw = BitcoinFormat{header().Network(), type_, hash_};

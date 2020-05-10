@@ -61,13 +61,13 @@ private:
     mutable OTFlag ready_;
     mutable std::mutex init_;
 
-    bool Init() const;
+    auto Init() const -> bool;
 
     OpenDHT(const DhtConfig& config);
     OpenDHT() = delete;
     OpenDHT(const OpenDHT&) = delete;
     OpenDHT(OpenDHT&&) = delete;
-    OpenDHT& operator=(const OpenDHT&) = delete;
-    OpenDHT& operator=(OpenDHT&&) = delete;
+    auto operator=(const OpenDHT&) -> OpenDHT& = delete;
+    auto operator=(OpenDHT &&) -> OpenDHT& = delete;
 };
 }  // namespace opentxs::network::implementation

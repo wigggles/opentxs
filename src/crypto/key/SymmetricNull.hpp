@@ -10,39 +10,39 @@ namespace opentxs::crypto::key::implementation
 class SymmetricNull final : virtual public key::Symmetric
 {
 public:
-    const api::internal::Core& api() const final { throw; }
+    auto api() const -> const api::internal::Core& final { throw; }
 
-    bool ChangePassword(const PasswordPrompt&, const OTPassword&) final
+    auto ChangePassword(const PasswordPrompt&, const OTPassword&) -> bool final
     {
         return false;
     }
-    bool Decrypt(
+    auto Decrypt(
         const proto::Ciphertext&,
         const PasswordPrompt&,
-        const AllocateOutput) const final
+        const AllocateOutput) const -> bool final
     {
         return false;
     }
-    bool Encrypt(
+    auto Encrypt(
         const ReadView,
         const PasswordPrompt&,
         proto::Ciphertext&,
         const bool,
         const proto::SymmetricMode,
-        const ReadView) const final
+        const ReadView) const -> bool final
     {
         return false;
     }
-    OTIdentifier ID(const PasswordPrompt&) const final
+    auto ID(const PasswordPrompt&) const -> OTIdentifier final
     {
         return Identifier::Factory();
     }
-    bool RawKey(const PasswordPrompt&, OTPassword&) const final
+    auto RawKey(const PasswordPrompt&, OTPassword&) const -> bool final
     {
         return false;
     }
-    bool Serialize(proto::SymmetricKey&) const final { return false; }
-    bool Unlock(const PasswordPrompt&) const final { return false; }
+    auto Serialize(proto::SymmetricKey&) const -> bool final { return false; }
+    auto Unlock(const PasswordPrompt&) const -> bool final { return false; }
 
     operator bool() const final { return false; }
 
@@ -50,11 +50,11 @@ public:
     ~SymmetricNull() = default;
 
 private:
-    SymmetricNull* clone() const final { return nullptr; }
+    auto clone() const -> SymmetricNull* final { return nullptr; }
 
     SymmetricNull(const SymmetricNull&) = delete;
     SymmetricNull(SymmetricNull&&) = delete;
-    SymmetricNull& operator=(const SymmetricNull&) = delete;
-    SymmetricNull& operator=(SymmetricNull&&) = delete;
+    auto operator=(const SymmetricNull&) -> SymmetricNull& = delete;
+    auto operator=(SymmetricNull &&) -> SymmetricNull& = delete;
 };
 }  // namespace opentxs::crypto::key::implementation

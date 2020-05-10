@@ -36,10 +36,10 @@
 
 namespace opentxs
 {
-opentxs::PeerObject* Factory::PeerObject(
+auto Factory::PeerObject(
     const api::internal::Core& api,
     const Nym_p& senderNym,
-    const std::string& message)
+    const std::string& message) -> opentxs::PeerObject*
 {
     try {
         std::unique_ptr<opentxs::PeerObject> output(
@@ -55,11 +55,11 @@ opentxs::PeerObject* Factory::PeerObject(
     }
 }
 
-opentxs::PeerObject* Factory::PeerObject(
+auto Factory::PeerObject(
     const api::internal::Core& api,
     const Nym_p& senderNym,
     const std::string& payment,
-    const bool isPayment)
+    const bool isPayment) -> opentxs::PeerObject*
 {
     try {
         if (!isPayment) { return Factory::PeerObject(api, senderNym, payment); }
@@ -78,10 +78,10 @@ opentxs::PeerObject* Factory::PeerObject(
 }
 
 #if OT_CASH
-opentxs::PeerObject* Factory::PeerObject(
+auto Factory::PeerObject(
     const api::internal::Core& api,
     const Nym_p& senderNym,
-    const std::shared_ptr<blind::Purse> purse)
+    const std::shared_ptr<blind::Purse> purse) -> opentxs::PeerObject*
 {
     try {
         std::unique_ptr<opentxs::PeerObject> output(
@@ -98,11 +98,11 @@ opentxs::PeerObject* Factory::PeerObject(
 }
 #endif
 
-opentxs::PeerObject* Factory::PeerObject(
+auto Factory::PeerObject(
     const api::internal::Core& api,
     const OTPeerRequest request,
     const OTPeerReply reply,
-    const VersionNumber version)
+    const VersionNumber version) -> opentxs::PeerObject*
 {
     try {
         std::unique_ptr<opentxs::PeerObject> output(
@@ -118,10 +118,10 @@ opentxs::PeerObject* Factory::PeerObject(
     }
 }
 
-opentxs::PeerObject* Factory::PeerObject(
+auto Factory::PeerObject(
     const api::internal::Core& api,
     const OTPeerRequest request,
-    const VersionNumber version)
+    const VersionNumber version) -> opentxs::PeerObject*
 {
     try {
         std::unique_ptr<opentxs::PeerObject> output(
@@ -137,11 +137,11 @@ opentxs::PeerObject* Factory::PeerObject(
     }
 }
 
-opentxs::PeerObject* Factory::PeerObject(
+auto Factory::PeerObject(
     const api::client::Contacts& contacts,
     const api::internal::Core& api,
     const Nym_p& signerNym,
-    const proto::PeerObject& serialized)
+    const proto::PeerObject& serialized) -> opentxs::PeerObject*
 {
     try {
         const bool valid = proto::Validate(serialized, VERBOSE);
@@ -165,12 +165,12 @@ opentxs::PeerObject* Factory::PeerObject(
     }
 }
 
-opentxs::PeerObject* Factory::PeerObject(
+auto Factory::PeerObject(
     const api::client::Contacts& contacts,
     const api::internal::Core& api,
     const Nym_p& recipientNym,
     const opentxs::Armored& encrypted,
-    const opentxs::PasswordPrompt& reason)
+    const opentxs::PasswordPrompt& reason) -> opentxs::PeerObject*
 {
     try {
         auto notUsed = Nym_p{};
@@ -386,7 +386,7 @@ Object::Object(
 {
 }
 
-proto::PeerObject Object::Serialize() const
+auto Object::Serialize() const -> proto::PeerObject
 {
     proto::PeerObject output;
 
@@ -459,7 +459,7 @@ proto::PeerObject Object::Serialize() const
     return output;
 }
 
-bool Object::Validate() const
+auto Object::Validate() const -> bool
 {
     bool validChildren = false;
 

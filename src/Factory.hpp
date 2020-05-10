@@ -14,28 +14,31 @@ namespace opentxs
 class Factory
 {
 public:
-    static opentxs::Armored* Armored();
-    static opentxs::Armored* Armored(const opentxs::Data& input);
-    static opentxs::Armored* Armored(const opentxs::String& input);
-    static opentxs::Armored* Armored(const opentxs::crypto::Envelope& input);
-    static identity::internal::Authority* Authority(
+    static auto Armored() -> opentxs::Armored*;
+    static auto Armored(const opentxs::Data& input) -> opentxs::Armored*;
+    static auto Armored(const opentxs::String& input) -> opentxs::Armored*;
+    static auto Armored(const opentxs::crypto::Envelope& input)
+        -> opentxs::Armored*;
+    static auto Authority(
         const api::internal::Core& api,
         const identity::Nym& parent,
         const identity::Source& source,
         const proto::KeyMode mode,
-        const proto::Authority& serialized);
-    static identity::internal::Authority* Authority(
+        const proto::Authority& serialized) -> identity::internal::Authority*;
+    static auto Authority(
         const api::internal::Core& api,
         const identity::Nym& parent,
         const identity::Source& source,
         const NymParameters& nymParameters,
         const VersionNumber nymVersion,
-        const opentxs::PasswordPrompt& reason);
-    static api::client::internal::Activity* Activity(
+        const opentxs::PasswordPrompt& reason)
+        -> identity::internal::Authority*;
+    static auto Activity(
         const api::internal::Core& api,
-        const api::client::Contacts& contact);
-    static api::crypto::internal::Asymmetric* AsymmetricAPI(
-        const api::internal::Core& api);
+        const api::client::Contacts& contact)
+        -> api::client::internal::Activity*;
+    static auto AsymmetricAPI(const api::internal::Core& api)
+        -> api::crypto::internal::Asymmetric*;
     static auto BailmentNotice(
         const api::internal::Core& api,
         const Nym_p& nym,
@@ -95,7 +98,7 @@ public:
         const Nym_p& nym,
         const proto::UnitDefinition serialized) noexcept
         -> std::shared_ptr<contract::unit::Basket>;
-    static crypto::Bitcoin* Bitcoin(const api::Crypto& crypto);
+    static auto Bitcoin(const api::Crypto& crypto) -> crypto::Bitcoin*;
     static auto Bip39(const api::Crypto& api) noexcept
         -> std::unique_ptr<crypto::Bip39>;
 #if OT_BLOCKCHAIN
@@ -120,143 +123,150 @@ public:
         const blockchain::block::Hash& parent,
         const blockchain::block::Height height) noexcept
         -> std::unique_ptr<blockchain::block::bitcoin::internal::Header>;
-    static blockchain::p2p::bitcoin::message::internal::Addr* BitcoinP2PAddr(
+    static auto BitcoinP2PAddr(
         const api::internal::Core& api,
         std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
         const blockchain::p2p::bitcoin::ProtocolVersion version,
         const void* payload,
-        const std::size_t size);
-    static blockchain::p2p::bitcoin::message::internal::Addr* BitcoinP2PAddr(
+        const std::size_t size)
+        -> blockchain::p2p::bitcoin::message::internal::Addr*;
+    static auto BitcoinP2PAddr(
         const api::internal::Core& api,
         const blockchain::Type network,
         const blockchain::p2p::bitcoin::ProtocolVersion version,
         std::vector<std::unique_ptr<blockchain::p2p::internal::Address>>&&
-            addresses);
-    static blockchain::p2p::bitcoin::message::internal::Block* BitcoinP2PBlock(
+            addresses) -> blockchain::p2p::bitcoin::message::internal::Addr*;
+    static auto BitcoinP2PBlock(
         const api::internal::Core& api,
         std::unique_ptr<blockchain::p2p::bitcoin::Header> header,
         const blockchain::p2p::bitcoin::ProtocolVersion version,
         const void* payload,
-        const std::size_t size);
-    static blockchain::p2p::bitcoin::message::internal::Block* BitcoinP2PBlock(
+        const std::size_t size)
+        -> blockchain::p2p::bitcoin::message::internal::Block*;
+    static auto BitcoinP2PBlock(
         const api::internal::Core& api,
         const blockchain::Type network,
-        const Data& raw_block);
-    static blockchain::p2p::bitcoin::message::internal::Blocktxn*
-    BitcoinP2PBlocktxn(
+        const Data& raw_block)
+        -> blockchain::p2p::bitcoin::message::internal::Block*;
+    static auto BitcoinP2PBlocktxn(
         const api::internal::Core& api,
         std::unique_ptr<blockchain::p2p::bitcoin::Header> header,
         const blockchain::p2p::bitcoin::ProtocolVersion version,
         const void* payload,
-        const std::size_t size);
-    static blockchain::p2p::bitcoin::message::internal::Blocktxn*
-    BitcoinP2PBlocktxn(
+        const std::size_t size)
+        -> blockchain::p2p::bitcoin::message::internal::Blocktxn*;
+    static auto BitcoinP2PBlocktxn(
         const api::internal::Core& api,
         const blockchain::Type network,
-        const Data& raw_Blocktxn);
-    static blockchain::p2p::bitcoin::message::internal::Cfcheckpt*
-    BitcoinP2PCfcheckpt(
+        const Data& raw_Blocktxn)
+        -> blockchain::p2p::bitcoin::message::internal::Blocktxn*;
+    static auto BitcoinP2PCfcheckpt(
         const api::internal::Core& api,
         std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
         const blockchain::p2p::bitcoin::ProtocolVersion version,
         const void* payload,
-        const std::size_t size);
-    static blockchain::p2p::bitcoin::message::internal::Cfcheckpt*
-    BitcoinP2PCfcheckpt(
+        const std::size_t size)
+        -> blockchain::p2p::bitcoin::message::internal::Cfcheckpt*;
+    static auto BitcoinP2PCfcheckpt(
         const api::internal::Core& api,
         const blockchain::Type network,
         const blockchain::filter::Type type,
         const blockchain::filter::Hash& stop,
-        const std::vector<blockchain::filter::pHash>& headers);
-    static blockchain::p2p::bitcoin::message::internal::Cfheaders*
-    BitcoinP2PCfheaders(
+        const std::vector<blockchain::filter::pHash>& headers)
+        -> blockchain::p2p::bitcoin::message::internal::Cfcheckpt*;
+    static auto BitcoinP2PCfheaders(
         const api::internal::Core& api,
         std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
         const blockchain::p2p::bitcoin::ProtocolVersion version,
         const void* payload,
-        const std::size_t size);
-    static blockchain::p2p::bitcoin::message::internal::Cfheaders*
-    BitcoinP2PCfheaders(
+        const std::size_t size)
+        -> blockchain::p2p::bitcoin::message::internal::Cfheaders*;
+    static auto BitcoinP2PCfheaders(
         const api::internal::Core& api,
         const blockchain::Type network,
         const blockchain::filter::Type type,
         const blockchain::filter::Hash& stop,
         const blockchain::filter::Hash& previous,
-        const std::vector<blockchain::filter::pHash>& headers);
-    static blockchain::p2p::bitcoin::message::internal::Cfilter*
-    BitcoinP2PCfilter(
+        const std::vector<blockchain::filter::pHash>& headers)
+        -> blockchain::p2p::bitcoin::message::internal::Cfheaders*;
+    static auto BitcoinP2PCfilter(
         const api::internal::Core& api,
         std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
         const blockchain::p2p::bitcoin::ProtocolVersion version,
         const void* payload,
-        const std::size_t size);
-    static blockchain::p2p::bitcoin::message::internal::Cfilter*
-    BitcoinP2PCfilter(
+        const std::size_t size)
+        -> blockchain::p2p::bitcoin::message::internal::Cfilter*;
+    static auto BitcoinP2PCfilter(
         const api::internal::Core& api,
         const blockchain::Type network,
         const blockchain::filter::Type type,
         const blockchain::filter::Hash& hash,
-        std::unique_ptr<blockchain::internal::GCS> filter);
-    static blockchain::p2p::bitcoin::message::Cmpctblock* BitcoinP2PCmpctblock(
+        std::unique_ptr<blockchain::internal::GCS> filter)
+        -> blockchain::p2p::bitcoin::message::internal::Cfilter*;
+    static auto BitcoinP2PCmpctblock(
         const api::internal::Core& api,
         std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
         const blockchain::p2p::bitcoin::ProtocolVersion version,
         const void* payload,
-        const std::size_t size);
-    static blockchain::p2p::bitcoin::message::Cmpctblock* BitcoinP2PCmpctblock(
+        const std::size_t size)
+        -> blockchain::p2p::bitcoin::message::Cmpctblock*;
+    static auto BitcoinP2PCmpctblock(
         const api::internal::Core& api,
         const blockchain::Type network,
-        const Data& raw_cmpctblock);
-    static blockchain::p2p::bitcoin::message::Feefilter* BitcoinP2PFeefilter(
+        const Data& raw_cmpctblock)
+        -> blockchain::p2p::bitcoin::message::Cmpctblock*;
+    static auto BitcoinP2PFeefilter(
         const api::internal::Core& api,
         std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
         const blockchain::p2p::bitcoin::ProtocolVersion version,
         const void* payload,
-        const std::size_t size);
-    static blockchain::p2p::bitcoin::message::Feefilter* BitcoinP2PFeefilter(
+        const std::size_t size)
+        -> blockchain::p2p::bitcoin::message::Feefilter*;
+    static auto BitcoinP2PFeefilter(
         const api::internal::Core& api,
         const blockchain::Type network,
-        const std::uint64_t fee_rate);
-    static blockchain::p2p::bitcoin::message::internal::Filteradd*
-    BitcoinP2PFilteradd(
+        const std::uint64_t fee_rate)
+        -> blockchain::p2p::bitcoin::message::Feefilter*;
+    static auto BitcoinP2PFilteradd(
         const api::internal::Core& api,
         std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
         const blockchain::p2p::bitcoin::ProtocolVersion version,
         const void* payload,
-        const std::size_t size);
-    static blockchain::p2p::bitcoin::message::internal::Filteradd*
-    BitcoinP2PFilteradd(
+        const std::size_t size)
+        -> blockchain::p2p::bitcoin::message::internal::Filteradd*;
+    static auto BitcoinP2PFilteradd(
         const api::internal::Core& api,
         const blockchain::Type network,
-        const Data& element);
-    static blockchain::p2p::bitcoin::message::internal::Filterclear*
-    BitcoinP2PFilterclear(
+        const Data& element)
+        -> blockchain::p2p::bitcoin::message::internal::Filteradd*;
+    static auto BitcoinP2PFilterclear(
         const api::internal::Core& api,
-        std::unique_ptr<blockchain::p2p::bitcoin::Header> header);
-    static blockchain::p2p::bitcoin::message::internal::Filterclear*
-    BitcoinP2PFilterclear(
+        std::unique_ptr<blockchain::p2p::bitcoin::Header> header)
+        -> blockchain::p2p::bitcoin::message::internal::Filterclear*;
+    static auto BitcoinP2PFilterclear(
         const api::internal::Core& api,
-        const blockchain::Type network);
-    static blockchain::p2p::bitcoin::message::internal::Filterload*
-    BitcoinP2PFilterload(
+        const blockchain::Type network)
+        -> blockchain::p2p::bitcoin::message::internal::Filterclear*;
+    static auto BitcoinP2PFilterload(
         const api::internal::Core& api,
         std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
         const blockchain::p2p::bitcoin::ProtocolVersion version,
         const void* payload,
-        const std::size_t size);
-    static blockchain::p2p::bitcoin::message::internal::Filterload*
-    BitcoinP2PFilterload(
+        const std::size_t size)
+        -> blockchain::p2p::bitcoin::message::internal::Filterload*;
+    static auto BitcoinP2PFilterload(
         const api::internal::Core& api,
         const blockchain::Type network,
-        const blockchain::BloomFilter& filter);
-    static blockchain::p2p::bitcoin::message::internal::Getaddr*
-    BitcoinP2PGetaddr(
+        const blockchain::BloomFilter& filter)
+        -> blockchain::p2p::bitcoin::message::internal::Filterload*;
+    static auto BitcoinP2PGetaddr(
         const api::internal::Core& api,
-        std::unique_ptr<blockchain::p2p::bitcoin::Header> header);
-    static blockchain::p2p::bitcoin::message::internal::Getaddr*
-    BitcoinP2PGetaddr(
+        std::unique_ptr<blockchain::p2p::bitcoin::Header> header)
+        -> blockchain::p2p::bitcoin::message::internal::Getaddr*;
+    static auto BitcoinP2PGetaddr(
         const api::internal::Core& api,
-        const blockchain::Type network);
+        const blockchain::Type network)
+        -> blockchain::p2p::bitcoin::message::internal::Getaddr*;
     OPENTXS_EXPORT static auto BitcoinP2PGetblocks(
         const api::internal::Core& api,
         std::unique_ptr<blockchain::p2p::bitcoin::Header> header,
@@ -270,240 +280,247 @@ public:
         const std::uint32_t version,
         const std::vector<OTData>& header_hashes,
         const Data& stop_hash) -> blockchain::p2p::bitcoin::message::Getblocks*;
-    static blockchain::p2p::bitcoin::message::Getblocktxn*
-    BitcoinP2PGetblocktxn(
+    static auto BitcoinP2PGetblocktxn(
         const api::internal::Core& api,
         std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
         const blockchain::p2p::bitcoin::ProtocolVersion version,
         const void* payload,
-        const std::size_t size);
-    static blockchain::p2p::bitcoin::message::Getblocktxn*
-    BitcoinP2PGetblocktxn(
+        const std::size_t size)
+        -> blockchain::p2p::bitcoin::message::Getblocktxn*;
+    static auto BitcoinP2PGetblocktxn(
         const api::internal::Core& api,
         const blockchain::Type network,
         const Data& block_hash,
-        const std::vector<std::size_t>& txn_indices);
-    static blockchain::p2p::bitcoin::message::internal::Getcfcheckpt*
-    BitcoinP2PGetcfcheckpt(
+        const std::vector<std::size_t>& txn_indices)
+        -> blockchain::p2p::bitcoin::message::Getblocktxn*;
+    static auto BitcoinP2PGetcfcheckpt(
         const api::internal::Core& api,
         std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
         const blockchain::p2p::bitcoin::ProtocolVersion version,
         const void* payload,
-        const std::size_t size);
-    static blockchain::p2p::bitcoin::message::internal::Getcfcheckpt*
-    BitcoinP2PGetcfcheckpt(
+        const std::size_t size)
+        -> blockchain::p2p::bitcoin::message::internal::Getcfcheckpt*;
+    static auto BitcoinP2PGetcfcheckpt(
         const api::internal::Core& api,
         const blockchain::Type network,
         const blockchain::filter::Type type,
-        const blockchain::filter::Hash& stop);
-    static blockchain::p2p::bitcoin::message::internal::Getcfheaders*
-    BitcoinP2PGetcfheaders(
+        const blockchain::filter::Hash& stop)
+        -> blockchain::p2p::bitcoin::message::internal::Getcfcheckpt*;
+    static auto BitcoinP2PGetcfheaders(
         const api::internal::Core& api,
         std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
         const blockchain::p2p::bitcoin::ProtocolVersion version,
         const void* payload,
-        const std::size_t size);
-    static blockchain::p2p::bitcoin::message::internal::Getcfheaders*
-    BitcoinP2PGetcfheaders(
-        const api::internal::Core& api,
-        const blockchain::Type network,
-        const blockchain::filter::Type type,
-        const blockchain::block::Height start,
-        const blockchain::filter::Hash& stop);
-    static blockchain::p2p::bitcoin::message::internal::Getcfilters*
-    BitcoinP2PGetcfilters(
-        const api::internal::Core& api,
-        std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
-        const blockchain::p2p::bitcoin::ProtocolVersion version,
-        const void* payload,
-        const std::size_t size);
-    static blockchain::p2p::bitcoin::message::internal::Getcfilters*
-    BitcoinP2PGetcfilters(
+        const std::size_t size)
+        -> blockchain::p2p::bitcoin::message::internal::Getcfheaders*;
+    static auto BitcoinP2PGetcfheaders(
         const api::internal::Core& api,
         const blockchain::Type network,
         const blockchain::filter::Type type,
         const blockchain::block::Height start,
-        const blockchain::filter::Hash& stop);
-    static blockchain::p2p::bitcoin::message::internal::Getdata*
-    BitcoinP2PGetdata(
+        const blockchain::filter::Hash& stop)
+        -> blockchain::p2p::bitcoin::message::internal::Getcfheaders*;
+    static auto BitcoinP2PGetcfilters(
         const api::internal::Core& api,
         std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
         const blockchain::p2p::bitcoin::ProtocolVersion version,
         const void* payload,
-        const std::size_t size);
-    static blockchain::p2p::bitcoin::message::internal::Getdata*
-    BitcoinP2PGetdata(
+        const std::size_t size)
+        -> blockchain::p2p::bitcoin::message::internal::Getcfilters*;
+    static auto BitcoinP2PGetcfilters(
         const api::internal::Core& api,
         const blockchain::Type network,
-        std::vector<blockchain::bitcoin::Inventory>&& payload);
-    static blockchain::p2p::bitcoin::message::internal::Getheaders*
-    BitcoinP2PGetheaders(
+        const blockchain::filter::Type type,
+        const blockchain::block::Height start,
+        const blockchain::filter::Hash& stop)
+        -> blockchain::p2p::bitcoin::message::internal::Getcfilters*;
+    static auto BitcoinP2PGetdata(
+        const api::internal::Core& api,
+        std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
+        const blockchain::p2p::bitcoin::ProtocolVersion version,
+        const void* payload,
+        const std::size_t size)
+        -> blockchain::p2p::bitcoin::message::internal::Getdata*;
+    static auto BitcoinP2PGetdata(
+        const api::internal::Core& api,
+        const blockchain::Type network,
+        std::vector<blockchain::bitcoin::Inventory>&& payload)
+        -> blockchain::p2p::bitcoin::message::internal::Getdata*;
+    static auto BitcoinP2PGetheaders(
         const api::internal::Core& api,
         std::unique_ptr<blockchain::p2p::bitcoin::Header> header,
         const blockchain::p2p::bitcoin::ProtocolVersion version,
         const void* payload,
-        const std::size_t size);
-    static blockchain::p2p::bitcoin::message::internal::Getheaders*
-    BitcoinP2PGetheaders(
+        const std::size_t size)
+        -> blockchain::p2p::bitcoin::message::internal::Getheaders*;
+    static auto BitcoinP2PGetheaders(
         const api::internal::Core& api,
         const blockchain::Type network,
         const blockchain::p2p::bitcoin::ProtocolVersionUnsigned version,
         std::vector<blockchain::block::pHash>&& history,
-        blockchain::block::pHash&& stop);
-    OPENTXS_EXPORT static blockchain::p2p::bitcoin::Header* BitcoinP2PHeader(
+        blockchain::block::pHash&& stop)
+        -> blockchain::p2p::bitcoin::message::internal::Getheaders*;
+    OPENTXS_EXPORT static auto BitcoinP2PHeader(
         const api::internal::Core& api,
-        const network::zeromq::Frame& bytes);
-    OPENTXS_EXPORT static blockchain::p2p::bitcoin::message::internal::Headers*
-    BitcoinP2PHeaders(
+        const network::zeromq::Frame& bytes)
+        -> blockchain::p2p::bitcoin::Header*;
+    OPENTXS_EXPORT static auto BitcoinP2PHeaders(
         const api::internal::Core& api,
         std::unique_ptr<blockchain::p2p::bitcoin::Header> header,
         const blockchain::p2p::bitcoin::ProtocolVersion version,
         const void* payload,
-        const std::size_t size);
-    static blockchain::p2p::bitcoin::message::internal::Headers*
-    BitcoinP2PHeaders(
+        const std::size_t size)
+        -> blockchain::p2p::bitcoin::message::internal::Headers*;
+    static auto BitcoinP2PHeaders(
         const api::internal::Core& api,
         const blockchain::Type network,
         std::vector<std::unique_ptr<blockchain::block::bitcoin::Header>>&&
-            headers);
-    static blockchain::p2p::bitcoin::message::internal::Inv* BitcoinP2PInv(
+            headers) -> blockchain::p2p::bitcoin::message::internal::Headers*;
+    static auto BitcoinP2PInv(
         const api::internal::Core& api,
         std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
         const blockchain::p2p::bitcoin::ProtocolVersion version,
         const void* payload,
-        const std::size_t size);
-    static blockchain::p2p::bitcoin::message::internal::Inv* BitcoinP2PInv(
+        const std::size_t size)
+        -> blockchain::p2p::bitcoin::message::internal::Inv*;
+    static auto BitcoinP2PInv(
         const api::internal::Core& api,
         const blockchain::Type network,
-        std::vector<blockchain::bitcoin::Inventory>&& payload);
-    static blockchain::p2p::bitcoin::message::internal::Mempool*
-    BitcoinP2PMempool(
+        std::vector<blockchain::bitcoin::Inventory>&& payload)
+        -> blockchain::p2p::bitcoin::message::internal::Inv*;
+    static auto BitcoinP2PMempool(
         const api::internal::Core& api,
-        std::unique_ptr<blockchain::p2p::bitcoin::Header> header);
-    static blockchain::p2p::bitcoin::message::internal::Mempool*
-    BitcoinP2PMempool(
+        std::unique_ptr<blockchain::p2p::bitcoin::Header> header)
+        -> blockchain::p2p::bitcoin::message::internal::Mempool*;
+    static auto BitcoinP2PMempool(
         const api::internal::Core& api,
-        const blockchain::Type network);
-    static blockchain::p2p::bitcoin::message::Merkleblock*
-    BitcoinP2PMerkleblock(
+        const blockchain::Type network)
+        -> blockchain::p2p::bitcoin::message::internal::Mempool*;
+    static auto BitcoinP2PMerkleblock(
         const api::internal::Core& api,
         std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
         const blockchain::p2p::bitcoin::ProtocolVersion version,
         const void* payload,
-        const std::size_t size);
-    static blockchain::p2p::bitcoin::message::Merkleblock*
-    BitcoinP2PMerkleblock(
+        const std::size_t size)
+        -> blockchain::p2p::bitcoin::message::Merkleblock*;
+    static auto BitcoinP2PMerkleblock(
         const api::internal::Core& api,
         const blockchain::Type network,
         const Data& block_header,
         const std::uint32_t txn_count,
         const std::vector<OTData>& hashes,
-        const std::vector<std::byte>& flags);
+        const std::vector<std::byte>& flags)
+        -> blockchain::p2p::bitcoin::message::Merkleblock*;
     OPENTXS_EXPORT static auto BitcoinP2PMessage(
         const api::internal::Core& api,
         std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
         const blockchain::p2p::bitcoin::ProtocolVersion version,
         const void* payload = nullptr,
         const std::size_t size = 0) -> blockchain::p2p::bitcoin::Message*;
-    static blockchain::p2p::bitcoin::message::internal::Notfound*
-    BitcoinP2PNotfound(
+    static auto BitcoinP2PNotfound(
         const api::internal::Core& api,
         std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
         const blockchain::p2p::bitcoin::ProtocolVersion version,
         const void* payload,
-        const std::size_t size);
-    static blockchain::p2p::bitcoin::message::internal::Notfound*
-    BitcoinP2PNotfound(
+        const std::size_t size)
+        -> blockchain::p2p::bitcoin::message::internal::Notfound*;
+    static auto BitcoinP2PNotfound(
         const api::internal::Core& api,
         const blockchain::Type network,
-        std::vector<blockchain::bitcoin::Inventory>&& payload);
-    static blockchain::p2p::internal::Peer* BitcoinP2PPeerLegacy(
+        std::vector<blockchain::bitcoin::Inventory>&& payload)
+        -> blockchain::p2p::bitcoin::message::internal::Notfound*;
+    static auto BitcoinP2PPeerLegacy(
         const api::internal::Core& api,
         const blockchain::client::internal::Network& network,
         const blockchain::client::internal::PeerManager& manager,
         const blockchain::client::internal::IO& io,
         const int id,
         std::unique_ptr<blockchain::p2p::internal::Address> address,
-        const std::string& shutdown);
-    static blockchain::p2p::bitcoin::message::internal::Ping* BitcoinP2PPing(
+        const std::string& shutdown) -> blockchain::p2p::internal::Peer*;
+    static auto BitcoinP2PPing(
         const api::internal::Core& api,
         std::unique_ptr<blockchain::p2p::bitcoin::Header> header,
         const blockchain::p2p::bitcoin::ProtocolVersion version,
         const void* payload,
-        const std::size_t size);
-    static blockchain::p2p::bitcoin::message::internal::Ping* BitcoinP2PPing(
+        const std::size_t size)
+        -> blockchain::p2p::bitcoin::message::internal::Ping*;
+    static auto BitcoinP2PPing(
         const api::internal::Core& api,
         const blockchain::Type network,
-        const std::uint64_t nonce);
-    static blockchain::p2p::bitcoin::message::internal::Pong* BitcoinP2PPong(
+        const std::uint64_t nonce)
+        -> blockchain::p2p::bitcoin::message::internal::Ping*;
+    static auto BitcoinP2PPong(
         const api::internal::Core& api,
         std::unique_ptr<blockchain::p2p::bitcoin::Header> header,
         const blockchain::p2p::bitcoin::ProtocolVersion version,
         const void* payload,
-        const std::size_t size);
-    static blockchain::p2p::bitcoin::message::internal::Pong* BitcoinP2PPong(
+        const std::size_t size)
+        -> blockchain::p2p::bitcoin::message::internal::Pong*;
+    static auto BitcoinP2PPong(
         const api::internal::Core& api,
         const blockchain::Type network,
-        const std::uint64_t nonce);
-    static blockchain::p2p::bitcoin::message::Reject* BitcoinP2PReject(
+        const std::uint64_t nonce)
+        -> blockchain::p2p::bitcoin::message::internal::Pong*;
+    static auto BitcoinP2PReject(
         const api::internal::Core& api,
         std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
         const blockchain::p2p::bitcoin::ProtocolVersion version,
         const void* payload,
-        const std::size_t size);
-    static blockchain::p2p::bitcoin::message::Reject* BitcoinP2PReject(
+        const std::size_t size) -> blockchain::p2p::bitcoin::message::Reject*;
+    static auto BitcoinP2PReject(
         const api::internal::Core& api,
         const blockchain::Type network,
         const std::string& message,
         const std::uint8_t code,
         const std::string& reason,
-        const Data& extra);
-    static blockchain::p2p::bitcoin::message::Sendcmpct* BitcoinP2PSendcmpct(
+        const Data& extra) -> blockchain::p2p::bitcoin::message::Reject*;
+    static auto BitcoinP2PSendcmpct(
         const api::internal::Core& api,
         std::unique_ptr<blockchain::p2p::bitcoin::Header> header,
         const blockchain::p2p::bitcoin::ProtocolVersion version,
         const void* payload,
-        const std::size_t size);
-    static blockchain::p2p::bitcoin::message::Sendcmpct* BitcoinP2PSendcmpct(
+        const std::size_t size)
+        -> blockchain::p2p::bitcoin::message::Sendcmpct*;
+    static auto BitcoinP2PSendcmpct(
         const api::internal::Core& api,
         const blockchain::Type network,
         const bool announce,
-        const std::uint64_t version);
-    static blockchain::p2p::bitcoin::message::internal::Sendheaders*
-    BitcoinP2PSendheaders(
+        const std::uint64_t version)
+        -> blockchain::p2p::bitcoin::message::Sendcmpct*;
+    static auto BitcoinP2PSendheaders(
         const api::internal::Core& api,
-        std::unique_ptr<blockchain::p2p::bitcoin::Header> header);
-    static blockchain::p2p::bitcoin::message::internal::Sendheaders*
-    BitcoinP2PSendheaders(
+        std::unique_ptr<blockchain::p2p::bitcoin::Header> header)
+        -> blockchain::p2p::bitcoin::message::internal::Sendheaders*;
+    static auto BitcoinP2PSendheaders(
         const api::internal::Core& api,
-        const blockchain::Type network);
-    static blockchain::p2p::bitcoin::message::Tx* BitcoinP2PTx(
+        const blockchain::Type network)
+        -> blockchain::p2p::bitcoin::message::internal::Sendheaders*;
+    static auto BitcoinP2PTx(
         const api::internal::Core& api,
         std::unique_ptr<blockchain::p2p::bitcoin::Header> header,
         const blockchain::p2p::bitcoin::ProtocolVersion version,
         const void* payload,
-        const std::size_t size);
-    static blockchain::p2p::bitcoin::message::Tx* BitcoinP2PTx(
+        const std::size_t size) -> blockchain::p2p::bitcoin::message::Tx*;
+    static auto BitcoinP2PTx(
         const api::internal::Core& api,
         const blockchain::Type network,
-        const Data& raw_tx);
-    static blockchain::p2p::bitcoin::message::internal::Verack*
-    BitcoinP2PVerack(
+        const Data& raw_tx) -> blockchain::p2p::bitcoin::message::Tx*;
+    static auto BitcoinP2PVerack(
         const api::internal::Core& api,
-        std::unique_ptr<blockchain::p2p::bitcoin::Header> header);
-    static blockchain::p2p::bitcoin::message::internal::Verack*
-    BitcoinP2PVerack(
+        std::unique_ptr<blockchain::p2p::bitcoin::Header> header)
+        -> blockchain::p2p::bitcoin::message::internal::Verack*;
+    static auto BitcoinP2PVerack(
         const api::internal::Core& api,
-        const blockchain::Type network);
-    static blockchain::p2p::bitcoin::message::internal::Version*
-    BitcoinP2PVersion(
+        const blockchain::Type network)
+        -> blockchain::p2p::bitcoin::message::internal::Verack*;
+    static auto BitcoinP2PVersion(
         const api::internal::Core& api,
         std::unique_ptr<blockchain::p2p::bitcoin::Header> header,
         const blockchain::p2p::bitcoin::ProtocolVersion version,
         const void* payload,
-        const std::size_t size);
-    static blockchain::p2p::bitcoin::message::internal::Version*
-    BitcoinP2PVersion(
+        const std::size_t size)
+        -> blockchain::p2p::bitcoin::message::internal::Version*;
+    static auto BitcoinP2PVersion(
         const api::internal::Core& api,
         const blockchain::Type network,
         const std::int32_t version,
@@ -516,7 +533,8 @@ public:
         const std::uint64_t nonce,
         const std::string& userAgent,
         const blockchain::block::Height height,
-        const bool relay);
+        const bool relay)
+        -> blockchain::p2p::bitcoin::message::internal::Version*;
     OPENTXS_EXPORT static auto BitcoinScript(
         const ReadView bytes,
         const bool outputScript = true,
@@ -583,25 +601,25 @@ public:
         const std::string& dataFolder,
         const ArgList& args) noexcept
         -> std::unique_ptr<api::client::Blockchain>;
-    static api::client::blockchain::internal::BalanceList*
-    BlockchainBalanceList(
+    static auto BlockchainBalanceList(
         const api::client::internal::Blockchain& parent,
-        const blockchain::Type chain);
-    static api::client::blockchain::internal::BalanceTree*
-    BlockchainBalanceTree(
+        const blockchain::Type chain)
+        -> api::client::blockchain::internal::BalanceList*;
+    static auto BlockchainBalanceTree(
         const api::client::blockchain::internal::BalanceList& parent,
         const identifier::Nym& id,
         const std::set<OTIdentifier>& hdAccounts,
         const std::set<OTIdentifier>& importedAccounts,
-        const std::set<OTIdentifier>& paymentCodeAccounts);
-    static api::client::blockchain::internal::HD* BlockchainHDBalanceNode(
+        const std::set<OTIdentifier>& paymentCodeAccounts)
+        -> api::client::blockchain::internal::BalanceTree*;
+    static auto BlockchainHDBalanceNode(
         const api::client::blockchain::internal::BalanceTree& parent,
         const proto::HDPath& path,
-        Identifier& id);
-    static api::client::blockchain::internal::HD* BlockchainHDBalanceNode(
+        Identifier& id) -> api::client::blockchain::internal::HD*;
+    static auto BlockchainHDBalanceNode(
         const api::client::blockchain::internal::BalanceTree& parent,
         const proto::HDAccount& serialized,
-        Identifier& id);
+        Identifier& id) -> api::client::blockchain::internal::HD*;
 #if OT_BLOCKCHAIN
     static auto BlockchainAddress(
         const api::internal::Core& api,
@@ -627,18 +645,18 @@ public:
         const api::internal::Core& api,
         const Data& serialized) -> blockchain::BloomFilter*;
 #endif  // OT_BLOCKCHAIN
-    static internal::ClientContext* ClientContext(
+    static auto ClientContext(
         const api::internal::Core& api,
         const Nym_p& local,
         const Nym_p& remote,
-        const identifier::Server& server);
-    static internal::ClientContext* ClientContext(
+        const identifier::Server& server) -> internal::ClientContext*;
+    static auto ClientContext(
         const api::internal::Core& api,
         const proto::Context& serialized,
         const Nym_p& local,
         const Nym_p& remote,
-        const identifier::Server& server);
-    static api::client::internal::Manager* ClientManager(
+        const identifier::Server& server) -> internal::ClientContext*;
+    static auto ClientManager(
         const api::internal::Context& parent,
         Flag& running,
         const ArgList& args,
@@ -646,7 +664,7 @@ public:
         const api::Crypto& crypto,
         const network::zeromq::Context& context,
         const std::string& dataFolder,
-        const int instance);
+        const int instance) -> api::client::internal::Manager*;
     static auto ConnectionReply(
         const api::internal::Core& api,
         const Nym_p& nym,
@@ -678,29 +696,32 @@ public:
         const Nym_p& nym,
         const proto::PeerRequest& serialized) noexcept
         -> std::shared_ptr<contract::peer::request::Connection>;
-    static identity::credential::internal::Contact* ContactCredential(
+    static auto ContactCredential(
         const api::internal::Core& api,
         identity::internal::Authority& parent,
         const identity::Source& source,
         const identity::credential::internal::Primary& master,
         const NymParameters& nymParameters,
         const VersionNumber version,
-        const opentxs::PasswordPrompt& reason);
-    static identity::credential::internal::Contact* ContactCredential(
+        const opentxs::PasswordPrompt& reason)
+        -> identity::credential::internal::Contact*;
+    static auto ContactCredential(
         const api::internal::Core& api,
         identity::internal::Authority& parent,
         const identity::Source& source,
         const identity::credential::internal::Primary& master,
-        const proto::Credential& credential);
-    static api::client::internal::Contacts* ContactAPI(
-        const api::client::internal::Manager& api);
-    static api::internal::Context* Context(
+        const proto::Credential& credential)
+        -> identity::credential::internal::Contact*;
+    static auto ContactAPI(const api::client::internal::Manager& api)
+        -> api::client::internal::Contacts*;
+    static auto Context(
         Flag& running,
         const ArgList& args,
         const std::chrono::seconds gcInterval,
-        OTCaller* externalPasswordCallback = nullptr);
+        OTCaller* externalPasswordCallback = nullptr)
+        -> api::internal::Context*;
     template <class C>
-    static C* Credential(
+    static auto Credential(
         const api::internal::Core& api,
         identity::internal::Authority& parent,
         const identity::Source& source,
@@ -708,18 +729,19 @@ public:
         const VersionNumber version,
         const NymParameters& parameters,
         const proto::CredentialRole role,
-        const opentxs::PasswordPrompt& reason);
+        const opentxs::PasswordPrompt& reason) -> C*;
     template <class C>
-    static C* Credential(
+    static auto Credential(
         const api::internal::Core& api,
         identity::internal::Authority& parent,
         const identity::Source& source,
         const identity::credential::internal::Primary& master,
         const proto::Credential& serialized,
         const proto::KeyMode mode,
-        const proto::CredentialRole role);
-    static api::Crypto* Crypto(const api::Settings& settings);
-    static api::crypto::Config* CryptoConfig(const api::Settings& settings);
+        const proto::CredentialRole role) -> C*;
+    static auto Crypto(const api::Settings& settings) -> api::Crypto*;
+    static auto CryptoConfig(const api::Settings& settings)
+        -> api::crypto::Config*;
     static auto CurrencyContract(
         const api::internal::Core& api,
         const Nym_p& nym,
@@ -739,11 +761,12 @@ public:
         const Nym_p& nym,
         const proto::UnitDefinition serialized) noexcept
         -> std::shared_ptr<contract::unit::Currency>;
-    static network::zeromq::socket::Dealer* DealerSocket(
+    static auto DealerSocket(
         const network::zeromq::Context& context,
         const bool direction,
-        const network::zeromq::ListenCallback& callback);
-    static api::network::Dht* Dht(
+        const network::zeromq::ListenCallback& callback)
+        -> network::zeromq::socket::Dealer*;
+    static auto Dht(
         const bool defaultEnable,
         const api::internal::Core& api,
         std::int64_t& nymPublishInterval,
@@ -751,20 +774,20 @@ public:
         std::int64_t& serverPublishInterval,
         std::int64_t& serverRefreshInterval,
         std::int64_t& unitPublishInterval,
-        std::int64_t& unitRefreshInterval);
+        std::int64_t& unitRefreshInterval) -> api::network::Dht*;
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
-    static crypto::key::Ed25519* Ed25519Key(
+    static auto Ed25519Key(
         const api::internal::Core& api,
         const crypto::EcdsaProvider& ecdsa,
-        const proto::AsymmetricKey& serializedKey);
-    static crypto::key::Ed25519* Ed25519Key(
+        const proto::AsymmetricKey& serializedKey) -> crypto::key::Ed25519*;
+    static auto Ed25519Key(
         const api::internal::Core& api,
         const crypto::EcdsaProvider& ecdsa,
         const proto::KeyRole role,
         const VersionNumber version,
-        const opentxs::PasswordPrompt& reason);
+        const opentxs::PasswordPrompt& reason) -> crypto::key::Ed25519*;
 #if OT_CRYPTO_WITH_BIP32
-    static crypto::key::Ed25519* Ed25519Key(
+    static auto Ed25519Key(
         const api::internal::Core& api,
         const crypto::EcdsaProvider& ecdsa,
         const OTPassword& privateKey,
@@ -774,23 +797,23 @@ public:
         const Bip32Fingerprint parent,
         const proto::KeyRole role,
         const VersionNumber version,
-        const opentxs::PasswordPrompt& reason);
+        const opentxs::PasswordPrompt& reason) -> crypto::key::Ed25519*;
 #endif  // OT_CRYPTO_WITH_BIP32
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
-    static api::crypto::Encode* Encode(const api::Crypto& crypto);
-    static api::Endpoints* Endpoints(
+    static auto Encode(const api::Crypto& crypto) -> api::crypto::Encode*;
+    static auto Endpoints(
         const network::zeromq::Context& zmq,
-        const int instance);
+        const int instance) -> api::Endpoints*;
     static auto Envelope(const api::internal::Core& api) noexcept
         -> std::unique_ptr<crypto::Envelope>;
     static auto Envelope(
         const api::internal::Core& api,
         const proto::Envelope& serialized) noexcept(false)
         -> std::unique_ptr<crypto::Envelope>;
-    static api::internal::Factory* FactoryAPIClient(
-        const api::client::internal::Manager& api);
-    static api::internal::Factory* FactoryAPIServer(
-        const api::server::internal::Manager& api);
+    static auto FactoryAPIClient(const api::client::internal::Manager& api)
+        -> api::internal::Factory*;
+    static auto FactoryAPIServer(const api::server::internal::Manager& api)
+        -> api::internal::Factory*;
 #if OT_BLOCKCHAIN
     OPENTXS_EXPORT static auto GCS(
         const api::Core& api,
@@ -823,21 +846,21 @@ public:
         const crypto::Pbkdf2& pbkdf2,
         const crypto::Ripemd160& ripe) noexcept
         -> std::unique_ptr<api::crypto::Hash>;
-    static api::HDSeed* HDSeed(
+    static auto HDSeed(
         const api::Factory& factory,
         const api::crypto::Asymmetric& asymmetric,
         const api::crypto::Symmetric& symmetric,
         const api::storage::Storage& storage,
         const crypto::Bip32& bip32,
-        const crypto::Bip39& bip39);
-    static api::client::Issuer* Issuer(
+        const crypto::Bip39& bip39) -> api::HDSeed*;
+    static auto Issuer(
         const api::Wallet& wallet,
         const identifier::Nym& nymID,
-        const proto::Issuer& serialized);
-    static api::client::Issuer* Issuer(
+        const proto::Issuer& serialized) -> api::client::Issuer*;
+    static auto Issuer(
         const api::Wallet& wallet,
         const identifier::Nym& nymID,
-        const identifier::Nym& issuerID);
+        const identifier::Nym& issuerID) -> api::client::Issuer*;
     static auto Keypair() noexcept -> std::unique_ptr<crypto::key::Keypair>;
     static auto Keypair(
         const api::internal::Core& api,
@@ -845,24 +868,24 @@ public:
         std::unique_ptr<crypto::key::Asymmetric> publicKey,
         std::unique_ptr<crypto::key::Asymmetric> privateKey) noexcept(false)
         -> std::unique_ptr<crypto::key::Keypair>;
-    static api::Legacy* Legacy(const std::string& home);
-    static api::internal::Log* Log(
+    static auto Legacy(const std::string& home) -> api::Legacy*;
+    static auto Log(
         const network::zeromq::Context& zmq,
-        const std::string& endpoint);
-    static opentxs::ManagedNumber* ManagedNumber(
+        const std::string& endpoint) -> api::internal::Log*;
+    static auto ManagedNumber(
         const TransactionNumber number,
-        opentxs::ServerContext& context);
+        opentxs::ServerContext& context) -> opentxs::ManagedNumber*;
 #if OT_CASH
-    static blind::Mint* MintLucre(const api::internal::Core& core);
-    static blind::Mint* MintLucre(
+    static auto MintLucre(const api::internal::Core& core) -> blind::Mint*;
+    static auto MintLucre(
         const api::internal::Core& core,
         const String& strNotaryID,
-        const String& strInstrumentDefinitionID);
-    static blind::Mint* MintLucre(
+        const String& strInstrumentDefinitionID) -> blind::Mint*;
+    static auto MintLucre(
         const api::internal::Core& core,
         const String& strNotaryID,
         const String& strServerNymID,
-        const String& strInstrumentDefinitionID);
+        const String& strInstrumentDefinitionID) -> blind::Mint*;
 #endif
     static auto NoticeAcknowledgement(
         const api::internal::Core& api,
@@ -885,7 +908,7 @@ public:
     OPENTXS_EXPORT static auto NumericHashNBits(const std::int32_t nBits)
         -> blockchain::NumericHash*;
 #endif  // OT_BLOCKCHAIN
-    static OTCallback* NullCallback();
+    static auto NullCallback() -> OTCallback*;
     OPENTXS_EXPORT static auto Nym(
         const api::internal::Core& api,
         const NymParameters& nymParameters,
@@ -896,18 +919,18 @@ public:
         const api::internal::Core& api,
         const proto::Nym& serialized,
         const std::string& alias) -> identity::internal::Nym*;
-    static internal::NymFile* NymFile(
+    static auto NymFile(
         const api::internal::Core& core,
         Nym_p targetNym,
-        Nym_p signerNym);
-    static identity::Source* NymIDSource(
+        Nym_p signerNym) -> internal::NymFile*;
+    static auto NymIDSource(
         const api::internal::Core& api,
         NymParameters& parameters,
-        const opentxs::PasswordPrompt& reason);
-    static identity::Source* NymIDSource(
+        const opentxs::PasswordPrompt& reason) -> identity::Source*;
+    static auto NymIDSource(
         const api::internal::Core& api,
-        const proto::NymIDSource& serialized);
-    static crypto::OpenSSL* OpenSSL(const api::Crypto& crypto);
+        const proto::NymIDSource& serialized) -> identity::Source*;
+    static auto OpenSSL(const api::Crypto& crypto) -> crypto::OpenSSL*;
     OPENTXS_EXPORT static auto Operation(
         const api::client::internal::Manager& api,
         const identifier::Nym& nym,
@@ -943,29 +966,30 @@ public:
         const Nym_p& nym,
         const proto::PeerRequest& serialized) noexcept
         -> std::shared_ptr<contract::peer::request::Outbailment>;
-    static api::client::OTX* OTX(
+    static auto OTX(
         const Flag& running,
         const api::client::internal::Manager& api,
         OTClient& otclient,
-        const ContextLockCallback& lockCallback);
-    static opentxs::PasswordPrompt* PasswordPrompt(
+        const ContextLockCallback& lockCallback) -> api::client::OTX*;
+    static auto PasswordPrompt(
         const api::internal::Core& api,
-        const std::string& text);
-    static api::client::internal::Pair* PairAPI(
+        const std::string& text) -> opentxs::PasswordPrompt*;
+    static auto PairAPI(
         const Flag& running,
-        const api::client::internal::Manager& client);
-    static network::zeromq::socket::Pair* PairSocket(
+        const api::client::internal::Manager& client)
+        -> api::client::internal::Pair*;
+    static auto PairSocket(
         const network::zeromq::Context& context,
         const network::zeromq::ListenCallback& callback,
-        const bool startThread);
-    static network::zeromq::socket::Pair* PairSocket(
+        const bool startThread) -> network::zeromq::socket::Pair*;
+    static auto PairSocket(
         const network::zeromq::ListenCallback& callback,
         const network::zeromq::socket::Pair& peer,
-        const bool startThread);
-    static network::zeromq::socket::Pair* PairSocket(
+        const bool startThread) -> network::zeromq::socket::Pair*;
+    static auto PairSocket(
         const network::zeromq::Context& context,
         const network::zeromq::ListenCallback& callback,
-        const std::string& endpoint);
+        const std::string& endpoint) -> network::zeromq::socket::Pair*;
     static auto PaymentCode(
         const api::internal::Core& api,
         const std::uint8_t version,
@@ -979,41 +1003,41 @@ public:
         std::unique_ptr<crypto::key::Secp256k1> key
 #endif
         ) noexcept -> std::unique_ptr<opentxs::PaymentCode>;
-    static opentxs::PeerObject* PeerObject(
+    static auto PeerObject(
         const api::internal::Core& api,
         const Nym_p& senderNym,
-        const std::string& message);
-    static opentxs::PeerObject* PeerObject(
+        const std::string& message) -> opentxs::PeerObject*;
+    static auto PeerObject(
         const api::internal::Core& api,
         const Nym_p& senderNym,
         const std::string& payment,
-        const bool isPayment);
+        const bool isPayment) -> opentxs::PeerObject*;
 #if OT_CASH
-    static opentxs::PeerObject* PeerObject(
+    static auto PeerObject(
         const api::internal::Core& api,
         const Nym_p& senderNym,
-        const std::shared_ptr<blind::Purse> purse);
+        const std::shared_ptr<blind::Purse> purse) -> opentxs::PeerObject*;
 #endif
-    static opentxs::PeerObject* PeerObject(
+    static auto PeerObject(
         const api::internal::Core& api,
         const OTPeerRequest request,
         const OTPeerReply reply,
-        const VersionNumber version);
-    static opentxs::PeerObject* PeerObject(
+        const VersionNumber version) -> opentxs::PeerObject*;
+    static auto PeerObject(
         const api::internal::Core& api,
         const OTPeerRequest request,
-        const VersionNumber version);
-    static opentxs::PeerObject* PeerObject(
+        const VersionNumber version) -> opentxs::PeerObject*;
+    static auto PeerObject(
         const api::client::Contacts& contacts,
         const api::internal::Core& api,
         const Nym_p& signerNym,
-        const proto::PeerObject& serialized);
-    static opentxs::PeerObject* PeerObject(
+        const proto::PeerObject& serialized) -> opentxs::PeerObject*;
+    static auto PeerObject(
         const api::client::Contacts& contacts,
         const api::internal::Core& api,
         const Nym_p& recipientNym,
         const opentxs::Armored& encrypted,
-        const opentxs::PasswordPrompt& reason);
+        const opentxs::PasswordPrompt& reason) -> opentxs::PeerObject*;
     static auto PeerReply(const api::Core& api) noexcept
         -> std::shared_ptr<contract::peer::Reply>;
     static auto PeerReply(
@@ -1028,23 +1052,26 @@ public:
         const Nym_p& nym,
         const proto::PeerRequest& serialized) noexcept
         -> std::shared_ptr<contract::peer::Request>;
-    static opentxs::PIDFile* PIDFile(const std::string& path);
-    static opentxs::network::zeromq::Pipeline* Pipeline(
+    static auto PIDFile(const std::string& path) -> opentxs::PIDFile*;
+    static auto Pipeline(
         const api::internal::Core& api,
         const network::zeromq::Context& context,
-        std::function<void(network::zeromq::Message&)> callback);
-    static identity::credential::internal::Primary* PrimaryCredential(
+        std::function<void(network::zeromq::Message&)> callback)
+        -> opentxs::network::zeromq::Pipeline*;
+    static auto PrimaryCredential(
         const api::internal::Core& api,
         identity::internal::Authority& parent,
         const identity::Source& source,
         const NymParameters& nymParameters,
         const VersionNumber version,
-        const opentxs::PasswordPrompt& reason);
-    static identity::credential::internal::Primary* PrimaryCredential(
+        const opentxs::PasswordPrompt& reason)
+        -> identity::credential::internal::Primary*;
+    static auto PrimaryCredential(
         const api::internal::Core& api,
         identity::internal::Authority& parent,
         const identity::Source& source,
-        const proto::Credential& credential);
+        const proto::Credential& credential)
+        -> identity::credential::internal::Primary*;
 #if OT_CASH
     OPENTXS_EXPORT static auto Purse(
         const api::internal::Core& api,
@@ -1078,25 +1105,27 @@ public:
         const proto::CashType type,
         const opentxs::PasswordPrompt& reason) -> blind::Purse*;
 #endif
-    static network::zeromq::socket::Publish* PublishSocket(
-        const network::zeromq::Context& context);
-    static network::zeromq::socket::Pull* PullSocket(
+    static auto PublishSocket(const network::zeromq::Context& context)
+        -> network::zeromq::socket::Publish*;
+    static auto PullSocket(
         const network::zeromq::Context& context,
-        const bool direction);
-    static network::zeromq::socket::Pull* PullSocket(
-        const network::zeromq::Context& context,
-        const bool direction,
-        const network::zeromq::ListenCallback& callback);
-    static network::zeromq::socket::Push* PushSocket(
-        const network::zeromq::Context& context,
-        const bool direction);
-    static network::zeromq::socket::Reply* ReplySocket(
+        const bool direction) -> network::zeromq::socket::Pull*;
+    static auto PullSocket(
         const network::zeromq::Context& context,
         const bool direction,
-        const network::zeromq::ReplyCallback& callback);
-    static network::zeromq::socket::Request* RequestSocket(
-        const network::zeromq::Context& context);
-    static rpc::internal::RPC* RPC(const api::Context& native);
+        const network::zeromq::ListenCallback& callback)
+        -> network::zeromq::socket::Pull*;
+    static auto PushSocket(
+        const network::zeromq::Context& context,
+        const bool direction) -> network::zeromq::socket::Push*;
+    static auto ReplySocket(
+        const network::zeromq::Context& context,
+        const bool direction,
+        const network::zeromq::ReplyCallback& callback)
+        -> network::zeromq::socket::Reply*;
+    static auto RequestSocket(const network::zeromq::Context& context)
+        -> network::zeromq::socket::Request*;
+    static auto RPC(const api::Context& native) -> rpc::internal::RPC*;
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
     static auto RSAKey(
         const api::internal::Core& api,
@@ -1112,42 +1141,45 @@ public:
         const opentxs::PasswordPrompt& reason) noexcept
         -> std::unique_ptr<crypto::key::RSA>;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
-    static network::zeromq::socket::Router* RouterSocket(
+    static auto RouterSocket(
         const network::zeromq::Context& context,
         const bool direction,
-        const network::zeromq::ListenCallback& callback);
-    static identity::credential::internal::Secondary* SecondaryCredential(
+        const network::zeromq::ListenCallback& callback)
+        -> network::zeromq::socket::Router*;
+    static auto SecondaryCredential(
         const api::internal::Core& api,
         identity::internal::Authority& parent,
         const identity::Source& source,
         const identity::credential::internal::Primary& master,
         const NymParameters& nymParameters,
         const VersionNumber version,
-        const opentxs::PasswordPrompt& reason);
-    static identity::credential::internal::Secondary* SecondaryCredential(
+        const opentxs::PasswordPrompt& reason)
+        -> identity::credential::internal::Secondary*;
+    static auto SecondaryCredential(
         const api::internal::Core& api,
         identity::internal::Authority& parent,
         const identity::Source& source,
         const identity::credential::internal::Primary& master,
-        const proto::Credential& credential);
+        const proto::Credential& credential)
+        -> identity::credential::internal::Secondary*;
 #if OT_CRYPTO_USING_LIBSECP256K1
-    static crypto::Secp256k1* Secp256k1(
+    static auto Secp256k1(
         const api::Crypto& crypto,
-        const api::crypto::Util& util);
+        const api::crypto::Util& util) -> crypto::Secp256k1*;
 #endif  // OT_CRYPTO_USING_LIBSECP256K1
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-    static crypto::key::Secp256k1* Secp256k1Key(
+    static auto Secp256k1Key(
         const api::internal::Core& api,
         const crypto::EcdsaProvider& ecdsa,
-        const proto::AsymmetricKey& serializedKey);
-    static crypto::key::Secp256k1* Secp256k1Key(
+        const proto::AsymmetricKey& serializedKey) -> crypto::key::Secp256k1*;
+    static auto Secp256k1Key(
         const api::internal::Core& api,
         const crypto::EcdsaProvider& ecdsa,
         const proto::KeyRole role,
         const VersionNumber version,
-        const opentxs::PasswordPrompt& reason);
+        const opentxs::PasswordPrompt& reason) -> crypto::key::Secp256k1*;
 #if OT_CRYPTO_WITH_BIP32
-    static crypto::key::Secp256k1* Secp256k1Key(
+    static auto Secp256k1Key(
         const api::internal::Core& api,
         const crypto::EcdsaProvider& ecdsa,
         const OTPassword& privateKey,
@@ -1157,7 +1189,7 @@ public:
         const Bip32Fingerprint parent,
         const proto::KeyRole role,
         const VersionNumber version,
-        const opentxs::PasswordPrompt& reason);
+        const opentxs::PasswordPrompt& reason) -> crypto::key::Secp256k1*;
 #endif  // OT_CRYPTO_WITH_BIP32
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
     static auto SecurityContract(
@@ -1176,25 +1208,25 @@ public:
         const Nym_p& nym,
         const proto::UnitDefinition serialized) noexcept
         -> std::shared_ptr<contract::unit::Security>;
-    static api::client::ServerAction* ServerAction(
+    static auto ServerAction(
         const api::client::internal::Manager& api,
-        const ContextLockCallback& lockCallback);
-    static internal::ServerContext* ServerContext(
+        const ContextLockCallback& lockCallback) -> api::client::ServerAction*;
+    static auto ServerContext(
         const api::client::internal::Manager& api,
         const network::zeromq::socket::Publish& requestSent,
         const network::zeromq::socket::Publish& replyReceived,
         const Nym_p& local,
         const Nym_p& remote,
         const identifier::Server& server,
-        network::ServerConnection& connection);
-    static internal::ServerContext* ServerContext(
+        network::ServerConnection& connection) -> internal::ServerContext*;
+    static auto ServerContext(
         const api::client::internal::Manager& api,
         const network::zeromq::socket::Publish& requestSent,
         const network::zeromq::socket::Publish& replyReceived,
         const proto::Context& serialized,
         const Nym_p& local,
         const Nym_p& remote,
-        network::ServerConnection& connection);
+        network::ServerConnection& connection) -> internal::ServerContext*;
     static auto ServerContract(const api::Core& api) noexcept
         -> std::unique_ptr<contract::Server>;
     static auto ServerContract(
@@ -1211,7 +1243,7 @@ public:
         const Nym_p& nym,
         const proto::ServerContract& serialized) noexcept
         -> std::unique_ptr<contract::Server>;
-    static api::server::Manager* ServerManager(
+    static auto ServerManager(
         const api::internal::Context& parent,
         Flag& running,
         const ArgList& args,
@@ -1219,12 +1251,11 @@ public:
         const api::Settings& config,
         const network::zeromq::Context& context,
         const std::string& dataFolder,
-        const int instance);
-    static api::Settings* Settings(
-        const api::Legacy& legacy,
-        const String& path);
-    static crypto::Sodium* Sodium(const api::Crypto& crypto);
-    static api::storage::StorageInternal* Storage(
+        const int instance) -> api::server::Manager*;
+    static auto Settings(const api::Legacy& legacy, const String& path)
+        -> api::Settings*;
+    static auto Sodium(const api::Crypto& crypto) -> crypto::Sodium*;
+    static auto Storage(
         const Flag& running,
         const api::Crypto& crypto,
         const api::Settings& config,
@@ -1234,38 +1265,38 @@ public:
         const String& archiveDirectoryCLI,
         const std::chrono::seconds gcIntervalCLI,
         String& encryptedDirectoryCLI,
-        StorageConfig& storageConfig);
+        StorageConfig& storageConfig) -> api::storage::StorageInternal*;
 #if OT_STORAGE_FS
-    static opentxs::api::storage::Plugin* StorageFSArchive(
+    static auto StorageFSArchive(
         const api::storage::Storage& storage,
         const StorageConfig& config,
         const Digest& hash,
         const Random& random,
         const Flag& bucket,
         const std::string& folder,
-        crypto::key::Symmetric& key);
-    static opentxs::api::storage::Plugin* StorageFSGC(
+        crypto::key::Symmetric& key) -> opentxs::api::storage::Plugin*;
+    static auto StorageFSGC(
         const api::storage::Storage& storage,
         const StorageConfig& config,
         const Digest& hash,
         const Random& random,
-        const Flag& bucket);
+        const Flag& bucket) -> opentxs::api::storage::Plugin*;
 #endif
-    static opentxs::api::storage::Plugin* StorageMemDB(
+    static auto StorageMemDB(
         const api::storage::Storage& storage,
         const StorageConfig& config,
         const Digest& hash,
         const Random& random,
-        const Flag& bucket);
+        const Flag& bucket) -> opentxs::api::storage::Plugin*;
 #if OT_STORAGE_LMDB
-    static opentxs::api::storage::Plugin* StorageLMDB(
+    static auto StorageLMDB(
         const api::storage::Storage& storage,
         const StorageConfig& config,
         const Digest& hash,
         const Random& random,
-        const Flag& bucket);
+        const Flag& bucket) -> opentxs::api::storage::Plugin*;
 #endif
-    static opentxs::api::storage::Multiplex* StorageMultiplex(
+    static auto StorageMultiplex(
         const api::storage::Storage& storage,
         const Flag& primaryBucket,
         const StorageConfig& config,
@@ -1273,14 +1304,14 @@ public:
         const bool migrate,
         const String& previous,
         const Digest& hash,
-        const Random& random);
+        const Random& random) -> opentxs::api::storage::Multiplex*;
 #if OT_STORAGE_SQLITE
-    static opentxs::api::storage::Plugin* StorageSqlite3(
+    static auto StorageSqlite3(
         const api::storage::Storage& storage,
         const StorageConfig& config,
         const Digest& hash,
         const Random& random,
-        const Flag& bucket);
+        const Flag& bucket) -> opentxs::api::storage::Plugin*;
 #endif
     static auto StoreSecret(
         const api::internal::Core& api,
@@ -1297,33 +1328,35 @@ public:
         const Nym_p& nym,
         const proto::PeerRequest& serialized) noexcept
         -> std::shared_ptr<contract::peer::request::StoreSecret>;
-    static network::zeromq::socket::Subscribe* SubscribeSocket(
+    static auto SubscribeSocket(
         const network::zeromq::Context& context,
-        const network::zeromq::ListenCallback& callback);
-    static api::crypto::Symmetric* Symmetric(const api::internal::Core& api);
-    static crypto::key::Symmetric* SymmetricKey();
-    static crypto::key::Symmetric* SymmetricKey(
+        const network::zeromq::ListenCallback& callback)
+        -> network::zeromq::socket::Subscribe*;
+    static auto Symmetric(const api::internal::Core& api)
+        -> api::crypto::Symmetric*;
+    static auto SymmetricKey() -> crypto::key::Symmetric*;
+    static auto SymmetricKey(
         const api::internal::Core& api,
         const crypto::SymmetricProvider& engine,
         const opentxs::PasswordPrompt& reason,
-        const proto::SymmetricMode mode);
-    static crypto::key::Symmetric* SymmetricKey(
+        const proto::SymmetricMode mode) -> crypto::key::Symmetric*;
+    static auto SymmetricKey(
         const api::internal::Core& api,
         const crypto::SymmetricProvider& engine,
-        const proto::SymmetricKey serialized);
-    static crypto::key::Symmetric* SymmetricKey(
+        const proto::SymmetricKey serialized) -> crypto::key::Symmetric*;
+    static auto SymmetricKey(
         const api::internal::Core& api,
         const crypto::SymmetricProvider& engine,
         const OTPassword& seed,
         const std::uint64_t operations,
         const std::uint64_t difficulty,
         const std::size_t size,
-        const proto::SymmetricKeyType type);
-    static crypto::key::Symmetric* SymmetricKey(
+        const proto::SymmetricKeyType type) -> crypto::key::Symmetric*;
+    static auto SymmetricKey(
         const api::internal::Core& api,
         const crypto::SymmetricProvider& engine,
         const OTPassword& raw,
-        const opentxs::PasswordPrompt& reason);
+        const opentxs::PasswordPrompt& reason) -> crypto::key::Symmetric*;
 #if OT_CASH
     static auto Token(const blind::Token& token, blind::Purse& purse) noexcept
         -> std::unique_ptr<blind::Token>;
@@ -1341,14 +1374,14 @@ public:
         const opentxs::PasswordPrompt& reason) noexcept(false)
         -> std::unique_ptr<blind::Token>;
 #endif
-    static api::client::UI* UI(
+    static auto UI(
         const api::client::internal::Manager& api,
         const Flag& running
 #if OT_QT
         ,
         const bool qt
 #endif
-    );
+        ) -> api::client::UI*;
     static auto UnitDefinition(const api::Core& api) noexcept
         -> std::shared_ptr<contract::Unit>;
     static auto UnitDefinition(
@@ -1356,29 +1389,31 @@ public:
         const Nym_p& nym,
         const proto::UnitDefinition serialized) noexcept
         -> std::shared_ptr<contract::Unit>;
-    static identity::credential::internal::Verification* VerificationCredential(
+    static auto VerificationCredential(
         const api::internal::Core& api,
         identity::internal::Authority& parent,
         const identity::Source& source,
         const identity::credential::internal::Primary& master,
         const NymParameters& nymParameters,
         const VersionNumber version,
-        const opentxs::PasswordPrompt& reason);
-    static identity::credential::internal::Verification* VerificationCredential(
+        const opentxs::PasswordPrompt& reason)
+        -> identity::credential::internal::Verification*;
+    static auto VerificationCredential(
         const api::internal::Core& api,
         identity::internal::Authority& parent,
         const identity::Source& source,
         const identity::credential::internal::Primary& master,
-        const proto::Credential& credential);
-    static identity::wot::verification::internal::Group* VerificationGroup(
+        const proto::Credential& credential)
+        -> identity::credential::internal::Verification*;
+    static auto VerificationGroup(
         identity::wot::verification::internal::Set& parent,
         const VersionNumber version,
-        bool external);
-    static identity::wot::verification::internal::Group* VerificationGroup(
+        bool external) -> identity::wot::verification::internal::Group*;
+    static auto VerificationGroup(
         identity::wot::verification::internal::Set& parent,
         const proto::VerificationGroup& serialized,
-        bool external);
-    static identity::wot::verification::internal::Item* VerificationItem(
+        bool external) -> identity::wot::verification::internal::Group*;
+    static auto VerificationItem(
         const identity::wot::verification::internal::Nym& parent,
         const opentxs::Identifier& claim,
         const identity::Nym& signer,
@@ -1386,42 +1421,50 @@ public:
         const bool value,
         const Time start,
         const Time end,
-        const VersionNumber version);
-    static identity::wot::verification::internal::Item* VerificationItem(
+        const VersionNumber version)
+        -> identity::wot::verification::internal::Item*;
+    static auto VerificationItem(
         const identity::wot::verification::internal::Nym& parent,
-        const proto::Verification& serialized);
-    static identity::wot::verification::internal::Nym* VerificationNym(
+        const proto::Verification& serialized)
+        -> identity::wot::verification::internal::Item*;
+    static auto VerificationNym(
         identity::wot::verification::internal::Group& parent,
         const identifier::Nym& nym,
-        const VersionNumber version);
-    static identity::wot::verification::internal::Nym* VerificationNym(
+        const VersionNumber version)
+        -> identity::wot::verification::internal::Nym*;
+    static auto VerificationNym(
         identity::wot::verification::internal::Group& parent,
-        const proto::VerificationIdentity& serialized);
-    static identity::wot::verification::internal::Set* VerificationSet(
+        const proto::VerificationIdentity& serialized)
+        -> identity::wot::verification::internal::Nym*;
+    static auto VerificationSet(
         const api::internal::Core& api,
         const identifier::Nym& nym,
-        const VersionNumber version);
-    static identity::wot::verification::internal::Set* VerificationSet(
+        const VersionNumber version)
+        -> identity::wot::verification::internal::Set*;
+    static auto VerificationSet(
         const api::internal::Core& api,
         const identifier::Nym& nym,
-        const proto::VerificationSet& serialized);
-    static api::Wallet* Wallet(const api::client::internal::Manager& client);
-    static api::Wallet* Wallet(const api::server::internal::Manager& server);
+        const proto::VerificationSet& serialized)
+        -> identity::wot::verification::internal::Set*;
+    static auto Wallet(const api::client::internal::Manager& client)
+        -> api::Wallet*;
+    static auto Wallet(const api::server::internal::Manager& server)
+        -> api::Wallet*;
 #if OT_BLOCKCHAIN
     OPENTXS_EXPORT static auto Work(const std::string& hex)
         -> blockchain::Work*;
     OPENTXS_EXPORT static auto Work(const blockchain::NumericHash& target)
         -> blockchain::Work*;
 #endif  // OT_BLOCKCHAIN
-    static api::client::Workflow* Workflow(
+    static auto Workflow(
         const api::internal::Core& api,
         const api::client::Activity& activity,
-        const api::client::Contacts& contact);
-    static api::network::ZAP* ZAP(const network::zeromq::Context& context);
-    static api::network::ZMQ* ZMQ(
-        const api::internal::Core& api,
-        const Flag& running);
-    static network::zeromq::Context* ZMQContext();
+        const api::client::Contacts& contact) -> api::client::Workflow*;
+    static auto ZAP(const network::zeromq::Context& context)
+        -> api::network::ZAP*;
+    static auto ZMQ(const api::internal::Core& api, const Flag& running)
+        -> api::network::ZMQ*;
+    static auto ZMQContext() -> network::zeromq::Context*;
     OPENTXS_EXPORT static auto ZMQFrame() -> network::zeromq::Frame*;
     OPENTXS_EXPORT static auto ZMQFrame(
         const void* data,

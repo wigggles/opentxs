@@ -21,7 +21,8 @@
 
 namespace opentxs
 {
-api::crypto::Symmetric* Factory::Symmetric(const api::internal::Core& api)
+auto Factory::Symmetric(const api::internal::Core& api)
+    -> api::crypto::Symmetric*
 {
     return new api::crypto::implementation::Symmetric(api);
 }
@@ -34,8 +35,8 @@ Symmetric::Symmetric(const api::internal::Core& api)
 {
 }
 
-const opentxs::crypto::SymmetricProvider* Symmetric::GetEngine(
-    const proto::SymmetricMode mode) const
+auto Symmetric::GetEngine(const proto::SymmetricMode mode) const
+    -> const opentxs::crypto::SymmetricProvider*
 {
     const opentxs::crypto::SymmetricProvider* engine{nullptr};
 
@@ -49,7 +50,7 @@ const opentxs::crypto::SymmetricProvider* Symmetric::GetEngine(
     return engine;
 }
 
-std::size_t Symmetric::IvSize(const proto::SymmetricMode mode) const
+auto Symmetric::IvSize(const proto::SymmetricMode mode) const -> std::size_t
 {
     auto pEngine = GetEngine(mode);
 
@@ -64,9 +65,9 @@ std::size_t Symmetric::IvSize(const proto::SymmetricMode mode) const
     return engine.IvSize(mode);
 }
 
-OTSymmetricKey Symmetric::Key(
+auto Symmetric::Key(
     const PasswordPrompt& password,
-    const proto::SymmetricMode mode) const
+    const proto::SymmetricMode mode) const -> OTSymmetricKey
 {
     auto engine = GetEngine(mode);
 
@@ -75,9 +76,9 @@ OTSymmetricKey Symmetric::Key(
     return api_.Factory().SymmetricKey(*engine, password, mode);
 }
 
-OTSymmetricKey Symmetric::Key(
+auto Symmetric::Key(
     const proto::SymmetricKey& serialized,
-    const proto::SymmetricMode mode) const
+    const proto::SymmetricMode mode) const -> OTSymmetricKey
 {
     auto engine = GetEngine(mode);
 
@@ -86,12 +87,12 @@ OTSymmetricKey Symmetric::Key(
     return api_.Factory().SymmetricKey(*engine, serialized);
 }
 
-OTSymmetricKey Symmetric::Key(
+auto Symmetric::Key(
     const OTPassword& seed,
     const std::uint64_t operations,
     const std::uint64_t difficulty,
     const proto::SymmetricMode mode,
-    const proto::SymmetricKeyType type) const
+    const proto::SymmetricKeyType type) const -> OTSymmetricKey
 {
     auto engine = GetEngine(mode);
 

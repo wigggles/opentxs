@@ -39,7 +39,7 @@ PairEventListener::PairEventListener(
     LogVerbose(OT_METHOD)(__FUNCTION__)(": listening on ")(endpoint).Flush();
 }
 
-PairEventListener* PairEventListener::clone() const noexcept
+auto PairEventListener::clone() const noexcept -> PairEventListener*
 {
     return new PairEventListener(
         context_,

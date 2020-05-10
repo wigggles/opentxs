@@ -21,8 +21,9 @@ template class opentxs::Pimpl<opentxs::network::zeromq::PairEventCallback>;
 
 namespace opentxs::network::zeromq
 {
-OTZMQPairEventCallback PairEventCallback::Factory(
+auto PairEventCallback::Factory(
     zeromq::PairEventCallback::ReceiveCallback callback)
+    -> OTZMQPairEventCallback
 {
     return OTZMQPairEventCallback(
         new implementation::PairEventCallback(callback));
@@ -37,7 +38,7 @@ PairEventCallback::PairEventCallback(
 {
 }
 
-PairEventCallback* PairEventCallback::clone() const
+auto PairEventCallback::clone() const -> PairEventCallback*
 {
     return new PairEventCallback(callback_);
 }

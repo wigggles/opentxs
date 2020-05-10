@@ -30,10 +30,10 @@
 
 namespace opentxs
 {
-identity::wot::verification::internal::Nym* Factory::VerificationNym(
+auto Factory::VerificationNym(
     identity::wot::verification::internal::Group& parent,
     const identifier::Nym& nym,
-    const VersionNumber version)
+    const VersionNumber version) -> identity::wot::verification::internal::Nym*
 {
     using ReturnType =
         opentxs::identity::wot::verification::implementation::Nym;
@@ -50,9 +50,10 @@ identity::wot::verification::internal::Nym* Factory::VerificationNym(
     }
 }
 
-identity::wot::verification::internal::Nym* Factory::VerificationNym(
+auto Factory::VerificationNym(
     identity::wot::verification::internal::Group& parent,
     const proto::VerificationIdentity& serialized)
+    -> identity::wot::verification::internal::Nym*
 {
     using ReturnType =
         opentxs::identity::wot::verification::implementation::Nym;

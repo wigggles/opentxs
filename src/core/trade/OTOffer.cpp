@@ -76,7 +76,7 @@ OTOffer::OTOffer(
     SetScale(lScale);
 }
 
-bool OTOffer::isPowerOfTen(const std::int64_t& x)
+auto OTOffer::isPowerOfTen(const std::int64_t& x) -> bool
 {
     if (1 == x) return true;
 
@@ -152,12 +152,12 @@ void OTOffer::GetIdentifier(Identifier& theIdentifier) const
 
     theIdentifier.CalculateDigest(strTemp->Bytes());
 }
-bool OTOffer::IsMarketOrder() const { return (0 == GetPriceLimit()); }
+auto OTOffer::IsMarketOrder() const -> bool { return (0 == GetPriceLimit()); }
 
-bool OTOffer::IsLimitOrder() const { return (0 != GetPriceLimit()); }
+auto OTOffer::IsLimitOrder() const -> bool { return (0 != GetPriceLimit()); }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-std::int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
+auto OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml) -> std::int32_t
 {
     std::int32_t nReturnVal = 0;
 
@@ -372,7 +372,7 @@ void OTOffer::UpdateContents(const PasswordPrompt& reason)
     m_xmlUnsigned->Concatenate("%s", str_result.c_str());
 }
 
-bool OTOffer::MakeOffer(
+auto OTOffer::MakeOffer(
     bool bBuyingOrSelling,            // True == SELLING, False == BUYING
     const std::int64_t& lPriceLimit,  // Per Minimum Increment... (Zero price
                                       // means
@@ -387,7 +387,7 @@ bool OTOffer::MakeOffer(
                                           // this
                                           // trade.
     const Time VALID_FROM,                // defaults to RIGHT NOW
-    const Time VALID_TO)  // defaults to 24 hours (a "Day Order")
+    const Time VALID_TO) -> bool  // defaults to 24 hours (a "Day Order")
 {
     m_bSelling = bBuyingOrSelling;  // Bid or Ask?
     SetTransactionNum(lTransactionNum);
@@ -435,9 +435,9 @@ bool OTOffer::MakeOffer(
 // Note: m_tDateAddedToMarket is not saved in the Offer Contract, but OTMarket
 // sets/saves/loads it.
 //
-Time OTOffer::GetDateAddedToMarket() const  // Used in
-                                            // OTMarket::GetOfferList
-                                            // and GetNymOfferList.
+auto OTOffer::GetDateAddedToMarket() const -> Time  // Used in
+                                                    // OTMarket::GetOfferList
+                                                    // and GetNymOfferList.
 {
     return m_tDateAddedToMarket;
 }

@@ -53,10 +53,11 @@ public:
 private:
     friend opentxs::Factory;
 
-    std::shared_ptr<Base::SerializedType> serialize(
+    auto serialize(
         const Lock& lock,
         const SerializationModeFlag asPrivate,
-        const SerializationSignatureFlag asSigned) const override;
+        const SerializationSignatureFlag asSigned) const
+        -> std::shared_ptr<Base::SerializedType> override;
 
     Secondary(
         const api::internal::Core& api,
@@ -75,7 +76,7 @@ private:
     Secondary() = delete;
     Secondary(const Secondary&) = delete;
     Secondary(Secondary&&) = delete;
-    Secondary& operator=(const Secondary&) = delete;
-    Secondary& operator=(Secondary&&) = delete;
+    auto operator=(const Secondary&) -> Secondary& = delete;
+    auto operator=(Secondary &&) -> Secondary& = delete;
 };
 }  // namespace opentxs::identity::credential::implementation

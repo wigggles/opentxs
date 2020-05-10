@@ -329,7 +329,7 @@ OTTransaction::OTTransaction(
 // the top of Helpers.hpp, and a list of enums at the top of this header file.
 //
 // static
-transactionType OTTransaction::GetTypeFromString(const String& strType)
+auto OTTransaction::GetTypeFromString(const String& strType) -> transactionType
 {
     transactionType theType = transactionType::error_state;
 
@@ -421,7 +421,7 @@ transactionType OTTransaction::GetTypeFromString(const String& strType)
 }
 
 // Used in balance agreement, part of the inbox report.
-std::int64_t OTTransaction::GetClosingNum() const
+auto OTTransaction::GetClosingNum() const -> std::int64_t
 {
     return m_lClosingTransactionNo;
 }
@@ -440,7 +440,7 @@ void OTTransaction::SetClosingNum(std::int64_t lClosingNum)
 //
 // This overrides from OTTransactionType::VerifyAccount()
 //
-bool OTTransaction::VerifyAccount(const identity::Nym& theNym)
+auto OTTransaction::VerifyAccount(const identity::Nym& theNym) -> bool
 {
     Ledger* pParent = const_cast<Ledger*>(m_pParent);
 
@@ -565,14 +565,14 @@ basketcurrency.
 //
 // Returns true/false whether it actually harvested a number.
 //
-bool OTTransaction::HarvestOpeningNumber(
+auto OTTransaction::HarvestOpeningNumber(
     ServerContext& context,
     bool bHarvestingForRetry,     // The message was sent, failed somehow, and
                                   // is now being re-tried.
     bool bReplyWasSuccess,        // false until positively asserted.
     bool bReplyWasFailure,        // false until positively asserted.
     bool bTransactionWasSuccess,  // false until positively asserted.
-    bool bTransactionWasFailure)  // false until positively asserted.
+    bool bTransactionWasFailure) -> bool  // false until positively asserted.
 {
     bool bSuccess = false;
 
@@ -947,7 +947,7 @@ bool OTTransaction::HarvestOpeningNumber(
                             : api_(core)
                         {
                         }
-                        std::int64_t Run(OTTransaction& theTransaction)
+                        auto Run(OTTransaction& theTransaction) -> std::int64_t
                         {
                             const auto pItem =
                                 theTransaction.GetItem(itemType::paymentPlan);
@@ -1165,13 +1165,13 @@ bool OTTransaction::HarvestOpeningNumber(
 // your transaction numbers back. (The opening number is usually already gone,
 // but any others are still salvageable.)
 //
-bool OTTransaction::HarvestClosingNumbers(
+auto OTTransaction::HarvestClosingNumbers(
     ServerContext& context,
-    bool bHarvestingForRetry,     // false until positively asserted.
-    bool bReplyWasSuccess,        // false until positively asserted.
-    bool bReplyWasFailure,        // false until positively asserted.
-    bool bTransactionWasSuccess,  // false until positively asserted.
-    bool bTransactionWasFailure)  // false until positively asserted.
+    bool bHarvestingForRetry,             // false until positively asserted.
+    bool bReplyWasSuccess,                // false until positively asserted.
+    bool bReplyWasFailure,                // false until positively asserted.
+    bool bTransactionWasSuccess,          // false until positively asserted.
+    bool bTransactionWasFailure) -> bool  // false until positively asserted.
 {
     bool bSuccess = false;
 
@@ -1552,9 +1552,9 @@ bool OTTransaction::HarvestClosingNumbers(
 // inbox/outbox/account/nym to sign a NEW receipt, causing me to sign agreement
 // to invalid data!  Instead, I want a red flag to go up, and the receipt
 // automatically saved to a disputes folder, etc.
-bool OTTransaction::VerifyBalanceReceipt(
+auto OTTransaction::VerifyBalanceReceipt(
     const ServerContext& context,
-    const PasswordPrompt& reason)
+    const PasswordPrompt& reason) -> bool
 {
     // Compare the inbox I just downloaded with what my last signed receipt SAYS
     // it should say. Let's say the inbox has transaction 9 in it -- well, my
@@ -2966,7 +2966,7 @@ bool OTTransaction::VerifyBalanceReceipt(
 // Instead, it adds the string "MARKED_FOR_DELETION" to the bottom
 // of the file, so the sysadmin can delete later, at his leisure.
 //
-bool OTTransaction::DeleteBoxReceipt(Ledger& theLedger)
+auto OTTransaction::DeleteBoxReceipt(Ledger& theLedger) -> bool
 {
     auto strFolder1name = String::Factory(), strFolder2name = String::Factory(),
          strFolder3name = String::Factory(), strFilename = String::Factory();
@@ -3054,7 +3054,7 @@ bool OTTransaction::DeleteBoxReceipt(Ledger& theLedger)
     return bDeleted;
 }
 
-bool OTTransaction::SaveBoxReceipt(std::int64_t lLedgerType)
+auto OTTransaction::SaveBoxReceipt(std::int64_t lLedgerType) -> bool
 {
 
     if (IsAbbreviated()) {
@@ -3136,7 +3136,7 @@ bool OTTransaction::SaveBoxReceipt(std::int64_t lLedgerType)
 // This function assumes that theLedger is the owner of this transaction.
 // We pass the ledger in so we can determine the proper directory we're
 // reading from.
-bool OTTransaction::SaveBoxReceipt(Ledger& theLedger)
+auto OTTransaction::SaveBoxReceipt(Ledger& theLedger) -> bool
 {
     std::int64_t lLedgerType = 0;
 
@@ -3169,7 +3169,7 @@ bool OTTransaction::SaveBoxReceipt(Ledger& theLedger)
     return SaveBoxReceipt(lLedgerType);
 }
 
-bool OTTransaction::VerifyBoxReceipt(OTTransaction& theFullVersion)
+auto OTTransaction::VerifyBoxReceipt(OTTransaction& theFullVersion) -> bool
 {
     if (!m_bIsAbbreviated || theFullVersion.IsAbbreviated()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -3237,9 +3237,9 @@ bool OTTransaction::VerifyBoxReceipt(OTTransaction& theFullVersion)
 // make sure that the items on it also have the right owner, as well as that
 // owner's signature, and a matching transaction number to boot.
 //
-bool OTTransaction::VerifyItems(
+auto OTTransaction::VerifyItems(
     const identity::Nym& theNym,
-    const PasswordPrompt& reason)
+    const PasswordPrompt& reason) -> bool
 {
     const auto NYM_ID = Identifier::Factory(theNym);
 
@@ -3314,7 +3314,7 @@ void OTTransaction::AddItem(std::shared_ptr<Item> theItem)
 
 // While processing a transaction, you may wish to query it for items of a
 // certain type.
-std::shared_ptr<Item> OTTransaction::GetItem(itemType theType)
+auto OTTransaction::GetItem(itemType theType) -> std::shared_ptr<Item>
 {
     for (auto& it : m_listItems) {
         const auto pItem = it;
@@ -3329,7 +3329,8 @@ std::shared_ptr<Item> OTTransaction::GetItem(itemType theType)
 // While processing a transaction, you may wish to query it for items in
 // reference to a particular transaction number.
 //
-std::shared_ptr<Item> OTTransaction::GetItemInRefTo(std::int64_t lReference)
+auto OTTransaction::GetItemInRefTo(std::int64_t lReference)
+    -> std::shared_ptr<Item>
 {
     if (GetItemCountInRefTo(lReference) > 1) {
         OT_FAIL_MSG("CAN'T USE GetItemInRefTo! (There are multiple items in "
@@ -3351,7 +3352,7 @@ std::shared_ptr<Item> OTTransaction::GetItemInRefTo(std::int64_t lReference)
 //
 // Might want to change this so that it only counts ACCEPTED receipts.
 //
-std::int32_t OTTransaction::GetItemCountInRefTo(std::int64_t lReference)
+auto OTTransaction::GetItemCountInRefTo(std::int64_t lReference) -> std::int32_t
 {
     std::int32_t nCount = 0;
 
@@ -3426,9 +3427,9 @@ case Item::acceptNotice:
 //
 // Tries to determine, based on items within, whether it was a success or fail.
 //
-bool OTTransaction::GetSuccess(
+auto OTTransaction::GetSuccess(
     bool* pbHasSuccess /*=nullptr*/,  // Just for those who need more detail
-    bool* pbIsSuccess /*=nullptr*/)   // and granularity.
+    bool* pbIsSuccess /*=nullptr*/) -> bool  // and granularity.
 {
     // Only used here and there, when more granularity is necessary.
     // (The return value of false doesn't necessarily mean a transaction
@@ -3886,17 +3887,17 @@ bool OTTransaction::GetSuccess(
     return bReturnValue;
 }
 
-transactionType OTTransaction::GetType() const { return m_Type; }
+auto OTTransaction::GetType() const -> transactionType { return m_Type; }
 
 void OTTransaction::SetType(transactionType theType) { m_Type = theType; }
 
-const char* OTTransaction::GetTypeString() const
+auto OTTransaction::GetTypeString() const -> const char*
 {
     return GetTransactionTypeString(static_cast<int>(m_Type));
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-std::int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
+auto OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml) -> std::int32_t
 {
     const auto strNodeName = String::Factory(xml->getNodeName());
 
@@ -4212,7 +4213,7 @@ std::int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 // For "OTTransaction::blank" and "OTTransaction::successNotice"
 // which periodically have more numbers added to them.
 //
-bool OTTransaction::AddNumbersToTransaction(const NumList& theAddition)
+auto OTTransaction::AddNumbersToTransaction(const NumList& theAddition) -> bool
 {
     return m_Numlist.Add(theAddition);
 }
@@ -5443,7 +5444,8 @@ void OTTransaction::ProduceOutboxReportItem(
 // NOTE: Not ALL transaction types with an amount are listed here,
 // just the ones necessary for balance agreement.
 //
-std::int64_t OTTransaction::GetReceiptAmount(const PasswordPrompt& reason)
+auto OTTransaction::GetReceiptAmount(const PasswordPrompt& reason)
+    -> std::int64_t
 {
     if (IsAbbreviated()) return GetAbbrevAdjustment();
 
@@ -5663,7 +5665,7 @@ std::int64_t OTTransaction::GetReceiptAmount(const PasswordPrompt& reason)
 
 // Need to know the transaction number of the ORIGINAL transaction? Call this.
 // virtual
-std::int64_t OTTransaction::GetNumberOfOrigin()
+auto OTTransaction::GetNumberOfOrigin() -> std::int64_t
 {
 
     if (0 == m_lNumberOfOrigin) {
@@ -5902,7 +5904,7 @@ void OTTransaction::CalculateNumberOfOrigin()
 /// that his receipt is in reference to the original market offer, so he can
 /// line up his receipts with his offers. What else does he care?
 ///
-std::int64_t OTTransaction::GetReferenceNumForDisplay()
+auto OTTransaction::GetReferenceNumForDisplay() -> std::int64_t
 {
     if (IsAbbreviated()) return GetAbbrevInRefDisplay();
 
@@ -6036,7 +6038,7 @@ std::int64_t OTTransaction::GetReferenceNumForDisplay()
 // 4. pItem1->SetAttachment(strOffer);
 //
 
-bool OTTransaction::GetSenderNymIDForDisplay(Identifier& theReturnID)
+auto OTTransaction::GetSenderNymIDForDisplay(Identifier& theReturnID) -> bool
 {
     if (IsAbbreviated()) return false;
 
@@ -6289,7 +6291,7 @@ bool OTTransaction::GetSenderNymIDForDisplay(Identifier& theReturnID)
     return bSuccess;
 }
 
-bool OTTransaction::GetRecipientNymIDForDisplay(Identifier& theReturnID)
+auto OTTransaction::GetRecipientNymIDForDisplay(Identifier& theReturnID) -> bool
 {
     if (IsAbbreviated()) return false;
 
@@ -6544,7 +6546,7 @@ bool OTTransaction::GetRecipientNymIDForDisplay(Identifier& theReturnID)
     return bSuccess;
 }
 
-bool OTTransaction::GetSenderAcctIDForDisplay(Identifier& theReturnID)
+auto OTTransaction::GetSenderAcctIDForDisplay(Identifier& theReturnID) -> bool
 {
     if (IsAbbreviated()) return false;
 
@@ -6688,7 +6690,8 @@ bool OTTransaction::GetSenderAcctIDForDisplay(Identifier& theReturnID)
     return bSuccess;
 }
 
-bool OTTransaction::GetRecipientAcctIDForDisplay(Identifier& theReturnID)
+auto OTTransaction::GetRecipientAcctIDForDisplay(Identifier& theReturnID)
+    -> bool
 {
     if (IsAbbreviated()) return false;
 
@@ -6818,7 +6821,7 @@ bool OTTransaction::GetRecipientAcctIDForDisplay(Identifier& theReturnID)
     return bSuccess;
 }
 
-bool OTTransaction::GetMemo(String& strMemo)
+auto OTTransaction::GetMemo(String& strMemo) -> bool
 {
     if (IsAbbreviated()) return false;
 

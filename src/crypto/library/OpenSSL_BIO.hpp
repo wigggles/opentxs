@@ -24,7 +24,7 @@ private:
     bool bCleanup;
     bool bFreeOnly;
 
-    static BIO* assertBioNotNull(BIO* pBIO);
+    static auto assertBioNotNull(BIO* pBIO) -> BIO*;
 
     void read_bio(
         const std::size_t amount,
@@ -42,7 +42,7 @@ public:
     void release();
     void setFreeOnly();
 
-    std::vector<std::byte> ToBytes();
-    OTString ToString();
+    auto ToBytes() -> std::vector<std::byte>;
+    auto ToString() -> OTString;
 };
 }  // namespace opentxs::crypto::implementation

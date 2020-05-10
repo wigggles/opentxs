@@ -46,21 +46,22 @@ namespace opentxs::blockchain::p2p::bitcoin::message::implementation
 class Cfcheckpt final : public internal::Cfcheckpt
 {
 public:
-    const value_type& at(const std::size_t position) const noexcept(false) final
+    auto at(const std::size_t position) const noexcept(false)
+        -> const value_type& final
     {
         return payload_.at(position);
     }
-    const_iterator begin() const noexcept final
+    auto begin() const noexcept -> const_iterator final
     {
         return const_iterator(this, 0);
     }
-    const_iterator end() const noexcept final
+    auto end() const noexcept -> const_iterator final
     {
         return const_iterator(this, payload_.size());
     }
-    std::size_t size() const noexcept final { return payload_.size(); }
-    const value_type& Stop() const noexcept final { return stop_; }
-    filter::Type Type() const noexcept final { return type_; }
+    auto size() const noexcept -> std::size_t final { return payload_.size(); }
+    auto Stop() const noexcept -> const value_type& final { return stop_; }
+    auto Type() const noexcept -> filter::Type final { return type_; }
 
     ~Cfcheckpt() final = default;
 
@@ -73,7 +74,7 @@ private:
     const filter::pHash stop_;
     const std::vector<filter::pHash> payload_;
 
-    OTData payload() const noexcept final;
+    auto payload() const noexcept -> OTData final;
 
     Cfcheckpt(
         const api::internal::Core& api,
@@ -89,7 +90,7 @@ private:
         const std::vector<filter::pHash>& headers) noexcept;
     Cfcheckpt(const Cfcheckpt&) = delete;
     Cfcheckpt(Cfcheckpt&&) = delete;
-    Cfcheckpt& operator=(const Cfcheckpt&) = delete;
-    Cfcheckpt& operator=(Cfcheckpt&&) = delete;
+    auto operator=(const Cfcheckpt&) -> Cfcheckpt& = delete;
+    auto operator=(Cfcheckpt &&) -> Cfcheckpt& = delete;
 };
 }  // namespace opentxs::blockchain::p2p::bitcoin::message::implementation

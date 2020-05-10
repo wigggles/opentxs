@@ -64,20 +64,23 @@ namespace opentxs::api::client::implementation
 class Wallet final : public api::implementation::Wallet
 {
 public:
-    std::shared_ptr<const opentxs::Context> Context(
+    auto Context(
         const identifier::Server& notaryID,
-        const identifier::Nym& clientNymID) const final;
-    Editor<opentxs::Context> mutable_Context(
+        const identifier::Nym& clientNymID) const
+        -> std::shared_ptr<const opentxs::Context> final;
+    auto mutable_Context(
         const identifier::Server& notaryID,
         const identifier::Nym& clientNymID,
-        const PasswordPrompt& reason) const final;
-    Editor<opentxs::ServerContext> mutable_ServerContext(
+        const PasswordPrompt& reason) const -> Editor<opentxs::Context> final;
+    auto mutable_ServerContext(
         const identifier::Nym& localNymID,
         const Identifier& remoteID,
-        const PasswordPrompt& reason) const final;
-    std::shared_ptr<const opentxs::ServerContext> ServerContext(
+        const PasswordPrompt& reason) const
+        -> Editor<opentxs::ServerContext> final;
+    auto ServerContext(
         const identifier::Nym& localNymID,
-        const Identifier& remoteID) const final;
+        const Identifier& remoteID) const
+        -> std::shared_ptr<const opentxs::ServerContext> final;
 
     ~Wallet() = default;
 
@@ -97,13 +100,13 @@ private:
         std::shared_ptr<opentxs::internal::Context>& output) const final;
     void nym_to_contact(const identity::Nym& nym, const std::string& name) const
         noexcept final;
-    Nym_p signer_nym(const identifier::Nym& id) const final;
+    auto signer_nym(const identifier::Nym& id) const -> Nym_p final;
 
     Wallet(const api::client::internal::Manager& client);
     Wallet() = delete;
     Wallet(const Wallet&) = delete;
     Wallet(Wallet&&) = delete;
-    Wallet& operator=(const Wallet&) = delete;
-    Wallet& operator=(Wallet&&) = delete;
+    auto operator=(const Wallet&) -> Wallet& = delete;
+    auto operator=(Wallet &&) -> Wallet& = delete;
 };
 }  // namespace opentxs::api::client::implementation

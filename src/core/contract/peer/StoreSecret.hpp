@@ -70,13 +70,16 @@ private:
     const std::string primary_;
     const std::string secondary_;
 
-    StoreSecret* clone() const noexcept final { return new StoreSecret(*this); }
-    SerializedType IDVersion(const Lock& lock) const final;
+    auto clone() const noexcept -> StoreSecret* final
+    {
+        return new StoreSecret(*this);
+    }
+    auto IDVersion(const Lock& lock) const -> SerializedType final;
 
     StoreSecret() = delete;
     StoreSecret(const StoreSecret&);
     StoreSecret(StoreSecret&&) = delete;
-    StoreSecret& operator=(const StoreSecret&) = delete;
-    StoreSecret& operator=(StoreSecret&&) = delete;
+    auto operator=(const StoreSecret&) -> StoreSecret& = delete;
+    auto operator=(StoreSecret &&) -> StoreSecret& = delete;
 };
 }  // namespace opentxs::contract::peer::request::implementation

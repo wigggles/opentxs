@@ -36,7 +36,10 @@ PeerRequests::PeerRequests(
     }
 }
 
-bool PeerRequests::Delete(const std::string& id) { return delete_item(id); }
+auto PeerRequests::Delete(const std::string& id) -> bool
+{
+    return delete_item(id);
+}
 
 void PeerRequests::init(const std::string& hash)
 {
@@ -57,16 +60,16 @@ void PeerRequests::init(const std::string& hash)
     }
 }
 
-bool PeerRequests::Load(
+auto PeerRequests::Load(
     const std::string& id,
     std::shared_ptr<proto::PeerRequest>& output,
     std::string& alias,
-    const bool checking) const
+    const bool checking) const -> bool
 {
     return load_proto<proto::PeerRequest>(id, output, alias, checking);
 }
 
-bool PeerRequests::save(const std::unique_lock<std::mutex>& lock) const
+auto PeerRequests::save(const std::unique_lock<std::mutex>& lock) const -> bool
 {
     if (!verify_write_lock(lock)) {
         std::cerr << __FUNCTION__ << ": Lock failure." << std::endl;
@@ -80,7 +83,7 @@ bool PeerRequests::save(const std::unique_lock<std::mutex>& lock) const
     return driver_.StoreProto(serialized, root_);
 }
 
-proto::StorageNymList PeerRequests::serialize() const
+auto PeerRequests::serialize() const -> proto::StorageNymList
 {
     proto::StorageNymList serialized;
     serialized.set_version(version_);
@@ -99,14 +102,15 @@ proto::StorageNymList PeerRequests::serialize() const
     return serialized;
 }
 
-bool PeerRequests::SetAlias(const std::string& id, const std::string& alias)
+auto PeerRequests::SetAlias(const std::string& id, const std::string& alias)
+    -> bool
 {
     return set_alias(id, alias);
 }
 
-bool PeerRequests::Store(
+auto PeerRequests::Store(
     const proto::PeerRequest& data,
-    const std::string& alias)
+    const std::string& alias) -> bool
 {
     return store_proto(data, data.id(), alias);
 }

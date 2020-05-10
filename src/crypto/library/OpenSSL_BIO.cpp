@@ -27,7 +27,7 @@ extern "C" {
 namespace opentxs::crypto::implementation
 {
 // OpenSSL_BIO
-BIO* OpenSSL_BIO::assertBioNotNull(BIO* pBIO)
+auto OpenSSL_BIO::assertBioNotNull(BIO* pBIO) -> BIO*
 {
     if (nullptr == pBIO) OT_FAIL;
     return pBIO;
@@ -68,7 +68,7 @@ void OpenSSL_BIO::read_bio(
     total += read;
 }
 
-std::vector<std::byte> OpenSSL_BIO::ToBytes()
+auto OpenSSL_BIO::ToBytes() -> std::vector<std::byte>
 {
     std::size_t read{0};
     std::size_t total{0};
@@ -89,7 +89,7 @@ std::vector<std::byte> OpenSSL_BIO::ToBytes()
     return output;
 }
 
-OTString OpenSSL_BIO::ToString()
+auto OpenSSL_BIO::ToString() -> OTString
 {
     auto output = String::Factory();
     auto bytes = ToBytes();

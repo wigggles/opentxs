@@ -121,32 +121,32 @@ public:
 
     operator const opentxs::crypto::key::Asymmetric&() const noexcept final;
 
-    bool operator==(const proto::PaymentCode& rhs) const noexcept final;
+    auto operator==(const proto::PaymentCode& rhs) const noexcept -> bool final;
 
-    const identifier::Nym& ID() const noexcept final { return id_; }
-    std::string asBase58() const noexcept final;
-    Serialized Serialize() const noexcept final;
+    auto ID() const noexcept -> const identifier::Nym& final { return id_; }
+    auto asBase58() const noexcept -> std::string final;
+    auto Serialize() const noexcept -> Serialized final;
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-    bool Sign(
+    auto Sign(
         const identity::credential::Base& credential,
         proto::Signature& sig,
-        const PasswordPrompt& reason) const noexcept final;
-    bool Sign(const Data& data, Data& output, const PasswordPrompt& reason)
-        const noexcept final;
+        const PasswordPrompt& reason) const noexcept -> bool final;
+    auto Sign(const Data& data, Data& output, const PasswordPrompt& reason)
+        const noexcept -> bool final;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-    bool Valid() const noexcept final;
+    auto Valid() const noexcept -> bool final;
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-    bool Verify(
+    auto Verify(
         const proto::Credential& master,
-        const proto::Signature& sourceSignature) const noexcept final;
+        const proto::Signature& sourceSignature) const noexcept -> bool final;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-    VersionNumber Version() const noexcept final { return version_; }
+    auto Version() const noexcept -> VersionNumber final { return version_; }
 
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1 && OT_CRYPTO_WITH_BIP32
-    bool AddPrivateKeys(
+    auto AddPrivateKeys(
         std::string& seed,
         const Bip32Index index,
-        const PasswordPrompt& reason) noexcept final;
+        const PasswordPrompt& reason) noexcept -> bool final;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1 && OT_CRYPTO_WITH_BIP32
 
     PaymentCode(
@@ -187,12 +187,15 @@ private:
         const ReadView pubkey,
         const ReadView chaincode) noexcept -> OTNymID;
 
-    PaymentCode* clone() const noexcept final { return new PaymentCode(*this); }
+    auto clone() const noexcept -> PaymentCode* final
+    {
+        return new PaymentCode(*this);
+    }
 
     PaymentCode() = delete;
     PaymentCode(const PaymentCode&);
     PaymentCode(PaymentCode&&) = delete;
-    PaymentCode& operator=(const PaymentCode&);
-    PaymentCode& operator=(PaymentCode&&);
+    auto operator=(const PaymentCode&) -> PaymentCode&;
+    auto operator=(PaymentCode &&) -> PaymentCode&;
 };
 }  // namespace opentxs::implementation

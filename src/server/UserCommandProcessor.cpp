@@ -92,8 +92,8 @@ UserCommandProcessor::FinalizeResponse::FinalizeResponse(
 {
 }
 
-std::shared_ptr<OTTransaction>& UserCommandProcessor::FinalizeResponse::
-    AddResponse(std::shared_ptr<OTTransaction> response)
+auto UserCommandProcessor::FinalizeResponse::AddResponse(
+    std::shared_ptr<OTTransaction> response) -> std::shared_ptr<OTTransaction>&
 {
     if (false == ledger_.AddTransaction(response)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -172,12 +172,12 @@ UserCommandProcessor::UserCommandProcessor(
 {
 }
 
-bool UserCommandProcessor::add_numbers_to_nymbox(
+auto UserCommandProcessor::add_numbers_to_nymbox(
     const TransactionNumber transactionNumber,
     const NumList& newNumbers,
     bool& savedNymbox,
     Ledger& nymbox,
-    Identifier& nymboxHash) const
+    Identifier& nymboxHash) const -> bool
 {
     if (false == nymbox.LoadNymbox()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error loading nymbox.").Flush();
@@ -329,9 +329,9 @@ void UserCommandProcessor::check_acknowledgements(ReplyMessage& reply) const
     reply.SetAcknowledgments(context);
 }
 
-bool UserCommandProcessor::check_client_isnt_server(
+auto UserCommandProcessor::check_client_isnt_server(
     const identifier::Nym& nymID,
-    const identity::Nym& serverNym)
+    const identity::Nym& serverNym) -> bool
 {
     const auto& serverNymID = serverNym.ID();
     const bool bNymIsServerNym = serverNymID == nymID;
@@ -347,7 +347,7 @@ bool UserCommandProcessor::check_client_isnt_server(
     return true;
 }
 
-bool UserCommandProcessor::check_client_nym(ReplyMessage& reply) const
+auto UserCommandProcessor::check_client_nym(ReplyMessage& reply) const -> bool
 {
     const auto& msgIn = reply.Original();
     const auto& nym = reply.Context().RemoteNym();
@@ -367,9 +367,9 @@ bool UserCommandProcessor::check_client_nym(ReplyMessage& reply) const
     return true;
 }
 
-bool UserCommandProcessor::check_message_notary(
+auto UserCommandProcessor::check_message_notary(
     const identifier::Server& notaryID,
-    const Identifier& realNotaryID)
+    const Identifier& realNotaryID) -> bool
 {
     // Validate the server ID, to keep users from intercepting a valid requst
     // and sending it to the wrong server.
@@ -388,7 +388,7 @@ bool UserCommandProcessor::check_message_notary(
     return true;
 }
 
-bool UserCommandProcessor::check_ping_notary(const Message& msgIn) const
+auto UserCommandProcessor::check_ping_notary(const Message& msgIn) const -> bool
 {
     OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_check_notary_id);
 
@@ -415,9 +415,9 @@ bool UserCommandProcessor::check_ping_notary(const Message& msgIn) const
     return true;
 }
 
-bool UserCommandProcessor::check_request_number(
+auto UserCommandProcessor::check_request_number(
     const Message& msgIn,
-    const RequestNumber& correctNumber) const
+    const RequestNumber& correctNumber) const -> bool
 {
     const RequestNumber messageNumber = msgIn.m_strRequestNum->ToLong();
 
@@ -437,7 +437,8 @@ bool UserCommandProcessor::check_request_number(
     return true;
 }
 
-bool UserCommandProcessor::check_server_lock(const identifier::Nym& nymID)
+auto UserCommandProcessor::check_server_lock(const identifier::Nym& nymID)
+    -> bool
 {
     if (false == ServerSettings::__admin_server_locked) { return true; }
 
@@ -451,7 +452,8 @@ bool UserCommandProcessor::check_server_lock(const identifier::Nym& nymID)
     return false;
 }
 
-bool UserCommandProcessor::check_usage_credits(ReplyMessage& reply) const
+auto UserCommandProcessor::check_usage_credits(ReplyMessage& reply) const
+    -> bool
 {
     const auto nymfile = reply.Context().Nymfile(reason_);
 
@@ -480,7 +482,7 @@ bool UserCommandProcessor::check_usage_credits(ReplyMessage& reply) const
     return true;
 }
 
-bool UserCommandProcessor::cmd_add_claim(ReplyMessage& reply) const
+auto UserCommandProcessor::cmd_add_claim(ReplyMessage& reply) const -> bool
 {
     const auto& msgIn = reply.Original();
 
@@ -521,7 +523,7 @@ bool UserCommandProcessor::cmd_add_claim(ReplyMessage& reply) const
     return true;
 }
 
-bool UserCommandProcessor::cmd_check_nym(ReplyMessage& reply) const
+auto UserCommandProcessor::cmd_check_nym(ReplyMessage& reply) const -> bool
 {
     const auto& msgIn = reply.Original();
     const auto& targetNym = msgIn.m_strNymID2;
@@ -548,7 +550,8 @@ bool UserCommandProcessor::cmd_check_nym(ReplyMessage& reply) const
 // If the client wants to delete an asset account, the server will allow it...
 // ...IF: the Inbox and Outbox are both EMPTY. AND the Balance must be empty as
 // well!
-bool UserCommandProcessor::cmd_delete_asset_account(ReplyMessage& reply) const
+auto UserCommandProcessor::cmd_delete_asset_account(ReplyMessage& reply) const
+    -> bool
 {
     const auto& msgIn = reply.Original();
     reply.SetAccount(msgIn.m_strAcctID);
@@ -657,7 +660,7 @@ bool UserCommandProcessor::cmd_delete_asset_account(ReplyMessage& reply) const
 // AND if the Nymbox is empty. AND if there are no cron items open, AND if
 // there are no asset accounts! (Delete them / Close them all FIRST! Or this
 // fails.)
-bool UserCommandProcessor::cmd_delete_user(ReplyMessage& reply) const
+auto UserCommandProcessor::cmd_delete_user(ReplyMessage& reply) const -> bool
 {
     auto nymfile = server_.API().Wallet().mutable_Nymfile(
         reply.Context().RemoteNym().ID(), reason_);
@@ -727,7 +730,8 @@ bool UserCommandProcessor::cmd_delete_user(ReplyMessage& reply) const
     return true;
 }
 
-bool UserCommandProcessor::cmd_get_account_data(ReplyMessage& reply) const
+auto UserCommandProcessor::cmd_get_account_data(ReplyMessage& reply) const
+    -> bool
 {
     const auto& msgIn = reply.Original();
     reply.SetAccount(msgIn.m_strAcctID);
@@ -803,7 +807,8 @@ bool UserCommandProcessor::cmd_get_account_data(ReplyMessage& reply) const
 // the "accountID" on this message will contain the NymID if retrieving a
 // boxreceipt for the Nymbox. Otherwise it will contain an AcctID if retrieving
 // a boxreceipt for an Asset Acct.
-bool UserCommandProcessor::cmd_get_box_receipt(ReplyMessage& reply) const
+auto UserCommandProcessor::cmd_get_box_receipt(ReplyMessage& reply) const
+    -> bool
 {
     const auto& msgIn = reply.Original();
     const auto boxType = msgIn.m_lDepth;
@@ -892,8 +897,8 @@ bool UserCommandProcessor::cmd_get_box_receipt(ReplyMessage& reply) const
     return true;
 }
 
-bool UserCommandProcessor::cmd_get_instrument_definition(
-    ReplyMessage& reply) const
+auto UserCommandProcessor::cmd_get_instrument_definition(
+    ReplyMessage& reply) const -> bool
 {
     const auto& msgIn = reply.Original();
     reply.SetInstrumentDefinitionID(msgIn.m_strInstrumentDefinitionID);
@@ -969,7 +974,8 @@ bool UserCommandProcessor::cmd_get_instrument_definition(
 }
 
 // Get the list of markets on this server.
-bool UserCommandProcessor::cmd_get_market_list(ReplyMessage& reply) const
+auto UserCommandProcessor::cmd_get_market_list(ReplyMessage& reply) const
+    -> bool
 {
     const auto& msgIn = reply.Original();
 
@@ -992,7 +998,8 @@ bool UserCommandProcessor::cmd_get_market_list(ReplyMessage& reply) const
 }
 
 // Get the publicly-available list of offers on a specific market.
-bool UserCommandProcessor::cmd_get_market_offers(ReplyMessage& reply) const
+auto UserCommandProcessor::cmd_get_market_offers(ReplyMessage& reply) const
+    -> bool
 {
     const auto& msgIn = reply.Original();
     reply.SetTargetNym(msgIn.m_strNymID2);
@@ -1025,8 +1032,8 @@ bool UserCommandProcessor::cmd_get_market_offers(ReplyMessage& reply) const
 }
 
 // Get a report of recent trades that have occurred on a specific market.
-bool UserCommandProcessor::cmd_get_market_recent_trades(
-    ReplyMessage& reply) const
+auto UserCommandProcessor::cmd_get_market_recent_trades(
+    ReplyMessage& reply) const -> bool
 {
     const auto& msgIn = reply.Original();
     reply.SetTargetNym(msgIn.m_strNymID2);
@@ -1055,7 +1062,7 @@ bool UserCommandProcessor::cmd_get_market_recent_trades(
 }
 
 #if OT_CASH
-bool UserCommandProcessor::cmd_get_mint(ReplyMessage& reply) const
+auto UserCommandProcessor::cmd_get_mint(ReplyMessage& reply) const -> bool
 {
     const auto& msgIn = reply.Original();
     reply.SetInstrumentDefinitionID(msgIn.m_strInstrumentDefinitionID);
@@ -1078,7 +1085,8 @@ bool UserCommandProcessor::cmd_get_mint(ReplyMessage& reply) const
 #endif  // OT_CASH
 
 // Get the offers that a specific Nym has placed on a specific market.
-bool UserCommandProcessor::cmd_get_nym_market_offers(ReplyMessage& reply) const
+auto UserCommandProcessor::cmd_get_nym_market_offers(ReplyMessage& reply) const
+    -> bool
 {
     const auto& msgIn = reply.Original();
 
@@ -1102,7 +1110,7 @@ bool UserCommandProcessor::cmd_get_nym_market_offers(ReplyMessage& reply) const
     return true;
 }
 
-bool UserCommandProcessor::cmd_get_nymbox(ReplyMessage& reply) const
+auto UserCommandProcessor::cmd_get_nymbox(ReplyMessage& reply) const -> bool
 {
     const auto& msgIn = reply.Original();
 
@@ -1135,7 +1143,8 @@ bool UserCommandProcessor::cmd_get_nymbox(ReplyMessage& reply) const
 // request number. All of the other commands, below, will fail above if the
 // proper request number isn't included in the message.  They will already have
 // failed by this point if they // didn't verify.
-bool UserCommandProcessor::cmd_get_request_number(ReplyMessage& reply) const
+auto UserCommandProcessor::cmd_get_request_number(ReplyMessage& reply) const
+    -> bool
 {
     auto& context = reply.Context();
     auto& msgIn = reply.Original();
@@ -1172,8 +1181,8 @@ bool UserCommandProcessor::cmd_get_request_number(ReplyMessage& reply) const
     return true;
 }
 
-bool UserCommandProcessor::cmd_get_transaction_numbers(
-    ReplyMessage& reply) const
+auto UserCommandProcessor::cmd_get_transaction_numbers(
+    ReplyMessage& reply) const -> bool
 {
     auto& context = reply.Context();
     const auto& msgIn = reply.Original();
@@ -1271,7 +1280,7 @@ bool UserCommandProcessor::cmd_get_transaction_numbers(
 
 /// An existing user is creating an issuer account (that he will not control)
 /// based on a basket of currencies.
-bool UserCommandProcessor::cmd_issue_basket(ReplyMessage& reply) const
+auto UserCommandProcessor::cmd_issue_basket(ReplyMessage& reply) const -> bool
 {
     const auto& msgIn = reply.Original();
 
@@ -1450,7 +1459,8 @@ bool UserCommandProcessor::cmd_issue_basket(ReplyMessage& reply) const
     }
 }
 
-bool UserCommandProcessor::cmd_notarize_transaction(ReplyMessage& reply) const
+auto UserCommandProcessor::cmd_notarize_transaction(ReplyMessage& reply) const
+    -> bool
 {
     const auto& msgIn = reply.Original();
     reply.SetAccount(msgIn.m_strAcctID);
@@ -1545,14 +1555,14 @@ bool UserCommandProcessor::cmd_notarize_transaction(ReplyMessage& reply) const
     return true;
 }
 
-bool UserCommandProcessor::cmd_ping_notary(ReplyMessage& reply) const
+auto UserCommandProcessor::cmd_ping_notary(ReplyMessage& reply) const -> bool
 {
     reply.SetSuccess(check_ping_notary(reply.Original()));
 
     return true;
 }
 
-bool UserCommandProcessor::cmd_process_inbox(ReplyMessage& reply) const
+auto UserCommandProcessor::cmd_process_inbox(ReplyMessage& reply) const -> bool
 {
     const auto& msgIn = reply.Original();
     reply.SetAccount(msgIn.m_strAcctID);
@@ -1727,7 +1737,7 @@ bool UserCommandProcessor::cmd_process_inbox(ReplyMessage& reply) const
     return true;
 }
 
-bool UserCommandProcessor::cmd_process_nymbox(ReplyMessage& reply) const
+auto UserCommandProcessor::cmd_process_nymbox(ReplyMessage& reply) const -> bool
 {
     const auto& msgIn = reply.Original();
 
@@ -1816,8 +1826,8 @@ bool UserCommandProcessor::cmd_process_nymbox(ReplyMessage& reply) const
     return true;
 }
 
-bool UserCommandProcessor::cmd_query_instrument_definitions(
-    ReplyMessage& reply) const
+auto UserCommandProcessor::cmd_query_instrument_definitions(
+    ReplyMessage& reply) const -> bool
 {
     const auto& msgIn = reply.Original();
 
@@ -1867,7 +1877,8 @@ bool UserCommandProcessor::cmd_query_instrument_definitions(
 }
 
 /// An existing user is creating an asset account.
-bool UserCommandProcessor::cmd_register_account(ReplyMessage& reply) const
+auto UserCommandProcessor::cmd_register_account(ReplyMessage& reply) const
+    -> bool
 {
     const auto& msgIn = reply.Original();
 
@@ -1993,7 +2004,8 @@ bool UserCommandProcessor::cmd_register_account(ReplyMessage& reply) const
     return true;
 }
 
-bool UserCommandProcessor::cmd_register_contract(ReplyMessage& reply) const
+auto UserCommandProcessor::cmd_register_contract(ReplyMessage& reply) const
+    -> bool
 {
     const auto& msgIn = reply.Original();
 
@@ -2040,8 +2052,8 @@ bool UserCommandProcessor::cmd_register_contract(ReplyMessage& reply) const
 }
 
 /// An existing user is issuing a new currency.
-bool UserCommandProcessor::cmd_register_instrument_definition(
-    ReplyMessage& reply) const
+auto UserCommandProcessor::cmd_register_instrument_definition(
+    ReplyMessage& reply) const -> bool
 {
     const auto& msgIn = reply.Original();
     reply.SetInstrumentDefinitionID(msgIn.m_strInstrumentDefinitionID);
@@ -2130,7 +2142,7 @@ bool UserCommandProcessor::cmd_register_instrument_definition(
     return true;
 }
 
-bool UserCommandProcessor::cmd_register_nym(ReplyMessage& reply) const
+auto UserCommandProcessor::cmd_register_nym(ReplyMessage& reply) const -> bool
 {
     const auto& msgIn = reply.Original();
 
@@ -2189,7 +2201,7 @@ bool UserCommandProcessor::cmd_register_nym(ReplyMessage& reply) const
     return true;
 }
 
-bool UserCommandProcessor::cmd_request_admin(ReplyMessage& reply) const
+auto UserCommandProcessor::cmd_request_admin(ReplyMessage& reply) const -> bool
 {
     const auto& msgIn = reply.Original();
 
@@ -2254,7 +2266,8 @@ bool UserCommandProcessor::cmd_request_admin(ReplyMessage& reply) const
     return true;
 }
 
-bool UserCommandProcessor::cmd_send_nym_message(ReplyMessage& reply) const
+auto UserCommandProcessor::cmd_send_nym_message(ReplyMessage& reply) const
+    -> bool
 {
     auto& context = reply.Context();
     const auto& sender = context.RemoteNym().ID();
@@ -2280,11 +2293,11 @@ bool UserCommandProcessor::cmd_send_nym_message(ReplyMessage& reply) const
 // receipt. contains payment already.
 // or pass pPayment instead: we will create our own msg here (with payment
 // inside) to be attached to the receipt.
-bool UserCommandProcessor::send_message_to_nym(
+auto UserCommandProcessor::send_message_to_nym(
     const identifier::Server& NOTARY_ID,
     const identifier::Nym& SENDER_NYM_ID,
     const identifier::Nym& RECIPIENT_NYM_ID,
-    const Message& pMsg) const
+    const Message& pMsg) const -> bool
 {
     return server_.DropMessageToNymbox(
         NOTARY_ID,
@@ -2294,7 +2307,7 @@ bool UserCommandProcessor::send_message_to_nym(
         pMsg);
 }
 
-bool UserCommandProcessor::cmd_trigger_clause(ReplyMessage& reply) const
+auto UserCommandProcessor::cmd_trigger_clause(ReplyMessage& reply) const -> bool
 {
     const auto& msgIn = reply.Original();
 
@@ -2397,7 +2410,7 @@ bool UserCommandProcessor::cmd_trigger_clause(ReplyMessage& reply) const
     return true;
 }
 
-bool UserCommandProcessor::cmd_usage_credits(ReplyMessage& reply) const
+auto UserCommandProcessor::cmd_usage_credits(ReplyMessage& reply) const -> bool
 {
     const auto& msgIn = reply.Original();
     reply.SetTargetNym(msgIn.m_strNymID2);
@@ -2464,10 +2477,10 @@ bool UserCommandProcessor::cmd_usage_credits(ReplyMessage& reply) const
     return true;
 }
 
-std::unique_ptr<Ledger> UserCommandProcessor::create_nymbox(
+auto UserCommandProcessor::create_nymbox(
     const identifier::Nym& nymID,
     const identifier::Server& server,
-    const identity::Nym& serverNym) const
+    const identity::Nym& serverNym) const -> std::unique_ptr<Ledger>
 {
     auto nymbox{manager_.Factory().Ledger(nymID, nymID, server)};
 
@@ -2598,9 +2611,9 @@ void UserCommandProcessor::drop_reply_notice_to_nymbox(
     context.SetLocalNymboxHash(NYMBOX_HASH);
 }
 
-bool UserCommandProcessor::hash_check(
+auto UserCommandProcessor::hash_check(
     const ClientContext& context,
-    Identifier& nymboxHash) const
+    Identifier& nymboxHash) const -> bool
 {
     if (context.HaveLocalNymboxHash()) {
         nymboxHash.SetString(context.LocalNymboxHash()->str());
@@ -2623,8 +2636,8 @@ bool UserCommandProcessor::hash_check(
     return context.NymboxHashMatch();
 }
 
-RequestNumber UserCommandProcessor::initialize_request_number(
-    ClientContext& context) const
+auto UserCommandProcessor::initialize_request_number(
+    ClientContext& context) const -> RequestNumber
 {
     auto requestNumber = context.Request();
 
@@ -2640,7 +2653,7 @@ RequestNumber UserCommandProcessor::initialize_request_number(
     return requestNumber;
 }
 
-bool UserCommandProcessor::isAdmin(const identifier::Nym& nymID)
+auto UserCommandProcessor::isAdmin(const identifier::Nym& nymID) -> bool
 {
     const auto adminNym = ServerSettings::GetOverrideNymID();
 
@@ -2649,12 +2662,12 @@ bool UserCommandProcessor::isAdmin(const identifier::Nym& nymID)
     return (0 == adminNym.compare(String::Factory(nymID)->Get()));
 }
 
-std::unique_ptr<Ledger> UserCommandProcessor::load_inbox(
+auto UserCommandProcessor::load_inbox(
     const identifier::Nym& nymID,
     const Identifier& accountID,
     const identifier::Server& serverID,
     const identity::Nym& serverNym,
-    const bool verifyAccount) const
+    const bool verifyAccount) const -> std::unique_ptr<Ledger>
 {
     if (accountID == nymID) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid account ID ")(accountID)(
@@ -2697,11 +2710,11 @@ std::unique_ptr<Ledger> UserCommandProcessor::load_inbox(
     return inbox;
 }
 
-std::unique_ptr<Ledger> UserCommandProcessor::load_nymbox(
+auto UserCommandProcessor::load_nymbox(
     const identifier::Nym& nymID,
     const identifier::Server& serverID,
     const identity::Nym& serverNym,
-    const bool verifyAccount) const
+    const bool verifyAccount) const -> std::unique_ptr<Ledger>
 {
     auto nymbox{manager_.Factory().Ledger(nymID, nymID, serverID)};
 
@@ -2738,12 +2751,12 @@ std::unique_ptr<Ledger> UserCommandProcessor::load_nymbox(
     return nymbox;
 }
 
-std::unique_ptr<Ledger> UserCommandProcessor::load_outbox(
+auto UserCommandProcessor::load_outbox(
     const identifier::Nym& nymID,
     const Identifier& accountID,
     const identifier::Server& serverID,
     const identity::Nym& serverNym,
-    const bool verifyAccount) const
+    const bool verifyAccount) const -> std::unique_ptr<Ledger>
 {
     if (accountID == nymID) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid account ID ")(accountID)(
@@ -2788,9 +2801,9 @@ std::unique_ptr<Ledger> UserCommandProcessor::load_outbox(
     return outbox;
 }
 
-bool UserCommandProcessor::ProcessUserCommand(
+auto UserCommandProcessor::ProcessUserCommand(
     const Message& msgIn,
-    Message& msgOut)
+    Message& msgOut) -> bool
 {
     const std::string command(msgIn.m_strCommand->Get());
     const auto type = Message::Type(command);
@@ -2976,7 +2989,7 @@ bool UserCommandProcessor::ProcessUserCommand(
     }
 }
 
-bool UserCommandProcessor::reregister_nym(ReplyMessage& reply) const
+auto UserCommandProcessor::reregister_nym(ReplyMessage& reply) const -> bool
 {
     auto& context = reply.Context();
     context.IncrementRequest();
@@ -3011,7 +3024,8 @@ bool UserCommandProcessor::reregister_nym(ReplyMessage& reply) const
     return true;
 }
 
-bool UserCommandProcessor::save_box(const identity::Nym& nym, Ledger& box) const
+auto UserCommandProcessor::save_box(const identity::Nym& nym, Ledger& box) const
+    -> bool
 {
     box.ReleaseSignatures();
 
@@ -3020,10 +3034,10 @@ bool UserCommandProcessor::save_box(const identity::Nym& nym, Ledger& box) const
     return box.SaveContract();
 }
 
-bool UserCommandProcessor::save_inbox(
+auto UserCommandProcessor::save_inbox(
     const identity::Nym& nym,
     Identifier& hash,
-    Ledger& inbox) const
+    Ledger& inbox) const -> bool
 {
     if (false == save_box(nym, inbox)) { return false; }
 
@@ -3032,10 +3046,10 @@ bool UserCommandProcessor::save_inbox(
     return true;
 }
 
-bool UserCommandProcessor::save_nymbox(
+auto UserCommandProcessor::save_nymbox(
     const identity::Nym& nym,
     Identifier& hash,
-    Ledger& nymbox) const
+    Ledger& nymbox) const -> bool
 {
     if (false == save_box(nym, nymbox)) { return false; }
 
@@ -3044,10 +3058,10 @@ bool UserCommandProcessor::save_nymbox(
     return true;
 }
 
-bool UserCommandProcessor::save_outbox(
+auto UserCommandProcessor::save_outbox(
     const identity::Nym& nym,
     Identifier& hash,
-    Ledger& outbox) const
+    Ledger& outbox) const -> bool
 {
     if (false == save_box(nym, outbox)) { return false; }
 
@@ -3056,11 +3070,11 @@ bool UserCommandProcessor::save_outbox(
     return true;
 }
 
-bool UserCommandProcessor::verify_box(
+auto UserCommandProcessor::verify_box(
     const Identifier& ownerID,
     Ledger& box,
     const identity::Nym& nym,
-    const bool full) const
+    const bool full) const -> bool
 {
     if (false == box.VerifyContractID()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to verify box ID for ")(
@@ -3091,9 +3105,9 @@ bool UserCommandProcessor::verify_box(
     return true;
 }
 
-bool UserCommandProcessor::verify_transaction(
+auto UserCommandProcessor::verify_transaction(
     const OTTransaction* transaction,
-    const identity::Nym& signer) const
+    const identity::Nym& signer) const -> bool
 {
     if (nullptr == transaction) { return false; }
 

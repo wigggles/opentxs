@@ -135,18 +135,18 @@ Account::Account(
     InitAccount();
 }
 
-char const* Account::_GetTypeString(AccountType accountType)
+auto Account::_GetTypeString(AccountType accountType) -> char const*
 {
     std::int32_t index = static_cast<std::int32_t>(accountType);
     return __TypeStringsAccount[index];
 }
 
-std::string Account::Alias() const { return alias_; }
+auto Account::Alias() const -> std::string { return alias_; }
 
-bool Account::ConsensusHash(
+auto Account::ConsensusHash(
     const Context& context,
     Identifier& theOutput,
-    const PasswordPrompt& reason) const
+    const PasswordPrompt& reason) const -> bool
 {
     auto preimage = Data::Factory();
 
@@ -222,11 +222,11 @@ bool Account::ConsensusHash(
     return bCalcDigest;
 }
 
-bool Account::create_box(
+auto Account::create_box(
     std::unique_ptr<Ledger>& box,
     const identity::Nym& signer,
     const ledgerType type,
-    const PasswordPrompt& reason)
+    const PasswordPrompt& reason) -> bool
 {
     const auto& nymID = GetNymID();
     const auto& accountID = GetRealAccountID();
@@ -269,12 +269,13 @@ bool Account::create_box(
     return true;
 }
 
-bool Account::LoadContractFromString(const String& theStr)
+auto Account::LoadContractFromString(const String& theStr) -> bool
 {
     return OTTransactionType::LoadContractFromString(theStr);
 }
 
-std::unique_ptr<Ledger> Account::LoadInbox(const identity::Nym& nym) const
+auto Account::LoadInbox(const identity::Nym& nym) const
+    -> std::unique_ptr<Ledger>
 {
     auto box{api_.Factory().Ledger(
         GetNymID(), GetRealAccountID(), GetRealNotaryID())};
@@ -294,7 +295,8 @@ std::unique_ptr<Ledger> Account::LoadInbox(const identity::Nym& nym) const
     return nullptr;
 }
 
-std::unique_ptr<Ledger> Account::LoadOutbox(const identity::Nym& nym) const
+auto Account::LoadOutbox(const identity::Nym& nym) const
+    -> std::unique_ptr<Ledger>
 {
     auto box{api_.Factory().Ledger(
         GetNymID(), GetRealAccountID(), GetRealNotaryID())};
@@ -314,11 +316,11 @@ std::unique_ptr<Ledger> Account::LoadOutbox(const identity::Nym& nym) const
     return nullptr;
 }
 
-bool Account::save_box(
+auto Account::save_box(
     Ledger& box,
     Identifier& hash,
     bool (Ledger::*save)(Identifier&),
-    void (Account::*set)(const Identifier&))
+    void (Account::*set)(const Identifier&)) -> bool
 {
     if (!IsSameAccount(box)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -338,33 +340,33 @@ bool Account::save_box(
     return output;
 }
 
-bool Account::SaveInbox(Ledger& box)
+auto Account::SaveInbox(Ledger& box) -> bool
 {
     auto hash = api_.Factory().Identifier();
 
     return SaveInbox(box, hash);
 }
 
-bool Account::SaveInbox(Ledger& box, Identifier& hash)
+auto Account::SaveInbox(Ledger& box, Identifier& hash) -> bool
 {
     return save_box(box, hash, &Ledger::SaveInbox, &Account::SetInboxHash);
 }
 
-bool Account::SaveOutbox(Ledger& box)
+auto Account::SaveOutbox(Ledger& box) -> bool
 {
     auto hash = api_.Factory().Identifier();
 
     return SaveOutbox(box, hash);
 }
 
-bool Account::SaveOutbox(Ledger& box, Identifier& hash)
+auto Account::SaveOutbox(Ledger& box, Identifier& hash) -> bool
 {
     return save_box(box, hash, &Ledger::SaveOutbox, &Account::SetOutboxHash);
 }
 
 void Account::SetInboxHash(const Identifier& input) { inboxHash_ = input; }
 
-bool Account::GetInboxHash(Identifier& output)
+auto Account::GetInboxHash(Identifier& output) -> bool
 {
     output.Release();
 
@@ -390,7 +392,7 @@ bool Account::GetInboxHash(Identifier& output)
 
 void Account::SetOutboxHash(const Identifier& input) { outboxHash_ = input; }
 
-bool Account::GetOutboxHash(Identifier& output)
+auto Account::GetOutboxHash(Identifier& output) -> bool
 {
     output.Release();
 
@@ -414,9 +416,9 @@ bool Account::GetOutboxHash(Identifier& output)
     return false;
 }
 
-bool Account::InitBoxes(
+auto Account::InitBoxes(
     const identity::Nym& signer,
-    const PasswordPrompt& reason)
+    const PasswordPrompt& reason) -> bool
 {
     LogDetail(OT_METHOD)(__FUNCTION__)(": Generating inbox/outbox.").Flush();
     std::unique_ptr<Ledger> inbox{LoadInbox(signer)};
@@ -474,7 +476,7 @@ bool Account::InitBoxes(
 // account.
 //
 // Overriding this so I can set the filename automatically inside based on ID.
-bool Account::LoadContract()
+auto Account::LoadContract() -> bool
 {
     auto id = String::Factory();
     GetIdentifier(id);
@@ -482,7 +484,7 @@ bool Account::LoadContract()
     return Contract::LoadContract(api_.Legacy().Account(), id->Get());
 }
 
-bool Account::SaveAccount()
+auto Account::SaveAccount() -> bool
 {
     auto id = String::Factory();
     GetIdentifier(id);
@@ -491,7 +493,7 @@ bool Account::SaveAccount()
 
 // Debit a certain amount from the account (presumably the same amount is being
 // credited somewhere else)
-bool Account::Debit(const Amount amount)
+auto Account::Debit(const Amount amount) -> bool
 {
     std::int64_t oldBalance = balanceAmount_->ToLong();
     // The MINUS here is the big difference between Debit and Credit
@@ -522,7 +524,7 @@ bool Account::Debit(const Amount amount)
 
 // Credit a certain amount to the account (presumably the same amount is being
 // debited somewhere else)
-bool Account::Credit(const Amount amount)
+auto Account::Credit(const Amount amount) -> bool
 {
     std::int64_t oldBalance = balanceAmount_->ToLong();
     // The PLUS here is the big difference between Debit and Credit.
@@ -560,7 +562,8 @@ bool Account::Credit(const Amount amount)
     }
 }
 
-const identifier::UnitDefinition& Account::GetInstrumentDefinitionID() const
+auto Account::GetInstrumentDefinitionID() const
+    -> const identifier::UnitDefinition&
 {
     return acctInstrumentDefinitionID_;
 }
@@ -574,7 +577,7 @@ void Account::InitAccount()
 // Verify Contract ID first, THEN Verify Owner.
 // Because we use the ID in this function, so make sure that it is verified
 // before calling this.
-bool Account::VerifyOwner(const identity::Nym& candidate) const
+auto Account::VerifyOwner(const identity::Nym& candidate) const -> bool
 {
     auto ID_CANDIDATE = api_.Factory().NymID();
     candidate.GetIdentifier(ID_CANDIDATE);
@@ -583,15 +586,15 @@ bool Account::VerifyOwner(const identity::Nym& candidate) const
 }
 
 // TODO: when entities and roles are added, probably more will go here.
-bool Account::VerifyOwnerByID(const identifier::Nym& nymId) const
+auto Account::VerifyOwnerByID(const identifier::Nym& nymId) const -> bool
 {
     return nymId == m_AcctNymID;
 }
 
-Account* Account::LoadExistingAccount(
+auto Account::LoadExistingAccount(
     const api::internal::Core& core,
     const Identifier& accountId,
-    const identifier::Server& notaryID)
+    const identifier::Server& notaryID) -> Account*
 {
     auto strDataFolder = String::Factory(core.DataFolder().c_str());
     auto strAccountPath = String::Factory("");
@@ -644,7 +647,7 @@ Account* Account::LoadExistingAccount(
     return nullptr;
 }
 
-Account* Account::GenerateNewAccount(
+auto Account::GenerateNewAccount(
     const api::internal::Core& core,
     const identifier::Nym& nymID,
     const identifier::Server& notaryID,
@@ -653,7 +656,7 @@ Account* Account::GenerateNewAccount(
     const identifier::UnitDefinition& instrumentDefinitionID,
     const PasswordPrompt& reason,
     Account::AccountType acctType,
-    std::int64_t stashTransNum)
+    std::int64_t stashTransNum) -> Account*
 {
     std::unique_ptr<Account> output(new Account(core, nymID, notaryID));
 
@@ -679,14 +682,14 @@ message.m_strNymID;
 message.m_strInstrumentDefinitionID;
 message.m_strNotaryID;
  */
-bool Account::GenerateNewAccount(
+auto Account::GenerateNewAccount(
     const identity::Nym& server,
     const Identifier& userNymID,
     const identifier::Server& notaryID,
     const identifier::UnitDefinition& instrumentDefinitionID,
     const PasswordPrompt& reason,
     Account::AccountType acctType,
-    std::int64_t stashTransNum)
+    std::int64_t stashTransNum) -> bool
 {
     // First we generate a secure random number into a binary object...
     auto payload = Data::Factory();
@@ -795,13 +798,13 @@ bool Account::GenerateNewAccount(
     return true;
 }
 
-std::int64_t Account::GetBalance() const
+auto Account::GetBalance() const -> std::int64_t
 {
     if (balanceAmount_->Exists()) { return balanceAmount_->ToLong(); }
     return 0;
 }
 
-bool Account::DisplayStatistics(String& contents) const
+auto Account::DisplayStatistics(String& contents) const -> bool
 {
     auto strAccountID = String::Factory(GetPurportedAccountID());
     auto strNotaryID = String::Factory(GetPurportedNotaryID());
@@ -832,7 +835,7 @@ bool Account::DisplayStatistics(String& contents) const
     return true;
 }
 
-bool Account::SaveContractWallet(Tag& parent) const
+auto Account::SaveContractWallet(Tag& parent) const -> bool
 {
     auto strAccountID = String::Factory(GetPurportedAccountID());
     auto strNotaryID = String::Factory(GetPurportedNotaryID());
@@ -943,7 +946,7 @@ void Account::UpdateContents(const PasswordPrompt& reason)
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-std::int32_t Account::ProcessXMLNode(IrrXMLReader*& xml)
+auto Account::ProcessXMLNode(IrrXMLReader*& xml) -> std::int32_t
 {
     std::int32_t retval = 0;
 
@@ -1093,7 +1096,7 @@ std::int32_t Account::ProcessXMLNode(IrrXMLReader*& xml)
     return retval;
 }
 
-bool Account::IsInternalServerAcct() const
+auto Account::IsInternalServerAcct() const -> bool
 {
     switch (acctType_) {
         case Account::user:
@@ -1112,7 +1115,7 @@ bool Account::IsInternalServerAcct() const
     }
 }
 
-bool Account::IsOwnedByUser() const
+auto Account::IsOwnedByUser() const -> bool
 {
     switch (acctType_) {
         case Account::user:
@@ -1131,11 +1134,11 @@ bool Account::IsOwnedByUser() const
     }
 }
 
-bool Account::IsOwnedByEntity() const { return false; }
+auto Account::IsOwnedByEntity() const -> bool { return false; }
 
-bool Account::IsIssuer() const { return Account::issuer == acctType_; }
+auto Account::IsIssuer() const -> bool { return Account::issuer == acctType_; }
 
-bool Account::IsAllowedToGoNegative() const
+auto Account::IsAllowedToGoNegative() const -> bool
 {
     switch (acctType_) {
         // issuer acct controlled by a user

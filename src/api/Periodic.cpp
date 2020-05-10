@@ -29,7 +29,7 @@ Periodic::Periodic(Flag& running)
 {
 }
 
-bool Periodic::Cancel(const int task) const
+auto Periodic::Cancel(const int task) const -> bool
 {
     Lock lock(periodic_lock_);
     const auto output = periodic_task_list_.erase(task);
@@ -37,8 +37,8 @@ bool Periodic::Cancel(const int task) const
     return 1 == output;
 }
 
-bool Periodic::Reschedule(const int task, const std::chrono::seconds& interval)
-    const
+auto Periodic::Reschedule(const int task, const std::chrono::seconds& interval)
+    const -> bool
 {
     Lock lock(periodic_lock_);
     auto it = periodic_task_list_.find(task);
@@ -50,10 +50,10 @@ bool Periodic::Reschedule(const int task, const std::chrono::seconds& interval)
     return false;
 }
 
-int Periodic::Schedule(
+auto Periodic::Schedule(
     const std::chrono::seconds& interval,
     const PeriodicTask& task,
-    const std::chrono::seconds& last) const
+    const std::chrono::seconds& last) const -> int
 {
     const auto id = ++next_id_;
     Lock lock(periodic_lock_);

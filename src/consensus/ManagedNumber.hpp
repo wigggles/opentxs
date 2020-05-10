@@ -21,8 +21,8 @@ class ManagedNumber final : virtual public opentxs::ManagedNumber
 {
 public:
     void SetSuccess(const bool value = true) const final;
-    bool Valid() const final;
-    TransactionNumber Value() const final;
+    auto Valid() const -> bool final;
+    auto Value() const -> TransactionNumber final;
 
     ~ManagedNumber() final;
 
@@ -40,7 +40,7 @@ private:
     ManagedNumber() = delete;
     ManagedNumber(const ManagedNumber&) = delete;
     ManagedNumber(ManagedNumber&& rhs) = delete;
-    ManagedNumber& operator=(const ManagedNumber&) = delete;
-    ManagedNumber& operator=(ManagedNumber&&) = delete;
+    auto operator=(const ManagedNumber&) -> ManagedNumber& = delete;
+    auto operator=(ManagedNumber &&) -> ManagedNumber& = delete;
 };
 }  // namespace opentxs::implementation

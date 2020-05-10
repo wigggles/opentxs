@@ -112,7 +112,7 @@ Ledger::Ledger(const api::internal::Core& core)
     InitLedger();
 }
 
-char const* Ledger::_GetTypeString(ledgerType theType)
+auto Ledger::_GetTypeString(ledgerType theType) -> char const*
 {
     std::int32_t nType = static_cast<std::int32_t>(theType);
     return __TypeStringsLedger[nType];
@@ -128,7 +128,7 @@ char const* Ledger::_GetTypeString(ledgerType theType)
 // expects/uses a pubkey from inside the contract in order to verify
 // it.
 //
-bool Ledger::VerifyAccount(const identity::Nym& theNym)
+auto Ledger::VerifyAccount(const identity::Nym& theNym) -> bool
 {
     switch (GetType()) {
         case ledgerType::message:  // message ledgers do not load Box Receipts.
@@ -167,8 +167,9 @@ bool Ledger::VerifyAccount(const identity::Nym& theNym)
 // receipts
 // in their full (not abbreviated) form (as separate files.)
 //
-bool Ledger::SaveBoxReceipts()  // For ALL full transactions, save the actual
-                                // box receipt for each to its own place.
+auto Ledger::SaveBoxReceipts()
+    -> bool  // For ALL full transactions, save the actual
+             // box receipt for each to its own place.
 {
     bool bRetVal = true;
     for (auto& [number, pTransaction] : m_mapTransactions) {
@@ -194,7 +195,7 @@ bool Ledger::SaveBoxReceipts()  // For ALL full transactions, save the actual
     return bRetVal;
 }
 
-bool Ledger::SaveBoxReceipt(const std::int64_t& lTransactionNum)
+auto Ledger::SaveBoxReceipt(const std::int64_t& lTransactionNum) -> bool
 {
 
     // First, see if the transaction itself exists on this ledger.
@@ -212,7 +213,7 @@ bool Ledger::SaveBoxReceipt(const std::int64_t& lTransactionNum)
     return pTransaction->SaveBoxReceipt(*this);
 }
 
-bool Ledger::DeleteBoxReceipt(const std::int64_t& lTransactionNum)
+auto Ledger::DeleteBoxReceipt(const std::int64_t& lTransactionNum) -> bool
 {
 
     // First, see if the transaction itself exists on this ledger.
@@ -239,7 +240,7 @@ bool Ledger::DeleteBoxReceipt(const std::int64_t& lTransactionNum)
 // then add that transaction# to the set. (psetUnloaded)
 
 // if psetUnloaded passed in, then use it to return the #s that weren't there.
-bool Ledger::LoadBoxReceipts(std::set<std::int64_t>* psetUnloaded)
+auto Ledger::LoadBoxReceipts(std::set<std::int64_t>* psetUnloaded) -> bool
 {
     // Grab a copy of all the transaction #s stored inside this ledger.
     //
@@ -307,7 +308,7 @@ bool Ledger::LoadBoxReceipts(std::set<std::int64_t>* psetUnloaded)
  "nymbox/NOTARY_ID/NYM_ID.r/TRANSACTION_ID.rct"
  */
 
-bool Ledger::LoadBoxReceipt(const std::int64_t& lTransactionNum)
+auto Ledger::LoadBoxReceipt(const std::int64_t& lTransactionNum) -> bool
 {
     // First, see if the transaction itself exists on this ledger.
     // Get a pointer to it.
@@ -369,8 +370,9 @@ bool Ledger::LoadBoxReceipt(const std::int64_t& lTransactionNum)
     return false;
 }
 
-std::set<std::int64_t> Ledger::GetTransactionNums(
+auto Ledger::GetTransactionNums(
     const std::set<std::int32_t>* pOnlyForIndices /*=nullptr*/) const
+    -> std::set<std::int64_t>
 {
     std::set<std::int64_t> the_set{};
 
@@ -399,7 +401,7 @@ std::set<std::int64_t> Ledger::GetTransactionNums(
 // Then it uses the ID to form the path for the file that is opened.
 // Easy, right?
 
-bool Ledger::LoadInbox()
+auto Ledger::LoadInbox() -> bool
 {
     bool bRetVal = LoadGeneric(ledgerType::inbox);
 
@@ -411,45 +413,51 @@ bool Ledger::LoadInbox()
 // VerifyContract is overriden and explicitly checks the notaryID.
 // Should also check the Type at the same time.
 
-bool Ledger::LoadOutbox() { return LoadGeneric(ledgerType::outbox); }
+auto Ledger::LoadOutbox() -> bool { return LoadGeneric(ledgerType::outbox); }
 
-bool Ledger::LoadNymbox() { return LoadGeneric(ledgerType::nymbox); }
+auto Ledger::LoadNymbox() -> bool { return LoadGeneric(ledgerType::nymbox); }
 
-bool Ledger::LoadInboxFromString(const String& strBox)
+auto Ledger::LoadInboxFromString(const String& strBox) -> bool
 {
     return LoadGeneric(ledgerType::inbox, strBox);
 }
 
-bool Ledger::LoadOutboxFromString(const String& strBox)
+auto Ledger::LoadOutboxFromString(const String& strBox) -> bool
 {
     return LoadGeneric(ledgerType::outbox, strBox);
 }
 
-bool Ledger::LoadNymboxFromString(const String& strBox)
+auto Ledger::LoadNymboxFromString(const String& strBox) -> bool
 {
     return LoadGeneric(ledgerType::nymbox, strBox);
 }
 
-bool Ledger::LoadPaymentInbox()
+auto Ledger::LoadPaymentInbox() -> bool
 {
     return LoadGeneric(ledgerType::paymentInbox);
 }
 
-bool Ledger::LoadRecordBox() { return LoadGeneric(ledgerType::recordBox); }
+auto Ledger::LoadRecordBox() -> bool
+{
+    return LoadGeneric(ledgerType::recordBox);
+}
 
-bool Ledger::LoadExpiredBox() { return LoadGeneric(ledgerType::expiredBox); }
+auto Ledger::LoadExpiredBox() -> bool
+{
+    return LoadGeneric(ledgerType::expiredBox);
+}
 
-bool Ledger::LoadPaymentInboxFromString(const String& strBox)
+auto Ledger::LoadPaymentInboxFromString(const String& strBox) -> bool
 {
     return LoadGeneric(ledgerType::paymentInbox, strBox);
 }
 
-bool Ledger::LoadRecordBoxFromString(const String& strBox)
+auto Ledger::LoadRecordBoxFromString(const String& strBox) -> bool
 {
     return LoadGeneric(ledgerType::recordBox, strBox);
 }
 
-bool Ledger::LoadExpiredBoxFromString(const String& strBox)
+auto Ledger::LoadExpiredBoxFromString(const String& strBox) -> bool
 {
     return LoadGeneric(ledgerType::expiredBox, strBox);
 }
@@ -461,7 +469,7 @@ bool Ledger::LoadExpiredBoxFromString(const String& strBox)
   pString -- optional argument, for when  you prefer to load from a string
   instead of from a file.
  */
-bool Ledger::LoadGeneric(ledgerType theType, const String& pString)
+auto Ledger::LoadGeneric(ledgerType theType, const String& pString) -> bool
 {
     const auto pszType = GetTypeString();
     const auto [valid, path1, path2, path3] = make_filename(theType);
@@ -536,7 +544,7 @@ bool Ledger::LoadGeneric(ledgerType theType, const String& pString)
     return bSuccess;
 }
 
-bool Ledger::SaveGeneric(ledgerType theType)
+auto Ledger::SaveGeneric(ledgerType theType) -> bool
 {
     const auto pszType = GetTypeString();
     const auto [valid, path1, path2, path3] = make_filename(theType);
@@ -598,7 +606,7 @@ bool Ledger::SaveGeneric(ledgerType theType)
 // this.
 // It's more generic but warning: performs less verification.
 //
-bool Ledger::CalculateHash(Identifier& theOutput) const
+auto Ledger::CalculateHash(Identifier& theOutput) const -> bool
 {
     theOutput.Release();
 
@@ -614,7 +622,7 @@ bool Ledger::CalculateHash(Identifier& theOutput) const
     return bCalcDigest;
 }
 
-bool Ledger::CalculateInboxHash(Identifier& theOutput) const
+auto Ledger::CalculateInboxHash(Identifier& theOutput) const -> bool
 {
     if (m_Type != ledgerType::inbox) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Wrong type.").Flush();
@@ -625,7 +633,7 @@ bool Ledger::CalculateInboxHash(Identifier& theOutput) const
     return CalculateHash(theOutput);
 }
 
-bool Ledger::CalculateOutboxHash(Identifier& theOutput) const
+auto Ledger::CalculateOutboxHash(Identifier& theOutput) const -> bool
 {
     if (m_Type != ledgerType::outbox) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Wrong type.").Flush();
@@ -636,7 +644,7 @@ bool Ledger::CalculateOutboxHash(Identifier& theOutput) const
     return CalculateHash(theOutput);
 }
 
-bool Ledger::CalculateNymboxHash(Identifier& theOutput) const
+auto Ledger::CalculateNymboxHash(Identifier& theOutput) const -> bool
 {
     if (m_Type != ledgerType::nymbox) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Wrong type.").Flush();
@@ -647,8 +655,8 @@ bool Ledger::CalculateNymboxHash(Identifier& theOutput) const
     return CalculateHash(theOutput);
 }
 
-std::tuple<bool, std::string, std::string, std::string> Ledger::make_filename(
-    const ledgerType theType)
+auto Ledger::make_filename(const ledgerType theType)
+    -> std::tuple<bool, std::string, std::string, std::string>
 {
     std::tuple<bool, std::string, std::string, std::string> output{
         false, "", "", ""};
@@ -721,10 +729,10 @@ std::tuple<bool, std::string, std::string, std::string> Ledger::make_filename(
     return output;
 }
 
-bool Ledger::save_box(
+auto Ledger::save_box(
     const ledgerType type,
     Identifier& hash,
-    bool (Ledger::*calc)(Identifier&) const)
+    bool (Ledger::*calc)(Identifier&) const) -> bool
 {
     OT_ASSERT(nullptr != calc)
 
@@ -750,7 +758,7 @@ bool Ledger::save_box(
 }
 
 // If you're going to save this, make sure you sign it first.
-bool Ledger::SaveNymbox()
+auto Ledger::SaveNymbox() -> bool
 {
     auto hash = Identifier::Factory();
 
@@ -758,13 +766,13 @@ bool Ledger::SaveNymbox()
 }
 
 // If you're going to save this, make sure you sign it first.
-bool Ledger::SaveNymbox(Identifier& hash)
+auto Ledger::SaveNymbox(Identifier& hash) -> bool
 {
     return save_box(ledgerType::nymbox, hash, &Ledger::CalculateNymboxHash);
 }
 
 // If you're going to save this, make sure you sign it first.
-bool Ledger::SaveInbox()
+auto Ledger::SaveInbox() -> bool
 {
     auto hash = Identifier::Factory();
 
@@ -772,13 +780,13 @@ bool Ledger::SaveInbox()
 }
 
 // If you're going to save this, make sure you sign it first.
-bool Ledger::SaveInbox(Identifier& hash)
+auto Ledger::SaveInbox(Identifier& hash) -> bool
 {
     return save_box(ledgerType::inbox, hash, &Ledger::CalculateInboxHash);
 }
 
 // If you're going to save this, make sure you sign it first.
-bool Ledger::SaveOutbox()
+auto Ledger::SaveOutbox() -> bool
 {
     auto hash = Identifier::Factory();
 
@@ -786,13 +794,13 @@ bool Ledger::SaveOutbox()
 }
 
 // If you're going to save this, make sure you sign it first.
-bool Ledger::SaveOutbox(Identifier& hash)
+auto Ledger::SaveOutbox(Identifier& hash) -> bool
 {
     return save_box(ledgerType::outbox, hash, &Ledger::CalculateOutboxHash);
 }
 
 // If you're going to save this, make sure you sign it first.
-bool Ledger::SavePaymentInbox()
+auto Ledger::SavePaymentInbox() -> bool
 {
     if (m_Type != ledgerType::paymentInbox) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Wrong ledger type passed.")
@@ -804,7 +812,7 @@ bool Ledger::SavePaymentInbox()
 }
 
 // If you're going to save this, make sure you sign it first.
-bool Ledger::SaveRecordBox()
+auto Ledger::SaveRecordBox() -> bool
 {
     if (m_Type != ledgerType::recordBox) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Wrong ledger type passed.")
@@ -816,7 +824,7 @@ bool Ledger::SaveRecordBox()
 }
 
 // If you're going to save this, make sure you sign it first.
-bool Ledger::SaveExpiredBox()
+auto Ledger::SaveExpiredBox() -> bool
 {
     if (m_Type != ledgerType::expiredBox) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Wrong ledger type passed.")
@@ -827,12 +835,12 @@ bool Ledger::SaveExpiredBox()
     return SaveGeneric(m_Type);
 }
 
-bool Ledger::generate_ledger(
+auto Ledger::generate_ledger(
     const identifier::Nym& theNymID,
     const Identifier& theAcctID,
     const identifier::Server& theNotaryID,
     ledgerType theType,
-    bool bCreateFile)
+    bool bCreateFile) -> bool
 {
     // First we set the "Safe" ID and try to load the file, to make sure it
     // doesn't already exist.
@@ -946,11 +954,11 @@ bool Ledger::generate_ledger(
     return true;
 }
 
-bool Ledger::GenerateLedger(
+auto Ledger::GenerateLedger(
     const Identifier& theAcctID,
     const identifier::Server& theNotaryID,
     ledgerType theType,
-    bool bCreateFile)
+    bool bCreateFile) -> bool
 {
     auto nymID = api_.Factory().NymID();
 
@@ -990,12 +998,12 @@ bool Ledger::GenerateLedger(
     return generate_ledger(nymID, theAcctID, theNotaryID, theType, bCreateFile);
 }
 
-bool Ledger::CreateLedger(
+auto Ledger::CreateLedger(
     const identifier::Nym& theNymID,
     const Identifier& theAcctID,
     const identifier::Server& theNotaryID,
     ledgerType theType,
-    bool bCreateFile)
+    bool bCreateFile) -> bool
 {
     return generate_ledger(
         theNymID, theAcctID, theNotaryID, theType, bCreateFile);
@@ -1014,7 +1022,7 @@ void Ledger::InitLedger()
     m_bLoadedLegacyData = false;
 }
 
-const mapOfTransactions& Ledger::GetTransactionMap() const
+auto Ledger::GetTransactionMap() const -> const mapOfTransactions&
 {
     return m_mapTransactions;
 }
@@ -1022,7 +1030,7 @@ const mapOfTransactions& Ledger::GetTransactionMap() const
 /// If transaction #87, in reference to #74, is in the inbox, you can remove it
 /// by calling this function and passing in 87. Deletes.
 ///
-bool Ledger::RemoveTransaction(const TransactionNumber number)
+auto Ledger::RemoveTransaction(const TransactionNumber number) -> bool
 {
     if (0 == m_mapTransactions.erase(number)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -1036,7 +1044,8 @@ bool Ledger::RemoveTransaction(const TransactionNumber number)
     return true;
 }
 
-bool Ledger::AddTransaction(std::shared_ptr<OTTransaction> theTransaction)
+auto Ledger::AddTransaction(std::shared_ptr<OTTransaction> theTransaction)
+    -> bool
 {
     const auto number = theTransaction->GetTransactionNum();
     const auto [it, added] = m_mapTransactions.emplace(number, theTransaction);
@@ -1054,7 +1063,8 @@ bool Ledger::AddTransaction(std::shared_ptr<OTTransaction> theTransaction)
 }
 
 // Do NOT delete the return value, it's owned by the ledger.
-std::shared_ptr<OTTransaction> Ledger::GetTransaction(transactionType theType)
+auto Ledger::GetTransaction(transactionType theType)
+    -> std::shared_ptr<OTTransaction>
 {
     // loop through the items that make up this transaction
 
@@ -1069,7 +1079,7 @@ std::shared_ptr<OTTransaction> Ledger::GetTransaction(transactionType theType)
 }
 
 // if not found, returns -1
-std::int32_t Ledger::GetTransactionIndex(const TransactionNumber target)
+auto Ledger::GetTransactionIndex(const TransactionNumber target) -> std::int32_t
 {
     // loop through the transactions inside this ledger
     // If a specific transaction is found, returns its index inside the ledger
@@ -1093,8 +1103,8 @@ std::int32_t Ledger::GetTransactionIndex(const TransactionNumber target)
 //
 // Do NOT delete the return value, it's owned by the ledger.
 //
-std::shared_ptr<OTTransaction> Ledger::GetTransaction(
-    const TransactionNumber number) const
+auto Ledger::GetTransaction(const TransactionNumber number) const
+    -> std::shared_ptr<OTTransaction>
 {
     try {
 
@@ -1110,8 +1120,8 @@ std::shared_ptr<OTTransaction> Ledger::GetTransaction(
 //
 // Might want to change this so that it only counts ACCEPTED receipts.
 //
-std::int32_t Ledger::GetTransactionCountInRefTo(
-    std::int64_t lReferenceNum) const
+auto Ledger::GetTransactionCountInRefTo(std::int64_t lReferenceNum) const
+    -> std::int32_t
 {
     std::int32_t nCount{0};
 
@@ -1128,8 +1138,8 @@ std::int32_t Ledger::GetTransactionCountInRefTo(
 // Look up a transaction by transaction number and see if it is in the ledger.
 // If it is, return a pointer to it, otherwise return nullptr.
 //
-std::shared_ptr<OTTransaction> Ledger::GetTransactionByIndex(
-    std::int32_t nIndex) const
+auto Ledger::GetTransactionByIndex(std::int32_t nIndex) const
+    -> std::shared_ptr<OTTransaction>
 {
     // Out of bounds.
     if ((nIndex < 0) || (nIndex >= GetTransactionCount())) return nullptr;
@@ -1152,8 +1162,8 @@ std::shared_ptr<OTTransaction> Ledger::GetTransactionByIndex(
 // Nymbox-only.
 // Looks up replyNotice by REQUEST NUMBER.
 //
-std::shared_ptr<OTTransaction> Ledger::GetReplyNotice(
-    const std::int64_t& lRequestNum)
+auto Ledger::GetReplyNotice(const std::int64_t& lRequestNum)
+    -> std::shared_ptr<OTTransaction>
 {
     // loop through the transactions that make up this ledger.
     for (auto& it : m_mapTransactions) {
@@ -1170,8 +1180,8 @@ std::shared_ptr<OTTransaction> Ledger::GetReplyNotice(
     return nullptr;
 }
 
-std::shared_ptr<OTTransaction> Ledger::GetTransferReceipt(
-    std::int64_t lNumberOfOrigin)
+auto Ledger::GetTransferReceipt(std::int64_t lNumberOfOrigin)
+    -> std::shared_ptr<OTTransaction>
 {
     // loop through the transactions that make up this ledger.
     for (auto& it : m_mapTransactions) {
@@ -1246,7 +1256,8 @@ std::shared_ptr<OTTransaction> Ledger::GetTransferReceipt(
 // (But of course do NOT delete the OTTransaction that's returned, since that is
 // owned by the ledger.)
 //
-std::shared_ptr<OTTransaction> Ledger::GetChequeReceipt(std::int64_t lChequeNum)
+auto Ledger::GetChequeReceipt(std::int64_t lChequeNum)
+    -> std::shared_ptr<OTTransaction>
 {
     for (auto& it : m_mapTransactions) {
         auto pCurrentReceipt = it.second;
@@ -1335,8 +1346,8 @@ std::shared_ptr<OTTransaction> Ledger::GetChequeReceipt(std::int64_t lChequeNum)
 // to find that
 // final receipt, if it exists.
 //
-std::shared_ptr<OTTransaction> Ledger::GetFinalReceipt(
-    std::int64_t lReferenceNum)
+auto Ledger::GetFinalReceipt(std::int64_t lReferenceNum)
+    -> std::shared_ptr<OTTransaction>
 {
     // loop through the transactions that make up this ledger.
     for (auto& it : m_mapTransactions) {
@@ -1363,13 +1374,13 @@ std::shared_ptr<OTTransaction> Ledger::GetFinalReceipt(
 ///
 /// returns a new balance statement item containing the inbox report
 /// CALLER IS RESPONSIBLE TO DELETE.
-std::unique_ptr<Item> Ledger::GenerateBalanceStatement(
+auto Ledger::GenerateBalanceStatement(
     std::int64_t lAdjustment,
     const OTTransaction& theOwner,
     const ServerContext& context,
     const Account& theAccount,
     Ledger& theOutbox,
-    const PasswordPrompt& reason) const
+    const PasswordPrompt& reason) const -> std::unique_ptr<Item>
 {
     return GenerateBalanceStatement(
         lAdjustment,
@@ -1381,14 +1392,14 @@ std::unique_ptr<Item> Ledger::GenerateBalanceStatement(
         reason);
 }
 
-std::unique_ptr<Item> Ledger::GenerateBalanceStatement(
+auto Ledger::GenerateBalanceStatement(
     std::int64_t lAdjustment,
     const OTTransaction& theOwner,
     const ServerContext& context,
     const Account& theAccount,
     Ledger& theOutbox,
     const std::set<TransactionNumber>& without,
-    const PasswordPrompt& reason) const
+    const PasswordPrompt& reason) const -> std::unique_ptr<Item>
 {
     std::set<TransactionNumber> removing = without;
 
@@ -1550,7 +1561,7 @@ std::unique_ptr<Item> Ledger::GenerateBalanceStatement(
 // (And it really loads the items to check the amount, but does all this ONLY
 // for pending transfers.)
 //
-std::int64_t Ledger::GetTotalPendingValue(const PasswordPrompt& reason)
+auto Ledger::GetTotalPendingValue(const PasswordPrompt& reason) -> std::int64_t
 {
     std::int64_t lTotalPendingValue = 0;
 
@@ -1611,7 +1622,7 @@ void Ledger::ProduceOutboxReport(
 // for when you don't know their type already.)
 // Otherwise if you know the type, then use LoadNymboxFromString() etc.
 //
-bool Ledger::LoadLedgerFromString(const String& theStr)
+auto Ledger::LoadLedgerFromString(const String& theStr) -> bool
 {
     bool bLoaded = false;
 
@@ -1770,7 +1781,7 @@ void Ledger::UpdateContents(const PasswordPrompt& reason)  // Before
 
 // LoadContract will call this function at the right time.
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-std::int32_t Ledger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
+auto Ledger::ProcessXMLNode(irr::io::IrrXMLReader*& xml) -> std::int32_t
 {
 
     const auto strNodeName = String::Factory(xml->getNodeName());

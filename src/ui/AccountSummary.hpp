@@ -66,7 +66,10 @@ using AccountSummaryList = List<
 class AccountSummary final : public AccountSummaryList
 {
 public:
-    proto::ContactItemType Currency() const noexcept final { return currency_; }
+    auto Currency() const noexcept -> proto::ContactItemType final
+    {
+        return currency_;
+    }
 #if OT_QT
     int FindRow(const AccountSummaryRowID& id, const AccountSummarySortKey& key)
         const noexcept final
@@ -74,7 +77,10 @@ public:
         return find_row(id, key);
     }
 #endif
-    const identifier::Nym& NymID() const noexcept final { return primary_id_; }
+    auto NymID() const noexcept -> const identifier::Nym& final
+    {
+        return primary_id_;
+    }
 
     AccountSummary(
         const api::client::internal::Manager& api,
@@ -96,14 +102,14 @@ private:
     std::map<OTServerID, OTNymID> server_issuer_map_;
     std::map<OTNymID, OTServerID> nym_server_map_;
 
-    void* construct_row(
+    auto construct_row(
         const AccountSummaryRowID& id,
         const AccountSummarySortKey& index,
-        const CustomData& custom) const noexcept final;
+        const CustomData& custom) const noexcept -> void* final;
 
-    AccountSummarySortKey extract_key(
+    auto extract_key(
         const identifier::Nym& nymID,
-        const identifier::Nym& issuerID) noexcept;
+        const identifier::Nym& issuerID) noexcept -> AccountSummarySortKey;
     void process_connection(const network::zeromq::Message& message) noexcept;
     void process_issuer(const identifier::Nym& issuerID) noexcept;
     void process_issuer(const network::zeromq::Message& message) noexcept;
@@ -115,7 +121,7 @@ private:
     AccountSummary() = delete;
     AccountSummary(const AccountSummary&) = delete;
     AccountSummary(AccountSummary&&) = delete;
-    AccountSummary& operator=(const AccountSummary&) = delete;
-    AccountSummary& operator=(AccountSummary&&) = delete;
+    auto operator=(const AccountSummary&) -> AccountSummary& = delete;
+    auto operator=(AccountSummary &&) -> AccountSummary& = delete;
 };
 }  // namespace opentxs::ui::implementation

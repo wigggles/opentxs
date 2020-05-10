@@ -52,39 +52,51 @@ class Context : virtual public internal::Context,
                 public opentxs::contract::implementation::Signable
 {
 public:
-    std::set<RequestNumber> AcknowledgedNumbers() const final;
-    std::size_t AvailableNumbers() const final;
-    bool HaveLocalNymboxHash() const final;
-    bool HaveRemoteNymboxHash() const final;
-    std::set<TransactionNumber> IssuedNumbers() const final;
-    std::string Name() const final;
-    bool NymboxHashMatch() const final;
-    std::string LegacyDataFolder() const final;
-    OTIdentifier LocalNymboxHash() const final;
-    std::unique_ptr<const opentxs::NymFile> Nymfile(
-        const PasswordPrompt& reason) const final;
-    const identity::Nym& RemoteNym() const final;
-    OTIdentifier RemoteNymboxHash() const final;
-    RequestNumber Request() const final;
-    OTData Serialize() const final;
-    proto::Context Serialized() const final;
-    const identifier::Server& Server() const final { return server_id_; }
-    bool VerifyAcknowledgedNumber(const RequestNumber& req) const final;
-    bool VerifyAvailableNumber(const TransactionNumber& number) const final;
-    bool VerifyIssuedNumber(const TransactionNumber& number) const final;
+    auto AcknowledgedNumbers() const -> std::set<RequestNumber> final;
+    auto AvailableNumbers() const -> std::size_t final;
+    auto HaveLocalNymboxHash() const -> bool final;
+    auto HaveRemoteNymboxHash() const -> bool final;
+    auto IssuedNumbers() const -> std::set<TransactionNumber> final;
+    auto Name() const -> std::string final;
+    auto NymboxHashMatch() const -> bool final;
+    auto LegacyDataFolder() const -> std::string final;
+    auto LocalNymboxHash() const -> OTIdentifier final;
+    auto Nymfile(const PasswordPrompt& reason) const
+        -> std::unique_ptr<const opentxs::NymFile> final;
+    auto RemoteNym() const -> const identity::Nym& final;
+    auto RemoteNymboxHash() const -> OTIdentifier final;
+    auto Request() const -> RequestNumber final;
+    auto Serialize() const -> OTData final;
+    auto Serialized() const -> proto::Context final;
+    auto Server() const -> const identifier::Server& final
+    {
+        return server_id_;
+    }
+    auto VerifyAcknowledgedNumber(const RequestNumber& req) const -> bool final;
+    auto VerifyAvailableNumber(const TransactionNumber& number) const
+        -> bool final;
+    auto VerifyIssuedNumber(const TransactionNumber& number) const
+        -> bool final;
 
-    bool AddAcknowledgedNumber(const RequestNumber req) final;
-    bool CloseCronItem(const TransactionNumber) override { return false; }
-    bool ConsumeAvailable(const TransactionNumber& number) final;
-    bool ConsumeIssued(const TransactionNumber& number) final;
-    RequestNumber IncrementRequest() final;
-    bool InitializeNymbox(const PasswordPrompt& reason) final;
-    Editor<opentxs::NymFile> mutable_Nymfile(
-        const PasswordPrompt& reason) final;
-    bool OpenCronItem(const TransactionNumber) override { return false; }
-    bool RecoverAvailableNumber(const TransactionNumber& number) final;
-    proto::Context Refresh(const PasswordPrompt& reason) final;
-    bool RemoveAcknowledgedNumber(const std::set<RequestNumber>& req) final;
+    auto AddAcknowledgedNumber(const RequestNumber req) -> bool final;
+    auto CloseCronItem(const TransactionNumber) -> bool override
+    {
+        return false;
+    }
+    auto ConsumeAvailable(const TransactionNumber& number) -> bool final;
+    auto ConsumeIssued(const TransactionNumber& number) -> bool final;
+    auto IncrementRequest() -> RequestNumber final;
+    auto InitializeNymbox(const PasswordPrompt& reason) -> bool final;
+    auto mutable_Nymfile(const PasswordPrompt& reason)
+        -> Editor<opentxs::NymFile> final;
+    auto OpenCronItem(const TransactionNumber) -> bool override
+    {
+        return false;
+    }
+    auto RecoverAvailableNumber(const TransactionNumber& number) -> bool final;
+    auto Refresh(const PasswordPrompt& reason) -> proto::Context final;
+    auto RemoveAcknowledgedNumber(const std::set<RequestNumber>& req)
+        -> bool final;
     void Reset() final;
     void SetLocalNymboxHash(const Identifier& hash) final;
     void SetRemoteNymboxHash(const Identifier& hash) final;
@@ -102,37 +114,42 @@ protected:
     OTIdentifier local_nymbox_hash_;
     OTIdentifier remote_nymbox_hash_;
 
-    proto::Context contract(const Lock& lock) const;
-    OTIdentifier GetID(const Lock& lock) const final;
-    proto::Context serialize(const Lock& lock, const proto::ConsensusType type)
-        const;
-    virtual proto::Context serialize(const Lock& lock) const = 0;
-    virtual std::string type() const = 0;
-    bool validate(const Lock& lock) const final;
+    auto contract(const Lock& lock) const -> proto::Context;
+    auto GetID(const Lock& lock) const -> OTIdentifier final;
+    auto serialize(const Lock& lock, const proto::ConsensusType type) const
+        -> proto::Context;
+    virtual auto serialize(const Lock& lock) const -> proto::Context = 0;
+    virtual auto type() const -> std::string = 0;
+    auto validate(const Lock& lock) const -> bool final;
 
-    bool add_acknowledged_number(const Lock& lock, const RequestNumber req);
-    bool consume_available(const Lock& lock, const TransactionNumber& number);
-    bool consume_issued(const Lock& lock, const TransactionNumber& number);
+    auto add_acknowledged_number(const Lock& lock, const RequestNumber req)
+        -> bool;
+    auto consume_available(const Lock& lock, const TransactionNumber& number)
+        -> bool;
+    auto consume_issued(const Lock& lock, const TransactionNumber& number)
+        -> bool;
     void finish_acknowledgements(
         const Lock& lock,
         const std::set<RequestNumber>& req);
-    bool issue_number(const Lock& lock, const TransactionNumber& number);
-    bool recover_available_number(
+    auto issue_number(const Lock& lock, const TransactionNumber& number)
+        -> bool;
+    auto recover_available_number(
         const Lock& lock,
-        const TransactionNumber& number);
-    bool remove_acknowledged_number(
+        const TransactionNumber& number) -> bool;
+    auto remove_acknowledged_number(
         const Lock& lock,
-        const std::set<RequestNumber>& req);
-    bool save(const Lock& lock, const PasswordPrompt& reason);
+        const std::set<RequestNumber>& req) -> bool;
+    auto save(const Lock& lock, const PasswordPrompt& reason) -> bool;
     void set_local_nymbox_hash(const Lock& lock, const Identifier& hash);
     void set_remote_nymbox_hash(const Lock& lock, const Identifier& hash);
-    bool update_signature(const Lock& lock, const PasswordPrompt& reason) final;
-    bool verify_available_number(const Lock& lock, const TransactionNumber& req)
-        const;
-    bool verify_acknowledged_number(const Lock& lock, const RequestNumber& req)
-        const;
-    bool verify_issued_number(const Lock& lock, const TransactionNumber& number)
-        const;
+    auto update_signature(const Lock& lock, const PasswordPrompt& reason)
+        -> bool final;
+    auto verify_available_number(const Lock& lock, const TransactionNumber& req)
+        const -> bool;
+    auto verify_acknowledged_number(const Lock& lock, const RequestNumber& req)
+        const -> bool;
+    auto verify_issued_number(const Lock& lock, const TransactionNumber& number)
+        const -> bool;
 
     Context(
         const api::internal::Core& api,
@@ -158,23 +175,25 @@ private:
         const Nym_p& client,
         const Nym_p& server) noexcept(false) -> OTIdentifier;
 
-    virtual const identifier::Nym& client_nym_id(const Lock& lock) const = 0;
-    Context* clone() const noexcept final { return nullptr; }
-    proto::Context IDVersion(const Lock& lock) const;
-    virtual const identifier::Nym& server_nym_id(const Lock& lock) const = 0;
-    proto::Context SigVersion(const Lock& lock) const;
-    bool verify_signature(const Lock& lock, const proto::Signature& signature)
-        const final;
+    virtual auto client_nym_id(const Lock& lock) const
+        -> const identifier::Nym& = 0;
+    auto clone() const noexcept -> Context* final { return nullptr; }
+    auto IDVersion(const Lock& lock) const -> proto::Context;
+    virtual auto server_nym_id(const Lock& lock) const
+        -> const identifier::Nym& = 0;
+    auto SigVersion(const Lock& lock) const -> proto::Context;
+    auto verify_signature(const Lock& lock, const proto::Signature& signature)
+        const -> bool final;
 
     // Transition method used for converting from Nym class
-    bool insert_available_number(const TransactionNumber& number);
+    auto insert_available_number(const TransactionNumber& number) -> bool;
     // Transition method used for converting from Nym class
-    bool insert_issued_number(const TransactionNumber& number);
+    auto insert_issued_number(const TransactionNumber& number) -> bool;
 
     Context() = delete;
     Context(const Context&) = delete;
     Context(Context&&) = delete;
-    Context& operator=(const Context&) = delete;
-    Context& operator=(Context&&) = delete;
+    auto operator=(const Context&) -> Context& = delete;
+    auto operator=(Context &&) -> Context& = delete;
 };
 }  // namespace opentxs::implementation

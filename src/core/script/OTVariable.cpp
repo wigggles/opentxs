@@ -176,7 +176,7 @@ OTVariable::~OTVariable()
         nullptr;  // I wasn't the owner, it was a pointer for convenience only.
 }
 
-bool OTVariable::SetValue(const std::int32_t& nValue)
+auto OTVariable::SetValue(const std::int32_t& nValue) -> bool
 {
     if (!IsInteger()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error: This variable (")(
@@ -190,7 +190,7 @@ bool OTVariable::SetValue(const std::int32_t& nValue)
     return true;
 }
 
-bool OTVariable::SetValue(bool bValue)
+auto OTVariable::SetValue(bool bValue) -> bool
 {
     if (!IsBool()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error: This variable (")(
@@ -204,7 +204,7 @@ bool OTVariable::SetValue(bool bValue)
     return true;
 }
 
-bool OTVariable::SetValue(const std::string& str_Value)
+auto OTVariable::SetValue(const std::string& str_Value) -> bool
 {
     if (!IsString()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error: This variable (")(
@@ -225,7 +225,7 @@ bool OTVariable::SetValue(const std::string& str_Value)
 // (Usually you set clean just before running the script, and you check dirty
 // just AFTER running the script.)
 //
-bool OTVariable::IsDirty() const
+auto OTVariable::IsDirty() const -> bool
 {
     bool bReturnVal = false;
 
@@ -309,7 +309,7 @@ void OTVariable::RegisterForExecution(OTScript& theScript)
 }
 
 // Done
-bool OTVariable::Compare(OTVariable& rhs)
+auto OTVariable::Compare(OTVariable& rhs) -> bool
 {
     if (!(GetName().Compare(rhs.GetName()))) {
         {

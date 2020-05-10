@@ -41,10 +41,11 @@ template class opentxs::Pimpl<opentxs::network::zeromq::socket::Router>;
 
 namespace opentxs
 {
-network::zeromq::socket::Router* Factory::RouterSocket(
+auto Factory::RouterSocket(
     const network::zeromq::Context& context,
     const bool direction,
     const network::zeromq::ListenCallback& callback)
+    -> network::zeromq::socket::Router*
 {
     using ReturnType = network::zeromq::socket::implementation::Router;
 
@@ -70,7 +71,7 @@ Router::Router(
     init();
 }
 
-Router* Router::clone() const noexcept
+auto Router::clone() const noexcept -> Router*
 {
     return new Router(context_, direction_, callback_);
 }

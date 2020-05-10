@@ -40,7 +40,7 @@
 namespace opentxs
 {
 
-bool OTScriptChai::ExecuteScript(OTVariable* pReturnVar)
+auto OTScriptChai::ExecuteScript(OTVariable* pReturnVar) -> bool
 {
     using namespace chaiscript;
 

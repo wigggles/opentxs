@@ -34,26 +34,35 @@ namespace opentxs::network::zeromq::zap::implementation
 class Request final : virtual zap::Request, zeromq::implementation::Message
 {
 public:
-    std::string Address() const final { return Body_at(ADDRESS_POSITION); }
-    const FrameSection Credentials() const final;
-    std::string Debug() const final;
-    std::string Domain() const final { return Body_at(DOMAIN_POSITION); }
-    OTData Identity() const final
+    auto Address() const -> std::string final
+    {
+        return Body_at(ADDRESS_POSITION);
+    }
+    auto Credentials() const -> const FrameSection final;
+    auto Debug() const -> std::string final;
+    auto Domain() const -> std::string final
+    {
+        return Body_at(DOMAIN_POSITION);
+    }
+    auto Identity() const -> OTData final
     {
         return Data::Factory(Body_at(IDENTITY_POSITION));
     }
-    zap::Mechanism Mechanism() const final
+    auto Mechanism() const -> zap::Mechanism final
     {
         return string_to_mechanism(Body_at(MECHANISM_POSITION));
     }
-    OTData RequestID() const final
+    auto RequestID() const -> OTData final
     {
         return Data::Factory(Body_at(REQUEST_ID_POSITION));
     }
-    std::pair<bool, std::string> Validate() const final;
-    std::string Version() const final { return Body_at(VERSION_POSITION); }
+    auto Validate() const -> std::pair<bool, std::string> final;
+    auto Version() const -> std::string final
+    {
+        return Body_at(VERSION_POSITION);
+    }
 
-    Frame& AddCredential(const Data& credential) final
+    auto AddCredential(const Data& credential) -> Frame& final
     {
         return zeromq::Message::AddFrame(credential);
     }
@@ -70,11 +79,12 @@ private:
     static const MechanismMap mechanism_map_;
     static const MechanismReverseMap mechanism_reverse_map_;
 
-    static MechanismReverseMap invert_mechanism_map(const MechanismMap& input);
-    static std::string mechanism_to_string(const zap::Mechanism in);
-    static zap::Mechanism string_to_mechanism(const std::string& in);
+    static auto invert_mechanism_map(const MechanismMap& input)
+        -> MechanismReverseMap;
+    static auto mechanism_to_string(const zap::Mechanism in) -> std::string;
+    static auto string_to_mechanism(const std::string& in) -> zap::Mechanism;
 
-    Request* clone() const final { return new Request(*this); }
+    auto clone() const -> Request* final { return new Request(*this); }
 
     Request(
         const std::string& address,
@@ -86,7 +96,7 @@ private:
     Request();
     Request(const Request&);
     Request(Request&&) = delete;
-    Request& operator=(const Request&) = delete;
-    Request& operator=(Request&&) = delete;
+    auto operator=(const Request&) -> Request& = delete;
+    auto operator=(Request &&) -> Request& = delete;
 };
 }  // namespace opentxs::network::zeromq::zap::implementation

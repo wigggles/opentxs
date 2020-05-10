@@ -46,21 +46,22 @@ namespace opentxs::blockchain::p2p::bitcoin::message::implementation
 class Getheaders final : public internal::Getheaders
 {
 public:
-    const value_type& at(const std::size_t position) const noexcept(false) final
+    auto at(const std::size_t position) const noexcept(false)
+        -> const value_type& final
     {
         return payload_.at(position);
     }
-    const_iterator begin() const noexcept final
+    auto begin() const noexcept -> const_iterator final
     {
         return const_iterator(this, 0);
     }
-    const_iterator end() const noexcept final
+    auto end() const noexcept -> const_iterator final
     {
         return const_iterator(this, payload_.size());
     }
-    block::pHash StopHash() const noexcept final { return stop_; }
-    std::size_t size() const noexcept final { return payload_.size(); }
-    bitcoin::ProtocolVersionUnsigned Version() const noexcept final
+    auto StopHash() const noexcept -> block::pHash final { return stop_; }
+    auto size() const noexcept -> std::size_t final { return payload_.size(); }
+    auto Version() const noexcept -> bitcoin::ProtocolVersionUnsigned final
     {
         return version_;
     }
@@ -74,7 +75,7 @@ private:
     const std::vector<block::pHash> payload_;
     const block::pHash stop_;
 
-    OTData payload() const noexcept final;
+    auto payload() const noexcept -> OTData final;
 
     Getheaders(
         const api::internal::Core& api,
@@ -90,7 +91,7 @@ private:
         block::pHash&& stop) noexcept;
     Getheaders(const Getheaders&) = delete;
     Getheaders(Getheaders&&) = delete;
-    Getheaders& operator=(const Getheaders&) = delete;
-    Getheaders& operator=(Getheaders&&) = delete;
+    auto operator=(const Getheaders&) -> Getheaders& = delete;
+    auto operator=(Getheaders &&) -> Getheaders& = delete;
 };
 }  // namespace opentxs::blockchain::p2p::bitcoin::message::implementation

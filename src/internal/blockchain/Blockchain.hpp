@@ -63,8 +63,8 @@ namespace opentxs::blockchain::internal
 class BitReader
 {
 public:
-    OPENTXS_EXPORT bool eof();
-    OPENTXS_EXPORT std::uint64_t read(std::size_t nbits);
+    OPENTXS_EXPORT auto eof() -> bool;
+    OPENTXS_EXPORT auto read(std::size_t nbits) -> std::uint64_t;
 
     OPENTXS_EXPORT BitReader(const Space& data);
     OPENTXS_EXPORT BitReader(std::uint8_t* data, int len);
@@ -79,8 +79,8 @@ private:
     BitReader() = delete;
     BitReader(const BitReader&) = delete;
     BitReader(BitReader&&) = delete;
-    BitReader& operator=(const BitReader&) = delete;
-    BitReader& operator=(BitReader&&) = delete;
+    auto operator=(const BitReader&) -> BitReader& = delete;
+    auto operator=(BitReader &&) -> BitReader& = delete;
 };
 
 // Source of BitWriter class:

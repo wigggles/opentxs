@@ -40,18 +40,18 @@
 
 namespace opentxs
 {
-api::client::Issuer* Factory::Issuer(
+auto Factory::Issuer(
     const api::Wallet& wallet,
     const identifier::Nym& nymID,
-    const proto::Issuer& serialized)
+    const proto::Issuer& serialized) -> api::client::Issuer*
 {
     return new api::client::implementation::Issuer(wallet, nymID, serialized);
 }
 
-api::client::Issuer* Factory::Issuer(
+auto Factory::Issuer(
     const api::Wallet& wallet,
     const identifier::Nym& nymID,
-    const identifier::Nym& issuerID)
+    const identifier::Nym& issuerID) -> api::client::Issuer*
 {
     return new api::client::implementation::Issuer(wallet, nymID, issuerID);
 }
@@ -110,7 +110,7 @@ Issuer::Issuer(
     }
 }
 
-std::string Issuer::toString() const
+auto Issuer::toString() const -> std::string
 {
     Lock lock(lock_);
     std::stringstream output{};
@@ -233,9 +233,9 @@ std::string Issuer::toString() const
     return output.str();
 }
 
-std::set<OTIdentifier> Issuer::AccountList(
+auto Issuer::AccountList(
     const proto::ContactItemType type,
-    const identifier::UnitDefinition& unitID) const
+    const identifier::UnitDefinition& unitID) const -> std::set<OTIdentifier>
 {
     Lock lock(lock_);
     std::set<OTIdentifier> output;
@@ -260,11 +260,11 @@ void Issuer::AddAccount(
     account_map_[type].emplace(unitID, accountID);
 }
 
-bool Issuer::add_request(
+auto Issuer::add_request(
     const Lock& lock,
     const proto::PeerRequestType type,
     const Identifier& requestID,
-    const Identifier& replyID)
+    const Identifier& replyID) -> bool
 {
     OT_ASSERT(verify_lock(lock))
 
@@ -285,10 +285,10 @@ bool Issuer::add_request(
     return true;
 }
 
-bool Issuer::AddReply(
+auto Issuer::AddReply(
     const proto::PeerRequestType type,
     const Identifier& requestID,
-    const Identifier& replyID)
+    const Identifier& replyID) -> bool
 {
     Lock lock(lock_);
     auto [found, it] = find_request(lock, type, requestID);
@@ -308,9 +308,9 @@ bool Issuer::AddReply(
     return true;
 }
 
-bool Issuer::AddRequest(
+auto Issuer::AddRequest(
     const proto::PeerRequestType type,
-    const Identifier& requestID)
+    const Identifier& requestID) -> bool
 {
     Lock lock(lock_);
     // ReplyID is blank because we don't know it yet.
@@ -319,7 +319,8 @@ bool Issuer::AddRequest(
     return add_request(lock, type, requestID, replyID);
 }
 
-bool Issuer::BailmentInitiated(const identifier::UnitDefinition& unitID) const
+auto Issuer::BailmentInitiated(const identifier::UnitDefinition& unitID) const
+    -> bool
 {
     LogVerbose(OT_METHOD)(__FUNCTION__)(
         ": Searching for initiated bailment requests for unit ")(unitID)
@@ -361,9 +362,9 @@ bool Issuer::BailmentInitiated(const identifier::UnitDefinition& unitID) const
     return 0 != count;
 }
 
-std::vector<Issuer::BailmentDetails> Issuer::BailmentInstructions(
+auto Issuer::BailmentInstructions(
     const identifier::UnitDefinition& unitID,
-    const bool onlyUnused) const
+    const bool onlyUnused) const -> std::vector<Issuer::BailmentDetails>
 {
     Lock lock(lock_);
     std::vector<BailmentDetails> output{};
@@ -403,8 +404,8 @@ std::vector<Issuer::BailmentDetails> Issuer::BailmentInstructions(
     return output;
 }
 
-std::vector<Issuer::ConnectionDetails> Issuer::ConnectionInfo(
-    const proto::ConnectionInfoType type) const
+auto Issuer::ConnectionInfo(const proto::ConnectionInfoType type) const
+    -> std::vector<Issuer::ConnectionDetails>
 {
     LogVerbose(OT_METHOD)(__FUNCTION__)(": Searching for type ")(
         static_cast<std::uint32_t>(type))(
@@ -455,7 +456,8 @@ std::vector<Issuer::ConnectionDetails> Issuer::ConnectionInfo(
     return output;
 }
 
-bool Issuer::ConnectionInfoInitiated(const proto::ConnectionInfoType type) const
+auto Issuer::ConnectionInfoInitiated(const proto::ConnectionInfoType type) const
+    -> bool
 {
     LogVerbose(OT_METHOD)(__FUNCTION__)(": Searching for all type ")(
         static_cast<std::uint32_t>(type))(" connection info requests.")
@@ -494,10 +496,10 @@ bool Issuer::ConnectionInfoInitiated(const proto::ConnectionInfoType type) const
     return 0 != count;
 }
 
-std::pair<bool, Issuer::Workflow::iterator> Issuer::find_request(
+auto Issuer::find_request(
     const Lock& lock,
     const proto::PeerRequestType type,
-    const Identifier& requestID)
+    const Identifier& requestID) -> std::pair<bool, Issuer::Workflow::iterator>
 {
     OT_ASSERT(verify_lock(lock))
 
@@ -507,19 +509,21 @@ std::pair<bool, Issuer::Workflow::iterator> Issuer::find_request(
     return {work.end() != it, it};
 }
 
-std::set<std::tuple<OTIdentifier, OTIdentifier, bool>> Issuer::GetRequests(
+auto Issuer::GetRequests(
     const proto::PeerRequestType type,
     const Issuer::RequestStatus state) const
+    -> std::set<std::tuple<OTIdentifier, OTIdentifier, bool>>
 {
     Lock lock(lock_);
 
     return get_requests(lock, type, state);
 }
 
-std::set<std::tuple<OTIdentifier, OTIdentifier, bool>> Issuer::get_requests(
+auto Issuer::get_requests(
     const Lock& lock,
     const proto::PeerRequestType type,
     const Issuer::RequestStatus state) const
+    -> std::set<std::tuple<OTIdentifier, OTIdentifier, bool>>
 {
     OT_ASSERT(verify_lock(lock));
 
@@ -565,11 +569,11 @@ std::set<std::tuple<OTIdentifier, OTIdentifier, bool>> Issuer::get_requests(
     return output;
 }
 
-bool Issuer::Paired() const { return paired_.get(); }
+auto Issuer::Paired() const -> bool { return paired_.get(); }
 
-const std::string& Issuer::PairingCode() const { return pairing_code_; }
+auto Issuer::PairingCode() const -> const std::string& { return pairing_code_; }
 
-OTServerID Issuer::PrimaryServer() const
+auto Issuer::PrimaryServer() const -> OTServerID
 {
     Lock lock(lock_);
 
@@ -580,10 +584,10 @@ OTServerID Issuer::PrimaryServer() const
     return nym->Claims().PreferredOTServer();
 }
 
-bool Issuer::RemoveAccount(
+auto Issuer::RemoveAccount(
     const proto::ContactItemType type,
     const identifier::UnitDefinition& unitID,
-    const Identifier& accountID)
+    const Identifier& accountID) -> bool
 {
     Lock lock(lock_);
     auto accountSet = account_map_.find(type);
@@ -599,7 +603,7 @@ bool Issuer::RemoveAccount(
     return true;
 }
 
-std::set<proto::PeerRequestType> Issuer::RequestTypes() const
+auto Issuer::RequestTypes() const -> std::set<proto::PeerRequestType>
 {
     Lock lock(lock_);
     std::set<proto::PeerRequestType> output{};
@@ -612,7 +616,7 @@ std::set<proto::PeerRequestType> Issuer::RequestTypes() const
     return output;
 }
 
-proto::Issuer Issuer::Serialize() const
+auto Issuer::Serialize() const -> proto::Issuer
 {
     Lock lock(lock_);
     proto::Issuer output;
@@ -660,10 +664,10 @@ void Issuer::SetPairingCode(const std::string& code)
     paired_->On();
 }
 
-bool Issuer::SetUsed(
+auto Issuer::SetUsed(
     const proto::PeerRequestType type,
     const Identifier& requestID,
-    const bool isUsed)
+    const bool isUsed) -> bool
 {
     Lock lock(lock_);
     auto [found, it] = find_request(lock, type, requestID);
@@ -677,7 +681,7 @@ bool Issuer::SetUsed(
     return true;
 }
 
-bool Issuer::StoreSecretComplete() const
+auto Issuer::StoreSecretComplete() const -> bool
 {
     Lock lock(lock_);
     const auto storeSecret = get_requests(
@@ -686,7 +690,7 @@ bool Issuer::StoreSecretComplete() const
     return 0 != storeSecret.size();
 }
 
-bool Issuer::StoreSecretInitiated() const
+auto Issuer::StoreSecretInitiated() const -> bool
 {
     Lock lock(lock_);
     const auto storeSecret =

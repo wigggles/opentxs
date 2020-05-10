@@ -102,69 +102,72 @@ Accounts::Accounts(
     }
 }
 
-OTUnitID Accounts::AccountContract(const Identifier& id) const
+auto Accounts::AccountContract(const Identifier& id) const -> OTUnitID
 {
     EXTRACT_FIELD(4);
 }
 
-OTNymID Accounts::AccountIssuer(const Identifier& id) const
+auto Accounts::AccountIssuer(const Identifier& id) const -> OTNymID
 {
     EXTRACT_FIELD(2);
 }
 
-OTNymID Accounts::AccountOwner(const Identifier& id) const { EXTRACT_FIELD(0); }
+auto Accounts::AccountOwner(const Identifier& id) const -> OTNymID
+{
+    EXTRACT_FIELD(0);
+}
 
-OTServerID Accounts::AccountServer(const Identifier& id) const
+auto Accounts::AccountServer(const Identifier& id) const -> OTServerID
 {
     EXTRACT_FIELD(3);
 }
 
-OTNymID Accounts::AccountSigner(const Identifier& id) const
+auto Accounts::AccountSigner(const Identifier& id) const -> OTNymID
 {
     EXTRACT_FIELD(1);
 }
 
-proto::ContactItemType Accounts::AccountUnit(const Identifier& id) const
+auto Accounts::AccountUnit(const Identifier& id) const -> proto::ContactItemType
 {
     EXTRACT_FIELD(5);
 }
 
-std::set<OTIdentifier> Accounts::AccountsByContract(
-    const identifier::UnitDefinition& contract) const
+auto Accounts::AccountsByContract(
+    const identifier::UnitDefinition& contract) const -> std::set<OTIdentifier>
 {
     EXTRACT_SET_BY_ID(contract_index_, contract);
 }
 
-std::set<OTIdentifier> Accounts::AccountsByIssuer(
-    const identifier::Nym& issuerNym) const
+auto Accounts::AccountsByIssuer(const identifier::Nym& issuerNym) const
+    -> std::set<OTIdentifier>
 {
     EXTRACT_SET_BY_ID(issuer_index_, issuerNym);
 }
 
-std::set<OTIdentifier> Accounts::AccountsByOwner(
-    const identifier::Nym& ownerNym) const
+auto Accounts::AccountsByOwner(const identifier::Nym& ownerNym) const
+    -> std::set<OTIdentifier>
 {
     EXTRACT_SET_BY_ID(owner_index_, ownerNym);
 }
 
-std::set<OTIdentifier> Accounts::AccountsByServer(
-    const identifier::Server& server) const
+auto Accounts::AccountsByServer(const identifier::Server& server) const
+    -> std::set<OTIdentifier>
 {
     EXTRACT_SET_BY_ID(server_index_, server);
 }
 
-std::set<OTIdentifier> Accounts::AccountsByUnit(
-    const proto::ContactItemType unit) const
+auto Accounts::AccountsByUnit(const proto::ContactItemType unit) const
+    -> std::set<OTIdentifier>
 {
     EXTRACT_SET_BY_VALUE(unit_index_, unit);
 }
 
 template <typename A, typename M, typename I>
-bool Accounts::add_set_index(
+auto Accounts::add_set_index(
     const Identifier& accountID,
     const A& argID,
     M& mapID,
-    I& index)
+    I& index) -> bool
 {
     if (mapID->empty()) {
         index[argID].emplace(accountID);
@@ -185,12 +188,12 @@ bool Accounts::add_set_index(
     return true;
 }
 
-std::string Accounts::Alias(const std::string& id) const
+auto Accounts::Alias(const std::string& id) const -> std::string
 {
     return get_alias(id);
 }
 
-bool Accounts::check_update_account(
+auto Accounts::check_update_account(
     const Lock& lock,
     const OTIdentifier& accountID,
     const identifier::Nym& ownerNym,
@@ -198,7 +201,7 @@ bool Accounts::check_update_account(
     const identifier::Nym& issuerNym,
     const identifier::Server& server,
     const identifier::UnitDefinition& contract,
-    const proto::ContactItemType unit)
+    const proto::ContactItemType unit) -> bool
 {
     if (accountID->empty()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid account ID.").Flush();
@@ -273,7 +276,7 @@ bool Accounts::check_update_account(
     return true;
 }
 
-bool Accounts::Delete(const std::string& id)
+auto Accounts::Delete(const std::string& id) -> bool
 {
     Lock lock(write_lock_);
     const auto accountID = Identifier::Factory(id);
@@ -294,9 +297,8 @@ bool Accounts::Delete(const std::string& id)
     return delete_item(lock, id);
 }
 
-Accounts::AccountData& Accounts::get_account_data(
-    const Lock& lock,
-    const OTIdentifier& accountID) const
+auto Accounts::get_account_data(const Lock& lock, const OTIdentifier& accountID)
+    const -> Accounts::AccountData&
 {
     OT_ASSERT(verify_write_lock(lock))
 
@@ -360,16 +362,16 @@ void Accounts::init(const std::string& hash)
     }
 }
 
-bool Accounts::Load(
+auto Accounts::Load(
     const std::string& id,
     std::string& output,
     std::string& alias,
-    const bool checking) const
+    const bool checking) const -> bool
 {
     return load_raw(id, output, alias, checking);
 }
 
-bool Accounts::save(const Lock& lock) const
+auto Accounts::save(const Lock& lock) const -> bool
 {
     if (!verify_write_lock(lock)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Lock failure.").Flush();
@@ -383,7 +385,7 @@ bool Accounts::save(const Lock& lock) const
     return driver_.StoreProto(serialized, root_);
 }
 
-proto::StorageAccounts Accounts::serialize() const
+auto Accounts::serialize() const -> proto::StorageAccounts
 {
     proto::StorageAccounts serialized;
     serialized.set_version(version_);
@@ -428,12 +430,12 @@ proto::StorageAccounts Accounts::serialize() const
     return serialized;
 }
 
-bool Accounts::SetAlias(const std::string& id, const std::string& alias)
+auto Accounts::SetAlias(const std::string& id, const std::string& alias) -> bool
 {
     return set_alias(id, alias);
 }
 
-bool Accounts::Store(
+auto Accounts::Store(
     const std::string& id,
     const std::string& data,
     const std::string& alias,
@@ -442,7 +444,7 @@ bool Accounts::Store(
     const identifier::Nym& issuer,
     const identifier::Server& server,
     const identifier::UnitDefinition& contract,
-    const proto::ContactItemType unit)
+    const proto::ContactItemType unit) -> bool
 {
     Lock lock(write_lock_);
     const auto account = Identifier::Factory(id);

@@ -38,14 +38,14 @@ namespace opentxs
 {
 using ReturnType = api::implementation::Legacy;
 
-api::Legacy* Factory::Legacy(const std::string& home)
+auto Factory::Legacy(const std::string& home) -> api::Legacy*
 {
     return new ReturnType{home};
 }
 
 namespace api
 {
-std::string Legacy::SuggestFolder(const std::string& app) noexcept
+auto Legacy::SuggestFolder(const std::string& app) noexcept -> std::string
 {
     const auto path =
         ReturnType::get_home_directory() / ReturnType::get_suffix(app.c_str());
@@ -84,8 +84,8 @@ Legacy::Legacy(const std::string& home) noexcept
 {
 }
 
-bool Legacy::AppendFile(String& out, const String& base, const String& file)
-    const noexcept
+auto Legacy::AppendFile(String& out, const String& base, const String& file)
+    const noexcept -> bool
 {
     try {
         const auto path = fs::path{base.Get()}.remove_trailing_separator() /
@@ -99,8 +99,8 @@ bool Legacy::AppendFile(String& out, const String& base, const String& file)
     }
 }
 
-bool Legacy::AppendFolder(String& out, const String& base, const String& file)
-    const noexcept
+auto Legacy::AppendFolder(String& out, const String& base, const String& file)
+    const noexcept -> bool
 {
     try {
         const auto path = fs::path{base.Get()}.remove_trailing_separator() /
@@ -115,12 +115,12 @@ bool Legacy::AppendFolder(String& out, const String& base, const String& file)
     }
 }
 
-bool Legacy::BuildFolderPath(const String& path) const noexcept
+auto Legacy::BuildFolderPath(const String& path) const noexcept -> bool
 {
     return ConfirmCreateFolder(path);
 }
 
-bool Legacy::BuildFilePath(const String& path) const noexcept
+auto Legacy::BuildFilePath(const String& path) const noexcept -> bool
 {
     try {
         const auto incoming = fs::path{path.Get()};
@@ -137,17 +137,18 @@ bool Legacy::BuildFilePath(const String& path) const noexcept
     }
 }
 
-std::string Legacy::ClientConfigFilePath(const int instance) const noexcept
+auto Legacy::ClientConfigFilePath(const int instance) const noexcept
+    -> std::string
 {
     return get_file(client_config_file_, instance);
 }
 
-std::string Legacy::ClientDataFolder(const int instance) const noexcept
+auto Legacy::ClientDataFolder(const int instance) const noexcept -> std::string
 {
     return get_path(client_data_folder_, instance);
 }
 
-bool Legacy::ConfirmCreateFolder(const String& path) const noexcept
+auto Legacy::ConfirmCreateFolder(const String& path) const noexcept -> bool
 {
     try {
         const auto folder = fs::path{path.Get()};
@@ -160,12 +161,13 @@ bool Legacy::ConfirmCreateFolder(const String& path) const noexcept
     }
 }
 
-std::string Legacy::CryptoConfigFilePath() const noexcept
+auto Legacy::CryptoConfigFilePath() const noexcept -> std::string
 {
     return get_file(crypto_config_file_);
 }
 
-bool Legacy::FileExists(const String& path, std::size_t& size) const noexcept
+auto Legacy::FileExists(const String& path, std::size_t& size) const noexcept
+    -> bool
 {
     size = 0;
 
@@ -186,14 +188,14 @@ bool Legacy::FileExists(const String& path, std::size_t& size) const noexcept
     }
 }
 
-fs::path Legacy::get_app_data_folder(const std::string& home) noexcept
+auto Legacy::get_app_data_folder(const std::string& home) noexcept -> fs::path
 {
     if (false == home.empty()) { return home; }
 
     return get_home_directory() / get_suffix();
 }
 
-fs::path Legacy::get_home_directory() noexcept
+auto Legacy::get_home_directory() noexcept -> fs::path
 {
     auto home = std::string{getenv("HOME")};
 
@@ -225,7 +227,7 @@ fs::path Legacy::get_home_directory() noexcept
     OT_FAIL;
 }
 
-fs::path Legacy::get_suffix(const char* application) noexcept
+auto Legacy::get_suffix(const char* application) noexcept -> fs::path
 {
     auto output = std::string
     {
@@ -249,7 +251,7 @@ fs::path Legacy::get_suffix(const char* application) noexcept
     return output;
 }
 
-fs::path Legacy::get_suffix() noexcept
+auto Legacy::get_suffix() noexcept -> fs::path
 {
 #if defined(_WIN32)
     return get_suffix("OpenTransactions");
@@ -260,16 +262,16 @@ fs::path Legacy::get_suffix() noexcept
 #endif
 }
 
-std::string Legacy::get_file(const std::string& fragment, const int instance)
-    const noexcept
+auto Legacy::get_file(const std::string& fragment, const int instance) const
+    noexcept -> std::string
 {
     const auto output = get_path(fragment, instance);
 
     return {output.c_str(), output.size() - 1};
 }
 
-std::string Legacy::get_path(const std::string& fragment, const int instance)
-    const noexcept
+auto Legacy::get_path(const std::string& fragment, const int instance) const
+    noexcept -> std::string
 {
     const auto name =
         (0 == instance) ? fragment : fragment + "-" + std::to_string(instance);
@@ -284,12 +286,12 @@ std::string Legacy::get_path(const std::string& fragment, const int instance)
     return output->Get();
 }
 
-std::string Legacy::LogConfigFilePath() const noexcept
+auto Legacy::LogConfigFilePath() const noexcept -> std::string
 {
     return get_file(log_config_file_);
 }
 
-bool Legacy::PathExists(const String& path) const noexcept
+auto Legacy::PathExists(const String& path) const noexcept -> bool
 {
     try {
 
@@ -300,14 +302,18 @@ bool Legacy::PathExists(const String& path) const noexcept
     }
 }
 
-std::string Legacy::PIDFilePath() const noexcept { return get_file(pid_file_); }
+auto Legacy::PIDFilePath() const noexcept -> std::string
+{
+    return get_file(pid_file_);
+}
 
-std::string Legacy::ServerConfigFilePath(const int instance) const noexcept
+auto Legacy::ServerConfigFilePath(const int instance) const noexcept
+    -> std::string
 {
     return get_file(server_config_file_, instance);
 }
 
-std::string Legacy::ServerDataFolder(const int instance) const noexcept
+auto Legacy::ServerDataFolder(const int instance) const noexcept -> std::string
 {
     return get_path(server_data_folder_, instance);
 }

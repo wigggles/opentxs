@@ -190,8 +190,8 @@ void ActivityThread::can_message() const noexcept
     }
 }
 
-std::string ActivityThread::comma(const std::set<std::string>& list) const
-    noexcept
+auto ActivityThread::comma(const std::set<std::string>& list) const noexcept
+    -> std::string
 {
     std::ostringstream stream;
 
@@ -207,10 +207,10 @@ std::string ActivityThread::comma(const std::set<std::string>& list) const
     return output;
 }
 
-void* ActivityThread::construct_row(
+auto ActivityThread::construct_row(
     const ActivityThreadRowID& id,
     const ActivityThreadSortKey& index,
-    const CustomData& custom) const noexcept
+    const CustomData& custom) const noexcept -> void*
 {
     names_.emplace(id, index);
     const auto& box = std::get<1>(id);
@@ -274,7 +274,7 @@ void* ActivityThread::construct_row(
     }
 }
 
-std::string ActivityThread::DisplayName() const noexcept
+auto ActivityThread::DisplayName() const noexcept -> std::string
 {
     participants_future_.get();
     std::set<std::string> names{};
@@ -292,7 +292,7 @@ std::string ActivityThread::DisplayName() const noexcept
     return comma(names);
 }
 
-std::string ActivityThread::GetDraft() const noexcept
+auto ActivityThread::GetDraft() const noexcept -> std::string
 {
     Lock lock(decision_lock_);
 
@@ -342,7 +342,7 @@ void ActivityThread::new_thread() noexcept
     finish_startup();
 }
 
-std::string ActivityThread::Participants() const noexcept
+auto ActivityThread::Participants() const noexcept -> std::string
 {
     participants_future_.get();
     std::set<std::string> ids{};
@@ -352,11 +352,11 @@ std::string ActivityThread::Participants() const noexcept
     return comma(ids);
 }
 
-bool ActivityThread::Pay(
+auto ActivityThread::Pay(
     const std::string& amount,
     const Identifier& sourceAccount,
     const std::string& memo,
-    const PaymentType type) const noexcept
+    const PaymentType type) const noexcept -> bool
 {
     const auto& unitID = api_.Storage().AccountContract(sourceAccount);
 
@@ -392,11 +392,11 @@ bool ActivityThread::Pay(
     }
 }
 
-bool ActivityThread::Pay(
+auto ActivityThread::Pay(
     const Amount amount,
     const Identifier& sourceAccount,
     const std::string& memo,
-    const PaymentType type) const noexcept
+    const PaymentType type) const noexcept -> bool
 {
     if (0 >= amount) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid amount: (")(amount)(")")
@@ -419,8 +419,8 @@ bool ActivityThread::Pay(
     }
 }
 
-std::string ActivityThread::PaymentCode(
-    const proto::ContactItemType currency) const noexcept
+auto ActivityThread::PaymentCode(const proto::ContactItemType currency) const
+    noexcept -> std::string
 {
     Lock lock(contact_lock_);
 
@@ -429,7 +429,7 @@ std::string ActivityThread::PaymentCode(
     return {};
 }
 
-bool ActivityThread::process_drafts() noexcept
+auto ActivityThread::process_drafts() noexcept -> bool
 {
     Lock draftLock(decision_lock_);
     LogVerbose(OT_METHOD)(__FUNCTION__)(": Checking ")(draft_tasks_.size())(
@@ -462,8 +462,8 @@ bool ActivityThread::process_drafts() noexcept
     return false;
 }
 
-ActivityThreadRowID ActivityThread::process_item(
-    const proto::StorageThreadItem& item) noexcept
+auto ActivityThread::process_item(const proto::StorageThreadItem& item) noexcept
+    -> ActivityThreadRowID
 {
     const ActivityThreadRowID id{Identifier::Factory(item.id()),
                                  static_cast<StorageBox>(item.box()),
@@ -508,9 +508,9 @@ void ActivityThread::process_thread(
     delete_inactive(active);
 }
 
-bool ActivityThread::same(
+auto ActivityThread::same(
     const ActivityThreadRowID& lhs,
-    const ActivityThreadRowID& rhs) const noexcept
+    const ActivityThreadRowID& rhs) const noexcept -> bool
 {
     const auto& [lID, lBox, lAccount] = lhs;
     const auto& [rID, rBox, rAccount] = rhs;
@@ -521,10 +521,10 @@ bool ActivityThread::same(
     return sameID && sameBox && sameAccount;
 }
 
-bool ActivityThread::send_cheque(
+auto ActivityThread::send_cheque(
     const Amount amount,
     const Identifier& sourceAccount,
-    const std::string& memo) const noexcept
+    const std::string& memo) const noexcept -> bool
 {
     participants_future_.get();
 
@@ -591,7 +591,7 @@ bool ActivityThread::send_cheque(
     return true;
 }
 
-bool ActivityThread::SendDraft() const noexcept
+auto ActivityThread::SendDraft() const noexcept -> bool
 {
     Lock draftLock(decision_lock_);
 
@@ -646,7 +646,7 @@ bool ActivityThread::SendDraft() const noexcept
     return true;
 }
 
-bool ActivityThread::SetDraft(const std::string& draft) const noexcept
+auto ActivityThread::SetDraft(const std::string& draft) const noexcept -> bool
 {
     can_message();
 
@@ -669,15 +669,15 @@ void ActivityThread::startup() noexcept
     }
 }
 
-std::string ActivityThread::ThreadID() const noexcept
+auto ActivityThread::ThreadID() const noexcept -> std::string
 {
     Lock lock(lock_);
 
     return threadID_->str();
 }
 
-bool ActivityThread::validate_account(const Identifier& sourceAccount) const
-    noexcept
+auto ActivityThread::validate_account(const Identifier& sourceAccount) const
+    noexcept -> bool
 {
     const auto owner = api_.Storage().AccountOwner(sourceAccount);
 

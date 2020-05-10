@@ -8,8 +8,8 @@
 namespace opentxs::rpc::internal
 {
 struct RPC {
-    virtual proto::RPCResponse Process(
-        const proto::RPCCommand& command) const = 0;
+    virtual auto Process(const proto::RPCCommand& command) const
+        -> proto::RPCResponse = 0;
 
     virtual ~RPC() = default;
 };

@@ -62,16 +62,16 @@ private:
 
     const bool ack_;
 
-    Acknowledgement* clone() const noexcept final
+    auto clone() const noexcept -> Acknowledgement* final
     {
         return new Acknowledgement(*this);
     }
-    SerializedType IDVersion(const Lock& lock) const final;
+    auto IDVersion(const Lock& lock) const -> SerializedType final;
 
     Acknowledgement() = delete;
     Acknowledgement(const Acknowledgement&);
     Acknowledgement(Acknowledgement&&) = delete;
-    Acknowledgement& operator=(const Acknowledgement&) = delete;
-    Acknowledgement& operator=(Acknowledgement&&) = delete;
+    auto operator=(const Acknowledgement&) -> Acknowledgement& = delete;
+    auto operator=(Acknowledgement &&) -> Acknowledgement& = delete;
 };
 }  // namespace opentxs::contract::peer::reply::implementation

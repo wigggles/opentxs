@@ -24,11 +24,11 @@ LogSource LogDebug{3};
 LogSource LogTrace{4};
 LogSource LogInsane{5};
 
-const char* PathSeparator() { return m_strPathSeparator; }
-const char* Version() { return m_strVersion; }
+auto PathSeparator() -> const char* { return m_strPathSeparator; }
+auto Version() -> const char* { return m_strVersion; }
 
 // static
-bool Sleep(const std::chrono::microseconds us)
+auto Sleep(const std::chrono::microseconds us) -> bool
 {
     auto start = std::chrono::high_resolution_clock::now();
     auto end = start + us;

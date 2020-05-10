@@ -46,8 +46,8 @@ Network::Network(
     init();
 }
 
-std::unique_ptr<block::Header> Network::instantiate_header(
-    const ReadView payload) const noexcept
+auto Network::instantiate_header(const ReadView payload) const noexcept
+    -> std::unique_ptr<block::Header>
 {
     using Type = block::Header::SerializedType;
 

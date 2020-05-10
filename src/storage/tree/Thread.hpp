@@ -50,9 +50,9 @@ private:
     std::set<std::string> participants_;
 
     void init(const std::string& hash) final;
-    bool save(const Lock& lock) const final;
-    proto::StorageThread serialize(const Lock& lock) const;
-    SortedItems sort(const Lock& lock) const;
+    auto save(const Lock& lock) const -> bool final;
+    auto serialize(const Lock& lock) const -> proto::StorageThread;
+    auto sort(const Lock& lock) const -> SortedItems;
     void upgrade(const Lock& lock);
 
     Thread(
@@ -71,29 +71,29 @@ private:
     Thread() = delete;
     Thread(const Thread&) = delete;
     Thread(Thread&&) = delete;
-    Thread operator=(const Thread&) = delete;
-    Thread operator=(Thread&&) = delete;
+    auto operator=(const Thread&) -> Thread = delete;
+    auto operator=(Thread &&) -> Thread = delete;
 
 public:
-    std::string Alias() const;
-    bool Check(const std::string& id) const;
-    std::string ID() const;
-    proto::StorageThread Items() const;
-    bool Migrate(const opentxs::api::storage::Driver& to) const final;
-    std::size_t UnreadCount() const;
+    auto Alias() const -> std::string;
+    auto Check(const std::string& id) const -> bool;
+    auto ID() const -> std::string;
+    auto Items() const -> proto::StorageThread;
+    auto Migrate(const opentxs::api::storage::Driver& to) const -> bool final;
+    auto UnreadCount() const -> std::size_t;
 
-    bool Add(
+    auto Add(
         const std::string& id,
         const std::uint64_t time,
         const StorageBox& box,
         const std::string& alias,
         const std::string& contents,
         const std::uint64_t index = 0,
-        const std::string& account = std::string(""));
-    bool Read(const std::string& id, const bool unread);
-    bool Rename(const std::string& newID);
-    bool Remove(const std::string& id);
-    bool SetAlias(const std::string& alias);
+        const std::string& account = std::string("")) -> bool;
+    auto Read(const std::string& id, const bool unread) -> bool;
+    auto Rename(const std::string& newID) -> bool;
+    auto Remove(const std::string& id) -> bool;
+    auto SetAlias(const std::string& alias) -> bool;
 
     ~Thread() final = default;
 };

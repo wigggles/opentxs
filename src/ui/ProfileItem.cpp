@@ -53,7 +53,7 @@ ProfileItem::ProfileItem(
 {
 }
 
-bool ProfileItem::add_claim(const Claim& claim) const noexcept
+auto ProfileItem::add_claim(const Claim& claim) const noexcept -> bool
 {
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
 
@@ -62,7 +62,7 @@ bool ProfileItem::add_claim(const Claim& claim) const noexcept
     return nym.AddClaim(claim, reason);
 }
 
-Claim ProfileItem::as_claim() const noexcept
+auto ProfileItem::as_claim() const noexcept -> Claim
 {
     sLock lock(shared_lock_);
     Claim output{};
@@ -83,7 +83,7 @@ Claim ProfileItem::as_claim() const noexcept
     return output;
 }
 
-bool ProfileItem::Delete() const noexcept
+auto ProfileItem::Delete() const noexcept -> bool
 {
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
 
@@ -103,7 +103,7 @@ void ProfileItem::reindex(
     OT_ASSERT(item_);
 }
 
-bool ProfileItem::SetActive(const bool& active) const noexcept
+auto ProfileItem::SetActive(const bool& active) const noexcept -> bool
 {
     Claim claim{};
     auto& attributes = std::get<6>(claim);
@@ -118,7 +118,7 @@ bool ProfileItem::SetActive(const bool& active) const noexcept
     return add_claim(claim);
 }
 
-bool ProfileItem::SetPrimary(const bool& primary) const noexcept
+auto ProfileItem::SetPrimary(const bool& primary) const noexcept -> bool
 {
     Claim claim{};
     auto& attributes = std::get<6>(claim);
@@ -133,7 +133,7 @@ bool ProfileItem::SetPrimary(const bool& primary) const noexcept
     return add_claim(claim);
 }
 
-bool ProfileItem::SetValue(const std::string& newValue) const noexcept
+auto ProfileItem::SetValue(const std::string& newValue) const noexcept -> bool
 {
     Claim claim{};
     std::get<3>(claim) = newValue;

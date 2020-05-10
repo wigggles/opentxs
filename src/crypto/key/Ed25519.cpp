@@ -24,10 +24,10 @@
 
 namespace opentxs
 {
-crypto::key::Ed25519* Factory::Ed25519Key(
+auto Factory::Ed25519Key(
     const api::internal::Core& api,
     const crypto::EcdsaProvider& ecdsa,
-    const proto::AsymmetricKey& input)
+    const proto::AsymmetricKey& input) -> crypto::key::Ed25519*
 {
     try {
 
@@ -41,12 +41,12 @@ crypto::key::Ed25519* Factory::Ed25519Key(
     }
 }
 
-crypto::key::Ed25519* Factory::Ed25519Key(
+auto Factory::Ed25519Key(
     const api::internal::Core& api,
     const crypto::EcdsaProvider& ecdsa,
     const proto::KeyRole input,
     const VersionNumber version,
-    const opentxs::PasswordPrompt& reason)
+    const opentxs::PasswordPrompt& reason) -> crypto::key::Ed25519*
 {
     try {
 
@@ -62,7 +62,7 @@ crypto::key::Ed25519* Factory::Ed25519Key(
 }
 
 #if OT_CRYPTO_WITH_BIP32
-crypto::key::Ed25519* Factory::Ed25519Key(
+auto Factory::Ed25519Key(
     const api::internal::Core& api,
     const crypto::EcdsaProvider& ecdsa,
     const OTPassword& privateKey,
@@ -72,7 +72,7 @@ crypto::key::Ed25519* Factory::Ed25519Key(
     const Bip32Fingerprint parent,
     const proto::KeyRole role,
     const VersionNumber version,
-    const opentxs::PasswordPrompt& reason)
+    const opentxs::PasswordPrompt& reason) -> crypto::key::Ed25519*
 {
     auto sessionKey = api.Symmetric().Key(reason);
 

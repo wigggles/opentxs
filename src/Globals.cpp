@@ -34,9 +34,9 @@ const std::map<opentxs::proto::ContactItemType, opentxs::blockchain::Type>
 
 namespace opentxs
 {
-bool operator==(
+auto operator==(
     const opentxs::ProtobufType& lhs,
-    const opentxs::ProtobufType& rhs) noexcept
+    const opentxs::ProtobufType& rhs) noexcept -> bool
 {
     auto sLeft = std::string{};
     auto sRight = std::string{};
@@ -46,7 +46,7 @@ bool operator==(
     return sLeft == sRight;
 }
 
-proto::ContactItemType Translate(const blockchain::Type type) noexcept
+auto Translate(const blockchain::Type type) noexcept -> proto::ContactItemType
 {
     try {
         return type_map_.at(type);
@@ -55,7 +55,7 @@ proto::ContactItemType Translate(const blockchain::Type type) noexcept
     }
 }
 
-blockchain::Type Translate(const proto::ContactItemType type) noexcept
+auto Translate(const proto::ContactItemType type) noexcept -> blockchain::Type
 {
     try {
         return type_reverse_map_.at(type);

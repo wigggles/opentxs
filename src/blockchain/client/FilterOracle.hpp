@@ -212,7 +212,7 @@ private:
     FilterOracle() = delete;
     FilterOracle(const FilterOracle&) = delete;
     FilterOracle(FilterOracle&&) = delete;
-    FilterOracle& operator=(const FilterOracle&) = delete;
-    FilterOracle& operator=(FilterOracle&&) = delete;
+    auto operator=(const FilterOracle&) -> FilterOracle& = delete;
+    auto operator=(FilterOracle &&) -> FilterOracle& = delete;
 };
 }  // namespace opentxs::blockchain::client::implementation

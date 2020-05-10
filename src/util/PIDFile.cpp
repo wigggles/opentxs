@@ -40,7 +40,7 @@
 
 namespace opentxs
 {
-opentxs::PIDFile* Factory::PIDFile(const std::string& path)
+auto Factory::PIDFile(const std::string& path) -> opentxs::PIDFile*
 {
     return new implementation::PIDFile(path);
 }
@@ -65,7 +65,7 @@ PIDFile::PIDFile(const std::string& path)
     }
 }
 
-bool PIDFile::can_recover(std::uint32_t pid)
+auto PIDFile::can_recover(std::uint32_t pid) -> bool
 {
 #ifdef OT_CHECK_PID
     while (waitpid(-1, nullptr, WNOHANG) > 0) {

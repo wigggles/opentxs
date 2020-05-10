@@ -11,11 +11,11 @@
 namespace opentxs::identity::internal
 {
 struct Authority : virtual public identity::Authority {
-    static VersionNumber NymToContactCredential(
-        const VersionNumber nym) noexcept(false);
+    static auto NymToContactCredential(const VersionNumber nym) noexcept(false)
+        -> VersionNumber;
 
-    virtual const credential::Primary& GetMasterCredential() const = 0;
-    virtual bool WriteCredentials() const = 0;
+    virtual auto GetMasterCredential() const -> const credential::Primary& = 0;
+    virtual auto WriteCredentials() const -> bool = 0;
 
     virtual ~Authority() = default;
 };
@@ -25,8 +25,9 @@ struct Nym : virtual public identity::Nym {
         Full = false,
     };
 
-    virtual Serialized SerializeCredentialIndex(const Mode mode) const = 0;
-    virtual bool WriteCredentials() const = 0;
+    virtual auto SerializeCredentialIndex(const Mode mode) const
+        -> Serialized = 0;
+    virtual auto WriteCredentials() const -> bool = 0;
 
     virtual void SetAlias(const std::string& alias) = 0;
     virtual void SetAliasStartup(const std::string& alias) = 0;

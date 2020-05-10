@@ -113,7 +113,7 @@ private:
     Script() = delete;
     Script(const Script&) = delete;
     Script(Script&&) = delete;
-    Script& operator=(const Script&) = delete;
-    Script& operator=(Script&&) = delete;
+    auto operator=(const Script&) -> Script& = delete;
+    auto operator=(Script &&) -> Script& = delete;
 };
 }  // namespace opentxs::blockchain::block::bitcoin::implementation

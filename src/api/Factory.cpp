@@ -111,38 +111,38 @@ Factory::Factory(const api::internal::Core& api)
     OT_ASSERT(pSymmetric_);
 }
 
-OTArmored Factory::Armored() const
+auto Factory::Armored() const -> OTArmored
 {
     return OTArmored{opentxs::Factory::Armored()};
 }
 
-OTArmored Factory::Armored(const std::string& input) const
+auto Factory::Armored(const std::string& input) const -> OTArmored
 {
     return OTArmored{opentxs::Factory::Armored(String::Factory(input.c_str()))};
 }
 
-OTArmored Factory::Armored(const opentxs::Data& input) const
+auto Factory::Armored(const opentxs::Data& input) const -> OTArmored
 {
     return OTArmored{opentxs::Factory::Armored(input)};
 }
 
-OTArmored Factory::Armored(const opentxs::String& input) const
+auto Factory::Armored(const opentxs::String& input) const -> OTArmored
 {
     return OTArmored{opentxs::Factory::Armored(input)};
 }
 
-OTArmored Factory::Armored(const opentxs::crypto::Envelope& input) const
+auto Factory::Armored(const opentxs::crypto::Envelope& input) const -> OTArmored
 {
     return OTArmored{opentxs::Factory::Armored(input)};
 }
 
-OTArmored Factory::Armored(const ProtobufType& input) const
+auto Factory::Armored(const ProtobufType& input) const -> OTArmored
 {
     return OTArmored{opentxs::Factory::Armored(Data(input))};
 }
 
-OTString Factory::Armored(const ProtobufType& input, const std::string& header)
-    const
+auto Factory::Armored(const ProtobufType& input, const std::string& header)
+    const -> OTString
 {
     auto armored = Armored(Data(input));
     auto output = String::Factory();
@@ -151,11 +151,11 @@ OTString Factory::Armored(const ProtobufType& input, const std::string& header)
     return output;
 }
 
-OTAsymmetricKey Factory::AsymmetricKey(
+auto Factory::AsymmetricKey(
     const NymParameters& params,
     const opentxs::PasswordPrompt& reason,
     const proto::KeyRole role,
-    const VersionNumber version) const
+    const VersionNumber version) const -> OTAsymmetricKey
 {
     auto output = asymmetric_.NewKey(params, reason, role, version).release();
 
@@ -166,8 +166,8 @@ OTAsymmetricKey Factory::AsymmetricKey(
     }
 }
 
-OTAsymmetricKey Factory::AsymmetricKey(
-    const proto::AsymmetricKey& serialized) const
+auto Factory::AsymmetricKey(const proto::AsymmetricKey& serialized) const
+    -> OTAsymmetricKey
 {
     auto output = asymmetric_.InstantiateKey(serialized).release();
 
@@ -285,7 +285,7 @@ auto Factory::BailmentRequest(
     }
 }
 
-std::unique_ptr<opentxs::Basket> Factory::Basket() const
+auto Factory::Basket() const -> std::unique_ptr<opentxs::Basket>
 {
     std::unique_ptr<opentxs::Basket> basket;
     basket.reset(new opentxs::Basket(api_));
@@ -293,9 +293,8 @@ std::unique_ptr<opentxs::Basket> Factory::Basket() const
     return basket;
 }
 
-std::unique_ptr<opentxs::Basket> Factory::Basket(
-    std::int32_t nCount,
-    std::int64_t lMinimumTransferAmount) const
+auto Factory::Basket(std::int32_t nCount, std::int64_t lMinimumTransferAmount)
+    const -> std::unique_ptr<opentxs::Basket>
 {
     std::unique_ptr<opentxs::Basket> basket;
     basket.reset(new opentxs::Basket(api_, nCount, lMinimumTransferAmount));
@@ -486,7 +485,7 @@ auto Factory::BitcoinScriptP2SH(
     return opentxs::Factory::BitcoinScript(std::move(elements));
 }
 
-OTBlockchainAddress Factory::BlockchainAddress(
+auto Factory::BlockchainAddress(
     const blockchain::p2p::Protocol protocol,
     const blockchain::p2p::Network network,
     const opentxs::Data& bytes,
@@ -494,6 +493,7 @@ OTBlockchainAddress Factory::BlockchainAddress(
     const blockchain::Type chain,
     const Time lastConnected,
     const std::set<blockchain::p2p::Service>& services) const
+    -> OTBlockchainAddress
 {
     return OTBlockchainAddress{opentxs::Factory::BlockchainAddress(
                                    api_,
@@ -507,15 +507,16 @@ OTBlockchainAddress Factory::BlockchainAddress(
                                    .release()};
 }
 
-OTBlockchainAddress Factory::BlockchainAddress(
+auto Factory::BlockchainAddress(
     const blockchain::p2p::Address::SerializedType& serialized) const
+    -> OTBlockchainAddress
 {
     return OTBlockchainAddress{
         opentxs::Factory::BlockchainAddress(api_, serialized).release()};
 }
 
-std::unique_ptr<blockchain::block::Header> Factory::BlockHeader(
-    const proto::BlockchainBlockHeader& serialized) const
+auto Factory::BlockHeader(const proto::BlockchainBlockHeader& serialized) const
+    -> std::unique_ptr<blockchain::block::Header>
 {
     if (false == proto::Validate(serialized, VERBOSE)) { return {}; }
 
@@ -539,9 +540,8 @@ std::unique_ptr<blockchain::block::Header> Factory::BlockHeader(
     }
 }
 
-std::unique_ptr<blockchain::block::Header> Factory::BlockHeader(
-    const blockchain::Type type,
-    const opentxs::Data& raw) const
+auto Factory::BlockHeader(const blockchain::Type type, const opentxs::Data& raw)
+    const -> std::unique_ptr<blockchain::block::Header>
 {
     switch (type) {
         case blockchain::Type::Bitcoin:
@@ -561,11 +561,12 @@ std::unique_ptr<blockchain::block::Header> Factory::BlockHeader(
     }
 }
 
-std::unique_ptr<blockchain::block::Header> Factory::BlockHeader(
+auto Factory::BlockHeader(
     const blockchain::Type type,
     const blockchain::block::Hash& hash,
     const blockchain::block::Hash& parent,
     const blockchain::block::Height height) const
+    -> std::unique_ptr<blockchain::block::Header>
 {
     switch (type) {
         case blockchain::Type::Bitcoin:
@@ -587,7 +588,7 @@ std::unique_ptr<blockchain::block::Header> Factory::BlockHeader(
 }
 #endif  // OT_BLOCKCHAIN
 
-std::unique_ptr<OTPassword> Factory::BinarySecret() const
+auto Factory::BinarySecret() const -> std::unique_ptr<OTPassword>
 {
     auto output = std::make_unique<OTPassword>();
 
@@ -600,8 +601,8 @@ std::unique_ptr<OTPassword> Factory::BinarySecret() const
     return output;
 }
 
-std::unique_ptr<opentxs::Cheque> Factory::Cheque(
-    const OTTransaction& receipt) const
+auto Factory::Cheque(const OTTransaction& receipt) const
+    -> std::unique_ptr<opentxs::Cheque>
 {
     std::unique_ptr<opentxs::Cheque> output{new opentxs::Cheque{api_}};
 
@@ -627,7 +628,7 @@ std::unique_ptr<opentxs::Cheque> Factory::Cheque(
     return output;
 }
 
-std::unique_ptr<opentxs::Cheque> Factory::Cheque() const
+auto Factory::Cheque() const -> std::unique_ptr<opentxs::Cheque>
 {
     std::unique_ptr<opentxs::Cheque> cheque;
     cheque.reset(new opentxs::Cheque(api_));
@@ -635,9 +636,10 @@ std::unique_ptr<opentxs::Cheque> Factory::Cheque() const
     return cheque;
 }
 
-std::unique_ptr<opentxs::Cheque> Factory::Cheque(
+auto Factory::Cheque(
     const identifier::Server& NOTARY_ID,
     const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID) const
+    -> std::unique_ptr<opentxs::Cheque>
 {
     std::unique_ptr<opentxs::Cheque> cheque;
     cheque.reset(
@@ -725,8 +727,8 @@ auto Factory::ConnectionRequest(
     }
 }
 
-std::unique_ptr<opentxs::Contract> Factory::Contract(
-    const opentxs::String& strInput) const
+auto Factory::Contract(const opentxs::String& strInput) const
+    -> std::unique_ptr<opentxs::Contract>
 {
 
     using namespace opentxs;
@@ -804,9 +806,10 @@ std::unique_ptr<opentxs::Contract> Factory::Contract(
     return nullptr;
 }
 
-std::unique_ptr<OTCron> Factory::Cron() const { return {}; }
+auto Factory::Cron() const -> std::unique_ptr<OTCron> { return {}; }
 
-std::unique_ptr<OTCronItem> Factory::CronItem(const String& strCronItem) const
+auto Factory::CronItem(const String& strCronItem) const
+    -> std::unique_ptr<OTCronItem>
 {
     std::array<char, 45> buf{};
 
@@ -917,14 +920,14 @@ auto Factory::CurrencyContract(
     }
 }
 
-OTData Factory::Data() const { return Data::Factory(); }
+auto Factory::Data() const -> OTData { return Data::Factory(); }
 
-OTData Factory::Data(const opentxs::Armored& input) const
+auto Factory::Data(const opentxs::Armored& input) const -> OTData
 {
     return Data::Factory(input);
 }
 
-OTData Factory::Data(const ProtobufType& input) const
+auto Factory::Data(const ProtobufType& input) const -> OTData
 {
     auto output = Data::Factory();
     output->SetSize(input.ByteSize());
@@ -933,37 +936,38 @@ OTData Factory::Data(const ProtobufType& input) const
     return output;
 }
 
-OTData Factory::Data(const opentxs::network::zeromq::Frame& input) const
+auto Factory::Data(const opentxs::network::zeromq::Frame& input) const -> OTData
 {
     return Data::Factory(input);
 }
 
-OTData Factory::Data(const std::uint8_t input) const
+auto Factory::Data(const std::uint8_t input) const -> OTData
 {
     return Data::Factory(input);
 }
 
-OTData Factory::Data(const std::uint32_t input) const
+auto Factory::Data(const std::uint32_t input) const -> OTData
 {
     return Data::Factory(input);
 }
 
-OTData Factory::Data(const std::string input, const StringStyle mode) const
+auto Factory::Data(const std::string input, const StringStyle mode) const
+    -> OTData
 {
     return Data::Factory(input, static_cast<Data::Mode>(mode));
 }
 
-OTData Factory::Data(const std::vector<unsigned char>& input) const
+auto Factory::Data(const std::vector<unsigned char>& input) const -> OTData
 {
     return Data::Factory(input);
 }
 
-OTData Factory::Data(const std::vector<std::byte>& input) const
+auto Factory::Data(const std::vector<std::byte>& input) const -> OTData
 {
     return Data::Factory(input);
 }
 
-OTData Factory::Data(ReadView input) const
+auto Factory::Data(ReadView input) const -> OTData
 {
     return Data::Factory(input.data(), input.size());
 }
@@ -997,29 +1001,34 @@ auto Factory::Envelope(
     return OTEnvelope{opentxs::Factory::Envelope(api_, serialized).release()};
 }
 
-OTIdentifier Factory::Identifier() const { return Identifier::Factory(); }
+auto Factory::Identifier() const -> OTIdentifier
+{
+    return Identifier::Factory();
+}
 
-OTIdentifier Factory::Identifier(const std::string& serialized) const
+auto Factory::Identifier(const std::string& serialized) const -> OTIdentifier
 {
     return Identifier::Factory(serialized);
 }
 
-OTIdentifier Factory::Identifier(const opentxs::String& serialized) const
+auto Factory::Identifier(const opentxs::String& serialized) const
+    -> OTIdentifier
 {
     return Identifier::Factory(serialized);
 }
 
-OTIdentifier Factory::Identifier(const opentxs::Contract& contract) const
+auto Factory::Identifier(const opentxs::Contract& contract) const
+    -> OTIdentifier
 {
     return Identifier::Factory(contract);
 }
 
-OTIdentifier Factory::Identifier(const opentxs::Item& item) const
+auto Factory::Identifier(const opentxs::Item& item) const -> OTIdentifier
 {
     return Identifier::Factory(item);
 }
 
-OTIdentifier Factory::Identifier(const ReadView bytes) const
+auto Factory::Identifier(const ReadView bytes) const -> OTIdentifier
 {
     auto output = this->Identifier();
     output->CalculateDigest(bytes);
@@ -1027,7 +1036,7 @@ OTIdentifier Factory::Identifier(const ReadView bytes) const
     return output;
 }
 
-OTIdentifier Factory::Identifier(const ProtobufType& proto) const
+auto Factory::Identifier(const ProtobufType& proto) const -> OTIdentifier
 {
     const auto bytes = Data(proto);
 
@@ -1061,13 +1070,14 @@ auto Factory::instantiate_secp256k1(const ReadView key) const noexcept
 }
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 
-std::unique_ptr<opentxs::Item> Factory::Item(
-    const std::string& serialized) const
+auto Factory::Item(const std::string& serialized) const
+    -> std::unique_ptr<opentxs::Item>
 {
     return Item(String::Factory(serialized));
 }
 
-std::unique_ptr<opentxs::Item> Factory::Item(const String& serialized) const
+auto Factory::Item(const String& serialized) const
+    -> std::unique_ptr<opentxs::Item>
 {
     std::unique_ptr<opentxs::Item> output{new opentxs::Item(api_)};
 
@@ -1086,9 +1096,9 @@ std::unique_ptr<opentxs::Item> Factory::Item(const String& serialized) const
     return output;
 }
 
-std::unique_ptr<opentxs::Item> Factory::Item(
+auto Factory::Item(
     const identifier::Nym& theNymID,
-    const opentxs::Item& theOwner) const
+    const opentxs::Item& theOwner) const -> std::unique_ptr<opentxs::Item>
 {
     std::unique_ptr<opentxs::Item> item;
     item.reset(new opentxs::Item(api_, theNymID, theOwner));
@@ -1096,9 +1106,9 @@ std::unique_ptr<opentxs::Item> Factory::Item(
     return item;
 }
 
-std::unique_ptr<opentxs::Item> Factory::Item(
+auto Factory::Item(
     const identifier::Nym& theNymID,
-    const OTTransaction& theOwner) const
+    const OTTransaction& theOwner) const -> std::unique_ptr<opentxs::Item>
 {
     std::unique_ptr<opentxs::Item> item;
     item.reset(new opentxs::Item(api_, theNymID, theOwner));
@@ -1106,11 +1116,12 @@ std::unique_ptr<opentxs::Item> Factory::Item(
     return item;
 }
 
-std::unique_ptr<opentxs::Item> Factory::Item(
+auto Factory::Item(
     const identifier::Nym& theNymID,
     const OTTransaction& theOwner,
     itemType theType,
     const opentxs::Identifier& pDestinationAcctID) const
+    -> std::unique_ptr<opentxs::Item>
 {
     std::unique_ptr<opentxs::Item> item;
     item.reset(new opentxs::Item(
@@ -1126,10 +1137,10 @@ std::unique_ptr<opentxs::Item> Factory::Item(
 // of time, sometimes. In those cases, we set the values appropriately but then
 // we need
 // to verify that the user ID is actually the owner of the AccountID. TOdo that.
-std::unique_ptr<opentxs::Item> Factory::Item(
+auto Factory::Item(
     const String& strItem,
     const identifier::Server& theNotaryID,
-    std::int64_t lTransactionNumber) const
+    std::int64_t lTransactionNumber) const -> std::unique_ptr<opentxs::Item>
 {
     if (!strItem.Exists()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": strItem is empty. (Expected an "
@@ -1174,10 +1185,11 @@ std::unique_ptr<opentxs::Item> Factory::Item(
 // you are creating this item yourself, not verifying it from someone else.
 // Use this function to create the new Item before you add it to your new
 // Transaction.
-std::unique_ptr<opentxs::Item> Factory::Item(
+auto Factory::Item(
     const OTTransaction& theOwner,
     itemType theType,
     const opentxs::Identifier& pDestinationAcctID) const
+    -> std::unique_ptr<opentxs::Item>
 {
     std::unique_ptr<opentxs::Item> pItem{new opentxs::Item(
         api_, theOwner.GetNymID(), theOwner, theType, pDestinationAcctID)};
@@ -1190,11 +1202,11 @@ std::unique_ptr<opentxs::Item> Factory::Item(
     return nullptr;
 }
 
-OTKeypair Factory::Keypair(
+auto Factory::Keypair(
     const NymParameters& params,
     const VersionNumber version,
     const proto::KeyRole role,
-    const opentxs::PasswordPrompt& reason) const
+    const opentxs::PasswordPrompt& reason) const -> OTKeypair
 {
     auto pPrivateKey = asymmetric_.NewKey(params, reason, role, version);
 
@@ -1225,9 +1237,9 @@ OTKeypair Factory::Keypair(
     }
 }
 
-OTKeypair Factory::Keypair(
+auto Factory::Keypair(
     const proto::AsymmetricKey& serializedPubkey,
-    const proto::AsymmetricKey& serializedPrivkey) const
+    const proto::AsymmetricKey& serializedPrivkey) const -> OTKeypair
 {
     auto pPrivateKey = asymmetric_.InstantiateKey(serializedPrivkey);
 
@@ -1260,7 +1272,8 @@ OTKeypair Factory::Keypair(
     }
 }
 
-OTKeypair Factory::Keypair(const proto::AsymmetricKey& serializedPubkey) const
+auto Factory::Keypair(const proto::AsymmetricKey& serializedPubkey) const
+    -> OTKeypair
 {
     auto pPublicKey = asymmetric_.InstantiateKey(serializedPubkey);
 
@@ -1285,14 +1298,14 @@ OTKeypair Factory::Keypair(const proto::AsymmetricKey& serializedPubkey) const
 }
 
 #if OT_CRYPTO_WITH_BIP32
-OTKeypair Factory::Keypair(
+auto Factory::Keypair(
     const std::string& fingerprint,
     const Bip32Index nym,
     const Bip32Index credset,
     const Bip32Index credindex,
     const EcdsaCurve& curve,
     const proto::KeyRole role,
-    const opentxs::PasswordPrompt& reason) const
+    const opentxs::PasswordPrompt& reason) const -> OTKeypair
 {
     auto input(fingerprint);
     auto roleIndex = Bip32Index{0};
@@ -1350,9 +1363,10 @@ OTKeypair Factory::Keypair(
 }
 #endif  // OT_CRYPTO_WITH_BIP32
 
-std::unique_ptr<opentxs::Ledger> Factory::Ledger(
+auto Factory::Ledger(
     const opentxs::Identifier& theAccountID,
     const identifier::Server& theNotaryID) const
+    -> std::unique_ptr<opentxs::Ledger>
 {
     std::unique_ptr<opentxs::Ledger> ledger;
     ledger.reset(new opentxs::Ledger(api_, theAccountID, theNotaryID));
@@ -1360,10 +1374,11 @@ std::unique_ptr<opentxs::Ledger> Factory::Ledger(
     return ledger;
 }
 
-std::unique_ptr<opentxs::Ledger> Factory::Ledger(
+auto Factory::Ledger(
     const identifier::Nym& theNymID,
     const opentxs::Identifier& theAccountID,
     const identifier::Server& theNotaryID) const
+    -> std::unique_ptr<opentxs::Ledger>
 {
     std::unique_ptr<opentxs::Ledger> ledger;
     ledger.reset(
@@ -1372,12 +1387,12 @@ std::unique_ptr<opentxs::Ledger> Factory::Ledger(
     return ledger;
 }
 
-std::unique_ptr<opentxs::Ledger> Factory::Ledger(
+auto Factory::Ledger(
     const identifier::Nym& theNymID,
     const opentxs::Identifier& theAcctID,
     const identifier::Server& theNotaryID,
     ledgerType theType,
-    bool bCreateFile) const
+    bool bCreateFile) const -> std::unique_ptr<opentxs::Ledger>
 {
     std::unique_ptr<opentxs::Ledger> ledger;
     ledger.reset(new opentxs::Ledger(api_, theNymID, theAcctID, theNotaryID));
@@ -1388,7 +1403,7 @@ std::unique_ptr<opentxs::Ledger> Factory::Ledger(
     return ledger;
 }
 
-std::unique_ptr<OTMarket> Factory::Market() const
+auto Factory::Market() const -> std::unique_ptr<OTMarket>
 {
     std::unique_ptr<opentxs::OTMarket> market;
     market.reset(new opentxs::OTMarket(api_));
@@ -1396,7 +1411,7 @@ std::unique_ptr<OTMarket> Factory::Market() const
     return market;
 }
 
-std::unique_ptr<OTMarket> Factory::Market(const char* szFilename) const
+auto Factory::Market(const char* szFilename) const -> std::unique_ptr<OTMarket>
 {
     std::unique_ptr<opentxs::OTMarket> market;
     market.reset(new opentxs::OTMarket(api_, szFilename));
@@ -1404,11 +1419,11 @@ std::unique_ptr<OTMarket> Factory::Market(const char* szFilename) const
     return market;
 }
 
-std::unique_ptr<OTMarket> Factory::Market(
+auto Factory::Market(
     const identifier::Server& NOTARY_ID,
     const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID,
     const identifier::UnitDefinition& CURRENCY_TYPE_ID,
-    const std::int64_t& lScale) const
+    const std::int64_t& lScale) const -> std::unique_ptr<OTMarket>
 {
     std::unique_ptr<opentxs::OTMarket> market;
     market.reset(new opentxs::OTMarket(
@@ -1417,7 +1432,7 @@ std::unique_ptr<OTMarket> Factory::Market(
     return market;
 }
 
-std::unique_ptr<opentxs::Message> Factory::Message() const
+auto Factory::Message() const -> std::unique_ptr<opentxs::Message>
 {
     std::unique_ptr<opentxs::Message> message;
     message.reset(new opentxs::Message(api_));
@@ -1426,7 +1441,7 @@ std::unique_ptr<opentxs::Message> Factory::Message() const
 }
 
 #if OT_CASH
-std::unique_ptr<blind::Mint> Factory::Mint() const
+auto Factory::Mint() const -> std::unique_ptr<blind::Mint>
 {
     std::unique_ptr<blind::Mint> pMint;
 
@@ -1445,9 +1460,10 @@ std::unique_ptr<blind::Mint> Factory::Mint() const
     return pMint;
 }
 
-std::unique_ptr<blind::Mint> Factory::Mint(
+auto Factory::Mint(
     const String& strNotaryID,
     const String& strInstrumentDefinitionID) const
+    -> std::unique_ptr<blind::Mint>
 {
     std::unique_ptr<blind::Mint> pMint;
 
@@ -1466,10 +1482,11 @@ std::unique_ptr<blind::Mint> Factory::Mint(
     return pMint;
 }
 
-std::unique_ptr<blind::Mint> Factory::Mint(
+auto Factory::Mint(
     const String& strNotaryID,
     const String& strServerNymID,
     const String& strInstrumentDefinitionID) const
+    -> std::unique_ptr<blind::Mint>
 {
     std::unique_ptr<blind::Mint> pMint;
 
@@ -1489,19 +1506,19 @@ std::unique_ptr<blind::Mint> Factory::Mint(
 }
 #endif
 
-OTNymID Factory::NymID() const { return identifier::Nym::Factory(); }
+auto Factory::NymID() const -> OTNymID { return identifier::Nym::Factory(); }
 
-OTNymID Factory::NymID(const std::string& serialized) const
+auto Factory::NymID(const std::string& serialized) const -> OTNymID
 {
     return identifier::Nym::Factory(serialized);
 }
 
-OTNymID Factory::NymID(const opentxs::String& serialized) const
+auto Factory::NymID(const opentxs::String& serialized) const -> OTNymID
 {
     return identifier::Nym::Factory(serialized);
 }
 
-OTNymID Factory::NymIDFromPaymentCode(const std::string& input) const
+auto Factory::NymIDFromPaymentCode(const std::string& input) const -> OTNymID
 {
     auto output = NymID();
     auto key = Data::Factory();
@@ -1515,7 +1532,7 @@ OTNymID Factory::NymIDFromPaymentCode(const std::string& input) const
     return output;
 }
 
-std::unique_ptr<OTOffer> Factory::Offer() const
+auto Factory::Offer() const -> std::unique_ptr<OTOffer>
 {
     std::unique_ptr<OTOffer> offer;
     offer.reset(new OTOffer(api_));
@@ -1523,11 +1540,11 @@ std::unique_ptr<OTOffer> Factory::Offer() const
     return offer;
 }
 
-std::unique_ptr<OTOffer> Factory::Offer(
+auto Factory::Offer(
     const identifier::Server& NOTARY_ID,
     const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID,
     const identifier::UnitDefinition& CURRENCY_ID,
-    const std::int64_t& MARKET_SCALE) const
+    const std::int64_t& MARKET_SCALE) const -> std::unique_ptr<OTOffer>
 {
     std::unique_ptr<OTOffer> offer;
     offer.reset(new OTOffer(
@@ -1603,12 +1620,12 @@ auto Factory::OutbailmentRequest(
     }
 }
 
-OTPasswordPrompt Factory::PasswordPrompt(const std::string& text) const
+auto Factory::PasswordPrompt(const std::string& text) const -> OTPasswordPrompt
 {
     return OTPasswordPrompt{opentxs::Factory::PasswordPrompt(api_, text)};
 }
 
-std::unique_ptr<OTPayment> Factory::Payment() const
+auto Factory::Payment() const -> std::unique_ptr<OTPayment>
 {
     std::unique_ptr<OTPayment> payment;
     payment.reset(new OTPayment(api_));
@@ -1616,7 +1633,8 @@ std::unique_ptr<OTPayment> Factory::Payment() const
     return payment;
 }
 
-std::unique_ptr<OTPayment> Factory::Payment(const String& strPayment) const
+auto Factory::Payment(const String& strPayment) const
+    -> std::unique_ptr<OTPayment>
 {
     std::unique_ptr<OTPayment> payment;
     payment.reset(new OTPayment(api_, strPayment));
@@ -1624,9 +1642,9 @@ std::unique_ptr<OTPayment> Factory::Payment(const String& strPayment) const
     return payment;
 }
 
-std::unique_ptr<OTPayment> Factory::Payment(
+auto Factory::Payment(
     const opentxs::Contract& contract,
-    const opentxs::PasswordPrompt& reason) const
+    const opentxs::PasswordPrompt& reason) const -> std::unique_ptr<OTPayment>
 {
     auto payment = Factory::Payment(String::Factory(contract));
 
@@ -1736,7 +1754,7 @@ auto Factory::PaymentCode(
 }
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1 && OT_CRYPTO_WITH_BIP32
 
-std::unique_ptr<OTPaymentPlan> Factory::PaymentPlan() const
+auto Factory::PaymentPlan() const -> std::unique_ptr<OTPaymentPlan>
 {
     std::unique_ptr<OTPaymentPlan> paymentplan;
     paymentplan.reset(new OTPaymentPlan(api_));
@@ -1744,9 +1762,10 @@ std::unique_ptr<OTPaymentPlan> Factory::PaymentPlan() const
     return paymentplan;
 }
 
-std::unique_ptr<OTPaymentPlan> Factory::PaymentPlan(
+auto Factory::PaymentPlan(
     const identifier::Server& NOTARY_ID,
     const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID) const
+    -> std::unique_ptr<OTPaymentPlan>
 {
     std::unique_ptr<OTPaymentPlan> paymentplan;
     paymentplan.reset(
@@ -1755,13 +1774,14 @@ std::unique_ptr<OTPaymentPlan> Factory::PaymentPlan(
     return paymentplan;
 }
 
-std::unique_ptr<OTPaymentPlan> Factory::PaymentPlan(
+auto Factory::PaymentPlan(
     const identifier::Server& NOTARY_ID,
     const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID,
     const opentxs::Identifier& SENDER_ACCT_ID,
     const identifier::Nym& SENDER_NYM_ID,
     const opentxs::Identifier& RECIPIENT_ACCT_ID,
     const identifier::Nym& RECIPIENT_NYM_ID) const
+    -> std::unique_ptr<OTPaymentPlan>
 {
     std::unique_ptr<OTPaymentPlan> paymentplan;
     paymentplan.reset(new OTPaymentPlan(
@@ -1776,9 +1796,10 @@ std::unique_ptr<OTPaymentPlan> Factory::PaymentPlan(
     return paymentplan;
 }
 
-std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
+auto Factory::PeerObject(
     [[maybe_unused]] const Nym_p& senderNym,
     [[maybe_unused]] const std::string& message) const
+    -> std::unique_ptr<opentxs::PeerObject>
 {
     LogOutput(OT_METHOD)(__FUNCTION__)(
         ": Peer objects are only supported in client sessions")
@@ -1787,10 +1808,11 @@ std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
     return {};
 }
 
-std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
+auto Factory::PeerObject(
     [[maybe_unused]] const Nym_p& senderNym,
     [[maybe_unused]] const std::string& payment,
     [[maybe_unused]] const bool isPayment) const
+    -> std::unique_ptr<opentxs::PeerObject>
 {
     LogOutput(OT_METHOD)(__FUNCTION__)(
         ": Peer objects are only supported in client sessions")
@@ -1800,9 +1822,10 @@ std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
 }
 
 #if OT_CASH
-std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
+auto Factory::PeerObject(
     [[maybe_unused]] const Nym_p& senderNym,
     [[maybe_unused]] const std::shared_ptr<blind::Purse> purse) const
+    -> std::unique_ptr<opentxs::PeerObject>
 {
     LogOutput(OT_METHOD)(__FUNCTION__)(
         ": Peer objects are only supported in client sessions")
@@ -1812,10 +1835,11 @@ std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
 }
 #endif
 
-std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
+auto Factory::PeerObject(
     [[maybe_unused]] const OTPeerRequest request,
     [[maybe_unused]] const OTPeerReply reply,
     [[maybe_unused]] const VersionNumber version) const
+    -> std::unique_ptr<opentxs::PeerObject>
 {
     LogOutput(OT_METHOD)(__FUNCTION__)(
         ": Peer objects are only supported in client sessions")
@@ -1824,9 +1848,10 @@ std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
     return {};
 }
 
-std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
+auto Factory::PeerObject(
     [[maybe_unused]] const OTPeerRequest request,
     [[maybe_unused]] const VersionNumber version) const
+    -> std::unique_ptr<opentxs::PeerObject>
 {
     LogOutput(OT_METHOD)(__FUNCTION__)(
         ": Peer objects are only supported in client sessions")
@@ -1835,9 +1860,10 @@ std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
     return {};
 }
 
-std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
+auto Factory::PeerObject(
     [[maybe_unused]] const Nym_p& signerNym,
     [[maybe_unused]] const proto::PeerObject& serialized) const
+    -> std::unique_ptr<opentxs::PeerObject>
 {
     LogOutput(OT_METHOD)(__FUNCTION__)(
         ": Peer objects are only supported in client sessions")
@@ -1846,10 +1872,11 @@ std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
     return {};
 }
 
-std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
+auto Factory::PeerObject(
     [[maybe_unused]] const Nym_p& recipientNym,
     [[maybe_unused]] const opentxs::Armored& encrypted,
     [[maybe_unused]] const opentxs::PasswordPrompt& reason) const
+    -> std::unique_ptr<opentxs::PeerObject>
 {
     LogOutput(OT_METHOD)(__FUNCTION__)(
         ": Peer objects are only supported in client sessions")
@@ -1929,39 +1956,40 @@ auto Factory::PeerRequest(
     }
 }
 
-OTZMQPipeline Factory::Pipeline(
+auto Factory::Pipeline(
     std::function<void(opentxs::network::zeromq::Message&)> callback) const
+    -> OTZMQPipeline
 {
     return OTZMQPipeline{
         opentxs::Factory::Pipeline(api_, api_.ZeroMQ(), callback)};
 }
 
 #if OT_CASH
-std::unique_ptr<blind::Purse> Factory::Purse(
+auto Factory::Purse(
     const ServerContext& context,
     const identifier::UnitDefinition& unit,
     const blind::Mint& mint,
     const Amount totalValue,
     const opentxs::PasswordPrompt& reason,
-    const proto::CashType type) const
+    const proto::CashType type) const -> std::unique_ptr<blind::Purse>
 {
     return std::unique_ptr<blind::Purse>(
         opentxs::Factory::Purse(api_, context, type, mint, totalValue, reason));
 }
 
-std::unique_ptr<blind::Purse> Factory::Purse(
-    const proto::Purse& serialized) const
+auto Factory::Purse(const proto::Purse& serialized) const
+    -> std::unique_ptr<blind::Purse>
 {
     return std::unique_ptr<blind::Purse>(
         opentxs::Factory::Purse(api_, serialized));
 }
 
-std::unique_ptr<blind::Purse> Factory::Purse(
+auto Factory::Purse(
     const identity::Nym& owner,
     const identifier::Server& server,
     const identifier::UnitDefinition& unit,
     const opentxs::PasswordPrompt& reason,
-    const proto::CashType type) const
+    const proto::CashType type) const -> std::unique_ptr<blind::Purse>
 {
     return std::unique_ptr<blind::Purse>(
         opentxs::Factory::Purse(api_, owner, server, unit, type, reason));
@@ -2003,7 +2031,8 @@ auto Factory::ReplyAcknowledgement(
     }
 }
 
-std::unique_ptr<OTScriptable> Factory::Scriptable(const String& strInput) const
+auto Factory::Scriptable(const String& strInput) const
+    -> std::unique_ptr<OTScriptable>
 {
     std::array<char, 45> buf{};
 
@@ -2115,19 +2144,22 @@ auto Factory::ServerContract() const noexcept(false) -> OTServerContract
     return OTServerContract{opentxs::Factory::ServerContract(api_)};
 }
 
-OTServerID Factory::ServerID() const { return identifier::Server::Factory(); }
+auto Factory::ServerID() const -> OTServerID
+{
+    return identifier::Server::Factory();
+}
 
-OTServerID Factory::ServerID(const std::string& serialized) const
+auto Factory::ServerID(const std::string& serialized) const -> OTServerID
 {
     return identifier::Server::Factory(serialized);
 }
 
-OTServerID Factory::ServerID(const opentxs::String& serialized) const
+auto Factory::ServerID(const opentxs::String& serialized) const -> OTServerID
 {
     return identifier::Server::Factory(serialized);
 }
 
-std::unique_ptr<OTSignedFile> Factory::SignedFile() const
+auto Factory::SignedFile() const -> std::unique_ptr<OTSignedFile>
 {
     std::unique_ptr<OTSignedFile> signedfile;
     signedfile.reset(new OTSignedFile(api_));
@@ -2135,28 +2167,16 @@ std::unique_ptr<OTSignedFile> Factory::SignedFile() const
     return signedfile;
 }
 
-std::unique_ptr<OTSignedFile> Factory::SignedFile(
-    const String& LOCAL_SUBDIR,
-    const String& FILE_NAME) const
+auto Factory::SignedFile(const String& LOCAL_SUBDIR, const String& FILE_NAME)
+    const -> std::unique_ptr<OTSignedFile>
 {
     std::unique_ptr<OTSignedFile> signedfile;
     signedfile.reset(new OTSignedFile(api_, LOCAL_SUBDIR, FILE_NAME));
 
     return signedfile;
 }
-std::unique_ptr<OTSignedFile> Factory::SignedFile(
-    const char* LOCAL_SUBDIR,
-    const String& FILE_NAME) const
-{
-    std::unique_ptr<OTSignedFile> signedfile;
-    signedfile.reset(new OTSignedFile(api_, LOCAL_SUBDIR, FILE_NAME));
-
-    return signedfile;
-}
-
-std::unique_ptr<OTSignedFile> Factory::SignedFile(
-    const char* LOCAL_SUBDIR,
-    const char* FILE_NAME) const
+auto Factory::SignedFile(const char* LOCAL_SUBDIR, const String& FILE_NAME)
+    const -> std::unique_ptr<OTSignedFile>
 {
     std::unique_ptr<OTSignedFile> signedfile;
     signedfile.reset(new OTSignedFile(api_, LOCAL_SUBDIR, FILE_NAME));
@@ -2164,7 +2184,16 @@ std::unique_ptr<OTSignedFile> Factory::SignedFile(
     return signedfile;
 }
 
-std::unique_ptr<OTSmartContract> Factory::SmartContract() const
+auto Factory::SignedFile(const char* LOCAL_SUBDIR, const char* FILE_NAME) const
+    -> std::unique_ptr<OTSignedFile>
+{
+    std::unique_ptr<OTSignedFile> signedfile;
+    signedfile.reset(new OTSignedFile(api_, LOCAL_SUBDIR, FILE_NAME));
+
+    return signedfile;
+}
+
+auto Factory::SmartContract() const -> std::unique_ptr<OTSmartContract>
 {
     std::unique_ptr<OTSmartContract> smartcontract;
     smartcontract.reset(new OTSmartContract(api_));
@@ -2172,8 +2201,8 @@ std::unique_ptr<OTSmartContract> Factory::SmartContract() const
     return smartcontract;
 }
 
-std::unique_ptr<OTSmartContract> Factory::SmartContract(
-    const identifier::Server& NOTARY_ID) const
+auto Factory::SmartContract(const identifier::Server& NOTARY_ID) const
+    -> std::unique_ptr<OTSmartContract>
 {
     std::unique_ptr<OTSmartContract> smartcontract;
     smartcontract.reset(new OTSmartContract(api_, NOTARY_ID));
@@ -2214,50 +2243,50 @@ auto Factory::StoreSecret(
     }
 }
 
-OTSymmetricKey Factory::SymmetricKey() const
+auto Factory::SymmetricKey() const -> OTSymmetricKey
 {
     return OTSymmetricKey{opentxs::Factory::SymmetricKey()};
 }
 
-OTSymmetricKey Factory::SymmetricKey(
+auto Factory::SymmetricKey(
     const opentxs::crypto::SymmetricProvider& engine,
     const opentxs::PasswordPrompt& password,
-    const proto::SymmetricMode mode) const
+    const proto::SymmetricMode mode) const -> OTSymmetricKey
 {
     return OTSymmetricKey{
         opentxs::Factory::SymmetricKey(api_, engine, password, mode)};
 }
 
-OTSymmetricKey Factory::SymmetricKey(
+auto Factory::SymmetricKey(
     const opentxs::crypto::SymmetricProvider& engine,
-    const proto::SymmetricKey serialized) const
+    const proto::SymmetricKey serialized) const -> OTSymmetricKey
 {
     return OTSymmetricKey{
         opentxs::Factory::SymmetricKey(api_, engine, serialized)};
 }
 
-OTSymmetricKey Factory::SymmetricKey(
+auto Factory::SymmetricKey(
     const opentxs::crypto::SymmetricProvider& engine,
     const OTPassword& seed,
     const std::uint64_t operations,
     const std::uint64_t difficulty,
     const std::size_t size,
-    const proto::SymmetricKeyType type) const
+    const proto::SymmetricKeyType type) const -> OTSymmetricKey
 {
     return OTSymmetricKey{opentxs::Factory::SymmetricKey(
         api_, engine, seed, operations, difficulty, size, type)};
 }
 
-OTSymmetricKey Factory::SymmetricKey(
+auto Factory::SymmetricKey(
     const opentxs::crypto::SymmetricProvider& engine,
     const OTPassword& raw,
-    const opentxs::PasswordPrompt& reason) const
+    const opentxs::PasswordPrompt& reason) const -> OTSymmetricKey
 {
     return OTSymmetricKey{
         opentxs::Factory::SymmetricKey(api_, engine, raw, reason)};
 }
 
-std::unique_ptr<OTTrade> Factory::Trade() const
+auto Factory::Trade() const -> std::unique_ptr<OTTrade>
 {
     std::unique_ptr<OTTrade> trade;
     trade.reset(new OTTrade(api_));
@@ -2265,13 +2294,13 @@ std::unique_ptr<OTTrade> Factory::Trade() const
     return trade;
 }
 
-std::unique_ptr<OTTrade> Factory::Trade(
+auto Factory::Trade(
     const identifier::Server& notaryID,
     const identifier::UnitDefinition& instrumentDefinitionID,
     const opentxs::Identifier& assetAcctId,
     const identifier::Nym& nymID,
     const identifier::UnitDefinition& currencyId,
-    const opentxs::Identifier& currencyAcctId) const
+    const opentxs::Identifier& currencyAcctId) const -> std::unique_ptr<OTTrade>
 {
     std::unique_ptr<OTTrade> trade;
     trade.reset(new OTTrade(
@@ -2286,8 +2315,8 @@ std::unique_ptr<OTTrade> Factory::Trade(
     return trade;
 }
 
-std::unique_ptr<OTTransactionType> Factory::Transaction(
-    const String& strInput) const
+auto Factory::Transaction(const String& strInput) const
+    -> std::unique_ptr<OTTransactionType>
 {
     auto strContract = String::Factory(),
          strFirstLine = String::Factory();  // output for the below function.
@@ -2369,8 +2398,8 @@ std::unique_ptr<OTTransactionType> Factory::Transaction(
     return nullptr;
 }
 
-std::unique_ptr<OTTransaction> Factory::Transaction(
-    const opentxs::Ledger& theOwner) const
+auto Factory::Transaction(const opentxs::Ledger& theOwner) const
+    -> std::unique_ptr<OTTransaction>
 {
     std::unique_ptr<OTTransaction> transaction;
     transaction.reset(new OTTransaction(api_, theOwner));
@@ -2378,11 +2407,11 @@ std::unique_ptr<OTTransaction> Factory::Transaction(
     return transaction;
 }
 
-std::unique_ptr<OTTransaction> Factory::Transaction(
+auto Factory::Transaction(
     const identifier::Nym& theNymID,
     const opentxs::Identifier& theAccountID,
     const identifier::Server& theNotaryID,
-    originType theOriginType) const
+    originType theOriginType) const -> std::unique_ptr<OTTransaction>
 {
     std::unique_ptr<OTTransaction> transaction;
     transaction.reset(new OTTransaction(
@@ -2391,12 +2420,12 @@ std::unique_ptr<OTTransaction> Factory::Transaction(
     return transaction;
 }
 
-std::unique_ptr<OTTransaction> Factory::Transaction(
+auto Factory::Transaction(
     const identifier::Nym& theNymID,
     const opentxs::Identifier& theAccountID,
     const identifier::Server& theNotaryID,
     std::int64_t lTransactionNum,
-    originType theOriginType) const
+    originType theOriginType) const -> std::unique_ptr<OTTransaction>
 {
     std::unique_ptr<OTTransaction> transaction;
     transaction.reset(new OTTransaction(
@@ -2413,7 +2442,7 @@ std::unique_ptr<OTTransaction> Factory::Transaction(
 // (inbox, nymbox, or outbox receipt).
 // The full receipt is loaded only after the abbreviated ones are loaded,
 // and verified against them.
-std::unique_ptr<OTTransaction> Factory::Transaction(
+auto Factory::Transaction(
     const identifier::Nym& theNymID,
     const opentxs::Identifier& theAccountID,
     const identifier::Server& theNotaryID,
@@ -2430,7 +2459,7 @@ std::unique_ptr<OTTransaction> Factory::Transaction(
     const std::int64_t& lClosingNum,
     const std::int64_t& lRequestNum,
     bool bReplyTransSuccess,
-    NumList* pNumList) const
+    NumList* pNumList) const -> std::unique_ptr<OTTransaction>
 {
     std::unique_ptr<OTTransaction> transaction;
     transaction.reset(new OTTransaction(
@@ -2456,11 +2485,11 @@ std::unique_ptr<OTTransaction> Factory::Transaction(
     return transaction;
 }
 
-std::unique_ptr<OTTransaction> Factory::Transaction(
+auto Factory::Transaction(
     const opentxs::Ledger& theOwner,
     transactionType theType,
     originType theOriginType /*=originType::not_applicable*/,
-    std::int64_t lTransactionNum /*=0*/) const
+    std::int64_t lTransactionNum /*=0*/) const -> std::unique_ptr<OTTransaction>
 {
     auto pTransaction = Transaction(
         theOwner.GetNymID(),
@@ -2474,13 +2503,13 @@ std::unique_ptr<OTTransaction> Factory::Transaction(
     return pTransaction;
 }
 
-std::unique_ptr<OTTransaction> Factory::Transaction(
+auto Factory::Transaction(
     const identifier::Nym& theNymID,
     const opentxs::Identifier& theAccountID,
     const identifier::Server& theNotaryID,
     transactionType theType,
     originType theOriginType /*=originType::not_applicable*/,
-    std::int64_t lTransactionNum /*=0*/) const
+    std::int64_t lTransactionNum /*=0*/) const -> std::unique_ptr<OTTransaction>
 {
     std::unique_ptr<OTTransaction> transaction;
     transaction.reset(new OTTransaction(
@@ -2524,17 +2553,17 @@ auto Factory::UnitDefinition(
     }
 }
 
-OTUnitID Factory::UnitID() const
+auto Factory::UnitID() const -> OTUnitID
 {
     return identifier::UnitDefinition::Factory();
 }
 
-OTUnitID Factory::UnitID(const std::string& serialized) const
+auto Factory::UnitID(const std::string& serialized) const -> OTUnitID
 {
     return identifier::UnitDefinition::Factory(serialized);
 }
 
-OTUnitID Factory::UnitID(const opentxs::String& serialized) const
+auto Factory::UnitID(const opentxs::String& serialized) const -> OTUnitID
 {
     return identifier::UnitDefinition::Factory(serialized);
 }

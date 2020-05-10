@@ -37,13 +37,16 @@ class Currency final : public unit::Currency,
                        public contract::implementation::Unit
 {
 public:
-    std::int32_t DecimalPower() const final { return power_; }
-    std::string FractionalUnitName() const final
+    auto DecimalPower() const -> std::int32_t final { return power_; }
+    auto FractionalUnitName() const -> std::string final
     {
         return fractional_unit_name_;
     }
-    std::string TLA() const final { return tla_; }
-    proto::UnitType Type() const final { return proto::UNITTYPE_CURRENCY; }
+    auto TLA() const -> std::string final { return tla_; }
+    auto Type() const -> proto::UnitType final
+    {
+        return proto::UNITTYPE_CURRENCY;
+    }
 
     Currency(
         const api::internal::Core& api,
@@ -73,12 +76,15 @@ private:
     // "cents"
     const std::string fractional_unit_name_;
 
-    Currency* clone() const noexcept final { return new Currency(*this); }
-    proto::UnitDefinition IDVersion(const Lock& lock) const final;
+    auto clone() const noexcept -> Currency* final
+    {
+        return new Currency(*this);
+    }
+    auto IDVersion(const Lock& lock) const -> proto::UnitDefinition final;
 
     Currency(const Currency&);
     Currency(Currency&&) = delete;
-    Currency& operator=(const Currency&) = delete;
-    Currency& operator=(Currency&&) = delete;
+    auto operator=(const Currency&) -> Currency& = delete;
+    auto operator=(Currency &&) -> Currency& = delete;
 };
 }  // namespace opentxs::contract::unit::implementation

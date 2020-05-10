@@ -39,9 +39,9 @@ template class opentxs::Pimpl<opentxs::network::zeromq::socket::Pull>;
 
 namespace opentxs
 {
-network::zeromq::socket::Pull* Factory::PullSocket(
+auto Factory::PullSocket(
     const network::zeromq::Context& context,
-    const bool direction)
+    const bool direction) -> network::zeromq::socket::Pull*
 {
     using ReturnType = network::zeromq::socket::implementation::Pull;
 
@@ -50,10 +50,11 @@ network::zeromq::socket::Pull* Factory::PullSocket(
         static_cast<network::zeromq::socket::Socket::Direction>(direction));
 }
 
-network::zeromq::socket::Pull* Factory::PullSocket(
+auto Factory::PullSocket(
     const network::zeromq::Context& context,
     const bool direction,
     const network::zeromq::ListenCallback& callback)
+    -> network::zeromq::socket::Pull*
 {
     using ReturnType = network::zeromq::socket::implementation::Pull;
 
@@ -93,12 +94,12 @@ Pull::Pull(
 {
 }
 
-Pull* Pull::clone() const noexcept
+auto Pull::clone() const noexcept -> Pull*
 {
     return new Pull(context_, direction_, callback_);
 }
 
-bool Pull::have_callback() const noexcept { return true; }
+auto Pull::have_callback() const noexcept -> bool { return true; }
 
 void Pull::process_incoming(const Lock& lock, Message& message) noexcept
 {

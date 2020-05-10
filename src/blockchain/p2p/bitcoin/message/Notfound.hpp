@@ -45,19 +45,20 @@ namespace opentxs::blockchain::p2p::bitcoin::message::implementation
 class Notfound final : public internal::Notfound
 {
 public:
-    const value_type& at(const std::size_t position) const noexcept(false) final
+    auto at(const std::size_t position) const noexcept(false)
+        -> const value_type& final
     {
         return payload_.at(position);
     }
-    const_iterator begin() const noexcept final
+    auto begin() const noexcept -> const_iterator final
     {
         return const_iterator(this, 0);
     }
-    const_iterator end() const noexcept final
+    auto end() const noexcept -> const_iterator final
     {
         return const_iterator(this, payload_.size());
     }
-    std::size_t size() const noexcept final { return payload_.size(); }
+    auto size() const noexcept -> std::size_t final { return payload_.size(); }
 
     ~Notfound() final = default;
 
@@ -66,7 +67,7 @@ private:
 
     const std::vector<value_type> payload_;
 
-    OTData payload() const noexcept final;
+    auto payload() const noexcept -> OTData final;
 
     Notfound(
         const api::internal::Core& api,
@@ -78,7 +79,7 @@ private:
         std::vector<value_type>&& payload) noexcept;
     Notfound(const Notfound&) = delete;
     Notfound(Notfound&&) = delete;
-    Notfound& operator=(const Notfound&) = delete;
-    Notfound& operator=(Notfound&&) = delete;
+    auto operator=(const Notfound&) -> Notfound& = delete;
+    auto operator=(Notfound &&) -> Notfound& = delete;
 };
 }  // namespace opentxs::blockchain::p2p::bitcoin::message::implementation

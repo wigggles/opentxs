@@ -69,13 +69,16 @@ private:
     const std::string password_;
     const std::string key_;
 
-    Connection* clone() const noexcept final { return new Connection(*this); }
-    SerializedType IDVersion(const Lock& lock) const final;
+    auto clone() const noexcept -> Connection* final
+    {
+        return new Connection(*this);
+    }
+    auto IDVersion(const Lock& lock) const -> SerializedType final;
 
     Connection() = delete;
     Connection(const Connection&);
     Connection(Connection&&) = delete;
-    Connection& operator=(const Connection&) = delete;
-    Connection& operator=(Connection&&) = delete;
+    auto operator=(const Connection&) -> Connection& = delete;
+    auto operator=(Connection &&) -> Connection& = delete;
 };
 }  // namespace opentxs::contract::peer::reply::implementation

@@ -35,13 +35,13 @@ private:
 
     const zeromq::ListenCallback::ReceiveCallback callback_;
 
-    ListenCallback* clone() const final;
+    auto clone() const -> ListenCallback* final;
 
     ListenCallback(zeromq::ListenCallback::ReceiveCallback callback);
     ListenCallback() = delete;
     ListenCallback(const ListenCallback&) = delete;
     ListenCallback(ListenCallback&&) = delete;
-    ListenCallback& operator=(const ListenCallback&) = delete;
-    ListenCallback& operator=(ListenCallback&&) = delete;
+    auto operator=(const ListenCallback&) -> ListenCallback& = delete;
+    auto operator=(ListenCallback &&) -> ListenCallback& = delete;
 };
 }  // namespace opentxs::network::zeromq::implementation

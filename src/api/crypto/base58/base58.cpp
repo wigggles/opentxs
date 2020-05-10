@@ -17,7 +17,7 @@ namespace bitcoin_base58
 static const char* pszBase58 =
     "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 
-bool DecodeBase58(const char* psz, std::vector<unsigned char>& vch)
+auto DecodeBase58(const char* psz, std::vector<unsigned char>& vch) -> bool
 {
     // Skip leading spaces.
     while (*psz && isspace(*psz)) psz++;
@@ -60,7 +60,8 @@ bool DecodeBase58(const char* psz, std::vector<unsigned char>& vch)
     return true;
 }
 
-std::string EncodeBase58(const unsigned char* pbegin, const unsigned char* pend)
+auto EncodeBase58(const unsigned char* pbegin, const unsigned char* pend)
+    -> std::string
 {
     // Skip & count leading zeroes.
     int zeroes = 0;

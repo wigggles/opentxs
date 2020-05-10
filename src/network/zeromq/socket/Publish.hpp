@@ -41,13 +41,16 @@ public:
 private:
     friend opentxs::Factory;
 
-    Publish* clone() const noexcept final { return new Publish(context_); }
+    auto clone() const noexcept -> Publish* final
+    {
+        return new Publish(context_);
+    }
 
     Publish(const zeromq::Context& context) noexcept;
     Publish() = delete;
     Publish(const Publish&) = delete;
     Publish(Publish&&) = delete;
-    Publish& operator=(const Publish&) = delete;
-    Publish& operator=(Publish&&) = delete;
+    auto operator=(const Publish&) -> Publish& = delete;
+    auto operator=(Publish &&) -> Publish& = delete;
 };
 }  // namespace opentxs::network::zeromq::socket::implementation

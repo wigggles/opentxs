@@ -43,46 +43,47 @@ class Nym final : public internal::Nym
 public:
     operator SerializedType() const noexcept final;
 
-    const api::internal::Core& API() const noexcept final
+    auto API() const noexcept -> const api::internal::Core& final
     {
         return parent_.API();
     }
     /// Throws std::out_of_range for invalid position
-    const value_type& at(const std::size_t position) const noexcept(false) final
+    auto at(const std::size_t position) const noexcept(false)
+        -> const value_type& final
     {
         return *items_.at(position);
     }
-    const_iterator begin() const noexcept final { return cbegin(); }
-    const_iterator cbegin() const noexcept final
+    auto begin() const noexcept -> const_iterator final { return cbegin(); }
+    auto cbegin() const noexcept -> const_iterator final
     {
         return const_iterator(this, 0);
     }
-    const_iterator cend() const noexcept final
+    auto cend() const noexcept -> const_iterator final
     {
         return const_iterator(this, items_.size());
     }
-    const_iterator end() const noexcept final { return cend(); }
-    const identifier::Nym& ID() const noexcept final { return id_; }
-    const identifier::Nym& NymID() const noexcept
+    auto end() const noexcept -> const_iterator final { return cend(); }
+    auto ID() const noexcept -> const identifier::Nym& final { return id_; }
+    auto NymID() const noexcept -> const identifier::Nym&
     {
         return parent_.External() ? id_.get() : parent_.NymID();
     }
-    std::size_t size() const noexcept final { return items_.size(); }
-    VersionNumber Version() const noexcept final { return version_; }
+    auto size() const noexcept -> std::size_t final { return items_.size(); }
+    auto Version() const noexcept -> VersionNumber final { return version_; }
 
-    bool AddItem(
+    auto AddItem(
         const Identifier& claim,
         const identity::Nym& signer,
         const PasswordPrompt& reason,
         const Item::Type value,
         const Time start,
         const Time end,
-        const VersionNumber version) noexcept final;
-    bool AddItem(const Item::SerializedType item) noexcept final;
-    bool DeleteItem(const Identifier& item) noexcept final;
-    bool UpgradeItemVersion(
+        const VersionNumber version) noexcept -> bool final;
+    auto AddItem(const Item::SerializedType item) noexcept -> bool final;
+    auto DeleteItem(const Identifier& item) noexcept -> bool final;
+    auto UpgradeItemVersion(
         const VersionNumber itemVersion,
-        VersionNumber& nymVersion) noexcept final;
+        VersionNumber& nymVersion) noexcept -> bool final;
 
     ~Nym() final = default;
 
@@ -99,14 +100,14 @@ private:
     const OTNymID id_;
     Vector items_;
 
-    static Vector instantiate(
+    static auto instantiate(
         internal::Nym& parent,
-        const SerializedType& serialized) noexcept;
-    static Match match(
+        const SerializedType& serialized) noexcept -> Vector;
+    static auto match(
         const internal::Item& lhs,
-        const internal::Item& rhs) noexcept;
+        const internal::Item& rhs) noexcept -> Match;
 
-    bool add_item(Child pCandidate) noexcept;
+    auto add_item(Child pCandidate) noexcept -> bool;
 
     Nym(internal::Group& parent,
         const identifier::Nym& nym,
@@ -115,7 +116,7 @@ private:
     Nym() = delete;
     Nym(const Nym&) = delete;
     Nym(Nym&&) = delete;
-    Nym& operator=(const Nym&) = delete;
-    Nym& operator=(Nym&&) = delete;
+    auto operator=(const Nym&) -> Nym& = delete;
+    auto operator=(Nym &&) -> Nym& = delete;
 };
 }  // namespace opentxs::identity::wot::verification::implementation

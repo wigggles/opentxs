@@ -7,7 +7,7 @@
 
 namespace opentxs::proto
 {
-const VersionMap& AddClaimAllowedContactItem() noexcept
+auto AddClaimAllowedContactItem() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 5}},
@@ -17,7 +17,7 @@ const VersionMap& AddClaimAllowedContactItem() noexcept
     return output;
 }
 
-const VersionMap& ContactEventAllowedAccountEvent() noexcept
+auto ContactEventAllowedAccountEvent() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -27,7 +27,7 @@ const VersionMap& ContactEventAllowedAccountEvent() noexcept
     return output;
 }
 
-const VersionMap& CreateNymAllowedAddClaim() noexcept
+auto CreateNymAllowedAddClaim() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -37,7 +37,7 @@ const VersionMap& CreateNymAllowedAddClaim() noexcept
     return output;
 }
 
-const VersionMap& RPCCommandAllowedAPIArgument() noexcept
+auto RPCCommandAllowedAPIArgument() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -48,7 +48,7 @@ const VersionMap& RPCCommandAllowedAPIArgument() noexcept
     return output;
 }
 
-const VersionMap& RPCCommandAllowedAcceptPendingPayment() noexcept
+auto RPCCommandAllowedAcceptPendingPayment() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -59,40 +59,7 @@ const VersionMap& RPCCommandAllowedAcceptPendingPayment() noexcept
     return output;
 }
 
-const VersionMap& RPCCommandAllowedAddClaim() noexcept
-{
-    static const auto output = VersionMap{
-        {1, {1, 1}},
-        {2, {1, 2}},
-        {3, {1, 2}},
-    };
-
-    return output;
-}
-
-const VersionMap& RPCCommandAllowedAddContact() noexcept
-{
-    static const auto output = VersionMap{
-        {1, {1, 1}},
-        {2, {1, 1}},
-        {3, {1, 1}},
-    };
-
-    return output;
-}
-
-const VersionMap& RPCCommandAllowedCreateInstrumentDefinition() noexcept
-{
-    static const auto output = VersionMap{
-        {1, {1, 1}},
-        {2, {1, 1}},
-        {3, {1, 1}},
-    };
-
-    return output;
-}
-
-const VersionMap& RPCCommandAllowedCreateNym() noexcept
+auto RPCCommandAllowedAddClaim() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -103,7 +70,7 @@ const VersionMap& RPCCommandAllowedCreateNym() noexcept
     return output;
 }
 
-const VersionMap& RPCCommandAllowedGetWorkflow() noexcept
+auto RPCCommandAllowedAddContact() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -114,7 +81,7 @@ const VersionMap& RPCCommandAllowedGetWorkflow() noexcept
     return output;
 }
 
-const VersionMap& RPCCommandAllowedHDSeed() noexcept
+auto RPCCommandAllowedCreateInstrumentDefinition() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -125,17 +92,18 @@ const VersionMap& RPCCommandAllowedHDSeed() noexcept
     return output;
 }
 
-const VersionMap& RPCCommandAllowedModifyAccount() noexcept
+auto RPCCommandAllowedCreateNym() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
-        {2, {1, 1}},
-        {3, {1, 1}},
+        {1, {1, 1}},
+        {2, {1, 2}},
+        {3, {1, 2}},
     };
 
     return output;
 }
 
-const VersionMap& RPCCommandAllowedSendMessage() noexcept
+auto RPCCommandAllowedGetWorkflow() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -146,7 +114,7 @@ const VersionMap& RPCCommandAllowedSendMessage() noexcept
     return output;
 }
 
-const VersionMap& RPCCommandAllowedSendPayment() noexcept
+auto RPCCommandAllowedHDSeed() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -157,7 +125,39 @@ const VersionMap& RPCCommandAllowedSendPayment() noexcept
     return output;
 }
 
-const VersionMap& RPCCommandAllowedServerContract() noexcept
+auto RPCCommandAllowedModifyAccount() noexcept -> const VersionMap&
+{
+    static const auto output = VersionMap{
+        {2, {1, 1}},
+        {3, {1, 1}},
+    };
+
+    return output;
+}
+
+auto RPCCommandAllowedSendMessage() noexcept -> const VersionMap&
+{
+    static const auto output = VersionMap{
+        {1, {1, 1}},
+        {2, {1, 1}},
+        {3, {1, 1}},
+    };
+
+    return output;
+}
+
+auto RPCCommandAllowedSendPayment() noexcept -> const VersionMap&
+{
+    static const auto output = VersionMap{
+        {1, {1, 1}},
+        {2, {1, 1}},
+        {3, {1, 1}},
+    };
+
+    return output;
+}
+
+auto RPCCommandAllowedServerContract() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 2}},
@@ -168,7 +168,7 @@ const VersionMap& RPCCommandAllowedServerContract() noexcept
     return output;
 }
 
-const VersionMap& RPCCommandAllowedVerification() noexcept
+auto RPCCommandAllowedVerification() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -179,7 +179,7 @@ const VersionMap& RPCCommandAllowedVerification() noexcept
     return output;
 }
 
-const VersionMap& RPCCommandAllowedVerifyClaim() noexcept
+auto RPCCommandAllowedVerifyClaim() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -190,7 +190,7 @@ const VersionMap& RPCCommandAllowedVerifyClaim() noexcept
     return output;
 }
 
-const VersionMap& RPCPushAllowedAccountEvent() noexcept
+auto RPCPushAllowedAccountEvent() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -201,7 +201,7 @@ const VersionMap& RPCPushAllowedAccountEvent() noexcept
     return output;
 }
 
-const VersionMap& RPCPushAllowedContactEvent() noexcept
+auto RPCPushAllowedContactEvent() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -212,7 +212,7 @@ const VersionMap& RPCPushAllowedContactEvent() noexcept
     return output;
 }
 
-const VersionMap& RPCPushAllowedTaskComplete() noexcept
+auto RPCPushAllowedTaskComplete() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -223,7 +223,7 @@ const VersionMap& RPCPushAllowedTaskComplete() noexcept
     return output;
 }
 
-const VersionMap& RPCResponseAllowedAccountData() noexcept
+auto RPCResponseAllowedAccountData() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -234,7 +234,7 @@ const VersionMap& RPCResponseAllowedAccountData() noexcept
     return output;
 }
 
-const VersionMap& RPCResponseAllowedAccountEvent() noexcept
+auto RPCResponseAllowedAccountEvent() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -245,7 +245,7 @@ const VersionMap& RPCResponseAllowedAccountEvent() noexcept
     return output;
 }
 
-const VersionMap& RPCResponseAllowedContact() noexcept
+auto RPCResponseAllowedContact() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 2}},
@@ -256,7 +256,7 @@ const VersionMap& RPCResponseAllowedContact() noexcept
     return output;
 }
 
-const VersionMap& RPCResponseAllowedContactEvent() noexcept
+auto RPCResponseAllowedContactEvent() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 2}},
@@ -267,7 +267,7 @@ const VersionMap& RPCResponseAllowedContactEvent() noexcept
     return output;
 }
 
-const VersionMap& RPCResponseAllowedHDSeed() noexcept
+auto RPCResponseAllowedHDSeed() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -278,7 +278,7 @@ const VersionMap& RPCResponseAllowedHDSeed() noexcept
     return output;
 }
 
-const VersionMap& RPCResponseAllowedNym() noexcept
+auto RPCResponseAllowedNym() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 5}},
@@ -289,7 +289,7 @@ const VersionMap& RPCResponseAllowedNym() noexcept
     return output;
 }
 
-const VersionMap& RPCResponseAllowedRPCStatus() noexcept
+auto RPCResponseAllowedRPCStatus() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -300,7 +300,7 @@ const VersionMap& RPCResponseAllowedRPCStatus() noexcept
     return output;
 }
 
-const VersionMap& RPCResponseAllowedRPCTask() noexcept
+auto RPCResponseAllowedRPCTask() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -311,7 +311,7 @@ const VersionMap& RPCResponseAllowedRPCTask() noexcept
     return output;
 }
 
-const VersionMap& RPCResponseAllowedServerContract() noexcept
+auto RPCResponseAllowedServerContract() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 2}},
@@ -322,7 +322,7 @@ const VersionMap& RPCResponseAllowedServerContract() noexcept
     return output;
 }
 
-const VersionMap& RPCResponseAllowedSessionData() noexcept
+auto RPCResponseAllowedSessionData() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -333,7 +333,7 @@ const VersionMap& RPCResponseAllowedSessionData() noexcept
     return output;
 }
 
-const VersionMap& RPCResponseAllowedTransactionData() noexcept
+auto RPCResponseAllowedTransactionData() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {2, {1, 1}},
@@ -343,7 +343,7 @@ const VersionMap& RPCResponseAllowedTransactionData() noexcept
     return output;
 }
 
-const VersionMap& RPCResponseAllowedUnitDefinition() noexcept
+auto RPCResponseAllowedUnitDefinition() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {2, {1, 1}},
@@ -353,7 +353,7 @@ const VersionMap& RPCResponseAllowedUnitDefinition() noexcept
     return output;
 }
 
-const VersionMap& RPCResponseAllowedWorkflow() noexcept
+auto RPCResponseAllowedWorkflow() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 2}},

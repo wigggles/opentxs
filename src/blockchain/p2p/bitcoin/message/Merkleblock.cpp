@@ -24,12 +24,12 @@
 namespace opentxs
 {
 // We have a header and a raw payload. Parse it.
-blockchain::p2p::bitcoin::message::Merkleblock* Factory::BitcoinP2PMerkleblock(
+auto Factory::BitcoinP2PMerkleblock(
     const api::internal::Core& api,
     std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
     const blockchain::p2p::bitcoin::ProtocolVersion version,
     const void* payload,
-    const std::size_t size)
+    const std::size_t size) -> blockchain::p2p::bitcoin::message::Merkleblock*
 {
     namespace bitcoin = blockchain::p2p::bitcoin;
     using ReturnType = bitcoin::message::Merkleblock;
@@ -161,13 +161,14 @@ blockchain::p2p::bitcoin::message::Merkleblock* Factory::BitcoinP2PMerkleblock(
 }
 
 // We have all the data members to create the message from scratch (for sending)
-blockchain::p2p::bitcoin::message::Merkleblock* Factory::BitcoinP2PMerkleblock(
+auto Factory::BitcoinP2PMerkleblock(
     const api::internal::Core& api,
     const blockchain::Type network,
     const Data& block_header,
     const std::uint32_t txn_count,
     const std::vector<OTData>& hashes,
     const std::vector<std::byte>& flags)
+    -> blockchain::p2p::bitcoin::message::Merkleblock*
 {
     namespace bitcoin = blockchain::p2p::bitcoin;
     using ReturnType = bitcoin::message::Merkleblock;
@@ -179,7 +180,7 @@ blockchain::p2p::bitcoin::message::Merkleblock* Factory::BitcoinP2PMerkleblock(
 namespace opentxs::blockchain::p2p::bitcoin::message
 {
 
-OTData Merkleblock::payload() const noexcept
+auto Merkleblock::payload() const noexcept -> OTData
 {
     try {
         Raw raw_data(block_header_, txn_count_);

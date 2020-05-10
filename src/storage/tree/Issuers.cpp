@@ -38,7 +38,7 @@ Issuers::Issuers(
     }
 }
 
-bool Issuers::Delete(const std::string& id) { return delete_item(id); }
+auto Issuers::Delete(const std::string& id) -> bool { return delete_item(id); }
 
 void Issuers::init(const std::string& hash)
 {
@@ -59,16 +59,16 @@ void Issuers::init(const std::string& hash)
     }
 }
 
-bool Issuers::Load(
+auto Issuers::Load(
     const std::string& id,
     std::shared_ptr<proto::Issuer>& output,
     std::string& alias,
-    const bool checking) const
+    const bool checking) const -> bool
 {
     return load_proto<proto::Issuer>(id, output, alias, checking);
 }
 
-bool Issuers::save(const std::unique_lock<std::mutex>& lock) const
+auto Issuers::save(const std::unique_lock<std::mutex>& lock) const -> bool
 {
     if (!verify_write_lock(lock)) {
         std::cerr << __FUNCTION__ << ": Lock failure." << std::endl;
@@ -82,7 +82,7 @@ bool Issuers::save(const std::unique_lock<std::mutex>& lock) const
     return driver_.StoreProto(serialized, root_);
 }
 
-proto::StorageIssuers Issuers::serialize() const
+auto Issuers::serialize() const -> proto::StorageIssuers
 {
     proto::StorageIssuers serialized;
     serialized.set_version(version_);
@@ -101,7 +101,7 @@ proto::StorageIssuers Issuers::serialize() const
     return serialized;
 }
 
-bool Issuers::Store(const proto::Issuer& data, const std::string& alias)
+auto Issuers::Store(const proto::Issuer& data, const std::string& alias) -> bool
 {
     return store_proto(data, data.id(), alias);
 }

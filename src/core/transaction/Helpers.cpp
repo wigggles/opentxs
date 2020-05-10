@@ -112,19 +112,20 @@ char const* const OriginTypeStrings[] = {
 namespace opentxs
 {
 
-const char* GetTransactionTypeString(
-    int transactionTypeIndex)  // enum transactionType
+auto GetTransactionTypeString(int transactionTypeIndex) -> const
+    char*  // enum transactionType
 {
     return TypeStrings[transactionTypeIndex];
 }
 
-const char* GetOriginTypeToString(int originTypeIndex)  // enum originType
+auto GetOriginTypeToString(int originTypeIndex) -> const
+    char*  // enum originType
 {
     return OriginTypeStrings[originTypeIndex];
 }
 
 // Returns 1 if success, -1 if error.
-std::int32_t LoadAbbreviatedRecord(
+auto LoadAbbreviatedRecord(
     irr::io::IrrXMLReader*& xml,
     std::int64_t& lNumberOfOrigin,
     originType& theOriginType,
@@ -139,7 +140,7 @@ std::int32_t LoadAbbreviatedRecord(
     std::int64_t& lClosingNum,
     std::int64_t& lRequestNum,
     bool& bReplyTransSuccess,
-    NumList* pNumList)
+    NumList* pNumList) -> std::int32_t
 {
 
     const auto strOriginNum =
@@ -290,7 +291,7 @@ std::int32_t LoadAbbreviatedRecord(
     return 1;
 }
 
-bool VerifyBoxReceiptExists(
+auto VerifyBoxReceiptExists(
     const api::internal::Core& api,
     const std::string& dataFolder,
     const identifier::Server& NOTARY_ID,
@@ -299,7 +300,7 @@ bool VerifyBoxReceiptExists(
     const Identifier& ACCOUNT_ID,   // If for Nymbox (vs inbox/outbox) then pass
                                     // NYM_ID in this field also.
     const std::int32_t nBoxType,    // 0/nymbox, 1/inbox, 2/outbox
-    const std::int64_t& lTransactionNum)
+    const std::int64_t& lTransactionNum) -> bool
 {
     const std::int64_t lLedgerType = static_cast<std::int64_t>(nBoxType);
 
@@ -346,20 +347,20 @@ bool VerifyBoxReceiptExists(
     return bExists;
 }
 
-std::unique_ptr<OTTransaction> LoadBoxReceipt(
+auto LoadBoxReceipt(
     const api::internal::Core& api,
     OTTransaction& theAbbrev,
-    Ledger& theLedger)
+    Ledger& theLedger) -> std::unique_ptr<OTTransaction>
 {
     const std::int64_t lLedgerType =
         static_cast<std::int64_t>(theLedger.GetType());
     return LoadBoxReceipt(api, theAbbrev, lLedgerType);
 }
 
-std::unique_ptr<OTTransaction> LoadBoxReceipt(
+auto LoadBoxReceipt(
     const api::internal::Core& api,
     OTTransaction& theAbbrev,
-    std::int64_t lLedgerType)
+    std::int64_t lLedgerType) -> std::unique_ptr<OTTransaction>
 {
     // See if the appropriate file exists, and load it up from
     // local storage, into a string.
@@ -506,7 +507,7 @@ std::unique_ptr<OTTransaction> LoadBoxReceipt(
     return pBoxReceipt;
 }
 
-bool SetupBoxReceiptFilename(
+auto SetupBoxReceiptFilename(
     const api::internal::Core& api,
     std::int64_t lLedgerType,
     const String& strUserOrAcctID,
@@ -516,7 +517,7 @@ bool SetupBoxReceiptFilename(
     String& strFolder1name,
     String& strFolder2name,
     String& strFolder3name,
-    String& strFilename)
+    String& strFilename) -> bool
 {
     OT_ASSERT(nullptr != szCaller);
 
@@ -561,7 +562,7 @@ bool SetupBoxReceiptFilename(
     return true;
 }
 
-bool SetupBoxReceiptFilename(
+auto SetupBoxReceiptFilename(
     const api::internal::Core& api,
     std::int64_t lLedgerType,
     OTTransaction& theTransaction,
@@ -569,7 +570,7 @@ bool SetupBoxReceiptFilename(
     String& strFolder1name,
     String& strFolder2name,
     String& strFolder3name,
-    String& strFilename)
+    String& strFilename) -> bool
 {
     auto strUserOrAcctID = String::Factory();
     theTransaction.GetIdentifier(strUserOrAcctID);
@@ -589,7 +590,7 @@ bool SetupBoxReceiptFilename(
         strFilename);
 }
 
-bool SetupBoxReceiptFilename(
+auto SetupBoxReceiptFilename(
     const api::internal::Core& api,
     Ledger& theLedger,
     OTTransaction& theTransaction,
@@ -597,7 +598,7 @@ bool SetupBoxReceiptFilename(
     String& strFolder1name,
     String& strFolder2name,
     String& strFolder3name,
-    String& strFilename)
+    String& strFilename) -> bool
 {
     std::int64_t lLedgerType = 0;
 

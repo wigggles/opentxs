@@ -24,13 +24,13 @@
 
 namespace opentxs
 {
-blockchain::p2p::bitcoin::message::internal::Filteradd* Factory::
-    BitcoinP2PFilteradd(
-        const api::internal::Core& api,
-        std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
-        const blockchain::p2p::bitcoin::ProtocolVersion version,
-        const void* payload,
-        const std::size_t size)
+auto Factory::BitcoinP2PFilteradd(
+    const api::internal::Core& api,
+    std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
+    const blockchain::p2p::bitcoin::ProtocolVersion version,
+    const void* payload,
+    const std::size_t size)
+    -> blockchain::p2p::bitcoin::message::internal::Filteradd*
 {
     namespace bitcoin = blockchain::p2p::bitcoin;
     using ReturnType = bitcoin::message::implementation::Filteradd;
@@ -46,11 +46,11 @@ blockchain::p2p::bitcoin::message::internal::Filteradd* Factory::
         api, std::move(pHeader), Data::Factory(payload, size));
 }
 
-blockchain::p2p::bitcoin::message::internal::Filteradd* Factory::
-    BitcoinP2PFilteradd(
-        const api::internal::Core& api,
-        const blockchain::Type network,
-        const Data& element)
+auto Factory::BitcoinP2PFilteradd(
+    const api::internal::Core& api,
+    const blockchain::Type network,
+    const Data& element)
+    -> blockchain::p2p::bitcoin::message::internal::Filteradd*
 {
     namespace bitcoin = blockchain::p2p::bitcoin;
     using ReturnType = bitcoin::message::implementation::Filteradd;
@@ -80,7 +80,7 @@ Filteradd::Filteradd(
 {
 }
 
-OTData Filteradd::payload() const noexcept
+auto Filteradd::payload() const noexcept -> OTData
 {
     try {
         const auto size = CompactSize(element_->size()).Encode();

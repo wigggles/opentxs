@@ -40,7 +40,7 @@ private:
 
     const int instance_;
 
-    PairEventListener* clone() const noexcept final;
+    auto clone() const noexcept -> PairEventListener* final;
 
     PairEventListener(
         const zeromq::Context& context,
@@ -49,7 +49,7 @@ private:
     PairEventListener() = delete;
     PairEventListener(const PairEventListener&) = delete;
     PairEventListener(PairEventListener&&) = delete;
-    PairEventListener& operator=(const PairEventListener&) = delete;
-    PairEventListener& operator=(PairEventListener&&) = delete;
+    auto operator=(const PairEventListener&) -> PairEventListener& = delete;
+    auto operator=(PairEventListener &&) -> PairEventListener& = delete;
 };
 }  // namespace opentxs::network::zeromq::implementation

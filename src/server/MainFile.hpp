@@ -25,14 +25,14 @@ class MainFile
 public:
     explicit MainFile(Server& server, const PasswordPrompt& reason);
 
-    bool CreateMainFile(
+    auto CreateMainFile(
         const std::string& strContract,
         const std::string& strNotaryID,
-        const std::string& strNymID);
-    bool LoadMainFile(bool readOnly = false);
-    bool LoadServerUserAndContract();
-    bool SaveMainFile();
-    bool SaveMainFileToString(String& filename);
+        const std::string& strNymID) -> bool;
+    auto LoadMainFile(bool readOnly = false) -> bool;
+    auto LoadServerUserAndContract() -> bool;
+    auto SaveMainFile() -> bool;
+    auto SaveMainFileToString(String& filename) -> bool;
 
 private:
     Server& server_;
@@ -41,7 +41,7 @@ private:
     MainFile() = delete;
     MainFile(const MainFile&) = delete;
     MainFile(MainFile&&) = delete;
-    MainFile& operator=(const MainFile&) = delete;
-    MainFile& operator=(MainFile&&) = delete;
+    auto operator=(const MainFile&) -> MainFile& = delete;
+    auto operator=(MainFile &&) -> MainFile& = delete;
 };
 }  // namespace opentxs::server

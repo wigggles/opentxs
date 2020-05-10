@@ -28,13 +28,13 @@
 
 namespace opentxs
 {
-blockchain::p2p::bitcoin::message::internal::Cfcheckpt* Factory::
-    BitcoinP2PCfcheckpt(
-        const api::internal::Core& api,
-        std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
-        const blockchain::p2p::bitcoin::ProtocolVersion version,
-        const void* payload,
-        const std::size_t size)
+auto Factory::BitcoinP2PCfcheckpt(
+    const api::internal::Core& api,
+    std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
+    const blockchain::p2p::bitcoin::ProtocolVersion version,
+    const void* payload,
+    const std::size_t size)
+    -> blockchain::p2p::bitcoin::message::internal::Cfcheckpt*
 {
     namespace bitcoin = blockchain::p2p::bitcoin;
     using ReturnType = bitcoin::message::implementation::Cfcheckpt;
@@ -109,13 +109,13 @@ blockchain::p2p::bitcoin::message::internal::Cfcheckpt* Factory::
         headers);
 }
 
-blockchain::p2p::bitcoin::message::internal::Cfcheckpt* Factory::
-    BitcoinP2PCfcheckpt(
-        const api::internal::Core& api,
-        const blockchain::Type network,
-        const blockchain::filter::Type type,
-        const blockchain::filter::Hash& stop,
-        const std::vector<blockchain::filter::pHash>& headers)
+auto Factory::BitcoinP2PCfcheckpt(
+    const api::internal::Core& api,
+    const blockchain::Type network,
+    const blockchain::filter::Type type,
+    const blockchain::filter::Hash& stop,
+    const std::vector<blockchain::filter::pHash>& headers)
+    -> blockchain::p2p::bitcoin::message::internal::Cfcheckpt*
 {
     namespace bitcoin = blockchain::p2p::bitcoin;
     using ReturnType = bitcoin::message::implementation::Cfcheckpt;
@@ -153,7 +153,7 @@ Cfcheckpt::Cfcheckpt(
 {
 }
 
-OTData Cfcheckpt::payload() const noexcept
+auto Cfcheckpt::payload() const noexcept -> OTData
 {
     try {
         BitcoinFormat raw(header().Network(), type_, stop_);

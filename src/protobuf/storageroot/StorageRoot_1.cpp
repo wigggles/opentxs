@@ -14,7 +14,7 @@ namespace opentxs
 {
 namespace proto
 {
-bool CheckProto_1(const StorageRoot& input, const bool silent)
+auto CheckProto_1(const StorageRoot& input, const bool silent) -> bool
 {
     CHECK_IDENTIFIER(items)
     CHECK_EXCLUDED(sequence)

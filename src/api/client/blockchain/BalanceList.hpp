@@ -38,37 +38,41 @@ namespace opentxs::api::client::blockchain::implementation
 class BalanceList final : virtual public internal::BalanceList
 {
 public:
-    const api::internal::Core& API() const noexcept { return api_; }
-    const_iterator::value_type& at(const std::size_t position) const
-        noexcept(false) final;
-    const_iterator begin() const noexcept final
+    auto API() const noexcept -> const api::internal::Core& { return api_; }
+    auto at(const std::size_t position) const noexcept(false)
+        -> const_iterator::value_type& final;
+    auto begin() const noexcept -> const_iterator final
     {
         return const_iterator(this, 0);
     }
-    const_iterator cbegin() const noexcept final
+    auto cbegin() const noexcept -> const_iterator final
     {
         return const_iterator(this, 0);
     }
-    const_iterator cend() const noexcept final
+    auto cend() const noexcept -> const_iterator final
     {
         return const_iterator(this, trees_.size());
     }
-    opentxs::blockchain::Type Chain() const noexcept final { return chain_; }
-    const_iterator end() const noexcept final
+    auto Chain() const noexcept -> opentxs::blockchain::Type final
+    {
+        return chain_;
+    }
+    auto end() const noexcept -> const_iterator final
     {
         return const_iterator(this, trees_.size());
     }
-    const client::internal::Blockchain& Parent() const noexcept final
+    auto Parent() const noexcept -> const client::internal::Blockchain& final
     {
         return parent_;
     }
-    std::size_t size() const noexcept final { return trees_.size(); }
+    auto size() const noexcept -> std::size_t final { return trees_.size(); }
 
-    bool AddHDNode(
+    auto AddHDNode(
         const identifier::Nym& nym,
         const proto::HDPath& path,
-        Identifier& id) noexcept final;
-    internal::BalanceTree& Nym(const identifier::Nym& id) noexcept final;
+        Identifier& id) noexcept -> bool final;
+    auto Nym(const identifier::Nym& id) noexcept
+        -> internal::BalanceTree& final;
 
     ~BalanceList() final = default;
 
@@ -83,24 +87,23 @@ private:
     std::map<OTNymID, std::size_t> index_;
 
     using blockchain::BalanceList::at;
-    const internal::BalanceTree& at(const Lock& lock, const std::size_t index)
-        const noexcept(false);
-    std::unique_ptr<internal::BalanceTree> factory(
+    auto at(const Lock& lock, const std::size_t index) const noexcept(false)
+        -> const internal::BalanceTree&;
+    auto factory(
         const identifier::Nym& nym,
-        const std::set<OTIdentifier>& accounts) const noexcept;
+        const std::set<OTIdentifier>& accounts) const noexcept
+        -> std::unique_ptr<internal::BalanceTree>;
     using blockchain::BalanceList::size;
-    std::size_t size(const Lock& lock) const noexcept;
+    auto size(const Lock& lock) const noexcept -> std::size_t;
 
-    bool add(
+    auto add(
         const Lock& lock,
         const identifier::Nym& id,
-        std::unique_ptr<internal::BalanceTree> tree) noexcept;
-    internal::BalanceTree& at(
-        const Lock& lock,
-        const std::size_t index) noexcept(false);
-    internal::BalanceTree& get_or_create(
-        const Lock& lock,
-        const identifier::Nym& id) noexcept;
+        std::unique_ptr<internal::BalanceTree> tree) noexcept -> bool;
+    auto at(const Lock& lock, const std::size_t index) noexcept(false)
+        -> internal::BalanceTree&;
+    auto get_or_create(const Lock& lock, const identifier::Nym& id) noexcept
+        -> internal::BalanceTree&;
     void init() noexcept;
 
     BalanceList(
@@ -108,7 +111,7 @@ private:
         const opentxs::blockchain::Type chain) noexcept;
     BalanceList(const BalanceList&) = delete;
     BalanceList(BalanceList&&) = delete;
-    BalanceList& operator=(const BalanceList&) = delete;
-    BalanceList& operator=(BalanceList&&) = delete;
+    auto operator=(const BalanceList&) -> BalanceList& = delete;
+    auto operator=(BalanceList &&) -> BalanceList& = delete;
 };
 }  // namespace opentxs::api::client::blockchain::implementation

@@ -41,32 +41,36 @@ public:
     Transactor(Server& server, const PasswordPrompt& reason);
     ~Transactor() = default;
 
-    OPENTXS_EXPORT bool issueNextTransactionNumber(TransactionNumber& txNumber);
-    bool issueNextTransactionNumberToNym(
+    OPENTXS_EXPORT auto issueNextTransactionNumber(TransactionNumber& txNumber)
+        -> bool;
+    auto issueNextTransactionNumberToNym(
         ClientContext& context,
-        TransactionNumber& txNumber);
+        TransactionNumber& txNumber) -> bool;
 
-    TransactionNumber transactionNumber() const { return transactionNumber_; }
+    auto transactionNumber() const -> TransactionNumber
+    {
+        return transactionNumber_;
+    }
 
     void transactionNumber(TransactionNumber value)
     {
         transactionNumber_ = value;
     }
 
-    bool addBasketAccountID(
+    auto addBasketAccountID(
         const Identifier& basketId,
         const Identifier& basketAccountId,
-        const Identifier& basketContractId);
-    bool lookupBasketAccountID(
+        const Identifier& basketContractId) -> bool;
+    auto lookupBasketAccountID(
         const Identifier& basketId,
-        Identifier& basketAccountId);
+        Identifier& basketAccountId) -> bool;
 
-    bool lookupBasketAccountIDByContractID(
+    auto lookupBasketAccountIDByContractID(
         const Identifier& basketContractId,
-        Identifier& basketAccountId);
-    bool lookupBasketContractIDByAccountID(
+        Identifier& basketAccountId) -> bool;
+    auto lookupBasketContractIDByAccountID(
         const Identifier& basketAccountId,
-        Identifier& basketContractId);
+        Identifier& basketContractId) -> bool;
 
     // Whenever the server issues a voucher (like a cashier's cheque), it puts
     // the funds in one of these voucher accounts (one for each instrument
@@ -77,8 +81,9 @@ public:
     // cheques from the expired folders, and total them. The server operator is
     // free to remove that total from the Voucher Account once the cheque has
     // expired: it is his money now.
-    ExclusiveAccount getVoucherAccount(
-        const identifier::UnitDefinition& instrumentDefinitionID);
+    auto getVoucherAccount(
+        const identifier::UnitDefinition& instrumentDefinitionID)
+        -> ExclusiveAccount;
 
 private:
     typedef std::map<std::string, std::string> BasketsMap;

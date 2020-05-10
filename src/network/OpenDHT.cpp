@@ -34,7 +34,7 @@ OpenDHT::OpenDHT(const DhtConfig& config)
     Init();
 }
 
-bool OpenDHT::Init() const
+auto OpenDHT::Init() const -> bool
 {
     Lock initLock(init_);
 

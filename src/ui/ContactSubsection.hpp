@@ -77,8 +77,8 @@ class ContactSubsection final : public Combined<
                                     ContactSectionSortKey>
 {
 public:
-    std::string Name(const std::string& lang) const noexcept final;
-    proto::ContactItemType Type() const noexcept final
+    auto Name(const std::string& lang) const noexcept -> std::string final;
+    auto Type() const noexcept -> proto::ContactItemType final
     {
         return row_id_.second;
     }
@@ -102,27 +102,27 @@ public:
     ~ContactSubsection() = default;
 
 private:
-    static bool check_type(const ContactSubsectionRowID type) noexcept;
+    static auto check_type(const ContactSubsectionRowID type) noexcept -> bool;
 
-    void* construct_row(
+    auto construct_row(
         const ContactSubsectionRowID& id,
         const ContactSubsectionSortKey& index,
-        const CustomData& custom) const noexcept final;
+        const CustomData& custom) const noexcept -> void* final;
 
-    bool last(const ContactSubsectionRowID& id) const noexcept final
+    auto last(const ContactSubsectionRowID& id) const noexcept -> bool final
     {
         return ContactSubsectionList::last(id);
     }
-    std::set<ContactSubsectionRowID> process_group(
-        const opentxs::ContactGroup& group) noexcept;
-    int sort_key(const ContactSubsectionRowID type) const noexcept;
+    auto process_group(const opentxs::ContactGroup& group) noexcept
+        -> std::set<ContactSubsectionRowID>;
+    auto sort_key(const ContactSubsectionRowID type) const noexcept -> int;
     void startup(const CustomData custom) noexcept;
 
     ContactSubsection() = delete;
     ContactSubsection(const ContactSubsection&) = delete;
     ContactSubsection(ContactSubsection&&) = delete;
-    ContactSubsection& operator=(const ContactSubsection&) = delete;
-    ContactSubsection& operator=(ContactSubsection&&) = delete;
+    auto operator=(const ContactSubsection&) -> ContactSubsection& = delete;
+    auto operator=(ContactSubsection &&) -> ContactSubsection& = delete;
 };
 }  // namespace opentxs::ui::implementation
 

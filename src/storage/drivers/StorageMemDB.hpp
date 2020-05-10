@@ -41,13 +41,14 @@ class StorageMemDB final : public Plugin,
                            Lockable
 {
 public:
-    bool EmptyBucket(const bool bucket) const final;
-    bool LoadFromBucket(
+    auto EmptyBucket(const bool bucket) const -> bool final;
+    auto LoadFromBucket(
         const std::string& key,
         std::string& value,
-        const bool bucket) const final;
-    std::string LoadRoot() const final;
-    bool StoreRoot(const bool commit, const std::string& hash) const final;
+        const bool bucket) const -> bool final;
+    auto LoadRoot() const -> std::string final;
+    auto StoreRoot(const bool commit, const std::string& hash) const
+        -> bool final;
 
     void Cleanup() final {}
 
@@ -78,7 +79,7 @@ private:
     StorageMemDB() = delete;
     StorageMemDB(const StorageMemDB&) = delete;
     StorageMemDB(StorageMemDB&&) = delete;
-    StorageMemDB& operator=(const StorageMemDB&) = delete;
-    StorageMemDB& operator=(StorageMemDB&&) = delete;
+    auto operator=(const StorageMemDB&) -> StorageMemDB& = delete;
+    auto operator=(StorageMemDB &&) -> StorageMemDB& = delete;
 };
 }  // namespace opentxs::storage::implementation

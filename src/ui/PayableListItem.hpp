@@ -54,7 +54,7 @@ class PayableListItem final : public PayableListRowInternal,
                               public ContactListItem
 {
 public:
-    std::string PaymentCode() const noexcept final;
+    auto PaymentCode() const noexcept -> std::string final;
 
 #if OT_QT
     QVariant qt_data(const int column, const int role) const noexcept final;
@@ -83,8 +83,8 @@ private:
     PayableListItem() = delete;
     PayableListItem(const PayableListItem&) = delete;
     PayableListItem(PayableListItem&&) = delete;
-    PayableListItem& operator=(const PayableListItem&) = delete;
-    PayableListItem& operator=(PayableListItem&&) = delete;
+    auto operator=(const PayableListItem&) -> PayableListItem& = delete;
+    auto operator=(PayableListItem &&) -> PayableListItem& = delete;
 };
 }  // namespace opentxs::ui::implementation
 

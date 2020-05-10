@@ -19,10 +19,10 @@ class Flag final : virtual public opentxs::Flag
 public:
     operator bool() const final { return flag_.load(); }
 
-    bool Off() final { return Set(false); }
-    bool On() final { return !Set(true); }
-    bool Set(const bool value) final { return flag_.exchange(value); }
-    bool Toggle() final;
+    auto Off() -> bool final { return Set(false); }
+    auto On() -> bool final { return !Set(true); }
+    auto Set(const bool value) -> bool final { return flag_.exchange(value); }
+    auto Toggle() -> bool final;
 
     Flag(const bool state);
 
@@ -31,12 +31,12 @@ public:
 private:
     std::atomic<bool> flag_;
 
-    Flag* clone() const final { return new Flag(flag_.load()); }
+    auto clone() const -> Flag* final { return new Flag(flag_.load()); }
 
     Flag() = delete;
     Flag(const Flag&) = delete;
     Flag(Flag&&) = delete;
-    Flag& operator=(const Flag&) = delete;
-    Flag& operator=(Flag&&) = delete;
+    auto operator=(const Flag&) -> Flag& = delete;
+    auto operator=(Flag &&) -> Flag& = delete;
 };
 }  // namespace opentxs::implementation

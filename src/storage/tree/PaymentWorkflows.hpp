@@ -43,20 +43,21 @@ public:
         std::pair<proto::PaymentWorkflowType, proto::PaymentWorkflowState>;
     using Workflows = std::set<std::string>;
 
-    State GetState(const std::string& workflowID) const;
-    Workflows ListByAccount(const std::string& accountID) const;
-    Workflows ListByState(
+    auto GetState(const std::string& workflowID) const -> State;
+    auto ListByAccount(const std::string& accountID) const -> Workflows;
+    auto ListByState(
         proto::PaymentWorkflowType type,
-        proto::PaymentWorkflowState state) const;
-    Workflows ListByUnit(const std::string& unitID) const;
-    bool Load(
+        proto::PaymentWorkflowState state) const -> Workflows;
+    auto ListByUnit(const std::string& unitID) const -> Workflows;
+    auto Load(
         const std::string& id,
         std::shared_ptr<proto::PaymentWorkflow>& output,
-        const bool checking) const;
-    std::string LookupBySource(const std::string& sourceID) const;
+        const bool checking) const -> bool;
+    auto LookupBySource(const std::string& sourceID) const -> std::string;
 
-    bool Delete(const std::string& id);
-    bool Store(const proto::PaymentWorkflow& data, std::string& plaintext);
+    auto Delete(const std::string& id) -> bool;
+    auto Store(const proto::PaymentWorkflow& data, std::string& plaintext)
+        -> bool;
 
     ~PaymentWorkflows() final = default;
 
@@ -71,8 +72,8 @@ private:
     std::map<proto::PaymentWorkflowType, Workflows> type_workflow_map_;
     std::map<State, Workflows> state_workflow_map_;
 
-    bool save(const Lock& lock) const final;
-    proto::StoragePaymentWorkflows serialize() const;
+    auto save(const Lock& lock) const -> bool final;
+    auto serialize() const -> proto::StoragePaymentWorkflows;
 
     void add_state_index(
         const Lock& lock,
@@ -94,7 +95,7 @@ private:
     PaymentWorkflows() = delete;
     PaymentWorkflows(const PaymentWorkflows&) = delete;
     PaymentWorkflows(PaymentWorkflows&&) = delete;
-    PaymentWorkflows operator=(const PaymentWorkflows&) = delete;
-    PaymentWorkflows operator=(PaymentWorkflows&&) = delete;
+    auto operator=(const PaymentWorkflows&) -> PaymentWorkflows = delete;
+    auto operator=(PaymentWorkflows &&) -> PaymentWorkflows = delete;
 };
 }  // namespace opentxs::storage

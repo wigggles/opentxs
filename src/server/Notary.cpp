@@ -631,10 +631,10 @@ void Notary::deposit_cheque(
         .Flush();
 }
 
-std::unique_ptr<Cheque> Notary::extract_cheque(
+auto Notary::extract_cheque(
     const identifier::Server& serverID,
     const identifier::UnitDefinition& unitID,
-    const Item& item) const
+    const Item& item) const -> std::unique_ptr<Cheque>
 {
     auto serialized = String::Factory();
     item.GetAttachment(serialized);
@@ -6104,11 +6104,11 @@ void Notary::NotarizeTransaction(
 // can't reject inbox receipts. Why not? Haven't coded it yet. So your items
 // on your processNymbox transaction can only accept things (notices, new
 // transaction numbers,
-bool Notary::NotarizeProcessNymbox(
+auto Notary::NotarizeProcessNymbox(
     ClientContext& context,
     OTTransaction& tranIn,
     OTTransaction& tranOut,
-    bool& bOutSuccess)
+    bool& bOutSuccess) -> bool
 {
     // The outgoing transaction is an "atProcessNymbox", that is, "a reply
     // to the process nymbox request"
@@ -8558,10 +8558,10 @@ void Notary::send_push_notification(
 }
 
 #if OT_CASH
-bool Notary::process_token_deposit(
+auto Notary::process_token_deposit(
     ExclusiveAccount& reserveAccount,
     Account& depositAccount,
-    blind::Token& token)
+    blind::Token& token) -> bool
 {
     const auto amount = token.Value();
     auto pMint = manager_.GetPrivateMint(token.Unit(), token.Series());
@@ -8644,13 +8644,13 @@ bool Notary::process_token_deposit(
     return true;
 }
 
-bool Notary::process_token_withdrawal(
+auto Notary::process_token_withdrawal(
     const identifier::UnitDefinition& unit,
     ClientContext& context,
     ExclusiveAccount& reserveAccount,
     Account& account,
     blind::Purse& replyPurse,
-    std::shared_ptr<blind::Token> pToken)
+    std::shared_ptr<blind::Token> pToken) -> bool
 {
     auto& token = *pToken;
     const auto series = token.Series();
@@ -8755,7 +8755,7 @@ bool Notary::process_token_withdrawal(
     return true;
 }
 
-bool Notary::verify_token(blind::Mint& mint, blind::Token& token)
+auto Notary::verify_token(blind::Mint& mint, blind::Token& token) -> bool
 {
     // This call to VerifyToken verifies the token's Series and From/To dates
     // against the mint's, and also verifies that the CURRENT date is inside

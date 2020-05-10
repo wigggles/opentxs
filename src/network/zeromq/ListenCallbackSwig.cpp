@@ -16,8 +16,8 @@
 
 namespace opentxs::network::zeromq
 {
-OTZMQListenCallback ListenCallback::Factory(
-    opentxs::ListenCallbackSwig* callback)
+auto ListenCallback::Factory(opentxs::ListenCallbackSwig* callback)
+    -> OTZMQListenCallback
 {
     return OTZMQListenCallback(
         new implementation::ListenCallbackSwig(callback));
@@ -37,7 +37,7 @@ ListenCallbackSwig::ListenCallbackSwig(opentxs::ListenCallbackSwig* callback)
     }
 }
 
-ListenCallbackSwig* ListenCallbackSwig::clone() const
+auto ListenCallbackSwig::clone() const -> ListenCallbackSwig*
 {
     return new ListenCallbackSwig(callback_);
 }

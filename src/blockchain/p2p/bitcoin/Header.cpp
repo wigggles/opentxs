@@ -23,9 +23,9 @@
 
 namespace opentxs
 {
-blockchain::p2p::bitcoin::Header* Factory::BitcoinP2PHeader(
+auto Factory::BitcoinP2PHeader(
     const api::internal::Core& api,
-    const network::zeromq::Frame& bytes)
+    const network::zeromq::Frame& bytes) -> blockchain::p2p::bitcoin::Header*
 {
     using ReturnType = opentxs::blockchain::p2p::bitcoin::Header;
     const ReturnType::BitcoinFormat raw{bytes};
@@ -108,27 +108,27 @@ Header::BitcoinFormat::BitcoinFormat(const zmq::Frame& in) noexcept(false)
 {
 }
 
-OTData Header::BitcoinFormat::Checksum() const noexcept
+auto Header::BitcoinFormat::Checksum() const noexcept -> OTData
 {
     return Data::Factory(checksum_.data(), checksum_.size());
 }
 
-bitcoin::Command Header::BitcoinFormat::Command() const noexcept
+auto Header::BitcoinFormat::Command() const noexcept -> bitcoin::Command
 {
     return GetCommand(command_);
 }
 
-bitcoin::Magic Header::BitcoinFormat::Magic() const noexcept
+auto Header::BitcoinFormat::Magic() const noexcept -> bitcoin::Magic
 {
     return GetMagic(magic_.value());
 }
 
-std::size_t Header::BitcoinFormat::PayloadSize() const noexcept
+auto Header::BitcoinFormat::PayloadSize() const noexcept -> std::size_t
 {
     return length_.value();
 }
 
-OTData Header::Encode() const noexcept
+auto Header::Encode() const noexcept -> OTData
 {
     auto output = Data::Factory();
 

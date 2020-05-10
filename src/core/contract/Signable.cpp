@@ -69,7 +69,7 @@ Signable::Signable(const Signable& rhs) noexcept
 {
 }
 
-std::string Signable::Alias() const
+auto Signable::Alias() const -> std::string
 {
     Lock lock(lock_);
 
@@ -83,16 +83,19 @@ auto Signable::first_time_init(const Lock& lock) -> void
     if (id_->empty()) { throw std::runtime_error("Failed to calculate id"); }
 }
 
-bool Signable::CheckID(const Lock& lock) const { return (GetID(lock) == id_); }
+auto Signable::CheckID(const Lock& lock) const -> bool
+{
+    return (GetID(lock) == id_);
+}
 
-OTIdentifier Signable::id(const Lock& lock) const
+auto Signable::id(const Lock& lock) const -> OTIdentifier
 {
     OT_ASSERT(verify_write_lock(lock));
 
     return id_;
 }
 
-OTIdentifier Signable::ID() const
+auto Signable::ID() const -> OTIdentifier
 {
     Lock lock(lock_);
 
@@ -108,7 +111,7 @@ auto Signable::init_serialized(const Lock& lock) noexcept(false) -> void
     }
 }
 
-Nym_p Signable::Nym() const { return nym_; }
+auto Signable::Nym() const -> Nym_p { return nym_; }
 
 void Signable::SetAlias(const std::string& alias)
 {
@@ -117,14 +120,15 @@ void Signable::SetAlias(const std::string& alias)
     alias_ = alias;
 }
 
-const std::string& Signable::Terms() const
+auto Signable::Terms() const -> const std::string&
 {
     Lock lock(lock_);
 
     return conditions_;
 }
 
-bool Signable::update_signature(const Lock& lock, const PasswordPrompt& reason)
+auto Signable::update_signature(const Lock& lock, const PasswordPrompt& reason)
+    -> bool
 {
     OT_ASSERT(verify_write_lock(lock));
 
@@ -143,14 +147,14 @@ void Signable::update_version(const VersionNumber version) noexcept
     const_cast<VersionNumber&>(version_) = version;
 }
 
-bool Signable::Validate() const
+auto Signable::Validate() const -> bool
 {
     Lock lock(lock_);
 
     return validate(lock);
 }
 
-bool Signable::verify_write_lock(const Lock& lock) const
+auto Signable::verify_write_lock(const Lock& lock) const -> bool
 {
     if (lock.mutex() != &lock_) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Incorrect mutex.").Flush();
@@ -167,7 +171,8 @@ bool Signable::verify_write_lock(const Lock& lock) const
     return true;
 }
 
-bool Signable::verify_signature(const Lock& lock, const proto::Signature&) const
+auto Signable::verify_signature(const Lock& lock, const proto::Signature&) const
+    -> bool
 {
     OT_ASSERT(verify_write_lock(lock));
 
@@ -180,5 +185,5 @@ bool Signable::verify_signature(const Lock& lock, const proto::Signature&) const
     return true;
 }
 
-VersionNumber Signable::Version() const { return version_; }
+auto Signable::Version() const -> VersionNumber { return version_; }
 }  // namespace opentxs::contract::implementation

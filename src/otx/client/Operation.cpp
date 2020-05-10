@@ -281,11 +281,11 @@ namespace zmq = opentxs::network::zeromq;
 
 namespace opentxs
 {
-otx::client::internal::Operation* Factory::Operation(
+auto Factory::Operation(
     const api::client::internal::Manager& api,
     const identifier::Nym& nym,
     const identifier::Server& server,
-    const opentxs::PasswordPrompt& reason)
+    const opentxs::PasswordPrompt& reason) -> otx::client::internal::Operation*
 {
     return new otx::client::implementation::Operation(api, nym, server, reason);
 }
@@ -419,11 +419,11 @@ void Operation::account_post()
     }
 }
 
-bool Operation::AddClaim(
+auto Operation::AddClaim(
     const proto::ContactSectionName section,
     const proto::ContactItemType type,
     const String& value,
-    const bool primary)
+    const bool primary) -> bool
 {
     START()
 
@@ -435,14 +435,14 @@ bool Operation::AddClaim(
     return start(lock, Type::AddClaim, {});
 }
 
-bool Operation::check_future(ServerContext::SendFuture& future)
+auto Operation::check_future(ServerContext::SendFuture& future) -> bool
 {
     return std::future_status::ready !=
            future.wait_for(
                std::chrono::milliseconds(OPERATION_POLL_MILLISECONDS));
 }
 
-std::shared_ptr<Message> Operation::construct()
+auto Operation::construct() -> std::shared_ptr<Message>
 {
     switch (type_.load()) {
         case Type::AddClaim: {
@@ -546,7 +546,7 @@ std::shared_ptr<Message> Operation::construct()
     return {};
 }
 
-std::shared_ptr<Message> Operation::construct_add_claim()
+auto Operation::construct_add_claim() -> std::shared_ptr<Message>
 {
     PREPARE_CONTEXT();
     CREATE_MESSAGE(addClaim, -1, true, true);
@@ -561,14 +561,14 @@ std::shared_ptr<Message> Operation::construct_add_claim()
     FINISH_MESSAGE(__FUNCTION__, addClaim);
 }
 
-std::shared_ptr<Message> Operation::construct_check_nym()
+auto Operation::construct_check_nym() -> std::shared_ptr<Message>
 {
     PREPARE_CONTEXT();
     CREATE_MESSAGE(checkNym, target_nym_id_, -1, true, true);
     FINISH_MESSAGE(__FUNCTION__, checkNym);
 }
 
-std::shared_ptr<Message> Operation::construct_convey_payment()
+auto Operation::construct_convey_payment() -> std::shared_ptr<Message>
 {
     if (false == bool(payment_)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": No payment to convey").Flush();
@@ -638,7 +638,7 @@ std::shared_ptr<Message> Operation::construct_convey_payment()
 }
 
 #if OT_CASH
-std::shared_ptr<Message> Operation::construct_deposit_cash()
+auto Operation::construct_deposit_cash() -> std::shared_ptr<Message>
 {
     if (false == bool(purse_)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Missing purse.").Flush();
@@ -670,7 +670,7 @@ std::shared_ptr<Message> Operation::construct_deposit_cash()
 }
 #endif
 
-std::shared_ptr<Message> Operation::construct_deposit_cheque()
+auto Operation::construct_deposit_cheque() -> std::shared_ptr<Message>
 {
     if (false == bool(cheque_)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": No cheque to deposit").Flush();
@@ -782,7 +782,7 @@ std::shared_ptr<Message> Operation::construct_deposit_cheque()
     FINISH_TRANSACTION();
 }
 
-std::shared_ptr<Message> Operation::construct_download_contract()
+auto Operation::construct_download_contract() -> std::shared_ptr<Message>
 {
     PREPARE_CONTEXT();
     CREATE_MESSAGE(getInstrumentDefinition, -1, true, true);
@@ -794,7 +794,7 @@ std::shared_ptr<Message> Operation::construct_download_contract()
 }
 
 #if OT_CASH
-std::shared_ptr<Message> Operation::construct_download_mint()
+auto Operation::construct_download_mint() -> std::shared_ptr<Message>
 {
     try {
         api_.Wallet().UnitDefinition(target_unit_id_);
@@ -813,8 +813,8 @@ std::shared_ptr<Message> Operation::construct_download_mint()
 }
 #endif
 
-std::shared_ptr<Message> Operation::construct_get_account_data(
-    const Identifier& accountID)
+auto Operation::construct_get_account_data(const Identifier& accountID)
+    -> std::shared_ptr<Message>
 {
     PREPARE_CONTEXT();
     CREATE_MESSAGE(getAccountData, -1, true, true);
@@ -824,12 +824,12 @@ std::shared_ptr<Message> Operation::construct_get_account_data(
     FINISH_MESSAGE(__FUNCTION__, getAccountData);
 }
 
-std::shared_ptr<Message> Operation::construct_get_transaction_numbers()
+auto Operation::construct_get_transaction_numbers() -> std::shared_ptr<Message>
 {
     return api_.OTAPI().getTransactionNumbers(context().get());
 }
 
-std::shared_ptr<Message> Operation::construct_issue_unit_definition()
+auto Operation::construct_issue_unit_definition() -> std::shared_ptr<Message>
 {
     if (false == bool(unit_definition_)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Missing unit definition");
@@ -856,7 +856,7 @@ std::shared_ptr<Message> Operation::construct_issue_unit_definition()
     }
 }
 
-std::shared_ptr<Message> Operation::construct_publish_nym()
+auto Operation::construct_publish_nym() -> std::shared_ptr<Message>
 {
     const auto contract = api_.Wallet().Nym(target_nym_id_);
 
@@ -876,7 +876,7 @@ std::shared_ptr<Message> Operation::construct_publish_nym()
     FINISH_MESSAGE(__FUNCTION__, registerContract);
 }
 
-std::shared_ptr<Message> Operation::construct_publish_server()
+auto Operation::construct_publish_server() -> std::shared_ptr<Message>
 {
     try {
         const auto contract = api_.Wallet().Server(target_server_id_);
@@ -898,7 +898,7 @@ std::shared_ptr<Message> Operation::construct_publish_server()
     }
 }
 
-std::shared_ptr<Message> Operation::construct_publish_unit()
+auto Operation::construct_publish_unit() -> std::shared_ptr<Message>
 {
     try {
         const auto contract = api_.Wallet().UnitDefinition(target_unit_id_);
@@ -919,10 +919,10 @@ std::shared_ptr<Message> Operation::construct_publish_unit()
     }
 }
 
-std::shared_ptr<Message> Operation::construct_process_inbox(
+auto Operation::construct_process_inbox(
     const Identifier& accountID,
     const Ledger& payload,
-    ServerContext& context)
+    ServerContext& context) -> std::shared_ptr<Message>
 {
     CREATE_MESSAGE(
         processInbox,
@@ -932,7 +932,7 @@ std::shared_ptr<Message> Operation::construct_process_inbox(
     FINISH_MESSAGE(__FUNCTION__, processInbox);
 }
 
-std::shared_ptr<Message> Operation::construct_register_account()
+auto Operation::construct_register_account() -> std::shared_ptr<Message>
 {
     try {
         api_.Wallet().UnitDefinition(target_unit_id_);
@@ -950,7 +950,7 @@ std::shared_ptr<Message> Operation::construct_register_account()
     }
 }
 
-std::shared_ptr<Message> Operation::construct_register_nym()
+auto Operation::construct_register_nym() -> std::shared_ptr<Message>
 {
     PREPARE_CONTEXT();
     CREATE_MESSAGE(registerNym, -1, true, true);
@@ -960,7 +960,7 @@ std::shared_ptr<Message> Operation::construct_register_nym()
     FINISH_MESSAGE(__FUNCTION__, registerNym);
 }
 
-std::shared_ptr<Message> Operation::construct_request_admin()
+auto Operation::construct_request_admin() -> std::shared_ptr<Message>
 {
     PREPARE_CONTEXT();
     CREATE_MESSAGE(requestAdmin, -1, true, true);
@@ -970,11 +970,11 @@ std::shared_ptr<Message> Operation::construct_request_admin()
     FINISH_MESSAGE(__FUNCTION__, requestAdmin);
 }
 
-std::shared_ptr<Message> Operation::construct_send_nym_object(
+auto Operation::construct_send_nym_object(
     const PeerObject& object,
     const Nym_p recipient,
     ServerContext& context,
-    const RequestNumber number)
+    const RequestNumber number) -> std::shared_ptr<Message>
 {
     auto envelope = api_.Factory().Armored();
 
@@ -982,12 +982,12 @@ std::shared_ptr<Message> Operation::construct_send_nym_object(
         object, recipient, context, envelope, number);
 }
 
-std::shared_ptr<Message> Operation::construct_send_nym_object(
+auto Operation::construct_send_nym_object(
     const PeerObject& object,
     const Nym_p recipient,
     ServerContext& context,
     Armored& senderCopy,
-    const RequestNumber number)
+    const RequestNumber number) -> std::shared_ptr<Message>
 {
     CREATE_MESSAGE(sendNymMessage, recipient->ID(), number, true, true);
 
@@ -1019,7 +1019,7 @@ std::shared_ptr<Message> Operation::construct_send_nym_object(
 }
 
 #if OT_CASH
-std::shared_ptr<Message> Operation::construct_send_cash()
+auto Operation::construct_send_cash() -> std::shared_ptr<Message>
 {
     const auto pRecipient = api_.Wallet().Nym(target_nym_id_);
 
@@ -1053,7 +1053,7 @@ std::shared_ptr<Message> Operation::construct_send_cash()
 }
 #endif
 
-std::shared_ptr<Message> Operation::construct_send_message()
+auto Operation::construct_send_message() -> std::shared_ptr<Message>
 {
     const auto recipientNym = api_.Wallet().Nym(target_nym_id_);
 
@@ -1116,7 +1116,7 @@ std::shared_ptr<Message> Operation::construct_send_message()
     return pOutput;
 }
 
-std::shared_ptr<Message> Operation::construct_send_peer_reply()
+auto Operation::construct_send_peer_reply() -> std::shared_ptr<Message>
 {
     const auto recipientNym = api_.Wallet().Nym(target_nym_id_);
     if (false == bool(recipientNym)) {
@@ -1174,7 +1174,7 @@ std::shared_ptr<Message> Operation::construct_send_peer_reply()
     return pOutput;
 }
 
-std::shared_ptr<Message> Operation::construct_send_peer_request()
+auto Operation::construct_send_peer_request() -> std::shared_ptr<Message>
 {
     const auto recipientNym = api_.Wallet().Nym(target_nym_id_);
 
@@ -1230,7 +1230,7 @@ std::shared_ptr<Message> Operation::construct_send_peer_request()
     return pOutput;
 }
 
-std::shared_ptr<Message> Operation::construct_send_transfer()
+auto Operation::construct_send_transfer() -> std::shared_ptr<Message>
 {
     PREPARE_TRANSACTION_WITHOUT_BALANCE_ITEM(
         transactionType::transfer,
@@ -1294,7 +1294,7 @@ std::shared_ptr<Message> Operation::construct_send_transfer()
 }
 
 #if OT_CASH
-std::shared_ptr<Message> Operation::construct_withdraw_cash()
+auto Operation::construct_withdraw_cash() -> std::shared_ptr<Message>
 {
     const Amount totalAmount(amount_);
 
@@ -1359,14 +1359,14 @@ std::shared_ptr<Message> Operation::construct_withdraw_cash()
 }
 #endif
 
-Editor<ServerContext> Operation::context() const
+auto Operation::context() const -> Editor<ServerContext>
 {
     return api_.Wallet().mutable_ServerContext(nym_id_, server_id_, reason_);
 }
 
-bool Operation::ConveyPayment(
+auto Operation::ConveyPayment(
     const identifier::Nym& recipient,
-    const std::shared_ptr<const OTPayment> payment)
+    const std::shared_ptr<const OTPayment> payment) -> bool
 {
     START()
 
@@ -1377,9 +1377,9 @@ bool Operation::ConveyPayment(
 }
 
 #if OT_CASH
-bool Operation::DepositCash(
+auto Operation::DepositCash(
     const Identifier& depositAccountID,
-    const std::shared_ptr<blind::Purse> purse)
+    const std::shared_ptr<blind::Purse> purse) -> bool
 {
     if (false == bool(purse)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid purse").Flush();
@@ -1423,9 +1423,9 @@ bool Operation::DepositCash(
 }
 #endif
 
-bool Operation::DepositCheque(
+auto Operation::DepositCheque(
     const Identifier& depositAccountID,
-    const std::shared_ptr<Cheque> cheque)
+    const std::shared_ptr<Cheque> cheque) -> bool
 {
     START()
 
@@ -1436,10 +1436,10 @@ bool Operation::DepositCheque(
     return start(lock, Type::DepositCheque, {});
 }
 
-bool Operation::download_accounts(
+auto Operation::download_accounts(
     const State successState,
     const State failState,
-    ServerContext::DeliveryResult& lastResult)
+    ServerContext::DeliveryResult& lastResult) -> bool
 {
     if (affected_accounts_.empty()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Warning: no accounts to update")
@@ -1472,9 +1472,9 @@ bool Operation::download_accounts(
     return false;
 }
 
-std::size_t Operation::download_account(
+auto Operation::download_account(
     const Identifier& accountID,
-    ServerContext::DeliveryResult& lastResult)
+    ServerContext::DeliveryResult& lastResult) -> std::size_t
 {
     std::shared_ptr<Ledger> inbox{api_.Factory().Ledger(
         nym_id_, accountID, server_id_, ledgerType::inbox)};
@@ -1529,10 +1529,10 @@ std::size_t Operation::download_account(
     }
 }
 
-bool Operation::download_box_receipt(
+auto Operation::download_box_receipt(
     const Identifier& accountID,
     const BoxType box,
-    const TransactionNumber number)
+    const TransactionNumber number) -> bool
 {
     PREPARE_CONTEXT();
 
@@ -1580,7 +1580,8 @@ bool Operation::download_box_receipt(
     return proto::LASTREPLYSTATUS_MESSAGESUCCESS == std::get<0>(result->get());
 }
 
-bool Operation::DownloadContract(const Identifier& ID, const ContractType type)
+auto Operation::DownloadContract(const Identifier& ID, const ContractType type)
+    -> bool
 {
     START()
 
@@ -1610,9 +1611,9 @@ void Operation::evaluate_transaction_reply(
     state_.store(State::AccountPost);
 }
 
-bool Operation::evaluate_transaction_reply(
+auto Operation::evaluate_transaction_reply(
     const Identifier& accountID,
-    const Message& reply) const
+    const Message& reply) const -> bool
 {
     if (false == reply.m_bSuccess) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Message failure").Flush();
@@ -1796,11 +1797,11 @@ void Operation::execute()
     }
 }
 
-bool Operation::get_account_data(
+auto Operation::get_account_data(
     const Identifier& accountID,
     std::shared_ptr<Ledger> inbox,
     std::shared_ptr<Ledger> outbox,
-    ServerContext::DeliveryResult& lastResult)
+    ServerContext::DeliveryResult& lastResult) -> bool
 {
     auto message = construct_get_account_data(accountID);
 
@@ -1831,10 +1832,10 @@ bool Operation::get_account_data(
     return proto::LASTREPLYSTATUS_MESSAGESUCCESS == std::get<0>(lastResult);
 }
 
-bool Operation::get_receipts(
+auto Operation::get_receipts(
     const Identifier& accountID,
     std::shared_ptr<Ledger> inbox,
-    std::shared_ptr<Ledger> outbox)
+    std::shared_ptr<Ledger> outbox) -> bool
 {
     OT_ASSERT(inbox);
     OT_ASSERT(outbox);
@@ -1847,10 +1848,10 @@ bool Operation::get_receipts(
     return output;
 }
 
-bool Operation::get_receipts(
+auto Operation::get_receipts(
     const Identifier& accountID,
     const BoxType type,
-    Ledger& box)
+    Ledger& box) -> bool
 {
     const auto count = box.GetTransactionMap().size();
     std::size_t good{0};
@@ -1906,18 +1907,21 @@ bool Operation::get_receipts(
     return count == good;
 }
 
-bool Operation::hasContext() const
+auto Operation::hasContext() const -> bool
 {
     const auto context = api_.Wallet().ServerContext(nym_id_, server_id_);
 
     return bool(context);
 }
 
-Operation::Future Operation::GetFuture() { return result_.get_future(); }
+auto Operation::GetFuture() -> Operation::Future
+{
+    return result_.get_future();
+}
 
-bool Operation::IssueUnitDefinition(
+auto Operation::IssueUnitDefinition(
     const std::shared_ptr<const proto::UnitDefinition> unitDefinition,
-    const ServerContext::ExtraArgs& args)
+    const ServerContext::ExtraArgs& args) -> bool
 {
     if (false == bool(unitDefinition)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Missing unit definition").Flush();
@@ -2048,11 +2052,11 @@ void Operation::nymbox_pre()
     }
 }
 
-bool Operation::process_inbox(
+auto Operation::process_inbox(
     const Identifier& accountID,
     std::shared_ptr<Ledger> inbox,
     std::shared_ptr<Ledger> outbox,
-    ServerContext::DeliveryResult& lastResult)
+    ServerContext::DeliveryResult& lastResult) -> bool
 {
     class Cleanup
     {
@@ -2233,7 +2237,7 @@ bool Operation::process_inbox(
     return success;
 }
 
-bool Operation::PublishContract(const identifier::Nym& id)
+auto Operation::PublishContract(const identifier::Nym& id) -> bool
 {
     START()
 
@@ -2242,7 +2246,7 @@ bool Operation::PublishContract(const identifier::Nym& id)
     return start(lock, Type::PublishNym, {});
 }
 
-bool Operation::PublishContract(const identifier::Server& id)
+auto Operation::PublishContract(const identifier::Server& id) -> bool
 {
     START()
 
@@ -2251,7 +2255,7 @@ bool Operation::PublishContract(const identifier::Server& id)
     return start(lock, Type::PublishServer, {});
 }
 
-bool Operation::PublishContract(const identifier::UnitDefinition& id)
+auto Operation::PublishContract(const identifier::UnitDefinition& id) -> bool
 {
     START()
 
@@ -2267,7 +2271,7 @@ void Operation::refresh()
     context().get().UpdateRequestNumber(*message_, reason_);
 }
 
-bool Operation::RequestAdmin(const String& password)
+auto Operation::RequestAdmin(const String& password) -> bool
 {
     START()
 
@@ -2313,9 +2317,9 @@ void Operation::reset()
 }
 
 #if OT_CASH
-bool Operation::SendCash(
+auto Operation::SendCash(
     const identifier::Nym& recipientID,
-    const Identifier& workflowID)
+    const Identifier& workflowID) -> bool
 {
     const auto pSender = api_.Wallet().Nym(nym_id_);
     const auto pRecipient = api_.Wallet().Nym(recipientID);
@@ -2387,10 +2391,10 @@ bool Operation::SendCash(
 }
 #endif
 
-bool Operation::SendMessage(
+auto Operation::SendMessage(
     const identifier::Nym& recipient,
     const String& message,
-    const SetID setID)
+    const SetID setID) -> bool
 {
     START()
 
@@ -2401,10 +2405,10 @@ bool Operation::SendMessage(
     return start(lock, Type::SendMessage, {});
 }
 
-bool Operation::SendPeerReply(
+auto Operation::SendPeerReply(
     const identifier::Nym& targetNymID,
     const OTPeerReply peerreply,
-    const OTPeerRequest peerrequest)
+    const OTPeerRequest peerrequest) -> bool
 {
     START()
 
@@ -2415,9 +2419,9 @@ bool Operation::SendPeerReply(
     return start(lock, Type::SendPeerReply, {});
 }
 
-bool Operation::SendPeerRequest(
+auto Operation::SendPeerRequest(
     const identifier::Nym& targetNymID,
-    const OTPeerRequest peerrequest)
+    const OTPeerRequest peerrequest) -> bool
 {
     START()
 
@@ -2427,11 +2431,11 @@ bool Operation::SendPeerRequest(
     return start(lock, Type::SendPeerRequest, {});
 }
 
-bool Operation::SendTransfer(
+auto Operation::SendTransfer(
     const Identifier& sourceAccountID,
     const Identifier& destinationAccountID,
     const Amount amount,
-    const String& memo)
+    const String& memo) -> bool
 {
     START()
 
@@ -2472,7 +2476,8 @@ void Operation::set_result(ServerContext::DeliveryResult&& result)
 
 void Operation::Shutdown() { Stop(); }
 
-bool Operation::Start(const Type type, const ServerContext::ExtraArgs& args)
+auto Operation::Start(const Type type, const ServerContext::ExtraArgs& args)
+    -> bool
 {
     START()
 
@@ -2491,10 +2496,10 @@ bool Operation::Start(const Type type, const ServerContext::ExtraArgs& args)
     return start(lock, type, args);
 }
 
-bool Operation::Start(
+auto Operation::Start(
     const Type type,
     const identifier::UnitDefinition& targetUnitID,
-    const ServerContext::ExtraArgs& args)
+    const ServerContext::ExtraArgs& args) -> bool
 {
     START()
 
@@ -2515,10 +2520,10 @@ bool Operation::Start(
     return start(lock, type, args);
 }
 
-bool Operation::Start(
+auto Operation::Start(
     const Type type,
     const identifier::Nym& targetNymID,
-    const ServerContext::ExtraArgs& args)
+    const ServerContext::ExtraArgs& args) -> bool
 {
     START()
 
@@ -2538,10 +2543,10 @@ bool Operation::Start(
     return start(lock, type, args);
 }
 
-bool Operation::start(
+auto Operation::start(
     const Lock& decisionLock,
     const Type type,
-    const ServerContext::ExtraArgs& args)
+    const ServerContext::ExtraArgs& args) -> bool
 {
     type_.store(type);
     args_ = args;
@@ -2551,7 +2556,7 @@ bool Operation::start(
     return trigger(decisionLock);
 }
 
-bool Operation::state_machine()
+auto Operation::state_machine() -> bool
 {
     switch (state_.load()) {
         case State::NymboxPre: {
@@ -2733,7 +2738,7 @@ void Operation::update_workflow_send_cash(
 }
 #endif
 
-bool Operation::UpdateAccount(const Identifier& accountID)
+auto Operation::UpdateAccount(const Identifier& accountID) -> bool
 {
     START()
 
@@ -2744,7 +2749,8 @@ bool Operation::UpdateAccount(const Identifier& accountID)
 }
 
 #if OT_CASH
-bool Operation::WithdrawCash(const Identifier& accountID, const Amount amount)
+auto Operation::WithdrawCash(const Identifier& accountID, const Amount amount)
+    -> bool
 {
     START()
 

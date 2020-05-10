@@ -63,7 +63,7 @@ void OTTrackable::InitTrackable()
     m_lTransactionNum = 0;
 }
 
-bool OTTrackable::HasTransactionNum(const std::int64_t& lInput) const
+auto OTTrackable::HasTransactionNum(const std::int64_t& lInput) const -> bool
 {
     return lInput == m_lTransactionNum;
 }

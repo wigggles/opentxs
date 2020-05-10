@@ -23,13 +23,13 @@
 // "opentxs::blockchain::p2p::bitcoin::message::implementation::Getcfheaders::"
 namespace opentxs
 {
-blockchain::p2p::bitcoin::message::internal::Getcfheaders* Factory::
-    BitcoinP2PGetcfheaders(
-        const api::internal::Core& api,
-        std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
-        const blockchain::p2p::bitcoin::ProtocolVersion version,
-        const void* payload,
-        const std::size_t size)
+auto Factory::BitcoinP2PGetcfheaders(
+    const api::internal::Core& api,
+    std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
+    const blockchain::p2p::bitcoin::ProtocolVersion version,
+    const void* payload,
+    const std::size_t size)
+    -> blockchain::p2p::bitcoin::message::internal::Getcfheaders*
 {
     namespace bitcoin = blockchain::p2p::bitcoin;
     using ReturnType = bitcoin::message::implementation::Getcfheaders;
@@ -64,13 +64,13 @@ blockchain::p2p::bitcoin::message::internal::Getcfheaders* Factory::
         raw.Stop());
 }
 
-blockchain::p2p::bitcoin::message::internal::Getcfheaders* Factory::
-    BitcoinP2PGetcfheaders(
-        const api::internal::Core& api,
-        const blockchain::Type network,
-        const blockchain::filter::Type type,
-        const blockchain::block::Height start,
-        const blockchain::filter::Hash& stop)
+auto Factory::BitcoinP2PGetcfheaders(
+    const api::internal::Core& api,
+    const blockchain::Type network,
+    const blockchain::filter::Type type,
+    const blockchain::block::Height start,
+    const blockchain::filter::Hash& stop)
+    -> blockchain::p2p::bitcoin::message::internal::Getcfheaders*
 {
     namespace bitcoin = blockchain::p2p::bitcoin;
     using ReturnType = bitcoin::message::implementation::Getcfheaders;
@@ -108,7 +108,7 @@ Getcfheaders::Getcfheaders(
 {
 }
 
-OTData Getcfheaders::payload() const noexcept
+auto Getcfheaders::payload() const noexcept -> OTData
 {
     try {
         BitcoinFormat raw(header().Network(), type_, start_, stop_);

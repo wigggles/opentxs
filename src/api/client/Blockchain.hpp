@@ -94,93 +94,94 @@ public:
     using ThreadPoolType = opentxs::blockchain::client::internal::ThreadPool;
 #endif  // OT_BLOCKCHAIN
 
-    const blockchain::BalanceTree& Account(
-        const identifier::Nym& nymID,
-        const Chain chain) const noexcept(false) final
+    auto Account(const identifier::Nym& nymID, const Chain chain) const
+        noexcept(false) -> const blockchain::BalanceTree& final
     {
         return BalanceTree(nymID, chain);
     }
-    std::set<OTIdentifier> AccountList(
-        const identifier::Nym& nymID,
-        const Chain chain) const noexcept final;
-    const api::internal::Core& API() const noexcept final { return api_; }
-    bool AssignContact(
-        const identifier::Nym& nymID,
-        const Identifier& accountID,
-        const blockchain::Subchain subchain,
-        const Bip32Index index,
-        const Identifier& contactID) const noexcept final;
-    bool AssignLabel(
+    auto AccountList(const identifier::Nym& nymID, const Chain chain) const
+        noexcept -> std::set<OTIdentifier> final;
+    auto API() const noexcept -> const api::internal::Core& final
+    {
+        return api_;
+    }
+    auto AssignContact(
         const identifier::Nym& nymID,
         const Identifier& accountID,
         const blockchain::Subchain subchain,
         const Bip32Index index,
-        const std::string& label) const noexcept final;
-    const blockchain::internal::BalanceTree& BalanceTree(
+        const Identifier& contactID) const noexcept -> bool final;
+    auto AssignLabel(
         const identifier::Nym& nymID,
-        const Chain chain) const noexcept(false) final;
+        const Identifier& accountID,
+        const blockchain::Subchain subchain,
+        const Bip32Index index,
+        const std::string& label) const noexcept -> bool final;
+    auto BalanceTree(const identifier::Nym& nymID, const Chain chain) const
+        noexcept(false) -> const blockchain::internal::BalanceTree& final;
 #if OT_BLOCKCHAIN
-    const blockchain::database::implementation::Database& BlockchainDB() const
-        noexcept final
+    auto BlockchainDB() const noexcept
+        -> const blockchain::database::implementation::Database& final
     {
         return db_;
     }
 #endif  // OT_BLOCKCHAIN
-    std::string CalculateAddress(
+    auto CalculateAddress(
         const Chain chain,
         const blockchain::AddressStyle format,
-        const Data& pubkey) const noexcept final;
-    const api::client::Contacts& Contacts() const noexcept { return contacts_; }
-    const TxoDB& DB() const noexcept { return txo_db_; }
-    std::tuple<OTData, Style, Chain> DecodeAddress(
-        const std::string& encoded) const noexcept final;
-    std::string EncodeAddress(
-        const Style style,
-        const Chain chain,
-        const Data& data) const noexcept final;
+        const Data& pubkey) const noexcept -> std::string final;
+    auto Contacts() const noexcept -> const api::client::Contacts&
+    {
+        return contacts_;
+    }
+    auto DB() const noexcept -> const TxoDB& { return txo_db_; }
+    auto DecodeAddress(const std::string& encoded) const noexcept
+        -> std::tuple<OTData, Style, Chain> final;
+    auto EncodeAddress(const Style style, const Chain chain, const Data& data)
+        const noexcept -> std::string final;
 #if OT_BLOCKCHAIN
-    const opentxs::blockchain::Network& GetChain(const Chain type) const
-        noexcept(false) final;
+    auto GetChain(const Chain type) const noexcept(false)
+        -> const opentxs::blockchain::Network& final;
 #endif  // OT_BLOCKCHAIN
-    const blockchain::HD& HDSubaccount(
-        const identifier::Nym& nymID,
-        const Identifier& accountID) const noexcept(false) final;
+    auto HDSubaccount(const identifier::Nym& nymID, const Identifier& accountID)
+        const noexcept(false) -> const blockchain::HD& final;
 #if OT_BLOCKCHAIN
-    const opentxs::blockchain::client::internal::IO& IO() const noexcept final
+    auto IO() const noexcept
+        -> const opentxs::blockchain::client::internal::IO& final
     {
         return io_;
     }
 #endif  // OT_BLOCKCHAIN
-    OTIdentifier NewHDSubaccount(
+    auto NewHDSubaccount(
         const identifier::Nym& nymID,
         const BlockchainAccountType standard,
         const Chain chain,
-        const PasswordPrompt& reason) const noexcept final;
-    OTData PubkeyHash(const Chain chain, const Data& pubkey) const
-        noexcept(false) final;
+        const PasswordPrompt& reason) const noexcept -> OTIdentifier final;
+    auto PubkeyHash(const Chain chain, const Data& pubkey) const noexcept(false)
+        -> OTData final;
 #if OT_BLOCKCHAIN
-    const opentxs::network::zeromq::socket::Publish& Reorg() const
-        noexcept final
+    auto Reorg() const noexcept
+        -> const opentxs::network::zeromq::socket::Publish& final
     {
         return reorg_;
     }
-    bool Start(const Chain type, const std::string& seednode) const
-        noexcept final;
-    bool Stop(const Chain type) const noexcept final;
+    auto Start(const Chain type, const std::string& seednode) const noexcept
+        -> bool final;
+    auto Stop(const Chain type) const noexcept -> bool final;
 #endif  // OT_BLOCKCHAIN
-    bool StoreTransaction(
+    auto StoreTransaction(
         const identifier::Nym& nymID,
         const Chain chain,
         const proto::BlockchainTransaction& transaction,
-        const PasswordPrompt& reason) const noexcept final;
+        const PasswordPrompt& reason) const noexcept -> bool final;
 #if OT_BLOCKCHAIN
     auto ThreadPool() const noexcept -> const ThreadPoolType& final
     {
         return thread_pool_;
     }
 #endif  // OT_BLOCKCHAIN
-    std::shared_ptr<proto::BlockchainTransaction> Transaction(
-        const std::string& id) const noexcept final;
+    auto Transaction(const std::string& id) const noexcept
+        -> std::shared_ptr<proto::BlockchainTransaction> final;
 #if OT_BLOCKCHAIN
     auto UpdateBalance(
         const opentxs::blockchain::Type chain,
@@ -189,8 +190,8 @@ public:
         balances_.UpdateBalance(chain, balance);
     }
 #endif  // OT_BLOCKCHAIN
-    bool UpdateTransactions(const std::map<OTData, OTIdentifier>& changed) const
-        noexcept final;
+    auto UpdateTransactions(const std::map<OTData, OTIdentifier>& changed) const
+        noexcept -> bool final;
 
     Blockchain(
         const api::client::internal::Manager& api,
@@ -229,8 +230,8 @@ private:
     friend opentxs::Factory;
 
     struct BalanceLists {
-        client::blockchain::internal::BalanceList& Get(
-            const Chain chain) noexcept;
+        auto Get(const Chain chain) noexcept
+            -> client::blockchain::internal::BalanceList&;
 
         BalanceLists(api::client::internal::Blockchain& parent) noexcept;
 
@@ -269,19 +270,18 @@ private:
     };
 #endif  // OT_BLOCKCHAIN
     struct Txo final : virtual public internal::Blockchain::TxoDB {
-        bool AddSpent(
+        auto AddSpent(
             const identifier::Nym& nym,
             const blockchain::Coin txo,
-            const std::string txid) const noexcept final;
-        bool AddUnspent(
+            const std::string txid) const noexcept -> bool final;
+        auto AddUnspent(
             const identifier::Nym& nym,
             const blockchain::Coin txo,
-            const std::vector<OTData>& elements) const noexcept final;
-        bool Claim(const identifier::Nym& nym, const blockchain::Coin txo) const
-            noexcept final;
-        std::vector<Status> Lookup(
-            const identifier::Nym& nym,
-            const Data& element) const noexcept final;
+            const std::vector<OTData>& elements) const noexcept -> bool final;
+        auto Claim(const identifier::Nym& nym, const blockchain::Coin txo) const
+            noexcept -> bool final;
+        auto Lookup(const identifier::Nym& nym, const Data& element) const
+            noexcept -> std::vector<Status> final;
 
         Txo(api::client::internal::Blockchain& parent);
 
@@ -388,45 +388,49 @@ private:
     BalanceOracle balances_;
 #endif  // OT_BLOCKCHAIN
 
-    OTData address_prefix(const Style style, const Chain chain) const
-        noexcept(false);
-    bool assign_transactions(
-        const blockchain::internal::BalanceElement& element) const noexcept;
-    bool assign_transactions(
+    auto address_prefix(const Style style, const Chain chain) const
+        noexcept(false) -> OTData;
+    auto assign_transactions(
+        const blockchain::internal::BalanceElement& element) const noexcept
+        -> bool;
+    auto assign_transactions(
         const identifier::Nym& nymID,
         const std::set<OTIdentifier> contacts,
-        const TransactionMap& transactions) const noexcept;
-    bool assign_transactions(
+        const TransactionMap& transactions) const noexcept -> bool;
+    auto assign_transactions(
         const identifier::Nym& nymID,
         const Identifier& contactID,
-        const TransactionMap& transactions) const noexcept;
-    Bip44Type bip44_type(const proto::ContactItemType type) const noexcept;
+        const TransactionMap& transactions) const noexcept -> bool;
+    auto bip44_type(const proto::ContactItemType type) const noexcept
+        -> Bip44Type;
     void init_path(
         const std::string& root,
         const proto::ContactItemType chain,
         const Bip32Index account,
         const BlockchainAccountType standard,
         proto::HDPath& path) const noexcept;
-    bool move_transactions(
+    auto move_transactions(
         const blockchain::internal::BalanceElement& element,
-        const Identifier& fromContact) const noexcept;
-    ParsedTransaction parse_transaction(
+        const Identifier& fromContact) const noexcept -> bool;
+    auto parse_transaction(
         const identifier::Nym& nym,
         const proto::BlockchainTransaction& transaction,
         const blockchain::internal::BalanceTree& tree,
-        std::set<OTIdentifier>& contacts) const noexcept;
-    std::string p2pkh(const Chain chain, const Data& pubkeyHash) const noexcept;
-    std::string p2sh(const Chain chain, const Data& scriptHash) const noexcept;
-    bool update_transactions(
+        std::set<OTIdentifier>& contacts) const noexcept -> ParsedTransaction;
+    auto p2pkh(const Chain chain, const Data& pubkeyHash) const noexcept
+        -> std::string;
+    auto p2sh(const Chain chain, const Data& scriptHash) const noexcept
+        -> std::string;
+    auto update_transactions(
         const Lock& lock,
         const identifier::Nym& nym,
-        const TransactionContactMap& transactions) const noexcept;
-    bool validate_nym(const identifier::Nym& nymID) const noexcept;
+        const TransactionContactMap& transactions) const noexcept -> bool;
+    auto validate_nym(const identifier::Nym& nymID) const noexcept -> bool;
 
     Blockchain() = delete;
     Blockchain(const Blockchain&) = delete;
     Blockchain(Blockchain&&) = delete;
-    Blockchain& operator=(const Blockchain&) = delete;
-    Blockchain& operator=(Blockchain&&) = delete;
+    auto operator=(const Blockchain&) -> Blockchain& = delete;
+    auto operator=(Blockchain &&) -> Blockchain& = delete;
 };
 }  // namespace opentxs::api::client::implementation

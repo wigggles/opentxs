@@ -46,7 +46,7 @@ class Dealer final : public Bidirectional<zeromq::socket::Dealer>,
                      public zeromq::curve::implementation::Client
 {
 public:
-    bool SetSocksProxy(const std::string& proxy) const noexcept final
+    auto SetSocksProxy(const std::string& proxy) const noexcept -> bool final
     {
         return set_socks_proxy(proxy);
     }
@@ -64,15 +64,15 @@ protected:
 private:
     friend opentxs::Factory;
 
-    Dealer* clone() const noexcept final;
-    bool have_callback() const noexcept final { return true; }
+    auto clone() const noexcept -> Dealer* final;
+    auto have_callback() const noexcept -> bool final { return true; }
 
     void process_incoming(const Lock& lock, Message& message) noexcept final;
 
     Dealer() = delete;
     Dealer(const Dealer&) = delete;
     Dealer(Dealer&&) = delete;
-    Dealer& operator=(const Dealer&) = delete;
-    Dealer& operator=(Dealer&&) = delete;
+    auto operator=(const Dealer&) -> Dealer& = delete;
+    auto operator=(Dealer &&) -> Dealer& = delete;
 };
 }  // namespace opentxs::network::zeromq::socket::implementation

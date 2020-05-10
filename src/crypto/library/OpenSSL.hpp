@@ -83,19 +83,19 @@ class OpenSSL final : virtual public crypto::OpenSSL
 #endif
 {
 public:
-    bool Digest(
+    auto Digest(
         const proto::HashType hashType,
         const std::uint8_t* input,
         const size_t inputSize,
-        std::uint8_t* output) const final;
-    bool HMAC(
+        std::uint8_t* output) const -> bool final;
+    auto HMAC(
         const proto::HashType hashType,
         const std::uint8_t* input,
         const size_t inputSize,
         const std::uint8_t* key,
         const size_t keySize,
-        std::uint8_t* output) const final;
-    bool PKCS5_PBKDF2_HMAC(
+        std::uint8_t* output) const -> bool final;
+    auto PKCS5_PBKDF2_HMAC(
         const void* input,
         const std::size_t inputSize,
         const void* salt,
@@ -103,37 +103,37 @@ public:
         const std::size_t iterations,
         const proto::HashType hashType,
         const std::size_t bytes,
-        void* output) const noexcept final;
-    bool RIPEMD160(
+        void* output) const noexcept -> bool final;
+    auto RIPEMD160(
         const std::uint8_t* input,
         const std::size_t inputSize,
-        std::uint8_t* output) const final;
+        std::uint8_t* output) const -> bool final;
 
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
-    bool RandomKeypair(
+    auto RandomKeypair(
         const AllocateOutput privateKey,
         const AllocateOutput publicKey,
         const proto::KeyRole role,
         const NymParameters& options,
-        const AllocateOutput params) const noexcept final;
-    bool SharedSecret(
+        const AllocateOutput params) const noexcept -> bool final;
+    auto SharedSecret(
         const key::Asymmetric& publicKey,
         const key::Asymmetric& privateKey,
         const PasswordPrompt& reason,
-        OTPassword& secret) const noexcept final;
-    bool Sign(
+        OTPassword& secret) const noexcept -> bool final;
+    auto Sign(
         const api::internal::Core& api,
         const Data& plaintext,
         const key::Asymmetric& theKey,
         const proto::HashType hashType,
         Data& signature,  // output
         const PasswordPrompt& reason,
-        const OTPassword* exportPassword = nullptr) const final;
-    bool Verify(
+        const OTPassword* exportPassword = nullptr) const -> bool final;
+    auto Verify(
         const Data& plaintext,
         const key::Asymmetric& theKey,
         const Data& signature,
-        const proto::HashType hashType) const final;
+        const proto::HashType hashType) const -> bool final;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
 
     ~OpenSSL() final = default;
@@ -183,8 +183,8 @@ private:
     private:
         DH(const DH&) = delete;
         DH(DH&&) = delete;
-        DH& operator=(const DH&) = delete;
-        DH& operator=(DH&&) = delete;
+        auto operator=(const DH&) -> DH& = delete;
+        auto operator=(DH &&) -> DH& = delete;
     };
 
     struct MD {
@@ -214,8 +214,8 @@ private:
     private:
         MD(const MD&) = delete;
         MD(MD&&) = delete;
-        MD& operator=(const MD&) = delete;
-        MD& operator=(MD&&) = delete;
+        auto operator=(const MD&) -> MD& = delete;
+        auto operator=(MD &&) -> MD& = delete;
     };
 
     using Instantiate = std::function<::EVP_PKEY*(::BIO*)>;
@@ -262,7 +262,7 @@ private:
     OpenSSL() = delete;
     OpenSSL(const OpenSSL&) = delete;
     OpenSSL(OpenSSL&&) = delete;
-    OpenSSL& operator=(const OpenSSL&) = delete;
-    OpenSSL& operator=(OpenSSL&&) = delete;
+    auto operator=(const OpenSSL&) -> OpenSSL& = delete;
+    auto operator=(OpenSSL &&) -> OpenSSL& = delete;
 };
 }  // namespace opentxs::crypto::implementation

@@ -36,13 +36,13 @@ template <typename InterfaceType, typename MessageType = zeromq::Message>
 class Receiver : virtual public InterfaceType, public Socket
 {
 public:
-    bool apply_socket(SocketCallback&& cb) const noexcept override;
-    bool Close() const noexcept final;
+    auto apply_socket(SocketCallback&& cb) const noexcept -> bool override;
+    auto Close() const noexcept -> bool final;
 
 protected:
     mutable std::thread receiver_thread_{};
 
-    virtual bool have_callback() const noexcept { return false; }
+    virtual auto have_callback() const noexcept -> bool { return false; }
     void run_tasks(const Lock& lock) const noexcept;
 
     void init() noexcept override;
@@ -67,14 +67,14 @@ private:
     mutable std::map<int, SocketCallback> socket_tasks_;
     mutable std::map<int, bool> task_result_;
 
-    int add_task(SocketCallback&& cb) const noexcept;
-    bool task_result(const int id) const noexcept;
-    bool task_running(const int id) const noexcept;
+    auto add_task(SocketCallback&& cb) const noexcept -> int;
+    auto task_result(const int id) const noexcept -> bool;
+    auto task_running(const int id) const noexcept -> bool;
 
     Receiver() = delete;
     Receiver(const Receiver&) = delete;
     Receiver(Receiver&&) = delete;
-    Receiver& operator=(const Receiver&) = delete;
-    Receiver& operator=(Receiver&&) = delete;
+    auto operator=(const Receiver&) -> Receiver& = delete;
+    auto operator=(Receiver &&) -> Receiver& = delete;
 };
 }  // namespace opentxs::network::zeromq::socket::implementation

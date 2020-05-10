@@ -168,7 +168,7 @@ ContactSection::ContactSection(
     OT_ASSERT(startup_)
 }
 
-bool ContactSection::check_type(const ContactSectionRowID type) noexcept
+auto ContactSection::check_type(const ContactSectionRowID type) noexcept -> bool
 {
     try {
         return 1 == allowed_types_.at(type.first).count(type.second);
@@ -178,10 +178,10 @@ bool ContactSection::check_type(const ContactSectionRowID type) noexcept
     return false;
 }
 
-void* ContactSection::construct_row(
+auto ContactSection::construct_row(
     const ContactSectionRowID& id,
     const ContactSectionSortKey& index,
-    const CustomData& custom) const noexcept
+    const CustomData& custom) const noexcept -> void*
 {
     OT_ASSERT(1 == custom.size())
 
@@ -204,8 +204,9 @@ void* ContactSection::construct_row(
     return it->second.get();
 }
 
-std::set<ContactSectionRowID> ContactSection::process_section(
+auto ContactSection::process_section(
     const opentxs::ContactSection& section) noexcept
+    -> std::set<ContactSectionRowID>
 {
     OT_ASSERT(row_id_ == section.Type())
 
@@ -234,7 +235,7 @@ void ContactSection::reindex(
         process_section(extract_custom<opentxs::ContactSection>(custom)));
 }
 
-int ContactSection::sort_key(const ContactSectionRowID type) noexcept
+auto ContactSection::sort_key(const ContactSectionRowID type) noexcept -> int
 {
     return sort_keys_.at(type.first).at(type.second);
 }

@@ -113,7 +113,7 @@ ContactItem::ContactItem(
 {
 }
 
-bool ContactItem::operator==(const ContactItem& rhs) const
+auto ContactItem::operator==(const ContactItem& rhs) const -> bool
 {
     if (false == (version_ == rhs.version_)) { return false; }
 
@@ -138,9 +138,9 @@ bool ContactItem::operator==(const ContactItem& rhs) const
 
 ContactItem::operator proto::ContactItem() const { return Serialize(true); }
 
-VersionNumber ContactItem::check_version(
+auto ContactItem::check_version(
     const VersionNumber in,
-    const VersionNumber targetVersion)
+    const VersionNumber targetVersion) -> VersionNumber
 {
     // Upgrade version
     if (targetVersion > in) { return targetVersion; }
@@ -148,10 +148,10 @@ VersionNumber ContactItem::check_version(
     return in;
 }
 
-const std::time_t& ContactItem::End() const { return end_; }
+auto ContactItem::End() const -> const std::time_t& { return end_; }
 
-std::set<proto::ContactItemAttribute> ContactItem::extract_attributes(
-    const proto::ContactItem& serialized)
+auto ContactItem::extract_attributes(const proto::ContactItem& serialized)
+    -> std::set<proto::ContactItemAttribute>
 {
     std::set<proto::ContactItemAttribute> output{};
 
@@ -162,8 +162,8 @@ std::set<proto::ContactItemAttribute> ContactItem::extract_attributes(
     return output;
 }
 
-std::set<proto::ContactItemAttribute> ContactItem::extract_attributes(
-    const Claim& claim)
+auto ContactItem::extract_attributes(const Claim& claim)
+    -> std::set<proto::ContactItemAttribute>
 {
     std::set<proto::ContactItemAttribute> output{};
 
@@ -174,29 +174,29 @@ std::set<proto::ContactItemAttribute> ContactItem::extract_attributes(
     return output;
 }
 
-const Identifier& ContactItem::ID() const { return id_; }
+auto ContactItem::ID() const -> const Identifier& { return id_; }
 
-bool ContactItem::isActive() const
+auto ContactItem::isActive() const -> bool
 {
     return 1 == attributes_.count(proto::CITEMATTR_ACTIVE);
 }
 
-bool ContactItem::isLocal() const
+auto ContactItem::isLocal() const -> bool
 {
     return 1 == attributes_.count(proto::CITEMATTR_LOCAL);
 }
 
-bool ContactItem::isPrimary() const
+auto ContactItem::isPrimary() const -> bool
 {
     return 1 == attributes_.count(proto::CITEMATTR_PRIMARY);
 }
 
-const proto::ContactSectionName& ContactItem::Section() const
+auto ContactItem::Section() const -> const proto::ContactSectionName&
 {
     return section_;
 }
 
-proto::ContactItem ContactItem::Serialize(const bool withID) const
+auto ContactItem::Serialize(const bool withID) const -> proto::ContactItem
 {
     proto::ContactItem output{};
     output.set_version(version_);
@@ -215,9 +215,9 @@ proto::ContactItem ContactItem::Serialize(const bool withID) const
     return output;
 }
 
-ContactItem ContactItem::set_attribute(
+auto ContactItem::set_attribute(
     const proto::ContactItemAttribute& attribute,
-    const bool value) const
+    const bool value) const -> ContactItem
 {
     const bool existingValue = 1 == attributes_.count(attribute);
 
@@ -249,12 +249,12 @@ ContactItem ContactItem::set_attribute(
         subtype_);
 }
 
-ContactItem ContactItem::SetActive(const bool active) const
+auto ContactItem::SetActive(const bool active) const -> ContactItem
 {
     return set_attribute(proto::CITEMATTR_ACTIVE, active);
 }
 
-ContactItem ContactItem::SetEnd(const std::time_t end) const
+auto ContactItem::SetEnd(const std::time_t end) const -> ContactItem
 {
     if (end_ == end) { return *this; }
 
@@ -272,17 +272,17 @@ ContactItem ContactItem::SetEnd(const std::time_t end) const
         subtype_);
 }
 
-ContactItem ContactItem::SetLocal(const bool local) const
+auto ContactItem::SetLocal(const bool local) const -> ContactItem
 {
     return set_attribute(proto::CITEMATTR_LOCAL, local);
 }
 
-ContactItem ContactItem::SetPrimary(const bool primary) const
+auto ContactItem::SetPrimary(const bool primary) const -> ContactItem
 {
     return set_attribute(proto::CITEMATTR_PRIMARY, primary);
 }
 
-ContactItem ContactItem::SetStart(const std::time_t start) const
+auto ContactItem::SetStart(const std::time_t start) const -> ContactItem
 {
     if (start_ == start) { return *this; }
 
@@ -300,7 +300,7 @@ ContactItem ContactItem::SetStart(const std::time_t start) const
         subtype_);
 }
 
-ContactItem ContactItem::SetValue(const std::string& value) const
+auto ContactItem::SetValue(const std::string& value) const -> ContactItem
 {
     if (value_ == value) { return *this; }
 
@@ -318,13 +318,16 @@ ContactItem ContactItem::SetValue(const std::string& value) const
         subtype_);
 }
 
-const std::time_t& ContactItem::Start() const { return start_; }
+auto ContactItem::Start() const -> const std::time_t& { return start_; }
 
-const std::string& ContactItem::Subtype() const { return subtype_; }
+auto ContactItem::Subtype() const -> const std::string& { return subtype_; }
 
-const proto::ContactItemType& ContactItem::Type() const { return type_; }
+auto ContactItem::Type() const -> const proto::ContactItemType&
+{
+    return type_;
+}
 
-const std::string& ContactItem::Value() const { return value_; }
+auto ContactItem::Value() const -> const std::string& { return value_; }
 
-VersionNumber ContactItem::Version() const { return version_; }
+auto ContactItem::Version() const -> VersionNumber { return version_; }
 }  // namespace opentxs

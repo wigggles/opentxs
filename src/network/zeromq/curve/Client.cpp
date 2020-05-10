@@ -24,7 +24,8 @@
 
 namespace opentxs::network::zeromq
 {
-std::pair<std::string, std::string> curve::Client::RandomKeypair() noexcept
+auto curve::Client::RandomKeypair() noexcept
+    -> std::pair<std::string, std::string>
 {
     std::pair<std::string, std::string> output{};
     auto& [privKey, pubKey] = output;
@@ -54,10 +55,10 @@ Client::Client(socket::implementation::Socket& socket) noexcept
 {
 }
 
-bool Client::SetKeysZ85(
+auto Client::SetKeysZ85(
     const std::string& serverPublic,
     const std::string& clientPrivate,
-    const std::string& clientPublic) const noexcept
+    const std::string& clientPublic) const noexcept -> bool
 {
     if (CURVE_KEY_Z85_BYTES > serverPublic.size()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid server key size (")(
@@ -80,17 +81,19 @@ bool Client::SetKeysZ85(
     return set_local_keys(clientPrivate, clientPublic);
 }
 
-bool Client::SetServerPubkey(const contract::Server& contract) const noexcept
+auto Client::SetServerPubkey(const contract::Server& contract) const noexcept
+    -> bool
 {
     return set_public_key(contract);
 }
 
-bool Client::SetServerPubkey(const Data& key) const noexcept
+auto Client::SetServerPubkey(const Data& key) const noexcept -> bool
 {
     return set_public_key(key);
 }
 
-bool Client::set_public_key(const contract::Server& contract) const noexcept
+auto Client::set_public_key(const contract::Server& contract) const noexcept
+    -> bool
 {
     const auto& key = contract.TransportKey();
 
@@ -103,14 +106,14 @@ bool Client::set_public_key(const contract::Server& contract) const noexcept
     return set_public_key(key);
 }
 
-bool Client::set_public_key(const Data& key) const noexcept
+auto Client::set_public_key(const Data& key) const noexcept -> bool
 {
     if (false == set_remote_key(key.data(), key.size())) { return false; }
 
     return set_local_keys();
 }
 
-bool Client::set_local_keys() const noexcept
+auto Client::set_local_keys() const noexcept -> bool
 {
     OT_ASSERT(nullptr != parent_);
 
@@ -126,9 +129,9 @@ bool Client::set_local_keys() const noexcept
     return set_local_keys(secretKey, publicKey);
 }
 
-bool Client::set_local_keys(
+auto Client::set_local_keys(
     const std::string& privateKey,
-    const std::string& publicKey) const noexcept
+    const std::string& publicKey) const noexcept -> bool
 {
     OT_ASSERT(nullptr != parent_);
 
@@ -161,11 +164,11 @@ bool Client::set_local_keys(
         publicDecoded.size());
 }
 
-bool Client::set_local_keys(
+auto Client::set_local_keys(
     const void* privateKey,
     const std::size_t privateKeySize,
     const void* publicKey,
-    const std::size_t publicKeySize) const noexcept
+    const std::size_t publicKeySize) const noexcept -> bool
 {
     OT_ASSERT(nullptr != parent_);
 
@@ -196,8 +199,8 @@ bool Client::set_local_keys(
     return parent_.apply_socket(std::move(cb));
 }
 
-bool Client::set_remote_key(const void* key, const std::size_t size) const
-    noexcept
+auto Client::set_remote_key(const void* key, const std::size_t size) const
+    noexcept -> bool
 {
     OT_ASSERT(nullptr != parent_);
 

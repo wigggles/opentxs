@@ -51,32 +51,33 @@ namespace opentxs::api::client::implementation
 class Factory final : public opentxs::api::implementation::Factory
 {
 public:
-    std::unique_ptr<opentxs::PeerObject> PeerObject(
-        const Nym_p& senderNym,
-        const std::string& message) const final;
-    std::unique_ptr<opentxs::PeerObject> PeerObject(
+    auto PeerObject(const Nym_p& senderNym, const std::string& message) const
+        -> std::unique_ptr<opentxs::PeerObject> final;
+    auto PeerObject(
         const Nym_p& senderNym,
         const std::string& payment,
-        const bool isPayment) const final;
+        const bool isPayment) const
+        -> std::unique_ptr<opentxs::PeerObject> final;
 #if OT_CASH
-    std::unique_ptr<opentxs::PeerObject> PeerObject(
+    auto PeerObject(
         const Nym_p& senderNym,
-        const std::shared_ptr<blind::Purse> purse) const final;
+        const std::shared_ptr<blind::Purse> purse) const
+        -> std::unique_ptr<opentxs::PeerObject> final;
 #endif
-    std::unique_ptr<opentxs::PeerObject> PeerObject(
+    auto PeerObject(
         const OTPeerRequest request,
         const OTPeerReply reply,
-        const VersionNumber version) const final;
-    std::unique_ptr<opentxs::PeerObject> PeerObject(
-        const OTPeerRequest request,
-        const VersionNumber version) const final;
-    std::unique_ptr<opentxs::PeerObject> PeerObject(
-        const Nym_p& signerNym,
-        const proto::PeerObject& serialized) const final;
-    std::unique_ptr<opentxs::PeerObject> PeerObject(
+        const VersionNumber version) const
+        -> std::unique_ptr<opentxs::PeerObject> final;
+    auto PeerObject(const OTPeerRequest request, const VersionNumber version)
+        const -> std::unique_ptr<opentxs::PeerObject> final;
+    auto PeerObject(const Nym_p& signerNym, const proto::PeerObject& serialized)
+        const -> std::unique_ptr<opentxs::PeerObject> final;
+    auto PeerObject(
         const Nym_p& recipientNym,
         const opentxs::Armored& encrypted,
-        const opentxs::PasswordPrompt& reason) const final;
+        const opentxs::PasswordPrompt& reason) const
+        -> std::unique_ptr<opentxs::PeerObject> final;
 
     ~Factory() final = default;
 
@@ -89,7 +90,7 @@ private:
     Factory() = delete;
     Factory(const Factory&) = delete;
     Factory(Factory&&) = delete;
-    Factory& operator=(const Factory&) = delete;
-    Factory& operator=(Factory&&) = delete;
+    auto operator=(const Factory&) -> Factory& = delete;
+    auto operator=(Factory &&) -> Factory& = delete;
 };
 }  // namespace opentxs::api::client::implementation

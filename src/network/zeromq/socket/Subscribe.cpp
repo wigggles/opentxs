@@ -42,9 +42,10 @@ template class opentxs::Pimpl<opentxs::network::zeromq::socket::Subscribe>;
 
 namespace opentxs
 {
-network::zeromq::socket::Subscribe* Factory::SubscribeSocket(
+auto Factory::SubscribeSocket(
     const network::zeromq::Context& context,
     const network::zeromq::ListenCallback& callback)
+    -> network::zeromq::socket::Subscribe*
 {
     using ReturnType = network::zeromq::socket::implementation::Subscribe;
 
@@ -64,12 +65,12 @@ Subscribe::Subscribe(
     init();
 }
 
-Subscribe* Subscribe::clone() const noexcept
+auto Subscribe::clone() const noexcept -> Subscribe*
 {
     return new Subscribe(context_, callback_);
 }
 
-bool Subscribe::have_callback() const noexcept { return true; }
+auto Subscribe::have_callback() const noexcept -> bool { return true; }
 
 void Subscribe::init() noexcept
 {
@@ -96,7 +97,7 @@ void Subscribe::process_incoming(const Lock& lock, Message& message) noexcept
     LogDetail(OT_METHOD)(__FUNCTION__)(" Done.").Flush();
 }
 
-bool Subscribe::SetSocksProxy(const std::string& proxy) const noexcept
+auto Subscribe::SetSocksProxy(const std::string& proxy) const noexcept -> bool
 {
     return set_socks_proxy(proxy);
 }

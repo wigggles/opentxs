@@ -46,7 +46,7 @@ MainFile::MainFile(Server& server, const PasswordPrompt& reason)
 {
 }
 
-bool MainFile::SaveMainFileToString(String& strMainFile)
+auto MainFile::SaveMainFileToString(String& strMainFile) -> bool
 {
     Tag tag("notaryServer");
 
@@ -104,7 +104,7 @@ bool MainFile::SaveMainFileToString(String& strMainFile)
 // maybe this should be set differently...
 // should be set in the servers configuration.
 //
-bool MainFile::SaveMainFile()
+auto MainFile::SaveMainFile() -> bool
 {
     // Get the loaded (or new) version of the Server's Main File.
     //
@@ -150,10 +150,10 @@ bool MainFile::SaveMainFile()
     return bSaved;
 }
 
-bool MainFile::CreateMainFile(
+auto MainFile::CreateMainFile(
     const std::string& strContract,
     const std::string& strNotaryID,
-    const std::string& strNymID)
+    const std::string& strNymID) -> bool
 {
     if (!OTDB::StorePlainString(
             server_.API(),
@@ -225,7 +225,7 @@ bool MainFile::CreateMainFile(
     return false;
 }
 
-bool MainFile::LoadMainFile(bool bReadOnly)
+auto MainFile::LoadMainFile(bool bReadOnly) -> bool
 {
     if (!OTDB::Exists(
             server_.API(),
@@ -405,7 +405,7 @@ bool MainFile::LoadMainFile(bool bReadOnly)
     return !bFailure;
 }
 
-bool MainFile::LoadServerUserAndContract()
+auto MainFile::LoadServerUserAndContract() -> bool
 {
     bool bSuccess = false;
     auto& serverNym = server_.m_nymServer;

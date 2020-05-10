@@ -19,10 +19,10 @@ namespace opentxs
 namespace proto
 {
 
-bool CheckProto_1(
+auto CheckProto_1(
     const BlindedSeriesList& input,
     const bool silent,
-    const std::string& notary)
+    const std::string& notary) -> bool
 {
     CHECK_IDENTIFIER(notary);
 
@@ -36,154 +36,154 @@ bool CheckProto_1(
     return true;
 }
 
-bool CheckProto_2(
+auto CheckProto_2(
     const BlindedSeriesList& input,
     const bool silent,
-    const std::string&)
+    const std::string&) -> bool
 {
     UNDEFINED_VERSION(2)
 }
 
-bool CheckProto_3(
+auto CheckProto_3(
     const BlindedSeriesList& input,
     const bool silent,
-    const std::string&)
+    const std::string&) -> bool
 {
     UNDEFINED_VERSION(3)
 }
 
-bool CheckProto_4(
+auto CheckProto_4(
     const BlindedSeriesList& input,
     const bool silent,
-    const std::string&)
+    const std::string&) -> bool
 {
     UNDEFINED_VERSION(4)
 }
 
-bool CheckProto_5(
+auto CheckProto_5(
     const BlindedSeriesList& input,
     const bool silent,
-    const std::string&)
+    const std::string&) -> bool
 {
     UNDEFINED_VERSION(5)
 }
 
-bool CheckProto_6(
+auto CheckProto_6(
     const BlindedSeriesList& input,
     const bool silent,
-    const std::string&)
+    const std::string&) -> bool
 {
     UNDEFINED_VERSION(6)
 }
 
-bool CheckProto_7(
+auto CheckProto_7(
     const BlindedSeriesList& input,
     const bool silent,
-    const std::string&)
+    const std::string&) -> bool
 {
     UNDEFINED_VERSION(7)
 }
 
-bool CheckProto_8(
+auto CheckProto_8(
     const BlindedSeriesList& input,
     const bool silent,
-    const std::string&)
+    const std::string&) -> bool
 {
     UNDEFINED_VERSION(8)
 }
 
-bool CheckProto_9(
+auto CheckProto_9(
     const BlindedSeriesList& input,
     const bool silent,
-    const std::string&)
+    const std::string&) -> bool
 {
     UNDEFINED_VERSION(9)
 }
 
-bool CheckProto_10(
+auto CheckProto_10(
     const BlindedSeriesList& input,
     const bool silent,
-    const std::string&)
+    const std::string&) -> bool
 {
     UNDEFINED_VERSION(10)
 }
 
-bool CheckProto_11(
+auto CheckProto_11(
     const BlindedSeriesList& input,
     const bool silent,
-    const std::string&)
+    const std::string&) -> bool
 {
     UNDEFINED_VERSION(11)
 }
 
-bool CheckProto_12(
+auto CheckProto_12(
     const BlindedSeriesList& input,
     const bool silent,
-    const std::string&)
+    const std::string&) -> bool
 {
     UNDEFINED_VERSION(12)
 }
 
-bool CheckProto_13(
+auto CheckProto_13(
     const BlindedSeriesList& input,
     const bool silent,
-    const std::string&)
+    const std::string&) -> bool
 {
     UNDEFINED_VERSION(13)
 }
 
-bool CheckProto_14(
+auto CheckProto_14(
     const BlindedSeriesList& input,
     const bool silent,
-    const std::string&)
+    const std::string&) -> bool
 {
     UNDEFINED_VERSION(14)
 }
 
-bool CheckProto_15(
+auto CheckProto_15(
     const BlindedSeriesList& input,
     const bool silent,
-    const std::string&)
+    const std::string&) -> bool
 {
     UNDEFINED_VERSION(15)
 }
 
-bool CheckProto_16(
+auto CheckProto_16(
     const BlindedSeriesList& input,
     const bool silent,
-    const std::string&)
+    const std::string&) -> bool
 {
     UNDEFINED_VERSION(16)
 }
 
-bool CheckProto_17(
+auto CheckProto_17(
     const BlindedSeriesList& input,
     const bool silent,
-    const std::string&)
+    const std::string&) -> bool
 {
     UNDEFINED_VERSION(17)
 }
 
-bool CheckProto_18(
+auto CheckProto_18(
     const BlindedSeriesList& input,
     const bool silent,
-    const std::string&)
+    const std::string&) -> bool
 {
     UNDEFINED_VERSION(18)
 }
 
-bool CheckProto_19(
+auto CheckProto_19(
     const BlindedSeriesList& input,
     const bool silent,
-    const std::string&)
+    const std::string&) -> bool
 {
     UNDEFINED_VERSION(19)
 }
 
-bool CheckProto_20(
+auto CheckProto_20(
     const BlindedSeriesList& input,
     const bool silent,
-    const std::string&)
+    const std::string&) -> bool
 {
     UNDEFINED_VERSION(20)
 }

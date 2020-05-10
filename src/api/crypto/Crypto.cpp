@@ -41,7 +41,7 @@ template class opentxs::Pimpl<opentxs::crypto::key::Symmetric>;
 
 namespace opentxs
 {
-api::Crypto* Factory::Crypto(const api::Settings& settings)
+auto Factory::Crypto(const api::Settings& settings) -> api::Crypto*
 {
     return new api::implementation::Crypto(settings);
 }
@@ -85,9 +85,9 @@ Crypto::Crypto(const api::Settings& settings)
     Init();
 }
 
-const opentxs::crypto::Bip32& Crypto::BIP32() const { return bip32_; }
+auto Crypto::BIP32() const -> const opentxs::crypto::Bip32& { return bip32_; }
 
-const opentxs::crypto::Bip39& Crypto::BIP39() const { return bip39_; }
+auto Crypto::BIP39() const -> const opentxs::crypto::Bip39& { return bip39_; }
 
 void Crypto::Cleanup()
 {
@@ -101,7 +101,7 @@ void Crypto::Cleanup()
     config_.reset();
 }
 
-const crypto::Config& Crypto::Config() const
+auto Crypto::Config() const -> const crypto::Config&
 {
     OT_ASSERT(config_);
 
@@ -109,7 +109,7 @@ const crypto::Config& Crypto::Config() const
 }
 
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
-const opentxs::crypto::EcdsaProvider& Crypto::ED25519() const
+auto Crypto::ED25519() const -> const opentxs::crypto::EcdsaProvider&
 {
     OT_ASSERT(sodium_);
 
@@ -117,14 +117,14 @@ const opentxs::crypto::EcdsaProvider& Crypto::ED25519() const
 }
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 
-const crypto::Encode& Crypto::Encode() const
+auto Crypto::Encode() const -> const crypto::Encode&
 {
     OT_ASSERT(encode_);
 
     return *encode_;
 }
 
-const crypto::Hash& Crypto::Hash() const
+auto Crypto::Hash() const -> const crypto::Hash&
 {
     OT_ASSERT(hash_);
 
@@ -156,7 +156,7 @@ void Crypto::Init()
 }
 
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
-const opentxs::crypto::AsymmetricProvider& Crypto::RSA() const
+auto Crypto::RSA() const -> const opentxs::crypto::AsymmetricProvider&
 {
     OT_ASSERT(nullptr != ssl_);
 
@@ -165,20 +165,20 @@ const opentxs::crypto::AsymmetricProvider& Crypto::RSA() const
 #endif
 
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-const opentxs::crypto::EcdsaProvider& Crypto::SECP256K1() const
+auto Crypto::SECP256K1() const -> const opentxs::crypto::EcdsaProvider&
 {
     return secp256k1_;
 }
 #endif
 
-const opentxs::crypto::SymmetricProvider& Crypto::Sodium() const
+auto Crypto::Sodium() const -> const opentxs::crypto::SymmetricProvider&
 {
     OT_ASSERT(sodium_);
 
     return *sodium_;
 }
 
-const crypto::Util& Crypto::Util() const { return util_; }
+auto Crypto::Util() const -> const crypto::Util& { return util_; }
 
 Crypto::~Crypto() { Cleanup(); }
 }  // namespace opentxs::api::implementation

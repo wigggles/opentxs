@@ -52,10 +52,10 @@ using ContactListItemRow =
 class ContactListItem : public ContactListItemRow
 {
 public:
-    std::string ContactID() const noexcept final;
-    std::string DisplayName() const noexcept final;
-    std::string ImageURI() const noexcept final;
-    std::string Section() const noexcept final;
+    auto ContactID() const noexcept -> std::string final;
+    auto DisplayName() const noexcept -> std::string final;
+    auto ImageURI() const noexcept -> std::string final;
+    auto Section() const noexcept -> std::string final;
 
 #if OT_QT
     QVariant qt_data(const int column, const int role) const noexcept override;
@@ -80,8 +80,8 @@ private:
     ContactListItem() = delete;
     ContactListItem(const ContactListItem&) = delete;
     ContactListItem(ContactListItem&&) = delete;
-    ContactListItem& operator=(const ContactListItem&) = delete;
-    ContactListItem& operator=(ContactListItem&&) = delete;
+    auto operator=(const ContactListItem&) -> ContactListItem& = delete;
+    auto operator=(ContactListItem &&) -> ContactListItem& = delete;
 };
 }  // namespace opentxs::ui::implementation
 

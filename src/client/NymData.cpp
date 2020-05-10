@@ -56,30 +56,31 @@ NymData::NymData(const NymData& rhs)
 {
 }
 
-std::string NymData::AddChildKeyCredential(
+auto NymData::AddChildKeyCredential(
     const Identifier& strMasterID,
     const NymParameters& nymParameters,
-    const PasswordPrompt& reason)
+    const PasswordPrompt& reason) -> std::string
 {
     return nym().AddChildKeyCredential(strMasterID, nymParameters, reason);
 }
 
-bool NymData::AddClaim(const Claim& claim, const PasswordPrompt& reason)
+auto NymData::AddClaim(const Claim& claim, const PasswordPrompt& reason) -> bool
 {
     return nym().AddClaim(claim, reason);
 }
 
-bool NymData::DeleteClaim(const Identifier& id, const PasswordPrompt& reason)
+auto NymData::DeleteClaim(const Identifier& id, const PasswordPrompt& reason)
+    -> bool
 {
     return nym().DeleteClaim(id, reason);
 }
 
-bool NymData::AddContract(
+auto NymData::AddContract(
     const std::string& instrumentDefinitionID,
     const proto::ContactItemType currency,
     const bool primary,
     const bool active,
-    const PasswordPrompt& reason)
+    const PasswordPrompt& reason) -> bool
 {
     auto id = factory_.UnitID(instrumentDefinitionID);
 
@@ -94,21 +95,21 @@ bool NymData::AddContract(
     return nym().AddContract(id, currency, reason, primary, active);
 }
 
-bool NymData::AddEmail(
+auto NymData::AddEmail(
     const std::string& value,
     const bool primary,
     const bool active,
-    const PasswordPrompt& reason)
+    const PasswordPrompt& reason) -> bool
 {
     return nym().AddEmail(value, reason, primary, active);
 }
 
-bool NymData::AddPaymentCode(
+auto NymData::AddPaymentCode(
     const std::string& code,
     const proto::ContactItemType currency,
     const bool primary,
     const bool active,
-    const PasswordPrompt& reason)
+    const PasswordPrompt& reason) -> bool
 {
     auto paymentCode = factory_.PaymentCode(code);
 
@@ -121,19 +122,19 @@ bool NymData::AddPaymentCode(
     return nym().AddPaymentCode(paymentCode, currency, reason, primary, active);
 }
 
-bool NymData::AddPhoneNumber(
+auto NymData::AddPhoneNumber(
     const std::string& value,
     const bool primary,
     const bool active,
-    const PasswordPrompt& reason)
+    const PasswordPrompt& reason) -> bool
 {
     return nym().AddPhoneNumber(value, reason, primary, active);
 }
 
-bool NymData::AddPreferredOTServer(
+auto NymData::AddPreferredOTServer(
     const std::string& id,
     const bool primary,
-    const PasswordPrompt& reason)
+    const PasswordPrompt& reason) -> bool
 {
     if (id.empty()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid server id.").Flush();
@@ -144,45 +145,51 @@ bool NymData::AddPreferredOTServer(
     return nym().AddPreferredOTServer(factory_.ServerID(id), reason, primary);
 }
 
-bool NymData::AddSocialMediaProfile(
+auto NymData::AddSocialMediaProfile(
     const std::string& value,
     const proto::ContactItemType type,
     const bool primary,
     const bool active,
-    const PasswordPrompt& reason)
+    const PasswordPrompt& reason) -> bool
 {
     return nym().AddSocialMediaProfile(value, type, reason, primary, active);
 }
 
-identity::Nym::Serialized NymData::asPublicNym() const
+auto NymData::asPublicNym() const -> identity::Nym::Serialized
 {
     return nym().asPublicNym();
 }
 
-std::string NymData::BestEmail() const { return nym().BestEmail(); }
+auto NymData::BestEmail() const -> std::string { return nym().BestEmail(); }
 
-std::string NymData::BestPhoneNumber() const { return nym().BestPhoneNumber(); }
+auto NymData::BestPhoneNumber() const -> std::string
+{
+    return nym().BestPhoneNumber();
+}
 
-std::string NymData::BestSocialMediaProfile(
-    const proto::ContactItemType type) const
+auto NymData::BestSocialMediaProfile(const proto::ContactItemType type) const
+    -> std::string
 {
     return nym().BestSocialMediaProfile(type);
 }
 
-const opentxs::ContactData& NymData::Claims() const { return nym().Claims(); }
+auto NymData::Claims() const -> const opentxs::ContactData&
+{
+    return nym().Claims();
+}
 
-const ContactData& NymData::data() const { return nym().Claims(); }
+auto NymData::data() const -> const ContactData& { return nym().Claims(); }
 
-std::string NymData::EmailAddresses(bool active) const
+auto NymData::EmailAddresses(bool active) const -> std::string
 {
     return nym().EmailAddresses(active);
 }
 
-bool NymData::HaveContract(
+auto NymData::HaveContract(
     const identifier::UnitDefinition& instrumentDefinitionID,
     const proto::ContactItemType currency,
     const bool primary,
-    const bool active) const
+    const bool active) const -> bool
 {
     OT_ASSERT(nym_);
 
@@ -207,40 +214,41 @@ bool NymData::HaveContract(
     return false;
 }
 
-std::string NymData::Name() const { return nym().Name(); }
+auto NymData::Name() const -> std::string { return nym().Name(); }
 
-const identity::Nym& NymData::Nym() const { return nym(); }
+auto NymData::Nym() const -> const identity::Nym& { return nym(); }
 
-identity::Nym& NymData::nym()
+auto NymData::nym() -> identity::Nym&
 {
     OT_ASSERT(nym_);
 
     return *nym_;
 }
 
-const identity::Nym& NymData::nym() const
+auto NymData::nym() const -> const identity::Nym&
 {
     OT_ASSERT(nym_);
 
     return *nym_;
 }
 
-std::string NymData::PaymentCode(const proto::ContactItemType currency) const
+auto NymData::PaymentCode(const proto::ContactItemType currency) const
+    -> std::string
 {
     return Contact::PaymentCode(data(), currency);
 }
 
-std::string NymData::PhoneNumbers(bool active) const
+auto NymData::PhoneNumbers(bool active) const -> std::string
 {
     return nym().PhoneNumbers(active);
 }
 
-std::string NymData::PreferredOTServer() const
+auto NymData::PreferredOTServer() const -> std::string
 {
     return data().PreferredOTServer()->str();
 }
 
-std::string NymData::PrintContactData() const
+auto NymData::PrintContactData() const -> std::string
 {
     return ContactData::PrintContactData(data().Serialize(true));
 }
@@ -264,44 +272,45 @@ void NymData::release()
     nym_.reset();
 }
 
-bool NymData::SetCommonName(
+auto NymData::SetCommonName(
     const std::string& name,
-    const PasswordPrompt& reason)
+    const PasswordPrompt& reason) -> bool
 {
     return nym().SetCommonName(name, reason);
 }
 
-bool NymData::SetContactData(
+auto NymData::SetContactData(
     const proto::ContactData& data,
-    const PasswordPrompt& reason)
+    const PasswordPrompt& reason) -> bool
 {
     return nym().SetContactData(data, reason);
 }
 
-bool NymData::SetScope(
+auto NymData::SetScope(
     const proto::ContactItemType type,
     const std::string& name,
     const bool primary,
-    const PasswordPrompt& reason)
+    const PasswordPrompt& reason) -> bool
 {
     return nym().SetScope(type, name, reason, primary);
 }
 
-std::string NymData::SocialMediaProfiles(
+auto NymData::SocialMediaProfiles(
     const proto::ContactItemType type,
-    bool active) const
+    bool active) const -> std::string
 {
     return nym().SocialMediaProfiles(type, active);
 }
 
-std::set<proto::ContactItemType> NymData::SocialMediaProfileTypes() const
+auto NymData::SocialMediaProfileTypes() const
+    -> std::set<proto::ContactItemType>
 {
     return nym().SocialMediaProfileTypes();
 }
 
-proto::ContactItemType NymData::Type() const { return data().Type(); }
+auto NymData::Type() const -> proto::ContactItemType { return data().Type(); }
 
-bool NymData::Valid() const { return bool(nym_); }
+auto NymData::Valid() const -> bool { return bool(nym_); }
 
 NymData::~NymData() { release(); }
 }  // namespace opentxs

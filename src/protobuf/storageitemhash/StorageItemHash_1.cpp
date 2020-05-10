@@ -17,7 +17,7 @@ namespace opentxs
 {
 namespace proto
 {
-bool CheckProto_1(const StorageItemHash& input, const bool silent)
+auto CheckProto_1(const StorageItemHash& input, const bool silent) -> bool
 {
     if (!input.has_itemid()) { FAIL_1("missing id") }
 

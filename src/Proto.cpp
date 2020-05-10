@@ -7,7 +7,7 @@
 
 namespace opentxs::proto
 {
-std::string ToString(const ProtobufType& input)
+auto ToString(const ProtobufType& input) -> std::string
 {
     std::string output{};
     output.resize(static_cast<std::size_t>(input.ByteSize()));

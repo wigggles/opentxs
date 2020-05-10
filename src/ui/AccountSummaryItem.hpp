@@ -63,10 +63,13 @@ using AccountSummaryItemRow =
 class AccountSummaryItem final : public AccountSummaryItemRow
 {
 public:
-    std::string AccountID() const noexcept final { return account_id_.str(); }
-    Amount Balance() const noexcept final { return balance_.load(); }
-    std::string DisplayBalance() const noexcept final;
-    std::string Name() const noexcept final;
+    auto AccountID() const noexcept -> std::string final
+    {
+        return account_id_.str();
+    }
+    auto Balance() const noexcept -> Amount final { return balance_.load(); }
+    auto DisplayBalance() const noexcept -> std::string final;
+    auto Name() const noexcept -> std::string final;
 
 #if OT_QT
     QVariant qt_data(const int column, const int role) const noexcept override;
@@ -93,15 +96,14 @@ private:
     IssuerItemSortKey name_;
     mutable OTUnitDefinition contract_;
 
-    static OTUnitDefinition load_unit(
-        const api::Core& api,
-        const Identifier& id);
+    static auto load_unit(const api::Core& api, const Identifier& id)
+        -> OTUnitDefinition;
 
     AccountSummaryItem() = delete;
     AccountSummaryItem(const AccountSummaryItem&) = delete;
     AccountSummaryItem(AccountSummaryItem&&) = delete;
-    AccountSummaryItem& operator=(const AccountSummaryItem&) = delete;
-    AccountSummaryItem& operator=(AccountSummaryItem&&) = delete;
+    auto operator=(const AccountSummaryItem&) -> AccountSummaryItem& = delete;
+    auto operator=(AccountSummaryItem &&) -> AccountSummaryItem& = delete;
 };
 }  // namespace opentxs::ui::implementation
 

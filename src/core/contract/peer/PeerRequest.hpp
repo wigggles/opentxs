@@ -46,24 +46,30 @@ class Request : virtual public peer::Request,
                 public opentxs::contract::implementation::Signable
 {
 public:
-    static bool Finish(Request& contract, const PasswordPrompt& reason);
+    static auto Finish(Request& contract, const PasswordPrompt& reason) -> bool;
 
-    std::string Alias() const final { return Name(); }
-    SerializedType Contract() const final;
-    const identifier::Nym& Initiator() const final { return initiator_; }
-    std::string Name() const final { return id_->str(); }
-    const identifier::Nym& Recipient() const final { return recipient_; }
-    OTData Serialize() const final;
-    proto::PeerRequestType Type() const final { return type_; }
+    auto Alias() const -> std::string final { return Name(); }
+    auto Contract() const -> SerializedType final;
+    auto Initiator() const -> const identifier::Nym& final
+    {
+        return initiator_;
+    }
+    auto Name() const -> std::string final { return id_->str(); }
+    auto Recipient() const -> const identifier::Nym& final
+    {
+        return recipient_;
+    }
+    auto Serialize() const -> OTData final;
+    auto Type() const -> proto::PeerRequestType final { return type_; }
     void SetAlias(const std::string&) final {}
 
     ~Request() override = default;
 
 protected:
-    virtual SerializedType IDVersion(const Lock& lock) const;
-    bool validate(const Lock& lock) const final;
-    bool verify_signature(const Lock& lock, const proto::Signature& signature)
-        const final;
+    virtual auto IDVersion(const Lock& lock) const -> SerializedType;
+    auto validate(const Lock& lock) const -> bool final;
+    auto verify_signature(const Lock& lock, const proto::Signature& signature)
+        const -> bool final;
 
     Request(
         const api::internal::Core& api,
@@ -89,18 +95,19 @@ private:
     const OTIdentifier cookie_;
     const proto::PeerRequestType type_;
 
-    static OTIdentifier GetID(
+    static auto GetID(
         const api::internal::Core& api,
-        const SerializedType& contract);
-    static bool FinalizeContract(
+        const SerializedType& contract) -> OTIdentifier;
+    static auto FinalizeContract(
         Request& contract,
-        const PasswordPrompt& reason);
+        const PasswordPrompt& reason) -> bool;
 
-    SerializedType contract(const Lock& lock) const;
-    OTIdentifier GetID(const Lock& lock) const final;
-    SerializedType SigVersion(const Lock& lock) const;
+    auto contract(const Lock& lock) const -> SerializedType;
+    auto GetID(const Lock& lock) const -> OTIdentifier final;
+    auto SigVersion(const Lock& lock) const -> SerializedType;
 
-    bool update_signature(const Lock& lock, const PasswordPrompt& reason) final;
+    auto update_signature(const Lock& lock, const PasswordPrompt& reason)
+        -> bool final;
 
     Request() = delete;
 };

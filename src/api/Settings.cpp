@@ -24,16 +24,16 @@
 
 #define OT_METHOD "opentxs::Settings"
 
-bool StringFill(
+auto StringFill(
     opentxs::String& out_strString,
     const char* szString,
     std::int32_t iLength,
-    const char* szAppend = nullptr);
-bool StringFill(
+    const char* szAppend = nullptr) -> bool;
+auto StringFill(
     opentxs::String& out_strString,
     const char* szString,
     std::int32_t iLength,
-    const char* szAppend)
+    const char* szAppend) -> bool
 {
     std::string strString(szString);
 
@@ -50,7 +50,8 @@ bool StringFill(
 
 namespace opentxs
 {
-api::Settings* Factory::Settings(const api::Legacy& legacy, const String& path)
+auto Factory::Settings(const api::Legacy& legacy, const String& path)
+    -> api::Settings*
 {
     return new api::implementation::Settings(legacy, path);
 }
@@ -62,7 +63,7 @@ class Settings::SettingsPvt
 {
 private:
     SettingsPvt(const SettingsPvt&);
-    SettingsPvt& operator=(const SettingsPvt&);
+    auto operator=(const SettingsPvt&) -> SettingsPvt&;
 
 public:
     CSimpleIniA iniSimple;
@@ -90,7 +91,7 @@ Settings::Settings(const api::Legacy& legacy, const String& strConfigFilePath)
     if (!Init()) { OT_FAIL; }
 }
 
-bool Settings::Init()
+auto Settings::Init() -> bool
 {
     // First Load, Create new fresh config file if failed loading.
     if (!Load()) {
@@ -115,7 +116,7 @@ bool Settings::Init()
     return true;
 }
 
-bool Settings::Load(const String& strConfigurationFileExactPath) const
+auto Settings::Load(const String& strConfigurationFileExactPath) const -> bool
 {
     if (!strConfigurationFileExactPath.Exists()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -157,7 +158,7 @@ bool Settings::Load(const String& strConfigurationFileExactPath) const
         return true;
 }
 
-bool Settings::Save(const String& strConfigurationFileExactPath) const
+auto Settings::Save(const String& strConfigurationFileExactPath) const -> bool
 {
     if (!strConfigurationFileExactPath.Exists()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -174,10 +175,10 @@ bool Settings::Save(const String& strConfigurationFileExactPath) const
         return true;
 }
 
-bool Settings::LogChange_str(
+auto Settings::LogChange_str(
     const String& strSection,
     const String& strKey,
-    const String& strValue) const
+    const String& strValue) const -> bool
 {
     if (!strSection.Exists()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error: strSection "
@@ -210,14 +211,14 @@ void Settings::SetConfigFilePath(const String& strConfigFilePath) const
     m_strConfigurationFileExactPath->Set(strConfigFilePath.Get());
 }
 
-bool Settings::HasConfigFilePath() const
+auto Settings::HasConfigFilePath() const -> bool
 {
     rLock lock(lock_);
 
     return m_strConfigurationFileExactPath->Exists();
 }
 
-bool Settings::Load() const
+auto Settings::Load() const -> bool
 {
     rLock lock(lock_);
     loaded_->Off();
@@ -232,16 +233,16 @@ bool Settings::Load() const
     }
 }
 
-bool Settings::Save() const
+auto Settings::Save() const -> bool
 {
     rLock lock(lock_);
 
     return Save(m_strConfigurationFileExactPath);
 }
 
-const Flag& Settings::IsLoaded() const { return loaded_; }
+auto Settings::IsLoaded() const -> const Flag& { return loaded_; }
 
-bool Settings::Reset()
+auto Settings::Reset() -> bool
 {
     loaded_->Off();
     pvt_->iniSimple.Reset();
@@ -249,18 +250,18 @@ bool Settings::Reset()
     return true;
 }
 
-bool Settings::IsEmpty() const
+auto Settings::IsEmpty() const -> bool
 {
     rLock lock(lock_);
 
     return pvt_->iniSimple.IsEmpty();
 }
 
-bool Settings::Check_str(
+auto Settings::Check_str(
     const String& strSection,
     const String& strKey,
     String& out_strResult,
-    bool& out_bKeyExist) const
+    bool& out_bKeyExist) const -> bool
 {
     rLock lock(lock_);
 
@@ -301,11 +302,11 @@ bool Settings::Check_str(
     return true;
 }
 
-bool Settings::Check_long(
+auto Settings::Check_long(
     const String& strSection,
     const String& strKey,
     std::int64_t& out_lResult,
-    bool& out_bKeyExist) const
+    bool& out_bKeyExist) const -> bool
 {
     rLock lock(lock_);
 
@@ -347,11 +348,11 @@ bool Settings::Check_long(
     return true;
 }
 
-bool Settings::Check_bool(
+auto Settings::Check_bool(
     const String& strSection,
     const String& strKey,
     bool& out_bResult,
-    bool& out_bKeyExist) const
+    bool& out_bKeyExist) const -> bool
 {
     rLock lock(lock_);
 
@@ -396,12 +397,12 @@ bool Settings::Check_bool(
     return true;
 }
 
-bool Settings::Set_str(
+auto Settings::Set_str(
     const String& strSection,
     const String& strKey,
     const String& strValue,
     bool& out_bNewOrUpdate,
-    const String& strComment) const
+    const String& strComment) const -> bool
 {
     rLock lock(lock_);
 
@@ -483,12 +484,12 @@ bool Settings::Set_str(
     OT_FAIL;
 }
 
-bool Settings::Set_long(
+auto Settings::Set_long(
     const String& strSection,
     const String& strKey,
     const std::int64_t& lValue,
     bool& out_bNewOrUpdate,
-    const String& strComment) const
+    const String& strComment) const -> bool
 {
     rLock lock(lock_);
 
@@ -557,12 +558,12 @@ bool Settings::Set_long(
     OT_FAIL;
 }
 
-bool Settings::Set_bool(
+auto Settings::Set_bool(
     const String& strSection,
     const String& strKey,
     const bool& bValue,
     bool& out_bNewOrUpdate,
-    const String& strComment) const
+    const String& strComment) const -> bool
 {
     rLock lock(lock_);
 
@@ -581,10 +582,10 @@ bool Settings::Set_bool(
     return Set_str(strSection, strKey, strValue, out_bNewOrUpdate, strComment);
 }
 
-bool Settings::CheckSetSection(
+auto Settings::CheckSetSection(
     const String& strSection,
     const String& strComment,
-    bool& out_bIsNewSection) const
+    bool& out_bIsNewSection) const -> bool
 {
     rLock lock(lock_);
 
@@ -619,13 +620,13 @@ bool Settings::CheckSetSection(
     return true;
 }
 
-bool Settings::CheckSet_str(
+auto Settings::CheckSet_str(
     const String& strSection,
     const String& strKey,
     const String& strDefault,
     String& out_strResult,
     bool& out_bIsNew,
-    const String& strComment) const
+    const String& strComment) const -> bool
 {
     rLock lock(lock_);
     std::string temp = out_strResult.Get();
@@ -636,13 +637,13 @@ bool Settings::CheckSet_str(
     return success;
 }
 
-bool Settings::CheckSet_str(
+auto Settings::CheckSet_str(
     const String& strSection,
     const String& strKey,
     const String& strDefault,
     std::string& out_strResult,
     bool& out_bIsNew,
-    const String& strComment) const
+    const String& strComment) const -> bool
 {
     rLock lock(lock_);
 
@@ -695,13 +696,13 @@ bool Settings::CheckSet_str(
     OT_FAIL;
 }
 
-bool Settings::CheckSet_long(
+auto Settings::CheckSet_long(
     const String& strSection,
     const String& strKey,
     const std::int64_t& lDefault,
     std::int64_t& out_lResult,
     bool& out_bIsNew,
-    const String& strComment) const
+    const String& strComment) const -> bool
 {
     rLock lock(lock_);
 
@@ -741,13 +742,13 @@ bool Settings::CheckSet_long(
     OT_FAIL;
 }
 
-bool Settings::CheckSet_bool(
+auto Settings::CheckSet_bool(
     const String& strSection,
     const String& strKey,
     const bool& bDefault,
     bool& out_bResult,
     bool& out_bIsNew,
-    const String& strComment) const
+    const String& strComment) const -> bool
 {
     rLock lock(lock_);
 
@@ -786,10 +787,10 @@ bool Settings::CheckSet_bool(
     OT_FAIL;
 }
 
-bool Settings::SetOption_bool(
+auto Settings::SetOption_bool(
     const String& strSection,
     const String& strKey,
-    bool& bVariableName) const
+    bool& bVariableName) const -> bool
 {
     rLock lock(lock_);
 

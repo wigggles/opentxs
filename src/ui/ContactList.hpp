@@ -72,11 +72,14 @@ using ContactListList = List<
 class ContactList final : public ContactListList
 {
 public:
-    std::string AddContact(
+    auto AddContact(
         const std::string& label,
         const std::string& paymentCode,
-        const std::string& nymID) const noexcept final;
-    const Identifier& ID() const noexcept final { return owner_contact_id_; }
+        const std::string& nymID) const noexcept -> std::string final;
+    auto ID() const noexcept -> const Identifier& final
+    {
+        return owner_contact_id_;
+    }
 #if OT_QT
     QModelIndex index(
         int row,
@@ -106,27 +109,27 @@ private:
             const std::string& purportedPaymentCode) noexcept;
 
     private:
-        static OTNymID extract_nymid(
+        static auto extract_nymid(
             const api::internal::Core& api,
             const std::string& purportedID,
-            const std::string& purportedPaymentCode) noexcept;
-        static OTPaymentCode extract_paymentcode(
+            const std::string& purportedPaymentCode) noexcept -> OTNymID;
+        static auto extract_paymentcode(
             const api::internal::Core& api,
             const std::string& purportedID,
-            const std::string& purportedPaymentCode) noexcept;
+            const std::string& purportedPaymentCode) noexcept -> OTPaymentCode;
     };
 
     const ListenerDefinitions listeners_;
     const OTIdentifier owner_contact_id_;
     std::shared_ptr<ContactListRowInternal> owner_;
 
-    void* construct_row(
+    auto construct_row(
         const ContactListRowID& id,
         const ContactListSortKey& index,
-        const CustomData& custom) const noexcept final;
-    std::shared_ptr<const ContactListRowInternal> first(const Lock& lock) const
-        noexcept final;
-    bool last(const ContactListRowID& id) const noexcept final
+        const CustomData& custom) const noexcept -> void* final;
+    auto first(const Lock& lock) const noexcept
+        -> std::shared_ptr<const ContactListRowInternal> final;
+    auto last(const ContactListRowID& id) const noexcept -> bool final
     {
         return ContactListList::last(id);
     }
@@ -142,7 +145,7 @@ private:
     ContactList() = delete;
     ContactList(const ContactList&) = delete;
     ContactList(ContactList&&) = delete;
-    ContactList& operator=(const ContactList&) = delete;
-    ContactList& operator=(ContactList&&) = delete;
+    auto operator=(const ContactList&) -> ContactList& = delete;
+    auto operator=(ContactList &&) -> ContactList& = delete;
 };
 }  // namespace opentxs::ui::implementation

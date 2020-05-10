@@ -45,9 +45,8 @@ Contacts::Contacts(
     }
 }
 
-std::string Contacts::AddressOwner(
-    proto::ContactItemType chain,
-    std::string address) const
+auto Contacts::AddressOwner(proto::ContactItemType chain, std::string address)
+    const -> std::string
 {
     Lock lock(write_lock_);
 
@@ -58,12 +57,12 @@ std::string Contacts::AddressOwner(
     return it->second;
 }
 
-std::string Contacts::Alias(const std::string& id) const
+auto Contacts::Alias(const std::string& id) const -> std::string
 {
     return get_alias(id);
 }
 
-bool Contacts::Delete(const std::string& id) { return delete_item(id); }
+auto Contacts::Delete(const std::string& id) -> bool { return delete_item(id); }
 
 void Contacts::extract_addresses(
     const Lock& lock,
@@ -192,7 +191,7 @@ void Contacts::init(const std::string& hash)
     }
 }
 
-ObjectList Contacts::List() const
+auto Contacts::List() const -> ObjectList
 {
     auto list = ot_super::List();
 
@@ -204,18 +203,18 @@ ObjectList Contacts::List() const
     return list;
 }
 
-bool Contacts::Load(
+auto Contacts::Load(
     const std::string& id,
     std::shared_ptr<proto::Contact>& output,
     std::string& alias,
-    const bool checking) const
+    const bool checking) const -> bool
 {
     const auto& normalized = nomalize_id(id);
 
     return load_proto<proto::Contact>(normalized, output, alias, checking);
 }
 
-const std::string& Contacts::nomalize_id(const std::string& input) const
+auto Contacts::nomalize_id(const std::string& input) const -> const std::string&
 {
     Lock lock(write_lock_);
 
@@ -226,7 +225,7 @@ const std::string& Contacts::nomalize_id(const std::string& input) const
     return it->second;
 }
 
-std::string Contacts::NymOwner(std::string nym) const
+auto Contacts::NymOwner(std::string nym) const -> std::string
 {
     Lock lock(write_lock_);
 
@@ -279,7 +278,7 @@ void Contacts::reverse_merged()
     }
 }
 
-bool Contacts::save(const Lock& lock) const
+auto Contacts::save(const Lock& lock) const -> bool
 {
     if (false == verify_write_lock(lock)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Lock failure.").Flush();
@@ -294,14 +293,14 @@ bool Contacts::save(const Lock& lock) const
     return driver_.StoreProto(serialized, root_);
 }
 
-bool Contacts::Save() const
+auto Contacts::Save() const -> bool
 {
     Lock lock(write_lock_);
 
     return save(lock);
 }
 
-proto::StorageContacts Contacts::serialize() const
+auto Contacts::serialize() const -> proto::StorageContacts
 {
     proto::StorageContacts serialized;
     serialized.set_version(version_);
@@ -374,17 +373,17 @@ proto::StorageContacts Contacts::serialize() const
     return serialized;
 }
 
-bool Contacts::SetAlias(const std::string& id, const std::string& alias)
+auto Contacts::SetAlias(const std::string& id, const std::string& alias) -> bool
 {
     const auto& normalized = nomalize_id(id);
 
     return set_alias(normalized, alias);
 }
 
-bool Contacts::Store(
+auto Contacts::Store(
     const proto::Contact& data,
     const std::string& alias,
-    std::map<OTData, OTIdentifier>& changed)
+    std::map<OTData, OTIdentifier>& changed) -> bool
 {
     if (false == proto::Validate(data, VERBOSE)) { return false; }
 

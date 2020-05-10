@@ -61,25 +61,25 @@ using ContactItemRow =
 class ContactItem final : public ContactItemRow
 {
 public:
-    std::string ClaimID() const noexcept final
+    auto ClaimID() const noexcept -> std::string final
     {
         sLock lock(shared_lock_);
 
         return row_id_->str();
     }
-    bool IsActive() const noexcept final
+    auto IsActive() const noexcept -> bool final
     {
         sLock lock(shared_lock_);
 
         return item_->isActive();
     }
-    bool IsPrimary() const noexcept final
+    auto IsPrimary() const noexcept -> bool final
     {
         sLock lock(shared_lock_);
 
         return item_->isPrimary();
     }
-    std::string Value() const noexcept final
+    auto Value() const noexcept -> std::string final
     {
         sLock lock(shared_lock_);
 
@@ -105,8 +105,8 @@ private:
     ContactItem() = delete;
     ContactItem(const ContactItem&) = delete;
     ContactItem(ContactItem&&) = delete;
-    ContactItem& operator=(const ContactItem&) = delete;
-    ContactItem& operator=(ContactItem&&) = delete;
+    auto operator=(const ContactItem&) -> ContactItem& = delete;
+    auto operator=(ContactItem &&) -> ContactItem& = delete;
 };
 }  // namespace opentxs::ui::implementation
 

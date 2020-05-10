@@ -28,8 +28,8 @@ namespace opentxs::implementation
 class Signature final : virtual public opentxs::Signature, public Armored
 {
 public:
-    const OTSignatureMetadata& getMetaData() const { return metadata_; }
-    OTSignatureMetadata& getMetaData() { return metadata_; }
+    auto getMetaData() const -> const OTSignatureMetadata& { return metadata_; }
+    auto getMetaData() -> OTSignatureMetadata& { return metadata_; }
 
     Signature(const api::internal::Core& api);
 

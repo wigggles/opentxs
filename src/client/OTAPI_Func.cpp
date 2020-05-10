@@ -32,7 +32,10 @@
 
 #define OT_METHOD "opentxs::OTAPI_Func::"
 
-bool VerifyStringVal(const std::string& nValue) { return 0 < nValue.length(); }
+auto VerifyStringVal(const std::string& nValue) -> bool
+{
+    return 0 < nValue.length();
+}
 
 namespace opentxs
 {
@@ -458,7 +461,7 @@ OTAPI_Func::OTAPI_Func(
     }
 }
 
-std::string OTAPI_Func::Run(const std::size_t)
+auto OTAPI_Func::Run(const std::size_t) -> std::string
 {
     LogNormal(OT_METHOD)(__FUNCTION__)(": Not implemented").Flush();
 

@@ -57,16 +57,16 @@ public:
         Message& output,
         const PasswordPrompt& reason);
 
-    std::set<RequestNumber> Acknowledged() const;
-    bool HaveContext() const;
-    const bool& Init() const;
-    const Message& Original() const;
-    const bool& Success() const;
+    auto Acknowledged() const -> std::set<RequestNumber>;
+    auto HaveContext() const -> bool;
+    auto Init() const -> const bool&;
+    auto Original() const -> const Message&;
+    auto Success() const -> const bool&;
 
-    ClientContext& Context();
+    auto Context() -> ClientContext&;
     void ClearRequest();
     void DropToNymbox(const bool success);
-    bool LoadContext(const PasswordPrompt& reason);
+    auto LoadContext(const PasswordPrompt& reason) -> bool;
     void OverrideType(const String& accountID);
     void SetAccount(const String& accountID);
     void SetAcknowledgments(const ClientContext& context);
@@ -77,11 +77,11 @@ public:
     void SetInstrumentDefinitionID(const String& id);
     void SetNymboxHash(const Identifier& hash);
     void SetOutboxHash(const Identifier& hash);
-    bool SetPayload(const String& payload);
-    bool SetPayload(const Data& payload);
+    auto SetPayload(const String& payload) -> bool;
+    auto SetPayload(const Data& payload) -> bool;
     void SetPayload(const Armored& payload);
-    bool SetPayload2(const String& payload);
-    bool SetPayload3(const String& payload);
+    auto SetPayload2(const String& payload) -> bool;
+    auto SetPayload3(const String& payload) -> bool;
     void SetRequestNumber(const RequestNumber number);
     void SetSuccess(const bool success);
     void SetTargetNym(const String& nymID);
@@ -106,13 +106,13 @@ private:
 
     void attach_request();
     void clear_request();
-    bool init();
-    bool init_nym();
+    auto init() -> bool;
+    auto init_nym() -> bool;
 
     ReplyMessage() = delete;
     ReplyMessage(const ReplyMessage&) = delete;
     ReplyMessage(ReplyMessage&&) = delete;
-    ReplyMessage& operator=(const ReplyMessage&) = delete;
-    ReplyMessage& operator=(ReplyMessage&&) = delete;
+    auto operator=(const ReplyMessage&) -> ReplyMessage& = delete;
+    auto operator=(ReplyMessage &&) -> ReplyMessage& = delete;
 };
 }  // namespace opentxs::server

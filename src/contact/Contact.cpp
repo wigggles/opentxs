@@ -52,8 +52,8 @@ const std::map<AddressStyle, std::string> address_style_map_{
 const std::map<std::string, AddressStyle> address_style_reverse_map_{
     opentxs::reverse_map(address_style_map_)};
 
-AddressStyle translate_style(const std::string& in) noexcept;
-AddressStyle translate_style(const std::string& in) noexcept
+auto translate_style(const std::string& in) noexcept -> AddressStyle;
+auto translate_style(const std::string& in) noexcept -> AddressStyle
 {
     try {
 
@@ -64,8 +64,8 @@ AddressStyle translate_style(const std::string& in) noexcept
     }
 }
 
-std::string translate_style(const AddressStyle& in) noexcept;
-std::string translate_style(const AddressStyle& in) noexcept
+auto translate_style(const AddressStyle& in) noexcept -> std::string;
+auto translate_style(const AddressStyle& in) noexcept -> std::string
 {
     try {
 
@@ -165,7 +165,7 @@ Contact::operator proto::Contact() const
     return output;
 }
 
-Contact& Contact::operator+=(Contact& rhs)
+auto Contact::operator+=(Contact& rhs) -> Contact&
 {
     Lock rLock(rhs.lock_, std::defer_lock);
     Lock lock(lock_, std::defer_lock);
@@ -209,16 +209,16 @@ Contact& Contact::operator+=(Contact& rhs)
     return *this;
 }
 
-bool Contact::add_claim(const std::shared_ptr<ContactItem>& item)
+auto Contact::add_claim(const std::shared_ptr<ContactItem>& item) -> bool
 {
     Lock lock(lock_);
 
     return add_claim(lock, item);
 }
 
-bool Contact::add_claim(
+auto Contact::add_claim(
     const Lock& lock,
-    const std::shared_ptr<ContactItem>& item)
+    const std::shared_ptr<ContactItem>& item) -> bool
 {
     OT_ASSERT(verify_write_lock(lock));
 
@@ -243,7 +243,8 @@ bool Contact::add_claim(
     return true;
 }
 
-bool Contact::add_nym(const Lock& lock, const Nym_p& nym, const bool primary)
+auto Contact::add_nym(const Lock& lock, const Nym_p& nym, const bool primary)
+    -> bool
 {
     OT_ASSERT(verify_write_lock(lock));
 
@@ -317,9 +318,9 @@ void Contact::add_verified_claim(
     cached_contact_data_.reset();
 }
 
-bool Contact::AddBlockchainAddress(
+auto Contact::AddBlockchainAddress(
     const std::string& address,
-    const proto::ContactItemType currency)
+    const proto::ContactItemType currency) -> bool
 {
     const auto& api = api_;
     auto [bytes, style, chain] = api.Blockchain().DecodeAddress(address);
@@ -338,10 +339,10 @@ bool Contact::AddBlockchainAddress(
     return AddBlockchainAddress(style, chain, bytes);
 }
 
-bool Contact::AddBlockchainAddress(
+auto Contact::AddBlockchainAddress(
     const api::client::blockchain::AddressStyle& style,
     const blockchain::Type chain,
-    const opentxs::Data& bytes)
+    const opentxs::Data& bytes) -> bool
 {
     Lock lock(lock_);
 
@@ -362,10 +363,10 @@ bool Contact::AddBlockchainAddress(
     return add_claim(lock, claim);
 }
 
-bool Contact::AddEmail(
+auto Contact::AddEmail(
     const std::string& value,
     const bool primary,
-    const bool active)
+    const bool active) -> bool
 {
     if (value.empty()) { return false; }
 
@@ -382,14 +383,14 @@ bool Contact::AddEmail(
     return true;
 }
 
-bool Contact::AddNym(const Nym_p& nym, const bool primary)
+auto Contact::AddNym(const Nym_p& nym, const bool primary) -> bool
 {
     Lock lock(lock_);
 
     return add_nym(lock, nym, primary);
 }
 
-bool Contact::AddNym(const identifier::Nym& nymID, const bool primary)
+auto Contact::AddNym(const identifier::Nym& nymID, const bool primary) -> bool
 {
     Lock lock(lock_);
 
@@ -405,11 +406,11 @@ bool Contact::AddNym(const identifier::Nym& nymID, const bool primary)
     return true;
 }
 
-bool Contact::AddPaymentCode(
+auto Contact::AddPaymentCode(
     const class PaymentCode& code,
     const bool primary,
     const proto::ContactItemType currency,
-    const bool active)
+    const bool active) -> bool
 {
     std::set<proto::ContactItemAttribute> attr{proto::CITEMATTR_LOCAL};
 
@@ -441,10 +442,10 @@ bool Contact::AddPaymentCode(
     return true;
 }
 
-bool Contact::AddPhoneNumber(
+auto Contact::AddPhoneNumber(
     const std::string& value,
     const bool primary,
-    const bool active)
+    const bool active) -> bool
 {
     if (value.empty()) { return false; }
 
@@ -461,11 +462,11 @@ bool Contact::AddPhoneNumber(
     return true;
 }
 
-bool Contact::AddSocialMediaProfile(
+auto Contact::AddSocialMediaProfile(
     const std::string& value,
     const proto::ContactItemType type,
     const bool primary,
-    const bool active)
+    const bool active) -> bool
 {
     if (value.empty()) { return false; }
 
@@ -482,7 +483,7 @@ bool Contact::AddSocialMediaProfile(
     return true;
 }
 
-std::shared_ptr<ContactItem> Contact::Best(const ContactGroup& group)
+auto Contact::Best(const ContactGroup& group) -> std::shared_ptr<ContactItem>
 {
     if (0 == group.Size()) { return {}; }
 
@@ -499,7 +500,7 @@ std::shared_ptr<ContactItem> Contact::Best(const ContactGroup& group)
     return group.begin()->second;
 }
 
-std::string Contact::BestEmail() const
+auto Contact::BestEmail() const -> std::string
 {
     Lock lock(lock_);
     const auto data = merged_data(lock);
@@ -510,7 +511,7 @@ std::string Contact::BestEmail() const
     return data->BestEmail();
 }
 
-std::string Contact::BestPhoneNumber() const
+auto Contact::BestPhoneNumber() const -> std::string
 {
     Lock lock(lock_);
     const auto data = merged_data(lock);
@@ -521,8 +522,8 @@ std::string Contact::BestPhoneNumber() const
     return data->BestPhoneNumber();
 }
 
-std::string Contact::BestSocialMediaProfile(
-    const proto::ContactItemType type) const
+auto Contact::BestSocialMediaProfile(const proto::ContactItemType type) const
+    -> std::string
 {
     Lock lock(lock_);
     const auto data = merged_data(lock);
@@ -533,7 +534,8 @@ std::string Contact::BestSocialMediaProfile(
     return data->BestSocialMediaProfile(type);
 }
 
-std::vector<Contact::BlockchainAddress> Contact::BlockchainAddresses() const
+auto Contact::BlockchainAddresses() const
+    -> std::vector<Contact::BlockchainAddress>
 {
     auto output = std::vector<BlockchainAddress>{};
     Lock lock(lock_);
@@ -575,9 +577,9 @@ std::vector<Contact::BlockchainAddress> Contact::BlockchainAddresses() const
     return output;
 }
 
-VersionNumber Contact::check_version(
+auto Contact::check_version(
     const VersionNumber in,
-    const VersionNumber targetVersion)
+    const VersionNumber targetVersion) -> VersionNumber
 {
     // Upgrade version
     if (targetVersion > in) { return targetVersion; }
@@ -585,14 +587,14 @@ VersionNumber Contact::check_version(
     return in;
 }
 
-std::shared_ptr<ContactData> Contact::Data() const
+auto Contact::Data() const -> std::shared_ptr<ContactData>
 {
     Lock lock(lock_);
 
     return merged_data(lock);
 }
 
-OTIdentifier Contact::generate_id(const api::internal::Core& api)
+auto Contact::generate_id(const api::internal::Core& api) -> OTIdentifier
 {
     auto& encode = api.Crypto().Encode();
     auto random = Data::Factory();
@@ -601,7 +603,7 @@ OTIdentifier Contact::generate_id(const api::internal::Core& api)
     return api.Factory().Identifier(random->Bytes());
 }
 
-std::string Contact::EmailAddresses(bool active) const
+auto Contact::EmailAddresses(bool active) const -> std::string
 {
     Lock lock(lock_);
     const auto data = merged_data(lock);
@@ -612,17 +614,17 @@ std::string Contact::EmailAddresses(bool active) const
     return data->EmailAddresses(active);
 }
 
-std::string Contact::ExtractLabel(const identity::Nym& nym)
+auto Contact::ExtractLabel(const identity::Nym& nym) -> std::string
 {
     return nym.Claims().Name();
 }
 
-proto::ContactItemType Contact::ExtractType(const identity::Nym& nym)
+auto Contact::ExtractType(const identity::Nym& nym) -> proto::ContactItemType
 {
     return nym.Claims().Type();
 }
 
-const Identifier& Contact::ID() const { return id_; }
+auto Contact::ID() const -> const Identifier& { return id_; }
 
 void Contact::init_nyms()
 {
@@ -653,9 +655,9 @@ void Contact::init_nyms()
     }
 }
 
-const std::string& Contact::Label() const { return label_; }
+auto Contact::Label() const -> const std::string& { return label_; }
 
-std::time_t Contact::LastUpdated() const
+auto Contact::LastUpdated() const -> std::time_t
 {
     OT_ASSERT(contact_data_);
 
@@ -691,7 +693,8 @@ std::time_t Contact::LastUpdated() const
     }
 }
 
-std::shared_ptr<ContactData> Contact::merged_data(const Lock& lock) const
+auto Contact::merged_data(const Lock& lock) const
+    -> std::shared_ptr<ContactData>
 {
     OT_ASSERT(contact_data_);
     OT_ASSERT(verify_write_lock(lock));
@@ -728,8 +731,8 @@ std::shared_ptr<ContactData> Contact::merged_data(const Lock& lock) const
     return output;
 }
 
-std::vector<opentxs::OTNymID> opentxs::Contact::Nyms(
-    const bool includeInactive) const
+auto opentxs::Contact::Nyms(const bool includeInactive) const
+    -> std::vector<opentxs::OTNymID>
 {
     Lock lock(lock_);
     const auto data = merged_data(lock);
@@ -764,9 +767,10 @@ std::vector<opentxs::OTNymID> opentxs::Contact::Nyms(
     return output;
 }
 
-std::shared_ptr<ContactGroup> Contact::payment_codes(
+auto Contact::payment_codes(
     const Lock& lock,
     const proto::ContactItemType currency) const
+    -> std::shared_ptr<ContactGroup>
 {
     const auto data = merged_data(lock);
 
@@ -775,9 +779,9 @@ std::shared_ptr<ContactGroup> Contact::payment_codes(
     return data->Group(proto::CONTACTSECTION_PROCEDURE, currency);
 }
 
-std::string Contact::PaymentCode(
+auto Contact::PaymentCode(
     const ContactData& data,
-    const proto::ContactItemType currency)
+    const proto::ContactItemType currency) -> std::string
 {
     auto group = data.Group(proto::CONTACTSECTION_PROCEDURE, currency);
 
@@ -790,7 +794,8 @@ std::string Contact::PaymentCode(
     return item->Value();
 }
 
-std::string Contact::PaymentCode(const proto::ContactItemType currency) const
+auto Contact::PaymentCode(const proto::ContactItemType currency) const
+    -> std::string
 {
     Lock lock(lock_);
     const auto data = merged_data(lock);
@@ -801,8 +806,8 @@ std::string Contact::PaymentCode(const proto::ContactItemType currency) const
     return PaymentCode(*data, currency);
 }
 
-std::vector<std::string> Contact::PaymentCodes(
-    const proto::ContactItemType currency) const
+auto Contact::PaymentCodes(const proto::ContactItemType currency) const
+    -> std::vector<std::string>
 {
     Lock lock(lock_);
     const auto group = payment_codes(lock, currency);
@@ -822,7 +827,7 @@ std::vector<std::string> Contact::PaymentCodes(
     return output;
 }
 
-std::string Contact::PhoneNumbers(bool active) const
+auto Contact::PhoneNumbers(bool active) const -> std::string
 {
     Lock lock(lock_);
     const auto data = merged_data(lock);
@@ -833,7 +838,7 @@ std::string Contact::PhoneNumbers(bool active) const
     return data->PhoneNumbers(active);
 }
 
-std::string Contact::Print() const
+auto Contact::Print() const -> std::string
 {
     Lock lock(lock_);
     std::stringstream out{};
@@ -875,7 +880,7 @@ std::string Contact::Print() const
     return out.str();
 }
 
-bool Contact::RemoveNym(const identifier::Nym& nymID)
+auto Contact::RemoveNym(const identifier::Nym& nymID) -> bool
 {
     Lock lock(lock_);
 
@@ -898,9 +903,9 @@ void Contact::SetLabel(const std::string& label)
     }
 }
 
-std::string Contact::SocialMediaProfiles(
+auto Contact::SocialMediaProfiles(
     const proto::ContactItemType type,
-    bool active) const
+    bool active) const -> std::string
 {
     Lock lock(lock_);
     const auto data = merged_data(lock);
@@ -911,7 +916,8 @@ std::string Contact::SocialMediaProfiles(
     return data->SocialMediaProfiles(type, active);
 }
 
-const std::set<proto::ContactItemType> Contact::SocialMediaProfileTypes() const
+auto Contact::SocialMediaProfileTypes() const
+    -> const std::set<proto::ContactItemType>
 {
     Lock lock(lock_);
     const auto data = merged_data(lock);
@@ -920,11 +926,11 @@ const std::set<proto::ContactItemType> Contact::SocialMediaProfileTypes() const
     return data->SocialMediaProfileTypes();
 }
 
-Contact::BlockchainAddress Contact::translate(
+auto Contact::translate(
     const api::client::internal::Manager& api,
     const proto::ContactItemType chain,
     const std::string& value,
-    const std::string& subtype) noexcept(false)
+    const std::string& subtype) noexcept(false) -> Contact::BlockchainAddress
 {
     auto output = BlockchainAddress{api.Factory().Data(value, StringStyle::Hex),
                                     translate_style(subtype),
@@ -938,7 +944,7 @@ Contact::BlockchainAddress Contact::translate(
     return output;
 }
 
-proto::ContactItemType Contact::type(const Lock& lock) const
+auto Contact::type(const Lock& lock) const -> proto::ContactItemType
 {
     OT_ASSERT(verify_write_lock(lock));
 
@@ -949,7 +955,7 @@ proto::ContactItemType Contact::type(const Lock& lock) const
     return data->Type();
 }
 
-proto::ContactItemType Contact::Type() const
+auto Contact::Type() const -> proto::ContactItemType
 {
     Lock lock(lock_);
 
@@ -1003,7 +1009,7 @@ void Contact::update_label(const Lock& lock, const identity::Nym& nym)
     label_ = ExtractLabel(nym);
 }
 
-bool Contact::verify_write_lock(const Lock& lock) const
+auto Contact::verify_write_lock(const Lock& lock) const -> bool
 {
     if (lock.mutex() != &lock_) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Incorrect mutex.").Flush();

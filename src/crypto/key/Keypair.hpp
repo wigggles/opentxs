@@ -42,19 +42,20 @@ class Keypair final : virtual public key::Keypair
 public:
     operator bool() const noexcept final { return true; }
 
-    bool CheckCapability(const NymCapability& capability) const noexcept final;
-    const Asymmetric& GetPrivateKey() const noexcept(false) final;
-    const Asymmetric& GetPublicKey() const noexcept(false) final;
-    std::int32_t GetPublicKeyBySignature(
+    auto CheckCapability(const NymCapability& capability) const noexcept
+        -> bool final;
+    auto GetPrivateKey() const noexcept(false) -> const Asymmetric& final;
+    auto GetPublicKey() const noexcept(false) -> const Asymmetric& final;
+    auto GetPublicKeyBySignature(
         Keys& listOutput,
         const Signature& theSignature,
-        bool bInclusive = false) const noexcept final;
-    std::shared_ptr<proto::AsymmetricKey> GetSerialized(
-        bool privateKey = false) const noexcept final;
-    bool GetTransportKey(
+        bool bInclusive = false) const noexcept -> std::int32_t final;
+    auto GetSerialized(bool privateKey = false) const noexcept
+        -> std::shared_ptr<proto::AsymmetricKey> final;
+    auto GetTransportKey(
         Data& publicKey,
         OTPassword& privateKey,
-        const PasswordPrompt& reason) const noexcept final;
+        const PasswordPrompt& reason) const noexcept -> bool final;
 
     Keypair(
         const api::internal::Core& api,
@@ -72,12 +73,12 @@ private:
     OTAsymmetricKey m_pkeyPublic;
     const proto::KeyRole role_;
 
-    Keypair* clone() const final { return new Keypair(*this); }
+    auto clone() const -> Keypair* final { return new Keypair(*this); }
 
     Keypair() = delete;
     Keypair(const Keypair&) noexcept;
     Keypair(Keypair&&) = delete;
-    Keypair& operator=(const Keypair&) = delete;
-    Keypair& operator=(Keypair&&) = delete;
+    auto operator=(const Keypair&) -> Keypair& = delete;
+    auto operator=(Keypair &&) -> Keypair& = delete;
 };
 }  // namespace opentxs::crypto::key::implementation

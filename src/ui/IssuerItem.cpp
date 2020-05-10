@@ -119,12 +119,15 @@ IssuerItem::IssuerItem(
     OT_ASSERT(startup_)
 }
 
-std::string IssuerItem::Debug() const noexcept { return issuer_->toString(); }
+auto IssuerItem::Debug() const noexcept -> std::string
+{
+    return issuer_->toString();
+}
 
-void* IssuerItem::construct_row(
+auto IssuerItem::construct_row(
     const IssuerItemRowID& id,
     const IssuerItemSortKey& index,
-    const CustomData& custom) const noexcept
+    const CustomData& custom) const noexcept -> void*
 {
     names_.emplace(id, index);
     const auto [it, added] = items_[index].emplace(
@@ -135,7 +138,7 @@ void* IssuerItem::construct_row(
     return it->second.get();
 }
 
-std::string IssuerItem::Name() const noexcept
+auto IssuerItem::Name() const noexcept -> std::string
 {
     sLock lock(shared_lock_);
 

@@ -107,7 +107,7 @@ void Base::add_master_signature(
     signatures_.push_back(serializedMasterSignature);
 }
 
-std::string Base::asString(const bool asPrivate) const
+auto Base::asString(const bool asPrivate) const -> std::string
 {
     std::shared_ptr<SerializedType> credenial;
     auto dataCredential = Data::Factory();
@@ -131,14 +131,15 @@ auto Base::extract_signatures(const SerializedType& serialized) -> Signatures
     return output;
 }
 
-std::string Base::get_master_id(const internal::Primary& master) noexcept
+auto Base::get_master_id(const internal::Primary& master) noexcept
+    -> std::string
 {
     return master.ID()->str();
 }
 
-std::string Base::get_master_id(
+auto Base::get_master_id(
     const proto::Credential& serialized,
-    const internal::Primary& master) noexcept(false)
+    const internal::Primary& master) noexcept(false) -> std::string
 {
     const auto& id = serialized.childdata().masterid();
 
@@ -150,7 +151,7 @@ std::string Base::get_master_id(
     return id;
 }
 
-OTIdentifier Base::GetID(const Lock& lock) const
+auto Base::GetID(const Lock& lock) const -> OTIdentifier
 {
     OT_ASSERT(verify_write_lock(lock));
 
@@ -175,7 +176,7 @@ void Base::init(
 }
 
 /** Perform syntax (non-cryptographic) verifications of a credential */
-bool Base::isValid(const Lock& lock) const
+auto Base::isValid(const Lock& lock) const -> bool
 {
     std::shared_ptr<SerializedType> serializedProto;
 
@@ -183,9 +184,9 @@ bool Base::isValid(const Lock& lock) const
 }
 
 /** Returns the serialized form to prevent unnecessary serializations */
-bool Base::isValid(
+auto Base::isValid(
     const Lock& lock,
-    std::shared_ptr<SerializedType>& credential) const
+    std::shared_ptr<SerializedType>& credential) const -> bool
 {
     SerializationModeFlag serializationMode = AS_PUBLIC;
 
@@ -201,7 +202,7 @@ bool Base::isValid(
         true);  // with signatures
 }
 
-Base::Signature Base::MasterSignature() const
+auto Base::MasterSignature() const -> Base::Signature
 {
     auto masterSignature = Signature{};
     const auto targetRole{proto::SIGROLE_PUBCREDENTIAL};
@@ -229,7 +230,7 @@ void Base::ReleaseSignatures(const bool onlyPrivate)
     }
 }
 
-bool Base::Save() const
+auto Base::Save() const -> bool
 {
     Lock lock(lock_);
 
@@ -256,7 +257,7 @@ bool Base::Save() const
     return true;
 }
 
-Base::Signature Base::SelfSignature(CredentialModeFlag version) const
+auto Base::SelfSignature(CredentialModeFlag version) const -> Base::Signature
 {
     const auto targetRole{(PRIVATE_VERSION == version)
                               ? proto::SIGROLE_PRIVCREDENTIAL
@@ -273,10 +274,11 @@ Base::Signature Base::SelfSignature(CredentialModeFlag version) const
     return nullptr;
 }
 
-std::shared_ptr<Base::SerializedType> Base::serialize(
+auto Base::serialize(
     const Lock& lock,
     const SerializationModeFlag asPrivate,
     const SerializationSignatureFlag asSigned) const
+    -> std::shared_ptr<Base::SerializedType>
 {
     auto serializedCredential = std::make_shared<proto::Credential>();
     serializedCredential->set_version(version_);
@@ -331,7 +333,7 @@ std::shared_ptr<Base::SerializedType> Base::serialize(
     return serializedCredential;
 }
 
-OTData Base::Serialize() const
+auto Base::Serialize() const -> OTData
 {
     auto serialized =
         Serialized(Private() ? AS_PRIVATE : AS_PUBLIC, WITH_SIGNATURES);
@@ -339,9 +341,10 @@ OTData Base::Serialize() const
     return api_.Factory().Data(*serialized);
 }
 
-std::shared_ptr<Base::SerializedType> Base::Serialized(
+auto Base::Serialized(
     const SerializationModeFlag asPrivate,
     const SerializationSignatureFlag asSigned) const
+    -> std::shared_ptr<Base::SerializedType>
 {
     Lock lock(lock_);
 
@@ -359,7 +362,7 @@ void Base::sign(
     }
 }
 
-Base::Signature Base::SourceSignature() const
+auto Base::SourceSignature() const -> Base::Signature
 {
     auto signature = Signature{};
 
@@ -376,14 +379,14 @@ Base::Signature Base::SourceSignature() const
 }
 
 /** Override this method for credentials capable of deriving transport keys */
-bool Base::TransportKey(Data&, OTPassword&, const PasswordPrompt&) const
+auto Base::TransportKey(Data&, OTPassword&, const PasswordPrompt&) const -> bool
 {
     OT_ASSERT_MSG(false, "This method was called on the wrong credential.");
 
     return false;
 }
 
-bool Base::validate(const Lock& lock) const
+auto Base::validate(const Lock& lock) const -> bool
 {
     // Check syntax
     if (!isValid(lock)) { return false; }
@@ -392,7 +395,7 @@ bool Base::validate(const Lock& lock) const
     return verify_internally(lock);
 }
 
-bool Base::Validate() const
+auto Base::Validate() const -> bool
 {
     Lock lock(lock_);
 
@@ -401,7 +404,7 @@ bool Base::Validate() const
 
 /** Verifies the cryptographic integrity of a credential. Assumes the
  * Authority specified by parent_ is valid. */
-bool Base::verify_internally(const Lock& lock) const
+auto Base::verify_internally(const Lock& lock) const -> bool
 {
     if (!CheckID(lock)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -431,7 +434,7 @@ bool Base::verify_internally(const Lock& lock) const
     return true;
 }
 
-bool Base::verify_master_signature(const Lock& lock) const
+auto Base::verify_master_signature(const Lock& lock) const -> bool
 {
     auto serialized = serialize(lock, AS_PUBLIC, WITHOUT_SIGNATURES);
     auto masterSig = MasterSignature();

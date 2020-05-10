@@ -52,7 +52,7 @@ PayableListItem::PayableListItem(
 {
 }
 
-std::string PayableListItem::PaymentCode() const noexcept
+auto PayableListItem::PaymentCode() const noexcept -> std::string
 {
     Lock lock(lock_);
 

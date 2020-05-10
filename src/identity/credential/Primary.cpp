@@ -34,13 +34,14 @@ namespace opentxs
 {
 using ReturnType = identity::credential::implementation::Primary;
 
-identity::credential::internal::Primary* Factory::PrimaryCredential(
+auto Factory::PrimaryCredential(
     const api::internal::Core& api,
     identity::internal::Authority& parent,
     const identity::Source& source,
     const NymParameters& parameters,
     const VersionNumber version,
     const opentxs::PasswordPrompt& reason)
+    -> identity::credential::internal::Primary*
 {
     try {
 
@@ -54,11 +55,12 @@ identity::credential::internal::Primary* Factory::PrimaryCredential(
     }
 }
 
-identity::credential::internal::Primary* Factory::PrimaryCredential(
+auto Factory::PrimaryCredential(
     const api::internal::Core& api,
     identity::internal::Authority& parent,
     const identity::Source& source,
     const proto::Credential& serialized)
+    -> identity::credential::internal::Primary*
 {
     try {
 
@@ -123,7 +125,7 @@ Primary::Primary(
     init_serialized(lock);
 }
 
-bool Primary::hasCapability(const NymCapability& capability) const
+auto Primary::hasCapability(const NymCapability& capability) const -> bool
 {
     switch (capability) {
         case (NymCapability::SIGN_CHILDCRED): {
@@ -136,7 +138,7 @@ bool Primary::hasCapability(const NymCapability& capability) const
     return false;
 }
 
-bool Primary::Path(proto::HDPath& output) const
+auto Primary::Path(proto::HDPath& output) const -> bool
 {
     try {
         const bool found = signing_key_->GetPrivateKey().Path(output);
@@ -151,15 +153,16 @@ bool Primary::Path(proto::HDPath& output) const
     }
 }
 
-std::string Primary::Path() const
+auto Primary::Path() const -> std::string
 {
     return signing_key_->GetPrivateKey().Path();
 }
 
-std::shared_ptr<identity::credential::Base::SerializedType> Primary::serialize(
+auto Primary::serialize(
     const Lock& lock,
     const SerializationModeFlag asPrivate,
     const SerializationSignatureFlag asSigned) const
+    -> std::shared_ptr<identity::credential::Base::SerializedType>
 {
     auto output = Key::serialize(lock, asPrivate, asSigned);
 
@@ -194,7 +197,7 @@ void Primary::sign(
     }
 }
 
-proto::SourceProof Primary::source_proof(const NymParameters& params)
+auto Primary::source_proof(const NymParameters& params) -> proto::SourceProof
 {
     auto output = proto::SourceProof{};
     output.set_version(1);
@@ -203,11 +206,11 @@ proto::SourceProof Primary::source_proof(const NymParameters& params)
     return output;
 }
 
-bool Primary::Verify(
+auto Primary::Verify(
     const proto::Credential& credential,
     const proto::CredentialRole& role,
     const Identifier& masterID,
-    const proto::Signature& masterSig) const
+    const proto::Signature& masterSig) const -> bool
 {
     if (!proto::Validate<proto::Credential>(
             credential, VERBOSE, proto::KEYMODE_PUBLIC, role, false)) {
@@ -236,7 +239,7 @@ bool Primary::Verify(
     return Verify(api_.Factory().Data(copy), masterSig);
 }
 
-bool Primary::verify_against_source(const Lock& lock) const
+auto Primary::verify_against_source(const Lock& lock) const -> bool
 {
     auto pSerialized = std::shared_ptr<proto::Credential>{};
     auto hasSourceSignature{true};
@@ -277,7 +280,7 @@ bool Primary::verify_against_source(const Lock& lock) const
     return source_.Verify(serialized, sig);
 }
 
-bool Primary::verify_internally(const Lock& lock) const
+auto Primary::verify_internally(const Lock& lock) const -> bool
 {
     // Perform common Key Credential verifications
     if (!Key::verify_internally(lock)) { return false; }

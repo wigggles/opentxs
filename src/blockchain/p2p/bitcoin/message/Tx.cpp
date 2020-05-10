@@ -22,12 +22,12 @@
 namespace opentxs
 {
 // We have a header and a raw payload. Parse it.
-blockchain::p2p::bitcoin::message::Tx* Factory::BitcoinP2PTx(
+auto Factory::BitcoinP2PTx(
     const api::internal::Core& api,
     std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
     const blockchain::p2p::bitcoin::ProtocolVersion version,
     const void* payload,
-    const std::size_t size)
+    const std::size_t size) -> blockchain::p2p::bitcoin::message::Tx*
 {
     namespace bitcoin = blockchain::p2p::bitcoin;
     using ReturnType = bitcoin::message::Tx;
@@ -52,10 +52,10 @@ blockchain::p2p::bitcoin::message::Tx* Factory::BitcoinP2PTx(
 }
 
 // We have all the data members to create the message from scratch (for sending)
-blockchain::p2p::bitcoin::message::Tx* Factory::BitcoinP2PTx(
+auto Factory::BitcoinP2PTx(
     const api::internal::Core& api,
     const blockchain::Type network,
-    const Data& raw_tx)
+    const Data& raw_tx) -> blockchain::p2p::bitcoin::message::Tx*
 {
     namespace bitcoin = blockchain::p2p::bitcoin;
     using ReturnType = bitcoin::message::Tx;
@@ -67,7 +67,7 @@ blockchain::p2p::bitcoin::message::Tx* Factory::BitcoinP2PTx(
 namespace opentxs::blockchain::p2p::bitcoin::message
 {
 
-OTData Tx::payload() const noexcept
+auto Tx::payload() const noexcept -> OTData
 {
     try {
         return getRawTx();

@@ -341,7 +341,8 @@ struct make_blank;
 
 template <>
 struct make_blank<ui::implementation::AccountActivityRowID> {
-    static ui::implementation::AccountActivityRowID value(const api::Core& api)
+    static auto value(const api::Core& api)
+        -> ui::implementation::AccountActivityRowID
     {
         return {api.Factory().Identifier(), proto::PAYMENTEVENTTYPE_ERROR};
     }
@@ -349,7 +350,8 @@ struct make_blank<ui::implementation::AccountActivityRowID> {
 
 template <>
 struct make_blank<ui::implementation::IssuerItemRowID> {
-    static ui::implementation::IssuerItemRowID value(const api::Core& api)
+    static auto value(const api::Core& api)
+        -> ui::implementation::IssuerItemRowID
     {
         return {api.Factory().Identifier(), proto::CITEMTYPE_ERROR};
     }
@@ -357,7 +359,8 @@ struct make_blank<ui::implementation::IssuerItemRowID> {
 
 template <>
 struct make_blank<ui::implementation::ActivityThreadRowID> {
-    static ui::implementation::ActivityThreadRowID value(const api::Core& api)
+    static auto value(const api::Core& api)
+        -> ui::implementation::ActivityThreadRowID
     {
         return {api.Factory().Identifier(), {}, api.Factory().Identifier()};
     }
@@ -409,14 +412,14 @@ struct Row : virtual public ui::ListRow {
 };
 struct AccountActivity : virtual public List,
                          virtual public ui::AccountActivity {
-    virtual bool last(const implementation::AccountActivityRowID& id) const
-        noexcept = 0;
+    virtual auto last(const implementation::AccountActivityRowID& id) const
+        noexcept -> bool = 0;
 
     ~AccountActivity() override = default;
 };
 struct AccountList : virtual public List, virtual public ui::AccountList {
-    virtual bool last(const implementation::AccountListRowID& id) const
-        noexcept = 0;
+    virtual auto last(const implementation::AccountListRowID& id) const noexcept
+        -> bool = 0;
 
     ~AccountList() override = default;
 };
@@ -429,15 +432,15 @@ struct AccountListItem : virtual public Row,
     ~AccountListItem() override = default;
 };
 struct AccountSummary : virtual public List, virtual public ui::AccountSummary {
-    virtual proto::ContactItemType Currency() const = 0;
+    virtual auto Currency() const -> proto::ContactItemType = 0;
 #if OT_QT
     virtual int FindRow(
         const implementation::AccountSummaryRowID& id,
         const implementation::AccountSummarySortKey& key) const noexcept = 0;
 #endif
-    virtual bool last(const implementation::AccountSummaryRowID& id) const
-        noexcept = 0;
-    virtual const identifier::Nym& NymID() const = 0;
+    virtual auto last(const implementation::AccountSummaryRowID& id) const
+        noexcept -> bool = 0;
+    virtual auto NymID() const -> const identifier::Nym& = 0;
 
     ~AccountSummary() override = default;
 };
@@ -451,8 +454,8 @@ struct AccountSummaryItem : virtual public Row,
 };
 struct ActivitySummary : virtual public List,
                          virtual public ui::ActivitySummary {
-    virtual bool last(const implementation::ActivitySummaryRowID& id) const
-        noexcept = 0;
+    virtual auto last(const implementation::ActivitySummaryRowID& id) const
+        noexcept -> bool = 0;
 
     ~ActivitySummary() override = default;
 };
@@ -465,10 +468,10 @@ struct ActivitySummaryItem : virtual public Row,
     ~ActivitySummaryItem() override = default;
 };
 struct ActivityThread : virtual public List {
-    virtual bool last(const implementation::ActivityThreadRowID& id) const
-        noexcept = 0;
+    virtual auto last(const implementation::ActivityThreadRowID& id) const
+        noexcept -> bool = 0;
     // custom
-    virtual std::string ThreadID() const = 0;
+    virtual auto ThreadID() const -> std::string = 0;
 
     ~ActivityThread() override = default;
 };
@@ -493,8 +496,8 @@ struct Contact : virtual public List, virtual public ui::Contact {
         const implementation::ContactRowID& id,
         const implementation::ContactSortKey& key) const noexcept = 0;
 #endif
-    virtual bool last(const implementation::ContactRowID& id) const
-        noexcept = 0;
+    virtual auto last(const implementation::ContactRowID& id) const noexcept
+        -> bool = 0;
 
     ~Contact() override = default;
 };
@@ -506,10 +509,10 @@ struct ContactItem : virtual public Row, virtual public ui::ContactItem {
     ~ContactItem() override = default;
 };
 struct ContactList : virtual public List {
-    virtual bool last(const implementation::ContactListRowID& id) const
-        noexcept = 0;
+    virtual auto last(const implementation::ContactListRowID& id) const noexcept
+        -> bool = 0;
     // custom
-    virtual const Identifier& ID() const = 0;
+    virtual auto ID() const -> const Identifier& = 0;
 
     ~ContactList() override = default;
 };
@@ -524,14 +527,14 @@ struct ContactListItem : virtual public Row,
 struct ContactSection : virtual public List,
                         virtual public Row,
                         virtual public ui::ContactSection {
-    virtual std::string ContactID() const noexcept = 0;
+    virtual auto ContactID() const noexcept -> std::string = 0;
 #if OT_QT
     virtual int FindRow(
         const implementation::ContactSectionRowID& id,
         const implementation::ContactSectionSortKey& key) const noexcept = 0;
 #endif
-    virtual bool last(const implementation::ContactSectionRowID& id) const
-        noexcept = 0;
+    virtual auto last(const implementation::ContactSectionRowID& id) const
+        noexcept -> bool = 0;
 
     virtual void reindex(
         const implementation::ContactSortKey& key,
@@ -546,8 +549,8 @@ struct ContactSubsection : virtual public List,
         const implementation::ContactSectionSortKey& key,
         const implementation::CustomData& custom) noexcept = 0;
     // List
-    virtual bool last(const implementation::ContactSubsectionRowID& id) const
-        noexcept = 0;
+    virtual auto last(const implementation::ContactSubsectionRowID& id) const
+        noexcept -> bool = 0;
 
     ~ContactSubsection() override = default;
 };
@@ -559,8 +562,8 @@ struct IssuerItem : virtual public List,
         const implementation::AccountSummarySortKey& key,
         const implementation::CustomData& custom) noexcept = 0;
     // List
-    virtual bool last(const implementation::IssuerItemRowID& id) const
-        noexcept = 0;
+    virtual auto last(const implementation::IssuerItemRowID& id) const noexcept
+        -> bool = 0;
 
     ~IssuerItem() override = default;
 };
@@ -584,9 +587,9 @@ struct Profile : virtual public List, virtual public ui::Profile {
         const implementation::ProfileRowID& id,
         const implementation::ProfileSortKey& key) const noexcept = 0;
 #endif
-    virtual bool last(const implementation::ProfileRowID& id) const
-        noexcept = 0;
-    virtual const identifier::Nym& NymID() const = 0;
+    virtual auto last(const implementation::ProfileRowID& id) const noexcept
+        -> bool = 0;
+    virtual auto NymID() const -> const identifier::Nym& = 0;
 
     ~Profile() override = default;
 };
@@ -598,9 +601,9 @@ struct ProfileSection : virtual public List,
         const implementation::ProfileSectionRowID& id,
         const implementation::ProfileSectionSortKey& key) const noexcept = 0;
 #endif
-    virtual bool last(const implementation::ProfileSectionRowID& id) const
-        noexcept = 0;
-    virtual const identifier::Nym& NymID() const noexcept = 0;
+    virtual auto last(const implementation::ProfileSectionRowID& id) const
+        noexcept -> bool = 0;
+    virtual auto NymID() const noexcept -> const identifier::Nym& = 0;
 
     virtual void reindex(
         const implementation::ProfileSortKey& key,
@@ -616,11 +619,11 @@ struct ProfileSubsection : virtual public List,
         const implementation::ProfileSectionSortKey& key,
         const implementation::CustomData& custom) noexcept = 0;
     // List
-    virtual bool last(const implementation::ProfileSubsectionRowID& id) const
-        noexcept = 0;
+    virtual auto last(const implementation::ProfileSubsectionRowID& id) const
+        noexcept -> bool = 0;
     // custom
-    virtual const identifier::Nym& NymID() const noexcept = 0;
-    virtual proto::ContactSectionName Section() const noexcept = 0;
+    virtual auto NymID() const noexcept -> const identifier::Nym& = 0;
+    virtual auto Section() const noexcept -> proto::ContactSectionName = 0;
 
     ~ProfileSubsection() override = default;
 };
@@ -632,8 +635,8 @@ struct ProfileItem : virtual public Row, virtual public ui::ProfileItem {
     ~ProfileItem() override = default;
 };
 struct UnitList : virtual public List, virtual public ui::UnitList {
-    virtual bool last(const implementation::UnitListRowID& id) const
-        noexcept = 0;
+    virtual auto last(const implementation::UnitListRowID& id) const noexcept
+        -> bool = 0;
 
     ~UnitList() override = default;
 };
@@ -662,22 +665,22 @@ namespace blank
 {
 struct Widget : virtual public ui::Widget {
     void SetCallback(Callback cb) const noexcept final {}
-    OTIdentifier WidgetID() const noexcept override
+    auto WidgetID() const noexcept -> OTIdentifier override
     {
         return Identifier::Factory();
     }
 };
 struct Row : virtual public ui::internal::Row, public Widget {
-    bool Last() const noexcept final { return true; }
+    auto Last() const noexcept -> bool final { return true; }
 #if OT_QT
     QModelIndex qt_parent() const noexcept final { return {}; }
 #endif  // OT_QT
-    bool Valid() const noexcept final { return false; }
+    auto Valid() const noexcept -> bool final { return false; }
 };
 template <typename ListType, typename RowType, typename RowIDType>
 struct List : virtual public ListType, public Row {
-    RowType First() const noexcept final { return RowType{nullptr}; }
-    bool last(const RowIDType&) const noexcept final { return false; }
+    auto First() const noexcept -> RowType final { return RowType{nullptr}; }
+    auto last(const RowIDType&) const noexcept -> bool final { return false; }
 #if OT_QT
     void emit_begin_insert_rows(const QModelIndex& parent, int first, int last)
         const noexcept
@@ -693,24 +696,24 @@ struct List : virtual public ListType, public Row {
     void register_child(const void* child) const noexcept final {}
     void unregister_child(const void* child) const noexcept final {}
 #endif
-    RowType Next() const noexcept final { return RowType{nullptr}; }
-    OTIdentifier WidgetID() const noexcept final
+    auto Next() const noexcept -> RowType final { return RowType{nullptr}; }
+    auto WidgetID() const noexcept -> OTIdentifier final
     {
         return blank::Widget::WidgetID();
     }
 };
 struct AccountListItem final : virtual public Row,
                                virtual public internal::AccountListItem {
-    std::string AccountID() const noexcept final { return {}; }
-    Amount Balance() const noexcept final { return {}; }
-    std::string ContractID() const noexcept final { return {}; }
-    std::string DisplayBalance() const noexcept final { return {}; }
-    std::string DisplayUnit() const noexcept final { return {}; }
-    std::string Name() const noexcept final { return {}; }
-    std::string NotaryID() const noexcept final { return {}; }
-    std::string NotaryName() const noexcept final { return {}; }
-    AccountType Type() const noexcept final { return {}; }
-    proto::ContactItemType Unit() const noexcept final { return {}; }
+    auto AccountID() const noexcept -> std::string final { return {}; }
+    auto Balance() const noexcept -> Amount final { return {}; }
+    auto ContractID() const noexcept -> std::string final { return {}; }
+    auto DisplayBalance() const noexcept -> std::string final { return {}; }
+    auto DisplayUnit() const noexcept -> std::string final { return {}; }
+    auto Name() const noexcept -> std::string final { return {}; }
+    auto NotaryID() const noexcept -> std::string final { return {}; }
+    auto NotaryName() const noexcept -> std::string final { return {}; }
+    auto Type() const noexcept -> AccountType final { return {}; }
+    auto Unit() const noexcept -> proto::ContactItemType final { return {}; }
 
     void reindex(
         const implementation::AccountListSortKey&,
@@ -720,10 +723,10 @@ struct AccountListItem final : virtual public Row,
 };
 struct AccountSummaryItem final : public Row,
                                   public internal::AccountSummaryItem {
-    std::string AccountID() const noexcept final { return {}; }
-    Amount Balance() const noexcept final { return {}; }
-    std::string DisplayBalance() const noexcept final { return {}; }
-    std::string Name() const noexcept final { return {}; }
+    auto AccountID() const noexcept -> std::string final { return {}; }
+    auto Balance() const noexcept -> Amount final { return {}; }
+    auto DisplayBalance() const noexcept -> std::string final { return {}; }
+    auto Name() const noexcept -> std::string final { return {}; }
 
     void reindex(
         const implementation::IssuerItemSortKey&,
@@ -734,15 +737,19 @@ struct AccountSummaryItem final : public Row,
 struct ActivitySummaryItem final
     : virtual public Row,
       virtual public internal::ActivitySummaryItem {
-    std::string DisplayName() const noexcept final { return {}; }
-    std::string ImageURI() const noexcept final { return {}; }
-    std::string Text() const noexcept final { return {}; }
-    std::string ThreadID() const noexcept final { return {}; }
-    std::chrono::system_clock::time_point Timestamp() const noexcept final
+    auto DisplayName() const noexcept -> std::string final { return {}; }
+    auto ImageURI() const noexcept -> std::string final { return {}; }
+    auto Text() const noexcept -> std::string final { return {}; }
+    auto ThreadID() const noexcept -> std::string final { return {}; }
+    auto Timestamp() const noexcept
+        -> std::chrono::system_clock::time_point final
     {
         return {};
     }
-    StorageBox Type() const noexcept final { return StorageBox::UNKNOWN; }
+    auto Type() const noexcept -> StorageBox final
+    {
+        return StorageBox::UNKNOWN;
+    }
 
     void reindex(
         const implementation::ActivitySummarySortKey&,
@@ -752,19 +759,23 @@ struct ActivitySummaryItem final
 };
 struct ActivityThreadItem final : public Row,
                                   public internal::ActivityThreadItem {
-    opentxs::Amount Amount() const noexcept final { return 0; }
-    bool Deposit() const noexcept final { return false; }
-    std::string DisplayAmount() const noexcept final { return {}; }
-    bool Loading() const noexcept final { return false; }
-    bool MarkRead() const noexcept final { return false; }
-    std::string Memo() const noexcept final { return {}; }
-    bool Pending() const noexcept final { return false; }
-    std::string Text() const noexcept final { return {}; }
-    std::chrono::system_clock::time_point Timestamp() const noexcept final
+    auto Amount() const noexcept -> opentxs::Amount final { return 0; }
+    auto Deposit() const noexcept -> bool final { return false; }
+    auto DisplayAmount() const noexcept -> std::string final { return {}; }
+    auto Loading() const noexcept -> bool final { return false; }
+    auto MarkRead() const noexcept -> bool final { return false; }
+    auto Memo() const noexcept -> std::string final { return {}; }
+    auto Pending() const noexcept -> bool final { return false; }
+    auto Text() const noexcept -> std::string final { return {}; }
+    auto Timestamp() const noexcept
+        -> std::chrono::system_clock::time_point final
     {
         return {};
     }
-    StorageBox Type() const noexcept final { return StorageBox::UNKNOWN; }
+    auto Type() const noexcept -> StorageBox final
+    {
+        return StorageBox::UNKNOWN;
+    }
 
     void reindex(
         const implementation::ActivityThreadSortKey&,
@@ -773,18 +784,25 @@ struct ActivityThreadItem final : public Row,
     }
 };
 struct BalanceItem final : public Row, public internal::BalanceItem {
-    opentxs::Amount Amount() const noexcept final { return {}; }
-    std::vector<std::string> Contacts() const noexcept final { return {}; }
-    std::string DisplayAmount() const noexcept final { return {}; }
-    std::string Memo() const noexcept final { return {}; }
-    std::string Workflow() const noexcept final { return {}; }
-    std::string Text() const noexcept final { return {}; }
-    std::chrono::system_clock::time_point Timestamp() const noexcept final
+    auto Amount() const noexcept -> opentxs::Amount final { return {}; }
+    auto Contacts() const noexcept -> std::vector<std::string> final
     {
         return {};
     }
-    StorageBox Type() const noexcept final { return StorageBox::UNKNOWN; }
-    std::string UUID() const noexcept final { return {}; }
+    auto DisplayAmount() const noexcept -> std::string final { return {}; }
+    auto Memo() const noexcept -> std::string final { return {}; }
+    auto Workflow() const noexcept -> std::string final { return {}; }
+    auto Text() const noexcept -> std::string final { return {}; }
+    auto Timestamp() const noexcept
+        -> std::chrono::system_clock::time_point final
+    {
+        return {};
+    }
+    auto Type() const noexcept -> StorageBox final
+    {
+        return StorageBox::UNKNOWN;
+    }
+    auto UUID() const noexcept -> std::string final { return {}; }
 
     void reindex(
         const implementation::AccountActivitySortKey&,
@@ -793,10 +811,10 @@ struct BalanceItem final : public Row, public internal::BalanceItem {
     }
 };
 struct ContactItem final : public Row, public internal::ContactItem {
-    std::string ClaimID() const noexcept final { return {}; }
-    bool IsActive() const noexcept final { return false; }
-    bool IsPrimary() const noexcept final { return false; }
-    std::string Value() const noexcept final { return {}; }
+    auto ClaimID() const noexcept -> std::string final { return {}; }
+    auto IsActive() const noexcept -> bool final { return false; }
+    auto IsPrimary() const noexcept -> bool final { return false; }
+    auto Value() const noexcept -> std::string final { return {}; }
 
     void reindex(
         const implementation::ContactSectionSortKey&,
@@ -806,10 +824,10 @@ struct ContactItem final : public Row, public internal::ContactItem {
 };
 struct ContactListItem : virtual public Row,
                          virtual public internal::ContactListItem {
-    std::string ContactID() const noexcept final { return {}; }
-    std::string DisplayName() const noexcept final { return {}; }
-    std::string ImageURI() const noexcept final { return {}; }
-    std::string Section() const noexcept final { return {}; }
+    auto ContactID() const noexcept -> std::string final { return {}; }
+    auto DisplayName() const noexcept -> std::string final { return {}; }
+    auto ImageURI() const noexcept -> std::string final { return {}; }
+    auto Section() const noexcept -> std::string final { return {}; }
 
     void reindex(
         const implementation::ContactListSortKey&,
@@ -821,7 +839,7 @@ struct ContactSection final : public List<
                                   internal::ContactSection,
                                   OTUIContactSubsection,
                                   implementation::ContactSectionRowID> {
-    std::string ContactID() const noexcept final { return {}; }
+    auto ContactID() const noexcept -> std::string final { return {}; }
 #if OT_QT
     int FindRow(
         const implementation::ContactSectionRowID& id,
@@ -830,11 +848,11 @@ struct ContactSection final : public List<
         return -1;
     }
 #endif
-    std::string Name(const std::string& lang) const noexcept final
+    auto Name(const std::string& lang) const noexcept -> std::string final
     {
         return {};
     }
-    proto::ContactSectionName Type() const noexcept final { return {}; }
+    auto Type() const noexcept -> proto::ContactSectionName final { return {}; }
 
     void reindex(
         const implementation::ContactSortKey&,
@@ -846,11 +864,11 @@ struct ContactSubsection final : public List<
                                      internal::ContactSubsection,
                                      OTUIContactItem,
                                      implementation::ContactSubsectionRowID> {
-    std::string Name(const std::string& lang) const noexcept final
+    auto Name(const std::string& lang) const noexcept -> std::string final
     {
         return {};
     }
-    proto::ContactItemType Type() const noexcept final { return {}; }
+    auto Type() const noexcept -> proto::ContactItemType final { return {}; }
 
     void reindex(
         const implementation::ContactSectionSortKey&,
@@ -862,10 +880,10 @@ struct IssuerItem final : public List<
                               internal::IssuerItem,
                               OTUIAccountSummaryItem,
                               implementation::IssuerItemRowID> {
-    bool ConnectionState() const noexcept final { return {}; }
-    std::string Debug() const noexcept final { return {}; }
-    std::string Name() const noexcept final { return {}; }
-    bool Trusted() const noexcept final { return {}; }
+    auto ConnectionState() const noexcept -> bool final { return {}; }
+    auto Debug() const noexcept -> std::string final { return {}; }
+    auto Name() const noexcept -> std::string final { return {}; }
+    auto Trusted() const noexcept -> bool final { return {}; }
 
     void reindex(
         const implementation::AccountSummarySortKey&,
@@ -875,7 +893,7 @@ struct IssuerItem final : public List<
 };
 struct PayableListItem final : virtual public ContactListItem,
                                virtual public internal::PayableListItem {
-    std::string PaymentCode() const noexcept final { return {}; }
+    auto PaymentCode() const noexcept -> std::string final { return {}; }
 
     void reindex(
         const implementation::PayableListSortKey&,
@@ -884,14 +902,20 @@ struct PayableListItem final : virtual public ContactListItem,
     }
 };
 struct ProfileItem : virtual public Row, virtual public internal::ProfileItem {
-    std::string ClaimID() const noexcept final { return {}; }
-    bool Delete() const noexcept final { return false; }
-    bool IsActive() const noexcept final { return false; }
-    bool IsPrimary() const noexcept final { return false; }
-    std::string Value() const noexcept final { return {}; }
-    bool SetActive(const bool& active) const noexcept final { return false; }
-    bool SetPrimary(const bool& primary) const noexcept final { return false; }
-    bool SetValue(const std::string& value) const noexcept final
+    auto ClaimID() const noexcept -> std::string final { return {}; }
+    auto Delete() const noexcept -> bool final { return false; }
+    auto IsActive() const noexcept -> bool final { return false; }
+    auto IsPrimary() const noexcept -> bool final { return false; }
+    auto Value() const noexcept -> std::string final { return {}; }
+    auto SetActive(const bool& active) const noexcept -> bool final
+    {
+        return false;
+    }
+    auto SetPrimary(const bool& primary) const noexcept -> bool final
+    {
+        return false;
+    }
+    auto SetValue(const std::string& value) const noexcept -> bool final
     {
         return false;
     }
@@ -906,15 +930,15 @@ struct ProfileSection : public List<
                             internal::ProfileSection,
                             OTUIProfileSubsection,
                             implementation::ProfileSectionRowID> {
-    bool AddClaim(
+    auto AddClaim(
         const proto::ContactItemType type,
         const std::string& value,
         const bool primary,
-        const bool active) const noexcept final
+        const bool active) const noexcept -> bool final
     {
         return false;
     }
-    bool Delete(const int, const std::string&) const noexcept final
+    auto Delete(const int, const std::string&) const noexcept -> bool final
     {
         return false;
     }
@@ -926,28 +950,34 @@ struct ProfileSection : public List<
         return -1;
     }
 #endif
-    ItemTypeList Items(const std::string&) const noexcept final { return {}; }
-    std::string Name(const std::string& lang) const noexcept final
+    auto Items(const std::string&) const noexcept -> ItemTypeList final
     {
         return {};
     }
-    const identifier::Nym& NymID() const noexcept final { return nym_id_; }
-    bool SetActive(const int, const std::string&, const bool) const
-        noexcept final
+    auto Name(const std::string& lang) const noexcept -> std::string final
+    {
+        return {};
+    }
+    auto NymID() const noexcept -> const identifier::Nym& final
+    {
+        return nym_id_;
+    }
+    auto SetActive(const int, const std::string&, const bool) const noexcept
+        -> bool final
     {
         return false;
     }
-    bool SetPrimary(const int, const std::string&, const bool) const
-        noexcept final
+    auto SetPrimary(const int, const std::string&, const bool) const noexcept
+        -> bool final
     {
         return false;
     }
-    bool SetValue(const int, const std::string&, const std::string&) const
-        noexcept final
+    auto SetValue(const int, const std::string&, const std::string&) const
+        noexcept -> bool final
     {
         return false;
     }
-    proto::ContactSectionName Type() const noexcept final { return {}; }
+    auto Type() const noexcept -> proto::ContactSectionName final { return {}; }
 
     void reindex(
         const implementation::ProfileSortKey& key,
@@ -962,25 +992,38 @@ struct ProfileSubsection : public List<
                                internal::ProfileSubsection,
                                OTUIProfileItem,
                                implementation::ProfileSubsectionRowID> {
-    bool AddItem(const std::string&, const bool, const bool) const
-        noexcept final
+    auto AddItem(const std::string&, const bool, const bool) const noexcept
+        -> bool final
     {
         return false;
     }
-    bool Delete(const std::string&) const noexcept final { return false; }
-    std::string Name(const std::string&) const noexcept final { return {}; }
-    const identifier::Nym& NymID() const noexcept final { return nym_id_; }
-    proto::ContactItemType Type() const noexcept final { return {}; }
-    proto::ContactSectionName Section() const noexcept final { return {}; }
-    bool SetActive(const std::string&, const bool) const noexcept final
+    auto Delete(const std::string&) const noexcept -> bool final
     {
         return false;
     }
-    bool SetPrimary(const std::string&, const bool) const noexcept final
+    auto Name(const std::string&) const noexcept -> std::string final
+    {
+        return {};
+    }
+    auto NymID() const noexcept -> const identifier::Nym& final
+    {
+        return nym_id_;
+    }
+    auto Type() const noexcept -> proto::ContactItemType final { return {}; }
+    auto Section() const noexcept -> proto::ContactSectionName final
+    {
+        return {};
+    }
+    auto SetActive(const std::string&, const bool) const noexcept -> bool final
     {
         return false;
     }
-    bool SetValue(const std::string&, const std::string&) const noexcept final
+    auto SetPrimary(const std::string&, const bool) const noexcept -> bool final
+    {
+        return false;
+    }
+    auto SetValue(const std::string&, const std::string&) const noexcept
+        -> bool final
     {
         return false;
     }
@@ -996,8 +1039,8 @@ private:
 };
 struct UnitListItem final : virtual public Row,
                             virtual public internal::UnitListItem {
-    std::string Name() const noexcept final { return {}; }
-    proto::ContactItemType Unit() const noexcept final { return {}; }
+    auto Name() const noexcept -> std::string final { return {}; }
+    auto Unit() const noexcept -> proto::ContactItemType final { return {}; }
 
     void reindex(
         const implementation::UnitListSortKey&,

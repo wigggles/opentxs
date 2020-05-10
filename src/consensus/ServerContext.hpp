@@ -110,124 +110,131 @@ class ServerContext final : virtual public internal::ServerContext,
                             public opentxs::internal::StateMachine
 {
 public:
-    std::vector<OTIdentifier> Accounts() const final;
-    const std::string& AdminPassword() const final;
-    bool AdminAttempted() const final;
-    bool FinalizeServerCommand(Message& command, const PasswordPrompt& reason)
-        const final;
-    proto::Context GetContract(const Lock& lock) const final
+    auto Accounts() const -> std::vector<OTIdentifier> final;
+    auto AdminPassword() const -> const std::string& final;
+    auto AdminAttempted() const -> bool final;
+    auto FinalizeServerCommand(Message& command, const PasswordPrompt& reason)
+        const -> bool final;
+    auto GetContract(const Lock& lock) const -> proto::Context final
     {
         return contract(lock);
     }
-    bool HaveAdminPassword() const final;
-    bool HaveSufficientNumbers(const MessageType reason) const final;
-    TransactionNumber Highest() const final;
-    bool isAdmin() const final;
+    auto HaveAdminPassword() const -> bool final;
+    auto HaveSufficientNumbers(const MessageType reason) const -> bool final;
+    auto Highest() const -> TransactionNumber final;
+    auto isAdmin() const -> bool final;
 #if OT_CASH
-    std::shared_ptr<const blind::Purse> Purse(
-        const identifier::UnitDefinition& id) const final;
+    auto Purse(const identifier::UnitDefinition& id) const
+        -> std::shared_ptr<const blind::Purse> final;
 #endif
-    std::uint64_t Revision() const final;
-    bool ShouldRename(const std::string& defaultName = "") const final;
-    bool StaleNym() const final;
-    std::unique_ptr<Item> Statement(
-        const OTTransaction& owner,
-        const PasswordPrompt& reason) const final;
-    std::unique_ptr<Item> Statement(
+    auto Revision() const -> std::uint64_t final;
+    auto ShouldRename(const std::string& defaultName = "") const -> bool final;
+    auto StaleNym() const -> bool final;
+    auto Statement(const OTTransaction& owner, const PasswordPrompt& reason)
+        const -> std::unique_ptr<Item> final;
+    auto Statement(
         const OTTransaction& owner,
         const TransactionNumbers& adding,
-        const PasswordPrompt& reason) const final;
-    std::unique_ptr<TransactionStatement> Statement(
+        const PasswordPrompt& reason) const -> std::unique_ptr<Item> final;
+    auto Statement(
         const TransactionNumbers& adding,
         const TransactionNumbers& without,
-        const PasswordPrompt& reason) const final;
-    proto::ConsensusType Type() const final;
-    bool ValidateContext(const Lock& lock) const final
+        const PasswordPrompt& reason) const
+        -> std::unique_ptr<TransactionStatement> final;
+    auto Type() const -> proto::ConsensusType final;
+    auto ValidateContext(const Lock& lock) const -> bool final
     {
         return validate(lock);
     }
-    bool Verify(const TransactionStatement& statement) const final;
-    bool VerifyTentativeNumber(const TransactionNumber& number) const final;
+    auto Verify(const TransactionStatement& statement) const -> bool final;
+    auto VerifyTentativeNumber(const TransactionNumber& number) const
+        -> bool final;
 
-    bool AcceptIssuedNumber(const TransactionNumber& number) final;
-    bool AcceptIssuedNumbers(const TransactionStatement& statement) final;
-    bool AddTentativeNumber(const TransactionNumber& number) final;
-    network::ServerConnection& Connection() final;
-    std::mutex& GetLock() final { return lock_; }
-    std::pair<RequestNumber, std::unique_ptr<Message>> InitializeServerCommand(
+    auto AcceptIssuedNumber(const TransactionNumber& number) -> bool final;
+    auto AcceptIssuedNumbers(const TransactionStatement& statement)
+        -> bool final;
+    auto AddTentativeNumber(const TransactionNumber& number) -> bool final;
+    auto Connection() -> network::ServerConnection& final;
+    auto GetLock() -> std::mutex& final { return lock_; }
+    auto InitializeServerCommand(
         const MessageType type,
         const Armored& payload,
         const Identifier& accountID,
         const RequestNumber provided,
         const bool withAcknowledgments = true,
-        const bool withNymboxHash = true) final;
-    std::pair<RequestNumber, std::unique_ptr<Message>> InitializeServerCommand(
+        const bool withNymboxHash = true)
+        -> std::pair<RequestNumber, std::unique_ptr<Message>> final;
+    auto InitializeServerCommand(
         const MessageType type,
         const identifier::Nym& recipientNymID,
         const RequestNumber provided,
         const bool withAcknowledgments = true,
-        const bool withNymboxHash = false) final;
-    std::pair<RequestNumber, std::unique_ptr<Message>> InitializeServerCommand(
+        const bool withNymboxHash = false)
+        -> std::pair<RequestNumber, std::unique_ptr<Message>> final;
+    auto InitializeServerCommand(
         const MessageType type,
         const RequestNumber provided,
         const bool withAcknowledgments = true,
-        const bool withNymboxHash = false) final;
+        const bool withNymboxHash = false)
+        -> std::pair<RequestNumber, std::unique_ptr<Message>> final;
     void Join() const final;
 #if OT_CASH
-    Editor<blind::Purse> mutable_Purse(
+    auto mutable_Purse(
         const identifier::UnitDefinition& id,
-        const PasswordPrompt& reason) final;
+        const PasswordPrompt& reason) -> Editor<blind::Purse> final;
 #endif
-    OTManagedNumber NextTransactionNumber(const MessageType reason) final;
-    NetworkReplyMessage PingNotary(const PasswordPrompt& reason) final;
-    bool ProcessNotification(
+    auto NextTransactionNumber(const MessageType reason)
+        -> OTManagedNumber final;
+    auto PingNotary(const PasswordPrompt& reason) -> NetworkReplyMessage final;
+    auto ProcessNotification(
         const api::client::internal::Manager& client,
         const otx::Reply& notification,
-        const PasswordPrompt& reason) final;
-    QueueResult Queue(
+        const PasswordPrompt& reason) -> bool final;
+    auto Queue(
         const api::client::internal::Manager& client,
         std::shared_ptr<Message> message,
         const PasswordPrompt& reason,
-        const ExtraArgs& args) final;
-    QueueResult Queue(
+        const ExtraArgs& args) -> QueueResult final;
+    auto Queue(
         const api::client::internal::Manager& client,
         std::shared_ptr<Message> message,
         std::shared_ptr<Ledger> inbox,
         std::shared_ptr<Ledger> outbox,
         std::set<OTManagedNumber>* numbers,
         const PasswordPrompt& reason,
-        const ExtraArgs& args) final;
-    QueueResult RefreshNymbox(
+        const ExtraArgs& args) -> QueueResult final;
+    auto RefreshNymbox(
         const api::client::internal::Manager& client,
-        const PasswordPrompt& reason) final;
-    bool RemoveTentativeNumber(const TransactionNumber& number) final;
+        const PasswordPrompt& reason) -> QueueResult final;
+    auto RemoveTentativeNumber(const TransactionNumber& number) -> bool final;
     void ResetThread() final;
-    bool Resync(const proto::Context& serialized) final;
-    NetworkReplyMessage SendMessage(
+    auto Resync(const proto::Context& serialized) -> bool final;
+    auto SendMessage(
         const api::client::internal::Manager& client,
         const std::set<OTManagedNumber>& pending,
         opentxs::ServerContext& context,
         const Message& message,
         const PasswordPrompt& reason,
         const std::string& label,
-        const bool resync) final;
+        const bool resync) -> NetworkReplyMessage final;
     void SetAdminAttempted() final;
     void SetAdminPassword(const std::string& password) final;
     void SetAdminSuccess() final;
-    bool SetHighest(const TransactionNumber& highest) final;
+    auto SetHighest(const TransactionNumber& highest) -> bool final;
     void SetPush(const bool on) final { enable_otx_push_.store(on); }
     void SetRevision(const std::uint64_t revision) final;
-    TransactionNumber UpdateHighest(
+    auto UpdateHighest(
         const TransactionNumbers& numbers,
         TransactionNumbers& good,
-        TransactionNumbers& bad) final;
-    RequestNumber UpdateRequestNumber(const PasswordPrompt& reason) final;
-    RequestNumber UpdateRequestNumber(
-        bool& sendStatus,
-        const PasswordPrompt& reason) final;
-    bool UpdateRequestNumber(Message& command, const PasswordPrompt& reason)
-        final;
-    bool UpdateSignature(const Lock& lock, const PasswordPrompt& reason) final
+        TransactionNumbers& bad) -> TransactionNumber final;
+    auto UpdateRequestNumber(const PasswordPrompt& reason)
+        -> RequestNumber final;
+    auto UpdateRequestNumber(bool& sendStatus, const PasswordPrompt& reason)
+        -> RequestNumber final;
+    auto UpdateRequestNumber(Message& command, const PasswordPrompt& reason)
+        -> bool final;
+    auto UpdateSignature(const Lock& lock, const PasswordPrompt& reason)
+        -> bool final
     {
         return update_signature(lock, reason);
     }
@@ -284,15 +291,15 @@ private:
     OTZMQPushSocket find_server_;
     OTZMQPushSocket find_unit_definition_;
 
-    static const api::client::internal::Manager& client(
-        const api::internal::Core& api);
-    static TransactionNumbers extract_numbers(OTTransaction& input);
-    static Exit get_item_type(OTTransaction& input, itemType& output);
-    static BoxType get_type(const std::int64_t depth);
-    static std::unique_ptr<opentxs::Message> instantiate_message(
+    static auto client(const api::internal::Core& api)
+        -> const api::client::internal::Manager&;
+    static auto extract_numbers(OTTransaction& input) -> TransactionNumbers;
+    static auto get_item_type(OTTransaction& input, itemType& output) -> Exit;
+    static auto get_type(const std::int64_t depth) -> BoxType;
+    static auto instantiate_message(
         const api::internal::Core& api,
-        const std::string& serialized);
-    static bool need_request_number(const MessageType type);
+        const std::string& serialized) -> std::unique_ptr<opentxs::Message>;
+    static auto need_request_number(const MessageType type) -> bool;
     static void scan_number_set(
         const TransactionNumbers& input,
         TransactionNumber& highest,
@@ -303,88 +310,89 @@ private:
         TransactionNumbers& good,
         TransactionNumbers& bad);
 
-    bool add_item_to_payment_inbox(
+    auto add_item_to_payment_inbox(
         const TransactionNumber number,
         const std::string& payment,
-        const PasswordPrompt& reason) const;
-    bool add_item_to_workflow(
+        const PasswordPrompt& reason) const -> bool;
+    auto add_item_to_workflow(
         const Lock& lock,
         const api::client::internal::Manager& client,
         const Message& transportItem,
         const std::string& item,
-        const PasswordPrompt& reason) const;
-    bool add_transaction_to_ledger(
+        const PasswordPrompt& reason) const -> bool;
+    auto add_transaction_to_ledger(
         const TransactionNumber number,
         std::shared_ptr<OTTransaction> transaction,
         Ledger& ledger,
-        const PasswordPrompt& reason) const;
-    const identifier::Nym& client_nym_id(const Lock& lock) const final;
-    bool create_instrument_notice_from_peer_object(
+        const PasswordPrompt& reason) const -> bool;
+    auto client_nym_id(const Lock& lock) const -> const identifier::Nym& final;
+    auto create_instrument_notice_from_peer_object(
         const Lock& lock,
         const api::client::internal::Manager& client,
         const Message& message,
         const PeerObject& peerObject,
         const TransactionNumber number,
-        const PasswordPrompt& reason) const;
-    std::shared_ptr<OTTransaction> extract_box_receipt(
+        const PasswordPrompt& reason) const -> bool;
+    auto extract_box_receipt(
         const String& serialized,
         const identity::Nym& signer,
         const identifier::Nym& owner,
-        const TransactionNumber target);
-    std::unique_ptr<Ledger> extract_ledger(
+        const TransactionNumber target) -> std::shared_ptr<OTTransaction>;
+    auto extract_ledger(
         const Armored& armored,
         const Identifier& accountID,
-        const identity::Nym& signer) const;
-    std::unique_ptr<Message> extract_message(
-        const Armored& armored,
-        const identity::Nym& signer) const;
-    std::unique_ptr<Item> extract_original_item(
-        const itemType type,
-        OTTransaction& response) const;
-    std::unique_ptr<Item> extract_original_item(const Item& response) const;
-    std::shared_ptr<OTPayment> extract_payment_instrument_from_notice(
+        const identity::Nym& signer) const -> std::unique_ptr<Ledger>;
+    auto extract_message(const Armored& armored, const identity::Nym& signer)
+        const -> std::unique_ptr<Message>;
+    auto extract_original_item(const itemType type, OTTransaction& response)
+        const -> std::unique_ptr<Item>;
+    auto extract_original_item(const Item& response) const
+        -> std::unique_ptr<Item>;
+    auto extract_payment_instrument_from_notice(
         const api::internal::Core& api,
         const identity::Nym& theNym,
         std::shared_ptr<OTTransaction> pTransaction,
-        const PasswordPrompt& reason);
-    std::unique_ptr<Item> extract_transfer(const OTTransaction& receipt) const;
-    std::unique_ptr<Item> extract_transfer_pending(
-        const OTTransaction& receipt) const;
-    std::unique_ptr<Item> extract_transfer_receipt(
-        const OTTransaction& receipt) const;
-    bool finalize_server_command(Message& command, const PasswordPrompt& reason)
-        const;
-    std::unique_ptr<TransactionStatement> generate_statement(
+        const PasswordPrompt& reason) -> std::shared_ptr<OTPayment>;
+    auto extract_transfer(const OTTransaction& receipt) const
+        -> std::unique_ptr<Item>;
+    auto extract_transfer_pending(const OTTransaction& receipt) const
+        -> std::unique_ptr<Item>;
+    auto extract_transfer_receipt(const OTTransaction& receipt) const
+        -> std::unique_ptr<Item>;
+    auto finalize_server_command(Message& command, const PasswordPrompt& reason)
+        const -> bool;
+    auto generate_statement(
         const Lock& lock,
         const TransactionNumbers& adding,
-        const TransactionNumbers& without) const;
-    std::shared_ptr<OTPayment> get_instrument(
+        const TransactionNumbers& without) const
+        -> std::unique_ptr<TransactionStatement>;
+    auto get_instrument(
         const api::internal::Core& api,
         const identity::Nym& theNym,
         Ledger& ledger,
         std::shared_ptr<OTTransaction> pTransaction,
-        const PasswordPrompt& reason);
-    std::shared_ptr<OTPayment> get_instrument_by_receipt_id(
+        const PasswordPrompt& reason) -> std::shared_ptr<OTPayment>;
+    auto get_instrument_by_receipt_id(
         const api::internal::Core& api,
         const identity::Nym& theNym,
         const TransactionNumber lReceiptId,
         Ledger& ledger,
-        const PasswordPrompt& reason);
-    bool init_new_account(
+        const PasswordPrompt& reason) -> std::shared_ptr<OTPayment>;
+    auto init_new_account(
         const Identifier& accountID,
-        const PasswordPrompt& reason);
-    std::unique_ptr<Message> initialize_server_command(
-        const MessageType type) const;
+        const PasswordPrompt& reason) -> bool;
+    auto initialize_server_command(const MessageType type) const
+        -> std::unique_ptr<Message>;
     void initialize_server_command(const MessageType type, Message& output)
         const;
-    bool is_internal_transfer(const Item& item) const;
-    std::unique_ptr<Ledger> load_account_inbox(
-        const Identifier& accountID) const;
-    std::unique_ptr<Ledger> load_or_create_account_recordbox(
+    auto is_internal_transfer(const Item& item) const -> bool;
+    auto load_account_inbox(const Identifier& accountID) const
+        -> std::unique_ptr<Ledger>;
+    auto load_or_create_account_recordbox(
         const Identifier& accountID,
-        const PasswordPrompt& reason) const;
-    std::unique_ptr<Ledger> load_or_create_payment_inbox(
-        const PasswordPrompt& reason) const;
+        const PasswordPrompt& reason) const -> std::unique_ptr<Ledger>;
+    auto load_or_create_payment_inbox(const PasswordPrompt& reason) const
+        -> std::unique_ptr<Ledger>;
     void process_accept_pending_reply(
         const Lock& lock,
         const api::client::internal::Manager& client,
@@ -392,12 +400,12 @@ private:
         const Item& acceptItemReceipt,
         const Message& reply) const;
 #if OT_CASH
-    bool process_incoming_cash(
+    auto process_incoming_cash(
         const Lock& lock,
         const api::client::internal::Manager& client,
         const TransactionNumber number,
         const PeerObject& incoming,
-        const Message& message) const;
+        const Message& message) const -> bool;
     void process_incoming_cash_withdrawal(
         const Item& item,
         const PasswordPrompt& reason) const;
@@ -410,7 +418,7 @@ private:
         const api::client::internal::Manager& client,
         const OTTransaction& receipt,
         const PasswordPrompt& reason) const;
-    std::string type() const final { return "server"; }
+    auto type() const -> std::string final { return "server"; }
     void verify_blank(
         const Lock& lock,
         OTTransaction& blank,
@@ -420,57 +428,55 @@ private:
         OTTransaction& blank,
         TransactionNumbers& output) const;
 
-    bool accept_entire_nymbox(
+    auto accept_entire_nymbox(
         const Lock& lock,
         const api::client::internal::Manager& client,
         Ledger& theNymbox,
         Message& output,
         ReplyNoticeOutcomes& notices,
         std::size_t& alreadySeenNotices,
-        const PasswordPrompt& reason);
-    bool accept_issued_number(
+        const PasswordPrompt& reason) -> bool;
+    auto accept_issued_number(const Lock& lock, const TransactionNumber& number)
+        -> bool;
+    auto accept_issued_number(
         const Lock& lock,
-        const TransactionNumber& number);
-    bool accept_issued_number(
-        const Lock& lock,
-        const TransactionStatement& statement);
+        const TransactionStatement& statement) -> bool;
     void accept_numbers(
         const Lock& lock,
         OTTransaction& transaction,
         OTTransaction& replyTransaction);
-    bool add_tentative_number(
-        const Lock& lock,
-        const TransactionNumber& number);
-    NetworkReplyMessage attempt_delivery(
+    auto add_tentative_number(const Lock& lock, const TransactionNumber& number)
+        -> bool;
+    auto attempt_delivery(
         const Lock& contextLock,
         const Lock& messageLock,
         const api::client::internal::Manager& client,
         Message& message,
-        const PasswordPrompt& reason);
-    bool harvest_unused(
+        const PasswordPrompt& reason) -> NetworkReplyMessage;
+    auto harvest_unused(
         const Lock& lock,
-        const api::client::internal::Manager& client);
+        const api::client::internal::Manager& client) -> bool;
     void init_sockets();
-    RequestNumber initialize_server_command(
+    auto initialize_server_command(
         const Lock& lock,
         const MessageType type,
         const RequestNumber provided,
         const bool withAcknowledgments,
         const bool withNymboxHash,
-        Message& output);
-    std::pair<RequestNumber, std::unique_ptr<Message>>
-    initialize_server_command(
+        Message& output) -> RequestNumber;
+    auto initialize_server_command(
         const Lock& lock,
         const MessageType type,
         const RequestNumber provided,
         const bool withAcknowledgments,
-        const bool withNymboxHash);
-    const Item& make_accept_item(
+        const bool withNymboxHash)
+        -> std::pair<RequestNumber, std::unique_ptr<Message>>;
+    auto make_accept_item(
         const PasswordPrompt& reason,
         const itemType type,
         const OTTransaction& input,
         OTTransaction& acceptTransaction,
-        const TransactionNumbers& accept = {});
+        const TransactionNumbers& accept = {}) -> const Item&;
     void need_box_items(
         const api::client::internal::Manager& client,
         const PasswordPrompt& reason);
@@ -480,9 +486,8 @@ private:
     void need_process_nymbox(
         const api::client::internal::Manager& client,
         const PasswordPrompt& reason);
-    OTManagedNumber next_transaction_number(
-        const Lock& lock,
-        const MessageType reason);
+    auto next_transaction_number(const Lock& lock, const MessageType reason)
+        -> OTManagedNumber;
     void pending_send(
         const api::client::internal::Manager& client,
         const PasswordPrompt& reason);
@@ -502,7 +507,7 @@ private:
         const Identifier& accountID,
         const Message& reply,
         const OTTransaction& inboxTransaction);
-    bool process_account_data(
+    auto process_account_data(
         const Lock& lock,
         const Identifier& accountID,
         const String& account,
@@ -510,78 +515,79 @@ private:
         const String& inbox,
         const Identifier& outboxHash,
         const String& outbox,
-        const PasswordPrompt& reason);
-    bool process_account_push(
+        const PasswordPrompt& reason) -> bool;
+    auto process_account_push(
         const Lock& lock,
         const api::client::internal::Manager& client,
         const proto::OTXPush& push,
-        const PasswordPrompt& reason);
-    bool process_box_item(
+        const PasswordPrompt& reason) -> bool;
+    auto process_box_item(
         const Lock& lock,
         const api::client::internal::Manager& client,
         const Identifier& accountID,
         const proto::OTXPush& push,
-        const PasswordPrompt& reason);
-    bool process_check_nym_response(
+        const PasswordPrompt& reason) -> bool;
+    auto process_check_nym_response(
         const Lock& lock,
         const api::client::internal::Manager& client,
-        const Message& reply);
-    bool process_get_account_data(
+        const Message& reply) -> bool;
+    auto process_get_account_data(
         const Lock& lock,
         const Message& reply,
-        const PasswordPrompt& reason);
-    bool process_get_box_receipt_response(
+        const PasswordPrompt& reason) -> bool;
+    auto process_get_box_receipt_response(
         const Lock& lock,
         const api::client::internal::Manager& client,
         const Message& reply,
-        const PasswordPrompt& reason);
-    bool process_get_box_receipt_response(
+        const PasswordPrompt& reason) -> bool;
+    auto process_get_box_receipt_response(
         const Lock& lock,
         const api::client::internal::Manager& client,
         const Identifier& accountID,
         const std::shared_ptr<OTTransaction> receipt,
         const String& serialized,
         const BoxType type,
-        const PasswordPrompt& reason);
-    bool process_get_market_list_response(
+        const PasswordPrompt& reason) -> bool;
+    auto process_get_market_list_response(
         const Lock& lock,
-        const Message& reply);
-    bool process_get_market_offers_response(
+        const Message& reply) -> bool;
+    auto process_get_market_offers_response(
         const Lock& lock,
-        const Message& reply);
-    bool process_get_market_recent_trades_response(
+        const Message& reply) -> bool;
+    auto process_get_market_recent_trades_response(
         const Lock& lock,
-        const Message& reply);
+        const Message& reply) -> bool;
 #if OT_CASH
-    bool process_get_mint_response(const Lock& lock, const Message& reply);
+    auto process_get_mint_response(const Lock& lock, const Message& reply)
+        -> bool;
 #endif
-    bool process_get_nym_market_offers_response(
+    auto process_get_nym_market_offers_response(
         const Lock& lock,
-        const Message& reply);
-    bool process_get_unit_definition_response(
+        const Message& reply) -> bool;
+    auto process_get_unit_definition_response(
         const Lock& lock,
-        const Message& reply);
-    bool process_issue_unit_definition_response(
-        const Lock& lock,
-        const Message& reply,
-        const PasswordPrompt& reason);
-    bool process_get_nymbox_response(
+        const Message& reply) -> bool;
+    auto process_issue_unit_definition_response(
         const Lock& lock,
         const Message& reply,
-        const PasswordPrompt& reason);
-    bool process_notarize_transaction_response(
+        const PasswordPrompt& reason) -> bool;
+    auto process_get_nymbox_response(
+        const Lock& lock,
+        const Message& reply,
+        const PasswordPrompt& reason) -> bool;
+    auto process_notarize_transaction_response(
         const Lock& lock,
         const api::client::internal::Manager& client,
         const Message& reply,
-        const PasswordPrompt& reason);
-    bool process_process_box_response(
+        const PasswordPrompt& reason) -> bool;
+    auto process_process_box_response(
         const Lock& lock,
         const api::client::internal::Manager& client,
         const Message& reply,
         const BoxType inbox,
         const Identifier& accountID,
-        const PasswordPrompt& reason);
-    bool process_process_inbox_response(
+        const PasswordPrompt& reason) -> bool;
+    auto process_process_inbox_response(
         const Lock& lock,
         const api::client::internal::Manager& client,
         const Message& reply,
@@ -589,30 +595,31 @@ private:
         Ledger& responseLedger,
         std::shared_ptr<OTTransaction>& transaction,
         std::shared_ptr<OTTransaction>& replyTransaction,
-        const PasswordPrompt& reason);
-    bool process_process_nymbox_response(
+        const PasswordPrompt& reason) -> bool;
+    auto process_process_nymbox_response(
         const Lock& lock,
         const Message& reply,
         Ledger& ledger,
         Ledger& responseLedger,
         std::shared_ptr<OTTransaction>& transaction,
         std::shared_ptr<OTTransaction>& replyTransaction,
-        const PasswordPrompt& reason);
-    bool process_register_account_response(
+        const PasswordPrompt& reason) -> bool;
+    auto process_register_account_response(
         const Lock& lock,
         const Message& reply,
-        const PasswordPrompt& reason);
-    bool process_request_admin_response(const Lock& lock, const Message& reply);
-    bool process_register_nym_response(
+        const PasswordPrompt& reason) -> bool;
+    auto process_request_admin_response(const Lock& lock, const Message& reply)
+        -> bool;
+    auto process_register_nym_response(
         const Lock& lock,
         const api::client::internal::Manager& client,
-        const Message& reply);
-    bool process_reply(
+        const Message& reply) -> bool;
+    auto process_reply(
         const Lock& lock,
         const api::client::internal::Manager& client,
         const std::set<OTManagedNumber>& managed,
         const Message& reply,
-        const PasswordPrompt& reason);
+        const PasswordPrompt& reason) -> bool;
     void process_response_transaction(
         const Lock& lock,
         const api::client::internal::Manager& client,
@@ -673,14 +680,14 @@ private:
         OTTransaction& response,
         const PasswordPrompt& reason);
 #endif
-    bool process_unregister_nym_response(
+    auto process_unregister_nym_response(
         const Lock& lock,
         const Message& reply,
-        const PasswordPrompt& reason);
-    bool process_unregister_account_response(
+        const PasswordPrompt& reason) -> bool;
+    auto process_unregister_account_response(
         const Lock& lock,
         const Message& reply,
-        const PasswordPrompt& reason);
+        const PasswordPrompt& reason) -> bool;
     void process_unseen_reply(
         const Lock& lock,
         const api::client::internal::Manager& client,
@@ -688,26 +695,27 @@ private:
         ReplyNoticeOutcomes& notices,
         const PasswordPrompt& reason);
     using implementation::Context::remove_acknowledged_number;
-    bool remove_acknowledged_number(const Lock& lock, const Message& reply);
-    bool remove_nymbox_item(
+    auto remove_acknowledged_number(const Lock& lock, const Message& reply)
+        -> bool;
+    auto remove_nymbox_item(
         const Lock& lock,
         const Item& replyItem,
         Ledger& nymbox,
         OTTransaction& transaction,
-        const PasswordPrompt& reason);
-    bool remove_tentative_number(
+        const PasswordPrompt& reason) -> bool;
+    auto remove_tentative_number(
         const Lock& lock,
-        const TransactionNumber& number);
+        const TransactionNumber& number) -> bool;
     void resolve_queue(
         const Lock& contextLock,
         DeliveryResult&& result,
         const PasswordPrompt& reason,
         const proto::DeliveryState state = proto::DELIVERTYSTATE_ERROR);
-    bool resync(const Lock& lock, const proto::Context& serialized);
+    auto resync(const Lock& lock, const proto::Context& serialized) -> bool;
     using implementation::Context::serialize;
-    proto::Context serialize(const Lock& lock) const final;
-    const identifier::Nym& server_nym_id(const Lock& lock) const final;
-    QueueResult start(
+    auto serialize(const Lock& lock) const -> proto::Context final;
+    auto server_nym_id(const Lock& lock) const -> const identifier::Nym& final;
+    auto start(
         const Lock& decisionLock,
         const PasswordPrompt& reason,
         const api::client::internal::Manager& client,
@@ -717,40 +725,41 @@ private:
         const ActionType type = ActionType::Normal,
         std::shared_ptr<Ledger> inbox = {},
         std::shared_ptr<Ledger> outbox = {},
-        std::set<OTManagedNumber>* numbers = nullptr);
-    bool state_machine() noexcept;
-    std::unique_ptr<Item> statement(
+        std::set<OTManagedNumber>* numbers = nullptr) -> QueueResult;
+    auto state_machine() noexcept -> bool;
+    auto statement(
         const Lock& lock,
         const OTTransaction& owner,
         const TransactionNumbers& adding,
-        const PasswordPrompt& reason) const;
-    TransactionNumber update_highest(
+        const PasswordPrompt& reason) const -> std::unique_ptr<Item>;
+    auto update_highest(
         const Lock& lock,
         const TransactionNumbers& numbers,
         TransactionNumbers& good,
-        TransactionNumbers& bad);
-    bool update_nymbox_hash(
+        TransactionNumbers& bad) -> TransactionNumber;
+    auto update_nymbox_hash(
         const Lock& lock,
         const Message& reply,
-        const UpdateHash which = UpdateHash::Remote);
-    OTIdentifier update_remote_hash(const Lock& lock, const Message& reply);
-    RequestNumber update_request_number(
+        const UpdateHash which = UpdateHash::Remote) -> bool;
+    auto update_remote_hash(const Lock& lock, const Message& reply)
+        -> OTIdentifier;
+    auto update_request_number(
         const PasswordPrompt& reason,
         const Lock& contextLock,
         const Lock& messageLock,
-        bool& sendStatus);
-    bool update_request_number(
+        bool& sendStatus) -> RequestNumber;
+    auto update_request_number(
         const PasswordPrompt& reason,
         const Lock& lock,
-        Message& command);
+        Message& command) -> bool;
     void update_state(
         const Lock& contextLock,
         const proto::DeliveryState state,
         const PasswordPrompt& reason,
         const proto::LastReplyStatus status = proto::LASTREPLYSTATUS_INVALID);
-    bool verify_tentative_number(
+    auto verify_tentative_number(
         const Lock& lock,
-        const TransactionNumber& number) const;
+        const TransactionNumber& number) const -> bool;
 
     ServerContext(
         const api::client::internal::Manager& api,
@@ -771,7 +780,7 @@ private:
     ServerContext() = delete;
     ServerContext(const ServerContext&) = delete;
     ServerContext(ServerContext&&) = delete;
-    ServerContext& operator=(const ServerContext&) = delete;
-    ServerContext& operator=(ServerContext&&) = delete;
+    auto operator=(const ServerContext&) -> ServerContext& = delete;
+    auto operator=(ServerContext &&) -> ServerContext& = delete;
 };
 }  // namespace opentxs::implementation

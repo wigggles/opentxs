@@ -15,7 +15,7 @@
 
 namespace opentxs::proto
 {
-bool CheckProto_1(const PeerRequest& input, const bool silent)
+auto CheckProto_1(const PeerRequest& input, const bool silent) -> bool
 {
     CHECK_IDENTIFIER(id)
     CHECK_IDENTIFIER(initiator)

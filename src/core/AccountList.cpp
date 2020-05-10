@@ -83,10 +83,10 @@ void AccountList::Serialize(Tag& parent) const
     parent.add_tag(pTag);
 }
 
-std::int32_t AccountList::ReadFromXMLNode(
+auto AccountList::ReadFromXMLNode(
     irr::io::IrrXMLReader*& xml,
     const String& acctType,
-    const String& acctCount)
+    const String& acctCount) -> std::int32_t
 {
     if (!acctType.Exists()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed: Empty accountList "
@@ -160,14 +160,14 @@ void AccountList::Release_AcctList() { mapAcctIDs_.clear(); }
 
 void AccountList::Release() { Release_AcctList(); }
 
-ExclusiveAccount AccountList::GetOrRegisterAccount(
+auto AccountList::GetOrRegisterAccount(
     const identity::Nym& serverNym,
     const identifier::Nym& accountOwnerId,
     const identifier::UnitDefinition& instrumentDefinitionID,
     const identifier::Server& notaryID,
     bool& wasAcctCreated,
     const PasswordPrompt& reason,
-    std::int64_t stashTransNum)
+    std::int64_t stashTransNum) -> ExclusiveAccount
 {
     ExclusiveAccount account{};
     wasAcctCreated = false;

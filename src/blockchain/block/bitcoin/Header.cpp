@@ -224,10 +224,10 @@ Header::BitcoinFormat::BitcoinFormat(
     std::memcpy(merkle_.data(), merkle.data(), merkle.size());
 }
 
-block::pHash Header::calculate_hash(
+auto Header::calculate_hash(
     const api::internal::Core& api,
     const blockchain::Type chain,
-    const ReadView serialized)
+    const ReadView serialized) -> block::pHash
 {
     auto output = api.Factory().Data();
     BlockHash(api, chain, serialized, output->WriteInto());
@@ -235,9 +235,9 @@ block::pHash Header::calculate_hash(
     return output;
 }
 
-block::pHash Header::calculate_hash(
+auto Header::calculate_hash(
     const api::internal::Core& api,
-    const SerializedType& serialized)
+    const SerializedType& serialized) -> block::pHash
 {
     auto bitcoinFormat = BitcoinFormat{};
 
@@ -260,19 +260,19 @@ block::pHash Header::calculate_hash(
             sizeof(bitcoinFormat)));
 }
 
-OTWork Header::calculate_work(const std::int32_t nbits)
+auto Header::calculate_work(const std::int32_t nbits) -> OTWork
 {
     const auto hash = OTNumericHash{Factory::NumericHashNBits(nbits)};
 
     return OTWork{Factory::Work(hash)};
 }
 
-std::unique_ptr<block::Header> Header::clone() const noexcept
+auto Header::clone() const noexcept -> std::unique_ptr<block::Header>
 {
     return std::unique_ptr<block::Header>(new Header(*this));
 }
 
-OTData Header::Encode() const noexcept
+auto Header::Encode() const noexcept -> OTData
 {
     auto output = api_.Factory().Data();
     Serialize(output->WriteInto());
@@ -280,7 +280,7 @@ OTData Header::Encode() const noexcept
     return output;
 }
 
-Header::SerializedType Header::Serialize() const noexcept
+auto Header::Serialize() const noexcept -> Header::SerializedType
 {
     auto output = ot_super::Serialize();
     auto& bitcoin = *output.mutable_bitcoin();
@@ -326,7 +326,7 @@ auto Header::Serialize(const AllocateOutput destination) const noexcept -> bool
     return true;
 }
 
-OTNumericHash Header::Target() const noexcept
+auto Header::Target() const noexcept -> OTNumericHash
 {
     return OTNumericHash{Factory::NumericHashNBits(nbits_)};
 }

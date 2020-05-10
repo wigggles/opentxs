@@ -104,7 +104,7 @@ private:
     Transaction() = delete;
     Transaction(const Transaction&) = delete;
     Transaction(Transaction&&) = delete;
-    Transaction& operator=(const Transaction&) = delete;
-    Transaction& operator=(Transaction&&) = delete;
+    auto operator=(const Transaction&) -> Transaction& = delete;
+    auto operator=(Transaction &&) -> Transaction& = delete;
 };
 }  // namespace opentxs::blockchain::block::bitcoin::implementation

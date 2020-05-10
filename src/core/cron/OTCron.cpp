@@ -72,7 +72,7 @@ OTCron::OTCron(const api::internal::Core& server)
 // Make sure Server Nym is set on this cron object before loading or saving,
 // since it's
 // used for signing and verifying..
-bool OTCron::LoadCron()
+auto OTCron::LoadCron() -> bool
 {
     const char* szFoldername = api_.Legacy().Cron();
     const char* szFilename = "OT-CRON.crn";  // todo stop hardcoding filenames.
@@ -86,7 +86,7 @@ bool OTCron::LoadCron()
     return bSuccess;
 }
 
-bool OTCron::SaveCron()
+auto OTCron::SaveCron() -> bool
 {
     const char* szFoldername = api_.Legacy().Cron();
     const char* szFilename = "OT-CRON.crn";  // todo stop hardcoding filenames.
@@ -112,10 +112,10 @@ bool OTCron::SaveCron()
 // *pOfferList) for each.
 // Returns a list of all the offers that a specific Nym has on all the markets.
 //
-bool OTCron::GetNym_OfferList(
+auto OTCron::GetNym_OfferList(
     Armored& ascOutput,
     const identifier::Nym& NYM_ID,
-    std::int32_t& nOfferCount)
+    std::int32_t& nOfferCount) -> bool
 {
     nOfferCount = 0;  // Outputs the number of offers on this nym.
 
@@ -194,7 +194,8 @@ bool OTCron::GetNym_OfferList(
     return false;
 }
 
-bool OTCron::GetMarketList(Armored& ascOutput, std::int32_t& nMarketCount)
+auto OTCron::GetMarketList(Armored& ascOutput, std::int32_t& nMarketCount)
+    -> bool
 {
     nMarketCount = 0;  // This parameter is set to zero here, and incremented in
                        // the loop below.
@@ -322,7 +323,7 @@ bool OTCron::GetMarketList(Armored& ascOutput, std::int32_t& nMarketCount)
     return false;
 }
 
-std::int32_t OTCron::GetTransactionCount() const
+auto OTCron::GetTransactionCount() const -> std::int32_t
 {
     if (m_listTransactionNumbers.empty()) return 0;
 
@@ -336,7 +337,7 @@ void OTCron::AddTransactionNumber(const std::int64_t& lTransactionNum)
 
 // Once this starts returning 0, OTCron can no longer process trades and
 // payment plans until the server object replenishes this list.
-std::int64_t OTCron::GetNextTransactionNumber()
+auto OTCron::GetNextTransactionNumber() -> std::int64_t
 {
     if (m_listTransactionNumbers.empty()) return 0;
 
@@ -348,7 +349,7 @@ std::int64_t OTCron::GetNextTransactionNumber()
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-std::int32_t OTCron::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
+auto OTCron::ProcessXMLNode(irr::io::IrrXMLReader*& xml) -> std::int32_t
 {
     OT_ASSERT(nullptr != GetServerNym());
 
@@ -581,7 +582,7 @@ void OTCron::UpdateContents(const PasswordPrompt& reason)
     m_xmlUnsigned->Concatenate("%s", str_result.c_str());
 }
 
-std::chrono::milliseconds OTCron::computeTimeout()
+auto OTCron::computeTimeout() -> std::chrono::milliseconds
 {
     return GetCronMsBetweenProcess() -
            std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -669,10 +670,10 @@ void OTCron::ProcessCronItems()
 // OTCron IS responsible for cleaning up theItem, and takes ownership.
 // So make SURE it is allocated on the HEAP before you pass it in here, and
 // also make sure to delete it again if this call fails!
-bool OTCron::AddCronItem(
+auto OTCron::AddCronItem(
     std::shared_ptr<OTCronItem> theItem,
     const bool bSaveReceipt,
-    const Time tDateAdded)
+    const Time tDateAdded) -> bool
 {
     OT_ASSERT(nullptr != GetServerNym());
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
@@ -787,11 +788,11 @@ bool OTCron::AddCronItem(
     return false;
 }
 
-bool OTCron::RemoveCronItem(
+auto OTCron::RemoveCronItem(
     std::int64_t lTransactionNum,
     Nym_p theRemover,
-    const PasswordPrompt& reason)  // if returns false, item
-                                   // wasn't found.
+    const PasswordPrompt& reason) -> bool  // if returns false, item
+                                           // wasn't found.
 {
     // See if there's a cron item with that transaction number.
     auto it_map = FindItemOnMap(lTransactionNum);
@@ -836,7 +837,8 @@ bool OTCron::RemoveCronItem(
 // that will work in this function is the "official" one, the one that
 // belongs to the Nym who actually activated this Cron Item.
 //
-mapOfCronItems::iterator OTCron::FindItemOnMap(std::int64_t lTransactionNum)
+auto OTCron::FindItemOnMap(std::int64_t lTransactionNum)
+    -> mapOfCronItems::iterator
 {
     // See if there's something there with lTransactionNum
     // as its "official" number.
@@ -864,8 +866,8 @@ mapOfCronItems::iterator OTCron::FindItemOnMap(std::int64_t lTransactionNum)
 // that will work in this function is the "official" one, the one that
 // belongs to the Nym who actually activated this Cron Item.
 //
-multimapOfCronItems::iterator OTCron::FindItemOnMultimap(
-    std::int64_t lTransactionNum)
+auto OTCron::FindItemOnMultimap(std::int64_t lTransactionNum)
+    -> multimapOfCronItems::iterator
 {
     auto itt = m_multimapCronItems.begin();
 
@@ -889,8 +891,8 @@ multimapOfCronItems::iterator OTCron::FindItemOnMultimap(
 // that will work in this function is the "official" one, the one that
 // belongs to the Nym who actually activated this Cron Item.
 //
-std::shared_ptr<OTCronItem> OTCron::GetItemByOfficialNum(
-    std::int64_t lTransactionNum)
+auto OTCron::GetItemByOfficialNum(std::int64_t lTransactionNum)
+    -> std::shared_ptr<OTCronItem>
 {
     // See if there's something there with lTransactionNum
     // as its "official" number.
@@ -920,8 +922,8 @@ std::shared_ptr<OTCronItem> OTCron::GetItemByOfficialNum(
 // This function searches based on any valid opening number, not necessarily
 // by the one "official" number.
 //
-std::shared_ptr<OTCronItem> OTCron::GetItemByValidOpeningNum(
-    std::int64_t lOpeningNum)
+auto OTCron::GetItemByValidOpeningNum(std::int64_t lOpeningNum)
+    -> std::shared_ptr<OTCronItem>
 {
     // See if there's something there with that transaction number.
     auto itt = m_mapCronItems.find(lOpeningNum);
@@ -962,9 +964,9 @@ std::shared_ptr<OTCronItem> OTCron::GetItemByValidOpeningNum(
 // OTCron IS responsible for cleaning up theMarket, and takes ownership.
 // So make SURE it is allocated on the HEAP before you pass it in here, and
 // also make sure to delete it again if this call fails!
-bool OTCron::AddMarket(
+auto OTCron::AddMarket(
     std::shared_ptr<OTMarket> theMarket,
-    bool bSaveMarketFile)
+    bool bSaveMarketFile) -> bool
 {
     OT_ASSERT(nullptr != GetServerNym());
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
@@ -1036,10 +1038,10 @@ bool OTCron::AddMarket(
 }
 
 // Create it if it's not there.
-std::shared_ptr<OTMarket> OTCron::GetOrCreateMarket(
+auto OTCron::GetOrCreateMarket(
     const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID,
     const identifier::UnitDefinition& CURRENCY_ID,
-    const std::int64_t& lScale)
+    const std::int64_t& lScale) -> std::shared_ptr<OTMarket>
 {
     auto pMarket{api_.Factory().Market(
         GetNotaryID(), INSTRUMENT_DEFINITION_ID, CURRENCY_ID, lScale)};
@@ -1075,7 +1077,7 @@ std::shared_ptr<OTMarket> OTCron::GetOrCreateMarket(
 
 // Look up a transaction by transaction number and see if it is in the ledger.
 // If it is, return a pointer to it, otherwise return nullptr.
-std::shared_ptr<OTMarket> OTCron::GetMarket(const Identifier& MARKET_ID)
+auto OTCron::GetMarket(const Identifier& MARKET_ID) -> std::shared_ptr<OTMarket>
 {
     auto str_MARKET_ID = String::Factory(MARKET_ID);
     std::string std_MARKET_ID = str_MARKET_ID->Get();

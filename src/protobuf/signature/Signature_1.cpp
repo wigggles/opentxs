@@ -17,7 +17,7 @@ namespace opentxs
 {
 namespace proto
 {
-bool CheckProto_1(
+auto CheckProto_1(
     const Signature& input,
     const bool silent,
     const std::string& selfID,
@@ -26,7 +26,7 @@ bool CheckProto_1(
     std::uint32_t& selfPrivate,
     std::uint32_t& masterPublic,
     std::uint32_t& sourcePublic,
-    const SignatureRole role)
+    const SignatureRole role) -> bool
 {
     if (!input.has_role()) { FAIL_1("missing role") }
 
@@ -98,10 +98,10 @@ bool CheckProto_1(
     return true;
 }
 
-bool CheckProto_1(
+auto CheckProto_1(
     const Signature& input,
     const bool silent,
-    const SignatureRole role)
+    const SignatureRole role) -> bool
 {
     std::uint32_t unused = 0;
 

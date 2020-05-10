@@ -42,22 +42,22 @@ namespace opentxs::api::network::implementation
 class ZMQ final : virtual public opentxs::api::network::ZMQ
 {
 public:
-    const opentxs::network::zeromq::Context& Context() const final;
-    proto::AddressType DefaultAddressType() const final;
-    std::chrono::seconds KeepAlive() const final;
+    auto Context() const -> const opentxs::network::zeromq::Context& final;
+    auto DefaultAddressType() const -> proto::AddressType final;
+    auto KeepAlive() const -> std::chrono::seconds final;
     void KeepAlive(const std::chrono::seconds duration) const final;
-    std::chrono::seconds Linger() const final;
-    std::chrono::seconds ReceiveTimeout() const final;
+    auto Linger() const -> std::chrono::seconds final;
+    auto ReceiveTimeout() const -> std::chrono::seconds final;
     void RefreshConfig() const final;
-    const Flag& Running() const final;
-    std::chrono::seconds SendTimeout() const final;
+    auto Running() const -> const Flag& final;
+    auto SendTimeout() const -> std::chrono::seconds final;
 
-    opentxs::network::ServerConnection& Server(
-        const std::string& id) const final;
-    bool SetSocksProxy(const std::string& proxy) const final;
-    std::string SocksProxy() const final;
-    bool SocksProxy(std::string& proxy) const final;
-    ConnectionState Status(const std::string& server) const final;
+    auto Server(const std::string& id) const
+        -> opentxs::network::ServerConnection& final;
+    auto SetSocksProxy(const std::string& proxy) const -> bool final;
+    auto SocksProxy() const -> std::string final;
+    auto SocksProxy(std::string& proxy) const -> bool final;
+    auto Status(const std::string& server) const -> ConnectionState final;
 
     ~ZMQ() final;
 
@@ -75,7 +75,7 @@ private:
     mutable std::map<std::string, OTServerConnection> server_connections_;
     OTZMQPublishSocket status_publisher_;
 
-    bool verify_lock(const Lock& lock) const;
+    auto verify_lock(const Lock& lock) const -> bool;
 
     void init(const Lock& lock) const;
 
@@ -83,7 +83,7 @@ private:
     ZMQ() = delete;
     ZMQ(const ZMQ&) = delete;
     ZMQ(ZMQ&&) = delete;
-    ZMQ& operator=(const ZMQ&) = delete;
-    ZMQ& operator=(const ZMQ&&) = delete;
+    auto operator=(const ZMQ&) -> ZMQ& = delete;
+    auto operator=(const ZMQ &&) -> ZMQ& = delete;
 };
 }  // namespace opentxs::api::network::implementation

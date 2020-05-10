@@ -44,7 +44,7 @@ namespace opentxs::blockchain::p2p::bitcoin::message::implementation
 class Pong final : public internal::Pong
 {
 public:
-    bitcoin::Nonce Nonce() const noexcept final { return nonce_; }
+    auto Nonce() const noexcept -> bitcoin::Nonce final { return nonce_; }
 
     ~Pong() final = default;
 
@@ -60,7 +60,7 @@ private:
 
     const bitcoin::Nonce nonce_{};
 
-    OTData payload() const noexcept final;
+    auto payload() const noexcept -> OTData final;
 
     Pong(
         const api::internal::Core& api,
@@ -72,7 +72,7 @@ private:
         const bitcoin::Nonce nonce) noexcept;
     Pong(const Pong&) = delete;
     Pong(Pong&&) = delete;
-    Pong& operator=(const Pong&) = delete;
-    Pong& operator=(Pong&&) = delete;
+    auto operator=(const Pong&) -> Pong& = delete;
+    auto operator=(Pong &&) -> Pong& = delete;
 };
 }  // namespace opentxs::blockchain::p2p::bitcoin::message::implementation

@@ -24,7 +24,7 @@ class Context;
 }  // namespace zeromq
 }  // namespace network
 
-api::network::ZAP* Factory::ZAP(const network::zeromq::Context& context)
+auto Factory::ZAP(const network::zeromq::Context& context) -> api::network::ZAP*
 {
     return new api::network::implementation::ZAP(context);
 }
@@ -39,13 +39,13 @@ ZAP::ZAP(const opentxs::network::zeromq::Context& context)
 {
 }
 
-bool ZAP::RegisterDomain(const std::string& domain, const Callback& callback)
-    const
+auto ZAP::RegisterDomain(const std::string& domain, const Callback& callback)
+    const -> bool
 {
     return callback_->SetDomain(domain, callback);
 }
 
-bool ZAP::SetDefaultPolicy(const Policy policy) const
+auto ZAP::SetDefaultPolicy(const Policy policy) const -> bool
 {
     return callback_->SetPolicy(policy);
 }

@@ -35,22 +35,22 @@ public:
 
     static const GenesisBlockMap genesis_blocks_;
 
-    OTWork Difficulty() const noexcept final { return work_; }
-    Status EffectiveState() const noexcept final;
-    const block::Hash& Hash() const noexcept final;
-    block::Height Height() const noexcept final;
-    Status InheritedState() const noexcept final;
-    bool IsBlacklisted() const noexcept final;
-    bool IsDisconnected() const noexcept final;
-    Status LocalState() const noexcept final;
-    OTNumericHash NumericHash() const noexcept final;
-    const block::Hash& ParentHash() const noexcept final;
-    OTWork ParentWork() const noexcept final { return inherit_work_; }
-    block::Position Position() const noexcept final;
-    SerializedType Serialize() const noexcept override;
-    blockchain::Type Type() const noexcept final { return type_; }
-    bool Valid() const noexcept final;
-    OTWork Work() const noexcept final;
+    auto Difficulty() const noexcept -> OTWork final { return work_; }
+    auto EffectiveState() const noexcept -> Status final;
+    auto Hash() const noexcept -> const block::Hash& final;
+    auto Height() const noexcept -> block::Height final;
+    auto InheritedState() const noexcept -> Status final;
+    auto IsBlacklisted() const noexcept -> bool final;
+    auto IsDisconnected() const noexcept -> bool final;
+    auto LocalState() const noexcept -> Status final;
+    auto NumericHash() const noexcept -> OTNumericHash final;
+    auto ParentHash() const noexcept -> const block::Hash& final;
+    auto ParentWork() const noexcept -> OTWork final { return inherit_work_; }
+    auto Position() const noexcept -> block::Position final;
+    auto Serialize() const noexcept -> SerializedType override;
+    auto Type() const noexcept -> blockchain::Type final { return type_; }
+    auto Valid() const noexcept -> bool final;
+    auto Work() const noexcept -> OTWork final;
 
     void CompareToCheckpoint(const block::Position& checkpoint) noexcept final;
     void InheritHeight(const block::Header& parent) final;
@@ -67,7 +67,7 @@ protected:
     const OTData hash_;
     const OTData parent_hash_;
 
-    static OTWork minimum_work();
+    static auto minimum_work() -> OTWork;
 
     Header(
         const api::internal::Core& api,
@@ -108,7 +108,7 @@ private:
         const blockchain::Work& inheritWork) noexcept;
     Header() = delete;
     Header(Header&&) = delete;
-    Header& operator=(const Header&) = delete;
-    Header& operator=(Header&&) = delete;
+    auto operator=(const Header&) -> Header& = delete;
+    auto operator=(Header &&) -> Header& = delete;
 };
 }  // namespace opentxs::blockchain::block::implementation

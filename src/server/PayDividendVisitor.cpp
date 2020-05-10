@@ -60,11 +60,11 @@ PayDividendVisitor::PayDividendVisitor(
 // PayDividendVisitor::Trigger() is used in
 // OTUnitDefinition::VisitAccountRecords()
 // cppcheck-suppress unusedFunction
-bool PayDividendVisitor::Trigger(
+auto PayDividendVisitor::Trigger(
     const Account& theSharesAccount,
-    const PasswordPrompt& reason)  // theSharesAccount
-                                   // is, say, a Pepsi
-                                   // shares
+    const PasswordPrompt& reason) -> bool  // theSharesAccount
+                                           // is, say, a Pepsi
+                                           // shares
 // account.  Here, we'll send a dollars voucher
 // to its owner.
 {

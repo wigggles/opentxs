@@ -29,12 +29,12 @@
 
 namespace opentxs
 {
-blockchain::p2p::bitcoin::message::internal::Inv* Factory::BitcoinP2PInv(
+auto Factory::BitcoinP2PInv(
     const api::internal::Core& api,
     std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
     const blockchain::p2p::bitcoin::ProtocolVersion version,
     const void* payload,
-    const std::size_t size)
+    const std::size_t size) -> blockchain::p2p::bitcoin::message::internal::Inv*
 {
     namespace bitcoin = blockchain::p2p::bitcoin::message;
     using ReturnType = bitcoin::implementation::Inv;
@@ -89,10 +89,11 @@ blockchain::p2p::bitcoin::message::internal::Inv* Factory::BitcoinP2PInv(
     return new ReturnType(api, std::move(pHeader), std::move(items));
 }
 
-blockchain::p2p::bitcoin::message::internal::Inv* Factory::BitcoinP2PInv(
+auto Factory::BitcoinP2PInv(
     const api::internal::Core& api,
     const blockchain::Type network,
     std::vector<blockchain::bitcoin::Inventory>&& payload)
+    -> blockchain::p2p::bitcoin::message::internal::Inv*
 {
     namespace bitcoin = blockchain::p2p::bitcoin;
     using ReturnType = bitcoin::message::implementation::Inv;
@@ -122,7 +123,7 @@ Inv::Inv(
 {
 }
 
-OTData Inv::payload() const noexcept
+auto Inv::payload() const noexcept -> OTData
 {
     try {
         auto output = Data::Factory(CompactSize(payload_.size()).Encode());

@@ -52,33 +52,34 @@ namespace opentxs::api::client::implementation
 class Contacts final : public client::internal::Contacts
 {
 public:
-    OTIdentifier BlockchainAddressToContact(
+    auto BlockchainAddressToContact(
         const std::string& address,
-        const proto::ContactItemType currency =
-            proto::CITEMTYPE_BTC) const final;
-    std::shared_ptr<const opentxs::Contact> Contact(
-        const Identifier& id) const final;
-    OTIdentifier ContactID(const identifier::Nym& nymID) const final;
-    ObjectList ContactList() const final;
-    std::string ContactName(const Identifier& contactID) const final;
-    std::shared_ptr<const opentxs::Contact> Merge(
-        const Identifier& parent,
-        const Identifier& child) const final;
-    std::unique_ptr<Editor<class Contact>> mutable_Contact(
-        const Identifier& id) const final;
-    std::shared_ptr<const opentxs::Contact> NewContact(
-        const std::string& label) const final;
-    std::shared_ptr<const opentxs::Contact> NewContact(
+        const proto::ContactItemType currency = proto::CITEMTYPE_BTC) const
+        -> OTIdentifier final;
+    auto Contact(const Identifier& id) const
+        -> std::shared_ptr<const opentxs::Contact> final;
+    auto ContactID(const identifier::Nym& nymID) const -> OTIdentifier final;
+    auto ContactList() const -> ObjectList final;
+    auto ContactName(const Identifier& contactID) const -> std::string final;
+    auto Merge(const Identifier& parent, const Identifier& child) const
+        -> std::shared_ptr<const opentxs::Contact> final;
+    auto mutable_Contact(const Identifier& id) const
+        -> std::unique_ptr<Editor<class Contact>> final;
+    auto NewContact(const std::string& label) const
+        -> std::shared_ptr<const opentxs::Contact> final;
+    auto NewContact(
         const std::string& label,
         const identifier::Nym& nymID,
-        const PaymentCode& paymentCode) const final;
-    std::shared_ptr<const opentxs::Contact> NewContactFromAddress(
+        const PaymentCode& paymentCode) const
+        -> std::shared_ptr<const opentxs::Contact> final;
+    auto NewContactFromAddress(
         const std::string& address,
         const std::string& label,
-        const proto::ContactItemType currency) const final;
-    OTIdentifier NymToContact(const identifier::Nym& nymID) const final;
-    std::shared_ptr<const opentxs::Contact> Update(
-        const proto::Nym& nym) const final;
+        const proto::ContactItemType currency) const
+        -> std::shared_ptr<const opentxs::Contact> final;
+    auto NymToContact(const identifier::Nym& nymID) const -> OTIdentifier final;
+    auto Update(const proto::Nym& nym) const
+        -> std::shared_ptr<const opentxs::Contact> final;
 
     ~Contacts() final = default;
 
@@ -96,7 +97,8 @@ private:
     mutable ContactNameMap contact_name_map_;
     OTZMQPublishSocket publisher_;
 
-    static ContactNameMap build_name_map(const api::storage::Storage& storage);
+    static auto build_name_map(const api::storage::Storage& storage)
+        -> ContactNameMap;
 
     void check_identifiers(
         const Identifier& inputNymID,
@@ -104,43 +106,42 @@ private:
         bool& haveNymID,
         bool& havePaymentCode,
         identifier::Nym& outputNymID) const;
-    bool verify_write_lock(const rLock& lock) const;
+    auto verify_write_lock(const rLock& lock) const -> bool;
 
     // takes ownership
-    ContactMap::iterator add_contact(const rLock& lock, class Contact* contact)
-        const;
-    OTIdentifier address_to_contact(
+    auto add_contact(const rLock& lock, class Contact* contact) const
+        -> ContactMap::iterator;
+    auto address_to_contact(
         const rLock& lock,
         const std::string& address,
-        const proto::ContactItemType currency) const;
-    std::shared_ptr<const opentxs::Contact> contact(
-        const rLock& lock,
-        const std::string& label) const;
-    std::shared_ptr<const opentxs::Contact> contact(
-        const rLock& lock,
-        const Identifier& id) const;
+        const proto::ContactItemType currency) const -> OTIdentifier;
+    auto contact(const rLock& lock, const std::string& label) const
+        -> std::shared_ptr<const opentxs::Contact>;
+    auto contact(const rLock& lock, const Identifier& id) const
+        -> std::shared_ptr<const opentxs::Contact>;
     void import_contacts(const rLock& lock);
     void init_nym_map(const rLock& lock);
-    ContactMap::iterator load_contact(const rLock& lock, const Identifier& id)
-        const;
-    std::unique_ptr<Editor<class Contact>> mutable_contact(
-        const rLock& lock,
-        const Identifier& id) const;
-    ContactMap::iterator obtain_contact(const rLock& lock, const Identifier& id)
-        const;
-    std::shared_ptr<const opentxs::Contact> new_contact(
+    auto load_contact(const rLock& lock, const Identifier& id) const
+        -> ContactMap::iterator;
+    auto mutable_contact(const rLock& lock, const Identifier& id) const
+        -> std::unique_ptr<Editor<class Contact>>;
+    auto obtain_contact(const rLock& lock, const Identifier& id) const
+        -> ContactMap::iterator;
+    auto new_contact(
         const rLock& lock,
         const std::string& label,
         const identifier::Nym& nymID,
-        const PaymentCode& paymentCode) const;
+        const PaymentCode& paymentCode) const
+        -> std::shared_ptr<const opentxs::Contact>;
     void refresh_indices(const rLock& lock, class Contact& contact) const;
     void save(class Contact* contact) const;
     void start() final;
-    std::shared_ptr<const opentxs::Contact> update_existing_contact(
+    auto update_existing_contact(
         const rLock& lock,
         const std::string& label,
         const PaymentCode& code,
-        const Identifier& contactID) const;
+        const Identifier& contactID) const
+        -> std::shared_ptr<const opentxs::Contact>;
     void update_nym_map(
         const rLock& lock,
         const identifier::Nym& nymID,
@@ -151,7 +152,7 @@ private:
     Contacts() = delete;
     Contacts(const Contacts&) = delete;
     Contacts(Contacts&&) = delete;
-    Contacts& operator=(const Contacts&) = delete;
-    Contacts& operator=(Contacts&&) = delete;
+    auto operator=(const Contacts&) -> Contacts& = delete;
+    auto operator=(Contacts &&) -> Contacts& = delete;
 };
 }  // namespace opentxs::api::client::implementation

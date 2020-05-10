@@ -50,28 +50,28 @@ namespace opentxs::peer::implementation
 class Object final : virtual public opentxs::PeerObject
 {
 public:
-    const std::unique_ptr<std::string>& Message() const final
+    auto Message() const -> const std::unique_ptr<std::string>& final
     {
         return message_;
     }
-    const Nym_p& Nym() const final { return nym_; }
-    const std::unique_ptr<std::string>& Payment() const final
+    auto Nym() const -> const Nym_p& final { return nym_; }
+    auto Payment() const -> const std::unique_ptr<std::string>& final
     {
         return payment_;
     }
 #if OT_CASH
-    std::shared_ptr<blind::Purse> Purse() const final { return purse_; }
+    auto Purse() const -> std::shared_ptr<blind::Purse> final { return purse_; }
 #endif
-    const OTPeerRequest Request() const final { return request_; }
-    const OTPeerReply Reply() const final { return reply_; }
-    proto::PeerObject Serialize() const final;
-    proto::PeerObjectType Type() const final { return type_; }
-    bool Validate() const final;
+    auto Request() const -> const OTPeerRequest final { return request_; }
+    auto Reply() const -> const OTPeerReply final { return reply_; }
+    auto Serialize() const -> proto::PeerObject final;
+    auto Type() const -> proto::PeerObjectType final { return type_; }
+    auto Validate() const -> bool final;
 
-    std::unique_ptr<std::string>& Message() final { return message_; }
-    std::unique_ptr<std::string>& Payment() final { return payment_; }
+    auto Message() -> std::unique_ptr<std::string>& final { return message_; }
+    auto Payment() -> std::unique_ptr<std::string>& final { return payment_; }
 #if OT_CASH
-    std::shared_ptr<blind::Purse>& Purse() final { return purse_; }
+    auto Purse() -> std::shared_ptr<blind::Purse>& final { return purse_; }
 #endif
 
     ~Object() final = default;

@@ -66,53 +66,64 @@ namespace opentxs::blind::implementation
 class Purse final : virtual public blind::Purse
 {
 public:
-    const Token& at(const std::size_t position) const final
+    auto at(const std::size_t position) const -> const Token& final
     {
         return tokens_.at(position);
     }
-    const_iterator begin() const noexcept final { return cbegin(); }
-    const_iterator cbegin() const noexcept final
+    auto begin() const noexcept -> const_iterator final { return cbegin(); }
+    auto cbegin() const noexcept -> const_iterator final
     {
         return const_iterator(this, 0);
     }
-    const_iterator cend() const noexcept final
+    auto cend() const noexcept -> const_iterator final
     {
         return const_iterator(this, tokens_.size());
     }
-    Time EarliestValidTo() const final { return earliest_valid_to_; }
-    const_iterator end() const noexcept final { return cend(); }
-    bool IsUnlocked() const final { return unlocked_; }
-    Time LatestValidFrom() const final { return latest_valid_from_; }
-    const identifier::Server& Notary() const final { return notary_; }
-    bool Process(
+    auto EarliestValidTo() const -> Time final { return earliest_valid_to_; }
+    auto end() const noexcept -> const_iterator final { return cend(); }
+    auto IsUnlocked() const -> bool final { return unlocked_; }
+    auto LatestValidFrom() const -> Time final { return latest_valid_from_; }
+    auto Notary() const -> const identifier::Server& final { return notary_; }
+    auto Process(
         const identity::Nym& owner,
         const Mint& mint,
-        const PasswordPrompt& reason) final;
-    proto::Purse Serialize() const final;
-    std::size_t size() const noexcept final { return tokens_.size(); }
-    proto::PurseType State() const final { return state_; }
-    proto::CashType Type() const final { return type_; }
-    const identifier::UnitDefinition& Unit() const final { return unit_; }
-    bool Unlock(const identity::Nym& nym, const PasswordPrompt& reason)
-        const final;
-    bool Verify(const api::server::internal::Manager& server) const final;
-    Amount Value() const final { return total_value_; }
+        const PasswordPrompt& reason) -> bool final;
+    auto Serialize() const -> proto::Purse final;
+    auto size() const noexcept -> std::size_t final { return tokens_.size(); }
+    auto State() const -> proto::PurseType final { return state_; }
+    auto Type() const -> proto::CashType final { return type_; }
+    auto Unit() const -> const identifier::UnitDefinition& final
+    {
+        return unit_;
+    }
+    auto Unlock(const identity::Nym& nym, const PasswordPrompt& reason) const
+        -> bool final;
+    auto Verify(const api::server::internal::Manager& server) const
+        -> bool final;
+    auto Value() const -> Amount final { return total_value_; }
 
-    bool AddNym(const identity::Nym& nym, const PasswordPrompt& reason) final;
-    Token& at(const std::size_t position) final { return tokens_.at(position); }
-    iterator begin() noexcept final { return iterator(this, 0); }
-    iterator end() noexcept final { return iterator(this, tokens_.size()); }
-    bool GeneratePrototokens(
+    auto AddNym(const identity::Nym& nym, const PasswordPrompt& reason)
+        -> bool final;
+    auto at(const std::size_t position) -> Token& final
+    {
+        return tokens_.at(position);
+    }
+    auto begin() noexcept -> iterator final { return iterator(this, 0); }
+    auto end() noexcept -> iterator final
+    {
+        return iterator(this, tokens_.size());
+    }
+    auto GeneratePrototokens(
         const identity::Nym& owner,
         const Mint& mint,
         const Amount amount,
-        const PasswordPrompt& reason);
-    crypto::key::Symmetric& PrimaryKey(PasswordPrompt& password) final;
-    std::shared_ptr<Token> Pop() final;
-    bool Push(std::shared_ptr<Token> token, const PasswordPrompt& reason) final;
-    const crypto::key::Symmetric& SecondaryKey(
-        const identity::Nym& owner,
-        PasswordPrompt& password) final;
+        const PasswordPrompt& reason) -> bool;
+    auto PrimaryKey(PasswordPrompt& password) -> crypto::key::Symmetric& final;
+    auto Pop() -> std::shared_ptr<Token> final;
+    auto Push(std::shared_ptr<Token> token, const PasswordPrompt& reason)
+        -> bool final;
+    auto SecondaryKey(const identity::Nym& owner, PasswordPrompt& password)
+        -> const crypto::key::Symmetric& final;
 
     Purse(
         const api::internal::Core& api,
@@ -157,10 +168,11 @@ private:
         const api::internal::Core& api,
         const proto::Purse& serialized) noexcept(false)
         -> std::unique_ptr<const OTEnvelope>;
-    static std::vector<proto::Envelope> get_passwords(const proto::Purse& in);
+    static auto get_passwords(const proto::Purse& in)
+        -> std::vector<proto::Envelope>;
 
-    Purse* clone() const noexcept final { return new Purse(*this); }
-    OTSymmetricKey generate_key(OTPassword& password) const;
+    auto clone() const noexcept -> Purse* final { return new Purse(*this); }
+    auto generate_key(OTPassword& password) const -> OTSymmetricKey;
 
     void apply_times(const Token& token);
     void recalculate_times();
@@ -191,7 +203,7 @@ private:
     Purse() = delete;
     Purse(const Purse&);
     Purse(Purse&&) = delete;
-    Purse& operator=(const Purse&) = delete;
-    Purse& operator=(Purse&&) = delete;
+    auto operator=(const Purse&) -> Purse& = delete;
+    auto operator=(Purse &&) -> Purse& = delete;
 };
 }  // namespace opentxs::blind::implementation

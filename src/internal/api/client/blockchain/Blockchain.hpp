@@ -22,7 +22,7 @@ using COIN = std::tuple<std::string, std::size_t, std::int64_t>;
 
 template <>
 struct less<COIN> {
-    bool operator()(const COIN& lhs, const COIN& rhs) const
+    auto operator()(const COIN& lhs, const COIN& rhs) const -> bool
     {
         /* TODO: these lines will cause a segfault in the clang ast parser.
                 const auto & [ lID, lIndex, lAmount ] = lhs;
@@ -92,24 +92,26 @@ namespace opentxs::api::client::blockchain::internal
 using ActivityMap = std::map<Coin, std::pair<blockchain::Key, Amount>>;
 
 struct BalanceList : virtual public blockchain::BalanceList {
-    virtual const api::internal::Core& API() const noexcept = 0;
+    virtual auto API() const noexcept -> const api::internal::Core& = 0;
 
-    virtual bool AddHDNode(
+    virtual auto AddHDNode(
         const identifier::Nym& nym,
         const proto::HDPath& path,
-        Identifier& id) noexcept = 0;
-    virtual BalanceTree& Nym(const identifier::Nym& id) noexcept = 0;
-    virtual const client::internal::Blockchain& Parent() const noexcept = 0;
+        Identifier& id) noexcept -> bool = 0;
+    virtual auto Nym(const identifier::Nym& id) noexcept -> BalanceTree& = 0;
+    virtual auto Parent() const noexcept
+        -> const client::internal::Blockchain& = 0;
 };
 
 struct BalanceElement : virtual public blockchain::BalanceNode::Element {
     using SerializedType = proto::BlockchainAddress;
 
-    virtual std::set<OTData> Elements() const noexcept = 0;
-    virtual const Identifier& ID() const noexcept = 0;
-    virtual std::set<std::string> IncomingTransactions() const noexcept = 0;
-    virtual const identifier::Nym& NymID() const noexcept = 0;
-    virtual SerializedType Serialize() const noexcept = 0;
+    virtual auto Elements() const noexcept -> std::set<OTData> = 0;
+    virtual auto ID() const noexcept -> const Identifier& = 0;
+    virtual auto IncomingTransactions() const noexcept
+        -> std::set<std::string> = 0;
+    virtual auto NymID() const noexcept -> const identifier::Nym& = 0;
+    virtual auto Serialize() const noexcept -> SerializedType = 0;
 
     virtual void SetContact(const Identifier& id) noexcept = 0;
     virtual void SetLabel(const std::string& label) noexcept = 0;
@@ -119,49 +121,47 @@ struct BalanceElement : virtual public blockchain::BalanceNode::Element {
 };
 
 struct BalanceNode : virtual public blockchain::BalanceNode {
-    virtual bool AssociateTransaction(
+    virtual auto AssociateTransaction(
         const std::vector<Activity>& unspent,
         const std::vector<Activity>& spent,
         std::set<OTIdentifier>& contacts,
-        const PasswordPrompt& reason) const noexcept = 0;
-    virtual const internal::BalanceElement& BalanceElement(
-        const Subchain type,
-        const Bip32Index index) const noexcept(false) = 0;
-    virtual std::set<std::string> IncomingTransactions(const Key& key) const
-        noexcept = 0;
+        const PasswordPrompt& reason) const noexcept -> bool = 0;
+    virtual auto BalanceElement(const Subchain type, const Bip32Index index)
+        const noexcept(false) -> const internal::BalanceElement& = 0;
+    virtual auto IncomingTransactions(const Key& key) const noexcept
+        -> std::set<std::string> = 0;
 
-    virtual bool SetContact(
+    virtual auto SetContact(
         const Subchain type,
         const Bip32Index index,
-        const Identifier& id) noexcept(false) = 0;
-    virtual bool SetLabel(
+        const Identifier& id) noexcept(false) -> bool = 0;
+    virtual auto SetLabel(
         const Subchain type,
         const Bip32Index index,
-        const std::string& label) noexcept(false) = 0;
+        const std::string& label) noexcept(false) -> bool = 0;
 };
 
 struct BalanceTree : virtual public blockchain::BalanceTree {
-    virtual const api::internal::Core& API() const noexcept = 0;
-    virtual bool AssociateTransaction(
+    virtual auto API() const noexcept -> const api::internal::Core& = 0;
+    virtual auto AssociateTransaction(
         const std::vector<Activity>& unspent,
         const std::vector<Activity>& spent,
         std::set<OTIdentifier>& contacts,
-        const PasswordPrompt& reason) const noexcept = 0;
-    virtual opentxs::blockchain::Type Chain() const noexcept = 0;
+        const PasswordPrompt& reason) const noexcept -> bool = 0;
+    virtual auto Chain() const noexcept -> opentxs::blockchain::Type = 0;
     virtual void ClaimAccountID(
         const std::string& id,
         internal::BalanceNode* node) const noexcept = 0;
-    virtual std::optional<std::pair<Key, Amount>> LookupUTXO(
-        const Coin& coin) const noexcept = 0;
-    virtual const blockchain::internal::HD& HDChain(
-        const Identifier& account) const noexcept(false) = 0;
-    virtual const internal::BalanceList& Parent() const noexcept = 0;
+    virtual auto LookupUTXO(const Coin& coin) const noexcept
+        -> std::optional<std::pair<Key, Amount>> = 0;
+    virtual auto HDChain(const Identifier& account) const noexcept(false)
+        -> const blockchain::internal::HD& = 0;
+    virtual auto Parent() const noexcept -> const internal::BalanceList& = 0;
 
-    virtual bool AddHDNode(
-        const proto::HDPath& path,
-        Identifier& id) noexcept = 0;
-    virtual internal::BalanceNode& Node(const Identifier& id) const
-        noexcept(false) = 0;
+    virtual auto AddHDNode(const proto::HDPath& path, Identifier& id) noexcept
+        -> bool = 0;
+    virtual auto Node(const Identifier& id) const noexcept(false)
+        -> internal::BalanceNode& = 0;
 };
 
 struct Deterministic : virtual public blockchain::Deterministic,

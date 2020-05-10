@@ -57,40 +57,40 @@ class Key : virtual public credential::internal::Key,
             public credential::implementation::Base
 {
 public:
-    const crypto::key::Keypair& GetKeypair(
-        const proto::KeyRole role) const final
+    auto GetKeypair(const proto::KeyRole role) const
+        -> const crypto::key::Keypair& final
     {
         return GetKeypair(proto::AKEYTYPE_NULL, role);
     }
-    const crypto::key::Keypair& GetKeypair(
+    auto GetKeypair(
         const proto::AsymmetricKeyType type,
-        const proto::KeyRole role) const final;
-    std::int32_t GetPublicKeysBySignature(
+        const proto::KeyRole role) const -> const crypto::key::Keypair& final;
+    auto GetPublicKeysBySignature(
         crypto::key::Keypair::Keys& listOutput,
         const opentxs::Signature& theSignature,
-        char cKeyType = '0') const final;
-    bool hasCapability(const NymCapability& capability) const override;
+        char cKeyType = '0') const -> std::int32_t final;
+    auto hasCapability(const NymCapability& capability) const -> bool override;
     using Base::Verify;
-    bool Verify(
+    auto Verify(
         const Data& plaintext,
         const proto::Signature& sig,
-        const proto::KeyRole key) const final;
-    bool Sign(
+        const proto::KeyRole key) const -> bool final;
+    auto Sign(
         const GetPreimage input,
         const proto::SignatureRole role,
         proto::Signature& signature,
         const PasswordPrompt& reason,
         proto::KeyRole key,
-        const proto::HashType hash) const final;
-    bool TransportKey(
+        const proto::HashType hash) const -> bool final;
+    auto TransportKey(
         Data& publicKey,
         OTPassword& privateKey,
-        const PasswordPrompt& reason) const final;
+        const PasswordPrompt& reason) const -> bool final;
 
-    bool SelfSign(
+    auto SelfSign(
         const PasswordPrompt& reason,
         const OTPassword* exportPassword = nullptr,
-        const bool onlyPrivate = false) final;
+        const bool onlyPrivate = false) -> bool final;
 
     ~Key() override = default;
 
@@ -100,11 +100,12 @@ protected:
     const OTKeypair authentication_key_;
     const OTKeypair encryption_key_;
 
-    std::shared_ptr<Base::SerializedType> serialize(
+    auto serialize(
         const Lock& lock,
         const SerializationModeFlag asPrivate,
-        const SerializationSignatureFlag asSigned) const override;
-    bool verify_internally(const Lock& lock) const override;
+        const SerializationSignatureFlag asSigned) const
+        -> std::shared_ptr<Base::SerializedType> override;
+    auto verify_internally(const Lock& lock) const -> bool override;
 
     void sign(
         const identity::credential::internal::Primary& master,
@@ -129,41 +130,41 @@ private:
     static const VersionConversionMap credential_subversion_;
     static const VersionConversionMap subversion_to_key_version_;
 
-    static OTKeypair deserialize_key(
+    static auto deserialize_key(
         const api::internal::Core& api,
         const int index,
-        const proto::Credential& credential);
-    static OTKeypair new_key(
+        const proto::Credential& credential) -> OTKeypair;
+    static auto new_key(
         const api::internal::Core& api,
         const proto::KeyRole role,
         const NymParameters& nymParameters,
         const VersionNumber version,
         const PasswordPrompt& reason,
-        const ReadView dh = {}) noexcept(false);
-    static OTKeypair signing_key(
+        const ReadView dh = {}) noexcept(false) -> OTKeypair;
+    static auto signing_key(
         const api::internal::Core& api,
         const NymParameters& params,
         const VersionNumber subversion,
         const bool useProvided,
-        const PasswordPrompt& reason) noexcept(false);
+        const PasswordPrompt& reason) noexcept(false) -> OTKeypair;
 
-    bool addKeytoSerializedKeyCredential(
+    auto addKeytoSerializedKeyCredential(
         proto::KeyCredential& credential,
         const bool getPrivate,
-        const proto::KeyRole role) const;
-    bool addKeyCredentialtoSerializedCredential(
+        const proto::KeyRole role) const -> bool;
+    auto addKeyCredentialtoSerializedCredential(
         std::shared_ptr<Base::SerializedType> credential,
-        const bool addPrivate) const;
-    bool VerifySig(
+        const bool addPrivate) const -> bool;
+    auto VerifySig(
         const Lock& lock,
         const proto::Signature& sig,
-        const CredentialModeFlag asPrivate = PRIVATE_VERSION) const;
-    bool VerifySignedBySelf(const Lock& lock) const;
+        const CredentialModeFlag asPrivate = PRIVATE_VERSION) const -> bool;
+    auto VerifySignedBySelf(const Lock& lock) const -> bool;
 
     Key() = delete;
     Key(const Key&) = delete;
     Key(Key&&) = delete;
-    Key& operator=(const Key&) = delete;
-    Key& operator=(Key&&) = delete;
+    auto operator=(const Key&) -> Key& = delete;
+    auto operator=(Key &&) -> Key& = delete;
 };
 }  // namespace opentxs::identity::credential::implementation

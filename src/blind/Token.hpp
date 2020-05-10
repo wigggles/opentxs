@@ -59,20 +59,26 @@ namespace opentxs::blind::token::implementation
 class Token : virtual public blind::Token
 {
 public:
-    const identifier::Server& Notary() const override { return notary_; }
-    Purse& Owner() const noexcept final { return purse_; }
-    MintSeries Series() const override { return series_; }
-    proto::TokenState State() const override { return state_; }
-    proto::CashType Type() const override { return type_; }
-    const identifier::UnitDefinition& Unit() const override { return unit_; }
-    Time ValidFrom() const override { return valid_from_; }
-    Time ValidTo() const override { return valid_to_; }
-    Denomination Value() const override { return denomination_; }
+    auto Notary() const -> const identifier::Server& override
+    {
+        return notary_;
+    }
+    auto Owner() const noexcept -> Purse& final { return purse_; }
+    auto Series() const -> MintSeries override { return series_; }
+    auto State() const -> proto::TokenState override { return state_; }
+    auto Type() const -> proto::CashType override { return type_; }
+    auto Unit() const -> const identifier::UnitDefinition& override
+    {
+        return unit_;
+    }
+    auto ValidFrom() const -> Time override { return valid_from_; }
+    auto ValidTo() const -> Time override { return valid_to_; }
+    auto Value() const -> Denomination override { return denomination_; }
 
-    virtual bool GenerateTokenRequest(
+    virtual auto GenerateTokenRequest(
         const identity::Nym& owner,
         const Mint& mint,
-        const PasswordPrompt& reason) = 0;
+        const PasswordPrompt& reason) -> bool = 0;
 
     ~Token() override = default;
 
@@ -89,14 +95,14 @@ protected:
     const Time valid_from_;
     const Time valid_to_;
 
-    bool reencrypt(
+    auto reencrypt(
         const crypto::key::Symmetric& oldKey,
         const PasswordPrompt& oldPassword,
         const crypto::key::Symmetric& newKey,
         const PasswordPrompt& newPassword,
-        proto::Ciphertext& ciphertext);
+        proto::Ciphertext& ciphertext) -> bool;
 
-    proto::Token Serialize() const override;
+    auto Serialize() const -> proto::Token override;
 
     Token(
         const api::internal::Core& api,
@@ -119,7 +125,7 @@ private:
     const proto::CashType type_;
     const VersionNumber version_;
 
-    virtual Token* clone() const noexcept override = 0;
+    virtual auto clone() const noexcept -> Token* override = 0;
 
     Token(
         const api::internal::Core& api,
@@ -135,7 +141,7 @@ private:
         const VersionNumber version);
     Token() = delete;
     Token(Token&&) = delete;
-    Token& operator=(const Token&) = delete;
-    Token& operator=(Token&&) = delete;
+    auto operator=(const Token&) -> Token& = delete;
+    auto operator=(Token &&) -> Token& = delete;
 };
 }  // namespace opentxs::blind::token::implementation

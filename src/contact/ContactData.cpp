@@ -66,7 +66,7 @@ ContactData::ContactData(
 {
 }
 
-ContactData ContactData::operator+(const ContactData& rhs) const
+auto ContactData::operator+(const ContactData& rhs) const -> ContactData
 {
     auto map{sections_};
 
@@ -106,11 +106,11 @@ ContactData::operator std::string() const
     return PrintContactData(Serialize(false));
 }
 
-ContactData ContactData::AddContract(
+auto ContactData::AddContract(
     const std::string& instrumentDefinitionID,
     const proto::ContactItemType currency,
     const bool primary,
-    const bool active) const
+    const bool active) const -> ContactData
 {
     bool needPrimary{true};
     const proto::ContactSectionName section{proto::CONTACTSECTION_CONTRACT};
@@ -146,10 +146,10 @@ ContactData ContactData::AddContract(
     return AddItem(item);
 }
 
-ContactData ContactData::AddEmail(
+auto ContactData::AddEmail(
     const std::string& value,
     const bool primary,
-    const bool active) const
+    const bool active) const -> ContactData
 {
     bool needPrimary{true};
     const proto::ContactSectionName section{
@@ -187,7 +187,7 @@ ContactData ContactData::AddEmail(
     return AddItem(item);
 }
 
-ContactData ContactData::AddItem(const ClaimTuple& claim) const
+auto ContactData::AddItem(const ClaimTuple& claim) const -> ContactData
 {
     auto version = proto::RequiredVersion(
         static_cast<proto::ContactSectionName>(std::get<1>(claim)),
@@ -200,7 +200,8 @@ ContactData ContactData::AddItem(const ClaimTuple& claim) const
     return AddItem(item);
 }
 
-ContactData ContactData::AddItem(const std::shared_ptr<ContactItem>& item) const
+auto ContactData::AddItem(const std::shared_ptr<ContactItem>& item) const
+    -> ContactData
 {
     OT_ASSERT(item);
 
@@ -229,11 +230,11 @@ ContactData ContactData::AddItem(const std::shared_ptr<ContactItem>& item) const
     return ContactData(api_, nym_, version, version, map);
 }
 
-ContactData ContactData::AddPaymentCode(
+auto ContactData::AddPaymentCode(
     const std::string& code,
     const proto::ContactItemType currency,
     const bool primary,
-    const bool active) const
+    const bool active) const -> ContactData
 {
     bool needPrimary{true};
     const proto::ContactSectionName section{proto::CONTACTSECTION_PROCEDURE};
@@ -269,10 +270,10 @@ ContactData ContactData::AddPaymentCode(
     return AddItem(item);
 }
 
-ContactData ContactData::AddPhoneNumber(
+auto ContactData::AddPhoneNumber(
     const std::string& value,
     const bool primary,
-    const bool active) const
+    const bool active) const -> ContactData
 {
     bool needPrimary{true};
     const proto::ContactSectionName section{
@@ -310,9 +311,8 @@ ContactData ContactData::AddPhoneNumber(
     return AddItem(item);
 }
 
-ContactData ContactData::AddPreferredOTServer(
-    const Identifier& id,
-    const bool primary) const
+auto ContactData::AddPreferredOTServer(const Identifier& id, const bool primary)
+    const -> ContactData
 {
     bool needPrimary{true};
     const proto::ContactSectionName section{
@@ -346,11 +346,11 @@ ContactData ContactData::AddPreferredOTServer(
     return AddItem(item);
 }
 
-ContactData ContactData::AddSocialMediaProfile(
+auto ContactData::AddSocialMediaProfile(
     const std::string& value,
     const proto::ContactItemType type,
     const bool primary,
-    const bool active) const
+    const bool active) const -> ContactData
 {
     auto map = sections_;
     // Add the item to the profile section.
@@ -508,7 +508,7 @@ ContactData ContactData::AddSocialMediaProfile(
     return ContactData(api_, nym_, version, version, map);
 }
 
-std::string ContactData::BestEmail() const
+auto ContactData::BestEmail() const -> std::string
 {
     std::string bestEmail;
 
@@ -524,7 +524,7 @@ std::string ContactData::BestEmail() const
     return bestEmail;
 }
 
-std::string ContactData::BestPhoneNumber() const
+auto ContactData::BestPhoneNumber() const -> std::string
 {
     std::string bestEmail;
 
@@ -540,8 +540,8 @@ std::string ContactData::BestPhoneNumber() const
     return bestEmail;
 }
 
-std::string ContactData::BestSocialMediaProfile(
-    const proto::ContactItemType type) const
+auto ContactData::BestSocialMediaProfile(
+    const proto::ContactItemType type) const -> std::string
 {
     std::string bestProfile;
 
@@ -555,9 +555,9 @@ std::string ContactData::BestSocialMediaProfile(
     return bestProfile;
 }
 
-VersionNumber ContactData::check_version(
+auto ContactData::check_version(
     const VersionNumber in,
-    const VersionNumber targetVersion)
+    const VersionNumber targetVersion) -> VersionNumber
 {
     // Upgrade version
     if (targetVersion > in) { return targetVersion; }
@@ -565,7 +565,8 @@ VersionNumber ContactData::check_version(
     return in;
 }
 
-std::shared_ptr<ContactItem> ContactData::Claim(const Identifier& item) const
+auto ContactData::Claim(const Identifier& item) const
+    -> std::shared_ptr<ContactItem>
 {
     for (const auto& it : sections_) {
         const auto& section = it.second;
@@ -580,9 +581,9 @@ std::shared_ptr<ContactItem> ContactData::Claim(const Identifier& item) const
     return {};
 }
 
-std::set<OTIdentifier> ContactData::Contracts(
+auto ContactData::Contracts(
     const proto::ContactItemType currency,
-    const bool onlyActive) const
+    const bool onlyActive) const -> std::set<OTIdentifier>
 {
     std::set<OTIdentifier> output{};
     const proto::ContactSectionName section{proto::CONTACTSECTION_CONTRACT};
@@ -605,7 +606,7 @@ std::set<OTIdentifier> ContactData::Contracts(
     return output;
 }
 
-ContactData ContactData::Delete(const Identifier& id) const
+auto ContactData::Delete(const Identifier& id) const -> ContactData
 {
     bool deleted{false};
     auto map = sections_;
@@ -633,7 +634,7 @@ ContactData ContactData::Delete(const Identifier& id) const
     return ContactData(api_, nym_, version_, version_, map);
 }
 
-std::string ContactData::EmailAddresses(bool active) const
+auto ContactData::EmailAddresses(bool active) const -> std::string
 {
     std::ostringstream stream;
 
@@ -658,11 +659,11 @@ std::string ContactData::EmailAddresses(bool active) const
     return output;
 }
 
-ContactData::SectionMap ContactData::extract_sections(
+auto ContactData::extract_sections(
     const api::internal::Core& api,
     const std::string& nym,
     const VersionNumber targetVersion,
-    const proto::ContactData& serialized)
+    const proto::ContactData& serialized) -> ContactData::SectionMap
 {
     SectionMap sectionMap{};
 
@@ -679,9 +680,9 @@ ContactData::SectionMap ContactData::extract_sections(
     return sectionMap;
 }
 
-std::shared_ptr<ContactGroup> ContactData::Group(
+auto ContactData::Group(
     const proto::ContactSectionName& section,
-    const proto::ContactItemType& type) const
+    const proto::ContactItemType& type) const -> std::shared_ptr<ContactGroup>
 {
     const auto it = sections_.find(section);
 
@@ -692,7 +693,7 @@ std::shared_ptr<ContactGroup> ContactData::Group(
     return it->second->Group(type);
 }
 
-bool ContactData::HaveClaim(const Identifier& item) const
+auto ContactData::HaveClaim(const Identifier& item) const -> bool
 {
     for (const auto& section : sections_) {
         OT_ASSERT(section.second);
@@ -703,10 +704,10 @@ bool ContactData::HaveClaim(const Identifier& item) const
     return false;
 }
 
-bool ContactData::HaveClaim(
+auto ContactData::HaveClaim(
     const proto::ContactSectionName& section,
     const proto::ContactItemType& type,
-    const std::string& value) const
+    const std::string& value) const -> bool
 {
     auto group = Group(section, type);
 
@@ -723,7 +724,7 @@ bool ContactData::HaveClaim(
     return false;
 }
 
-std::string ContactData::Name() const
+auto ContactData::Name() const -> std::string
 {
     auto group = scope().second;
 
@@ -736,7 +737,7 @@ std::string ContactData::Name() const
     return claim->Value();
 }
 
-std::string ContactData::PhoneNumbers(bool active) const
+auto ContactData::PhoneNumbers(bool active) const -> std::string
 {
     std::ostringstream stream;
 
@@ -761,7 +762,7 @@ std::string ContactData::PhoneNumbers(bool active) const
     return output;
 }
 
-OTServerID ContactData::PreferredOTServer() const
+auto ContactData::PreferredOTServer() const -> OTServerID
 {
     auto group =
         Group(proto::CONTACTSECTION_COMMUNICATION, proto::CITEMTYPE_OPENTXS);
@@ -775,7 +776,8 @@ OTServerID ContactData::PreferredOTServer() const
     return identifier::Server::Factory(claim->Value());
 }
 
-std::string ContactData::PrintContactData(const proto::ContactData& data)
+auto ContactData::PrintContactData(const proto::ContactData& data)
+    -> std::string
 {
     std::stringstream output;
     output << "Version " << data.version() << " contact data" << std::endl;
@@ -808,8 +810,8 @@ std::string ContactData::PrintContactData(const proto::ContactData& data)
     return output.str();
 }
 
-std::shared_ptr<ContactSection> ContactData::Section(
-    const proto::ContactSectionName& section) const
+auto ContactData::Section(const proto::ContactSectionName& section) const
+    -> std::shared_ptr<ContactSection>
 {
     const auto it = sections_.find(section);
 
@@ -818,7 +820,7 @@ std::shared_ptr<ContactSection> ContactData::Section(
     return it->second;
 }
 
-ContactData ContactData::SetCommonName(const std::string& name) const
+auto ContactData::SetCommonName(const std::string& name) const -> ContactData
 {
     const proto::ContactSectionName section{proto::CONTACTSECTION_IDENTIFIER};
     const proto::ContactItemType type{proto::CITEMTYPE_COMMONNAME};
@@ -843,8 +845,8 @@ ContactData ContactData::SetCommonName(const std::string& name) const
     return AddItem(item);
 }
 
-ContactData ContactData::SetName(const std::string& name, const bool primary)
-    const
+auto ContactData::SetName(const std::string& name, const bool primary) const
+    -> ContactData
 {
     const Scope& scopeInfo = scope();
 
@@ -875,9 +877,9 @@ ContactData ContactData::SetName(const std::string& name, const bool primary)
     return AddItem(item);
 }
 
-ContactData ContactData::SetScope(
+auto ContactData::SetScope(
     const proto::ContactItemType type,
-    const std::string& name) const
+    const std::string& name) const -> ContactData
 {
     OT_ASSERT(type);
 
@@ -921,7 +923,7 @@ ContactData ContactData::SetScope(
     }
 }
 
-ContactData::Scope ContactData::scope() const
+auto ContactData::scope() const -> ContactData::Scope
 {
     const auto it = sections_.find(proto::CONTACTSECTION_SCOPE);
 
@@ -936,7 +938,7 @@ ContactData::Scope ContactData::scope() const
     return *section.begin();
 }
 
-proto::ContactData ContactData::Serialize(const bool withID) const
+auto ContactData::Serialize(const bool withID) const -> proto::ContactData
 {
     proto::ContactData output;
     output.set_version(version_);
@@ -952,9 +954,9 @@ proto::ContactData ContactData::Serialize(const bool withID) const
     return output;
 }
 
-std::string ContactData::SocialMediaProfiles(
+auto ContactData::SocialMediaProfiles(
     const proto::ContactItemType type,
-    bool active) const
+    bool active) const -> std::string
 {
     std::ostringstream stream;
 
@@ -978,14 +980,17 @@ std::string ContactData::SocialMediaProfiles(
     return output;
 }
 
-const std::set<proto::ContactItemType> ContactData::SocialMediaProfileTypes()
-    const
+auto ContactData::SocialMediaProfileTypes() const
+    -> const std::set<proto::ContactItemType>
 {
     return proto::AllowedItemTypes().at(proto::ContactSectionVersion(
         CONTACT_CONTACT_DATA_VERSION, proto::CONTACTSECTION_PROFILE));
 }
 
-proto::ContactItemType ContactData::Type() const { return scope().first; }
+auto ContactData::Type() const -> proto::ContactItemType
+{
+    return scope().first;
+}
 
-VersionNumber ContactData::Version() const { return version_; }
+auto ContactData::Version() const -> VersionNumber { return version_; }
 }  // namespace opentxs

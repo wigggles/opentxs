@@ -7,7 +7,7 @@
 
 namespace opentxs::proto
 {
-const ItemAttributeMap& AllowedItemAttributes() noexcept
+auto AllowedItemAttributes() noexcept -> const ItemAttributeMap&
 {
     static const auto output = ItemAttributeMap{
         {1, {CITEMATTR_ACTIVE, CITEMATTR_PRIMARY}},
@@ -20,7 +20,7 @@ const ItemAttributeMap& AllowedItemAttributes() noexcept
 
     return output;
 }
-const ContactItemMap& AllowedItemTypes() noexcept
+auto AllowedItemTypes() noexcept -> const ContactItemMap&
 {
     static const auto output = ContactItemMap{
         {{1, CONTACTSECTION_SCOPE},
@@ -953,7 +953,7 @@ const ContactItemMap& AllowedItemTypes() noexcept
 
     return output;
 }
-const ContactSectionMap& AllowedSectionNames() noexcept
+auto AllowedSectionNames() noexcept -> const ContactSectionMap&
 {
     static const auto output = ContactSectionMap{
         {1,
@@ -1024,14 +1024,14 @@ const ContactSectionMap& AllowedSectionNames() noexcept
 
     return output;
 }
-const std::set<ContactSectionName>& AllowedSubtypes() noexcept
+auto AllowedSubtypes() noexcept -> const std::set<ContactSectionName>&
 {
     static const auto output =
         std::set<ContactSectionName>{CONTACTSECTION_PROCEDURE};
 
     return output;
 }
-const EnumTranslation& ContactItemAttributes() noexcept
+auto ContactItemAttributes() noexcept -> const EnumTranslation&
 {
     static const auto output =
         EnumTranslation{{{CITEMATTR_ACTIVE, "en"}, "Active"},
@@ -1040,7 +1040,7 @@ const EnumTranslation& ContactItemAttributes() noexcept
 
     return output;
 }
-const EnumTranslation& ContactItemTypes() noexcept
+auto ContactItemTypes() noexcept -> const EnumTranslation&
 {
     static const auto output = EnumTranslation{
         {{CITEMTYPE_INDIVIDUAL, "en"}, "Individual"},
@@ -1236,7 +1236,7 @@ const EnumTranslation& ContactItemTypes() noexcept
 
     return output;
 }
-const EnumTranslation& ContactSectionNames() noexcept
+auto ContactSectionNames() noexcept -> const EnumTranslation&
 {
     static const auto output =
         EnumTranslation{{{CONTACTSECTION_SCOPE, "en"}, "Scope"},
@@ -1252,7 +1252,7 @@ const EnumTranslation& ContactSectionNames() noexcept
 
     return output;
 }
-const RelationshipReciprocity& RelationshipMap() noexcept
+auto RelationshipMap() noexcept -> const RelationshipReciprocity&
 {
     static const auto output = RelationshipReciprocity{
         {CITEMTYPE_ORGANIZATION, CITEMTYPE_MEMBER},

@@ -111,7 +111,7 @@ Mint::Mint(const api::internal::Core& core)
 
 // Verify the current date against the VALID FROM / EXPIRATION dates.
 // (As opposed to tokens, which are verified against the valid from/to dates.)
-bool Mint::Expired() const
+auto Mint::Expired() const -> bool
 {
     const auto CURRENT_TIME = Clock::now();
 
@@ -167,12 +167,12 @@ void Mint::InitMint()
     m_EXPIRATION = Time::min();
 }
 
-bool Mint::LoadContract() { return LoadMint(); }
+auto Mint::LoadContract() -> bool { return LoadMint(); }
 
-bool Mint::LoadMint(const char* szAppend)  // todo: server should
-                                           // always pass something
-                                           // here. client never
-                                           // should. Enforcement?
+auto Mint::LoadMint(const char* szAppend) -> bool  // todo: server should
+                                                   // always pass something
+                                                   // here. client never
+                                                   // should. Enforcement?
 {
     if (!m_strFoldername->Exists()) m_strFoldername->Set(api_.Legacy().Mint());
 
@@ -257,7 +257,7 @@ bool Mint::LoadMint(const char* szAppend)  // todo: server should
     return bSuccess;
 }
 
-bool Mint::SaveMint(const char* szAppend)
+auto Mint::SaveMint(const char* szAppend) -> bool
 {
     if (!m_strFoldername->Exists()) m_strFoldername->Set(api_.Legacy().Mint());
 
@@ -342,7 +342,7 @@ bool Mint::SaveMint(const char* szAppend)
 
 // Make sure this contract checks out. Very high level.
 // Verifies ID and signature.
-bool Mint::VerifyMint(const identity::Nym& theOperator)
+auto Mint::VerifyMint(const identity::Nym& theOperator) -> bool
 {
     // Make sure that the supposed Contract ID that was set is actually
     // a hash of the contract file, signatures and all.
@@ -372,7 +372,7 @@ bool Mint::VerifyMint(const identity::Nym& theOperator)
 // Instrument Definition ID
 // from it and then verify that it matches what we were expecting from the asset
 // type.
-bool Mint::VerifyContractID() const
+auto Mint::VerifyContractID() const -> bool
 {
     // I use the == operator here because there is no != operator at this time.
     // That's why you see the ! outside the parenthesis.
@@ -397,7 +397,8 @@ bool Mint::VerifyContractID() const
 
 // The mint has a different key pair for each denomination.
 // Pass in the actual denomination such as 5, 10, 20, 50, 100...
-bool Mint::GetPrivate(Armored& theArmor, std::int64_t lDenomination) const
+auto Mint::GetPrivate(Armored& theArmor, std::int64_t lDenomination) const
+    -> bool
 {
     try {
         theArmor.Set(m_mapPrivate.at(lDenomination));
@@ -414,7 +415,8 @@ bool Mint::GetPrivate(Armored& theArmor, std::int64_t lDenomination) const
 
 // The mint has a different key pair for each denomination.
 // Pass in the actual denomination such as 5, 10, 20, 50, 100...
-bool Mint::GetPublic(Armored& theArmor, std::int64_t lDenomination) const
+auto Mint::GetPublic(Armored& theArmor, std::int64_t lDenomination) const
+    -> bool
 {
     try {
         theArmor.Set(m_mapPublic.at(lDenomination));
@@ -435,7 +437,7 @@ bool Mint::GetPublic(Armored& theArmor, std::int64_t lDenomination) const
 // Then you can subtract the denomination from the amount and call this method
 // again, and again, until it reaches 0, in order to create all the necessary
 // tokens to reach the full withdrawal amount.
-std::int64_t Mint::GetLargestDenomination(std::int64_t lAmount) const
+auto Mint::GetLargestDenomination(std::int64_t lAmount) const -> std::int64_t
 {
     for (std::int32_t nIndex = GetDenominationCount() - 1; nIndex >= 0;
          nIndex--) {
@@ -450,7 +452,7 @@ std::int64_t Mint::GetLargestDenomination(std::int64_t lAmount) const
 // If you call GetDenominationCount, you can then use this method
 // to look up a denomination by index.
 // You could also iterate through them by index.
-std::int64_t Mint::GetDenomination(std::int32_t nIndex) const
+auto Mint::GetDenomination(std::int32_t nIndex) const -> std::int64_t
 {
     // index out of bounds.
     if (nIndex > (m_nDenominationCount - 1)) { return 0; }
@@ -521,7 +523,7 @@ void Mint::UpdateContents(const PasswordPrompt& reason)
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-std::int32_t Mint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
+auto Mint::ProcessXMLNode(irr::io::IrrXMLReader*& xml) -> std::int32_t
 {
     std::int32_t nReturnVal = 0;
 

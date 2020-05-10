@@ -51,18 +51,19 @@ namespace opentxs::identity::implementation
 class Source final : virtual public identity::Source
 {
 public:
-    OTString asString() const noexcept final;
-    OTString Description() const noexcept final;
-    proto::SourceType Type() const noexcept final { return type_; }
-    OTNymID NymID() const noexcept final;
-    std::shared_ptr<proto::NymIDSource> Serialize() const noexcept final;
-    bool Verify(
+    auto asString() const noexcept -> OTString final;
+    auto Description() const noexcept -> OTString final;
+    auto Type() const noexcept -> proto::SourceType final { return type_; }
+    auto NymID() const noexcept -> OTNymID final;
+    auto Serialize() const noexcept
+        -> std::shared_ptr<proto::NymIDSource> final;
+    auto Verify(
         const proto::Credential& master,
-        const proto::Signature& sourceSignature) const noexcept final;
-    bool Sign(
+        const proto::Signature& sourceSignature) const noexcept -> bool final;
+    auto Sign(
         const identity::credential::Primary& credential,
         proto::Signature& sig,
-        const PasswordPrompt& reason) const noexcept final;
+        const PasswordPrompt& reason) const noexcept -> bool final;
 
 private:
     friend opentxs::Factory;
@@ -76,19 +77,19 @@ private:
     OTPaymentCode payment_code_;
     VersionNumber version_;
 
-    static OTAsymmetricKey deserialize_pubkey(
+    static auto deserialize_pubkey(
         const api::Factory& factory,
         const proto::SourceType type,
-        const proto::NymIDSource& serialized);
-    static OTPaymentCode deserialize_paymentcode(
+        const proto::NymIDSource& serialized) -> OTAsymmetricKey;
+    static auto deserialize_paymentcode(
         const api::Factory& factory,
         const proto::SourceType type,
-        const proto::NymIDSource& serialized);
-    static std::unique_ptr<proto::AsymmetricKey> extract_key(
+        const proto::NymIDSource& serialized) -> OTPaymentCode;
+    static auto extract_key(
         const proto::Credential& credential,
-        const proto::KeyRole role);
+        const proto::KeyRole role) -> std::unique_ptr<proto::AsymmetricKey>;
 
-    OTData asData() const;
+    auto asData() const -> OTData;
 
     Source(
         const api::Factory& factory,
@@ -100,7 +101,7 @@ private:
     Source(const Source& rhs) noexcept;
     Source() = delete;
     Source(Source&&) = delete;
-    Source& operator=(const Source&);
-    Source& operator=(Source&&);
+    auto operator=(const Source&) -> Source&;
+    auto operator=(Source &&) -> Source&;
 };
 }  // namespace opentxs::identity::implementation

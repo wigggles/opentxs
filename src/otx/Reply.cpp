@@ -37,7 +37,7 @@ namespace opentxs::otx
 const VersionNumber Reply::DefaultVersion{1};
 const VersionNumber Reply::MaxVersion{1};
 
-OTXReply Reply::Factory(
+auto Reply::Factory(
     const api::internal::Core& api,
     const Nym_p signer,
     const identifier::Nym& recipient,
@@ -46,7 +46,7 @@ OTXReply Reply::Factory(
     const RequestNumber number,
     const bool success,
     const PasswordPrompt& reason,
-    std::shared_ptr<const proto::OTXPush>&& push)
+    std::shared_ptr<const proto::OTXPush>&& push) -> OTXReply
 {
     OT_ASSERT(signer);
 
@@ -70,9 +70,9 @@ OTXReply Reply::Factory(
     return OTXReply{output.release()};
 }
 
-OTXReply Reply::Factory(
+auto Reply::Factory(
     const api::internal::Core& api,
-    const proto::ServerReply serialized)
+    const proto::ServerReply serialized) -> OTXReply
 {
     return OTXReply{new implementation::Reply(api, serialized)};
 }
@@ -140,7 +140,7 @@ Reply::Reply(const Reply& rhs)
 {
 }
 
-proto::ServerReply Reply::Contract() const
+auto Reply::Contract() const -> proto::ServerReply
 {
     Lock lock(lock_);
     auto output = full_version(lock);
@@ -148,9 +148,9 @@ proto::ServerReply Reply::Contract() const
     return output;
 }
 
-Nym_p Reply::extract_nym(
+auto Reply::extract_nym(
     const api::internal::Core& api,
-    const proto::ServerReply serialized)
+    const proto::ServerReply serialized) -> Nym_p
 {
     const auto serverID = identifier::Server::Factory(serialized.server());
 
@@ -163,7 +163,7 @@ Nym_p Reply::extract_nym(
     }
 }
 
-proto::ServerReply Reply::full_version(const Lock& lock) const
+auto Reply::full_version(const Lock& lock) const -> proto::ServerReply
 {
     auto contract = signature_version(lock);
 
@@ -174,12 +174,12 @@ proto::ServerReply Reply::full_version(const Lock& lock) const
     return contract;
 }
 
-OTIdentifier Reply::GetID(const Lock& lock) const
+auto Reply::GetID(const Lock& lock) const -> OTIdentifier
 {
     return api_.Factory().Identifier(id_version(lock));
 }
 
-proto::ServerReply Reply::id_version(const Lock& lock) const
+auto Reply::id_version(const Lock& lock) const -> proto::ServerReply
 {
     proto::ServerReply output{};
     output.set_version(version_);
@@ -197,14 +197,14 @@ proto::ServerReply Reply::id_version(const Lock& lock) const
     return output;
 }
 
-OTData Reply::Serialize() const
+auto Reply::Serialize() const -> OTData
 {
     Lock lock(lock_);
 
     return api_.Factory().Data(full_version(lock));
 }
 
-proto::ServerReply Reply::signature_version(const Lock& lock) const
+auto Reply::signature_version(const Lock& lock) const -> proto::ServerReply
 {
     auto contract = id_version(lock);
     contract.set_id(id_->str());
@@ -212,7 +212,8 @@ proto::ServerReply Reply::signature_version(const Lock& lock) const
     return contract;
 }
 
-bool Reply::update_signature(const Lock& lock, const PasswordPrompt& reason)
+auto Reply::update_signature(const Lock& lock, const PasswordPrompt& reason)
+    -> bool
 {
     if (false == Signable::update_signature(lock, reason)) { return false; }
 
@@ -233,7 +234,7 @@ bool Reply::update_signature(const Lock& lock, const PasswordPrompt& reason)
     return success;
 }
 
-bool Reply::validate(const Lock& lock) const
+auto Reply::validate(const Lock& lock) const -> bool
 {
     bool validNym{false};
 
@@ -274,9 +275,9 @@ bool Reply::validate(const Lock& lock) const
     return true;
 }
 
-bool Reply::verify_signature(
+auto Reply::verify_signature(
     const Lock& lock,
-    const proto::Signature& signature) const
+    const proto::Signature& signature) const -> bool
 {
     if (false == Signable::verify_signature(lock, signature)) { return false; }
 

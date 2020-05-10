@@ -29,9 +29,9 @@ template class opentxs::Pimpl<opentxs::Data>;
 
 namespace std
 {
-bool less<opentxs::Pimpl<opentxs::Data>>::operator()(
+auto less<opentxs::Pimpl<opentxs::Data>>::operator()(
     const opentxs::OTData& lhs,
-    const opentxs::OTData& rhs) const
+    const opentxs::OTData& rhs) const -> bool
 {
     return lhs.get() < rhs.get();
 }
@@ -39,112 +39,130 @@ bool less<opentxs::Pimpl<opentxs::Data>>::operator()(
 
 namespace opentxs
 {
-bool operator==(const OTData& lhs, const Data& rhs) { return lhs.get() == rhs; }
+auto operator==(const OTData& lhs, const Data& rhs) -> bool
+{
+    return lhs.get() == rhs;
+}
 
-bool operator!=(const OTData& lhs, const Data& rhs) { return lhs.get() != rhs; }
+auto operator!=(const OTData& lhs, const Data& rhs) -> bool
+{
+    return lhs.get() != rhs;
+}
 
-bool operator<(const OTData& lhs, const Data& rhs) { return lhs.get() < rhs; }
+auto operator<(const OTData& lhs, const Data& rhs) -> bool
+{
+    return lhs.get() < rhs;
+}
 
-bool operator>(const OTData& lhs, const Data& rhs) { return lhs.get() > rhs; }
+auto operator>(const OTData& lhs, const Data& rhs) -> bool
+{
+    return lhs.get() > rhs;
+}
 
-bool operator<=(const OTData& lhs, const Data& rhs) { return lhs.get() <= rhs; }
+auto operator<=(const OTData& lhs, const Data& rhs) -> bool
+{
+    return lhs.get() <= rhs;
+}
 
-bool operator>=(const OTData& lhs, const Data& rhs) { return lhs.get() >= rhs; }
+auto operator>=(const OTData& lhs, const Data& rhs) -> bool
+{
+    return lhs.get() >= rhs;
+}
 
-OTData& operator+=(OTData& lhs, const OTData& rhs)
+auto operator+=(OTData& lhs, const OTData& rhs) -> OTData&
 {
     lhs.get() += rhs.get();
 
     return lhs;
 }
 
-OTData& operator+=(OTData& lhs, const std::uint8_t rhs)
+auto operator+=(OTData& lhs, const std::uint8_t rhs) -> OTData&
 {
     lhs.get() += rhs;
 
     return lhs;
 }
 
-OTData& operator+=(OTData& lhs, const std::uint16_t rhs)
+auto operator+=(OTData& lhs, const std::uint16_t rhs) -> OTData&
 {
     lhs.get() += rhs;
 
     return lhs;
 }
 
-OTData& operator+=(OTData& lhs, const std::uint32_t rhs)
+auto operator+=(OTData& lhs, const std::uint32_t rhs) -> OTData&
 {
     lhs.get() += rhs;
 
     return lhs;
 }
 
-OTData& operator+=(OTData& lhs, const std::uint64_t rhs)
+auto operator+=(OTData& lhs, const std::uint64_t rhs) -> OTData&
 {
     lhs.get() += rhs;
 
     return lhs;
 }
 
-OTData Data::Factory() { return OTData(new implementation::Data()); }
+auto Data::Factory() -> OTData { return OTData(new implementation::Data()); }
 
-OTData Data::Factory(const Data& rhs)
+auto Data::Factory(const Data& rhs) -> OTData
 {
     return OTData(new implementation::Data(rhs.data(), rhs.size()));
 }
 
-OTData Data::Factory(const void* data, std::size_t size)
+auto Data::Factory(const void* data, std::size_t size) -> OTData
 {
     return OTData(new implementation::Data(data, size));
 }
 
-OTData Data::Factory(const Armored& source)
+auto Data::Factory(const Armored& source) -> OTData
 {
     return OTData(new implementation::Data(source));
 }
 
-OTData Data::Factory(const std::vector<unsigned char>& source)
+auto Data::Factory(const std::vector<unsigned char>& source) -> OTData
 {
     return OTData(new implementation::Data(source));
 }
 
-OTData Data::Factory(const std::vector<std::byte>& source)
+auto Data::Factory(const std::vector<std::byte>& source) -> OTData
 {
     return OTData(new implementation::Data(source));
 }
 
-OTData Data::Factory(const network::zeromq::Frame& message)
+auto Data::Factory(const network::zeromq::Frame& message) -> OTData
 {
     return OTData(new implementation::Data(message.data(), message.size()));
 }
 
-OTData Data::Factory(const std::uint8_t in)
+auto Data::Factory(const std::uint8_t in) -> OTData
 {
     return OTData(new implementation::Data(&in, sizeof(in)));
 }
 
-OTData Data::Factory(const std::uint16_t in)
+auto Data::Factory(const std::uint16_t in) -> OTData
 {
     const auto input = boost::endian::big_uint16_buf_t(in);
 
     return OTData(new implementation::Data(&input, sizeof(input)));
 }
 
-OTData Data::Factory(const std::uint32_t in)
+auto Data::Factory(const std::uint32_t in) -> OTData
 {
     const auto input = boost::endian::big_uint32_buf_t(in);
 
     return OTData(new implementation::Data(&input, sizeof(input)));
 }
 
-OTData Data::Factory(const std::uint64_t in)
+auto Data::Factory(const std::uint64_t in) -> OTData
 {
     const auto input = boost::endian::big_uint64_buf_t(in);
 
     return OTData(new implementation::Data(&input, sizeof(input)));
 }
 
-OTData Data::Factory(const std::string in, const Mode mode)
+auto Data::Factory(const std::string in, const Mode mode) -> OTData
 {
     if (Mode::Hex == mode) {
         auto output = OTData(new implementation::Data(in.data(), in.size()));
@@ -187,7 +205,7 @@ Data::Data(const Vector& rhs, const std::size_t size)
 {
 }
 
-bool Data::operator==(const opentxs::Data& in) const
+auto Data::operator==(const opentxs::Data& in) const -> bool
 {
     if (data_.size() != in.size()) { return false; }
 
@@ -203,7 +221,7 @@ bool Data::operator==(const opentxs::Data& in) const
     return true;
 }
 
-bool Data::operator!=(const opentxs::Data& in) const
+auto Data::operator!=(const opentxs::Data& in) const -> bool
 {
     if (data_.size() != in.size()) { return true; }
 
@@ -219,7 +237,7 @@ bool Data::operator!=(const opentxs::Data& in) const
     return false;
 }
 
-bool Data::operator<(const opentxs::Data& in) const
+auto Data::operator<(const opentxs::Data& in) const -> bool
 {
     if (data_.size() < in.size()) { return true; }
 
@@ -240,7 +258,7 @@ bool Data::operator<(const opentxs::Data& in) const
     return at(x) < in.at(x);
 }
 
-bool Data::operator>(const opentxs::Data& in) const
+auto Data::operator>(const opentxs::Data& in) const -> bool
 {
     if (data_.size() < in.size()) { return false; }
 
@@ -261,7 +279,7 @@ bool Data::operator>(const opentxs::Data& in) const
     return at(x) > in.at(x);
 }
 
-bool Data::operator<=(const opentxs::Data& in) const
+auto Data::operator<=(const opentxs::Data& in) const -> bool
 {
     if (data_.size() < in.size()) { return true; }
 
@@ -280,7 +298,7 @@ bool Data::operator<=(const opentxs::Data& in) const
     return true;
 }
 
-bool Data::operator>=(const opentxs::Data& in) const
+auto Data::operator>=(const opentxs::Data& in) const -> bool
 {
     if (data_.size() < in.size()) { return false; }
 
@@ -299,21 +317,21 @@ bool Data::operator>=(const opentxs::Data& in) const
     return true;
 }
 
-Data& Data::operator+=(const opentxs::Data& rhs)
+auto Data::operator+=(const opentxs::Data& rhs) -> Data&
 {
     concatenate(dynamic_cast<const Data&>(rhs).data_);
 
     return *this;
 }
 
-Data& Data::operator+=(const std::uint8_t rhs)
+auto Data::operator+=(const std::uint8_t rhs) -> Data&
 {
     data_.emplace_back(rhs);
 
     return *this;
 }
 
-Data& Data::operator+=(const std::uint16_t rhs)
+auto Data::operator+=(const std::uint16_t rhs) -> Data&
 {
     const auto input = boost::endian::big_uint16_buf_t(rhs);
     Data temp(&input, sizeof(input));
@@ -322,7 +340,7 @@ Data& Data::operator+=(const std::uint16_t rhs)
     return *this;
 }
 
-Data& Data::operator+=(const std::uint32_t rhs)
+auto Data::operator+=(const std::uint32_t rhs) -> Data&
 {
     const auto input = boost::endian::big_uint32_buf_t(rhs);
     Data temp(&input, sizeof(input));
@@ -331,7 +349,7 @@ Data& Data::operator+=(const std::uint32_t rhs)
     return *this;
 }
 
-Data& Data::operator+=(const std::uint64_t rhs)
+auto Data::operator+=(const std::uint64_t rhs) -> Data&
 {
     const auto input = boost::endian::big_uint64_buf_t(rhs);
     Data temp(&input, sizeof(input));
@@ -340,7 +358,7 @@ Data& Data::operator+=(const std::uint64_t rhs)
     return *this;
 }
 
-std::string Data::asHex() const
+auto Data::asHex() const -> std::string
 {
     std::stringstream out{};
 
@@ -374,7 +392,8 @@ void Data::Assign(const void* data, const std::size_t& size)
     }
 }
 
-bool Data::check_sub(const std::size_t pos, const std::size_t target) const
+auto Data::check_sub(const std::size_t pos, const std::size_t target) const
+    -> bool
 {
     const auto size = data_.size();
 
@@ -402,7 +421,7 @@ void Data::Concatenate(const void* data, const std::size_t& size)
     concatenate(temp.data_);
 }
 
-bool Data::DecodeHex(const std::string& hex)
+auto Data::DecodeHex(const std::string& hex) -> bool
 {
     data_.clear();
 
@@ -424,10 +443,10 @@ bool Data::DecodeHex(const std::string& hex)
     return true;
 }
 
-bool Data::Extract(
+auto Data::Extract(
     const std::size_t amount,
     opentxs::Data& output,
-    const std::size_t pos) const
+    const std::size_t pos) const -> bool
 {
     if (false == check_sub(pos, amount)) { return false; }
 
@@ -436,7 +455,7 @@ bool Data::Extract(
     return true;
 }
 
-bool Data::Extract(std::uint8_t& output, const std::size_t pos) const
+auto Data::Extract(std::uint8_t& output, const std::size_t pos) const -> bool
 {
     if (false == check_sub(pos, sizeof(output))) { return false; }
 
@@ -445,7 +464,7 @@ bool Data::Extract(std::uint8_t& output, const std::size_t pos) const
     return true;
 }
 
-bool Data::Extract(std::uint16_t& output, const std::size_t pos) const
+auto Data::Extract(std::uint16_t& output, const std::size_t pos) const -> bool
 {
     if (false == check_sub(pos, sizeof(output))) { return false; }
 
@@ -456,7 +475,7 @@ bool Data::Extract(std::uint16_t& output, const std::size_t pos) const
     return true;
 }
 
-bool Data::Extract(std::uint32_t& output, const std::size_t pos) const
+auto Data::Extract(std::uint32_t& output, const std::size_t pos) const -> bool
 {
     if (false == check_sub(pos, sizeof(output))) { return false; }
 
@@ -467,7 +486,7 @@ bool Data::Extract(std::uint32_t& output, const std::size_t pos) const
     return true;
 }
 
-bool Data::Extract(std::uint64_t& output, const std::size_t pos) const
+auto Data::Extract(std::uint64_t& output, const std::size_t pos) const -> bool
 {
     if (false == check_sub(pos, sizeof(output))) { return false; }
 
@@ -484,7 +503,7 @@ void Data::Initialize()
     reset();
 }
 
-bool Data::IsNull() const
+auto Data::IsNull() const -> bool
 {
     if (data_.empty()) { return true; }
 
@@ -500,7 +519,8 @@ bool Data::IsNull() const
 // returns how much was actually read. If you start at position 0, and read 100
 // bytes, then you are now on position 100, and the next OTfread will proceed
 // from that position. (Unless you reset().)
-std::size_t Data::OTfread(std::uint8_t* data, const std::size_t& readSize)
+auto Data::OTfread(std::uint8_t* data, const std::size_t& readSize)
+    -> std::size_t
 {
     OT_ASSERT(data != nullptr && readSize > 0);
 
@@ -521,7 +541,7 @@ std::size_t Data::OTfread(std::uint8_t* data, const std::size_t& readSize)
     return sizeToRead;
 }
 
-bool Data::Randomize(const std::size_t& size)
+auto Data::Randomize(const std::size_t& size) -> bool
 {
     SetSize(size);
 
@@ -543,7 +563,7 @@ void Data::SetSize(const std::size_t size)
     if (size > 0) { data_.assign(size, 0); }
 }
 
-std::string Data::str() const
+auto Data::str() const -> std::string
 {
     if (data_.empty()) { return {}; }
 

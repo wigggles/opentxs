@@ -142,17 +142,20 @@ Nym::Nym(
     }
 }
 
-std::string Nym::Alias() const { return alias_; }
+auto Nym::Alias() const -> std::string { return alias_; }
 
-storage::Bip47Channels* Nym::bip47() const
+auto Nym::bip47() const -> storage::Bip47Channels*
 {
     return construct<storage::Bip47Channels>(bip47_lock_, bip47_, bip47_root_);
 }
 
-const storage::Bip47Channels& Nym::Bip47Channels() const { return *bip47(); }
+auto Nym::Bip47Channels() const -> const storage::Bip47Channels&
+{
+    return *bip47();
+}
 
-std::set<std::string> Nym::BlockchainAccountList(
-    const proto::ContactItemType type) const
+auto Nym::BlockchainAccountList(const proto::ContactItemType type) const
+    -> std::set<std::string>
 {
     Lock lock(blockchain_lock_);
 
@@ -163,8 +166,8 @@ std::set<std::string> Nym::BlockchainAccountList(
     return it->second;
 }
 
-proto::ContactItemType Nym::BlockchainAccountType(
-    const std::string& accountID) const
+auto Nym::BlockchainAccountType(const std::string& accountID) const
+    -> proto::ContactItemType
 {
     Lock lock(blockchain_lock_);
 
@@ -178,11 +181,11 @@ proto::ContactItemType Nym::BlockchainAccountType(
 }
 
 template <typename T, typename... Args>
-T* Nym::construct(
+auto Nym::construct(
     std::mutex& mutex,
     std::unique_ptr<T>& pointer,
     const std::string& root,
-    Args&&... params) const
+    Args&&... params) const -> T*
 {
     Lock lock(mutex);
 
@@ -201,19 +204,17 @@ T* Nym::construct(
     return pointer.get();
 }
 
-storage::Contexts* Nym::contexts() const
+auto Nym::contexts() const -> storage::Contexts*
 {
     return construct<storage::Contexts>(
         contexts_lock_, contexts_, contexts_root_);
 }
 
-const storage::Contexts& Nym::Contexts() const { return *contexts(); }
+auto Nym::Contexts() const -> const storage::Contexts& { return *contexts(); }
 
 template <typename T>
-Editor<T> Nym::editor(
-    std::string& root,
-    std::mutex& mutex,
-    T* (Nym::*get)() const)
+auto Nym::editor(std::string& root, std::mutex& mutex, T* (Nym::*get)() const)
+    -> Editor<T>
 {
     std::function<void(T*, Lock&)> callback = [&](T* in, Lock& lock) -> void {
         this->_save(in, lock, mutex, root);
@@ -222,13 +223,13 @@ Editor<T> Nym::editor(
     return Editor<T>(write_lock_, (this->*get)(), callback);
 }
 
-PeerReplies* Nym::finished_reply_box() const
+auto Nym::finished_reply_box() const -> PeerReplies*
 {
     return construct<storage::PeerReplies>(
         finished_reply_box_lock_, finished_reply_box_, finished_peer_reply_);
 }
 
-PeerRequests* Nym::finished_request_box() const
+auto Nym::finished_request_box() const -> PeerRequests*
 {
     return construct<storage::PeerRequests>(
         finished_request_box_lock_,
@@ -236,23 +237,23 @@ PeerRequests* Nym::finished_request_box() const
         finished_peer_request_);
 }
 
-const PeerRequests& Nym::FinishedRequestBox() const
+auto Nym::FinishedRequestBox() const -> const PeerRequests&
 {
     return *finished_request_box();
 }
 
-const PeerReplies& Nym::FinishedReplyBox() const
+auto Nym::FinishedReplyBox() const -> const PeerReplies&
 {
     return *finished_reply_box();
 }
 
-PeerReplies* Nym::incoming_reply_box() const
+auto Nym::incoming_reply_box() const -> PeerReplies*
 {
     return construct<storage::PeerReplies>(
         incoming_reply_box_lock_, incoming_reply_box_, incoming_peer_reply_);
 }
 
-PeerRequests* Nym::incoming_request_box() const
+auto Nym::incoming_request_box() const -> PeerRequests*
 {
     return construct<storage::PeerRequests>(
         incoming_request_box_lock_,
@@ -260,12 +261,12 @@ PeerRequests* Nym::incoming_request_box() const
         incoming_peer_request_);
 }
 
-const PeerRequests& Nym::IncomingRequestBox() const
+auto Nym::IncomingRequestBox() const -> const PeerRequests&
 {
     return *incoming_request_box();
 }
 
-const PeerReplies& Nym::IncomingReplyBox() const
+auto Nym::IncomingReplyBox() const -> const PeerReplies&
 {
     return *incoming_reply_box();
 }
@@ -365,17 +366,17 @@ void Nym::init(const std::string& hash)
     txo_root_ = normalize_hash(serialized->txo().hash());
 }
 
-storage::Issuers* Nym::issuers() const
+auto Nym::issuers() const -> storage::Issuers*
 {
     return construct<storage::Issuers>(issuers_lock_, issuers_, issuers_root_);
 }
 
-const storage::Issuers& Nym::Issuers() const { return *issuers(); }
+auto Nym::Issuers() const -> const storage::Issuers& { return *issuers(); }
 
-bool Nym::Load(
+auto Nym::Load(
     const std::string& id,
     std::shared_ptr<proto::HDAccount>& output,
-    const bool checking) const
+    const bool checking) const -> bool
 {
     Lock lock(blockchain_lock_);
 
@@ -395,10 +396,10 @@ bool Nym::Load(
     return bool(output);
 }
 
-bool Nym::Load(
+auto Nym::Load(
     std::shared_ptr<proto::Nym>& output,
     std::string& alias,
-    const bool checking) const
+    const bool checking) const -> bool
 {
     Lock lock(write_lock_);
 
@@ -423,11 +424,11 @@ bool Nym::Load(
     return true;
 }
 
-bool Nym::Load(
+auto Nym::Load(
     const identifier::Server& notary,
     const identifier::UnitDefinition& unit,
     std::shared_ptr<proto::Purse>& output,
-    const bool checking) const
+    const bool checking) const -> bool
 {
     Lock lock(write_lock_);
     const PurseID id{notary, unit};
@@ -446,23 +447,23 @@ bool Nym::Load(
     return driver_.LoadProto(hash, output, false);
 }
 
-Mailbox* Nym::mail_inbox() const
+auto Nym::mail_inbox() const -> Mailbox*
 {
     return construct<storage::Mailbox>(
         mail_inbox_lock_, mail_inbox_, mail_inbox_root_);
 }
 
-Mailbox* Nym::mail_outbox() const
+auto Nym::mail_outbox() const -> Mailbox*
 {
     return construct<storage::Mailbox>(
         mail_outbox_lock_, mail_outbox_, mail_outbox_root_);
 }
 
-const Mailbox& Nym::MailInbox() const { return *mail_inbox(); }
+auto Nym::MailInbox() const -> const Mailbox& { return *mail_inbox(); }
 
-const Mailbox& Nym::MailOutbox() const { return *mail_outbox(); }
+auto Nym::MailOutbox() const -> const Mailbox& { return *mail_outbox(); }
 
-bool Nym::Migrate(const opentxs::api::storage::Driver& to) const
+auto Nym::Migrate(const opentxs::api::storage::Driver& to) const -> bool
 {
     bool output{true};
     output &= migrate(credentials_, to);
@@ -487,19 +488,19 @@ bool Nym::Migrate(const opentxs::api::storage::Driver& to) const
     return output;
 }
 
-Editor<storage::Bip47Channels> Nym::mutable_Bip47Channels()
+auto Nym::mutable_Bip47Channels() -> Editor<storage::Bip47Channels>
 {
     return editor<storage::Bip47Channels>(
         bip47_root_, bip47_lock_, &Nym::bip47);
 }
 
-Editor<PeerRequests> Nym::mutable_SentRequestBox()
+auto Nym::mutable_SentRequestBox() -> Editor<PeerRequests>
 {
     return editor<storage::PeerRequests>(
         sent_peer_request_, sent_request_box_lock_, &Nym::sent_request_box);
 }
 
-Editor<PeerRequests> Nym::mutable_IncomingRequestBox()
+auto Nym::mutable_IncomingRequestBox() -> Editor<PeerRequests>
 {
     return editor<storage::PeerRequests>(
         incoming_peer_request_,
@@ -507,13 +508,13 @@ Editor<PeerRequests> Nym::mutable_IncomingRequestBox()
         &Nym::incoming_request_box);
 }
 
-Editor<PeerReplies> Nym::mutable_SentReplyBox()
+auto Nym::mutable_SentReplyBox() -> Editor<PeerReplies>
 {
     return editor<storage::PeerReplies>(
         sent_peer_reply_, sent_reply_box_lock_, &Nym::sent_reply_box);
 }
 
-Editor<PeerReplies> Nym::mutable_IncomingReplyBox()
+auto Nym::mutable_IncomingReplyBox() -> Editor<PeerReplies>
 {
     return editor<storage::PeerReplies>(
         incoming_peer_reply_,
@@ -521,7 +522,7 @@ Editor<PeerReplies> Nym::mutable_IncomingReplyBox()
         &Nym::incoming_reply_box);
 }
 
-Editor<PeerRequests> Nym::mutable_FinishedRequestBox()
+auto Nym::mutable_FinishedRequestBox() -> Editor<PeerRequests>
 {
     return editor<storage::PeerRequests>(
         finished_peer_request_,
@@ -529,7 +530,7 @@ Editor<PeerRequests> Nym::mutable_FinishedRequestBox()
         &Nym::finished_request_box);
 }
 
-Editor<PeerReplies> Nym::mutable_FinishedReplyBox()
+auto Nym::mutable_FinishedReplyBox() -> Editor<PeerReplies>
 {
     return editor<storage::PeerReplies>(
         finished_peer_reply_,
@@ -537,7 +538,7 @@ Editor<PeerReplies> Nym::mutable_FinishedReplyBox()
         &Nym::finished_reply_box);
 }
 
-Editor<PeerRequests> Nym::mutable_ProcessedRequestBox()
+auto Nym::mutable_ProcessedRequestBox() -> Editor<PeerRequests>
 {
     return editor<storage::PeerRequests>(
         processed_peer_request_,
@@ -545,7 +546,7 @@ Editor<PeerRequests> Nym::mutable_ProcessedRequestBox()
         &Nym::processed_request_box);
 }
 
-Editor<PeerReplies> Nym::mutable_ProcessedReplyBox()
+auto Nym::mutable_ProcessedReplyBox() -> Editor<PeerReplies>
 {
     return editor<storage::PeerReplies>(
         processed_peer_reply_,
@@ -553,59 +554,59 @@ Editor<PeerReplies> Nym::mutable_ProcessedReplyBox()
         &Nym::processed_reply_box);
 }
 
-Editor<Mailbox> Nym::mutable_MailInbox()
+auto Nym::mutable_MailInbox() -> Editor<Mailbox>
 {
     return editor<storage::Mailbox>(
         mail_inbox_root_, mail_inbox_lock_, &Nym::mail_inbox);
 }
 
-Editor<Mailbox> Nym::mutable_MailOutbox()
+auto Nym::mutable_MailOutbox() -> Editor<Mailbox>
 {
     return editor<storage::Mailbox>(
         mail_outbox_root_, mail_outbox_lock_, &Nym::mail_outbox);
 }
 
-Editor<storage::Threads> Nym::mutable_Threads()
+auto Nym::mutable_Threads() -> Editor<storage::Threads>
 {
     return editor<storage::Threads>(
         threads_root_, threads_lock_, &Nym::threads);
 }
 
-Editor<storage::Contexts> Nym::mutable_Contexts()
+auto Nym::mutable_Contexts() -> Editor<storage::Contexts>
 {
     return editor<storage::Contexts>(
         contexts_root_, contexts_lock_, &Nym::contexts);
 }
 
-Editor<storage::Issuers> Nym::mutable_Issuers()
+auto Nym::mutable_Issuers() -> Editor<storage::Issuers>
 {
     return editor<storage::Issuers>(
         issuers_root_, issuers_lock_, &Nym::issuers);
 }
 
-Editor<storage::PaymentWorkflows> Nym::mutable_PaymentWorkflows()
+auto Nym::mutable_PaymentWorkflows() -> Editor<storage::PaymentWorkflows>
 {
     return editor<storage::PaymentWorkflows>(
         workflows_root_, workflows_lock_, &Nym::workflows);
 }
 
-Editor<storage::Txos> Nym::mutable_TXOs()
+auto Nym::mutable_TXOs() -> Editor<storage::Txos>
 {
     return editor<storage::Txos>(txo_root_, txo_lock_, &Nym::txos);
 }
 
-const storage::PaymentWorkflows& Nym::PaymentWorkflows() const
+auto Nym::PaymentWorkflows() const -> const storage::PaymentWorkflows&
 {
     return *workflows();
 }
 
-PeerReplies* Nym::processed_reply_box() const
+auto Nym::processed_reply_box() const -> PeerReplies*
 {
     return construct<storage::PeerReplies>(
         processed_reply_box_lock_, processed_reply_box_, processed_peer_reply_);
 }
 
-PeerRequests* Nym::processed_request_box() const
+auto Nym::processed_request_box() const -> PeerRequests*
 {
     return construct<storage::PeerRequests>(
         processed_request_box_lock_,
@@ -613,17 +614,17 @@ PeerRequests* Nym::processed_request_box() const
         processed_peer_request_);
 }
 
-const PeerRequests& Nym::ProcessedRequestBox() const
+auto Nym::ProcessedRequestBox() const -> const PeerRequests&
 {
     return *processed_request_box();
 }
 
-const PeerReplies& Nym::ProcessedReplyBox() const
+auto Nym::ProcessedReplyBox() const -> const PeerReplies&
 {
     return *processed_reply_box();
 }
 
-bool Nym::save(const Lock& lock) const
+auto Nym::save(const Lock& lock) const -> bool
 {
     if (!verify_write_lock(lock)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Lock failure.").Flush();
@@ -664,23 +665,29 @@ void Nym::_save(
     }
 }
 
-PeerReplies* Nym::sent_reply_box() const
+auto Nym::sent_reply_box() const -> PeerReplies*
 {
     return construct<storage::PeerReplies>(
         sent_reply_box_lock_, sent_reply_box_, sent_peer_reply_);
 }
 
-PeerRequests* Nym::sent_request_box() const
+auto Nym::sent_request_box() const -> PeerRequests*
 {
     return construct<storage::PeerRequests>(
         sent_request_box_lock_, sent_request_box_, sent_peer_request_);
 }
 
-const PeerRequests& Nym::SentRequestBox() const { return *sent_request_box(); }
+auto Nym::SentRequestBox() const -> const PeerRequests&
+{
+    return *sent_request_box();
+}
 
-const PeerReplies& Nym::SentReplyBox() const { return *sent_reply_box(); }
+auto Nym::SentReplyBox() const -> const PeerReplies&
+{
+    return *sent_reply_box();
+}
 
-proto::StorageNym Nym::serialize() const
+auto Nym::serialize() const -> proto::StorageNym
 {
     proto::StorageNym serialized;
     serialized.set_version(version_);
@@ -769,7 +776,7 @@ proto::StorageNym Nym::serialize() const
     return serialized;
 }
 
-bool Nym::SetAlias(const std::string& alias)
+auto Nym::SetAlias(const std::string& alias) -> bool
 {
     Lock lock(write_lock_);
 
@@ -778,7 +785,8 @@ bool Nym::SetAlias(const std::string& alias)
     return true;
 }
 
-bool Nym::Store(const proto::ContactItemType type, const proto::HDAccount& data)
+auto Nym::Store(const proto::ContactItemType type, const proto::HDAccount& data)
+    -> bool
 {
     const auto& accountID = data.id();
 
@@ -821,10 +829,10 @@ bool Nym::Store(const proto::ContactItemType type, const proto::HDAccount& data)
     return save(writeLock);
 }
 
-bool Nym::Store(
+auto Nym::Store(
     const proto::Nym& data,
     const std::string& alias,
-    std::string& plaintext)
+    std::string& plaintext) -> bool
 {
     Lock lock(write_lock_);
 
@@ -872,7 +880,7 @@ bool Nym::Store(
     return save(lock);
 }
 
-bool Nym::Store(const proto::Purse& purse)
+auto Nym::Store(const proto::Purse& purse) -> bool
 {
     Lock lock(write_lock_);
     const PurseID id{identifier::Server::Factory(purse.notary()),
@@ -887,15 +895,15 @@ bool Nym::Store(const proto::Purse& purse)
     return output;
 }
 
-storage::Threads* Nym::threads() const
+auto Nym::threads() const -> storage::Threads*
 {
     return construct<storage::Threads>(
         threads_lock_, threads_, threads_root_, *mail_inbox(), *mail_outbox());
 }
 
-const storage::Threads& Nym::Threads() const { return *threads(); }
+auto Nym::Threads() const -> const storage::Threads& { return *threads(); }
 
-storage::PaymentWorkflows* Nym::workflows() const
+auto Nym::workflows() const -> storage::PaymentWorkflows*
 {
     return construct<storage::PaymentWorkflows>(
         workflows_lock_, workflows_, workflows_root_);

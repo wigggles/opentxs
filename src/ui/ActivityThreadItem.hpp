@@ -64,16 +64,17 @@ using ActivityThreadItemRow =
 class ActivityThreadItem : public ActivityThreadItemRow
 {
 public:
-    opentxs::Amount Amount() const noexcept override { return 0; }
-    bool Deposit() const noexcept override { return false; }
-    std::string DisplayAmount() const noexcept override { return {}; }
-    bool Loading() const noexcept final { return loading_.get(); }
-    bool MarkRead() const noexcept final;
-    std::string Memo() const noexcept override { return {}; }
-    bool Pending() const noexcept final { return pending_.get(); }
-    std::string Text() const noexcept final;
-    std::chrono::system_clock::time_point Timestamp() const noexcept final;
-    StorageBox Type() const noexcept final { return box_; }
+    auto Amount() const noexcept -> opentxs::Amount override { return 0; }
+    auto Deposit() const noexcept -> bool override { return false; }
+    auto DisplayAmount() const noexcept -> std::string override { return {}; }
+    auto Loading() const noexcept -> bool final { return loading_.get(); }
+    auto MarkRead() const noexcept -> bool final;
+    auto Memo() const noexcept -> std::string override { return {}; }
+    auto Pending() const noexcept -> bool final { return pending_.get(); }
+    auto Text() const noexcept -> std::string final;
+    auto Timestamp() const noexcept
+        -> std::chrono::system_clock::time_point final;
+    auto Type() const noexcept -> StorageBox final { return box_; }
 
     void reindex(
         const ActivityThreadSortKey& key,
@@ -110,8 +111,8 @@ private:
     ActivityThreadItem() = delete;
     ActivityThreadItem(const ActivityThreadItem&) = delete;
     ActivityThreadItem(ActivityThreadItem&&) = delete;
-    ActivityThreadItem& operator=(const ActivityThreadItem&) = delete;
-    ActivityThreadItem& operator=(ActivityThreadItem&&) = delete;
+    auto operator=(const ActivityThreadItem&) -> ActivityThreadItem& = delete;
+    auto operator=(ActivityThreadItem &&) -> ActivityThreadItem& = delete;
 };
 }  // namespace opentxs::ui::implementation
 

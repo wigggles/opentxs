@@ -43,7 +43,7 @@ namespace opentxs::blockchain::p2p::bitcoin::message::implementation
 class Filteradd final : virtual public internal::Filteradd
 {
 public:
-    OTData Element() const noexcept final { return element_; }
+    auto Element() const noexcept -> OTData final { return element_; }
 
     ~Filteradd() final = default;
 
@@ -52,7 +52,7 @@ private:
 
     const OTData element_;
 
-    OTData payload() const noexcept final;
+    auto payload() const noexcept -> OTData final;
 
     Filteradd(
         const api::internal::Core& api,
@@ -64,7 +64,7 @@ private:
         const Data& element) noexcept;
     Filteradd(const Filteradd&) = delete;
     Filteradd(Filteradd&&) = delete;
-    Filteradd& operator=(const Filteradd&) = delete;
-    Filteradd& operator=(Filteradd&&) = delete;
+    auto operator=(const Filteradd&) -> Filteradd& = delete;
+    auto operator=(Filteradd &&) -> Filteradd& = delete;
 };
 }  // namespace opentxs::blockchain::p2p::bitcoin::message::implementation

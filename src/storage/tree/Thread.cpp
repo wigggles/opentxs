@@ -67,14 +67,14 @@ Thread::Thread(
     blank(1);
 }
 
-bool Thread::Add(
+auto Thread::Add(
     const std::string& id,
     const std::uint64_t time,
     const StorageBox& box,
     const std::string& alias,
     const std::string& contents,
     const std::uint64_t index,
-    const std::string& account)
+    const std::string& account) -> bool
 {
     Lock lock(write_lock_);
 
@@ -136,7 +136,7 @@ bool Thread::Add(
     return save(lock);
 }
 
-std::string Thread::Alias() const
+auto Thread::Alias() const -> std::string
 {
     Lock lock(write_lock_);
 
@@ -172,28 +172,28 @@ void Thread::init(const std::string& hash)
     upgrade(lock);
 }
 
-bool Thread::Check(const std::string& id) const
+auto Thread::Check(const std::string& id) const -> bool
 {
     Lock lock(write_lock_);
 
     return items_.end() != items_.find(id);
 }
 
-std::string Thread::ID() const { return id_; }
+auto Thread::ID() const -> std::string { return id_; }
 
-proto::StorageThread Thread::Items() const
+auto Thread::Items() const -> proto::StorageThread
 {
     Lock lock(write_lock_);
 
     return serialize(lock);
 }
 
-bool Thread::Migrate(const opentxs::api::storage::Driver& to) const
+auto Thread::Migrate(const opentxs::api::storage::Driver& to) const -> bool
 {
     return Node::migrate(root_, to);
 }
 
-bool Thread::Read(const std::string& id, const bool unread)
+auto Thread::Read(const std::string& id, const bool unread) -> bool
 {
     Lock lock(write_lock_);
 
@@ -212,7 +212,7 @@ bool Thread::Read(const std::string& id, const bool unread)
     return save(lock);
 }
 
-bool Thread::Remove(const std::string& id)
+auto Thread::Remove(const std::string& id) -> bool
 {
     Lock lock(write_lock_);
 
@@ -242,7 +242,7 @@ bool Thread::Remove(const std::string& id)
     return save(lock);
 }
 
-bool Thread::Rename(const std::string& newID)
+auto Thread::Rename(const std::string& newID) -> bool
 {
     Lock lock(write_lock_);
     const auto oldID = id_;
@@ -256,7 +256,7 @@ bool Thread::Rename(const std::string& newID)
     return save(lock);
 }
 
-bool Thread::save(const Lock& lock) const
+auto Thread::save(const Lock& lock) const -> bool
 {
     OT_ASSERT(verify_write_lock(lock));
 
@@ -267,7 +267,7 @@ bool Thread::save(const Lock& lock) const
     return driver_.StoreProto(serialized, root_);
 }
 
-proto::StorageThread Thread::serialize(const Lock& lock) const
+auto Thread::serialize(const Lock& lock) const -> proto::StorageThread
 {
     OT_ASSERT(verify_write_lock(lock));
 
@@ -291,7 +291,7 @@ proto::StorageThread Thread::serialize(const Lock& lock) const
     return serialized;
 }
 
-bool Thread::SetAlias(const std::string& alias)
+auto Thread::SetAlias(const std::string& alias) -> bool
 {
     Lock lock(write_lock_);
 
@@ -300,7 +300,7 @@ bool Thread::SetAlias(const std::string& alias)
     return true;
 }
 
-Thread::SortedItems Thread::sort(const Lock& lock) const
+auto Thread::sort(const Lock& lock) const -> Thread::SortedItems
 {
     OT_ASSERT(verify_write_lock(lock));
 
@@ -319,7 +319,7 @@ Thread::SortedItems Thread::sort(const Lock& lock) const
     return output;
 }
 
-std::size_t Thread::UnreadCount() const
+auto Thread::UnreadCount() const -> std::size_t
 {
     Lock lock(write_lock_);
     std::size_t output{0};

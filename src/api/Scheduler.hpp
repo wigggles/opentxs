@@ -40,16 +40,19 @@ namespace opentxs::api::implementation
 class Scheduler : virtual public api::Periodic, public Lockable
 {
 public:
-    bool Cancel(const int task) const final { return parent_.Cancel(task); }
-    bool Reschedule(const int task, const std::chrono::seconds& interval)
-        const final
+    auto Cancel(const int task) const -> bool final
+    {
+        return parent_.Cancel(task);
+    }
+    auto Reschedule(const int task, const std::chrono::seconds& interval) const
+        -> bool final
     {
         return parent_.Reschedule(task, interval);
     }
-    int Schedule(
+    auto Schedule(
         const std::chrono::seconds& interval,
         const PeriodicTask& task,
-        const std::chrono::seconds& last) const final
+        const std::chrono::seconds& last) const -> int final
     {
         return parent_.Schedule(interval, task, last);
     }
@@ -80,8 +83,8 @@ private:
     Scheduler() = delete;
     Scheduler(const Scheduler&) = delete;
     Scheduler(Scheduler&&) = delete;
-    Scheduler& operator=(const Scheduler&) = delete;
-    Scheduler& operator=(Scheduler&&) = delete;
+    auto operator=(const Scheduler&) -> Scheduler& = delete;
+    auto operator=(Scheduler &&) -> Scheduler& = delete;
 
     void thread();
 };

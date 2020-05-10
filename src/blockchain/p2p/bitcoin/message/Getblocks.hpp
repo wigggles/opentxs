@@ -52,19 +52,19 @@ namespace opentxs::blockchain::p2p::bitcoin::message
 class Getblocks final : virtual public bitcoin::Message
 {
 public:
-    OPENTXS_EXPORT const std::vector<OTData>& getHashes() const noexcept
+    OPENTXS_EXPORT auto getHashes() const noexcept -> const std::vector<OTData>&
     {
         return header_hashes_;
     }
-    OPENTXS_EXPORT OTData getStopHash() const noexcept
+    OPENTXS_EXPORT auto getStopHash() const noexcept -> OTData
     {
         return Data::Factory(stop_hash_);
     }
-    OPENTXS_EXPORT std::size_t hashCount() const noexcept
+    OPENTXS_EXPORT auto hashCount() const noexcept -> std::size_t
     {
         return header_hashes_.size();
     }
-    OPENTXS_EXPORT OTData payload() const noexcept final
+    OPENTXS_EXPORT auto payload() const noexcept -> OTData final
     {
         try {
             Raw raw_data(version_, header_hashes_, stop_hash_);
@@ -87,7 +87,8 @@ public:
             return Data::Factory();
         }
     }
-    OPENTXS_EXPORT bitcoin::ProtocolVersionUnsigned version() const noexcept
+    OPENTXS_EXPORT auto version() const noexcept
+        -> bitcoin::ProtocolVersionUnsigned
     {
         return version_;
     }
@@ -152,7 +153,7 @@ private:
         const Data& stop_hash) noexcept(false);
     Getblocks(const Getblocks&) = delete;
     Getblocks(Getblocks&&) = delete;
-    Getblocks& operator=(const Getblocks&) = delete;
-    Getblocks& operator=(Getblocks&&) = delete;
+    auto operator=(const Getblocks&) -> Getblocks& = delete;
+    auto operator=(Getblocks &&) -> Getblocks& = delete;
 };
 }  // namespace opentxs::blockchain::p2p::bitcoin::message

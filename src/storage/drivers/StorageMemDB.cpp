@@ -16,12 +16,12 @@
 
 namespace opentxs
 {
-opentxs::api::storage::Plugin* Factory::StorageMemDB(
+auto Factory::StorageMemDB(
     const api::storage::Storage& storage,
     const StorageConfig& config,
     const Digest& hash,
     const Random& random,
-    const Flag& bucket)
+    const Flag& bucket) -> opentxs::api::storage::Plugin*
 {
     return new opentxs::storage::implementation::StorageMemDB(
         storage, config, hash, random, bucket);
@@ -43,7 +43,7 @@ StorageMemDB::StorageMemDB(
 {
 }
 
-bool StorageMemDB::EmptyBucket(const bool bucket) const
+auto StorageMemDB::EmptyBucket(const bool bucket) const -> bool
 {
     eLock lock(shared_lock_);
 
@@ -56,10 +56,10 @@ bool StorageMemDB::EmptyBucket(const bool bucket) const
     return true;
 }
 
-bool StorageMemDB::LoadFromBucket(
+auto StorageMemDB::LoadFromBucket(
     const std::string& key,
     std::string& value,
-    const bool bucket) const
+    const bool bucket) const -> bool
 {
     sLock lock(shared_lock_);
 
@@ -77,7 +77,7 @@ bool StorageMemDB::LoadFromBucket(
     return (false == value.empty());
 }
 
-std::string StorageMemDB::LoadRoot() const
+auto StorageMemDB::LoadRoot() const -> std::string
 {
     sLock lock(shared_lock_);
 
@@ -102,9 +102,9 @@ void StorageMemDB::store(
     promise->set_value(true);
 }
 
-bool StorageMemDB::StoreRoot(
+auto StorageMemDB::StoreRoot(
     [[maybe_unused]] const bool commit,
-    const std::string& hash) const
+    const std::string& hash) const -> bool
 {
     eLock lock(shared_lock_);
     root_ = hash;

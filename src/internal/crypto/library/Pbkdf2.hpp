@@ -12,7 +12,7 @@ namespace opentxs::crypto
 class Pbkdf2
 {
 public:
-    OPENTXS_EXPORT virtual bool PKCS5_PBKDF2_HMAC(
+    OPENTXS_EXPORT virtual auto PKCS5_PBKDF2_HMAC(
         const void* input,
         const std::size_t inputSize,
         const void* salt,
@@ -20,7 +20,7 @@ public:
         const std::size_t iterations,
         const proto::HashType hashType,
         const std::size_t bytes,
-        void* output) const noexcept = 0;
+        void* output) const noexcept -> bool = 0;
 
     virtual ~Pbkdf2() = default;
 
@@ -30,7 +30,7 @@ protected:
 private:
     Pbkdf2(const Pbkdf2&) = delete;
     Pbkdf2(Pbkdf2&&) = delete;
-    Pbkdf2& operator=(const Pbkdf2&) = delete;
-    Pbkdf2& operator=(Pbkdf2&&) = delete;
+    auto operator=(const Pbkdf2&) -> Pbkdf2& = delete;
+    auto operator=(Pbkdf2 &&) -> Pbkdf2& = delete;
 };
 }  // namespace opentxs::crypto

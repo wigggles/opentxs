@@ -67,12 +67,12 @@ class Node
 {
 protected:
     template <class T>
-    bool store_proto(
+    auto store_proto(
         const Lock& lock,
         const T& data,
         const std::string& id,
         const std::string& alias,
-        std::string& plaintext)
+        std::string& plaintext) -> bool
     {
         OT_ASSERT(verify_write_lock(lock))
 
@@ -87,11 +87,11 @@ protected:
     }
 
     template <class T>
-    bool store_proto(
+    auto store_proto(
         const T& data,
         const std::string& id,
         const std::string& alias,
-        std::string& plaintext)
+        std::string& plaintext) -> bool
     {
         Lock lock(write_lock_);
 
@@ -99,10 +99,10 @@ protected:
     }
 
     template <class T>
-    bool store_proto(
+    auto store_proto(
         const T& data,
         const std::string& id,
-        const std::string& alias)
+        const std::string& alias) -> bool
     {
         std::string notUsed;
 
@@ -110,11 +110,11 @@ protected:
     }
 
     template <class T>
-    bool load_proto(
+    auto load_proto(
         const std::string& id,
         std::shared_ptr<T>& output,
         std::string& alias,
-        const bool checking) const
+        const bool checking) const -> bool
     {
         Lock lock(write_lock_);
         const auto& it = item_map_.find(id);
@@ -154,10 +154,10 @@ protected:
     }
 
     template <class T>
-    bool check_revision(
+    auto check_revision(
         const std::string& method,
         const std::uint64_t incoming,
-        Metadata& metadata)
+        Metadata& metadata) -> bool
     {
         const auto& hash = std::get<0>(metadata);
         auto& revision = std::get<2>(metadata);
@@ -187,8 +187,8 @@ private:
     Node() = delete;
     Node(const Node&) = delete;
     Node(Node&&) = delete;
-    Node& operator=(const Node&) = delete;
-    Node& operator=(Node&&) = delete;
+    auto operator=(const Node&) -> Node& = delete;
+    auto operator=(Node &&) -> Node& = delete;
 
 protected:
     friend class Root;
@@ -202,22 +202,22 @@ protected:
     mutable std::mutex write_lock_;
     mutable Index item_map_;
 
-    static std::string normalize_hash(const std::string& hash);
+    static auto normalize_hash(const std::string& hash) -> std::string;
 
-    bool check_hash(const std::string& hash) const;
-    std::uint64_t extract_revision(const proto::Contact& input) const;
-    std::uint64_t extract_revision(const proto::Nym& input) const;
-    std::uint64_t extract_revision(const proto::Seed& input) const;
-    std::string get_alias(const std::string& id) const;
-    bool load_raw(
+    auto check_hash(const std::string& hash) const -> bool;
+    auto extract_revision(const proto::Contact& input) const -> std::uint64_t;
+    auto extract_revision(const proto::Nym& input) const -> std::uint64_t;
+    auto extract_revision(const proto::Seed& input) const -> std::uint64_t;
+    auto get_alias(const std::string& id) const -> std::string;
+    auto load_raw(
         const std::string& id,
         std::string& output,
         std::string& alias,
-        const bool checking) const;
-    bool migrate(
+        const bool checking) const -> bool;
+    auto migrate(
         const std::string& hash,
-        const opentxs::api::storage::Driver& to) const;
-    virtual bool save(const Lock& lock) const = 0;
+        const opentxs::api::storage::Driver& to) const -> bool;
+    virtual auto save(const Lock& lock) const -> bool = 0;
     void serialize_index(
         const VersionNumber version,
         const std::string& id,
@@ -241,35 +241,35 @@ protected:
             version_ = original_version_;
         }
     }
-    bool delete_item(const std::string& id);
-    bool delete_item(const Lock& lock, const std::string& id);
-    bool set_alias(const std::string& id, const std::string& alias);
+    auto delete_item(const std::string& id) -> bool;
+    auto delete_item(const Lock& lock, const std::string& id) -> bool;
+    auto set_alias(const std::string& id, const std::string& alias) -> bool;
     void set_hash(
         const VersionNumber version,
         const std::string& id,
         const std::string& hash,
         proto::StorageItemHash& output,
         const proto::StorageHashType type = proto::STORAGEHASH_PROTO) const;
-    bool store_raw(
+    auto store_raw(
         const std::string& data,
         const std::string& id,
-        const std::string& alias);
-    bool store_raw(
+        const std::string& alias) -> bool;
+    auto store_raw(
         const Lock& lock,
         const std::string& data,
         const std::string& id,
-        const std::string& alias);
-    bool verify_write_lock(const Lock& lock) const;
+        const std::string& alias) -> bool;
+    auto verify_write_lock(const Lock& lock) const -> bool;
 
     virtual void init(const std::string& hash) = 0;
 
     Node(const opentxs::api::storage::Driver& storage, const std::string& key);
 
 public:
-    virtual ObjectList List() const;
-    virtual bool Migrate(const opentxs::api::storage::Driver& to) const;
-    std::string Root() const;
-    VersionNumber UpgradeLevel() const;
+    virtual auto List() const -> ObjectList;
+    virtual auto Migrate(const opentxs::api::storage::Driver& to) const -> bool;
+    auto Root() const -> std::string;
+    auto UpgradeLevel() const -> VersionNumber;
 
     virtual ~Node() = default;
 };

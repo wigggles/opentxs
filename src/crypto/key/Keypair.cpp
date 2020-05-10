@@ -76,7 +76,8 @@ Keypair::Keypair(const Keypair& rhs) noexcept
 {
 }
 
-bool Keypair::CheckCapability(const NymCapability& capability) const noexcept
+auto Keypair::CheckCapability(const NymCapability& capability) const noexcept
+    -> bool
 {
     bool output{false};
 
@@ -90,7 +91,7 @@ bool Keypair::CheckCapability(const NymCapability& capability) const noexcept
 }
 
 // Return the private key as an Asymmetric object
-const Asymmetric& Keypair::GetPrivateKey() const
+auto Keypair::GetPrivateKey() const -> const Asymmetric&
 {
     if (m_pkeyPrivate.get()) { return m_pkeyPrivate; }
 
@@ -98,18 +99,18 @@ const Asymmetric& Keypair::GetPrivateKey() const
 }
 
 // Return the public key as an Asymmetric object
-const Asymmetric& Keypair::GetPublicKey() const
+auto Keypair::GetPublicKey() const -> const Asymmetric&
 {
     if (m_pkeyPublic.get()) { return m_pkeyPublic; }
 
     throw std::runtime_error("public key missing");
 }
 
-std::int32_t Keypair::GetPublicKeyBySignature(
+auto Keypair::GetPublicKeyBySignature(
     Keys& listOutput,  // Inclusive means, return the key even
                        // when theSignature has no metadata.
     const Signature& theSignature,
-    bool bInclusive) const noexcept
+    bool bInclusive) const noexcept -> std::int32_t
 {
     OT_ASSERT(m_pkeyPublic.get());
 
@@ -147,8 +148,8 @@ std::int32_t Keypair::GetPublicKeyBySignature(
     return 0;
 }
 
-std::shared_ptr<proto::AsymmetricKey> Keypair::GetSerialized(
-    bool privateKey) const noexcept
+auto Keypair::GetSerialized(bool privateKey) const noexcept
+    -> std::shared_ptr<proto::AsymmetricKey>
 {
     OT_ASSERT(m_pkeyPublic.get());
 
@@ -161,10 +162,10 @@ std::shared_ptr<proto::AsymmetricKey> Keypair::GetSerialized(
     }
 }
 
-bool Keypair::GetTransportKey(
+auto Keypair::GetTransportKey(
     Data& publicKey,
     OTPassword& privateKey,
-    const opentxs::PasswordPrompt& reason) const noexcept
+    const opentxs::PasswordPrompt& reason) const noexcept -> bool
 {
     return m_pkeyPrivate->TransportKey(publicKey, privateKey, reason);
 }

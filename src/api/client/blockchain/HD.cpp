@@ -33,10 +33,10 @@
 
 namespace opentxs
 {
-api::client::blockchain::internal::HD* Factory::BlockchainHDBalanceNode(
+auto Factory::BlockchainHDBalanceNode(
     const api::client::blockchain::internal::BalanceTree& parent,
     const proto::HDPath& path,
-    Identifier& id)
+    Identifier& id) -> api::client::blockchain::internal::HD*
 {
     using ReturnType = api::client::blockchain::implementation::HD;
     auto reason = parent.API().Factory().PasswordPrompt(
@@ -51,10 +51,10 @@ api::client::blockchain::internal::HD* Factory::BlockchainHDBalanceNode(
     }
 }
 
-api::client::blockchain::internal::HD* Factory::BlockchainHDBalanceNode(
+auto Factory::BlockchainHDBalanceNode(
     const api::client::blockchain::internal::BalanceTree& parent,
     const proto::HDAccount& serialized,
-    Identifier& id)
+    Identifier& id) -> api::client::blockchain::internal::HD*
 {
     using ReturnType = api::client::blockchain::implementation::HD;
     auto reason =
@@ -142,9 +142,8 @@ HD::HD(
     }
 }
 
-const HD::Element& HD::BalanceElement(
-    const Subchain type,
-    const Bip32Index index) const noexcept(false)
+auto HD::BalanceElement(const Subchain type, const Bip32Index index) const
+    noexcept(false) -> const HD::Element&
 {
     switch (type) {
         case Subchain::Internal: {
@@ -159,11 +158,11 @@ const HD::Element& HD::BalanceElement(
     }
 }
 
-bool HD::check_activity(
+auto HD::check_activity(
     const Lock& lock,
     const std::vector<Activity>& unspent,
     std::set<OTIdentifier>& contacts,
-    const PasswordPrompt& reason) const noexcept
+    const PasswordPrompt& reason) const noexcept -> bool
 {
     try {
         const auto currentExternal = used_.at(Subchain::External) - 1;
@@ -216,11 +215,11 @@ bool HD::check_activity(
     }
 }
 
-HD::AddressMap HD::extract_external(
+auto HD::extract_external(
     const internal::BalanceNode& parent,
     const client::internal::Blockchain& api,
     const opentxs::blockchain::Type chain,
-    const SerializedType& in) noexcept(false)
+    const SerializedType& in) noexcept(false) -> HD::AddressMap
 {
     AddressMap output{};
 
@@ -235,7 +234,7 @@ HD::AddressMap HD::extract_external(
     return output;
 }
 
-std::vector<Activity> HD::extract_incoming(const SerializedType& in)
+auto HD::extract_incoming(const SerializedType& in) -> std::vector<Activity>
 {
     std::vector<Activity> output{};
 
@@ -246,11 +245,11 @@ std::vector<Activity> HD::extract_incoming(const SerializedType& in)
     return output;
 }
 
-HD::AddressMap HD::extract_internal(
+auto HD::extract_internal(
     const internal::BalanceNode& parent,
     const client::internal::Blockchain& api,
     const opentxs::blockchain::Type chain,
-    const SerializedType& in) noexcept(false)
+    const SerializedType& in) noexcept(false) -> HD::AddressMap
 {
     AddressMap output{};
 
@@ -265,7 +264,7 @@ HD::AddressMap HD::extract_internal(
     return output;
 }
 
-std::vector<Activity> HD::extract_outgoing(const SerializedType& in)
+auto HD::extract_outgoing(const SerializedType& in) -> std::vector<Activity>
 {
     std::vector<Activity> output{};
 
@@ -277,10 +276,10 @@ std::vector<Activity> HD::extract_outgoing(const SerializedType& in)
 }
 
 #if OT_CRYPTO_WITH_BIP32
-Bip32Index HD::generate_next(
+auto HD::generate_next(
     const Lock& lock,
     const Subchain type,
-    const PasswordPrompt& reason) const noexcept(false)
+    const PasswordPrompt& reason) const noexcept(false) -> Bip32Index
 {
     auto& index = generated_.at(type);
 
@@ -321,7 +320,8 @@ Bip32Index HD::generate_next(
 }
 #endif  // OT_CRYPTO_WITH_BIP32
 
-ECKey HD::Key(const Subchain type, const Bip32Index index) const noexcept
+auto HD::Key(const Subchain type, const Bip32Index index) const noexcept
+    -> ECKey
 {
     try {
         switch (type) {
@@ -343,10 +343,10 @@ ECKey HD::Key(const Subchain type, const Bip32Index index) const noexcept
     }
 }
 
-internal::BalanceElement& HD::mutable_element(
+auto HD::mutable_element(
     const Lock& lock,
     const Subchain type,
-    const Bip32Index index) noexcept(false)
+    const Bip32Index index) noexcept(false) -> internal::BalanceElement&
 {
     switch (type) {
         case Subchain::Internal: {
@@ -361,7 +361,7 @@ internal::BalanceElement& HD::mutable_element(
     }
 }
 
-bool HD::save(const Lock& lock) const noexcept
+auto HD::save(const Lock& lock) const noexcept -> bool
 {
     const auto type = Translate(chain_);
     SerializedType serialized{};

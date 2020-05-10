@@ -35,13 +35,13 @@ private:
 
     const zeromq::PairEventCallback::ReceiveCallback callback_;
 
-    PairEventCallback* clone() const final;
+    auto clone() const -> PairEventCallback* final;
 
     PairEventCallback(zeromq::PairEventCallback::ReceiveCallback callback);
     PairEventCallback() = delete;
     PairEventCallback(const PairEventCallback&) = delete;
     PairEventCallback(PairEventCallback&&) = delete;
-    PairEventCallback& operator=(const PairEventCallback&) = delete;
-    PairEventCallback& operator=(PairEventCallback&&) = delete;
+    auto operator=(const PairEventCallback&) -> PairEventCallback& = delete;
+    auto operator=(PairEventCallback &&) -> PairEventCallback& = delete;
 };
 }  // namespace opentxs::network::zeromq::implementation

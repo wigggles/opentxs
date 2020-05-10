@@ -41,7 +41,7 @@
 
 namespace opentxs
 {
-api::client::internal::Manager* Factory::ClientManager(
+auto Factory::ClientManager(
     const api::internal::Context& parent,
     Flag& running,
     const ArgList& args,
@@ -49,7 +49,7 @@ api::client::internal::Manager* Factory::ClientManager(
     const api::Crypto& crypto,
     const network::zeromq::Context& context,
     const std::string& dataFolder,
-    const int instance)
+    const int instance) -> api::client::internal::Manager*
 {
     return new api::client::implementation::Manager(
         parent, running, args, config, crypto, context, dataFolder, instance);
@@ -143,14 +143,14 @@ Manager::Manager(
     Init();
 }
 
-const api::client::Activity& Manager::Activity() const
+auto Manager::Activity() const -> const api::client::Activity&
 {
     OT_ASSERT(activity_)
 
     return *activity_;
 }
 
-const api::client::Blockchain& Manager::Blockchain() const
+auto Manager::Blockchain() const -> const api::client::Blockchain&
 {
     OT_ASSERT(blockchain_)
 
@@ -173,21 +173,21 @@ void Manager::Cleanup()
     Core::cleanup();
 }
 
-const api::client::Contacts& Manager::Contacts() const
+auto Manager::Contacts() const -> const api::client::Contacts&
 {
     OT_ASSERT(contacts_)
 
     return *contacts_;
 }
 
-std::recursive_mutex& Manager::get_lock(const ContextID context) const
+auto Manager::get_lock(const ContextID context) const -> std::recursive_mutex&
 {
     opentxs::Lock lock(map_lock_);
 
     return context_locks_[context];
 }
 
-const OTAPI_Exec& Manager::Exec(const std::string&) const
+auto Manager::Exec(const std::string&) const -> const OTAPI_Exec&
 {
     OT_ASSERT(otapi_exec_);
 
@@ -212,35 +212,35 @@ void Manager::Init()
     pair_->init();
 }
 
-std::recursive_mutex& Manager::Lock(
+auto Manager::Lock(
     const identifier::Nym& nymID,
-    const identifier::Server& serverID) const
+    const identifier::Server& serverID) const -> std::recursive_mutex&
 {
     return get_lock({nymID.str(), serverID.str()});
 }
 
-const OT_API& Manager::OTAPI(const std::string&) const
+auto Manager::OTAPI(const std::string&) const -> const OT_API&
 {
     OT_ASSERT(ot_api_);
 
     return *ot_api_;
 }
 
-const api::client::OTX& Manager::OTX() const
+auto Manager::OTX() const -> const api::client::OTX&
 {
     OT_ASSERT(otx_);
 
     return *otx_;
 }
 
-const api::client::Pair& Manager::Pair() const
+auto Manager::Pair() const -> const api::client::Pair&
 {
     OT_ASSERT(pair_);
 
     return *pair_;
 }
 
-const api::client::ServerAction& Manager::ServerAction() const
+auto Manager::ServerAction() const -> const api::client::ServerAction&
 {
     OT_ASSERT(server_action_);
 
@@ -265,21 +265,21 @@ void Manager::StartContacts()
     contacts_->start();
 }
 
-const api::client::UI& Manager::UI() const
+auto Manager::UI() const -> const api::client::UI&
 {
     OT_ASSERT(ui_)
 
     return *ui_;
 }
 
-const api::client::Workflow& Manager::Workflow() const
+auto Manager::Workflow() const -> const api::client::Workflow&
 {
     OT_ASSERT(workflow_);
 
     return *workflow_;
 }
 
-const api::network::ZMQ& Manager::ZMQ() const
+auto Manager::ZMQ() const -> const api::network::ZMQ&
 {
     OT_ASSERT(zeromq_);
 

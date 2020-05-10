@@ -12,7 +12,7 @@
 
 namespace opentxs::proto
 {
-bool CheckProto_1(const StorageItems& input, const bool silent)
+auto CheckProto_1(const StorageItems& input, const bool silent) -> bool
 {
     OPTIONAL_IDENTIFIER(creds);
     OPTIONAL_IDENTIFIER(nyms);

@@ -76,7 +76,10 @@ class ContactSection final
     : public Combined<ContactSectionList, ContactSectionRow, ContactSortKey>
 {
 public:
-    std::string ContactID() const noexcept final { return primary_id_->str(); }
+    auto ContactID() const noexcept -> std::string final
+    {
+        return primary_id_->str();
+    }
 #if OT_QT
     int FindRow(const ContactSectionRowID& id, const ContactSectionSortKey& key)
         const noexcept final
@@ -84,11 +87,14 @@ public:
         return find_row(id, key);
     }
 #endif
-    std::string Name(const std::string& lang) const noexcept final
+    auto Name(const std::string& lang) const noexcept -> std::string final
     {
         return proto::TranslateSectionName(row_id_, lang);
     }
-    proto::ContactSectionName Type() const noexcept final { return row_id_; }
+    auto Type() const noexcept -> proto::ContactSectionName final
+    {
+        return row_id_;
+    }
 
     void reindex(
         const implementation::ContactSortKey& key,
@@ -116,27 +122,27 @@ private:
         map<proto::ContactSectionName, std::map<proto::ContactItemType, int>>
             sort_keys_;
 
-    static int sort_key(const ContactSectionRowID type) noexcept;
-    static bool check_type(const ContactSectionRowID type) noexcept;
+    static auto sort_key(const ContactSectionRowID type) noexcept -> int;
+    static auto check_type(const ContactSectionRowID type) noexcept -> bool;
 
-    void* construct_row(
+    auto construct_row(
         const ContactSectionRowID& id,
         const ContactSectionSortKey& index,
-        const CustomData& custom) const noexcept final;
+        const CustomData& custom) const noexcept -> void* final;
 
-    bool last(const ContactSectionRowID& id) const noexcept final
+    auto last(const ContactSectionRowID& id) const noexcept -> bool final
     {
         return ContactSectionList::last(id);
     }
-    std::set<ContactSectionRowID> process_section(
-        const opentxs::ContactSection& section) noexcept;
+    auto process_section(const opentxs::ContactSection& section) noexcept
+        -> std::set<ContactSectionRowID>;
     void startup(const CustomData custom) noexcept;
 
     ContactSection() = delete;
     ContactSection(const ContactSection&) = delete;
     ContactSection(ContactSection&&) = delete;
-    ContactSection& operator=(const ContactSection&) = delete;
-    ContactSection& operator=(ContactSection&&) = delete;
+    auto operator=(const ContactSection&) -> ContactSection& = delete;
+    auto operator=(ContactSection &&) -> ContactSection& = delete;
 };
 }  // namespace opentxs::ui::implementation
 

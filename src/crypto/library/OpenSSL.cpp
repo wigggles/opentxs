@@ -33,7 +33,7 @@ extern "C" {
 
 namespace opentxs
 {
-crypto::OpenSSL* Factory::OpenSSL(const api::Crypto& crypto)
+auto Factory::OpenSSL(const api::Crypto& crypto) -> crypto::OpenSSL*
 {
     return new crypto::implementation::OpenSSL(crypto);
 }
@@ -508,8 +508,8 @@ auto OpenSSL::import_dh(const ReadView existing, ::EVP_PKEY* output) const
     private:
         DH(const DH&) = delete;
         DH(DH&&) = delete;
-        DH& operator=(const DH&) = delete;
-        DH& operator=(DH&&) = delete;
+        auto operator=(const DH&) -> DH& = delete;
+        auto operator=(DH &&) -> DH& = delete;
     };
 
     auto dh = DH{};
@@ -566,8 +566,8 @@ auto OpenSSL::make_dh_key(
     private:
         Key(const Key&) = delete;
         Key(Key&&) = delete;
-        Key& operator=(const Key&) = delete;
-        Key& operator=(Key&&) = delete;
+        auto operator=(const Key&) -> Key& = delete;
+        auto operator=(Key &&) -> Key& = delete;
     };
 
     auto params = Key{};

@@ -76,31 +76,31 @@ class Manager final : internal::Manager, api::implementation::Core
 public:
     void DropIncoming(const int count) const final;
     void DropOutgoing(const int count) const final;
-    std::string GetAdminNym() const final;
-    std::string GetAdminPassword() const final;
-    std::string GetCommandPort() const final;
-    std::string GetDefaultBindIP() const final;
-    std::string GetEEP() const final;
-    std::string GetExternalIP() const final;
-    std::string GetInproc() const final;
-    std::string GetListenCommand() const final;
-    std::string GetListenNotify() const final;
-    std::string GetOnion() const final;
+    auto GetAdminNym() const -> std::string final;
+    auto GetAdminPassword() const -> std::string final;
+    auto GetCommandPort() const -> std::string final;
+    auto GetDefaultBindIP() const -> std::string final;
+    auto GetEEP() const -> std::string final;
+    auto GetExternalIP() const -> std::string final;
+    auto GetInproc() const -> std::string final;
+    auto GetListenCommand() const -> std::string final;
+    auto GetListenNotify() const -> std::string final;
+    auto GetOnion() const -> std::string final;
 #if OT_CASH
-    std::shared_ptr<blind::Mint> GetPrivateMint(
+    auto GetPrivateMint(
         const identifier::UnitDefinition& unitID,
-        std::uint32_t series) const final;
-    std::shared_ptr<const blind::Mint> GetPublicMint(
-        const identifier::UnitDefinition& unitID) const final;
+        std::uint32_t series) const -> std::shared_ptr<blind::Mint> final;
+    auto GetPublicMint(const identifier::UnitDefinition& unitID) const
+        -> std::shared_ptr<const blind::Mint> final;
 #endif  // OT_CASH
-    std::string GetUserName() const final;
-    std::string GetUserTerms() const final;
-    const identifier::Server& ID() const final;
-    const identifier::Nym& NymID() const final;
+    auto GetUserName() const -> std::string final;
+    auto GetUserTerms() const -> std::string final;
+    auto ID() const -> const identifier::Server& final;
+    auto NymID() const -> const identifier::Nym& final;
 #if OT_CASH
     void ScanMints() const final;
 #endif  // OT_CASH
-    opentxs::server::Server& Server() const final { return server_; }
+    auto Server() const -> opentxs::server::Server& final { return server_; }
 #if OT_CASH
     void SetMintKeySize(const std::size_t size) const final
     {
@@ -139,29 +139,31 @@ private:
         const std::string& unitID,
         const std::uint32_t series) const;
 #endif  // OT_CASH
-    const std::string get_arg(const std::string& argName) const;
+    auto get_arg(const std::string& argName) const -> const std::string;
 #if OT_CASH
-    std::int32_t last_generated_series(
+    auto last_generated_series(
         const std::string& serverID,
-        const std::string& unitID) const;
-    std::shared_ptr<blind::Mint> load_private_mint(
+        const std::string& unitID) const -> std::int32_t;
+    auto load_private_mint(
         const opentxs::Lock& lock,
         const std::string& unitID,
-        const std::string seriesID) const;
-    std::shared_ptr<blind::Mint> load_public_mint(
+        const std::string seriesID) const -> std::shared_ptr<blind::Mint>;
+    auto load_public_mint(
         const opentxs::Lock& lock,
         const std::string& unitID,
-        const std::string seriesID) const;
+        const std::string seriesID) const -> std::shared_ptr<blind::Mint>;
     void mint() const;
 #endif  // OT_CASH
-    bool verify_lock(const opentxs::Lock& lock, const std::mutex& mutex) const;
+    auto verify_lock(const opentxs::Lock& lock, const std::mutex& mutex) const
+        -> bool;
 #if OT_CASH
-    std::shared_ptr<blind::Mint> verify_mint(
+    auto verify_mint(
         const opentxs::Lock& lock,
         const std::string& unitID,
         const std::string seriesID,
-        std::shared_ptr<blind::Mint>& mint) const;
-    bool verify_mint_directory(const std::string& serverID) const;
+        std::shared_ptr<blind::Mint>& mint) const
+        -> std::shared_ptr<blind::Mint>;
+    auto verify_mint_directory(const std::string& serverID) const -> bool;
 #endif  // OT_CASH
 
     void Cleanup();
@@ -180,7 +182,7 @@ private:
     Manager() = delete;
     Manager(const Manager&) = delete;
     Manager(Manager&&) = delete;
-    Manager& operator=(const Manager&) = delete;
-    Manager& operator=(Manager&&) = delete;
+    auto operator=(const Manager&) -> Manager& = delete;
+    auto operator=(Manager &&) -> Manager& = delete;
 };
 }  // namespace opentxs::api::server::implementation

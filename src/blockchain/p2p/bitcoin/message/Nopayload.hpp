@@ -52,7 +52,7 @@ public:
 private:
     friend opentxs::Factory;
 
-    OTData payload() const noexcept final { return Data::Factory(); }
+    auto payload() const noexcept -> OTData final { return Data::Factory(); }
 
     Nopayload(
         const api::internal::Core& api,
@@ -70,7 +70,7 @@ private:
     }
     Nopayload(const Nopayload&) = delete;
     Nopayload(Nopayload&&) = delete;
-    Nopayload& operator=(const Nopayload&) = delete;
-    Nopayload& operator=(Nopayload&&) = delete;
+    auto operator=(const Nopayload&) -> Nopayload& = delete;
+    auto operator=(Nopayload &&) -> Nopayload& = delete;
 };
 }  // namespace opentxs::blockchain::p2p::bitcoin::message::implementation

@@ -46,7 +46,7 @@ namespace opentxs::crypto::key
 const VersionNumber Asymmetric::DefaultVersion{2};
 const VersionNumber Asymmetric::MaxVersion{2};
 
-OTAsymmetricKey Asymmetric::Factory() noexcept
+auto Asymmetric::Factory() noexcept -> OTAsymmetricKey
 {
     return OTAsymmetricKey(new implementation::Null);
 }

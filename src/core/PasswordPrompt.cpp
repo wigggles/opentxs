@@ -12,9 +12,9 @@
 
 namespace opentxs
 {
-opentxs::PasswordPrompt* Factory::PasswordPrompt(
+auto Factory::PasswordPrompt(
     const api::internal::Core& api,
-    const std::string& text)
+    const std::string& text) -> opentxs::PasswordPrompt*
 {
     return new opentxs::PasswordPrompt(api, text);
 }
@@ -35,26 +35,27 @@ PasswordPrompt::PasswordPrompt(const PasswordPrompt& rhs) noexcept
 {
 }
 
-bool PasswordPrompt::ClearPassword()
+auto PasswordPrompt::ClearPassword() -> bool
 {
     password_.reset();
 
     return true;
 }
 
-const char* PasswordPrompt::GetDisplayString() const
+auto PasswordPrompt::GetDisplayString() const -> const char*
 {
     return display_.c_str();
 }
 
-bool PasswordPrompt::SetPassword(const OTPassword& password)
+auto PasswordPrompt::SetPassword(const OTPassword& password) -> bool
 {
     password_.reset(new OTPassword(password));
 
     return true;
 }
 
-const std::unique_ptr<const OTPassword>& PasswordPrompt::Password() const
+auto PasswordPrompt::Password() const
+    -> const std::unique_ptr<const OTPassword>&
 {
     return password_;
 }

@@ -68,16 +68,16 @@ private:
     const std::string txid_;
     const Amount amount_;
 
-    BailmentNotice* clone() const noexcept final
+    auto clone() const noexcept -> BailmentNotice* final
     {
         return new BailmentNotice(*this);
     }
-    SerializedType IDVersion(const Lock& lock) const final;
+    auto IDVersion(const Lock& lock) const -> SerializedType final;
 
     BailmentNotice() = delete;
     BailmentNotice(const BailmentNotice&);
     BailmentNotice(BailmentNotice&&) = delete;
-    BailmentNotice& operator=(const BailmentNotice&) = delete;
-    BailmentNotice& operator=(BailmentNotice&&) = delete;
+    auto operator=(const BailmentNotice&) -> BailmentNotice& = delete;
+    auto operator=(BailmentNotice &&) -> BailmentNotice& = delete;
 };
 }  // namespace opentxs::contract::peer::request::implementation

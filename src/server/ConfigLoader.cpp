@@ -27,10 +27,10 @@
 
 namespace opentxs::server
 {
-bool ConfigLoader::load(
+auto ConfigLoader::load(
     const api::internal::Core& api,
     const api::Settings& config,
-    String& walletFilename)
+    String& walletFilename) -> bool
 {
 
     // Setup Config File

@@ -75,7 +75,7 @@ private:
     const std::uint32_t count_;
     const Space filter_;
 
-    OTData payload() const noexcept final;
+    auto payload() const noexcept -> OTData final;
 
     Cfilter(
         const api::internal::Core& api,
@@ -93,7 +93,7 @@ private:
         Space&& compressed) noexcept;
     Cfilter(const Cfilter&) = delete;
     Cfilter(Cfilter&&) = delete;
-    Cfilter& operator=(const Cfilter&) = delete;
-    Cfilter& operator=(Cfilter&&) = delete;
+    auto operator=(const Cfilter&) -> Cfilter& = delete;
+    auto operator=(Cfilter &&) -> Cfilter& = delete;
 };
 }  // namespace opentxs::blockchain::p2p::bitcoin::message::implementation

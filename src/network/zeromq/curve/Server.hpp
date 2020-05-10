@@ -36,13 +36,13 @@ namespace opentxs::network::zeromq::curve::implementation
 class Server : virtual public zeromq::curve::Server
 {
 public:
-    bool SetDomain(const std::string& domain) const noexcept final;
-    bool SetPrivateKey(const OTPassword& key) const noexcept final;
-    bool SetPrivateKey(const std::string& z85) const noexcept final;
+    auto SetDomain(const std::string& domain) const noexcept -> bool final;
+    auto SetPrivateKey(const OTPassword& key) const noexcept -> bool final;
+    auto SetPrivateKey(const std::string& z85) const noexcept -> bool final;
 
 protected:
-    bool set_private_key(const void* key, const std::size_t keySize) const
-        noexcept;
+    auto set_private_key(const void* key, const std::size_t keySize) const
+        noexcept -> bool;
 
     Server(zeromq::socket::implementation::Socket& socket) noexcept;
 
@@ -54,7 +54,7 @@ private:
     Server() = delete;
     Server(const Server&) = delete;
     Server(Server&&) = delete;
-    Server& operator=(const Server&) = delete;
-    Server& operator=(Server&&) = delete;
+    auto operator=(const Server&) -> Server& = delete;
+    auto operator=(Server &&) -> Server& = delete;
 };
 }  // namespace opentxs::network::zeromq::curve::implementation

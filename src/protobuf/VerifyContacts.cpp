@@ -11,7 +11,7 @@ namespace opentxs
 {
 namespace proto
 {
-const VersionMap& ContactAllowedContactData() noexcept
+auto ContactAllowedContactData() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 4}},
@@ -21,7 +21,7 @@ const VersionMap& ContactAllowedContactData() noexcept
 
     return output;
 }
-const VersionMap& ContactDataAllowedContactSection() noexcept
+auto ContactDataAllowedContactSection() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -34,7 +34,7 @@ const VersionMap& ContactDataAllowedContactSection() noexcept
 
     return output;
 }
-const VersionMap& ContactSectionAllowedItem() noexcept
+auto ContactSectionAllowedItem() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -47,7 +47,7 @@ const VersionMap& ContactSectionAllowedItem() noexcept
 
     return output;
 }
-const VersionMap& VerificationAllowedSignature() noexcept
+auto VerificationAllowedSignature() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -55,7 +55,7 @@ const VersionMap& VerificationAllowedSignature() noexcept
 
     return output;
 }
-const VersionMap& VerificationGroupAllowedIdentity() noexcept
+auto VerificationGroupAllowedIdentity() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -63,7 +63,7 @@ const VersionMap& VerificationGroupAllowedIdentity() noexcept
 
     return output;
 }
-const VersionMap& VerificationIdentityAllowedVerification() noexcept
+auto VerificationIdentityAllowedVerification() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -71,7 +71,7 @@ const VersionMap& VerificationIdentityAllowedVerification() noexcept
 
     return output;
 }
-const VersionMap& VerificationOfferAllowedClaim() noexcept
+auto VerificationOfferAllowedClaim() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -79,7 +79,7 @@ const VersionMap& VerificationOfferAllowedClaim() noexcept
 
     return output;
 }
-const VersionMap& VerificationOfferAllowedVerification() noexcept
+auto VerificationOfferAllowedVerification() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -87,7 +87,7 @@ const VersionMap& VerificationOfferAllowedVerification() noexcept
 
     return output;
 }
-const VersionMap& VerificationSetAllowedGroup() noexcept
+auto VerificationSetAllowedGroup() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -95,9 +95,9 @@ const VersionMap& VerificationSetAllowedGroup() noexcept
 
     return output;
 }
-bool ValidContactSectionName(
+auto ValidContactSectionName(
     const std::uint32_t version,
-    const ContactSectionName name)
+    const ContactSectionName name) -> bool
 {
     std::set<ContactSectionName> allowedNames =
         AllowedSectionNames().at(version);
@@ -111,9 +111,9 @@ bool ValidContactSectionName(
     }
 }
 
-bool ValidContactItemType(
+auto ValidContactItemType(
     const ContactSectionVersion version,
-    const ContactItemType itemType)
+    const ContactItemType itemType) -> bool
 {
     std::set<ContactItemType> allowedTypes = AllowedItemTypes().at(version);
 
@@ -125,9 +125,9 @@ bool ValidContactItemType(
         return false;
     }
 }
-bool ValidContactItemAttribute(
+auto ValidContactItemAttribute(
     const std::uint32_t version,
-    const ContactItemAttribute attribute)
+    const ContactItemAttribute attribute) -> bool
 {
     const auto allowedAttributes = AllowedItemAttributes().at(version);
 
@@ -142,9 +142,9 @@ bool ValidContactItemAttribute(
     }
 }
 
-std::string TranslateSectionName(
+auto TranslateSectionName(
     const std::uint32_t enumValue,
-    const std::string& lang)
+    const std::string& lang) -> std::string
 {
     EnumLang langPair{enumValue, lang};
 
@@ -154,9 +154,8 @@ std::string TranslateSectionName(
 
     return "";
 }
-std::string TranslateItemType(
-    const std::uint32_t enumValue,
-    const std::string& lang)
+auto TranslateItemType(const std::uint32_t enumValue, const std::string& lang)
+    -> std::string
 {
     EnumLang langPair{enumValue, lang};
 
@@ -166,9 +165,9 @@ std::string TranslateItemType(
 
     return "";
 }
-std::string TranslateItemAttributes(
+auto TranslateItemAttributes(
     const std::uint32_t enumValue,
-    const std::string& lang)
+    const std::string& lang) -> std::string
 {
     EnumLang langPair{enumValue, lang};
 
@@ -179,7 +178,7 @@ std::string TranslateItemAttributes(
     return "";
 }
 
-std::uint32_t ReciprocalRelationship(const std::uint32_t relationship)
+auto ReciprocalRelationship(const std::uint32_t relationship) -> std::uint32_t
 {
     auto input = static_cast<ContactItemType>(relationship);
 
@@ -195,10 +194,10 @@ std::uint32_t ReciprocalRelationship(const std::uint32_t relationship)
     return CITEMTYPE_ERROR;
 }
 
-bool CheckCombination(
+auto CheckCombination(
     const ContactSectionName section,
     const ContactItemType type,
-    const std::uint32_t version)
+    const std::uint32_t version) -> bool
 {
     const ContactSectionVersion key{version, section};
     const auto it = AllowedItemTypes().find(key);
@@ -214,10 +213,10 @@ bool CheckCombination(
 }
 
 // 0 means not a valid combination for any version
-std::uint32_t RequiredVersion(
+auto RequiredVersion(
     const ContactSectionName section,
     const ContactItemType type,
-    const std::uint32_t hint)
+    const std::uint32_t hint) -> std::uint32_t
 {
     for (std::uint32_t n = hint;
          n <= ContactSectionAllowedItem().rbegin()->first;
@@ -233,9 +232,9 @@ std::uint32_t RequiredVersion(
     return 0;
 }
 
-std::uint32_t NymRequiredVersion(
+auto NymRequiredVersion(
     const std::uint32_t contactDataVersion,
-    const std::uint32_t hint)
+    const std::uint32_t hint) -> std::uint32_t
 {
     for (std::uint32_t n = hint;
          n <= ContactSectionAllowedItem().rbegin()->first;
@@ -257,9 +256,9 @@ std::uint32_t NymRequiredVersion(
     return 0;
 }
 
-std::uint32_t RequiredAuthorityVersion(
+auto RequiredAuthorityVersion(
     const std::uint32_t contactDataVersion,
-    const std::uint32_t hint)
+    const std::uint32_t hint) -> std::uint32_t
 {
     for (std::uint32_t n = hint;
          n <= ContactSectionAllowedItem().rbegin()->first;

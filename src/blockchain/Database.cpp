@@ -72,7 +72,7 @@ const VersionNumber WalletDatabase::DefaultIndexVersion{1};
 namespace opentxs::blockchain::implementation
 {
 template <typename Input>
-ReadView tsv(const Input& in) noexcept
+auto tsv(const Input& in) noexcept -> ReadView
 {
     return {reinterpret_cast<const char*>(&in), sizeof(in)};
 }

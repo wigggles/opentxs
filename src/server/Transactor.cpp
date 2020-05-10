@@ -48,8 +48,8 @@ Transactor::Transactor(Server& server, const PasswordPrompt& reason)
 ///
 /// Users must ask the server to send them transaction numbers so that they
 /// can be used in transaction requests.
-bool Transactor::issueNextTransactionNumber(
-    TransactionNumber& lTransactionNumber)
+auto Transactor::issueNextTransactionNumber(
+    TransactionNumber& lTransactionNumber) -> bool
 {
     // transactionNumber_ stores the last VALID AND ISSUED transaction number.
     // So first, we increment that, since we don't want to issue the same number
@@ -71,9 +71,9 @@ bool Transactor::issueNextTransactionNumber(
     return true;
 }
 
-bool Transactor::issueNextTransactionNumberToNym(
+auto Transactor::issueNextTransactionNumberToNym(
     ClientContext& context,
-    TransactionNumber& lTransactionNumber)
+    TransactionNumber& lTransactionNumber) -> bool
 {
     if (!issueNextTransactionNumber(lTransactionNumber)) { return false; }
 
@@ -105,10 +105,10 @@ bool Transactor::issueNextTransactionNumberToNym(
 }
 
 // Server stores a map of BASKET_ID to BASKET_ACCOUNT_ID.
-bool Transactor::addBasketAccountID(
+auto Transactor::addBasketAccountID(
     const Identifier& BASKET_ID,
     const Identifier& BASKET_ACCOUNT_ID,
-    const Identifier& BASKET_CONTRACT_ID)
+    const Identifier& BASKET_CONTRACT_ID) -> bool
 {
     auto theBasketAcctID = Identifier::Factory();
 
@@ -137,9 +137,9 @@ bool Transactor::addBasketAccountID(
 /// this server)
 /// using the contract ID to look it up. (The basket contract ID is unique to
 /// this server.)
-bool Transactor::lookupBasketAccountIDByContractID(
+auto Transactor::lookupBasketAccountIDByContractID(
     const Identifier& BASKET_CONTRACT_ID,
-    Identifier& BASKET_ACCOUNT_ID)
+    Identifier& BASKET_ACCOUNT_ID) -> bool
 {
     // Server stores a map of BASKET_ID to BASKET_ACCOUNT_ID. Let's iterate
     // through that map...
@@ -165,9 +165,9 @@ bool Transactor::lookupBasketAccountIDByContractID(
 /// this server)
 /// using the contract ID to look it up. (The basket contract ID is unique to
 /// this server.)
-bool Transactor::lookupBasketContractIDByAccountID(
+auto Transactor::lookupBasketContractIDByAccountID(
     const Identifier& BASKET_ACCOUNT_ID,
-    Identifier& BASKET_CONTRACT_ID)
+    Identifier& BASKET_CONTRACT_ID) -> bool
 {
     // Server stores a map of BASKET_ID to BASKET_ACCOUNT_ID. Let's iterate
     // through that map...
@@ -193,9 +193,9 @@ bool Transactor::lookupBasketContractIDByAccountID(
 /// server)
 /// using the basket ID to look it up (the Basket ID is the same for all
 /// servers)
-bool Transactor::lookupBasketAccountID(
+auto Transactor::lookupBasketAccountID(
     const Identifier& BASKET_ID,
-    Identifier& BASKET_ACCOUNT_ID)
+    Identifier& BASKET_ACCOUNT_ID) -> bool
 {
     // Server stores a map of BASKET_ID to BASKET_ACCOUNT_ID. Let's iterate
     // through that map...
@@ -221,8 +221,9 @@ bool Transactor::lookupBasketAccountID(
 /// SUPPOSED to
 /// exist, and since it's being requested, also will GENERATE it if it cannot
 /// be found, add it to the list, and return the pointer. Should always succeed.
-ExclusiveAccount Transactor::getVoucherAccount(
+auto Transactor::getVoucherAccount(
     const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID)
+    -> ExclusiveAccount
 {
     const auto& NOTARY_NYM_ID = server_.GetServerNym().ID();
     const auto& NOTARY_ID = server_.GetServerID();

@@ -71,42 +71,45 @@ namespace opentxs::server
 class Server
 {
 public:
-    const api::internal::Core& API() const { return manager_; }
-    bool GetConnectInfo(
+    auto API() const -> const api::internal::Core& { return manager_; }
+    auto GetConnectInfo(
         proto::AddressType& type,
         std::string& hostname,
-        std::uint32_t& port) const;
-    const identifier::Server& GetServerID() const;
-    const identity::Nym& GetServerNym() const;
-    std::unique_ptr<OTPassword> TransportKey(Data& pubkey) const;
-    bool IsFlaggedForShutdown() const;
+        std::uint32_t& port) const -> bool;
+    auto GetServerID() const -> const identifier::Server&;
+    auto GetServerNym() const -> const identity::Nym&;
+    auto TransportKey(Data& pubkey) const -> std::unique_ptr<OTPassword>;
+    auto IsFlaggedForShutdown() const -> bool;
 
     void ActivateCron();
-    UserCommandProcessor& CommandProcessor() { return userCommandProcessor_; }
-    std::chrono::milliseconds ComputeTimeout()
+    auto CommandProcessor() -> UserCommandProcessor&
+    {
+        return userCommandProcessor_;
+    }
+    auto ComputeTimeout() -> std::chrono::milliseconds
     {
         return m_Cron->computeTimeout();
     }
-    OTCron& Cron() { return *m_Cron; }
-    bool DropMessageToNymbox(
+    auto Cron() -> OTCron& { return *m_Cron; }
+    auto DropMessageToNymbox(
         const identifier::Server& notaryID,
         const identifier::Nym& senderNymID,
         const identifier::Nym& recipientNymID,
         transactionType transactionType,
-        const Message& msg);
-    MainFile& GetMainFile() { return mainFile_; }
-    Notary& GetNotary() { return notary_; }
-    Transactor& GetTransactor() { return transactor_; }
+        const Message& msg) -> bool;
+    auto GetMainFile() -> MainFile& { return mainFile_; }
+    auto GetNotary() -> Notary& { return notary_; }
+    auto GetTransactor() -> Transactor& { return transactor_; }
     void Init(bool readOnly = false);
-    bool LoadServerNym(const identifier::Nym& nymID);
+    auto LoadServerNym(const identifier::Nym& nymID) -> bool;
     void ProcessCron();
-    bool SendInstrumentToNym(
+    auto SendInstrumentToNym(
         const identifier::Server& notaryID,
         const identifier::Nym& senderNymID,
         const identifier::Nym& recipientNymID,
         const OTPayment& payment,
-        const char* command);
-    String& WalletFilename() { return m_strWalletFilename; }
+        const char* command) -> bool;
+    auto WalletFilename() -> String& { return m_strWalletFilename; }
 
     ~Server();
 
@@ -145,35 +148,34 @@ private:
                                      // tasks go.
     OTZMQPushSocket notification_socket_;
 
-    OTZMQMessage nymbox_push(
-        const identifier::Nym& nymID,
-        const OTTransaction& item) const;
+    auto nymbox_push(const identifier::Nym& nymID, const OTTransaction& item)
+        const -> OTZMQMessage;
 
     void CreateMainFile(bool& mainFileExists);
     // Note: SendInstrumentToNym and SendMessageToNym CALL THIS.
     // They are higher-level, this is lower-level.
-    bool DropMessageToNymbox(
+    auto DropMessageToNymbox(
         const identifier::Server& notaryID,
         const identifier::Nym& senderNymID,
         const identifier::Nym& recipientNymID,
         transactionType transactionType,
         const Message* msg = nullptr,
         const String& messageString = String::Factory(),
-        const char* command = nullptr);
-    std::pair<std::string, std::string> parse_seed_backup(
-        const std::string& input) const;
-    const std::string& ServerNymID() const { return m_strServerNymID; }
+        const char* command = nullptr) -> bool;
+    auto parse_seed_backup(const std::string& input) const
+        -> std::pair<std::string, std::string>;
+    auto ServerNymID() const -> const std::string& { return m_strServerNymID; }
     void SetNotaryID(const identifier::Server& notaryID)
     {
         m_notaryID = notaryID;
     }
     void SetServerNymID(const char* strNymID) { m_strServerNymID = strNymID; }
 
-    bool SendInstrumentToNym(
+    auto SendInstrumentToNym(
         const identifier::Server& notaryID,
         const identifier::Nym& senderNymID,
         const identifier::Nym& recipientNymID,
-        const Message& msg);
+        const Message& msg) -> bool;
 
     Server(
         const opentxs::api::server::internal::Manager& manager,
@@ -181,7 +183,7 @@ private:
     Server() = delete;
     Server(const Server&) = delete;
     Server(Server&&) = delete;
-    Server& operator=(const Server&) = delete;
-    Server& operator=(Server&&) = delete;
+    auto operator=(const Server&) -> Server& = delete;
+    auto operator=(Server &&) -> Server& = delete;
 };
 }  // namespace opentxs::server

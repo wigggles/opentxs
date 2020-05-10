@@ -48,7 +48,7 @@ private:
 
     mutable zmq_msg_t message_;
 
-    Frame* clone() const noexcept final;
+    auto clone() const noexcept -> Frame* final;
 
     Frame() noexcept;
     explicit Frame(const ProtobufType& input) noexcept;
@@ -56,7 +56,7 @@ private:
     Frame(const void* data, const std::size_t bytes) noexcept;
     Frame(const Frame&) = delete;
     Frame(Frame&&) = delete;
-    Frame& operator=(Frame&&) = delete;
-    Frame& operator=(const Frame&) = delete;
+    auto operator=(Frame &&) -> Frame& = delete;
+    auto operator=(const Frame&) -> Frame& = delete;
 };
 }  // namespace opentxs::network::zeromq::implementation

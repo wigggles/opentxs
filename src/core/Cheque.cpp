@@ -117,7 +117,7 @@ void Cheque::UpdateContents([[maybe_unused]] const PasswordPrompt& reason)
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-std::int32_t Cheque::ProcessXMLNode(IrrXMLReader*& xml)
+auto Cheque::ProcessXMLNode(IrrXMLReader*& xml) -> std::int32_t
 {
     std::int32_t nReturnVal = 0;
 
@@ -249,7 +249,7 @@ void Cheque::CancelCheque()
 // Imagine that you are actually writing a cheque.
 // That's basically what this function does.
 // Make sure to sign it afterwards.
-bool Cheque::IssueCheque(
+auto Cheque::IssueCheque(
     const std::int64_t& lAmount,
     const std::int64_t& lTransactionNum,
     const Time& VALID_FROM,
@@ -260,10 +260,10 @@ bool Cheque::IssueCheque(
     const identifier::Nym& SENDER_NYM_ID,  // This ID must match the user ID on
                                            // the asset account,
     // AND must verify the cheque signature with that user's key.
-    const String& strMemo,                     // Optional memo field.
-    const identifier::Nym& pRECIPIENT_NYM_ID)  // Recipient optional.
-                                               // (Might be a blank
-                                               // cheque.)
+    const String& strMemo,                             // Optional memo field.
+    const identifier::Nym& pRECIPIENT_NYM_ID) -> bool  // Recipient optional.
+                                                       // (Might be a blank
+                                                       // cheque.)
 {
     m_lAmount = lAmount;
     m_strMemo->Set(strMemo);

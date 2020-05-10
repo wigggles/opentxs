@@ -29,8 +29,8 @@ protected:
     Row() = delete;
     Row(const Row&) = delete;
     Row(Row&&) = delete;
-    Row& operator=(const Row&) = delete;
-    Row& operator=(Row&&) = delete;
+    auto operator=(const Row&) -> Row& = delete;
+    auto operator=(Row &&) -> Row& = delete;
 
     virtual ~Row() = default;
 };

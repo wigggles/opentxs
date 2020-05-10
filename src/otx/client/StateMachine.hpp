@@ -56,7 +56,8 @@ using PEERREQUESTTASK = pair<opentxs::OTNymID, opentxs::OTPeerRequest>;
 
 template <>
 struct less<MESSAGETASK> {
-    bool operator()(const MESSAGETASK& lhs, const MESSAGETASK& rhs) const
+    auto operator()(const MESSAGETASK& lhs, const MESSAGETASK& rhs) const
+        -> bool
     {
         /* TODO: use structured bindings */
         const auto& lID = std::get<0>(lhs);
@@ -82,7 +83,8 @@ struct less<MESSAGETASK> {
 
 template <>
 struct less<PAYMENTTASK> {
-    bool operator()(const PAYMENTTASK& lhs, const PAYMENTTASK& rhs) const
+    auto operator()(const PAYMENTTASK& lhs, const PAYMENTTASK& rhs) const
+        -> bool
     {
         /* TODO: use structured bindings */
         const auto& lID = std::get<0>(lhs);
@@ -108,7 +110,8 @@ struct less<PAYMENTTASK> {
 
 template <>
 struct less<PEERREPLYTASK> {
-    bool operator()(const PEERREPLYTASK& lhs, const PEERREPLYTASK& rhs) const
+    auto operator()(const PEERREPLYTASK& lhs, const PEERREPLYTASK& rhs) const
+        -> bool
     {
         /* TODO: use structured bindings */
         const auto& lNym = std::get<0>(lhs);
@@ -134,8 +137,8 @@ struct less<PEERREPLYTASK> {
 
 template <>
 struct less<PEERREQUESTTASK> {
-    bool operator()(const PEERREQUESTTASK& lhs, const PEERREQUESTTASK& rhs)
-        const
+    auto operator()(const PEERREQUESTTASK& lhs, const PEERREQUESTTASK& rhs)
+        const -> bool
     {
         /* TODO: use structured bindings */
         const auto& lID = std::get<0>(lhs);
@@ -202,27 +205,28 @@ public:
 
     otx::client::implementation::PaymentTasks payment_tasks_;
 
-    const api::internal::Core& api() const override { return client_; }
-    BackgroundTask DepositPayment(
-        const DepositPaymentTask& params) const override
+    auto api() const -> const api::internal::Core& override { return client_; }
+    auto DepositPayment(const DepositPaymentTask& params) const
+        -> BackgroundTask override
     {
         return StartTask(params);
     }
-    BackgroundTask DownloadUnitDefinition(
-        const DownloadUnitDefinitionTask& params) const override
+    auto DownloadUnitDefinition(const DownloadUnitDefinitionTask& params) const
+        -> BackgroundTask override
     {
         return StartTask(params);
     }
-    Result error_result() const override;
-    BackgroundTask RegisterAccount(
-        const RegisterAccountTask& params) const override
+    auto error_result() const -> Result override;
+    auto RegisterAccount(const RegisterAccountTask& params) const
+        -> BackgroundTask override
     {
         return StartTask(params);
     }
     template <typename T>
-    BackgroundTask StartTask(const T& params) const;
+    auto StartTask(const T& params) const -> BackgroundTask;
     template <typename T>
-    BackgroundTask StartTask(const TaskID taskID, const T& params) const;
+    auto StartTask(const TaskID taskID, const T& params) const
+        -> BackgroundTask;
 
     void Shutdown() { op_.Shutdown(); }
 
@@ -291,7 +295,7 @@ private:
     mutable std::map<OTServerID, int> unknown_servers_;
     mutable std::map<OTUnitID, int> unknown_units_;
 
-    static TaskDone task_done(bool done)
+    static auto task_done(bool done) -> TaskDone
     {
         return done ? TaskDone::yes : TaskDone::no;
     }
@@ -301,128 +305,139 @@ private:
     {
         return parent_.associate_message_id(messageID, taskID);
     }
-    bool bump_task(const bool bump) const;
-    bool check_admin(const ServerContext& context) const;
+    auto bump_task(const bool bump) const -> bool;
+    auto check_admin(const ServerContext& context) const -> bool;
     template <typename T, typename C, typename M, typename U>
-    bool check_missing_contract(M& missing, U& unknown, bool skip = true) const;
+    auto check_missing_contract(M& missing, U& unknown, bool skip = true) const
+        -> bool;
     void check_nym_revision(const ServerContext& context) const;
-    bool check_registration(
+    auto check_registration(
         const identifier::Nym& nymID,
-        const identifier::Server& serverID) const;
-    bool check_server_contract(const identifier::Server& serverID) const;
-    bool check_server_name(const ServerContext& context) const;
+        const identifier::Server& serverID) const -> bool;
+    auto check_server_contract(const identifier::Server& serverID) const
+        -> bool;
+    auto check_server_name(const ServerContext& context) const -> bool;
     void check_server_nym(const ServerContext& context) const;
     void check_transaction_numbers(const ServerContext& context) const;
-    int counter() const { return counter_.load(); }
-    bool deposit_cheque(const TaskID taskID, const DepositPaymentTask& task)
-        const;
-    bool deposit_cheque_wrapper(
+    auto counter() const -> int { return counter_.load(); }
+    auto deposit_cheque(const TaskID taskID, const DepositPaymentTask& task)
+        const -> bool;
+    auto deposit_cheque_wrapper(
         const TaskID taskID,
         const DepositPaymentTask& task,
-        UniqueQueue<DepositPaymentTask>& retry) const;
+        UniqueQueue<DepositPaymentTask>& retry) const -> bool;
 
 #if OT_CASH
-    bool download_mint(const TaskID taskID, const DownloadMintTask& task) const;
+    auto download_mint(const TaskID taskID, const DownloadMintTask& task) const
+        -> bool;
 #endif
-    bool download_nym(const TaskID taskID, const CheckNymTask& id) const;
-    bool download_nymbox(const TaskID taskID) const;
-    bool download_server(
+    auto download_nym(const TaskID taskID, const CheckNymTask& id) const
+        -> bool;
+    auto download_nymbox(const TaskID taskID) const -> bool;
+    auto download_server(
         const TaskID taskID,
-        const DownloadContractTask& contractID) const;
-    bool download_unit_definition(
+        const DownloadContractTask& contractID) const -> bool;
+    auto download_unit_definition(
         const TaskID taskID,
-        const DownloadUnitDefinitionTask& id) const;
+        const DownloadUnitDefinitionTask& id) const -> bool;
     template <typename T, typename C, typename I, typename M, typename U>
-    bool find_contract(
+    auto find_contract(
         const TaskID taskID,
         const I& targetID,
         M& missing,
         U& unknown,
-        const bool skipExisting = true) const;
-    bool finish_task(const TaskID taskID, const bool success, Result&& result)
-        const override
+        const bool skipExisting = true) const -> bool;
+    auto finish_task(const TaskID taskID, const bool success, Result&& result)
+        const -> bool override
     {
         return parent_.finish_task(taskID, success, std::move(result));
     }
-    bool get_admin(const TaskID taskID, const OTPassword& password) const;
-    UniqueQueue<OTNymID>& get_nym_fetch(
-        const identifier::Server& serverID) const
+    auto get_admin(const TaskID taskID, const OTPassword& password) const
+        -> bool;
+    auto get_nym_fetch(const identifier::Server& serverID) const
+        -> UniqueQueue<OTNymID>&
     {
         return parent_.get_nym_fetch(serverID);
     }
     template <typename T>
-    const UniqueQueue<T>& get_task() const;
-    bool get_transaction_numbers(const TaskID taskID) const;
-    bool initiate_peer_reply(const TaskID taskID, const PeerReplyTask& task)
-        const;
-    bool initiate_peer_request(const TaskID taskID, const PeerRequestTask& task)
-        const;
-    bool issue_unit_definition(
+    auto get_task() const -> const UniqueQueue<T>&;
+    auto get_transaction_numbers(const TaskID taskID) const -> bool;
+    auto initiate_peer_reply(const TaskID taskID, const PeerReplyTask& task)
+        const -> bool;
+    auto initiate_peer_request(const TaskID taskID, const PeerRequestTask& task)
+        const -> bool;
+    auto issue_unit_definition(
         const TaskID taskID,
-        const IssueUnitDefinitionTask& task) const;
-    bool issue_unit_definition_wrapper(
+        const IssueUnitDefinitionTask& task) const -> bool;
+    auto issue_unit_definition_wrapper(
         const TaskID taskID,
-        const IssueUnitDefinitionTask& task) const;
+        const IssueUnitDefinitionTask& task) const -> bool;
     template <typename T, typename I>
-    bool load_contract(const I& id) const;
-    bool message_nym(const TaskID taskID, const MessageTask& task) const;
-    TaskID next_task_id() const override { return ++next_task_id_; }
-    bool pay_nym(const TaskID taskID, const PaymentTask& task) const;
+    auto load_contract(const I& id) const -> bool;
+    auto message_nym(const TaskID taskID, const MessageTask& task) const
+        -> bool;
+    auto next_task_id() const -> TaskID override { return ++next_task_id_; }
+    auto pay_nym(const TaskID taskID, const PaymentTask& task) const -> bool;
 #if OT_CASH
-    bool pay_nym_cash(const TaskID taskID, const PayCashTask& Task) const;
+    auto pay_nym_cash(const TaskID taskID, const PayCashTask& Task) const
+        -> bool;
 #endif  // OT_CASH
-    bool process_inbox(const TaskID taskID, const ProcessInboxTask& accountID)
-        const;
-    bool publish_server_contract(
+    auto process_inbox(const TaskID taskID, const ProcessInboxTask& accountID)
+        const -> bool;
+    auto publish_server_contract(
         const TaskID taskID,
-        const PublishServerContractTask& serverID) const;
-    bool register_account(const TaskID taskID, const RegisterAccountTask& task)
-        const;
-    bool register_account_wrapper(
+        const PublishServerContractTask& serverID) const -> bool;
+    auto register_account(const TaskID taskID, const RegisterAccountTask& task)
+        const -> bool;
+    auto register_account_wrapper(
         const TaskID taskID,
-        const RegisterAccountTask& task) const;
-    bool register_nym(const TaskID taskID, const RegisterNymTask& resync) const;
-    bool register_nym_wrapper(
+        const RegisterAccountTask& task) const -> bool;
+    auto register_nym(const TaskID taskID, const RegisterNymTask& resync) const
+        -> bool;
+    auto register_nym_wrapper(
         const TaskID taskID,
         const RegisterNymTask& resync,
-        UniqueQueue<RegisterNymTask>& retry) const;
+        UniqueQueue<RegisterNymTask>& retry) const -> bool;
     template <typename M, typename I>
     void resolve_unknown(const I& id, const bool found, M& map) const;
     template <typename T, typename M>
     void scan_unknown(const M& map, int& next) const;
-    bool send_transfer(const TaskID taskID, const SendTransferTask& task) const;
-    BackgroundTask start_task(const TaskID taskID, bool success) const override
+    auto send_transfer(const TaskID taskID, const SendTransferTask& task) const
+        -> bool;
+    auto start_task(const TaskID taskID, bool success) const
+        -> BackgroundTask override
     {
         return parent_.start_task(taskID, success);
     }
 #if OT_CASH
-    bool withdraw_cash(const TaskID taskID, const WithdrawCashTask& task) const;
+    auto withdraw_cash(const TaskID taskID, const WithdrawCashTask& task) const
+        -> bool;
 #endif  // OT_CASH
-    TaskDone write_and_send_cheque(
-        const TaskID taskID,
-        const SendChequeTask& task) const;
-    bool write_and_send_cheque_wrapper(
+    auto write_and_send_cheque(const TaskID taskID, const SendChequeTask& task)
+        const -> TaskDone;
+    auto write_and_send_cheque_wrapper(
         const TaskID taskID,
         const SendChequeTask& task,
-        UniqueQueue<SendChequeTask>& retry) const;
+        UniqueQueue<SendChequeTask>& retry) const -> bool;
 
     template <typename T>
-    T& get_param();
+    auto get_param() -> T&;
     void increment_counter(const bool run);
-    bool main_loop() noexcept;
-    bool queue_contracts(const ServerContext& context, int& next);
-    bool queue_nyms();
+    auto main_loop() noexcept -> bool;
+    auto queue_contracts(const ServerContext& context, int& next) -> bool;
+    auto queue_nyms() -> bool;
     template <typename T>
-    bool run_task(bool (StateMachine::*func)(const TaskID) const);
+    auto run_task(bool (StateMachine::*func)(const TaskID) const) -> bool;
     template <typename T>
-    bool run_task(bool (StateMachine::*func)(const TaskID, const T&) const);
+    auto run_task(bool (StateMachine::*func)(const TaskID, const T&) const)
+        -> bool;
     template <typename T, typename R>
-    bool run_task(
+    auto run_task(
         bool (StateMachine::*func)(const TaskID, const T&, R&) const,
-        R& retry);
+        R& retry) -> bool;
     template <typename T>
-    bool run_task(std::function<bool(const TaskID, const T&)> func);
-    bool state_machine() noexcept;
+    auto run_task(std::function<bool(const TaskID, const T&)> func) -> bool;
+    auto state_machine() noexcept -> bool;
 
     StateMachine() = delete;
 };

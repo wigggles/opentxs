@@ -150,10 +150,10 @@ ContactList::ParsedArgs::ParsedArgs(
 {
 }
 
-OTNymID ContactList::ParsedArgs::extract_nymid(
+auto ContactList::ParsedArgs::extract_nymid(
     const api::internal::Core& api,
     const std::string& purportedID,
-    const std::string& purportedPaymentCode) noexcept
+    const std::string& purportedPaymentCode) noexcept -> OTNymID
 {
     auto output = api.Factory().NymID();
 
@@ -186,10 +186,10 @@ OTNymID ContactList::ParsedArgs::extract_nymid(
     return output;
 }
 
-OTPaymentCode ContactList::ParsedArgs::extract_paymentcode(
+auto ContactList::ParsedArgs::extract_paymentcode(
     const api::internal::Core& api,
     const std::string& purportedID,
-    const std::string& purportedPaymentCode) noexcept
+    const std::string& purportedPaymentCode) noexcept -> OTPaymentCode
 {
     if (false == purportedPaymentCode.empty()) {
         // Case 1: purportedPaymentCode is a payment code
@@ -210,10 +210,10 @@ OTPaymentCode ContactList::ParsedArgs::extract_paymentcode(
     return api.Factory().PaymentCode("");
 }
 
-std::string ContactList::AddContact(
+auto ContactList::AddContact(
     const std::string& label,
     const std::string& paymentCode,
-    const std::string& nymID) const noexcept
+    const std::string& nymID) const noexcept -> std::string
 {
     auto args = ParsedArgs{api_, nymID, paymentCode};
     const auto contact =
@@ -241,10 +241,10 @@ void ContactList::add_item(
     ContactListList::add_item(id, index, custom);
 }
 
-void* ContactList::construct_row(
+auto ContactList::construct_row(
     const ContactListRowID& id,
     const ContactListSortKey& index,
-    const CustomData&) const noexcept
+    const CustomData&) const noexcept -> void*
 {
     names_.emplace(id, index);
     const auto [it, added] = items_[index].emplace(
@@ -254,8 +254,8 @@ void* ContactList::construct_row(
 }
 
 /** Returns owner contact. Sets up iterators for next row */
-std::shared_ptr<const ContactListRowInternal> ContactList::first(
-    const Lock& lock) const noexcept
+auto ContactList::first(const Lock& lock) const noexcept
+    -> std::shared_ptr<const ContactListRowInternal>
 {
     OT_ASSERT(verify_lock(lock))
 

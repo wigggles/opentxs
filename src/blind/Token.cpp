@@ -173,12 +173,12 @@ Token::Token(
 {
 }
 
-bool Token::reencrypt(
+auto Token::reencrypt(
     const crypto::key::Symmetric& oldKey,
     const PasswordPrompt& oldPassword,
     const crypto::key::Symmetric& newKey,
     const PasswordPrompt& newPassword,
-    proto::Ciphertext& ciphertext)
+    proto::Ciphertext& ciphertext) -> bool
 {
     auto plaintext = Data::Factory();
     auto output =
@@ -208,7 +208,7 @@ bool Token::reencrypt(
     return output;
 }
 
-proto::Token Token::Serialize() const
+auto Token::Serialize() const -> proto::Token
 {
     proto::Token output{};
     output.set_version(version_);

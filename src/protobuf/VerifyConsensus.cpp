@@ -7,7 +7,7 @@
 
 namespace opentxs::proto
 {
-const VersionMap& ContextAllowedServer() noexcept
+auto ContextAllowedServer() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -17,7 +17,7 @@ const VersionMap& ContextAllowedServer() noexcept
 
     return output;
 }
-const VersionMap& ContextAllowedClient() noexcept
+auto ContextAllowedClient() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -26,7 +26,7 @@ const VersionMap& ContextAllowedClient() noexcept
 
     return output;
 }
-const VersionMap& ContextAllowedSignature() noexcept
+auto ContextAllowedSignature() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {2, 2}},
@@ -36,7 +36,7 @@ const VersionMap& ContextAllowedSignature() noexcept
 
     return output;
 }
-const VersionMap& ServerContextAllowedPendingCommand() noexcept
+auto ServerContextAllowedPendingCommand() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {3, {1, 1}},
@@ -44,16 +44,16 @@ const VersionMap& ServerContextAllowedPendingCommand() noexcept
 
     return output;
 }
-const std::map<std::uint32_t, std::set<int>>&
-ServerContextAllowedState() noexcept
+auto ServerContextAllowedState() noexcept
+    -> const std::map<std::uint32_t, std::set<int>>&
 {
     static const auto output =
         std::map<std::uint32_t, std::set<int>>{{3, {1, 2, 3, 4, 5}}};
 
     return output;
 }
-const std::map<std::uint32_t, std::set<int>>&
-ServerContextAllowedStatus() noexcept
+auto ServerContextAllowedStatus() noexcept
+    -> const std::map<std::uint32_t, std::set<int>>&
 {
     static const auto output =
         std::map<std::uint32_t, std::set<int>>{{3, {1, 2, 3, 4, 5}}};

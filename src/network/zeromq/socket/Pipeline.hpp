@@ -43,12 +43,12 @@ namespace opentxs::network::zeromq::socket::implementation
 class Pipeline final : virtual public zeromq::Pipeline
 {
 public:
-    bool Close() const noexcept final;
-    const zeromq::Context& Context() const noexcept final
+    auto Close() const noexcept -> bool final;
+    auto Context() const noexcept -> const zeromq::Context& final
     {
         return sender_->Context();
     }
-    bool Start(const std::string& endpoint) const noexcept
+    auto Start(const std::string& endpoint) const noexcept -> bool
     {
         return receiver_->Start(endpoint);
     }
@@ -62,8 +62,8 @@ private:
     OTZMQListenCallback callback_;
     OTZMQSubscribeSocket receiver_;
 
-    Pipeline* clone() const noexcept final { return nullptr; }
-    bool push(zeromq::Message& data) const noexcept final
+    auto clone() const noexcept -> Pipeline* final { return nullptr; }
+    auto push(zeromq::Message& data) const noexcept -> bool final
     {
         return sender_->Send(data);
     }
@@ -75,7 +75,7 @@ private:
     Pipeline() = delete;
     Pipeline(const Pipeline&) = delete;
     Pipeline(Pipeline&&) = delete;
-    Pipeline& operator=(const Pipeline&) = delete;
-    Pipeline& operator=(Pipeline&&) = delete;
+    auto operator=(const Pipeline&) -> Pipeline& = delete;
+    auto operator=(Pipeline &&) -> Pipeline& = delete;
 };
 }  // namespace opentxs::network::zeromq::socket::implementation

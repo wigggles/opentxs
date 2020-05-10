@@ -35,24 +35,24 @@ namespace opentxs::implementation
 class Armored : virtual public opentxs::Armored, public String
 {
 public:
-    bool GetData(Data& theData, bool bLineBreaks = true) const override;
-    bool GetString(opentxs::String& theData, bool bLineBreaks = true)
-        const override;
-    bool WriteArmoredString(
+    auto GetData(Data& theData, bool bLineBreaks = true) const -> bool override;
+    auto GetString(opentxs::String& theData, bool bLineBreaks = true) const
+        -> bool override;
+    auto WriteArmoredString(
         opentxs::String& strOutput,
         const std::string str_type,
-        bool bEscaped = false) const override;
-    bool LoadFrom_ifstream(std::ifstream& fin) override;
-    bool LoadFromExactPath(const std::string& filename) override;
-    bool LoadFromString(
+        bool bEscaped = false) const -> bool override;
+    auto LoadFrom_ifstream(std::ifstream& fin) -> bool override;
+    auto LoadFromExactPath(const std::string& filename) -> bool override;
+    auto LoadFromString(
         opentxs::String& theStr,
         bool bEscaped = false,
-        const std::string str_override = "-----BEGIN") override;
-    bool SaveTo_ofstream(std::ofstream& fout) override;
-    bool SaveToExactPath(const std::string& filename) override;
-    bool SetData(const Data& theData, bool bLineBreaks = true) override;
-    bool SetString(const opentxs::String& theData, bool bLineBreaks = true)
-        override;
+        const std::string str_override = "-----BEGIN") -> bool override;
+    auto SaveTo_ofstream(std::ofstream& fout) -> bool override;
+    auto SaveToExactPath(const std::string& filename) -> bool override;
+    auto SetData(const Data& theData, bool bLineBreaks = true) -> bool override;
+    auto SetString(const opentxs::String& theData, bool bLineBreaks = true)
+        -> bool override;
 
     ~Armored() override = default;
 
@@ -66,20 +66,19 @@ private:
 
     static std::unique_ptr<OTDB::OTPacker> s_pPacker;
 
-    Armored* clone() const override;
-    std::string compress_string(
-        const std::string& str,
-        std::int32_t compressionlevel) const;
-    std::string decompress_string(const std::string& str) const;
+    auto clone() const -> Armored* override;
+    auto compress_string(const std::string& str, std::int32_t compressionlevel)
+        const -> std::string;
+    auto decompress_string(const std::string& str) const -> std::string;
 
     explicit Armored(const Data& theValue);
     explicit Armored(const opentxs::String& strValue);
     explicit Armored(const crypto::Envelope& theEnvelope);
     Armored(const Armored& strValue);
 
-    Armored& operator=(const char* szValue);
-    Armored& operator=(const Data& theValue);
-    Armored& operator=(const opentxs::String& strValue);
-    Armored& operator=(const Armored& strValue);
+    auto operator=(const char* szValue) -> Armored&;
+    auto operator=(const Data& theValue) -> Armored&;
+    auto operator=(const opentxs::String& strValue) -> Armored&;
+    auto operator=(const Armored& strValue) -> Armored&;
 };
 }  // namespace opentxs::implementation

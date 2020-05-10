@@ -23,7 +23,7 @@
 
 namespace opentxs
 {
-blockchain::Work* Factory::Work(const std::string& hex)
+auto Factory::Work(const std::string& hex) -> blockchain::Work*
 {
     using ReturnType = blockchain::implementation::Work;
     using ValueType = ReturnType::Type;
@@ -49,7 +49,7 @@ blockchain::Work* Factory::Work(const std::string& hex)
     return new ReturnType(std::move(value));
 }
 
-blockchain::Work* Factory::Work(const blockchain::NumericHash& input)
+auto Factory::Work(const blockchain::NumericHash& input) -> blockchain::Work*
 {
     using ReturnType = blockchain::implementation::Work;
     using TargetType = mp::checked_cpp_int;
@@ -73,37 +73,38 @@ blockchain::Work* Factory::Work(const blockchain::NumericHash& input)
     return new ReturnType(std::move(value));
 }
 
-bool operator==(const OTWork& lhs, const blockchain::Work& rhs) noexcept
+auto operator==(const OTWork& lhs, const blockchain::Work& rhs) noexcept -> bool
 {
     return lhs.get() == rhs;
 }
 
-bool operator!=(const OTWork& lhs, const blockchain::Work& rhs) noexcept
+auto operator!=(const OTWork& lhs, const blockchain::Work& rhs) noexcept -> bool
 {
     return lhs.get() != rhs;
 }
 
-bool operator<(const OTWork& lhs, const blockchain::Work& rhs) noexcept
+auto operator<(const OTWork& lhs, const blockchain::Work& rhs) noexcept -> bool
 {
     return lhs.get() < rhs;
 }
 
-bool operator<=(const OTWork& lhs, const blockchain::Work& rhs) noexcept
+auto operator<=(const OTWork& lhs, const blockchain::Work& rhs) noexcept -> bool
 {
     return lhs.get() <= rhs;
 }
 
-bool operator>(const OTWork& lhs, const blockchain::Work& rhs) noexcept
+auto operator>(const OTWork& lhs, const blockchain::Work& rhs) noexcept -> bool
 {
     return lhs.get() > rhs;
 }
 
-bool operator>=(const OTWork& lhs, const blockchain::Work& rhs) noexcept
+auto operator>=(const OTWork& lhs, const blockchain::Work& rhs) noexcept -> bool
 {
     return lhs.get() >= rhs;
 }
 
-OTWork operator+(const OTWork& lhs, const blockchain::Work& rhs) noexcept
+auto operator+(const OTWork& lhs, const blockchain::Work& rhs) noexcept
+    -> OTWork
 {
     return lhs.get() + rhs;
 }
@@ -127,56 +128,56 @@ Work::Work(const Work& rhs) noexcept
 {
 }
 
-bool Work::operator==(const blockchain::Work& rhs) const noexcept
+auto Work::operator==(const blockchain::Work& rhs) const noexcept -> bool
 {
     const auto& input = dynamic_cast<const Work&>(rhs);
 
     return data_ == input.data_;
 }
 
-bool Work::operator!=(const blockchain::Work& rhs) const noexcept
+auto Work::operator!=(const blockchain::Work& rhs) const noexcept -> bool
 {
     const auto& input = dynamic_cast<const Work&>(rhs);
 
     return data_ != input.data_;
 }
 
-bool Work::operator<(const blockchain::Work& rhs) const noexcept
+auto Work::operator<(const blockchain::Work& rhs) const noexcept -> bool
 {
     const auto& input = dynamic_cast<const Work&>(rhs);
 
     return data_ < input.data_;
 }
 
-bool Work::operator<=(const blockchain::Work& rhs) const noexcept
+auto Work::operator<=(const blockchain::Work& rhs) const noexcept -> bool
 {
     const auto& input = dynamic_cast<const Work&>(rhs);
 
     return data_ <= input.data_;
 }
 
-bool Work::operator>(const blockchain::Work& rhs) const noexcept
+auto Work::operator>(const blockchain::Work& rhs) const noexcept -> bool
 {
     const auto& input = dynamic_cast<const Work&>(rhs);
 
     return data_ > input.data_;
 }
 
-bool Work::operator>=(const blockchain::Work& rhs) const noexcept
+auto Work::operator>=(const blockchain::Work& rhs) const noexcept -> bool
 {
     const auto& input = dynamic_cast<const Work&>(rhs);
 
     return data_ >= input.data_;
 }
 
-OTWork Work::operator+(const blockchain::Work& rhs) const noexcept
+auto Work::operator+(const blockchain::Work& rhs) const noexcept -> OTWork
 {
     const auto& input = dynamic_cast<const Work&>(rhs);
 
     return OTWork{new Work{data_ + input.data_}};
 }
 
-std::string Work::asHex() const noexcept
+auto Work::asHex() const noexcept -> std::string
 {
     std::vector<unsigned char> bytes;
 

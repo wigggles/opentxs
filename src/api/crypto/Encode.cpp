@@ -33,7 +33,7 @@
 
 namespace opentxs
 {
-api::crypto::Encode* Factory::Encode(const api::Crypto& crypto)
+auto Factory::Encode(const api::Crypto& crypto) -> api::crypto::Encode*
 {
     return new api::crypto::implementation::Encode(crypto);
 }
@@ -46,9 +46,9 @@ Encode::Encode(const api::Crypto& crypto)
 {
 }
 
-std::string Encode::Base64Encode(
+auto Encode::Base64Encode(
     const std::uint8_t* inputStart,
-    const std::size_t& size) const
+    const std::size_t& size) const -> std::string
 {
     std::string output;
     output.resize(::Base64encode_len(size));
@@ -60,7 +60,8 @@ std::string Encode::Base64Encode(
     return BreakLines(output);
 }
 
-bool Encode::Base64Decode(const std::string&& input, RawData& output) const
+auto Encode::Base64Decode(const std::string&& input, RawData& output) const
+    -> bool
 {
     output.resize(::Base64decode_len(input.data()), 0x0);
 
@@ -76,7 +77,7 @@ bool Encode::Base64Decode(const std::string&& input, RawData& output) const
     return true;
 }
 
-std::string Encode::BreakLines(const std::string& input) const
+auto Encode::BreakLines(const std::string& input) const -> std::string
 {
     std::string output;
 
@@ -98,19 +99,19 @@ std::string Encode::BreakLines(const std::string& input) const
     return output;
 }
 
-std::string Encode::DataEncode(const std::string& input) const
+auto Encode::DataEncode(const std::string& input) const -> std::string
 {
     return Base64Encode(
         reinterpret_cast<const std::uint8_t*>(input.data()), input.size());
 }
 
-std::string Encode::DataEncode(const Data& input) const
+auto Encode::DataEncode(const Data& input) const -> std::string
 {
     return Base64Encode(
         static_cast<const std::uint8_t*>(input.data()), input.size());
 }
 
-std::string Encode::DataDecode(const std::string& input) const
+auto Encode::DataDecode(const std::string& input) const -> std::string
 {
     RawData decoded;
 
@@ -123,7 +124,7 @@ std::string Encode::DataDecode(const std::string& input) const
     return "";
 }
 
-std::string Encode::IdentifierEncode(const Data& input) const
+auto Encode::IdentifierEncode(const Data& input) const -> std::string
 {
     if (input.empty()) { return {}; }
 
@@ -142,7 +143,7 @@ std::string Encode::IdentifierEncode(const Data& input) const
         static_cast<const unsigned char*>(preimage->data()) + preimage->size());
 }
 
-std::string Encode::IdentifierEncode(const OTPassword& input) const
+auto Encode::IdentifierEncode(const OTPassword& input) const -> std::string
 {
     if (input.isMemory()) {
 
@@ -157,7 +158,7 @@ std::string Encode::IdentifierEncode(const OTPassword& input) const
     }
 }
 
-std::string Encode::IdentifierDecode(const std::string& input) const
+auto Encode::IdentifierDecode(const std::string& input) const -> std::string
 {
     const auto sanitized{SanatizeBase58(input)};
     auto vector = std::vector<unsigned char>{};
@@ -187,20 +188,20 @@ std::string Encode::IdentifierDecode(const std::string& input) const
     return output;
 }
 
-bool Encode::IsBase62(const std::string& str) const
+auto Encode::IsBase62(const std::string& str) const -> bool
 {
     return str.find_first_not_of("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHI"
                                  "JKLMNOPQRSTUVWXYZ") == std::string::npos;
 }
 
-OTString Encode::Nonce(const std::uint32_t size) const
+auto Encode::Nonce(const std::uint32_t size) const -> OTString
 {
     auto unusedOutput = Data::Factory();
 
     return Nonce(size, unusedOutput);
 }
 
-OTString Encode::Nonce(const std::uint32_t size, Data& rawOutput) const
+auto Encode::Nonce(const std::uint32_t size, Data& rawOutput) const -> OTString
 {
     rawOutput.zeroMemory();
     rawOutput.SetSize(size);
@@ -212,21 +213,21 @@ OTString Encode::Nonce(const std::uint32_t size, Data& rawOutput) const
     return nonce;
 }
 
-std::string Encode::RandomFilename() const { return Nonce(16)->Get(); }
+auto Encode::RandomFilename() const -> std::string { return Nonce(16)->Get(); }
 
-std::string Encode::SanatizeBase58(const std::string& input) const
+auto Encode::SanatizeBase58(const std::string& input) const -> std::string
 {
     return std::regex_replace(input, std::regex("[^1-9A-HJ-NP-Za-km-z]"), "");
 }
 
-std::string Encode::SanatizeBase64(const std::string& input) const
+auto Encode::SanatizeBase64(const std::string& input) const -> std::string
 {
     return std::regex_replace(input, std::regex("[^0-9A-Za-z+/=]"), "");
 }
 
 using zmq = opentxs::network::zeromq::Context;
 
-std::string Encode::Z85Encode(const Data& input) const
+auto Encode::Z85Encode(const Data& input) const -> std::string
 {
     auto output = std::string{};
 
@@ -237,7 +238,7 @@ std::string Encode::Z85Encode(const Data& input) const
     }
 }
 
-std::string Encode::Z85Encode(const std::string& input) const
+auto Encode::Z85Encode(const std::string& input) const -> std::string
 {
     auto output = std::string{};
 
@@ -248,7 +249,7 @@ std::string Encode::Z85Encode(const std::string& input) const
     }
 }
 
-OTData Encode::Z85Decode(const Data& input) const
+auto Encode::Z85Decode(const Data& input) const -> OTData
 {
     auto output = Data::Factory();
 
@@ -259,7 +260,7 @@ OTData Encode::Z85Decode(const Data& input) const
     }
 }
 
-std::string Encode::Z85Decode(const std::string& input) const
+auto Encode::Z85Decode(const std::string& input) const -> std::string
 {
     auto output = std::string{};
 

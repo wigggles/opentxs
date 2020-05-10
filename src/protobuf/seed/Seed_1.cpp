@@ -16,7 +16,7 @@ namespace opentxs
 {
 namespace proto
 {
-bool CheckProto_1(const Seed& input, const bool silent)
+auto CheckProto_1(const Seed& input, const bool silent) -> bool
 {
     CHECK_SUBOBJECT_VA(words, SeedAllowedCiphertext(), false);
     OPTIONAL_SUBOBJECT_VA(passphrase, SeedAllowedCiphertext(), false);
@@ -27,7 +27,7 @@ bool CheckProto_1(const Seed& input, const bool silent)
     return true;
 }
 
-bool CheckProto_2(const Seed& input, const bool silent)
+auto CheckProto_2(const Seed& input, const bool silent) -> bool
 {
     CHECK_SUBOBJECT_VA(words, SeedAllowedCiphertext(), false);
     OPTIONAL_SUBOBJECT_VA(passphrase, SeedAllowedCiphertext(), false);
@@ -38,7 +38,7 @@ bool CheckProto_2(const Seed& input, const bool silent)
     return true;
 }
 
-bool CheckProto_3(const Seed& input, const bool silent)
+auto CheckProto_3(const Seed& input, const bool silent) -> bool
 {
     OPTIONAL_SUBOBJECT_VA(words, SeedAllowedCiphertext(), false);
     OPTIONAL_SUBOBJECT_VA(passphrase, SeedAllowedCiphertext(), false);
@@ -53,69 +53,87 @@ bool CheckProto_3(const Seed& input, const bool silent)
     return true;
 }
 
-bool CheckProto_4(const Seed& input, const bool silent) { UNDEFINED_VERSION(4) }
+auto CheckProto_4(const Seed& input, const bool silent) -> bool
+{
+    UNDEFINED_VERSION(4)
+}
 
-bool CheckProto_5(const Seed& input, const bool silent) { UNDEFINED_VERSION(5) }
+auto CheckProto_5(const Seed& input, const bool silent) -> bool
+{
+    UNDEFINED_VERSION(5)
+}
 
-bool CheckProto_6(const Seed& input, const bool silent) { UNDEFINED_VERSION(6) }
+auto CheckProto_6(const Seed& input, const bool silent) -> bool
+{
+    UNDEFINED_VERSION(6)
+}
 
-bool CheckProto_7(const Seed& input, const bool silent) { UNDEFINED_VERSION(7) }
+auto CheckProto_7(const Seed& input, const bool silent) -> bool
+{
+    UNDEFINED_VERSION(7)
+}
 
-bool CheckProto_8(const Seed& input, const bool silent) { UNDEFINED_VERSION(8) }
+auto CheckProto_8(const Seed& input, const bool silent) -> bool
+{
+    UNDEFINED_VERSION(8)
+}
 
-bool CheckProto_9(const Seed& input, const bool silent) { UNDEFINED_VERSION(9) }
+auto CheckProto_9(const Seed& input, const bool silent) -> bool
+{
+    UNDEFINED_VERSION(9)
+}
 
-bool CheckProto_10(const Seed& input, const bool silent)
+auto CheckProto_10(const Seed& input, const bool silent) -> bool
 {
     UNDEFINED_VERSION(10)
 }
 
-bool CheckProto_11(const Seed& input, const bool silent)
+auto CheckProto_11(const Seed& input, const bool silent) -> bool
 {
     UNDEFINED_VERSION(11)
 }
 
-bool CheckProto_12(const Seed& input, const bool silent)
+auto CheckProto_12(const Seed& input, const bool silent) -> bool
 {
     UNDEFINED_VERSION(12)
 }
 
-bool CheckProto_13(const Seed& input, const bool silent)
+auto CheckProto_13(const Seed& input, const bool silent) -> bool
 {
     UNDEFINED_VERSION(13)
 }
 
-bool CheckProto_14(const Seed& input, const bool silent)
+auto CheckProto_14(const Seed& input, const bool silent) -> bool
 {
     UNDEFINED_VERSION(14)
 }
 
-bool CheckProto_15(const Seed& input, const bool silent)
+auto CheckProto_15(const Seed& input, const bool silent) -> bool
 {
     UNDEFINED_VERSION(15)
 }
 
-bool CheckProto_16(const Seed& input, const bool silent)
+auto CheckProto_16(const Seed& input, const bool silent) -> bool
 {
     UNDEFINED_VERSION(16)
 }
 
-bool CheckProto_17(const Seed& input, const bool silent)
+auto CheckProto_17(const Seed& input, const bool silent) -> bool
 {
     UNDEFINED_VERSION(17)
 }
 
-bool CheckProto_18(const Seed& input, const bool silent)
+auto CheckProto_18(const Seed& input, const bool silent) -> bool
 {
     UNDEFINED_VERSION(18)
 }
 
-bool CheckProto_19(const Seed& input, const bool silent)
+auto CheckProto_19(const Seed& input, const bool silent) -> bool
 {
     UNDEFINED_VERSION(19)
 }
 
-bool CheckProto_20(const Seed& input, const bool silent)
+auto CheckProto_20(const Seed& input, const bool silent) -> bool
 {
     UNDEFINED_VERSION(20)
 }

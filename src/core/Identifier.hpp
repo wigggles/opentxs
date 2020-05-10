@@ -51,24 +51,24 @@ public:
     using ot_super = Data;
 
     using ot_super::operator==;
-    bool operator==(const opentxs::Identifier& rhs) const final;
+    auto operator==(const opentxs::Identifier& rhs) const -> bool final;
     using ot_super::operator!=;
-    bool operator!=(const opentxs::Identifier& rhs) const final;
+    auto operator!=(const opentxs::Identifier& rhs) const -> bool final;
     using ot_super::operator>;
-    bool operator>(const opentxs::Identifier& rhs) const final;
+    auto operator>(const opentxs::Identifier& rhs) const -> bool final;
     using ot_super::operator<;
-    bool operator<(const opentxs::Identifier& rhs) const final;
+    auto operator<(const opentxs::Identifier& rhs) const -> bool final;
     using ot_super::operator<=;
-    bool operator<=(const opentxs::Identifier& rhs) const final;
+    auto operator<=(const opentxs::Identifier& rhs) const -> bool final;
     using ot_super::operator>=;
-    bool operator>=(const opentxs::Identifier& rhs) const final;
+    auto operator>=(const opentxs::Identifier& rhs) const -> bool final;
 
     void GetString(String& theStr) const final;
-    std::string str() const final;
-    const ID& Type() const final { return type_; }
+    auto str() const -> std::string final;
+    auto Type() const -> const ID& final { return type_; }
 
-    bool CalculateDigest(const ReadView bytes, const ID type = DefaultType)
-        final;
+    auto CalculateDigest(const ReadView bytes, const ID type = DefaultType)
+        -> bool final;
     void SetString(const std::string& encoded) final;
     void SetString(const String& encoded) final;
     using ot_super::swap;
@@ -87,13 +87,14 @@ private:
 
     ID type_{DefaultType};
 
-    Identifier* clone() const final;
+    auto clone() const -> Identifier* final;
 
-    static Identifier* contract_contents_to_identifier(const Contract& in);
-    static proto::HashType IDToHashType(const ID type);
-    static OTData path_to_data(
+    static auto contract_contents_to_identifier(const Contract& in)
+        -> Identifier*;
+    static auto IDToHashType(const ID type) -> proto::HashType;
+    static auto path_to_data(
         const proto::ContactItemType type,
-        const proto::HDPath& path);
+        const proto::HDPath& path) -> OTData;
 
     explicit Identifier(const std::string& rhs);
     explicit Identifier(const String& rhs);
@@ -107,7 +108,7 @@ private:
     Identifier();
     Identifier(const Identifier& rhs) = delete;
     Identifier(Identifier&& rhs) = delete;
-    Identifier& operator=(const Identifier& rhs) = delete;
-    Identifier& operator=(Identifier&& rhs) = delete;
+    auto operator=(const Identifier& rhs) -> Identifier& = delete;
+    auto operator=(Identifier&& rhs) -> Identifier& = delete;
 };
 }  // namespace opentxs::implementation

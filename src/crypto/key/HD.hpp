@@ -47,14 +47,16 @@ namespace opentxs::crypto::key::implementation
 class HD : virtual public key::HD, public EllipticCurve
 {
 public:
-    ReadView Chaincode(const PasswordPrompt& reason) const noexcept final;
-    int Depth() const noexcept final;
-    Bip32Fingerprint Fingerprint() const noexcept final;
-    const std::string Path() const noexcept final;
-    bool Path(proto::HDPath& output) const noexcept final;
-    std::shared_ptr<proto::AsymmetricKey> Serialize() const noexcept final;
-    std::string Xprv(const PasswordPrompt& reason) const noexcept final;
-    std::string Xpub(const PasswordPrompt& reason) const noexcept final;
+    auto Chaincode(const PasswordPrompt& reason) const noexcept
+        -> ReadView final;
+    auto Depth() const noexcept -> int final;
+    auto Fingerprint() const noexcept -> Bip32Fingerprint final;
+    auto Path() const noexcept -> const std::string final;
+    auto Path(proto::HDPath& output) const noexcept -> bool final;
+    auto Serialize() const noexcept
+        -> std::shared_ptr<proto::AsymmetricKey> final;
+    auto Xprv(const PasswordPrompt& reason) const noexcept -> std::string final;
+    auto Xpub(const PasswordPrompt& reason) const noexcept -> std::string final;
 
 protected:
     void erase_private_data() final;
@@ -98,7 +100,7 @@ private:
 
     HD() = delete;
     HD(HD&&) = delete;
-    HD& operator=(const HD&) = delete;
-    HD& operator=(HD&&) = delete;
+    auto operator=(const HD&) -> HD& = delete;
+    auto operator=(HD &&) -> HD& = delete;
 };
 }  // namespace opentxs::crypto::key::implementation

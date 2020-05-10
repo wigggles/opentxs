@@ -55,10 +55,10 @@ public:
         PayloadSizeField length_;
         ChecksumField checksum_;
 
-        OTData Checksum() const noexcept;
-        bitcoin::Command Command() const noexcept;
-        bitcoin::Magic Magic() const noexcept;
-        std::size_t PayloadSize() const noexcept;
+        auto Checksum() const noexcept -> OTData;
+        auto Command() const noexcept -> bitcoin::Command;
+        auto Magic() const noexcept -> bitcoin::Magic;
+        auto PayloadSize() const noexcept -> std::size_t;
 
         BitcoinFormat(const Data& in) noexcept(false);
         BitcoinFormat(const zmq::Frame& in) noexcept(false);
@@ -72,13 +72,13 @@ public:
         BitcoinFormat(const void* data, const std::size_t size) noexcept(false);
     };
 
-    static std::size_t Size() noexcept { return sizeof(BitcoinFormat); }
+    static auto Size() noexcept -> std::size_t { return sizeof(BitcoinFormat); }
 
-    bitcoin::Command Command() const noexcept { return command_; }
-    OPENTXS_EXPORT OTData Encode() const noexcept;
-    blockchain::Type Network() const noexcept { return chain_; }
-    std::size_t PayloadSize() const noexcept { return payload_size_; }
-    const opentxs::Data& Checksum() const noexcept { return checksum_; }
+    auto Command() const noexcept -> bitcoin::Command { return command_; }
+    OPENTXS_EXPORT auto Encode() const noexcept -> OTData;
+    auto Network() const noexcept -> blockchain::Type { return chain_; }
+    auto PayloadSize() const noexcept -> std::size_t { return payload_size_; }
+    auto Checksum() const noexcept -> const opentxs::Data& { return checksum_; }
 
     void SetChecksum(const std::size_t payload, OTData&& checksum) noexcept;
 
@@ -106,7 +106,7 @@ private:
     Header() = delete;
     Header(const Header&) = delete;
     Header(Header&&) = delete;
-    Header& operator=(const Header&) = delete;
-    Header& operator=(Header&&) = delete;
+    auto operator=(const Header&) -> Header& = delete;
+    auto operator=(Header &&) -> Header& = delete;
 };
 }  // namespace opentxs::blockchain::p2p::bitcoin

@@ -117,10 +117,10 @@ ActivitySummary::ActivitySummary(
     OT_ASSERT(startup_)
 }
 
-void* ActivitySummary::construct_row(
+auto ActivitySummary::construct_row(
     const ActivitySummaryRowID& id,
     const ActivitySummarySortKey& index,
-    const CustomData& custom) const noexcept
+    const CustomData& custom) const noexcept -> void*
 {
     names_.emplace(id, index);
     const auto [it, added] = items_[index].emplace(
@@ -131,8 +131,8 @@ void* ActivitySummary::construct_row(
     return it->second.get();
 }
 
-std::string ActivitySummary::display_name(
-    const proto::StorageThread& thread) const noexcept
+auto ActivitySummary::display_name(const proto::StorageThread& thread) const
+    noexcept -> std::string
 {
     std::set<std::string> names{};
 
@@ -160,9 +160,9 @@ std::string ActivitySummary::display_name(
     return output;
 }
 
-const proto::StorageThreadItem& ActivitySummary::newest_item(
+auto ActivitySummary::newest_item(
     const proto::StorageThread& thread,
-    CustomData& custom) noexcept
+    CustomData& custom) noexcept -> const proto::StorageThreadItem&
 {
     const proto::StorageThreadItem* output{nullptr};
     auto* time = new Time;

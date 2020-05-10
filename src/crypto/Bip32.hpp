@@ -39,42 +39,42 @@ class Bip32 : virtual public opentxs::crypto::Bip32
 {
 public:
 #if OT_CRYPTO_WITH_BIP32
-    Key DeriveKey(
+    auto DeriveKey(
         const EcdsaCurve& curve,
         const OTPassword& seed,
-        const Path& path) const final;
+        const Path& path) const -> Key final;
 #endif  // OT_CRYPTO_WITH_BIP32
-    bool DeserializePrivate(
+    auto DeserializePrivate(
         const std::string& serialized,
         Bip32Network& network,
         Bip32Depth& depth,
         Bip32Fingerprint& parent,
         Bip32Index& index,
         Data& chainCode,
-        OTPassword& key) const final;
-    bool DeserializePublic(
+        OTPassword& key) const -> bool final;
+    auto DeserializePublic(
         const std::string& serialized,
         Bip32Network& network,
         Bip32Depth& depth,
         Bip32Fingerprint& parent,
         Bip32Index& index,
         Data& chainCode,
-        Data& key) const final;
-    OTIdentifier SeedID(const ReadView entropy) const final;
-    std::string SerializePrivate(
+        Data& key) const -> bool final;
+    auto SeedID(const ReadView entropy) const -> OTIdentifier final;
+    auto SerializePrivate(
         const Bip32Network network,
         const Bip32Depth depth,
         const Bip32Fingerprint parent,
         const Bip32Index index,
         const Data& chainCode,
-        const OTPassword& key) const final;
-    std::string SerializePublic(
+        const OTPassword& key) const -> std::string final;
+    auto SerializePublic(
         const Bip32Network network,
         const Bip32Depth depth,
         const Bip32Fingerprint parent,
         const Bip32Index index,
         const Data& chainCode,
-        const Data& key) const final;
+        const Data& key) const -> std::string final;
 
     Bip32(const api::Crypto& crypto) noexcept;
 
@@ -113,7 +113,7 @@ private:
     Bip32() = delete;
     Bip32(const Bip32&) = delete;
     Bip32(Bip32&&) = delete;
-    Bip32& operator=(const Bip32&) = delete;
-    Bip32& operator=(Bip32&&) = delete;
+    auto operator=(const Bip32&) -> Bip32& = delete;
+    auto operator=(Bip32 &&) -> Bip32& = delete;
 };
 }  // namespace opentxs::crypto::implementation

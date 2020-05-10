@@ -7,7 +7,7 @@
 
 namespace opentxs::proto
 {
-const VersionMap& LucreTokenDataAllowedCiphertext() noexcept
+auto LucreTokenDataAllowedCiphertext() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -15,7 +15,7 @@ const VersionMap& LucreTokenDataAllowedCiphertext() noexcept
 
     return output;
 }
-const VersionMap& PurseAllowedCiphertext() noexcept
+auto PurseAllowedCiphertext() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -23,7 +23,7 @@ const VersionMap& PurseAllowedCiphertext() noexcept
 
     return output;
 }
-const VersionMap& PurseAllowedEnvelope() noexcept
+auto PurseAllowedEnvelope() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {2, 2}},
@@ -31,7 +31,7 @@ const VersionMap& PurseAllowedEnvelope() noexcept
 
     return output;
 }
-const VersionMap& PurseAllowedSymmetricKey() noexcept
+auto PurseAllowedSymmetricKey() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -39,7 +39,7 @@ const VersionMap& PurseAllowedSymmetricKey() noexcept
 
     return output;
 }
-const VersionMap& PurseAllowedToken() noexcept
+auto PurseAllowedToken() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -47,7 +47,7 @@ const VersionMap& PurseAllowedToken() noexcept
 
     return output;
 }
-const VersionMap& PurseExchangeAllowedPurse() noexcept
+auto PurseExchangeAllowedPurse() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -55,7 +55,7 @@ const VersionMap& PurseExchangeAllowedPurse() noexcept
 
     return output;
 }
-const VersionMap& TokenAllowedLucreTokenData() noexcept
+auto TokenAllowedLucreTokenData() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},

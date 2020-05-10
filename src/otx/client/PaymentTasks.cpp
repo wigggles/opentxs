@@ -39,7 +39,7 @@ PaymentTasks::PaymentTasks(client::internal::StateMachine& parent)
 {
 }
 
-bool PaymentTasks::cleanup()
+auto PaymentTasks::cleanup() -> bool
 {
     std::vector<TaskMap::iterator> finished;
 
@@ -74,21 +74,23 @@ bool PaymentTasks::cleanup()
     return true;
 }
 
-PaymentTasks::BackgroundTask PaymentTasks::error_task()
+auto PaymentTasks::error_task() -> PaymentTasks::BackgroundTask
 {
     BackgroundTask output{0, Future{}};
 
     return output;
 }
 
-std::mutex& PaymentTasks::GetAccountLock(const identifier::UnitDefinition& unit)
+auto PaymentTasks::GetAccountLock(const identifier::UnitDefinition& unit)
+    -> std::mutex&
 {
     Lock lock(unit_lock_);
 
     return account_lock_[unit];
 }
 
-OTIdentifier PaymentTasks::get_payment_id(const OTPayment& payment) const
+auto PaymentTasks::get_payment_id(const OTPayment& payment) const
+    -> OTIdentifier
 {
     auto output = Identifier::Factory();
 
@@ -122,8 +124,8 @@ OTIdentifier PaymentTasks::get_payment_id(const OTPayment& payment) const
     }
 }
 
-PaymentTasks::BackgroundTask PaymentTasks::PaymentTasks::Queue(
-    const DepositPaymentTask& task)
+auto PaymentTasks::PaymentTasks::Queue(const DepositPaymentTask& task)
+    -> PaymentTasks::BackgroundTask
 {
     const auto& pPayment = std::get<2>(task);
 

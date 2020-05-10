@@ -37,10 +37,10 @@ class Callback final : virtual zap::Callback
 public:
     using Lambda = zap::Callback::ReceiveCallback;
 
-    OTZMQZAPReply Process(const zap::Request& request) const final;
-    bool SetDomain(const std::string& domain, const ReceiveCallback& callback)
-        const final;
-    bool SetPolicy(const Policy policy) const final;
+    auto Process(const zap::Request& request) const -> OTZMQZAPReply final;
+    auto SetDomain(const std::string& domain, const ReceiveCallback& callback)
+        const -> bool final;
+    auto SetPolicy(const Policy policy) const -> bool final;
 
     ~Callback() final = default;
 
@@ -52,14 +52,14 @@ private:
     mutable std::mutex domain_lock_;
     mutable std::atomic<Policy> policy_;
 
-    Callback* clone() const final { return new Callback(); }
-    OTZMQZAPReply default_callback(const zap::Request& in) const;
-    const Lambda& get_domain(const std::string& domain) const;
+    auto clone() const -> Callback* final { return new Callback(); }
+    auto default_callback(const zap::Request& in) const -> OTZMQZAPReply;
+    auto get_domain(const std::string& domain) const -> const Lambda&;
 
     Callback();
     Callback(const Callback&) = delete;
     Callback(Callback&&) = delete;
-    Callback& operator=(const Callback&) = delete;
-    Callback& operator=(Callback&&) = delete;
+    auto operator=(const Callback&) -> Callback& = delete;
+    auto operator=(Callback &&) -> Callback& = delete;
 };
 }  // namespace opentxs::network::zeromq::zap::implementation

@@ -93,7 +93,7 @@ OTPartyAccount::OTPartyAccount(
 {
 }
 
-SharedAccount OTPartyAccount::get_account() const
+auto OTPartyAccount::get_account() const -> SharedAccount
 {
     if (!m_strAcctID->Exists()) { return {}; }
 
@@ -104,7 +104,7 @@ SharedAccount OTPartyAccount::get_account() const
 // Use that name to look up the agent ON THE PARTY (I already
 // have a pointer to my owner party.)
 //
-OTAgent* OTPartyAccount::GetAuthorizedAgent()
+auto OTPartyAccount::GetAuthorizedAgent() -> OTAgent*
 {
     OT_ASSERT(nullptr != m_pForParty);
 
@@ -129,7 +129,7 @@ void OTPartyAccount::SetParty(OTParty& theOwnerParty)
     m_pForParty = &theOwnerParty;
 }
 
-bool OTPartyAccount::IsAccountByID(const Identifier& theAcctID) const
+auto OTPartyAccount::IsAccountByID(const Identifier& theAcctID) const -> bool
 {
     if (!m_strAcctID->Exists()) { return false; }
 
@@ -149,7 +149,7 @@ bool OTPartyAccount::IsAccountByID(const Identifier& theAcctID) const
     return true;
 }
 
-bool OTPartyAccount::IsAccount(const Account& theAccount)
+auto OTPartyAccount::IsAccount(const Account& theAccount) -> bool
 {
     if (!m_strAcctID->Exists()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error: Empty m_strAcctID.")
@@ -198,7 +198,7 @@ bool OTPartyAccount::IsAccount(const Account& theAccount)
 
 // I have a ptr to my owner (party), as well as to the actual account.
 // I will ask him to verify whether he actually owns it.
-bool OTPartyAccount::VerifyOwnership() const
+auto OTPartyAccount::VerifyOwnership() const -> bool
 {
     if (nullptr == m_pForParty) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error: nullptr pointer to "
@@ -233,7 +233,7 @@ bool OTPartyAccount::VerifyOwnership() const
 
 // I can get a ptr to my agent, and I have one to the actual account.
 // I will ask him to verify whether he actually has agency over it.
-bool OTPartyAccount::VerifyAgency()
+auto OTPartyAccount::VerifyAgency() -> bool
 {
     auto account = get_account();
 
@@ -271,14 +271,14 @@ bool OTPartyAccount::VerifyAgency()
     return true;
 }
 
-bool OTPartyAccount::DropFinalReceiptToInbox(
+auto OTPartyAccount::DropFinalReceiptToInbox(
     const String& strNotaryID,
     OTSmartContract& theSmartContract,
     const std::int64_t& lNewTransactionNumber,
     const String& strOrigCronItem,
     const PasswordPrompt& reason,
     OTString pstrNote,
-    OTString pstrAttachment)
+    OTString pstrAttachment) -> bool
 {
     if (nullptr == m_pForParty) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": nullptr m_pForParty.").Flush();
@@ -325,7 +325,7 @@ bool OTPartyAccount::DropFinalReceiptToInbox(
 // This is very low-level. (It's better to use OTPartyAccount through it's
 // interface, than to just load up its account directly.) But this is here
 // because it is appropriate in certain cases.
-SharedAccount OTPartyAccount::LoadAccount()
+auto OTPartyAccount::LoadAccount() -> SharedAccount
 {
     if (!m_strAcctID->Exists()) {
         {
@@ -390,7 +390,7 @@ void OTPartyAccount::RegisterForExecution(OTScript& theScript)
 }
 
 // Done
-bool OTPartyAccount::Compare(const OTPartyAccount& rhs) const
+auto OTPartyAccount::Compare(const OTPartyAccount& rhs) const -> bool
 {
     if (!(GetName().Compare(rhs.GetName()))) {
         {

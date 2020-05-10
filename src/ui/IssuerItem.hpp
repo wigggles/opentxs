@@ -79,10 +79,13 @@ class IssuerItem final
     : public Combined<IssuerItemList, IssuerItemRow, AccountSummarySortKey>
 {
 public:
-    bool ConnectionState() const noexcept final { return connection_.load(); }
-    std::string Debug() const noexcept final;
-    std::string Name() const noexcept final;
-    bool Trusted() const noexcept final { return issuer_->Paired(); }
+    auto ConnectionState() const noexcept -> bool final
+    {
+        return connection_.load();
+    }
+    auto Debug() const noexcept -> std::string final;
+    auto Name() const noexcept -> std::string final;
+    auto Trusted() const noexcept -> bool final { return issuer_->Paired(); }
 
 #if OT_QT
     QVariant qt_data(const int column, const int role) const noexcept final;
@@ -114,10 +117,10 @@ private:
     const std::shared_ptr<const api::client::Issuer> issuer_;
     const proto::ContactItemType currency_;
 
-    void* construct_row(
+    auto construct_row(
         const IssuerItemRowID& id,
         const IssuerItemSortKey& index,
-        const CustomData& custom) const noexcept final;
+        const CustomData& custom) const noexcept -> void* final;
 
     void process_account(const Identifier& accountID) noexcept;
     void process_account(const network::zeromq::Message& message) noexcept;
@@ -127,8 +130,8 @@ private:
     IssuerItem() = delete;
     IssuerItem(const IssuerItem&) = delete;
     IssuerItem(IssuerItem&&) = delete;
-    IssuerItem& operator=(const IssuerItem&) = delete;
-    IssuerItem& operator=(IssuerItem&&) = delete;
+    auto operator=(const IssuerItem&) -> IssuerItem& = delete;
+    auto operator=(IssuerItem &&) -> IssuerItem& = delete;
 };
 }  // namespace opentxs::ui::implementation
 

@@ -24,7 +24,7 @@
 
 namespace opentxs
 {
-identity::wot::verification::internal::Item* Factory::VerificationItem(
+auto Factory::VerificationItem(
     const identity::wot::verification::internal::Nym& parent,
     const Identifier& claim,
     const identity::Nym& signer,
@@ -32,7 +32,7 @@ identity::wot::verification::internal::Item* Factory::VerificationItem(
     const bool value,
     const Time start,
     const Time end,
-    const VersionNumber version)
+    const VersionNumber version) -> identity::wot::verification::internal::Item*
 {
     using ReturnType =
         opentxs::identity::wot::verification::implementation::Item;
@@ -57,9 +57,10 @@ identity::wot::verification::internal::Item* Factory::VerificationItem(
     }
 }
 
-identity::wot::verification::internal::Item* Factory::VerificationItem(
+auto Factory::VerificationItem(
     const identity::wot::verification::internal::Nym& parent,
     const proto::Verification& serialized)
+    -> identity::wot::verification::internal::Item*
 {
     using ReturnType =
         opentxs::identity::wot::verification::implementation::Item;

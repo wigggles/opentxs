@@ -53,19 +53,19 @@
 namespace opentxs
 {
 template <typename Range, typename Function>
-Function for_each(Range& range, Function f)
+auto for_each(Range& range, Function f) -> Function
 {
     return std::for_each(std::begin(range), std::end(range), f);
 }
 
 using ReturnType = identity::implementation::Authority;
 
-identity::internal::Authority* Factory::Authority(
+auto Factory::Authority(
     const api::internal::Core& api,
     const identity::Nym& parent,
     const identity::Source& source,
     const proto::KeyMode mode,
-    const proto::Authority& serialized)
+    const proto::Authority& serialized) -> identity::internal::Authority*
 {
     try {
 
@@ -79,13 +79,13 @@ identity::internal::Authority* Factory::Authority(
     }
 }
 
-identity::internal::Authority* Factory::Authority(
+auto Factory::Authority(
     const api::internal::Core& api,
     const identity::Nym& parent,
     const identity::Source& source,
     const NymParameters& parameters,
     const VersionNumber nymVersion,
-    const opentxs::PasswordPrompt& reason)
+    const opentxs::PasswordPrompt& reason) -> identity::internal::Authority*
 {
     try {
 
@@ -103,8 +103,8 @@ identity::internal::Authority* Factory::Authority(
 
 namespace opentxs::identity::internal
 {
-VersionNumber Authority::NymToContactCredential(
-    const VersionNumber nym) noexcept(false)
+auto Authority::NymToContactCredential(const VersionNumber nym) noexcept(false)
+    -> VersionNumber
 {
     return ReturnType::authority_to_contact_.at(
         ReturnType::nym_to_authority_.at(nym));
@@ -246,9 +246,9 @@ Authority::Authority(
     }
 }
 
-std::string Authority::AddChildKeyCredential(
+auto Authority::AddChildKeyCredential(
     const NymParameters& nymParameters,
-    const opentxs::PasswordPrompt& reason)
+    const opentxs::PasswordPrompt& reason) -> std::string
 {
     auto output = api_.Factory().Identifier();
     NymParameters revisedParameters{nymParameters};
@@ -280,9 +280,9 @@ std::string Authority::AddChildKeyCredential(
     return output->str();
 }
 
-bool Authority::AddContactCredential(
+auto Authority::AddContactCredential(
     const proto::ContactData& contactData,
-    const opentxs::PasswordPrompt& reason)
+    const opentxs::PasswordPrompt& reason) -> bool
 {
     LogDetail(OT_METHOD)(__FUNCTION__)(": Adding a contact credential.")
         .Flush();
@@ -319,9 +319,9 @@ bool Authority::AddContactCredential(
     return true;
 }
 
-bool Authority::AddVerificationCredential(
+auto Authority::AddVerificationCredential(
     const proto::VerificationSet& verificationSet,
-    const opentxs::PasswordPrompt& reason)
+    const opentxs::PasswordPrompt& reason) -> bool
 {
     LogDetail(OT_METHOD)(__FUNCTION__)(": Adding a verification credential.")
         .Flush();
@@ -504,7 +504,7 @@ auto Authority::create_key_credential(
     return output;
 }
 
-std::unique_ptr<credential::internal::Primary> Authority::create_master(
+auto Authority::create_master(
     const api::internal::Core& api,
     identity::internal::Authority& owner,
     const identity::Source& source,
@@ -512,6 +512,7 @@ std::unique_ptr<credential::internal::Primary> Authority::create_master(
     const NymParameters& parameters,
     const Bip32Index index,
     const opentxs::PasswordPrompt& reason) noexcept(false)
+    -> std::unique_ptr<credential::internal::Primary>
 {
 #if OT_CRYPTO_WITH_BIP32
     if (0 != index) {
@@ -593,10 +594,10 @@ void Authority::extract_child(
     map.emplace(std::move(id), child.release());
 }
 
-const crypto::key::Keypair& Authority::get_keypair(
+auto Authority::get_keypair(
     const proto::AsymmetricKeyType type,
     const proto::KeyRole role,
-    const String::List* plistRevokedIDs) const
+    const String::List* plistRevokedIDs) const -> const crypto::key::Keypair&
 {
     for (const auto& [id, pCredential] : key_credentials_) {
         OT_ASSERT(pCredential);
@@ -615,9 +616,9 @@ const crypto::key::Keypair& Authority::get_keypair(
     throw std::out_of_range("no matching keypair");
 }
 
-const credential::Base* Authority::get_secondary_credential(
+auto Authority::get_secondary_credential(
     const std::string& strSubID,
-    const String::List* plistRevokedIDs) const
+    const String::List* plistRevokedIDs) const -> const credential::Base*
 {
     if (is_revoked(strSubID, plistRevokedIDs)) { return nullptr; }
 
@@ -628,8 +629,8 @@ const credential::Base* Authority::get_secondary_credential(
     return it->second.get();
 }
 
-bool Authority::GetContactData(
-    std::unique_ptr<proto::ContactData>& contactData) const
+auto Authority::GetContactData(
+    std::unique_ptr<proto::ContactData>& contactData) const -> bool
 {
     if (contact_credentials_.empty()) { return false; }
 
@@ -640,45 +641,45 @@ bool Authority::GetContactData(
     return true;
 }
 
-OTIdentifier Authority::GetMasterCredID() const
+auto Authority::GetMasterCredID() const -> OTIdentifier
 {
     OT_ASSERT(master_);
 
     return master_->ID();
 }
 
-const crypto::key::Keypair& Authority::GetAuthKeypair(
+auto Authority::GetAuthKeypair(
     proto::AsymmetricKeyType keytype,
-    const String::List* plistRevokedIDs) const
+    const String::List* plistRevokedIDs) const -> const crypto::key::Keypair&
 {
     return get_keypair(keytype, proto::KEYROLE_AUTH, plistRevokedIDs);
 }
 
-const crypto::key::Keypair& Authority::GetEncrKeypair(
+auto Authority::GetEncrKeypair(
     proto::AsymmetricKeyType keytype,
-    const String::List* plistRevokedIDs) const
+    const String::List* plistRevokedIDs) const -> const crypto::key::Keypair&
 {
     return get_keypair(keytype, proto::KEYROLE_ENCRYPT, plistRevokedIDs);
 }
 
-const crypto::key::Asymmetric& Authority::GetPublicAuthKey(
+auto Authority::GetPublicAuthKey(
     proto::AsymmetricKeyType keytype,
-    const String::List* plistRevokedIDs) const
+    const String::List* plistRevokedIDs) const -> const crypto::key::Asymmetric&
 {
     return GetAuthKeypair(keytype, plistRevokedIDs).GetPublicKey();
 }
 
-const crypto::key::Asymmetric& Authority::GetPublicEncrKey(
+auto Authority::GetPublicEncrKey(
     proto::AsymmetricKeyType keytype,
-    const String::List* plistRevokedIDs) const
+    const String::List* plistRevokedIDs) const -> const crypto::key::Asymmetric&
 {
     return GetEncrKeypair(keytype, plistRevokedIDs).GetPublicKey();
 }
 
-std::int32_t Authority::GetPublicKeysBySignature(
+auto Authority::GetPublicKeysBySignature(
     crypto::key::Keypair::Keys& listOutput,
     const opentxs::Signature& theSignature,
-    char cKeyType) const
+    char cKeyType) const -> std::int32_t
 {
     std::int32_t output{0};
     const auto getKeys = [&](const auto& item) -> void {
@@ -691,37 +692,37 @@ std::int32_t Authority::GetPublicKeysBySignature(
     return output;
 }
 
-const crypto::key::Asymmetric& Authority::GetPublicSignKey(
+auto Authority::GetPublicSignKey(
     proto::AsymmetricKeyType keytype,
-    const String::List* plistRevokedIDs) const
+    const String::List* plistRevokedIDs) const -> const crypto::key::Asymmetric&
 {
     return GetSignKeypair(keytype, plistRevokedIDs).GetPublicKey();
 }
 
-const crypto::key::Asymmetric& Authority::GetPrivateAuthKey(
+auto Authority::GetPrivateAuthKey(
     proto::AsymmetricKeyType keytype,
-    const String::List* plistRevokedIDs) const
+    const String::List* plistRevokedIDs) const -> const crypto::key::Asymmetric&
 {
     return GetAuthKeypair(keytype, plistRevokedIDs).GetPrivateKey();
 }
 
-const crypto::key::Asymmetric& Authority::GetPrivateEncrKey(
+auto Authority::GetPrivateEncrKey(
     proto::AsymmetricKeyType keytype,
-    const String::List* plistRevokedIDs) const
+    const String::List* plistRevokedIDs) const -> const crypto::key::Asymmetric&
 {
     return GetEncrKeypair(keytype, plistRevokedIDs).GetPrivateKey();
 }
 
-const crypto::key::Asymmetric& Authority::GetPrivateSignKey(
+auto Authority::GetPrivateSignKey(
     proto::AsymmetricKeyType keytype,
-    const String::List* plistRevokedIDs) const
+    const String::List* plistRevokedIDs) const -> const crypto::key::Asymmetric&
 {
     return GetSignKeypair(keytype, plistRevokedIDs).GetPrivateKey();
 }
 
-const crypto::key::Keypair& Authority::GetSignKeypair(
+auto Authority::GetSignKeypair(
     proto::AsymmetricKeyType keytype,
-    const String::List* plistRevokedIDs) const
+    const String::List* plistRevokedIDs) const -> const crypto::key::Keypair&
 {
     return get_keypair(keytype, proto::KEYROLE_SIGN, plistRevokedIDs);
 }
@@ -744,8 +745,8 @@ auto Authority::GetTagCredential(proto::AsymmetricKeyType type) const
     throw std::out_of_range("No matching credential");
 }
 
-bool Authority::GetVerificationSet(
-    std::unique_ptr<proto::VerificationSet>& output) const
+auto Authority::GetVerificationSet(
+    std::unique_ptr<proto::VerificationSet>& output) const -> bool
 {
     if (verification_credentials_.empty()) { return false; }
 
@@ -756,7 +757,7 @@ bool Authority::GetVerificationSet(
     return true;
 }
 
-bool Authority::hasCapability(const NymCapability& capability) const
+auto Authority::hasCapability(const NymCapability& capability) const -> bool
 {
     switch (capability) {
         case (NymCapability::SIGN_CHILDCRED): {
@@ -779,9 +780,9 @@ bool Authority::hasCapability(const NymCapability& capability) const
     return false;
 }
 
-bool Authority::is_revoked(
+auto Authority::is_revoked(
     const std::string& id,
-    const String::List* plistRevokedIDs)
+    const String::List* plistRevokedIDs) -> bool
 {
     if (nullptr == plistRevokedIDs) { return false; }
 
@@ -824,7 +825,7 @@ auto Authority::load_child(
     return output;
 }
 
-bool Authority::LoadChildKeyCredential(const String& strSubID)
+auto Authority::LoadChildKeyCredential(const String& strSubID) -> bool
 {
 
     OT_ASSERT(false == parent_.Source().NymID()->empty());
@@ -842,7 +843,8 @@ bool Authority::LoadChildKeyCredential(const String& strSubID)
     return LoadChildKeyCredential(*child);
 }
 
-bool Authority::LoadChildKeyCredential(const proto::Credential& serializedCred)
+auto Authority::LoadChildKeyCredential(const proto::Credential& serializedCred)
+    -> bool
 {
     bool validProto = proto::Validate<proto::Credential>(
         serializedCred, VERBOSE, mode_, proto::CREDROLE_ERROR, true);
@@ -924,12 +926,13 @@ bool Authority::LoadChildKeyCredential(const proto::Credential& serializedCred)
     return true;
 }
 
-std::unique_ptr<credential::internal::Primary> Authority::load_master(
+auto Authority::load_master(
     const api::internal::Core& api,
     identity::internal::Authority& owner,
     const identity::Source& source,
     const proto::KeyMode mode,
     const Serialized& serialized) noexcept(false)
+    -> std::unique_ptr<credential::internal::Primary>
 {
     auto output = std::unique_ptr<credential::internal::Primary>{};
 
@@ -971,7 +974,7 @@ auto Authority::Params(const proto::AsymmetricKeyType type) const noexcept
     }
 }
 
-bool Authority::Path(proto::HDPath& output) const
+auto Authority::Path(proto::HDPath& output) const -> bool
 {
     if (master_) {
         const bool found = master_->Path(output);
@@ -1006,8 +1009,8 @@ void Authority::RevokeVerificationCredentials(std::list<std::string>& output)
     verification_credentials_.clear();
 }
 
-std::shared_ptr<Authority::Serialized> Authority::Serialize(
-    const CredentialIndexModeFlag mode) const
+auto Authority::Serialize(const CredentialIndexModeFlag mode) const
+    -> std::shared_ptr<Authority::Serialized>
 {
     auto credSet = std::make_shared<Serialized>();
     credSet->set_version(version_);
@@ -1050,13 +1053,13 @@ std::shared_ptr<Authority::Serialized> Authority::Serialize(
     return credSet;
 }
 
-bool Authority::Sign(
+auto Authority::Sign(
     const GetPreimage input,
     const proto::SignatureRole role,
     proto::Signature& signature,
     const opentxs::PasswordPrompt& reason,
     proto::KeyRole key,
-    const proto::HashType hash) const
+    const proto::HashType hash) const -> bool
 {
     switch (role) {
         case (proto::SIGROLE_PUBCREDENTIAL): {
@@ -1101,10 +1104,10 @@ bool Authority::Sign(
     return false;
 }
 
-bool Authority::TransportKey(
+auto Authority::TransportKey(
     Data& publicKey,
     OTPassword& privateKey,
-    const opentxs::PasswordPrompt& reason) const
+    const opentxs::PasswordPrompt& reason) const -> bool
 {
     for (const auto& [id, pCredential] : key_credentials_) {
         OT_ASSERT(pCredential);
@@ -1190,7 +1193,7 @@ auto Authority::Unlock(
 }
 
 template <typename Item>
-bool Authority::validate_credential(const Item& item) const
+auto Authority::validate_credential(const Item& item) const -> bool
 {
     const auto& [id, pCredential] = item;
 
@@ -1210,10 +1213,10 @@ bool Authority::validate_credential(const Item& item) const
     return false;
 }
 
-bool Authority::Verify(
+auto Authority::Verify(
     const Data& plaintext,
     const proto::Signature& sig,
-    const proto::KeyRole key) const
+    const proto::KeyRole key) const -> bool
 {
     std::string signerID(sig.credentialid());
 
@@ -1239,7 +1242,7 @@ bool Authority::Verify(
     return credential->Verify(plaintext, sig, key);
 }
 
-bool Authority::Verify(const proto::Verification& item) const
+auto Authority::Verify(const proto::Verification& item) const -> bool
 {
     auto serialized = credential::Verification::SigningForm(item);
     auto& signature = *serialized.mutable_sig();
@@ -1251,7 +1254,7 @@ bool Authority::Verify(const proto::Verification& item) const
         api_.Factory().Data(serialized), signatureCopy, proto::KEYROLE_SIGN);
 }
 
-bool Authority::VerifyInternally() const
+auto Authority::VerifyInternally() const -> bool
 {
     if (false == bool(master_)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(": Missing master credential.")
@@ -1280,7 +1283,7 @@ bool Authority::VerifyInternally() const
     return output;
 }
 
-bool Authority::WriteCredentials() const
+auto Authority::WriteCredentials() const -> bool
 {
     if (!master_->Save()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(

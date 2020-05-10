@@ -67,7 +67,7 @@ using MessagableListList = List<
 class MessagableList final : public MessagableListList
 {
 public:
-    const Identifier& ID() const noexcept final;
+    auto ID() const noexcept -> const Identifier& final;
 
     MessagableList(
         const api::client::internal::Manager& api,
@@ -84,11 +84,11 @@ private:
     const ListenerDefinitions listeners_;
     const OTIdentifier owner_contact_id_;
 
-    void* construct_row(
+    auto construct_row(
         const MessagableListRowID& id,
         const MessagableListSortKey& index,
-        const CustomData& custom) const noexcept final;
-    bool last(const MessagableListRowID& id) const noexcept final
+        const CustomData& custom) const noexcept -> void* final;
+    auto last(const MessagableListRowID& id) const noexcept -> bool final
     {
         return MessagableListList::last(id);
     }
@@ -103,7 +103,7 @@ private:
     MessagableList() = delete;
     MessagableList(const MessagableList&) = delete;
     MessagableList(MessagableList&&) = delete;
-    MessagableList& operator=(const MessagableList&) = delete;
-    MessagableList& operator=(MessagableList&&) = delete;
+    auto operator=(const MessagableList&) -> MessagableList& = delete;
+    auto operator=(MessagableList &&) -> MessagableList& = delete;
 };
 }  // namespace opentxs::ui::implementation

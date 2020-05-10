@@ -41,8 +41,8 @@ template class opentxs::Pimpl<opentxs::network::zeromq::socket::Request>;
 
 namespace opentxs
 {
-network::zeromq::socket::Request* Factory::RequestSocket(
-    const network::zeromq::Context& context)
+auto Factory::RequestSocket(const network::zeromq::Context& context)
+    -> network::zeromq::socket::Request*
 {
     using ReturnType = network::zeromq::socket::implementation::Request;
 
@@ -59,10 +59,13 @@ Request::Request(const zeromq::Context& context) noexcept
     init();
 }
 
-Request* Request::clone() const noexcept { return new Request(context_); }
+auto Request::clone() const noexcept -> Request*
+{
+    return new Request(context_);
+}
 
-Socket::SendResult Request::send_request(zeromq::Message& request) const
-    noexcept
+auto Request::send_request(zeromq::Message& request) const noexcept
+    -> Socket::SendResult
 {
     OT_ASSERT(nullptr != socket_);
 
@@ -95,12 +98,12 @@ Socket::SendResult Request::send_request(zeromq::Message& request) const
     return output;
 }
 
-bool Request::SetSocksProxy(const std::string& proxy) const noexcept
+auto Request::SetSocksProxy(const std::string& proxy) const noexcept -> bool
 {
     return set_socks_proxy(proxy);
 }
 
-bool Request::wait(const Lock& lock) const noexcept
+auto Request::wait(const Lock& lock) const noexcept -> bool
 {
     OT_ASSERT(verify_lock(lock))
 

@@ -37,8 +37,11 @@ class Security final : public unit::Security,
                        public contract::implementation::Unit
 {
 public:
-    std::string TLA() const final { return primary_unit_symbol_; }
-    proto::UnitType Type() const final { return proto::UNITTYPE_SECURITY; }
+    auto TLA() const -> std::string final { return primary_unit_symbol_; }
+    auto Type() const -> proto::UnitType final
+    {
+        return proto::UNITTYPE_SECURITY;
+    }
 
     Security(
         const api::internal::Core& api,
@@ -59,12 +62,15 @@ public:
 private:
     friend opentxs::Factory;
 
-    Security* clone() const noexcept final { return new Security(*this); }
-    proto::UnitDefinition IDVersion(const Lock& lock) const final;
+    auto clone() const noexcept -> Security* final
+    {
+        return new Security(*this);
+    }
+    auto IDVersion(const Lock& lock) const -> proto::UnitDefinition final;
 
     Security(const Security&);
     Security(Security&&) = delete;
-    Security& operator=(const Security&) = delete;
-    Security& operator=(Security&&) = delete;
+    auto operator=(const Security&) -> Security& = delete;
+    auto operator=(Security &&) -> Security& = delete;
 };
 }  // namespace opentxs::contract::unit::implementation

@@ -136,12 +136,12 @@ Profile::Profile(
     OT_ASSERT(startup_)
 }
 
-bool Profile::AddClaim(
+auto Profile::AddClaim(
     const proto::ContactSectionName section,
     const proto::ContactItemType type,
     const std::string& value,
     const bool primary,
-    const bool active) const noexcept
+    const bool active) const noexcept -> bool
 {
     auto reason = api_.Factory().PasswordPrompt("Adding a claim to nym");
     auto nym = api_.Wallet().mutable_Nym(primary_id_, reason);
@@ -202,15 +202,15 @@ bool Profile::AddClaim(
     return nym.AddClaim(claim, reason);
 }
 
-Profile::ItemTypeList Profile::AllowedItems(
+auto Profile::AllowedItems(
     const proto::ContactSectionName section,
-    const std::string& lang) const noexcept
+    const std::string& lang) const noexcept -> Profile::ItemTypeList
 {
     return ui::ProfileSection::AllowedItems(section, lang);
 }
 
-Profile::SectionTypeList Profile::AllowedSections(const std::string& lang) const
-    noexcept
+auto Profile::AllowedSections(const std::string& lang) const noexcept
+    -> Profile::SectionTypeList
 {
     SectionTypeList output{};
 
@@ -221,15 +221,15 @@ Profile::SectionTypeList Profile::AllowedSections(const std::string& lang) const
     return output;
 }
 
-bool Profile::check_type(const proto::ContactSectionName type) noexcept
+auto Profile::check_type(const proto::ContactSectionName type) noexcept -> bool
 {
     return 1 == allowed_types_.count(type);
 }
 
-void* Profile::construct_row(
+auto Profile::construct_row(
     const ProfileRowID& id,
     const ContactSortKey& index,
-    const CustomData& custom) const noexcept
+    const CustomData& custom) const noexcept -> void*
 {
     names_.emplace(id, index);
     const auto [it, added] = items_[index].emplace(
@@ -250,10 +250,10 @@ void* Profile::construct_row(
     return it->second.get();
 }
 
-bool Profile::Delete(
+auto Profile::Delete(
     const int sectionType,
     const int type,
-    const std::string& claimID) const noexcept
+    const std::string& claimID) const noexcept -> bool
 {
     Lock lock(lock_);
     auto& section = find_by_id(lock, static_cast<ProfileRowID>(sectionType));
@@ -263,16 +263,16 @@ bool Profile::Delete(
     return section.Delete(type, claimID);
 }
 
-std::string Profile::DisplayName() const noexcept
+auto Profile::DisplayName() const noexcept -> std::string
 {
     Lock lock(lock_);
 
     return name_;
 }
 
-std::string Profile::nym_name(
+auto Profile::nym_name(
     const api::Wallet& wallet,
-    const identifier::Nym& nymID) noexcept
+    const identifier::Nym& nymID) noexcept -> std::string
 {
     for (const auto& [id, name] : wallet.NymList()) {
         if (nymID.str() == id) { return name; }
@@ -281,7 +281,7 @@ std::string Profile::nym_name(
     return {};
 }
 
-std::string Profile::PaymentCode() const noexcept
+auto Profile::PaymentCode() const noexcept -> std::string
 {
     Lock lock(lock_);
 
@@ -330,11 +330,11 @@ void Profile::process_nym(const network::zeromq::Message& message) noexcept
     process_nym(*nym);
 }
 
-bool Profile::SetActive(
+auto Profile::SetActive(
     const int sectionType,
     const int type,
     const std::string& claimID,
-    const bool active) const noexcept
+    const bool active) const noexcept -> bool
 {
     Lock lock(lock_);
     auto& section = find_by_id(lock, static_cast<ProfileRowID>(sectionType));
@@ -344,11 +344,11 @@ bool Profile::SetActive(
     return section.SetActive(type, claimID, active);
 }
 
-bool Profile::SetPrimary(
+auto Profile::SetPrimary(
     const int sectionType,
     const int type,
     const std::string& claimID,
-    const bool primary) const noexcept
+    const bool primary) const noexcept -> bool
 {
     Lock lock(lock_);
     auto& section = find_by_id(lock, static_cast<ProfileRowID>(sectionType));
@@ -358,11 +358,11 @@ bool Profile::SetPrimary(
     return section.SetPrimary(type, claimID, primary);
 }
 
-bool Profile::SetValue(
+auto Profile::SetValue(
     const int sectionType,
     const int type,
     const std::string& claimID,
-    const std::string& value) const noexcept
+    const std::string& value) const noexcept -> bool
 {
     Lock lock(lock_);
     auto& section = find_by_id(lock, static_cast<ProfileRowID>(sectionType));
@@ -372,7 +372,7 @@ bool Profile::SetValue(
     return section.SetValue(type, claimID, value);
 }
 
-int Profile::sort_key(const proto::ContactSectionName type) noexcept
+auto Profile::sort_key(const proto::ContactSectionName type) noexcept -> int
 {
     return sort_keys_.at(type);
 }

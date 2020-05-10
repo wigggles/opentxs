@@ -7,7 +7,7 @@
 
 namespace opentxs::proto
 {
-const VersionMap& PeerObjectAllowedNym() noexcept
+auto PeerObjectAllowedNym() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 3}},
@@ -21,7 +21,7 @@ const VersionMap& PeerObjectAllowedNym() noexcept
 
     return output;
 }
-const VersionMap& PeerObjectAllowedPeerReply() noexcept
+auto PeerObjectAllowedPeerReply() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -35,7 +35,7 @@ const VersionMap& PeerObjectAllowedPeerReply() noexcept
 
     return output;
 }
-const VersionMap& PeerObjectAllowedPeerRequest() noexcept
+auto PeerObjectAllowedPeerRequest() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 2}},
@@ -49,7 +49,7 @@ const VersionMap& PeerObjectAllowedPeerRequest() noexcept
 
     return output;
 }
-const VersionMap& PeerObjectAllowedPurse() noexcept
+auto PeerObjectAllowedPurse() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {7, {1, 1}},
@@ -57,7 +57,7 @@ const VersionMap& PeerObjectAllowedPurse() noexcept
 
     return output;
 }
-const VersionMap& PeerReplyAllowedBailment() noexcept
+auto PeerReplyAllowedBailment() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -68,7 +68,7 @@ const VersionMap& PeerReplyAllowedBailment() noexcept
 
     return output;
 }
-const VersionMap& PeerReplyAllowedConnectionInfo() noexcept
+auto PeerReplyAllowedConnectionInfo() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -79,7 +79,7 @@ const VersionMap& PeerReplyAllowedConnectionInfo() noexcept
 
     return output;
 }
-const VersionMap& PeerReplyAllowedNotice() noexcept
+auto PeerReplyAllowedNotice() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -91,7 +91,7 @@ const VersionMap& PeerReplyAllowedNotice() noexcept
 
     return output;
 }
-const VersionMap& PeerReplyAllowedOutBailment() noexcept
+auto PeerReplyAllowedOutBailment() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -102,7 +102,7 @@ const VersionMap& PeerReplyAllowedOutBailment() noexcept
 
     return output;
 }
-const VersionMap& PeerReplyAllowedSignature() noexcept
+auto PeerReplyAllowedSignature() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -114,7 +114,7 @@ const VersionMap& PeerReplyAllowedSignature() noexcept
 
     return output;
 }
-const VersionMap& PeerRequestAllowedBailment() noexcept
+auto PeerRequestAllowedBailment() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -125,7 +125,7 @@ const VersionMap& PeerRequestAllowedBailment() noexcept
 
     return output;
 }
-const VersionMap& PeerRequestAllowedConnectionInfo() noexcept
+auto PeerRequestAllowedConnectionInfo() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -136,7 +136,7 @@ const VersionMap& PeerRequestAllowedConnectionInfo() noexcept
 
     return output;
 }
-const VersionMap& PeerRequestAllowedFaucet() noexcept
+auto PeerRequestAllowedFaucet() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {0, 0}},
@@ -147,7 +147,7 @@ const VersionMap& PeerRequestAllowedFaucet() noexcept
 
     return output;
 }
-const VersionMap& PeerRequestAllowedOutBailment() noexcept
+auto PeerRequestAllowedOutBailment() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -159,7 +159,7 @@ const VersionMap& PeerRequestAllowedOutBailment() noexcept
 
     return output;
 }
-const VersionMap& PeerRequestAllowedPendingBailment() noexcept
+auto PeerRequestAllowedPendingBailment() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -172,7 +172,7 @@ const VersionMap& PeerRequestAllowedPendingBailment() noexcept
 
     return output;
 }
-const VersionMap& PeerRequestAllowedSignature() noexcept
+auto PeerRequestAllowedSignature() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -185,7 +185,7 @@ const VersionMap& PeerRequestAllowedSignature() noexcept
 
     return output;
 }
-const VersionMap& PeerRequestAllowedStoreSecret() noexcept
+auto PeerRequestAllowedStoreSecret() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -196,7 +196,7 @@ const VersionMap& PeerRequestAllowedStoreSecret() noexcept
 
     return output;
 }
-const VersionMap& PeerRequestAllowedVerificationOffer() noexcept
+auto PeerRequestAllowedVerificationOffer() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {0, 0}},

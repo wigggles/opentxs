@@ -58,26 +58,28 @@ namespace opentxs::blind::token::implementation
 class Lucre final : public Token
 {
 public:
-    bool GetSpendable(String& output, const PasswordPrompt& reason) const;
-    std::string ID(const PasswordPrompt& reason) const final;
-    bool IsSpent(const PasswordPrompt& reason) const final;
-    proto::Token Serialize() const final;
+    auto GetSpendable(String& output, const PasswordPrompt& reason) const
+        -> bool;
+    auto ID(const PasswordPrompt& reason) const -> std::string final;
+    auto IsSpent(const PasswordPrompt& reason) const -> bool final;
+    auto Serialize() const -> proto::Token final;
 
-    bool AddSignature(const String& signature);
-    bool ChangeOwner(
+    auto AddSignature(const String& signature) -> bool;
+    auto ChangeOwner(
         Purse& oldOwner,
         Purse& newOwner,
-        const PasswordPrompt& reason) final;
-    bool GenerateTokenRequest(
+        const PasswordPrompt& reason) -> bool final;
+    auto GenerateTokenRequest(
         const identity::Nym& owner,
         const Mint& mint,
-        const PasswordPrompt& reason) final;
-    bool GetPublicPrototoken(String& output, const PasswordPrompt& reason);
-    bool MarkSpent(const PasswordPrompt& reason) final;
-    bool Process(
+        const PasswordPrompt& reason) -> bool final;
+    auto GetPublicPrototoken(String& output, const PasswordPrompt& reason)
+        -> bool;
+    auto MarkSpent(const PasswordPrompt& reason) -> bool final;
+    auto Process(
         const identity::Nym& owner,
         const Mint& mint,
-        const PasswordPrompt& reason) final;
+        const PasswordPrompt& reason) -> bool final;
 
     Lucre(
         const api::internal::Core& api,
@@ -108,7 +110,7 @@ private:
     void serialize_signature(proto::LucreTokenData& lucre) const;
     void serialize_spendable(proto::LucreTokenData& lucre) const;
 
-    Lucre* clone() const noexcept final { return new Lucre(*this); }
+    auto clone() const noexcept -> Lucre* final { return new Lucre(*this); }
 
     Lucre(
         const api::internal::Core& api,
@@ -126,7 +128,7 @@ private:
     Lucre() = delete;
     Lucre(const Lucre&);
     Lucre(Lucre&&) = delete;
-    Lucre& operator=(const Lucre&) = delete;
-    Lucre& operator=(Lucre&&) = delete;
+    auto operator=(const Lucre&) -> Lucre& = delete;
+    auto operator=(Lucre &&) -> Lucre& = delete;
 };
 }  // namespace opentxs::blind::token::implementation

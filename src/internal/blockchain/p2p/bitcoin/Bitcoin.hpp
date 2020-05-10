@@ -187,7 +187,8 @@ struct AddressVersion {
     AddressByteField address_;
     PortField port_;
 
-    static AddressByteField Encode(const Network type, const Data& bytes);
+    static auto Encode(const Network type, const Data& bytes)
+        -> AddressByteField;
 
     AddressVersion(
         const std::set<bitcoin::Service>& services,
@@ -204,31 +205,32 @@ using MagicReverseMap = std::map<Magic, blockchain::Type>;
 using CommandMap = std::map<Command, std::string>;
 using CommandReverseMap = std::map<std::string, Command>;
 
-OTData BitcoinString(const std::string& in) noexcept;
-std::string CommandName(const Command command) noexcept;
-Command GetCommand(const CommandField& bytes) noexcept;
-Magic GetMagic(const blockchain::Type type) noexcept;
-Magic GetMagic(const std::uint32_t magic) noexcept;
-blockchain::Type GetNetwork(const Magic magic) noexcept;
-OPENTXS_EXPORT BitVector8
-GetServiceBytes(const std::set<bitcoin::Service>& services) noexcept;
-OPENTXS_EXPORT std::set<bitcoin::Service> GetServices(
-    const BitVector8 data) noexcept;
-CommandField SerializeCommand(const Command command) noexcept;
-std::set<bitcoin::Service> TranslateServices(
+auto BitcoinString(const std::string& in) noexcept -> OTData;
+auto CommandName(const Command command) noexcept -> std::string;
+auto GetCommand(const CommandField& bytes) noexcept -> Command;
+auto GetMagic(const blockchain::Type type) noexcept -> Magic;
+auto GetMagic(const std::uint32_t magic) noexcept -> Magic;
+auto GetNetwork(const Magic magic) noexcept -> blockchain::Type;
+OPENTXS_EXPORT auto GetServiceBytes(
+    const std::set<bitcoin::Service>& services) noexcept -> BitVector8;
+OPENTXS_EXPORT auto GetServices(const BitVector8 data) noexcept
+    -> std::set<bitcoin::Service>;
+auto SerializeCommand(const Command command) noexcept -> CommandField;
+auto TranslateServices(
     const blockchain::Type chain,
     const ProtocolVersion version,
-    const std::set<p2p::Service>& input) noexcept;
-std::set<p2p::Service> TranslateServices(
+    const std::set<p2p::Service>& input) noexcept -> std::set<bitcoin::Service>;
+auto TranslateServices(
     const blockchain::Type chain,
     const ProtocolVersion version,
-    const std::set<bitcoin::Service>& input) noexcept;
+    const std::set<bitcoin::Service>& input) noexcept -> std::set<p2p::Service>;
 
-bitcoin::Service convert_service_bit(BitVector8 value) noexcept;
-BitVector8 convert_service_bit(const bitcoin::Service value) noexcept;
+auto convert_service_bit(BitVector8 value) noexcept -> bitcoin::Service;
+auto convert_service_bit(const bitcoin::Service value) noexcept -> BitVector8;
 template <typename OuterKey, typename InnerKey, typename InnerValue>
-std::map<OuterKey, std::map<InnerValue, InnerKey>> reverse_nested_map(
+auto reverse_nested_map(
     const std::map<OuterKey, std::map<InnerKey, InnerValue>>& map) noexcept
+    -> std::map<OuterKey, std::map<InnerValue, InnerKey>>
 {
     std::map<OuterKey, std::map<InnerValue, InnerKey>> output{};
 

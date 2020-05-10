@@ -22,12 +22,12 @@
 
 namespace opentxs
 {
-opentxs::api::storage::Plugin* Factory::StorageSqlite3(
+auto Factory::StorageSqlite3(
     const api::storage::Storage& storage,
     const StorageConfig& config,
     const Digest& hash,
     const Random& random,
-    const Flag& bucket)
+    const Flag& bucket) -> opentxs::api::storage::Plugin*
 {
     return new opentxs::storage::implementation::StorageSqlite3(
         storage, config, hash, random, bucket);
@@ -52,10 +52,10 @@ StorageSqlite3::StorageSqlite3(
     Init_StorageSqlite3();
 }
 
-std::string StorageSqlite3::bind_key(
+auto StorageSqlite3::bind_key(
     const std::string& source,
     const std::string& key,
-    const std::size_t start) const
+    const std::size_t start) const -> std::string
 {
     sqlite3_stmt* statement{nullptr};
     sqlite3_prepare_v2(db_, source.c_str(), -1, &statement, nullptr);
@@ -75,7 +75,8 @@ void StorageSqlite3::commit(std::stringstream& sql) const
     sql << "COMMIT TRANSACTION;";
 }
 
-bool StorageSqlite3::commit_transaction(const std::string& rootHash) const
+auto StorageSqlite3::commit_transaction(const std::string& rootHash) const
+    -> bool
 {
     Lock lock(transaction_lock_);
     std::stringstream sql{};
@@ -91,7 +92,7 @@ bool StorageSqlite3::commit_transaction(const std::string& rootHash) const
         sqlite3_exec(db_, sql.str().c_str(), nullptr, nullptr, nullptr));
 }
 
-bool StorageSqlite3::Create(const std::string& tablename) const
+auto StorageSqlite3::Create(const std::string& tablename) const -> bool
 {
     const std::string createTable = "create table if not exists ";
     const std::string tableFormat = " (k text PRIMARY KEY, v BLOB);";
@@ -101,12 +102,12 @@ bool StorageSqlite3::Create(const std::string& tablename) const
         SQLITE_OK == sqlite3_exec(db_, sql.c_str(), nullptr, nullptr, nullptr));
 }
 
-bool StorageSqlite3::EmptyBucket(const bool bucket) const
+auto StorageSqlite3::EmptyBucket(const bool bucket) const -> bool
 {
     return Purge(GetTableName(bucket));
 }
 
-std::string StorageSqlite3::expand_sql(sqlite3_stmt* statement) const
+auto StorageSqlite3::expand_sql(sqlite3_stmt* statement) const -> std::string
 {
     const auto sql = sqlite3_expanded_sql(statement);
     const std::string output{sql};
@@ -115,7 +116,7 @@ std::string StorageSqlite3::expand_sql(sqlite3_stmt* statement) const
     return output;
 }
 
-std::string StorageSqlite3::GetTableName(const bool bucket) const
+auto StorageSqlite3::GetTableName(const bool bucket) const -> std::string
 {
     return bucket ? config_.sqlite3_secondary_bucket_
                   : config_.sqlite3_primary_bucket_;
@@ -144,15 +145,15 @@ void StorageSqlite3::Init_StorageSqlite3()
     }
 }
 
-bool StorageSqlite3::LoadFromBucket(
+auto StorageSqlite3::LoadFromBucket(
     const std::string& key,
     std::string& value,
-    const bool bucket) const
+    const bool bucket) const -> bool
 {
     return Select(key, GetTableName(bucket), value);
 }
 
-std::string StorageSqlite3::LoadRoot() const
+auto StorageSqlite3::LoadRoot() const -> std::string
 {
     std::string value{""};
 
@@ -165,7 +166,7 @@ std::string StorageSqlite3::LoadRoot() const
     return "";
 }
 
-bool StorageSqlite3::Purge(const std::string& tablename) const
+auto StorageSqlite3::Purge(const std::string& tablename) const -> bool
 {
     const std::string sql = "DROP TABLE `" + tablename + "`;";
 
@@ -177,10 +178,10 @@ bool StorageSqlite3::Purge(const std::string& tablename) const
     return false;
 }
 
-bool StorageSqlite3::Select(
+auto StorageSqlite3::Select(
     const std::string& key,
     const std::string& tablename,
-    std::string& value) const
+    std::string& value) const -> bool
 {
     sqlite3_stmt* statement{nullptr};
     const std::string query =
@@ -317,7 +318,8 @@ void StorageSqlite3::store(
     }
 }
 
-bool StorageSqlite3::StoreRoot(const bool commit, const std::string& hash) const
+auto StorageSqlite3::StoreRoot(const bool commit, const std::string& hash) const
+    -> bool
 {
     if (commit) {
 
@@ -329,10 +331,10 @@ bool StorageSqlite3::StoreRoot(const bool commit, const std::string& hash) const
     }
 }
 
-bool StorageSqlite3::Upsert(
+auto StorageSqlite3::Upsert(
     const std::string& key,
     const std::string& tablename,
-    const std::string& value) const
+    const std::string& value) const -> bool
 {
     sqlite3_stmt* statement;
     const std::string query =

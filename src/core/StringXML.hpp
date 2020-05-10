@@ -31,11 +31,11 @@ class StringXML final : virtual public opentxs::StringXML, public String
 public:
     operator irr::io::IFileReadCallBack*() final;
 
-    std::int32_t read(void* buffer, std::uint32_t sizeToRead) final;
-    std::int32_t getSize() final;
+    auto read(void* buffer, std::uint32_t sizeToRead) -> std::int32_t final;
+    auto getSize() -> std::int32_t final;
 
-    StringXML& operator=(const opentxs::String& rhs) final;
-    StringXML& operator=(const opentxs::StringXML& rhs) final;
+    auto operator=(const opentxs::String& rhs) -> StringXML& final;
+    auto operator=(const opentxs::StringXML& rhs) -> StringXML& final;
 
     ~StringXML() final;
 
@@ -50,7 +50,7 @@ private:
     StringXML();
     StringXML(const StringXML& value);
     StringXML(StringXML&&) = delete;
-    StringXML& operator=(const StringXML&) = delete;
-    StringXML& operator=(StringXML&&) = delete;
+    auto operator=(const StringXML&) -> StringXML& = delete;
+    auto operator=(StringXML &&) -> StringXML& = delete;
 };
 }  // namespace opentxs::implementation

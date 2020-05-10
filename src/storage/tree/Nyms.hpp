@@ -40,30 +40,31 @@ private:
     mutable std::map<std::string, std::unique_ptr<storage::Nym>> nyms_;
     std::set<std::string> local_nyms_{};
 
-    storage::Nym* nym(const std::string& id) const;
-    storage::Nym* nym(const Lock& lock, const std::string& id) const;
+    auto nym(const std::string& id) const -> storage::Nym*;
+    auto nym(const Lock& lock, const std::string& id) const -> storage::Nym*;
     void save(storage::Nym* nym, const Lock& lock, const std::string& id);
 
     void init(const std::string& hash) final;
-    bool save(const Lock& lock) const final;
-    proto::StorageNymList serialize() const;
+    auto save(const Lock& lock) const -> bool final;
+    auto serialize() const -> proto::StorageNymList;
 
     Nyms(const opentxs::api::storage::Driver& storage, const std::string& hash);
     Nyms() = delete;
     Nyms(const Nyms&) = delete;
     Nyms(Nyms&&) = delete;
-    Nyms operator=(const Nyms&) = delete;
-    Nyms operator=(Nyms&&) = delete;
+    auto operator=(const Nyms&) -> Nyms = delete;
+    auto operator=(Nyms &&) -> Nyms = delete;
 
 public:
-    bool Exists(const std::string& id) const;
-    const std::set<std::string> LocalNyms() const;
+    auto Exists(const std::string& id) const -> bool;
+    auto LocalNyms() const -> const std::set<std::string>;
     void Map(NymLambda lambda) const;
-    bool Migrate(const opentxs::api::storage::Driver& to) const final;
-    const storage::Nym& Nym(const std::string& id) const;
+    auto Migrate(const opentxs::api::storage::Driver& to) const -> bool final;
+    auto Nym(const std::string& id) const -> const storage::Nym&;
 
-    Editor<storage::Nym> mutable_Nym(const std::string& id);
-    bool RelabelThread(const std::string& threadID, const std::string label);
+    auto mutable_Nym(const std::string& id) -> Editor<storage::Nym>;
+    auto RelabelThread(const std::string& threadID, const std::string label)
+        -> bool;
     void UpgradeLocalnym();
 
     ~Nyms() final = default;

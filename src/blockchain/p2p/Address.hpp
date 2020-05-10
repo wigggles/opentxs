@@ -40,24 +40,30 @@ class Address final : public internal::Address
 public:
     static const VersionNumber DefaultVersion;
 
-    OTData Bytes() const noexcept final { return bytes_; }
-    blockchain::Type Chain() const noexcept final { return chain_; }
-    std::string Display() const noexcept final;
-    const Identifier& ID() const noexcept final { return id_; }
-    Time LastConnected() const noexcept final { return last_connected_; }
-    std::uint16_t Port() const noexcept final { return port_; }
-    Time PreviousLastConnected() const noexcept final
+    auto Bytes() const noexcept -> OTData final { return bytes_; }
+    auto Chain() const noexcept -> blockchain::Type final { return chain_; }
+    auto Display() const noexcept -> std::string final;
+    auto ID() const noexcept -> const Identifier& final { return id_; }
+    auto LastConnected() const noexcept -> Time final
+    {
+        return last_connected_;
+    }
+    auto Port() const noexcept -> std::uint16_t final { return port_; }
+    auto PreviousLastConnected() const noexcept -> Time final
     {
         return previous_last_connected_;
     }
-    std::set<Service> PreviousServices() const noexcept final
+    auto PreviousServices() const noexcept -> std::set<Service> final
     {
         return previous_services_;
     }
-    SerializedType Serialize() const noexcept final;
-    std::set<Service> Services() const noexcept final { return services_; }
-    Protocol Style() const noexcept final { return protocol_; }
-    Network Type() const noexcept final { return network_; }
+    auto Serialize() const noexcept -> SerializedType final;
+    auto Services() const noexcept -> std::set<Service> final
+    {
+        return services_;
+    }
+    auto Style() const noexcept -> Protocol final { return protocol_; }
+    auto Type() const noexcept -> Network final { return network_; }
 
     void AddService(const Service service) noexcept final
     {
@@ -126,15 +132,16 @@ private:
         const Time lastConnected,
         const std::set<Service>& services) noexcept -> SerializedType;
 
-    Address* clone() const noexcept final { return new Address(*this); }
-    std::unique_ptr<internal::Address> clone_internal() const noexcept final
+    auto clone() const noexcept -> Address* final { return new Address(*this); }
+    auto clone_internal() const noexcept
+        -> std::unique_ptr<internal::Address> final
     {
         return std::make_unique<Address>(*this);
     }
 
     Address() = delete;
     Address(Address&&) = delete;
-    Address& operator=(const Address&) = delete;
-    Address& operator=(Address&&) = delete;
+    auto operator=(const Address&) -> Address& = delete;
+    auto operator=(Address &&) -> Address& = delete;
 };
 }  // namespace opentxs::blockchain::p2p::implementation

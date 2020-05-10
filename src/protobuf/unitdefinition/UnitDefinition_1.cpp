@@ -28,10 +28,10 @@ namespace opentxs
 namespace proto
 {
 
-bool CheckProto_1(
+auto CheckProto_1(
     const UnitDefinition& input,
     const bool silent,
-    const bool checkSig)
+    const bool checkSig) -> bool
 {
     if (!input.has_id()) { FAIL_1("missing id") }
 

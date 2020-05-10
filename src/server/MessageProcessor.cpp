@@ -149,14 +149,14 @@ void MessageProcessor::DropOutgoing(const int count) const
     drop_outgoing_ = count;
 }
 
-proto::ServerRequest MessageProcessor::extract_proto(
-    const zmq::Frame& incoming) const
+auto MessageProcessor::extract_proto(const zmq::Frame& incoming) const
+    -> proto::ServerRequest
 {
     return proto::Factory<proto::ServerRequest>(incoming);
 }
 
-OTData MessageProcessor::get_connection(
-    const network::zeromq::Message& incoming)
+auto MessageProcessor::get_connection(const network::zeromq::Message& incoming)
+    -> OTData
 {
     auto output = Data::Factory();
     const auto header = incoming.Header();
@@ -220,7 +220,8 @@ void MessageProcessor::run()
     }
 }
 
-OTZMQMessage MessageProcessor::process_backend(const zmq::Message& incoming)
+auto MessageProcessor::process_backend(const zmq::Message& incoming)
+    -> OTZMQMessage
 {
     // ProcessCron and process_backend must not run simultaneously
     Lock lock(lock_);
@@ -241,9 +242,9 @@ OTZMQMessage MessageProcessor::process_backend(const zmq::Message& incoming)
     return output;
 }
 
-bool MessageProcessor::process_command(
+auto MessageProcessor::process_command(
     const proto::ServerRequest& serialized,
-    identifier::Nym& nymID)
+    identifier::Nym& nymID) -> bool
 {
     const auto allegedNymID = identifier::Nym::Factory(serialized.nym());
     const auto nym = server_.API().Wallet().Nym(allegedNymID);
@@ -327,9 +328,9 @@ void MessageProcessor::process_legacy(
     internal_socket_->Send(request);
 }
 
-bool MessageProcessor::process_message(
+auto MessageProcessor::process_message(
     const std::string& messageString,
-    std::string& reply)
+    std::string& reply) -> bool
 {
     if (messageString.size() < 1) { return true; }
 
@@ -478,7 +479,7 @@ void MessageProcessor::process_proto(
     }
 }
 
-OTData MessageProcessor::query_connection(const identifier::Nym& nymID)
+auto MessageProcessor::query_connection(const identifier::Nym& nymID) -> OTData
 {
     sLock lock(connection_map_lock_);
     auto it = active_connections_.find(nymID);

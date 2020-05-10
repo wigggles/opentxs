@@ -67,7 +67,7 @@
 
 namespace opentxs
 {
-api::server::Manager* Factory::ServerManager(
+auto Factory::ServerManager(
     const api::internal::Context& parent,
     Flag& running,
     const ArgList& args,
@@ -75,7 +75,7 @@ api::server::Manager* Factory::ServerManager(
     const api::Settings& config,
     const opentxs::network::zeromq::Context& context,
     const std::string& dataFolder,
-    const int instance)
+    const int instance) -> api::server::Manager*
 {
     auto manager = std::unique_ptr<api::server::implementation::Manager>{
         new api::server::implementation::Manager(
@@ -257,7 +257,7 @@ void Manager::generate_mint(
     mint->SaveMint();
 }
 #endif  // OT_CASH
-const std::string Manager::get_arg(const std::string& argName) const
+auto Manager::get_arg(const std::string& argName) const -> const std::string
 {
     auto argIt = args_.find(argName);
 
@@ -273,7 +273,7 @@ const std::string Manager::get_arg(const std::string& argName) const
     return {};
 }
 
-std::string Manager::GetAdminNym() const
+auto Manager::GetAdminNym() const -> std::string
 {
     auto output = String::Factory();
     bool exists{false};
@@ -288,7 +288,7 @@ std::string Manager::GetAdminNym() const
     return {};
 }
 
-std::string Manager::GetAdminPassword() const
+auto Manager::GetAdminPassword() const -> std::string
 {
     auto output = String::Factory();
     bool exists{false};
@@ -303,41 +303,47 @@ std::string Manager::GetAdminPassword() const
     return {};
 }
 
-std::string Manager::GetCommandPort() const
+auto Manager::GetCommandPort() const -> std::string
 {
     return get_arg(OPENTXS_ARG_COMMANDPORT);
 }
 
-std::string Manager::GetDefaultBindIP() const
+auto Manager::GetDefaultBindIP() const -> std::string
 {
     return get_arg(OPENTXS_ARG_BINDIP);
 }
 
-std::string Manager::GetEEP() const { return get_arg(OPENTXS_ARG_EEP); }
+auto Manager::GetEEP() const -> std::string { return get_arg(OPENTXS_ARG_EEP); }
 
-std::string Manager::GetExternalIP() const
+auto Manager::GetExternalIP() const -> std::string
 {
     return get_arg(OPENTXS_ARG_EXTERNALIP);
 }
 
-std::string Manager::GetInproc() const { return get_arg(OPENTXS_ARG_INPROC); }
+auto Manager::GetInproc() const -> std::string
+{
+    return get_arg(OPENTXS_ARG_INPROC);
+}
 
-std::string Manager::GetListenCommand() const
+auto Manager::GetListenCommand() const -> std::string
 {
     return get_arg(OPENTXS_ARG_LISTENCOMMAND);
 }
 
-std::string Manager::GetListenNotify() const
+auto Manager::GetListenNotify() const -> std::string
 {
     return get_arg(OPENTXS_ARG_LISTENNOTIFY);
 }
 
-std::string Manager::GetOnion() const { return get_arg(OPENTXS_ARG_ONION); }
+auto Manager::GetOnion() const -> std::string
+{
+    return get_arg(OPENTXS_ARG_ONION);
+}
 
 #if OT_CASH
-std::shared_ptr<blind::Mint> Manager::GetPrivateMint(
+auto Manager::GetPrivateMint(
     const identifier::UnitDefinition& unitID,
-    std::uint32_t index) const
+    std::uint32_t index) const -> std::shared_ptr<blind::Mint>
 {
     opentxs::Lock lock(mint_lock_);
     const std::string id{unitID.str()};
@@ -355,8 +361,8 @@ std::shared_ptr<blind::Mint> Manager::GetPrivateMint(
     return output;
 }
 
-std::shared_ptr<const blind::Mint> Manager::GetPublicMint(
-    const identifier::UnitDefinition& unitID) const
+auto Manager::GetPublicMint(const identifier::UnitDefinition& unitID) const
+    -> std::shared_ptr<const blind::Mint>
 {
     opentxs::Lock lock(mint_lock_);
     const std::string id{unitID.str()};
@@ -371,11 +377,20 @@ std::shared_ptr<const blind::Mint> Manager::GetPublicMint(
 }
 #endif  // OT_CASH
 
-std::string Manager::GetUserName() const { return get_arg(OPENTXS_ARG_NAME); }
+auto Manager::GetUserName() const -> std::string
+{
+    return get_arg(OPENTXS_ARG_NAME);
+}
 
-std::string Manager::GetUserTerms() const { return get_arg(OPENTXS_ARG_TERMS); }
+auto Manager::GetUserTerms() const -> std::string
+{
+    return get_arg(OPENTXS_ARG_TERMS);
+}
 
-const identifier::Server& Manager::ID() const { return server_.GetServerID(); }
+auto Manager::ID() const -> const identifier::Server&
+{
+    return server_.GetServerID();
+}
 
 void Manager::Init()
 {
@@ -401,9 +416,9 @@ void Manager::Init()
 }
 
 #if OT_CASH
-std::int32_t Manager::last_generated_series(
+auto Manager::last_generated_series(
     const std::string& serverID,
-    const std::string& unitID) const
+    const std::string& unitID) const -> std::int32_t
 {
     std::uint32_t output{0};
 
@@ -424,10 +439,10 @@ std::int32_t Manager::last_generated_series(
     return -1;
 }
 
-std::shared_ptr<blind::Mint> Manager::load_private_mint(
+auto Manager::load_private_mint(
     const opentxs::Lock& lock,
     const std::string& unitID,
-    const std::string seriesID) const
+    const std::string seriesID) const -> std::shared_ptr<blind::Mint>
 {
     OT_ASSERT(verify_lock(lock, mint_lock_));
 
@@ -441,10 +456,10 @@ std::shared_ptr<blind::Mint> Manager::load_private_mint(
     return verify_mint(lock, unitID, seriesID, mint);
 }
 
-std::shared_ptr<blind::Mint> Manager::load_public_mint(
+auto Manager::load_public_mint(
     const opentxs::Lock& lock,
     const std::string& unitID,
-    const std::string seriesID) const
+    const std::string seriesID) const -> std::shared_ptr<blind::Mint>
 {
     OT_ASSERT(verify_lock(lock, mint_lock_));
 
@@ -523,7 +538,7 @@ void Manager::mint() const
 }
 #endif  // OT_CASH
 
-const identifier::Nym& Manager::NymID() const
+auto Manager::NymID() const -> const identifier::Nym&
 {
     return server_.GetServerNym().ID();
 }
@@ -576,8 +591,8 @@ void Manager::UpdateMint(const identifier::UnitDefinition& unitID) const
 }
 #endif  // OT_CASH
 
-bool Manager::verify_lock(const opentxs::Lock& lock, const std::mutex& mutex)
-    const
+auto Manager::verify_lock(const opentxs::Lock& lock, const std::mutex& mutex)
+    const -> bool
 {
     if (lock.mutex() != &mutex) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Incorrect mutex.").Flush();
@@ -595,11 +610,11 @@ bool Manager::verify_lock(const opentxs::Lock& lock, const std::mutex& mutex)
 }
 
 #if OT_CASH
-std::shared_ptr<blind::Mint> Manager::verify_mint(
+auto Manager::verify_mint(
     const opentxs::Lock& lock,
     const std::string& unitID,
     const std::string seriesID,
-    std::shared_ptr<blind::Mint>& mint) const
+    std::shared_ptr<blind::Mint>& mint) const -> std::shared_ptr<blind::Mint>
 {
     OT_ASSERT(verify_lock(lock, mint_lock_));
 
@@ -619,7 +634,7 @@ std::shared_ptr<blind::Mint> Manager::verify_mint(
     return mint;
 }
 
-bool Manager::verify_mint_directory(const std::string& serverID) const
+auto Manager::verify_mint_directory(const std::string& serverID) const -> bool
 {
     auto serverDir = String::Factory();
     auto mintDir = String::Factory();

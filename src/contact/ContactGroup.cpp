@@ -43,7 +43,7 @@ ContactGroup::ContactGroup(
     OT_ASSERT(item);
 }
 
-ContactGroup ContactGroup::operator+(const ContactGroup& rhs) const
+auto ContactGroup::operator+(const ContactGroup& rhs) const -> ContactGroup
 {
     OT_ASSERT(section_ == rhs.section_);
 
@@ -77,8 +77,8 @@ ContactGroup ContactGroup::operator+(const ContactGroup& rhs) const
     return ContactGroup(nym_, section_, type_, map);
 }
 
-ContactGroup ContactGroup::AddItem(
-    const std::shared_ptr<ContactItem>& item) const
+auto ContactGroup::AddItem(const std::shared_ptr<ContactItem>& item) const
+    -> ContactGroup
 {
     OT_ASSERT(item);
 
@@ -96,8 +96,8 @@ ContactGroup ContactGroup::AddItem(
     return ContactGroup(nym_, section_, type_, map);
 }
 
-ContactGroup ContactGroup::AddPrimary(
-    const std::shared_ptr<ContactItem>& item) const
+auto ContactGroup::AddPrimary(const std::shared_ptr<ContactItem>& item) const
+    -> ContactGroup
 {
     if (false == bool(item)) { return *this; }
 
@@ -124,12 +124,12 @@ ContactGroup ContactGroup::AddPrimary(
     return ContactGroup(nym_, section_, type_, map);
 }
 
-ContactGroup::ItemMap::const_iterator ContactGroup::begin() const
+auto ContactGroup::begin() const -> ContactGroup::ItemMap::const_iterator
 {
     return items_.cbegin();
 }
 
-std::shared_ptr<ContactItem> ContactGroup::Best() const
+auto ContactGroup::Best() const -> std::shared_ptr<ContactItem>
 {
     if (0 == items_.size()) { return {}; }
 
@@ -146,7 +146,8 @@ std::shared_ptr<ContactItem> ContactGroup::Best() const
     return items_.begin()->second;
 }
 
-std::shared_ptr<ContactItem> ContactGroup::Claim(const Identifier& item) const
+auto ContactGroup::Claim(const Identifier& item) const
+    -> std::shared_ptr<ContactItem>
 {
     auto it = items_.find(item);
 
@@ -155,8 +156,8 @@ std::shared_ptr<ContactItem> ContactGroup::Claim(const Identifier& item) const
     return it->second;
 }
 
-ContactGroup::ItemMap ContactGroup::create_item(
-    const std::shared_ptr<ContactItem>& item)
+auto ContactGroup::create_item(const std::shared_ptr<ContactItem>& item)
+    -> ContactGroup::ItemMap
 {
     OT_ASSERT(item);
 
@@ -166,7 +167,7 @@ ContactGroup::ItemMap ContactGroup::create_item(
     return output;
 }
 
-ContactGroup ContactGroup::Delete(const Identifier& id) const
+auto ContactGroup::Delete(const Identifier& id) const -> ContactGroup
 {
     const bool exists = (1 == items_.count(id));
 
@@ -178,12 +179,12 @@ ContactGroup ContactGroup::Delete(const Identifier& id) const
     return ContactGroup(nym_, section_, type_, map);
 }
 
-ContactGroup::ItemMap::const_iterator ContactGroup::end() const
+auto ContactGroup::end() const -> ContactGroup::ItemMap::const_iterator
 {
     return items_.cend();
 }
 
-OTIdentifier ContactGroup::get_primary_item(const ItemMap& items)
+auto ContactGroup::get_primary_item(const ItemMap& items) -> OTIdentifier
 {
     auto primary = Identifier::Factory();
 
@@ -202,7 +203,8 @@ OTIdentifier ContactGroup::get_primary_item(const ItemMap& items)
     return primary;
 }
 
-ContactGroup::ItemMap ContactGroup::normalize_items(const ItemMap& items)
+auto ContactGroup::normalize_items(const ItemMap& items)
+    -> ContactGroup::ItemMap
 {
     auto primary = Identifier::Factory();
 
@@ -226,16 +228,16 @@ ContactGroup::ItemMap ContactGroup::normalize_items(const ItemMap& items)
     return map;
 }
 
-bool ContactGroup::HaveClaim(const Identifier& item) const
+auto ContactGroup::HaveClaim(const Identifier& item) const -> bool
 {
     return (1 == items_.count(item));
 }
 
-const Identifier& ContactGroup::Primary() const { return primary_; }
+auto ContactGroup::Primary() const -> const Identifier& { return primary_; }
 
-bool ContactGroup::SerializeTo(
+auto ContactGroup::SerializeTo(
     proto::ContactSection& section,
-    const bool withIDs) const
+    const bool withIDs) const -> bool
 {
     if (section.name() != section_) {
 
@@ -257,14 +259,17 @@ bool ContactGroup::SerializeTo(
     return true;
 }
 
-std::shared_ptr<ContactItem> ContactGroup::PrimaryClaim() const
+auto ContactGroup::PrimaryClaim() const -> std::shared_ptr<ContactItem>
 {
     if (primary_->empty()) { return {}; }
 
     return items_.at(primary_);
 }
 
-std::size_t ContactGroup::Size() const { return items_.size(); }
+auto ContactGroup::Size() const -> std::size_t { return items_.size(); }
 
-const proto::ContactItemType& ContactGroup::Type() const { return type_; }
+auto ContactGroup::Type() const -> const proto::ContactItemType&
+{
+    return type_;
+}
 }  // namespace opentxs

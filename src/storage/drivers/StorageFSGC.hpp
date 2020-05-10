@@ -42,7 +42,7 @@ private:
     typedef StorageFS ot_super;
 
 public:
-    bool EmptyBucket(const bool bucket) const final;
+    auto EmptyBucket(const bool bucket) const -> bool final;
 
     void Cleanup() final;
 
@@ -51,13 +51,13 @@ public:
 private:
     friend Factory;
 
-    std::string bucket_name(const bool bucket) const;
-    std::string calculate_path(
+    auto bucket_name(const bool bucket) const -> std::string;
+    auto calculate_path(
         const std::string& key,
         const bool bucket,
-        std::string& directory) const final;
+        std::string& directory) const -> std::string final;
     void purge(const std::string& path) const;
-    std::string root_filename() const final;
+    auto root_filename() const -> std::string final;
 
     void Cleanup_StorageFSGC();
     void Init_StorageFSGC();
@@ -71,7 +71,7 @@ private:
     StorageFSGC() = delete;
     StorageFSGC(const StorageFSGC&) = delete;
     StorageFSGC(StorageFSGC&&) = delete;
-    StorageFSGC& operator=(const StorageFSGC&) = delete;
-    StorageFSGC& operator=(StorageFSGC&&) = delete;
+    auto operator=(const StorageFSGC&) -> StorageFSGC& = delete;
+    auto operator=(StorageFSGC &&) -> StorageFSGC& = delete;
 };
 }  // namespace opentxs::storage::implementation

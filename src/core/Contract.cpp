@@ -46,7 +46,7 @@ using namespace io;
 
 namespace opentxs
 {
-OTString trim(const String& str)
+auto trim(const String& str) -> OTString
 {
     std::string s(str.Get(), str.GetLength());
     return String::Factory(String::trim(s));
@@ -103,10 +103,10 @@ Contract::Contract(const api::internal::Core& core, const Identifier& theID)
 }
 
 // static
-bool Contract::DearmorAndTrim(
+auto Contract::DearmorAndTrim(
     const String& strInput,
     String& strOutput,
-    String& strFirstLine)
+    String& strFirstLine) -> bool
 {
 
     if (!strInput.Exists()) {
@@ -181,7 +181,7 @@ void Contract::Release()
 
 Contract::~Contract() { Release_Contract(); }
 
-bool Contract::SaveToContractFolder()
+auto Contract::SaveToContractFolder() -> bool
 {
     OTString strFoldername(String::Factory(api_.Legacy().Contract())),
         strFilename = String::Factory();
@@ -217,7 +217,7 @@ void Contract::GetIdentifier(String& theIdentifier) const
 // Make sure this contract checks out. Very high level.
 // Verifies ID, existence of public key, and signature.
 //
-bool Contract::VerifyContract() const
+auto Contract::VerifyContract() const -> bool
 {
     // Make sure that the supposed Contract ID that was set is actually
     // a hash of the contract file, signatures and all.
@@ -279,7 +279,7 @@ void Contract::CalculateAndSetContractID(Identifier& newID)
     SetIdentifier(newID);
 }
 
-bool Contract::VerifyContractID() const
+auto Contract::VerifyContractID() const -> bool
 {
     auto newID = api_.Factory().Identifier();
     CalculateContractID(newID);
@@ -312,7 +312,7 @@ bool Contract::VerifyContractID() const
     }
 }
 
-Nym_p Contract::GetContractPublicNym() const
+auto Contract::GetContractPublicNym() const -> Nym_p
 {
     for (auto& it : m_mapNyms) {
         Nym_p pNym = it.second;
@@ -346,9 +346,9 @@ Nym_p Contract::GetContractPublicNym() const
 // If you want the signature to remain on the contract and be handled
 // internally, then this is what you should call.
 //
-bool Contract::SignContract(
+auto Contract::SignContract(
     const identity::Nym& theNym,
-    const PasswordPrompt& reason)
+    const PasswordPrompt& reason) -> bool
 {
     auto sig = Signature::Factory(api_);
     bool bSigned = SignContract(theNym, sig, reason);
@@ -366,9 +366,9 @@ bool Contract::SignContract(
 
 // Signs using authentication key instead of signing key.
 //
-bool Contract::SignContractAuthent(
+auto Contract::SignContractAuthent(
     const identity::Nym& theNym,
-    const PasswordPrompt& reason)
+    const PasswordPrompt& reason) -> bool
 {
     auto sig = Signature::Factory(api_);
     bool bSigned = SignContractAuthent(theNym, sig, reason);
@@ -387,10 +387,10 @@ bool Contract::SignContractAuthent(
 
 // The output signature will be in theSignature.
 // It is NOT attached to the contract.  This is just a utility function.
-bool Contract::SignContract(
+auto Contract::SignContract(
     const identity::Nym& theNym,
     Signature& theSignature,
-    const PasswordPrompt& reason)
+    const PasswordPrompt& reason) -> bool
 {
     const auto& key = theNym.GetPrivateSignKey();
     m_strSigHashType = key.SigHashType();
@@ -399,10 +399,10 @@ bool Contract::SignContract(
 }
 
 // Uses authentication key instead of signing key.
-bool Contract::SignContractAuthent(
+auto Contract::SignContractAuthent(
     const identity::Nym& theNym,
     Signature& theSignature,
-    const PasswordPrompt& reason)
+    const PasswordPrompt& reason) -> bool
 {
     const auto& key = theNym.GetPrivateAuthKey();
     m_strSigHashType = key.SigHashType();
@@ -422,9 +422,9 @@ bool Contract::SignContractAuthent(
 // having the Nym
 // ready yet to signing anything with.
 //
-bool Contract::SignWithKey(
+auto Contract::SignWithKey(
     const crypto::key::Asymmetric& theKey,
-    const PasswordPrompt& reason)
+    const PasswordPrompt& reason) -> bool
 {
     auto sig = Signature::Factory(api_);
     m_strSigHashType = theKey.SigHashType();
@@ -500,11 +500,11 @@ bool Contract::SignWithKey(
 // The output signature will be in theSignature.
 // It is NOT attached to the contract.  This is just a utility function.
 //
-bool Contract::SignContract(
+auto Contract::SignContract(
     const crypto::key::Asymmetric& theKey,
     Signature& theSignature,
     const proto::HashType hashType,
-    const PasswordPrompt& reason)
+    const PasswordPrompt& reason) -> bool
 {
     // We assume if there's any important metadata, it will already
     // be on the key, so we just copy it over to the signature.
@@ -540,7 +540,7 @@ bool Contract::SignContract(
     return true;
 }
 
-bool Contract::VerifySigAuthent(const identity::Nym& theNym) const
+auto Contract::VerifySigAuthent(const identity::Nym& theNym) const -> bool
 {
     auto strNymID = String::Factory();
     theNym.GetIdentifier(strNymID);
@@ -564,7 +564,7 @@ bool Contract::VerifySigAuthent(const identity::Nym& theNym) const
     return false;
 }
 
-bool Contract::VerifySignature(const identity::Nym& theNym) const
+auto Contract::VerifySignature(const identity::Nym& theNym) const -> bool
 {
     auto strNymID = String::Factory(theNym.ID());
     char cNymID = '0';
@@ -587,7 +587,8 @@ bool Contract::VerifySignature(const identity::Nym& theNym) const
     return false;
 }
 
-bool Contract::VerifyWithKey(const crypto::key::Asymmetric& theKey) const
+auto Contract::VerifyWithKey(const crypto::key::Asymmetric& theKey) const
+    -> bool
 {
     for (const auto& sig : m_listSignatures) {
         const auto* metadata = theKey.GetMetadata();
@@ -610,9 +611,9 @@ bool Contract::VerifyWithKey(const crypto::key::Asymmetric& theKey) const
 // signing key. (Like for sent messages or stored files, where you want a
 // signature but you don't want a legally binding signature, just a technically
 // secure signature.)
-bool Contract::VerifySigAuthent(
+auto Contract::VerifySigAuthent(
     const identity::Nym& theNym,
-    const Signature& theSignature) const
+    const Signature& theSignature) const -> bool
 {
     crypto::key::Keypair::Keys listOutput;
 
@@ -650,9 +651,9 @@ bool Contract::VerifySigAuthent(
 // m_strHashType to decide
 // for you.  Choose the function you prefer, you can do it either way.
 //
-bool Contract::VerifySignature(
+auto Contract::VerifySignature(
     const identity::Nym& theNym,
-    const Signature& theSignature) const
+    const Signature& theSignature) const -> bool
 {
     crypto::key::Keypair::Keys listOutput;
 
@@ -685,10 +686,10 @@ bool Contract::VerifySignature(
         theNym.GetPublicSignKey(), theSignature, m_strSigHashType);
 }
 
-bool Contract::VerifySignature(
+auto Contract::VerifySignature(
     const crypto::key::Asymmetric& theKey,
     const Signature& theSignature,
-    const proto::HashType hashType) const
+    const proto::HashType hashType) const -> bool
 {
     const auto* metadata = theKey.GetMetadata();
 
@@ -715,7 +716,7 @@ bool Contract::VerifySignature(
 
 void Contract::ReleaseSignatures() { m_listSignatures.clear(); }
 
-bool Contract::DisplayStatistics(String& strContents) const
+auto Contract::DisplayStatistics(String& strContents) const -> bool
 {
     // Subclasses may override this.
     strContents.Concatenate(
@@ -725,14 +726,14 @@ bool Contract::DisplayStatistics(String& strContents) const
     return false;
 }
 
-bool Contract::SaveContractWallet(Tag&) const
+auto Contract::SaveContractWallet(Tag&) const -> bool
 {
     // Subclasses may use this.
 
     return false;
 }
 
-bool Contract::SaveContents(std::ofstream& ofs) const
+auto Contract::SaveContents(std::ofstream& ofs) const -> bool
 {
     ofs << m_xmlUnsigned;
 
@@ -740,7 +741,7 @@ bool Contract::SaveContents(std::ofstream& ofs) const
 }
 
 // Saves the unsigned XML contents to a string
-bool Contract::SaveContents(String& strContents) const
+auto Contract::SaveContents(String& strContents) const -> bool
 {
     strContents.Concatenate(m_xmlUnsigned);
 
@@ -748,7 +749,7 @@ bool Contract::SaveContents(String& strContents) const
 }
 
 // Save the contract member variables into the m_strRawFile variable
-bool Contract::SaveContract()
+auto Contract::SaveContract() -> bool
 {
     auto strTemp = String::Factory();
     bool bSuccess = RewriteContract(strTemp);
@@ -789,13 +790,13 @@ void Contract::UpdateContents(const PasswordPrompt& reason)
 // signing flat text, only contracts.
 //
 // static
-bool Contract::SignFlatText(
+auto Contract::SignFlatText(
     const api::internal::Core& api,
     String& strFlatText,
     const String& strContractType,
     const identity::Nym& theSigner,
     String& strOutput,
-    const PasswordPrompt& reason)
+    const PasswordPrompt& reason) -> bool
 {
 
     // Trim the input to remove any extraneous whitespace
@@ -864,7 +865,7 @@ bool Contract::SignFlatText(
 }
 
 // Saves the raw (pre-existing) contract text to any string you want to pass in.
-bool Contract::SaveContractRaw(String& strOutput) const
+auto Contract::SaveContractRaw(String& strOutput) const -> bool
 {
     strOutput.Concatenate("%s", m_strRawFile->Get());
 
@@ -872,12 +873,12 @@ bool Contract::SaveContractRaw(String& strOutput) const
 }
 
 // static
-bool Contract::AddBookendsAroundContent(
+auto Contract::AddBookendsAroundContent(
     String& strOutput,
     const String& strContents,
     const String& strContractType,
     const proto::HashType hashType,
-    const listOfSignatures& listSignatures)
+    const listOfSignatures& listSignatures) -> bool
 {
     auto strTemp = String::Factory();
     auto strHashType = crypto::HashingProvider::HashTypeToString(hashType);
@@ -925,7 +926,7 @@ bool Contract::AddBookendsAroundContent(
 // signatures along with new signature bookends.. (The caller actually passes
 // m_strRawData into this function...)
 //
-bool Contract::RewriteContract(String& strOutput) const
+auto Contract::RewriteContract(String& strOutput) const -> bool
 {
     auto strContents = String::Factory();
     SaveContents(strContents);
@@ -938,7 +939,8 @@ bool Contract::RewriteContract(String& strOutput) const
         m_listSignatures);
 }
 
-bool Contract::SaveContract(const char* szFoldername, const char* szFilename)
+auto Contract::SaveContract(const char* szFoldername, const char* szFilename)
+    -> bool
 {
     OT_ASSERT_MSG(
         nullptr != szFilename,
@@ -953,9 +955,9 @@ bool Contract::SaveContract(const char* szFoldername, const char* szFilename)
     return WriteContract(szFoldername, szFilename);
 }
 
-bool Contract::WriteContract(
+auto Contract::WriteContract(
     const std::string& folder,
-    const std::string& filename) const
+    const std::string& filename) const -> bool
 {
     OT_ASSERT(folder.size() > 2);
     OT_ASSERT(filename.size() > 2);
@@ -999,7 +1001,7 @@ bool Contract::WriteContract(
 // assumes m_strFilename is already set.
 // Then it reads that file into a string.
 // Then it parses that string into the object.
-bool Contract::LoadContract()
+auto Contract::LoadContract() -> bool
 {
     Release();
     LoadContractRawFile();  // opens m_strFilename and reads into m_strRawFile
@@ -1014,7 +1016,7 @@ bool Contract::LoadContract()
 // This applies to all contracts except accounts, since their contents must
 // change periodically, their ID is not calculated from a hash of the file,
 // but instead is chosen at random when the account is created.
-bool Contract::LoadContractRawFile()
+auto Contract::LoadContractRawFile() -> bool
 {
     const char* szFoldername = m_strFoldername->Get();
     const char* szFilename = m_strFilename->Get();
@@ -1062,7 +1064,8 @@ bool Contract::LoadContractRawFile()
     return m_strRawFile->Exists();
 }
 
-bool Contract::LoadContract(const char* szFoldername, const char* szFilename)
+auto Contract::LoadContract(const char* szFoldername, const char* szFilename)
+    -> bool
 {
     Release();
 
@@ -1084,7 +1087,7 @@ bool Contract::LoadContract(const char* szFoldername, const char* szFilename)
 
 // Just like it says. If you have a contract in string form, pass it in
 // here to import it.
-bool Contract::LoadContractFromString(const String& theStr)
+auto Contract::LoadContractFromString(const String& theStr) -> bool
 {
     Release();
 
@@ -1133,7 +1136,7 @@ bool Contract::LoadContractFromString(const String& theStr)
     return bSuccess;
 }
 
-bool Contract::ParseRawFile()
+auto Contract::ParseRawFile() -> bool
 {
     char buffer1[2100];  // a bit bigger than 2048, just for safety reasons.
     Signature* pSig{nullptr};
@@ -1424,7 +1427,7 @@ bool Contract::ParseRawFile()
 
 // This function assumes that m_xmlUnsigned is ready to be processed.
 // This function only processes that portion of the contract.
-bool Contract::LoadContractXML()
+auto Contract::LoadContractXML() -> bool
 {
     std::int32_t retProcess = 0;
 
@@ -1514,7 +1517,7 @@ bool Contract::LoadContractXML()
 }
 
 // static
-bool Contract::SkipToElement(IrrXMLReader*& xml)
+auto Contract::SkipToElement(IrrXMLReader*& xml) -> bool
 {
     OT_ASSERT_MSG(
         nullptr != xml, "Contract::SkipToElement -- assert: nullptr != xml");
@@ -1566,7 +1569,7 @@ bool Contract::SkipToElement(IrrXMLReader*& xml)
 }
 
 // static
-bool Contract::SkipToTextField(IrrXMLReader*& xml)
+auto Contract::SkipToTextField(IrrXMLReader*& xml) -> bool
 {
     OT_ASSERT_MSG(
         nullptr != xml, "Contract::SkipToTextField -- assert: nullptr != xml");
@@ -1620,7 +1623,7 @@ bool Contract::SkipToTextField(IrrXMLReader*& xml)
 // So you call this function..
 //
 // static
-bool Contract::SkipAfterLoadingField(IrrXMLReader*& xml)
+auto Contract::SkipAfterLoadingField(IrrXMLReader*& xml) -> bool
 {
     OT_ASSERT_MSG(
         nullptr != xml,
@@ -1682,7 +1685,8 @@ bool Contract::SkipAfterLoadingField(IrrXMLReader*& xml)
 // Loads it up and also decodes it to a string.
 //
 // static
-bool Contract::LoadEncodedTextField(IrrXMLReader*& xml, String& strOutput)
+auto Contract::LoadEncodedTextField(IrrXMLReader*& xml, String& strOutput)
+    -> bool
 {
     auto ascOutput = Armored::Factory();
 
@@ -1695,7 +1699,8 @@ bool Contract::LoadEncodedTextField(IrrXMLReader*& xml, String& strOutput)
 }
 
 // static
-bool Contract::LoadEncodedTextField(IrrXMLReader*& xml, Armored& ascOutput)
+auto Contract::LoadEncodedTextField(IrrXMLReader*& xml, Armored& ascOutput)
+    -> bool
 {
     OT_ASSERT_MSG(
         nullptr != xml,
@@ -1769,11 +1774,11 @@ bool Contract::LoadEncodedTextField(IrrXMLReader*& xml, Armored& ascOutput)
 
 // Loads it up and also decodes it to a string.
 // static
-bool Contract::LoadEncodedTextFieldByName(
+auto Contract::LoadEncodedTextFieldByName(
     IrrXMLReader*& xml,
     String& strOutput,
     const char* szName,
-    String::Map* pmapExtraVars)
+    String::Map* pmapExtraVars) -> bool
 {
     OT_ASSERT(nullptr != szName);
 
@@ -1790,11 +1795,11 @@ bool Contract::LoadEncodedTextFieldByName(
 
 // Loads it up and keeps it encoded in an ascii-armored object.
 // static
-bool Contract::LoadEncodedTextFieldByName(
+auto Contract::LoadEncodedTextFieldByName(
     IrrXMLReader*& xml,
     Armored& ascOutput,
     const char* szName,
-    String::Map* pmapExtraVars)
+    String::Map* pmapExtraVars) -> bool
 {
     OT_ASSERT(nullptr != szName);
 
@@ -1872,10 +1877,10 @@ bool Contract::LoadEncodedTextFieldByName(
 // type
 // is unknown.
 //
-bool Contract::CreateContract(
+auto Contract::CreateContract(
     const String& strContract,
     const identity::Nym& theSigner,
-    const PasswordPrompt& reason)
+    const PasswordPrompt& reason) -> bool
 {
     Release();
 
@@ -2037,7 +2042,7 @@ void Contract::CreateContents()
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-std::int32_t Contract::ProcessXMLNode(IrrXMLReader*& xml)
+auto Contract::ProcessXMLNode(IrrXMLReader*& xml) -> std::int32_t
 {
     const auto strNodeName = String::Factory(xml->getNodeName());
 

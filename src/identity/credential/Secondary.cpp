@@ -23,7 +23,7 @@ namespace opentxs
 {
 using ReturnType = identity::credential::implementation::Secondary;
 
-identity::credential::internal::Secondary* Factory::SecondaryCredential(
+auto Factory::SecondaryCredential(
     const api::internal::Core& api,
     identity::internal::Authority& parent,
     const identity::Source& source,
@@ -31,6 +31,7 @@ identity::credential::internal::Secondary* Factory::SecondaryCredential(
     const NymParameters& parameters,
     const VersionNumber version,
     const opentxs::PasswordPrompt& reason)
+    -> identity::credential::internal::Secondary*
 {
     try {
 
@@ -45,12 +46,13 @@ identity::credential::internal::Secondary* Factory::SecondaryCredential(
     }
 }
 
-identity::credential::internal::Secondary* Factory::SecondaryCredential(
+auto Factory::SecondaryCredential(
     const api::internal::Core& api,
     identity::internal::Authority& parent,
     const identity::Source& source,
     const identity::credential::internal::Primary& master,
     const proto::Credential& serialized)
+    -> identity::credential::internal::Secondary*
 {
     try {
 
@@ -110,10 +112,11 @@ Secondary::Secondary(
     init_serialized(lock);
 }
 
-std::shared_ptr<Base::SerializedType> Secondary::serialize(
+auto Secondary::serialize(
     const Lock& lock,
     const SerializationModeFlag asPrivate,
     const SerializationSignatureFlag asSigned) const
+    -> std::shared_ptr<Base::SerializedType>
 {
     auto serializedCredential = Key::serialize(lock, asPrivate, asSigned);
 

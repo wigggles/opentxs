@@ -16,7 +16,7 @@ template class opentxs::Pimpl<opentxs::Flag>;
 
 namespace opentxs
 {
-OTFlag Flag::Factory(const bool state)
+auto Flag::Factory(const bool state) -> OTFlag
 {
     return OTFlag(new implementation::Flag(state));
 }
@@ -28,7 +28,7 @@ Flag::Flag(const bool state)
 {
 }
 
-bool Flag::Toggle()
+auto Flag::Toggle() -> bool
 {
     auto expected = flag_.load();
 

@@ -48,15 +48,15 @@ class Primary final : virtual public credential::internal::Primary,
                       credential::implementation::Key
 {
 public:
-    bool hasCapability(const NymCapability& capability) const final;
-    bool Path(proto::HDPath& output) const final;
-    std::string Path() const final;
+    auto hasCapability(const NymCapability& capability) const -> bool final;
+    auto Path(proto::HDPath& output) const -> bool final;
+    auto Path() const -> std::string final;
     using Base::Verify;
-    bool Verify(
+    auto Verify(
         const proto::Credential& credential,
         const proto::CredentialRole& role,
         const Identifier& masterID,
-        const proto::Signature& masterSig) const final;
+        const proto::Signature& masterSig) const -> bool final;
 
     ~Primary() final = default;
 
@@ -67,14 +67,15 @@ private:
 
     const proto::SourceProof source_proof_;
 
-    static proto::SourceProof source_proof(const NymParameters& params);
+    static auto source_proof(const NymParameters& params) -> proto::SourceProof;
 
-    std::shared_ptr<identity::credential::Base::SerializedType> serialize(
+    auto serialize(
         const Lock& lock,
         const SerializationModeFlag asPrivate,
-        const SerializationSignatureFlag asSigned) const final;
-    bool verify_against_source(const Lock& lock) const;
-    bool verify_internally(const Lock& lock) const final;
+        const SerializationSignatureFlag asSigned) const
+        -> std::shared_ptr<identity::credential::Base::SerializedType> final;
+    auto verify_against_source(const Lock& lock) const -> bool;
+    auto verify_internally(const Lock& lock) const -> bool final;
 
     void sign(
         const identity::credential::internal::Primary& master,
@@ -95,7 +96,7 @@ private:
     Primary() = delete;
     Primary(const Primary&) = delete;
     Primary(Primary&&) = delete;
-    Primary& operator=(const Primary&) = delete;
-    Primary& operator=(Primary&&) = delete;
+    auto operator=(const Primary&) -> Primary& = delete;
+    auto operator=(Primary &&) -> Primary& = delete;
 };
 }  // namespace opentxs::identity::credential::implementation

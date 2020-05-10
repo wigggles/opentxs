@@ -12,64 +12,64 @@ namespace opentxs::crypto::implementation
 class AsymmetricProviderNull final : virtual public crypto::AsymmetricProvider
 {
 public:
-    bool RandomKeypair(
+    auto RandomKeypair(
         const AllocateOutput,
         const AllocateOutput,
         const proto::KeyRole,
         const NymParameters&,
-        const AllocateOutput) const noexcept final
+        const AllocateOutput) const noexcept -> bool final
     {
         return false;
     }
-    bool SeedToCurveKey(
+    auto SeedToCurveKey(
         const ReadView,
         const AllocateOutput,
-        const AllocateOutput) const noexcept final
+        const AllocateOutput) const noexcept -> bool final
     {
         return false;
     }
-    bool SharedSecret(
+    auto SharedSecret(
         const key::Asymmetric&,
         const key::Asymmetric&,
         const PasswordPrompt&,
-        OTPassword&) const noexcept final
+        OTPassword&) const noexcept -> bool final
     {
         return false;
     }
-    bool Sign(
+    auto Sign(
         const api::internal::Core&,
         const Data&,
         const key::Asymmetric&,
         const proto::HashType,
         Data&,
         const PasswordPrompt&,
-        const OTPassword* = nullptr) const final
+        const OTPassword* = nullptr) const -> bool final
     {
         return false;
     }
-    bool SignContract(
+    auto SignContract(
         const api::internal::Core&,
         const String&,
         const key::Asymmetric&,
         Signature&,  // output
         const proto::HashType,
-        const PasswordPrompt&) const final
+        const PasswordPrompt&) const -> bool final
     {
         return false;
     }
-    bool Verify(
+    auto Verify(
         const Data&,
         const key::Asymmetric&,
         const Data&,
-        const proto::HashType) const final
+        const proto::HashType) const -> bool final
     {
         return false;
     }
-    bool VerifyContractSignature(
+    auto VerifyContractSignature(
         const String&,
         const key::Asymmetric&,
         const Signature&,
-        const proto::HashType) const final
+        const proto::HashType) const -> bool final
     {
         return false;
     }
@@ -80,7 +80,9 @@ public:
 private:
     AsymmetricProviderNull(const AsymmetricProviderNull&) = delete;
     AsymmetricProviderNull(AsymmetricProviderNull&&) = delete;
-    AsymmetricProviderNull& operator=(const AsymmetricProviderNull&) = delete;
-    AsymmetricProviderNull& operator=(AsymmetricProviderNull&&) = delete;
+    auto operator=(const AsymmetricProviderNull&)
+        -> AsymmetricProviderNull& = delete;
+    auto operator=(AsymmetricProviderNull &&)
+        -> AsymmetricProviderNull& = delete;
 };
 }  // namespace opentxs::crypto::implementation

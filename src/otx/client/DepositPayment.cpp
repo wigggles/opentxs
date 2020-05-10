@@ -47,7 +47,7 @@ DepositPayment::DepositPayment(
 {
 }
 
-bool DepositPayment::deposit()
+auto DepositPayment::deposit() -> bool
 {
     bool error{false};
     bool repeat{true};
@@ -134,8 +134,8 @@ exit:
     return repeat;
 }
 
-OTIdentifier DepositPayment::get_account_id(
-    const identifier::UnitDefinition& unit)
+auto DepositPayment::get_account_id(const identifier::UnitDefinition& unit)
+    -> OTIdentifier
 {
     Lock lock(payment_tasks_.GetAccountLock(unit));
     const auto accounts = parent_.api().Storage().AccountsByContract(unit);

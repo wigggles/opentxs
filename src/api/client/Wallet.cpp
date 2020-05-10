@@ -35,7 +35,8 @@
 
 namespace opentxs
 {
-api::Wallet* Factory::Wallet(const api::client::internal::Manager& client)
+auto Factory::Wallet(const api::client::internal::Manager& client)
+    -> api::Wallet*
 {
     return new api::client::implementation::Wallet(client);
 }
@@ -55,9 +56,10 @@ Wallet::Wallet(const api::client::internal::Manager& client)
     OT_ASSERT(bound);
 }
 
-std::shared_ptr<const opentxs::Context> Wallet::Context(
+auto Wallet::Context(
     const identifier::Server& notaryID,
     const identifier::Nym& clientNymID) const
+    -> std::shared_ptr<const opentxs::Context>
 {
     auto serverID = Identifier::Factory(notaryID);
 
@@ -83,10 +85,10 @@ void Wallet::instantiate_server_context(
         connection));
 }
 
-Editor<opentxs::Context> Wallet::mutable_Context(
+auto Wallet::mutable_Context(
     const identifier::Server& notaryID,
     const identifier::Nym& clientNymID,
-    const PasswordPrompt& reason) const
+    const PasswordPrompt& reason) const -> Editor<opentxs::Context>
 {
     auto serverID = Identifier::Factory(notaryID);
     auto base = context(clientNymID, server_to_nym(serverID));
@@ -100,10 +102,10 @@ Editor<opentxs::Context> Wallet::mutable_Context(
     return Editor<opentxs::Context>(base.get(), callback);
 }
 
-Editor<opentxs::ServerContext> Wallet::mutable_ServerContext(
+auto Wallet::mutable_ServerContext(
     const identifier::Nym& localNymID,
     const Identifier& remoteID,
-    const PasswordPrompt& reason) const
+    const PasswordPrompt& reason) const -> Editor<opentxs::ServerContext>
 {
     Lock lock(context_map_lock_);
 
@@ -161,9 +163,10 @@ void Wallet::nym_to_contact(const identity::Nym& nym, const std::string& name)
     client_.Contacts().NewContact(name, nym.ID(), code);
 }
 
-std::shared_ptr<const opentxs::ServerContext> Wallet::ServerContext(
+auto Wallet::ServerContext(
     const identifier::Nym& localNymID,
     const Identifier& remoteID) const
+    -> std::shared_ptr<const opentxs::ServerContext>
 {
     auto serverID = Identifier::Factory(remoteID);
     auto remoteNymID = server_to_nym(serverID);
@@ -174,5 +177,8 @@ std::shared_ptr<const opentxs::ServerContext> Wallet::ServerContext(
     return output;
 }
 
-Nym_p Wallet::signer_nym(const identifier::Nym& id) const { return Nym(id); }
+auto Wallet::signer_nym(const identifier::Nym& id) const -> Nym_p
+{
+    return Nym(id);
+}
 }  // namespace opentxs::api::client::implementation

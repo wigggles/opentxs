@@ -7,7 +7,7 @@
 
 namespace opentxs::proto
 {
-const VersionMap& AsymmetricKeyAllowedCiphertext() noexcept
+auto AsymmetricKeyAllowedCiphertext() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -16,7 +16,7 @@ const VersionMap& AsymmetricKeyAllowedCiphertext() noexcept
 
     return output;
 }
-const VersionMap& AsymmetricKeyAllowedHDPath() noexcept
+auto AsymmetricKeyAllowedHDPath() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -25,7 +25,7 @@ const VersionMap& AsymmetricKeyAllowedHDPath() noexcept
 
     return output;
 }
-const VersionMap& AuthorityAllowedCredential() noexcept
+auto AuthorityAllowedCredential() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -38,7 +38,7 @@ const VersionMap& AuthorityAllowedCredential() noexcept
 
     return output;
 }
-const VersionMap& CiphertextAllowedSymmetricKey() noexcept
+auto CiphertextAllowedSymmetricKey() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -46,7 +46,7 @@ const VersionMap& CiphertextAllowedSymmetricKey() noexcept
 
     return output;
 }
-const VersionMap& CredentialAllowedChildParams() noexcept
+auto CredentialAllowedChildParams() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -59,7 +59,7 @@ const VersionMap& CredentialAllowedChildParams() noexcept
 
     return output;
 }
-const VersionMap& CredentialAllowedContactData() noexcept
+auto CredentialAllowedContactData() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -72,7 +72,7 @@ const VersionMap& CredentialAllowedContactData() noexcept
 
     return output;
 }
-const VersionMap& CredentialAllowedKeyCredential() noexcept
+auto CredentialAllowedKeyCredential() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -85,7 +85,7 @@ const VersionMap& CredentialAllowedKeyCredential() noexcept
 
     return output;
 }
-const VersionMap& CredentialAllowedMasterParams() noexcept
+auto CredentialAllowedMasterParams() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -98,7 +98,7 @@ const VersionMap& CredentialAllowedMasterParams() noexcept
 
     return output;
 }
-const VersionMap& CredentialAllowedSignatures() noexcept
+auto CredentialAllowedSignatures() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -111,7 +111,7 @@ const VersionMap& CredentialAllowedSignatures() noexcept
 
     return output;
 }
-const VersionMap& CredentialAllowedVerification() noexcept
+auto CredentialAllowedVerification() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -124,7 +124,7 @@ const VersionMap& CredentialAllowedVerification() noexcept
 
     return output;
 }
-const VersionMap& EnvelopeAllowedAsymmetricKey() noexcept
+auto EnvelopeAllowedAsymmetricKey() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -133,7 +133,7 @@ const VersionMap& EnvelopeAllowedAsymmetricKey() noexcept
 
     return output;
 }
-const VersionMap& EnvelopeAllowedCiphertext() noexcept
+auto EnvelopeAllowedCiphertext() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -142,7 +142,7 @@ const VersionMap& EnvelopeAllowedCiphertext() noexcept
 
     return output;
 }
-const VersionMap& EnvelopeAllowedTaggedKey() noexcept
+auto EnvelopeAllowedTaggedKey() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -151,7 +151,7 @@ const VersionMap& EnvelopeAllowedTaggedKey() noexcept
 
     return output;
 }
-const VersionMap& KeyCredentialAllowedAsymmetricKey() noexcept
+auto KeyCredentialAllowedAsymmetricKey() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -160,7 +160,7 @@ const VersionMap& KeyCredentialAllowedAsymmetricKey() noexcept
 
     return output;
 }
-const VersionMap& MasterParamsAllowedNymIDSource() noexcept
+auto MasterParamsAllowedNymIDSource() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -169,7 +169,7 @@ const VersionMap& MasterParamsAllowedNymIDSource() noexcept
 
     return output;
 }
-const VersionMap& MasterParamsAllowedSourceProof() noexcept
+auto MasterParamsAllowedSourceProof() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -178,7 +178,7 @@ const VersionMap& MasterParamsAllowedSourceProof() noexcept
 
     return output;
 }
-const VersionMap& NymAllowedAuthority() noexcept
+auto NymAllowedAuthority() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -191,7 +191,7 @@ const VersionMap& NymAllowedAuthority() noexcept
 
     return output;
 }
-const VersionMap& NymAllowedNymIDSource() noexcept
+auto NymAllowedNymIDSource() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -204,7 +204,7 @@ const VersionMap& NymAllowedNymIDSource() noexcept
 
     return output;
 }
-const VersionMap& NymIDSourceAllowedAsymmetricKey() noexcept
+auto NymIDSourceAllowedAsymmetricKey() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -213,7 +213,7 @@ const VersionMap& NymIDSourceAllowedAsymmetricKey() noexcept
 
     return output;
 }
-const VersionMap& NymIDSourceAllowedPaymentCode() noexcept
+auto NymIDSourceAllowedPaymentCode() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -221,7 +221,7 @@ const VersionMap& NymIDSourceAllowedPaymentCode() noexcept
 
     return output;
 }
-const VersionMap& SeedAllowedCiphertext() noexcept
+auto SeedAllowedCiphertext() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -231,7 +231,7 @@ const VersionMap& SeedAllowedCiphertext() noexcept
 
     return output;
 }
-const VersionMap& SymmetricKeyAllowedCiphertext() noexcept
+auto SymmetricKeyAllowedCiphertext() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -239,7 +239,7 @@ const VersionMap& SymmetricKeyAllowedCiphertext() noexcept
 
     return output;
 }
-const VersionMap& TaggedKeyAllowedSymmetricKey() noexcept
+auto TaggedKeyAllowedSymmetricKey() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},

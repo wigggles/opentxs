@@ -82,7 +82,8 @@ ContactSection::ContactSection(
 {
 }
 
-ContactSection ContactSection::operator+(const ContactSection& rhs) const
+auto ContactSection::operator+(const ContactSection& rhs) const
+    -> ContactSection
 {
     auto map{groups_};
 
@@ -116,8 +117,8 @@ ContactSection ContactSection::operator+(const ContactSection& rhs) const
     return ContactSection(api_, nym_, version, version, section_, map);
 }
 
-ContactSection ContactSection::add_scope(
-    const std::shared_ptr<ContactItem>& item) const
+auto ContactSection::add_scope(const std::shared_ptr<ContactItem>& item) const
+    -> ContactSection
 {
     OT_ASSERT(item);
 
@@ -146,8 +147,8 @@ ContactSection ContactSection::add_scope(
     return ContactSection(api_, nym_, version, version, section_, groups);
 }
 
-ContactSection ContactSection::AddItem(
-    const std::shared_ptr<ContactItem>& item) const
+auto ContactSection::AddItem(const std::shared_ptr<ContactItem>& item) const
+    -> ContactSection
 {
     OT_ASSERT(item);
 
@@ -174,14 +175,14 @@ ContactSection ContactSection::AddItem(
     return ContactSection(api_, nym_, version, version, section_, map);
 }
 
-ContactSection::GroupMap::const_iterator ContactSection::begin() const
+auto ContactSection::begin() const -> ContactSection::GroupMap::const_iterator
 {
     return groups_.cbegin();
 }
 
-VersionNumber ContactSection::check_version(
+auto ContactSection::check_version(
     const VersionNumber in,
-    const VersionNumber targetVersion)
+    const VersionNumber targetVersion) -> VersionNumber
 {
     // Upgrade version
     if (targetVersion > in) { return targetVersion; }
@@ -189,7 +190,8 @@ VersionNumber ContactSection::check_version(
     return in;
 }
 
-std::shared_ptr<ContactItem> ContactSection::Claim(const Identifier& item) const
+auto ContactSection::Claim(const Identifier& item) const
+    -> std::shared_ptr<ContactItem>
 {
     for (const auto& group : groups_) {
         OT_ASSERT(group.second);
@@ -202,10 +204,10 @@ std::shared_ptr<ContactItem> ContactSection::Claim(const Identifier& item) const
     return {};
 }
 
-ContactSection::GroupMap ContactSection::create_group(
+auto ContactSection::create_group(
     const std::string& nym,
     const proto::ContactSectionName section,
-    const std::shared_ptr<ContactItem>& item)
+    const std::shared_ptr<ContactItem>& item) -> ContactSection::GroupMap
 {
     OT_ASSERT(item);
 
@@ -217,7 +219,7 @@ ContactSection::GroupMap ContactSection::create_group(
     return output;
 }
 
-ContactSection ContactSection::Delete(const Identifier& id) const
+auto ContactSection::Delete(const Identifier& id) const -> ContactSection
 {
     bool deleted{false};
     auto map = groups_;
@@ -242,16 +244,16 @@ ContactSection ContactSection::Delete(const Identifier& id) const
     return ContactSection(api_, nym_, version_, version_, section_, map);
 }
 
-ContactSection::GroupMap::const_iterator ContactSection::end() const
+auto ContactSection::end() const -> ContactSection::GroupMap::const_iterator
 {
     return groups_.cend();
 }
 
-ContactSection::GroupMap ContactSection::extract_groups(
+auto ContactSection::extract_groups(
     const api::internal::Core& api,
     const std::string& nym,
     const VersionNumber parentVersion,
-    const proto::ContactSection& serialized)
+    const proto::ContactSection& serialized) -> ContactSection::GroupMap
 {
     GroupMap groupMap{};
     std::map<proto::ContactItemType, ContactGroup::ItemMap> itemMaps{};
@@ -283,8 +285,8 @@ ContactSection::GroupMap ContactSection::extract_groups(
     return groupMap;
 }
 
-std::shared_ptr<ContactGroup> ContactSection::Group(
-    const proto::ContactItemType& type) const
+auto ContactSection::Group(const proto::ContactItemType& type) const
+    -> std::shared_ptr<ContactGroup>
 {
     const auto it = groups_.find(type);
 
@@ -293,7 +295,7 @@ std::shared_ptr<ContactGroup> ContactSection::Group(
     return it->second;
 }
 
-bool ContactSection::HaveClaim(const Identifier& item) const
+auto ContactSection::HaveClaim(const Identifier& item) const -> bool
 {
     for (const auto& group : groups_) {
         OT_ASSERT(group.second);
@@ -304,9 +306,9 @@ bool ContactSection::HaveClaim(const Identifier& item) const
     return false;
 }
 
-bool ContactSection::SerializeTo(
+auto ContactSection::SerializeTo(
     proto::ContactData& section,
-    const bool withIDs) const
+    const bool withIDs) const -> bool
 {
     bool output = true;
     auto& serialized = *section.add_section();
@@ -324,12 +326,12 @@ bool ContactSection::SerializeTo(
     return output;
 }
 
-std::size_t ContactSection::Size() const { return groups_.size(); }
+auto ContactSection::Size() const -> std::size_t { return groups_.size(); }
 
-const proto::ContactSectionName& ContactSection::Type() const
+auto ContactSection::Type() const -> const proto::ContactSectionName&
 {
     return section_;
 }
 
-VersionNumber ContactSection::Version() const { return version_; }
+auto ContactSection::Version() const -> VersionNumber { return version_; }
 }  // namespace opentxs

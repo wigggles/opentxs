@@ -66,145 +66,150 @@ namespace opentxs::identity::implementation
 class Nym final : virtual public identity::internal::Nym, Lockable
 {
 public:
-    std::string Alias() const final;
-    const Serialized asPublicNym() const final;
-    const value_type& at(const key_type& id) const noexcept(false) final
+    auto Alias() const -> std::string final;
+    auto asPublicNym() const -> const Serialized final;
+    auto at(const key_type& id) const noexcept(false) -> const value_type& final
     {
         return *active_.at(id);
     }
-    const value_type& at(const std::size_t& index) const noexcept(false) final;
-    const_iterator begin() const noexcept final { return cbegin(); }
-    std::string BestEmail() const final;
-    std::string BestPhoneNumber() const final;
-    std::string BestSocialMediaProfile(
-        const proto::ContactItemType type) const final;
-    const_iterator cbegin() const noexcept final
+    auto at(const std::size_t& index) const noexcept(false)
+        -> const value_type& final;
+    auto begin() const noexcept -> const_iterator final { return cbegin(); }
+    auto BestEmail() const -> std::string final;
+    auto BestPhoneNumber() const -> std::string final;
+    auto BestSocialMediaProfile(const proto::ContactItemType type) const
+        -> std::string final;
+    auto cbegin() const noexcept -> const_iterator final
     {
         return const_iterator(this, 0);
     }
-    const_iterator cend() const noexcept final
+    auto cend() const noexcept -> const_iterator final
     {
         return const_iterator(this, size());
     }
-    const opentxs::ContactData& Claims() const final;
-    bool CompareID(const identity::Nym& RHS) const final;
-    bool CompareID(const identifier::Nym& rhs) const final;
-    VersionNumber ContactCredentialVersion() const final;
-    VersionNumber ContactDataVersion() const final
+    auto Claims() const -> const opentxs::ContactData& final;
+    auto CompareID(const identity::Nym& RHS) const -> bool final;
+    auto CompareID(const identifier::Nym& rhs) const -> bool final;
+    auto ContactCredentialVersion() const -> VersionNumber final;
+    auto ContactDataVersion() const -> VersionNumber final
     {
         return contact_credential_to_contact_data_version_.at(
             ContactCredentialVersion());
     }
-    std::set<OTIdentifier> Contracts(
-        const proto::ContactItemType currency,
-        const bool onlyActive) const final;
-    std::string EmailAddresses(bool active) const final;
-    NymKeys EncryptionTargets() const noexcept final;
-    const_iterator end() const noexcept final { return cend(); }
+    auto Contracts(const proto::ContactItemType currency, const bool onlyActive)
+        const -> std::set<OTIdentifier> final;
+    auto EmailAddresses(bool active) const -> std::string final;
+    auto EncryptionTargets() const noexcept -> NymKeys final;
+    auto end() const noexcept -> const_iterator final { return cend(); }
     void GetIdentifier(identifier::Nym& theIdentifier) const final;
     void GetIdentifier(String& theIdentifier) const final;
-    const crypto::key::Asymmetric& GetPrivateAuthKey(
-        proto::AsymmetricKeyType keytype = proto::AKEYTYPE_NULL) const final;
-    const crypto::key::Asymmetric& GetPrivateEncrKey(
-        proto::AsymmetricKeyType keytype = proto::AKEYTYPE_NULL) const final;
-    const crypto::key::Asymmetric& GetPrivateSignKey(
-        proto::AsymmetricKeyType keytype = proto::AKEYTYPE_NULL) const final;
-    const crypto::key::Asymmetric& GetPublicAuthKey(
-        proto::AsymmetricKeyType keytype = proto::AKEYTYPE_NULL) const final;
-    const crypto::key::Asymmetric& GetPublicEncrKey(
-        proto::AsymmetricKeyType keytype = proto::AKEYTYPE_NULL) const final;
-    std::int32_t GetPublicKeysBySignature(
+    auto GetPrivateAuthKey(
+        proto::AsymmetricKeyType keytype = proto::AKEYTYPE_NULL) const
+        -> const crypto::key::Asymmetric& final;
+    auto GetPrivateEncrKey(
+        proto::AsymmetricKeyType keytype = proto::AKEYTYPE_NULL) const
+        -> const crypto::key::Asymmetric& final;
+    auto GetPrivateSignKey(
+        proto::AsymmetricKeyType keytype = proto::AKEYTYPE_NULL) const
+        -> const crypto::key::Asymmetric& final;
+    auto GetPublicAuthKey(
+        proto::AsymmetricKeyType keytype = proto::AKEYTYPE_NULL) const
+        -> const crypto::key::Asymmetric& final;
+    auto GetPublicEncrKey(
+        proto::AsymmetricKeyType keytype = proto::AKEYTYPE_NULL) const
+        -> const crypto::key::Asymmetric& final;
+    auto GetPublicKeysBySignature(
         crypto::key::Keypair::Keys& listOutput,
         const Signature& theSignature,
-        char cKeyType) const final;
-    const crypto::key::Asymmetric& GetPublicSignKey(
-        proto::AsymmetricKeyType keytype) const final;
-    bool HasCapability(const NymCapability& capability) const final;
-    const identifier::Nym& ID() const final { return id_; }
-    std::string Name() const final;
-    bool Path(proto::HDPath& output) const final;
-    std::string PaymentCode() const final;
-    std::string PhoneNumbers(bool active) const final;
-    std::uint64_t Revision() const final;
-    Serialized SerializeCredentialIndex(const Mode mode) const final;
+        char cKeyType) const -> std::int32_t final;
+    auto GetPublicSignKey(proto::AsymmetricKeyType keytype) const
+        -> const crypto::key::Asymmetric& final;
+    auto HasCapability(const NymCapability& capability) const -> bool final;
+    auto ID() const -> const identifier::Nym& final { return id_; }
+    auto Name() const -> std::string final;
+    auto Path(proto::HDPath& output) const -> bool final;
+    auto PaymentCode() const -> std::string final;
+    auto PhoneNumbers(bool active) const -> std::string final;
+    auto Revision() const -> std::uint64_t final;
+    auto SerializeCredentialIndex(const Mode mode) const -> Serialized final;
     void SerializeNymIDSource(Tag& parent) const final;
-    std::size_t size() const noexcept final { return active_.size(); }
-    std::string SocialMediaProfiles(
-        const proto::ContactItemType type,
-        bool active) const final;
-    const std::set<proto::ContactItemType> SocialMediaProfileTypes()
-        const final;
-    const identity::Source& Source() const final { return source_; }
-    std::unique_ptr<OTPassword> TransportKey(
-        Data& pubkey,
-        const PasswordPrompt& reason) const final;
-    bool Unlock(
+    auto size() const noexcept -> std::size_t final { return active_.size(); }
+    auto SocialMediaProfiles(const proto::ContactItemType type, bool active)
+        const -> std::string final;
+    auto SocialMediaProfileTypes() const
+        -> const std::set<proto::ContactItemType> final;
+    auto Source() const -> const identity::Source& final { return source_; }
+    auto TransportKey(Data& pubkey, const PasswordPrompt& reason) const
+        -> std::unique_ptr<OTPassword> final;
+    auto Unlock(
         const crypto::key::Asymmetric& dhKey,
         const std::uint32_t tag,
         const proto::AsymmetricKeyType type,
         const crypto::key::Symmetric& key,
-        PasswordPrompt& reason) const noexcept final;
-    bool VerifyPseudonym() const final;
-    bool WriteCredentials() const final;
+        PasswordPrompt& reason) const noexcept -> bool final;
+    auto VerifyPseudonym() const -> bool final;
+    auto WriteCredentials() const -> bool final;
 
-    std::string AddChildKeyCredential(
+    auto AddChildKeyCredential(
         const Identifier& strMasterID,
         const NymParameters& nymParameters,
-        const PasswordPrompt& reason) final;
-    bool AddClaim(const Claim& claim, const PasswordPrompt& reason) final;
-    bool AddContract(
+        const PasswordPrompt& reason) -> std::string final;
+    auto AddClaim(const Claim& claim, const PasswordPrompt& reason)
+        -> bool final;
+    auto AddContract(
         const identifier::UnitDefinition& instrumentDefinitionID,
         const proto::ContactItemType currency,
         const PasswordPrompt& reason,
         const bool primary,
-        const bool active) final;
-    bool AddEmail(
+        const bool active) -> bool final;
+    auto AddEmail(
         const std::string& value,
         const PasswordPrompt& reason,
         const bool primary,
-        const bool active) final;
-    bool AddPaymentCode(
+        const bool active) -> bool final;
+    auto AddPaymentCode(
         const opentxs::PaymentCode& code,
         const proto::ContactItemType currency,
         const PasswordPrompt& reason,
         const bool primary,
-        const bool active) final;
-    bool AddPreferredOTServer(
+        const bool active) -> bool final;
+    auto AddPreferredOTServer(
         const Identifier& id,
         const PasswordPrompt& reason,
-        const bool primary) final;
-    bool AddPhoneNumber(
+        const bool primary) -> bool final;
+    auto AddPhoneNumber(
         const std::string& value,
         const PasswordPrompt& reason,
         const bool primary,
-        const bool active) final;
-    bool AddSocialMediaProfile(
+        const bool active) -> bool final;
+    auto AddSocialMediaProfile(
         const std::string& value,
         const proto::ContactItemType type,
         const PasswordPrompt& reason,
         const bool primary,
-        const bool active) final;
-    bool DeleteClaim(const Identifier& id, const PasswordPrompt& reason) final;
+        const bool active) -> bool final;
+    auto DeleteClaim(const Identifier& id, const PasswordPrompt& reason)
+        -> bool final;
     void SetAlias(const std::string& alias) final;
     void SetAliasStartup(const std::string& alias) final { alias_ = alias; }
-    bool SetCommonName(const std::string& name, const PasswordPrompt& reason)
-        final;
-    bool SetContactData(
+    auto SetCommonName(const std::string& name, const PasswordPrompt& reason)
+        -> bool final;
+    auto SetContactData(
         const proto::ContactData& data,
-        const PasswordPrompt& reason) final;
-    bool SetScope(
+        const PasswordPrompt& reason) -> bool final;
+    auto SetScope(
         const proto::ContactItemType type,
         const std::string& name,
         const PasswordPrompt& reason,
-        const bool primary) final;
-    bool Sign(
+        const bool primary) -> bool final;
+    auto Sign(
         const ProtobufType& input,
         const proto::SignatureRole role,
         proto::Signature& signature,
         const PasswordPrompt& reason,
-        const proto::HashType hash) const final;
-    bool Verify(const ProtobufType& input, proto::Signature& signature)
-        const final;
+        const proto::HashType hash) const -> bool final;
+    auto Verify(const ProtobufType& input, proto::Signature& signature) const
+        -> bool final;
 
     ~Nym() final = default;
 
@@ -234,64 +239,61 @@ private:
     // Revoked child credential IDs
     String::List m_listRevokedIDs;
 
-    static CredentialMap create_authority(
+    static auto create_authority(
         const api::internal::Core& api,
         const identity::Nym& parent,
         const identity::Source& source,
         const VersionNumber version,
         const NymParameters& params,
-        const PasswordPrompt& reason) noexcept(false);
-    static CredentialMap load_authorities(
+        const PasswordPrompt& reason) noexcept(false) -> CredentialMap;
+    static auto load_authorities(
         const api::internal::Core& api,
         const identity::Nym& parent,
         const identity::Source& source,
-        const Serialized& serialized) noexcept(false);
-    static String::List load_revoked(
+        const Serialized& serialized) noexcept(false) -> CredentialMap;
+    static auto load_revoked(
         const api::internal::Core& api,
         const identity::Nym& parent,
         const identity::Source& source,
         const Serialized& serialized,
-        CredentialMap& revoked) noexcept(false);
-    static NymParameters normalize(
+        CredentialMap& revoked) noexcept(false) -> String::List;
+    static auto normalize(
         const api::internal::Core& api,
         const NymParameters& in,
-        const PasswordPrompt& reason) noexcept(false);
+        const PasswordPrompt& reason) noexcept(false) -> NymParameters;
 
     template <typename T>
-    const crypto::key::Asymmetric& get_private_auth_key(
-        const T& lock,
-        proto::AsymmetricKeyType keytype) const;
+    auto get_private_auth_key(const T& lock, proto::AsymmetricKeyType keytype)
+        const -> const crypto::key::Asymmetric&;
     template <typename T>
-    const crypto::key::Asymmetric& get_private_sign_key(
-        const T& lock,
-        proto::AsymmetricKeyType keytype) const;
+    auto get_private_sign_key(const T& lock, proto::AsymmetricKeyType keytype)
+        const -> const crypto::key::Asymmetric&;
     template <typename T>
-    const crypto::key::Asymmetric& get_public_sign_key(
-        const T& lock,
-        proto::AsymmetricKeyType keytype) const;
-    bool has_capability(const eLock& lock, const NymCapability& capability)
-        const;
+    auto get_public_sign_key(const T& lock, proto::AsymmetricKeyType keytype)
+        const -> const crypto::key::Asymmetric&;
+    auto has_capability(const eLock& lock, const NymCapability& capability)
+        const -> bool;
     void init_claims(const eLock& lock) const;
-    bool set_contact_data(
+    auto set_contact_data(
         const eLock& lock,
         const proto::ContactData& data,
-        const PasswordPrompt& reason);
-    bool verify_pseudonym(const eLock& lock) const;
+        const PasswordPrompt& reason) -> bool;
+    auto verify_pseudonym(const eLock& lock) const -> bool;
 
-    bool add_contact_credential(
+    auto add_contact_credential(
         const eLock& lock,
         const proto::ContactData& data,
-        const PasswordPrompt& reason);
-    bool add_verification_credential(
+        const PasswordPrompt& reason) -> bool;
+    auto add_verification_credential(
         const eLock& lock,
         const proto::VerificationSet& data,
-        const PasswordPrompt& reason);
+        const PasswordPrompt& reason) -> bool;
     void revoke_contact_credentials(const eLock& lock);
     void revoke_verification_credentials(const eLock& lock);
-    bool update_nym(
+    auto update_nym(
         const eLock& lock,
         const std::int32_t version,
-        const PasswordPrompt& reason);
+        const PasswordPrompt& reason) -> bool;
 
     Nym(const api::internal::Core& api,
         NymParameters& nymParameters,
@@ -303,7 +305,7 @@ private:
     Nym() = delete;
     Nym(const Nym&) = delete;
     Nym(Nym&&) = delete;
-    Nym& operator=(const Nym&) = delete;
-    Nym& operator=(Nym&&) = delete;
+    auto operator=(const Nym&) -> Nym& = delete;
+    auto operator=(Nym &&) -> Nym& = delete;
 };
 }  // namespace opentxs::identity::implementation

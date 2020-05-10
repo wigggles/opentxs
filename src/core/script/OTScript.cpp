@@ -82,7 +82,8 @@ namespace opentxs
 
  */
 
-std::shared_ptr<OTScript> OTScriptFactory(const std::string& script_type)
+auto OTScriptFactory(const std::string& script_type)
+    -> std::shared_ptr<OTScript>
 {
 
 #if OT_SCRIPT_CHAI
@@ -120,9 +121,10 @@ std::shared_ptr<OTScript> OTScriptFactory(const std::string& script_type)
     return retVal;
 }
 
-std::shared_ptr<OTScript> OTScriptFactory(
+auto OTScriptFactory(
     const std::string& script_type,
     [[maybe_unused]] const std::string& script_contents)
+    -> std::shared_ptr<OTScript>
 {
 
 #if OT_SCRIPT_CHAI
@@ -283,7 +285,7 @@ void OTScript::AddVariable(std::string str_var_name, OTVariable& theVar)
     // variables, and isn't responsible to clean them up.
 }
 
-OTVariable* OTScript::FindVariable(std::string str_var_name)
+auto OTScript::FindVariable(std::string str_var_name) -> OTVariable*
 {
     auto it_var = m_mapVariables.find(str_var_name);
     return it_var != m_mapVariables.end() ? it_var->second : nullptr;
@@ -307,7 +309,7 @@ void OTScript::RemoveVariable(OTVariable& theVar)
     }
 }
 
-bool OTScript::ExecuteScript(OTVariable*)
+auto OTScript::ExecuteScript(OTVariable*) -> bool
 {
     LogOutput(OT_METHOD)(__FUNCTION__)(": Scripting has been disabled.")
         .Flush();

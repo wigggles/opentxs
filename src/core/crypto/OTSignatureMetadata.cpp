@@ -29,8 +29,8 @@ OTSignatureMetadata::OTSignatureMetadata(const api::internal::Core& api)
 {
 }
 
-OTSignatureMetadata& OTSignatureMetadata::operator=(
-    const OTSignatureMetadata& rhs)
+auto OTSignatureMetadata::operator=(const OTSignatureMetadata& rhs)
+    -> OTSignatureMetadata&
 {
     if (this != &rhs) {
         hasMetadata_ = rhs.hasMetadata_;
@@ -43,11 +43,11 @@ OTSignatureMetadata& OTSignatureMetadata::operator=(
     return *this;
 }
 
-bool OTSignatureMetadata::SetMetadata(
+auto OTSignatureMetadata::SetMetadata(
     char metaKeyType,
     char metaNymID,
     char metaMasterCredID,
-    char metaChildCredID)
+    char metaChildCredID) -> bool
 {
     switch (metaKeyType) {
         // authentication (used for signing transmissions and stored files.)
@@ -91,7 +91,8 @@ bool OTSignatureMetadata::SetMetadata(
     return true;
 }
 
-bool OTSignatureMetadata::operator==(const OTSignatureMetadata& rhs) const
+auto OTSignatureMetadata::operator==(const OTSignatureMetadata& rhs) const
+    -> bool
 {
     return (
         (HasMetadata() == rhs.HasMetadata()) &&

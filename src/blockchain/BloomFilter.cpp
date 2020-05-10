@@ -30,21 +30,21 @@
 
 namespace opentxs
 {
-blockchain::BloomFilter* Factory::BloomFilter(
+auto Factory::BloomFilter(
     const api::internal::Core& api,
     const std::uint32_t tweak,
     const blockchain::BloomUpdateFlag update,
     const std::size_t targets,
-    const double fpRate)
+    const double fpRate) -> blockchain::BloomFilter*
 {
     using ReturnType = blockchain::implementation::BloomFilter;
 
     return new ReturnType(api, tweak, update, targets, fpRate);
 }
 
-blockchain::BloomFilter* Factory::BloomFilter(
+auto Factory::BloomFilter(
     const api::internal::Core& api,
-    const Data& serialized)
+    const Data& serialized) -> blockchain::BloomFilter*
 {
     using ReturnType = blockchain::implementation::BloomFilter;
     blockchain::internal::SerializedBloomFilter raw{};
@@ -161,8 +161,8 @@ void BloomFilter::AddElement(const Data& in) noexcept
     }
 }
 
-std::uint32_t BloomFilter::hash(const Data& input, std::size_t hash_index) const
-    noexcept
+auto BloomFilter::hash(const Data& input, std::size_t hash_index) const noexcept
+    -> std::uint32_t
 {
     auto seed = seed_ * hash_index;
     seed += tweak_;
@@ -172,7 +172,7 @@ std::uint32_t BloomFilter::hash(const Data& input, std::size_t hash_index) const
     return hash;
 }
 
-OTData BloomFilter::Serialize() const noexcept
+auto BloomFilter::Serialize() const noexcept -> OTData
 {
     std::vector<std::uint8_t> bytes{};
     boost::to_block_range(filter_, std::back_inserter(bytes));
@@ -184,7 +184,7 @@ OTData BloomFilter::Serialize() const noexcept
     return output;
 }
 
-bool BloomFilter::Test(const Data& in) const noexcept
+auto BloomFilter::Test(const Data& in) const noexcept -> bool
 {
     const auto bitsize = filter_.size();
 

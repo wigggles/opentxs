@@ -924,7 +924,8 @@ OTPartyAccount    * GetPartyAccountByID(const Identifier& theAcctID);
 // Otherwise, if it wasn't empty (it had been already set) then
 // it will fail to set in this call, and return false.
 //
-bool OTSmartContract::SetNotaryIDIfEmpty(const identifier::Server& theID)
+auto OTSmartContract::SetNotaryIDIfEmpty(const identifier::Server& theID)
+    -> bool
 {
     if (GetNotaryID().empty()) {
         SetNotaryID(theID);
@@ -933,8 +934,8 @@ bool OTSmartContract::SetNotaryIDIfEmpty(const identifier::Server& theID)
     return false;
 }
 
-bool OTSmartContract::IsValidOpeningNumber(
-    const std::int64_t& lOpeningNum) const
+auto OTSmartContract::IsValidOpeningNumber(
+    const std::int64_t& lOpeningNum) const -> bool
 {
     for (const auto& it : m_mapParties) {
         OTParty* pParty = it.second;
@@ -950,7 +951,8 @@ bool OTSmartContract::IsValidOpeningNumber(
 // accounts.
 // Overrides from OTTrackable.
 //
-bool OTSmartContract::HasTransactionNum(const std::int64_t& lInput) const
+auto OTSmartContract::HasTransactionNum(const std::int64_t& lInput) const
+    -> bool
 {
     for (const auto& it : m_mapParties) {
         const OTParty* pParty = it.second;
@@ -972,8 +974,8 @@ void OTSmartContract::GetAllTransactionNumbers(NumList& numlistOutput) const
     }
 }
 
-std::int64_t OTSmartContract::GetOpeningNumber(
-    const identifier::Nym& theNymID) const
+auto OTSmartContract::GetOpeningNumber(const identifier::Nym& theNymID) const
+    -> std::int64_t
 {
     OTAgent* pAgent = nullptr;
     OTParty* pParty = FindPartyBasedOnNymIDAsAgent(theNymID, &pAgent);
@@ -989,8 +991,8 @@ std::int64_t OTSmartContract::GetOpeningNumber(
     return 0;
 }
 
-std::int64_t OTSmartContract::GetClosingNumber(
-    const Identifier& theAcctID) const
+auto OTSmartContract::GetClosingNumber(const Identifier& theAcctID) const
+    -> std::int64_t
 {
     OTPartyAccount* pPartyAcct =
         GetPartyAccountByID(theAcctID);  // from OTScriptable.
@@ -1036,10 +1038,11 @@ void OTSmartContract::SetRemainingTimer(
     }
 }
 
-std::string OTSmartContract::GetRemainingTimer() const  // returns seconds left
-                                                        // on the timer, in
-                                                        // string format, or
-                                                        // "0".
+auto OTSmartContract::GetRemainingTimer() const
+    -> std::string  // returns seconds left
+                    // on the timer, in
+                    // string format, or
+                    // "0".
 {
     return std::to_string(std::chrono::duration_cast<std::chrono::seconds>(
                               GetNextProcessDate() - Clock::now())
@@ -1092,7 +1095,7 @@ void OTSmartContract::onActivate(const PasswordPrompt& reason)
     }
 }
 
-std::string OTSmartContract::GetAcctBalance(std::string from_acct_name)
+auto OTSmartContract::GetAcctBalance(std::string from_acct_name) -> std::string
 {
     OTCron* pCron = GetCron();
     OT_ASSERT(nullptr != pCron);
@@ -1291,7 +1294,8 @@ std::string OTSmartContract::GetAcctBalance(std::string from_acct_name)
     return std::to_string(account.get().GetBalance());
 }
 
-std::string OTSmartContract::GetUnitTypeIDofAcct(std::string from_acct_name)
+auto OTSmartContract::GetUnitTypeIDofAcct(std::string from_acct_name)
+    -> std::string
 {
     OTCron* pCron = GetCron();
     OT_ASSERT(nullptr != pCron);
@@ -1501,9 +1505,9 @@ std::string OTSmartContract::GetUnitTypeIDofAcct(std::string from_acct_name)
     return account.get().GetInstrumentDefinitionID().str();
 }
 
-std::string OTSmartContract::GetStashBalance(
+auto OTSmartContract::GetStashBalance(
     std::string from_stash_name,
-    std::string instrument_definition_id)
+    std::string instrument_definition_id) -> std::string
 {
     OTCron* pCron = GetCron();
     OT_ASSERT(nullptr != pCron);
@@ -1553,7 +1557,8 @@ std::string OTSmartContract::GetStashBalance(
     return strBalance->Get();
 }
 
-bool OTSmartContract::SendANoticeToAllParties(const PasswordPrompt& reason)
+auto OTSmartContract::SendANoticeToAllParties(const PasswordPrompt& reason)
+    -> bool
 {
     OTCron* pCron = GetCron();
     OT_ASSERT(nullptr != pCron);
@@ -1602,9 +1607,9 @@ bool OTSmartContract::SendANoticeToAllParties(const PasswordPrompt& reason)
     return bDroppedNotice;
 }
 
-bool OTSmartContract::SendNoticeToParty(
+auto OTSmartContract::SendNoticeToParty(
     std::string party_name,
-    const PasswordPrompt& reason)
+    const PasswordPrompt& reason) -> bool
 {
     OTCron* pCron = GetCron();
     OT_ASSERT(nullptr != pCron);
@@ -1727,10 +1732,10 @@ bool OTSmartContract::SendNoticeToParty(
 // This is so that
 // stashed funds will show up properly on an audit.
 //
-bool OTSmartContract::StashAcctFunds(
+auto OTSmartContract::StashAcctFunds(
     std::string from_acct_name,
     std::string to_stash_name,
-    std::string str_Amount)
+    std::string str_Amount) -> bool
 {
     OTCron* pCron = GetCron();
     OT_ASSERT(nullptr != pCron);
@@ -1994,10 +1999,10 @@ bool OTSmartContract::StashAcctFunds(
 // This is so that
 // stashed funds will show up properly on an audit.
 //
-bool OTSmartContract::UnstashAcctFunds(
+auto OTSmartContract::UnstashAcctFunds(
     std::string to_acct_name,
     std::string from_stash_name,
-    std::string str_Amount)
+    std::string str_Amount) -> bool
 {
     OTCron* pCron = GetCron();
     OT_ASSERT(nullptr != pCron);
@@ -2223,13 +2228,13 @@ bool OTSmartContract::UnstashAcctFunds(
 //
 // true == success, false == failure.
 //
-bool OTSmartContract::StashFunds(
+auto OTSmartContract::StashFunds(
     const std::int64_t& lAmount,  // negative amount here means UNstash.
                                   // Positive means STASH.
     const Identifier& PARTY_ACCT_ID,
     const identifier::Nym& PARTY_NYM_ID,
     OTStash& theStash,
-    const PasswordPrompt& reason)
+    const PasswordPrompt& reason) -> bool
 {
     OTCron* pCron = GetCron();
     OT_ASSERT(nullptr != pCron);
@@ -3009,10 +3014,10 @@ bool OTSmartContract::StashFunds(
 // this smart contract.)
 //
 
-bool OTSmartContract::MoveAcctFundsStr(
+auto OTSmartContract::MoveAcctFundsStr(
     std::string from_acct_name,
     std::string to_acct_name,
-    std::string str_Amount)
+    std::string str_Amount) -> bool
 {
     OTCron* pCron = GetCron();
     OT_ASSERT(nullptr != pCron);
@@ -3484,7 +3489,7 @@ void OTSmartContract::onFinalReceipt(
 // OTCron calls this regularly, which is my chance to expire, etc.
 // Return True if I should stay on the Cron list for more processing.
 // Return False if I should be removed and deleted.
-bool OTSmartContract::ProcessCron(const PasswordPrompt& reason)
+auto OTSmartContract::ProcessCron(const PasswordPrompt& reason) -> bool
 {
     OT_ASSERT(nullptr != GetCron());
 
@@ -3817,7 +3822,7 @@ void OTSmartContract::ExecuteClauses(
 // callback_party_may_cancel_contract(),
 // etc.
 //
-bool OTSmartContract::CanCancelContract(std::string str_party_name)
+auto OTSmartContract::CanCancelContract(std::string str_party_name) -> bool
 {
     OTCron* pCron = GetCron();
     OT_ASSERT(nullptr != pCron);
@@ -3957,7 +3962,8 @@ bool OTSmartContract::CanCancelContract(std::string str_party_name)
 
 /// See if theNym has rights to remove this item from Cron.
 ///
-bool OTSmartContract::CanRemoveItemFromCron(const ClientContext& context)
+auto OTSmartContract::CanRemoveItemFromCron(const ClientContext& context)
+    -> bool
 {
     // You don't just go willy-nilly and remove a cron item from a market unless
     // you check first and make sure the Nym who requested it actually has said
@@ -4232,12 +4238,12 @@ bool OTSmartContract::CanRemoveItemFromCron(const ClientContext& context)
 // must be recorded. (Set bBurnTransNo to true if you want to enforce the stuff
 // about the opening and closing #s)
 //
-bool OTSmartContract::VerifySmartContract(
+auto OTSmartContract::VerifySmartContract(
     const identity::Nym& theNym,
     const Account& theAcct,
     const identity::Nym& theServerNym,
     const PasswordPrompt& reason,
-    bool bBurnTransNo)
+    bool bBurnTransNo) -> bool
 {
     OTAgent* pAuthAgent = nullptr;
     OTParty* pAuthParty = FindPartyBasedOnNymAsAuthAgent(theNym, &pAuthAgent);
@@ -4900,7 +4906,7 @@ void OTSmartContract::HarvestOpeningNumber(ServerContext& context)
 // the reader to see
 // how those entities are manipulated in the script code of the smartcontract.
 //
-bool OTSmartContract::AddParty(OTParty& theParty)
+auto OTSmartContract::AddParty(OTParty& theParty) -> bool
 {
     if (!theParty.HasActiveAgent()) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
@@ -4939,10 +4945,10 @@ bool OTSmartContract::AddParty(OTParty& theParty)
 // and must be retrieved
 // in the event of any failure.
 //
-bool OTSmartContract::ConfirmParty(
+auto OTSmartContract::ConfirmParty(
     OTParty& theParty,
     ServerContext& context,
-    const PasswordPrompt& reason)
+    const PasswordPrompt& reason) -> bool
 {
     if (!theParty.HasActiveAgent()) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
@@ -5028,7 +5034,7 @@ bool OTSmartContract::ConfirmParty(
 
 // ALWAYS succeeds. (It will OT_ASSERT() otherwise.)
 //
-OTStash* OTSmartContract::GetStash(std::string str_stash_name)
+auto OTSmartContract::GetStash(std::string str_stash_name) -> OTStash*
 {
     auto it = m_mapStashes.find(str_stash_name);
 
@@ -5088,12 +5094,12 @@ void OTSmartContract::Release()
     InitSmartContract();
 }
 
-std::int32_t OTSmartContract::GetCountStashes() const
+auto OTSmartContract::GetCountStashes() const -> std::int32_t
 {
     return static_cast<std::int32_t>(m_mapStashes.size());
 }
 
-std::int32_t OTSmartContract::GetCountStashAccts() const
+auto OTSmartContract::GetCountStashAccts() const -> std::int32_t
 {
     return m_StashAccts.GetCountAccountIDs();
 }
@@ -5103,7 +5109,7 @@ std::int32_t OTSmartContract::GetCountStashAccts() const
 // Before we can make sure that ALL parties have signed equivalent versions,
 // we must be able to compare TWO versions.  The below function does that.
 //
-bool OTSmartContract::Compare(OTScriptable& rhs) const
+auto OTSmartContract::Compare(OTScriptable& rhs) const -> bool
 {
     if (!OTScriptable::Compare(rhs)) return false;
 
@@ -5317,7 +5323,8 @@ void OTSmartContract::PrepareToActivate(
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-std::int32_t OTSmartContract::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
+auto OTSmartContract::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
+    -> std::int32_t
 {
     const auto strNodeName = String::Factory(xml->getNodeName());
 
@@ -5476,13 +5483,13 @@ std::int32_t OTSmartContract::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 // at it, the more I realize I can probably use it NEARLY "as is" !
 //
 // true == success, false == failure.
-bool OTSmartContract::MoveFunds(
+auto OTSmartContract::MoveFunds(
     const std::int64_t& lAmount,
     const Identifier& SOURCE_ACCT_ID,      // GetSenderAcctID();
     const identifier::Nym& SENDER_NYM_ID,  // GetSenderNymID();
     const Identifier& RECIPIENT_ACCT_ID,   // GetRecipientAcctID();
     const identifier::Nym& RECIPIENT_NYM_ID,
-    const PasswordPrompt& reason)  // GetRecipientNymID();
+    const PasswordPrompt& reason) -> bool  // GetRecipientNymID();
 {
     OTCron* pCron = GetCron();
     OT_ASSERT(nullptr != pCron);

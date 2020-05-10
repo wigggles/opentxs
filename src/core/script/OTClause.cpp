@@ -63,7 +63,7 @@ void OTClause::SetCode(const std::string& str_code)
     m_strCode->Set(str_code.c_str());
 }
 
-const char* OTClause::GetCode() const
+auto OTClause::GetCode() const -> const char*
 {
     if (m_strCode->Exists()) return m_strCode->Get();
 
@@ -89,7 +89,7 @@ void OTClause::Serialize(Tag& parent) const
 }
 
 // Done
-bool OTClause::Compare(const OTClause& rhs) const
+auto OTClause::Compare(const OTClause& rhs) const -> bool
 {
     if (!(GetName().Compare(rhs.GetName()))) {
         LogNormal(OT_METHOD)(__FUNCTION__)(": Names don't match: ")(GetName())(

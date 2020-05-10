@@ -47,17 +47,23 @@ namespace opentxs::blockchain::p2p::bitcoin::message
 class Merkleblock final : virtual public bitcoin::Message
 {
 public:
-    OTData getBlockHeader() const noexcept
+    auto getBlockHeader() const noexcept -> OTData
     {
         return Data::Factory(block_header_);
     }
-    TxnCount getTxnCount() const noexcept { return txn_count_; }
-    const std::vector<OTData>& getHashes() const noexcept { return hashes_; }
-    const std::vector<std::byte>& getFlags() const noexcept { return flags_; }
+    auto getTxnCount() const noexcept -> TxnCount { return txn_count_; }
+    auto getHashes() const noexcept -> const std::vector<OTData>&
+    {
+        return hashes_;
+    }
+    auto getFlags() const noexcept -> const std::vector<std::byte>&
+    {
+        return flags_;
+    }
 
     ~Merkleblock() final = default;
 
-    OTData payload() const noexcept final;
+    auto payload() const noexcept -> OTData final;
 
 private:
     friend opentxs::Factory;
@@ -91,7 +97,7 @@ private:
         const std::vector<std::byte>& flags) noexcept(false);
     Merkleblock(const Merkleblock&) = delete;
     Merkleblock(Merkleblock&&) = delete;
-    Merkleblock& operator=(const Merkleblock&) = delete;
-    Merkleblock& operator=(Merkleblock&&) = delete;
+    auto operator=(const Merkleblock&) -> Merkleblock& = delete;
+    auto operator=(Merkleblock &&) -> Merkleblock& = delete;
 };
 }  // namespace opentxs::blockchain::p2p::bitcoin::message

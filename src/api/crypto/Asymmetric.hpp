@@ -43,43 +43,47 @@ namespace opentxs::api::crypto::implementation
 class Asymmetric final : virtual public api::crypto::internal::Asymmetric
 {
 public:
-    ECKey InstantiateECKey(const proto::AsymmetricKey& serialized) const final;
-    HDKey InstantiateHDKey(const proto::AsymmetricKey& serialized) const final;
+    auto InstantiateECKey(const proto::AsymmetricKey& serialized) const
+        -> ECKey final;
+    auto InstantiateHDKey(const proto::AsymmetricKey& serialized) const
+        -> HDKey final;
 #if OT_CRYPTO_WITH_BIP32
-    HDKey InstantiateKey(
+    auto InstantiateKey(
         const proto::AsymmetricKeyType type,
         const std::string& seedID,
         const opentxs::crypto::Bip32::Key& serialized,
         const PasswordPrompt& reason,
         const proto::KeyRole role,
-        const VersionNumber version) const final;
+        const VersionNumber version) const -> HDKey final;
 #endif  // OT_CRYPTO_WITH_BIP32
-    Key InstantiateKey(const proto::AsymmetricKey& serialized) const final;
+    auto InstantiateKey(const proto::AsymmetricKey& serialized) const
+        -> Key final;
 #if OT_CRYPTO_WITH_BIP32
-    HDKey NewHDKey(
+    auto NewHDKey(
         const std::string& seedID,
         const OTPassword& seed,
         const EcdsaCurve& curve,
         const opentxs::crypto::Bip32::Path& path,
         const PasswordPrompt& reason,
         const proto::KeyRole role,
-        const VersionNumber version) const final;
+        const VersionNumber version) const -> HDKey final;
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-    Secp256k1Key NewSecp256k1Key(
+    auto NewSecp256k1Key(
         const std::string& seedID,
         const OTPassword& seed,
         const opentxs::crypto::Bip32::Path& path,
         const PasswordPrompt& reason,
         const proto::KeyRole role = proto::KEYROLE_SIGN,
         const VersionNumber version =
-            opentxs::crypto::key::Secp256k1::DefaultVersion) const final;
+            opentxs::crypto::key::Secp256k1::DefaultVersion) const
+        -> Secp256k1Key final;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #endif  // OT_CRYPTO_WITH_BIP32
-    Key NewKey(
+    auto NewKey(
         const NymParameters& params,
         const PasswordPrompt& reason,
         const proto::KeyRole role,
-        const VersionNumber version) const final;
+        const VersionNumber version) const -> Key final;
 
     ~Asymmetric() final = default;
 
@@ -94,9 +98,9 @@ private:
     const api::internal::Core& api_;
 
 #if OT_CRYPTO_WITH_BIP32
-    static proto::HDPath serialize_path(
+    static auto serialize_path(
         const std::string& seedID,
-        const opentxs::crypto::Bip32::Path& children);
+        const opentxs::crypto::Bip32::Path& children) -> proto::HDPath;
 #endif  // OT_CRYPTO_WITH_BIP32
 
 #if OT_CRYPTO_WITH_BIP32
@@ -118,7 +122,7 @@ private:
     Asymmetric() = delete;
     Asymmetric(const Asymmetric&) = delete;
     Asymmetric(Asymmetric&&) = delete;
-    Asymmetric& operator=(const Asymmetric&) = delete;
-    Asymmetric& operator=(Asymmetric&&) = delete;
+    auto operator=(const Asymmetric&) -> Asymmetric& = delete;
+    auto operator=(Asymmetric &&) -> Asymmetric& = delete;
 };
 }  // namespace opentxs::api::crypto::implementation

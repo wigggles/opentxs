@@ -24,12 +24,13 @@
 
 namespace opentxs
 {
-blockchain::p2p::bitcoin::message::internal::Ping* Factory::BitcoinP2PPing(
+auto Factory::BitcoinP2PPing(
     const api::internal::Core& api,
     std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
     const blockchain::p2p::bitcoin::ProtocolVersion version,
     const void* payload,
     const std::size_t size)
+    -> blockchain::p2p::bitcoin::message::internal::Ping*
 {
     namespace bitcoin = blockchain::p2p::bitcoin;
     using ReturnType = bitcoin::message::implementation::Ping;
@@ -65,10 +66,11 @@ blockchain::p2p::bitcoin::message::internal::Ping* Factory::BitcoinP2PPing(
     return new ReturnType(api, std::move(pHeader), nonce);
 }
 
-blockchain::p2p::bitcoin::message::internal::Ping* Factory::BitcoinP2PPing(
+auto Factory::BitcoinP2PPing(
     const api::internal::Core& api,
     const blockchain::Type network,
     const std::uint64_t nonce)
+    -> blockchain::p2p::bitcoin::message::internal::Ping*
 {
     namespace bitcoin = blockchain::p2p::bitcoin;
     using ReturnType = bitcoin::message::implementation::Ping;
@@ -111,7 +113,7 @@ Ping::BitcoinFormat_60001::BitcoinFormat_60001(
     static_assert(8 == sizeof(BitcoinFormat_60001));
 }
 
-OTData Ping::payload() const noexcept
+auto Ping::payload() const noexcept -> OTData
 {
     BitcoinFormat_60001 raw(nonce_);
     auto output = Data::Factory(&raw, sizeof(raw));

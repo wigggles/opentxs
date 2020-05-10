@@ -19,8 +19,8 @@ Sender<Interface, ImplementationParent>::Sender() noexcept
 }
 
 template <typename Interface, typename ImplementationParent>
-bool Sender<Interface, ImplementationParent>::send(
-    zeromq::Message& message) const noexcept
+auto Sender<Interface, ImplementationParent>::send(
+    zeromq::Message& message) const noexcept -> bool
 {
     Lock lock(this->lock_);
 

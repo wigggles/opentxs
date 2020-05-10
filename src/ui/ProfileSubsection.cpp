@@ -91,18 +91,18 @@ ProfileSubsection::ProfileSubsection(
     OT_ASSERT(startup_)
 }
 
-bool ProfileSubsection::AddItem(
+auto ProfileSubsection::AddItem(
     const std::string& value,
     const bool primary,
-    const bool active) const noexcept
+    const bool active) const noexcept -> bool
 {
     return parent_.AddClaim(row_id_.second, value, primary, active);
 }
 
-void* ProfileSubsection::construct_row(
+auto ProfileSubsection::construct_row(
     const ProfileSubsectionRowID& id,
     const ProfileSubsectionSortKey& index,
-    const CustomData& custom) const noexcept
+    const CustomData& custom) const noexcept -> void*
 {
     OT_ASSERT(1 == custom.size())
 
@@ -114,7 +114,8 @@ void* ProfileSubsection::construct_row(
     return it->second.get();
 }
 
-bool ProfileSubsection::Delete(const std::string& claimID) const noexcept
+auto ProfileSubsection::Delete(const std::string& claimID) const noexcept
+    -> bool
 {
     Lock lock(lock_);
     auto& claim = find_by_id(lock, Identifier::Factory(claimID));
@@ -124,13 +125,15 @@ bool ProfileSubsection::Delete(const std::string& claimID) const noexcept
     return claim.Delete();
 }
 
-std::string ProfileSubsection::Name(const std::string& lang) const noexcept
+auto ProfileSubsection::Name(const std::string& lang) const noexcept
+    -> std::string
 {
     return proto::TranslateItemType(row_id_.second, lang);
 }
 
-std::set<ProfileSubsectionRowID> ProfileSubsection::process_group(
+auto ProfileSubsection::process_group(
     const opentxs::ContactGroup& group) noexcept
+    -> std::set<ProfileSubsectionRowID>
 {
     OT_ASSERT(row_id_.second == group.Type())
 
@@ -155,8 +158,8 @@ void ProfileSubsection::reindex(
         process_group(extract_custom<opentxs::ContactGroup>(custom)));
 }
 
-bool ProfileSubsection::SetActive(const std::string& claimID, const bool active)
-    const noexcept
+auto ProfileSubsection::SetActive(const std::string& claimID, const bool active)
+    const noexcept -> bool
 {
     Lock lock(lock_);
     auto& claim = find_by_id(lock, Identifier::Factory(claimID));
@@ -166,9 +169,9 @@ bool ProfileSubsection::SetActive(const std::string& claimID, const bool active)
     return claim.SetActive(active);
 }
 
-bool ProfileSubsection::SetPrimary(
+auto ProfileSubsection::SetPrimary(
     const std::string& claimID,
-    const bool primary) const noexcept
+    const bool primary) const noexcept -> bool
 {
     Lock lock(lock_);
     auto& claim = find_by_id(lock, Identifier::Factory(claimID));
@@ -178,9 +181,9 @@ bool ProfileSubsection::SetPrimary(
     return claim.SetPrimary(primary);
 }
 
-bool ProfileSubsection::SetValue(
+auto ProfileSubsection::SetValue(
     const std::string& claimID,
-    const std::string& value) const noexcept
+    const std::string& value) const noexcept -> bool
 {
     Lock lock(lock_);
     auto& claim = find_by_id(lock, Identifier::Factory(claimID));
@@ -190,7 +193,8 @@ bool ProfileSubsection::SetValue(
     return claim.SetValue(value);
 }
 
-int ProfileSubsection::sort_key(const ProfileSubsectionRowID) const noexcept
+auto ProfileSubsection::sort_key(const ProfileSubsectionRowID) const noexcept
+    -> int
 {
     return static_cast<int>(items_.size());
 }

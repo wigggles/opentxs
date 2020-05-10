@@ -36,7 +36,7 @@ Contexts::Contexts(
     }
 }
 
-bool Contexts::Delete(const std::string& id) { return delete_item(id); }
+auto Contexts::Delete(const std::string& id) -> bool { return delete_item(id); }
 
 void Contexts::init(const std::string& hash)
 {
@@ -57,16 +57,16 @@ void Contexts::init(const std::string& hash)
     }
 }
 
-bool Contexts::Load(
+auto Contexts::Load(
     const std::string& id,
     std::shared_ptr<proto::Context>& output,
     std::string& alias,
-    const bool checking) const
+    const bool checking) const -> bool
 {
     return load_proto<proto::Context>(id, output, alias, checking);
 }
 
-bool Contexts::save(const std::unique_lock<std::mutex>& lock) const
+auto Contexts::save(const std::unique_lock<std::mutex>& lock) const -> bool
 {
     if (!verify_write_lock(lock)) {
         std::cerr << __FUNCTION__ << ": Lock failure." << std::endl;
@@ -80,7 +80,7 @@ bool Contexts::save(const std::unique_lock<std::mutex>& lock) const
     return driver_.StoreProto(serialized, root_);
 }
 
-proto::StorageNymList Contexts::serialize() const
+auto Contexts::serialize() const -> proto::StorageNymList
 {
     proto::StorageNymList serialized;
     serialized.set_version(version_);
@@ -99,7 +99,8 @@ proto::StorageNymList Contexts::serialize() const
     return serialized;
 }
 
-bool Contexts::Store(const proto::Context& data, const std::string& alias)
+auto Contexts::Store(const proto::Context& data, const std::string& alias)
+    -> bool
 {
     return store_proto(data, data.remotenym(), alias);
 }

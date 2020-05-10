@@ -35,16 +35,16 @@ class Tree;
 class BlockchainTransactions final : public Node
 {
 public:
-    bool Load(
+    auto Load(
         const std::string& id,
         std::shared_ptr<proto::BlockchainTransaction>& output,
-        const bool checking) const;
-    std::set<OTNymID> LookupNyms(const std::string& txid) const;
+        const bool checking) const -> bool;
+    auto LookupNyms(const std::string& txid) const -> std::set<OTNymID>;
 
-    bool Delete(const std::string& id);
-    bool Store(
+    auto Delete(const std::string& id) -> bool;
+    auto Store(
         const identifier::Nym& nym,
-        const proto::BlockchainTransaction& data);
+        const proto::BlockchainTransaction& data) -> bool;
 
     ~BlockchainTransactions() final = default;
 
@@ -59,8 +59,8 @@ private:
 
     std::map<std::string, std::set<OTNymID>> nym_index_;
 
-    bool save(const std::unique_lock<std::mutex>& lock) const final;
-    SerializedType serialize() const;
+    auto save(const std::unique_lock<std::mutex>& lock) const -> bool final;
+    auto serialize() const -> SerializedType;
 
     void init(const std::string& hash) final;
 
@@ -70,8 +70,10 @@ private:
     BlockchainTransactions() = delete;
     BlockchainTransactions(const BlockchainTransactions&) = delete;
     BlockchainTransactions(BlockchainTransactions&&) = delete;
-    BlockchainTransactions operator=(const BlockchainTransactions&) = delete;
-    BlockchainTransactions operator=(BlockchainTransactions&&) = delete;
+    auto operator=(const BlockchainTransactions&)
+        -> BlockchainTransactions = delete;
+    auto operator=(BlockchainTransactions &&)
+        -> BlockchainTransactions = delete;
 };
 }  // namespace storage
 }  // namespace opentxs

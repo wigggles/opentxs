@@ -105,9 +105,9 @@ Key::Key(
 {
 }
 
-bool Key::addKeyCredentialtoSerializedCredential(
+auto Key::addKeyCredentialtoSerializedCredential(
     std::shared_ptr<Base::SerializedType> credential,
-    const bool addPrivate) const
+    const bool addPrivate) const -> bool
 {
     std::unique_ptr<proto::KeyCredential> keyCredential(
         new proto::KeyCredential);
@@ -148,10 +148,10 @@ bool Key::addKeyCredentialtoSerializedCredential(
     return false;
 }
 
-bool Key::addKeytoSerializedKeyCredential(
+auto Key::addKeytoSerializedKeyCredential(
     proto::KeyCredential& credential,
     const bool getPrivate,
-    const proto::KeyRole role) const
+    const proto::KeyRole role) const -> bool
 {
     std::shared_ptr<proto::AsymmetricKey> key{nullptr};
     const crypto::key::Keypair* pKey{nullptr};
@@ -185,10 +185,10 @@ bool Key::addKeytoSerializedKeyCredential(
     return true;
 }
 
-OTKeypair Key::deserialize_key(
+auto Key::deserialize_key(
     const api::internal::Core& api,
     const int index,
-    const proto::Credential& credential)
+    const proto::Credential& credential) -> OTKeypair
 {
     const bool hasPrivate =
         (proto::KEYMODE_PRIVATE == credential.mode()) ? true : false;
@@ -204,9 +204,9 @@ OTKeypair Key::deserialize_key(
     return api.Factory().Keypair(publicKey);
 }
 
-const crypto::key::Keypair& Key::GetKeypair(
+auto Key::GetKeypair(
     const proto::AsymmetricKeyType type,
-    const proto::KeyRole role) const
+    const proto::KeyRole role) const -> const crypto::key::Keypair&
 {
     const crypto::key::Keypair* output{nullptr};
 
@@ -252,11 +252,12 @@ const crypto::key::Keypair& Key::GetKeypair(
 // case, OT should return all possible matching pubkeys based on that 1-letter
 // criteria, instead of its normal behavior, which is to return all possible
 // matching pubkeys based on a full match of the metadata.
-std::int32_t Key::GetPublicKeysBySignature(
+auto Key::GetPublicKeysBySignature(
     crypto::key::Keypair::Keys& listOutput,
     const opentxs::Signature& theSignature,
-    char cKeyType) const  // 'S' (signing key) or 'E' (encryption key)
-                          // or 'A' (authentication key)
+    char cKeyType) const
+    -> std::int32_t  // 'S' (signing key) or 'E' (encryption key)
+                     // or 'A' (authentication key)
 {
     // Key type was not specified, because we only want keys that match the
     // metadata on theSignature.
@@ -324,7 +325,7 @@ std::int32_t Key::GetPublicKeysBySignature(
     return nCount;
 }
 
-bool Key::hasCapability(const NymCapability& capability) const
+auto Key::hasCapability(const NymCapability& capability) const -> bool
 {
     switch (capability) {
         case (NymCapability::SIGN_MESSAGE): {
@@ -343,13 +344,13 @@ bool Key::hasCapability(const NymCapability& capability) const
     return false;
 }
 
-OTKeypair Key::new_key(
+auto Key::new_key(
     const api::internal::Core& api,
     const proto::KeyRole role,
     const NymParameters& params,
     const VersionNumber version,
     const PasswordPrompt& reason,
-    const ReadView dh) noexcept(false)
+    const ReadView dh) noexcept(false) -> OTKeypair
 {
     switch (params.credentialType()) {
         case proto::CREDTYPE_LEGACY: {
@@ -387,10 +388,10 @@ OTKeypair Key::new_key(
     }
 }
 
-bool Key::SelfSign(
+auto Key::SelfSign(
     const PasswordPrompt& reason,
     const OTPassword*,
-    const bool onlyPrivate)
+    const bool onlyPrivate) -> bool
 {
     Lock lock(lock_);
     auto publicSignature = std::make_shared<proto::Signature>();
@@ -437,10 +438,11 @@ bool Key::SelfSign(
     return ((havePublicSig | onlyPrivate) && havePrivateSig);
 }
 
-std::shared_ptr<Base::SerializedType> Key::serialize(
+auto Key::serialize(
     const Lock& lock,
     const SerializationModeFlag asPrivate,
     const SerializationSignatureFlag asSigned) const
+    -> std::shared_ptr<Base::SerializedType>
 {
     auto serializedCredential = Base::serialize(lock, asPrivate, asSigned);
 
@@ -453,13 +455,13 @@ std::shared_ptr<Base::SerializedType> Key::serialize(
     return serializedCredential;
 }
 
-bool Key::Sign(
+auto Key::Sign(
     const GetPreimage input,
     const proto::SignatureRole role,
     proto::Signature& signature,
     const PasswordPrompt& reason,
     proto::KeyRole key,
-    const proto::HashType hash) const
+    const proto::HashType hash) const -> bool
 {
     const crypto::key::Keypair* keyToUse{nullptr};
 
@@ -489,12 +491,12 @@ bool Key::Sign(
     return false;
 }
 
-OTKeypair Key::signing_key(
+auto Key::signing_key(
     const api::internal::Core& api,
     const NymParameters& params,
     const VersionNumber subversion,
     const bool useProvided,
-    const PasswordPrompt& reason) noexcept(false)
+    const PasswordPrompt& reason) noexcept(false) -> OTKeypair
 {
     if (useProvided) {
         if (params.source_keypair_.get()) {
@@ -514,18 +516,18 @@ OTKeypair Key::signing_key(
     }
 }
 
-bool Key::TransportKey(
+auto Key::TransportKey(
     Data& publicKey,
     OTPassword& privateKey,
-    const PasswordPrompt& reason) const
+    const PasswordPrompt& reason) const -> bool
 {
     return authentication_key_->GetTransportKey(publicKey, privateKey, reason);
 }
 
-bool Key::Verify(
+auto Key::Verify(
     const Data& plaintext,
     const proto::Signature& sig,
-    const proto::KeyRole key) const
+    const proto::KeyRole key) const -> bool
 {
     const crypto::key::Keypair* keyToUse = nullptr;
 
@@ -564,7 +566,7 @@ void Key::sign(
     }
 }
 
-bool Key::verify_internally(const Lock& lock) const
+auto Key::verify_internally(const Lock& lock) const -> bool
 {
     // Perform common Credential verifications
     if (!Base::verify_internally(lock)) { return false; }
@@ -581,10 +583,10 @@ bool Key::verify_internally(const Lock& lock) const
     return true;
 }
 
-bool Key::VerifySig(
+auto Key::VerifySig(
     const Lock& lock,
     const proto::Signature& sig,
-    const CredentialModeFlag asPrivate) const
+    const CredentialModeFlag asPrivate) const -> bool
 {
     std::shared_ptr<Base::SerializedType> serialized;
 
@@ -609,7 +611,7 @@ bool Key::VerifySig(
     return Verify(plaintext, sig, proto::KEYROLE_SIGN);
 }
 
-bool Key::VerifySignedBySelf(const Lock& lock) const
+auto Key::VerifySignedBySelf(const Lock& lock) const -> bool
 {
     auto publicSig = SelfSignature(PUBLIC_VERSION);
 

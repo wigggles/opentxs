@@ -24,8 +24,8 @@ class PaymentTasks final : public opentxs::internal::StateMachine
 public:
     using BackgroundTask = api::client::OTX::BackgroundTask;
 
-    std::mutex& GetAccountLock(const identifier::UnitDefinition& unit);
-    BackgroundTask Queue(const DepositPaymentTask& task);
+    auto GetAccountLock(const identifier::UnitDefinition& unit) -> std::mutex&;
+    auto Queue(const DepositPaymentTask& task) -> BackgroundTask;
 
     PaymentTasks(client::internal::StateMachine& parent);
     ~PaymentTasks() = default;
@@ -34,15 +34,15 @@ private:
     using Future = api::client::OTX::Future;
     using TaskMap = std::map<OTIdentifier, implementation::DepositPayment>;
 
-    static BackgroundTask error_task();
+    static auto error_task() -> BackgroundTask;
 
     client::internal::StateMachine& parent_;
     TaskMap tasks_;
     std::mutex unit_lock_;
     std::map<OTUnitID, std::mutex> account_lock_;
 
-    bool cleanup();
-    OTIdentifier get_payment_id(const OTPayment& payment) const;
+    auto cleanup() -> bool;
+    auto get_payment_id(const OTPayment& payment) const -> OTIdentifier;
 
     PaymentTasks() = delete;
 };

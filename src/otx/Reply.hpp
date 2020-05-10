@@ -40,16 +40,19 @@ class Reply final : public otx::Reply,
                     public opentxs::contract::implementation::Signable
 {
 public:
-    proto::ServerReply Contract() const final;
-    RequestNumber Number() const final { return number_; }
-    std::shared_ptr<const proto::OTXPush> Push() const final
+    auto Contract() const -> proto::ServerReply final;
+    auto Number() const -> RequestNumber final { return number_; }
+    auto Push() const -> std::shared_ptr<const proto::OTXPush> final
     {
         return payload_;
     }
-    const identifier::Nym& Recipient() const final { return recipient_; }
-    const identifier::Server& Server() const final { return server_; }
-    bool Success() const final { return success_; }
-    proto::ServerReplyType Type() const final { return type_; }
+    auto Recipient() const -> const identifier::Nym& final
+    {
+        return recipient_;
+    }
+    auto Server() const -> const identifier::Server& final { return server_; }
+    auto Success() const -> bool final { return success_; }
+    auto Type() const -> proto::ServerReplyType final { return type_; }
 
     ~Reply() final = default;
 
@@ -63,21 +66,22 @@ private:
     const RequestNumber number_;
     const std::shared_ptr<const proto::OTXPush> payload_;
 
-    static Nym_p extract_nym(
+    static auto extract_nym(
         const api::internal::Core& api,
-        const proto::ServerReply serialized);
+        const proto::ServerReply serialized) -> Nym_p;
 
-    Reply* clone() const noexcept final { return new Reply(*this); }
-    OTIdentifier GetID(const Lock& lock) const final;
-    proto::ServerReply full_version(const Lock& lock) const;
-    proto::ServerReply id_version(const Lock& lock) const;
-    std::string Name() const final { return {}; }
-    OTData Serialize() const final;
-    proto::ServerReply signature_version(const Lock& lock) const;
-    bool update_signature(const Lock& lock, const PasswordPrompt& reason) final;
-    bool validate(const Lock& lock) const final;
-    bool verify_signature(const Lock& lock, const proto::Signature& signature)
-        const final;
+    auto clone() const noexcept -> Reply* final { return new Reply(*this); }
+    auto GetID(const Lock& lock) const -> OTIdentifier final;
+    auto full_version(const Lock& lock) const -> proto::ServerReply;
+    auto id_version(const Lock& lock) const -> proto::ServerReply;
+    auto Name() const -> std::string final { return {}; }
+    auto Serialize() const -> OTData final;
+    auto signature_version(const Lock& lock) const -> proto::ServerReply;
+    auto update_signature(const Lock& lock, const PasswordPrompt& reason)
+        -> bool final;
+    auto validate(const Lock& lock) const -> bool final;
+    auto verify_signature(const Lock& lock, const proto::Signature& signature)
+        const -> bool final;
 
     Reply(
         const api::internal::Core& api,
@@ -92,7 +96,7 @@ private:
     Reply() = delete;
     Reply(const Reply& rhs);
     Reply(Reply&& rhs) = delete;
-    Reply& operator=(const Reply& rhs) = delete;
-    Reply& operator=(Reply&& rhs) = delete;
+    auto operator=(const Reply& rhs) -> Reply& = delete;
+    auto operator=(Reply&& rhs) -> Reply& = delete;
 };
 }  // namespace opentxs::otx::implementation

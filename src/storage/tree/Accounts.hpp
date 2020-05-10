@@ -35,32 +35,33 @@ namespace opentxs::storage
 class Accounts final : public Node
 {
 public:
-    OTUnitID AccountContract(const Identifier& accountID) const;
-    OTNymID AccountIssuer(const Identifier& accountID) const;
-    OTNymID AccountOwner(const Identifier& accountID) const;
-    OTServerID AccountServer(const Identifier& accountID) const;
-    OTNymID AccountSigner(const Identifier& accountID) const;
-    proto::ContactItemType AccountUnit(const Identifier& accountID) const;
-    std::set<OTIdentifier> AccountsByContract(
-        const identifier::UnitDefinition& unit) const;
-    std::set<OTIdentifier> AccountsByIssuer(
-        const identifier::Nym& issuerNym) const;
-    std::set<OTIdentifier> AccountsByOwner(
-        const identifier::Nym& ownerNym) const;
-    std::set<OTIdentifier> AccountsByServer(
-        const identifier::Server& server) const;
-    std::set<OTIdentifier> AccountsByUnit(
-        const proto::ContactItemType unit) const;
-    std::string Alias(const std::string& id) const;
-    bool Load(
+    auto AccountContract(const Identifier& accountID) const -> OTUnitID;
+    auto AccountIssuer(const Identifier& accountID) const -> OTNymID;
+    auto AccountOwner(const Identifier& accountID) const -> OTNymID;
+    auto AccountServer(const Identifier& accountID) const -> OTServerID;
+    auto AccountSigner(const Identifier& accountID) const -> OTNymID;
+    auto AccountUnit(const Identifier& accountID) const
+        -> proto::ContactItemType;
+    auto AccountsByContract(const identifier::UnitDefinition& unit) const
+        -> std::set<OTIdentifier>;
+    auto AccountsByIssuer(const identifier::Nym& issuerNym) const
+        -> std::set<OTIdentifier>;
+    auto AccountsByOwner(const identifier::Nym& ownerNym) const
+        -> std::set<OTIdentifier>;
+    auto AccountsByServer(const identifier::Server& server) const
+        -> std::set<OTIdentifier>;
+    auto AccountsByUnit(const proto::ContactItemType unit) const
+        -> std::set<OTIdentifier>;
+    auto Alias(const std::string& id) const -> std::string;
+    auto Load(
         const std::string& id,
         std::string& output,
         std::string& alias,
-        const bool checking) const;
+        const bool checking) const -> bool;
 
-    bool Delete(const std::string& id);
-    bool SetAlias(const std::string& id, const std::string& alias);
-    bool Store(
+    auto Delete(const std::string& id) -> bool;
+    auto SetAlias(const std::string& id, const std::string& alias) -> bool;
+    auto Store(
         const std::string& id,
         const std::string& data,
         const std::string& alias,
@@ -69,7 +70,7 @@ public:
         const identifier::Nym& issuerNym,
         const identifier::Server& server,
         const identifier::UnitDefinition& contract,
-        const proto::ContactItemType unit);
+        const proto::ContactItemType unit) -> bool;
 
     ~Accounts() final = default;
 
@@ -99,11 +100,11 @@ private:
     mutable ReverseIndex account_data_{};
 
     template <typename A, typename M, typename I>
-    static bool add_set_index(
+    static auto add_set_index(
         const Identifier& accountID,
         const A& argID,
         M& mapID,
-        I& index);
+        I& index) -> bool;
 
     template <typename K, typename I>
     static void erase(const Identifier& accountID, const K& key, I& index)
@@ -117,12 +118,11 @@ private:
         }
     }
 
-    AccountData& get_account_data(
-        const Lock& lock,
-        const OTIdentifier& accountID) const;
-    proto::StorageAccounts serialize() const;
+    auto get_account_data(const Lock& lock, const OTIdentifier& accountID) const
+        -> AccountData&;
+    auto serialize() const -> proto::StorageAccounts;
 
-    bool check_update_account(
+    auto check_update_account(
         const Lock& lock,
         const OTIdentifier& accountID,
         const identifier::Nym& ownerNym,
@@ -130,9 +130,9 @@ private:
         const identifier::Nym& issuerNym,
         const identifier::Server& server,
         const identifier::UnitDefinition& contract,
-        const proto::ContactItemType unit);
+        const proto::ContactItemType unit) -> bool;
     void init(const std::string& hash) final;
-    bool save(const Lock& lock) const final;
+    auto save(const Lock& lock) const -> bool final;
 
     Accounts(
         const opentxs::api::storage::Driver& storage,
@@ -140,7 +140,7 @@ private:
     Accounts() = delete;
     Accounts(const Accounts&) = delete;
     Accounts(Accounts&&) = delete;
-    Accounts operator=(const Accounts&) = delete;
-    Accounts operator=(Accounts&&) = delete;
+    auto operator=(const Accounts&) -> Accounts = delete;
+    auto operator=(Accounts &&) -> Accounts = delete;
 };
 }  // namespace opentxs::storage

@@ -50,7 +50,7 @@ private:
     OTZMQPairSocket control_sender_;
     std::unique_ptr<std::thread> thread_{nullptr};
 
-    Proxy* clone() const final;
+    auto clone() const -> Proxy* final;
     void proxy() const;
 
     Proxy(
@@ -60,7 +60,7 @@ private:
     Proxy() = delete;
     Proxy(const Proxy&) = delete;
     Proxy(Proxy&&) = delete;
-    Proxy& operator=(const Proxy&) = delete;
-    Proxy& operator=(Proxy&&) = delete;
+    auto operator=(const Proxy&) -> Proxy& = delete;
+    auto operator=(Proxy &&) -> Proxy& = delete;
 };
 }  // namespace opentxs::network::zeromq::implementation

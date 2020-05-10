@@ -40,7 +40,7 @@ class Subscribe : public Receiver<zeromq::socket::Subscribe>,
                   public zeromq::curve::implementation::Client
 {
 public:
-    bool SetSocksProxy(const std::string& proxy) const noexcept final;
+    auto SetSocksProxy(const std::string& proxy) const noexcept -> bool final;
 
     ~Subscribe() override;
 
@@ -54,8 +54,8 @@ protected:
 private:
     friend opentxs::Factory;
 
-    Subscribe* clone() const noexcept override;
-    bool have_callback() const noexcept final;
+    auto clone() const noexcept -> Subscribe* override;
+    auto have_callback() const noexcept -> bool final;
 
     void init() noexcept final;
     void process_incoming(const Lock& lock, Message& message) noexcept final;
@@ -63,7 +63,7 @@ private:
     Subscribe() = delete;
     Subscribe(const Subscribe&) = delete;
     Subscribe(Subscribe&&) = delete;
-    Subscribe& operator=(const Subscribe&) = delete;
-    Subscribe& operator=(Subscribe&&) = delete;
+    auto operator=(const Subscribe&) -> Subscribe& = delete;
+    auto operator=(Subscribe &&) -> Subscribe& = delete;
 };
 }  // namespace opentxs::network::zeromq::socket::implementation

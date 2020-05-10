@@ -55,32 +55,32 @@ namespace opentxs::storage
 class Tree final : public Node
 {
 public:
-    const storage::Accounts& Accounts() const;
-    const storage::BlockchainTransactions& Blockchain() const;
-    const storage::Contacts& Contacts() const;
-    const storage::Credentials& Credentials() const;
-    const storage::Notary& Notary(const std::string& id) const;
-    const storage::Nyms& Nyms() const;
-    const storage::Seeds& Seeds() const;
-    const storage::Servers& Servers() const;
-    const storage::Units& Units() const;
+    auto Accounts() const -> const storage::Accounts&;
+    auto Blockchain() const -> const storage::BlockchainTransactions&;
+    auto Contacts() const -> const storage::Contacts&;
+    auto Credentials() const -> const storage::Credentials&;
+    auto Notary(const std::string& id) const -> const storage::Notary&;
+    auto Nyms() const -> const storage::Nyms&;
+    auto Seeds() const -> const storage::Seeds&;
+    auto Servers() const -> const storage::Servers&;
+    auto Units() const -> const storage::Units&;
 
-    Editor<storage::Accounts> mutable_Accounts();
-    Editor<storage::BlockchainTransactions> mutable_Blockchain();
-    Editor<storage::Contacts> mutable_Contacts();
-    Editor<storage::Credentials> mutable_Credentials();
-    Editor<storage::Notary> mutable_Notary(const std::string& id);
-    Editor<storage::Nyms> mutable_Nyms();
-    Editor<storage::Seeds> mutable_Seeds();
-    Editor<storage::Servers> mutable_Servers();
-    Editor<storage::Units> mutable_Units();
+    auto mutable_Accounts() -> Editor<storage::Accounts>;
+    auto mutable_Blockchain() -> Editor<storage::BlockchainTransactions>;
+    auto mutable_Contacts() -> Editor<storage::Contacts>;
+    auto mutable_Credentials() -> Editor<storage::Credentials>;
+    auto mutable_Notary(const std::string& id) -> Editor<storage::Notary>;
+    auto mutable_Nyms() -> Editor<storage::Nyms>;
+    auto mutable_Seeds() -> Editor<storage::Seeds>;
+    auto mutable_Servers() -> Editor<storage::Servers>;
+    auto mutable_Units() -> Editor<storage::Units>;
 
-    bool Load(
+    auto Load(
         std::shared_ptr<proto::Ciphertext>& output,
-        const bool checking = false) const;
-    bool Migrate(const opentxs::api::storage::Driver& to) const final;
+        const bool checking = false) const -> bool;
+    auto Migrate(const opentxs::api::storage::Driver& to) const -> bool final;
 
-    bool Store(const proto::Ciphertext& serialized);
+    auto Store(const proto::Ciphertext& serialized) -> bool;
 
     ~Tree() final;
 
@@ -120,43 +120,43 @@ private:
     mutable std::shared_ptr<proto::Ciphertext> master_key_;
 
     template <typename T, typename... Args>
-    T* get_child(
+    auto get_child(
         std::mutex& mutex,
         std::unique_ptr<T>& pointer,
         const std::string& hash,
-        Args&&... params) const;
+        Args&&... params) const -> T*;
     template <typename T, typename... Args>
-    Editor<T> get_editor(
+    auto get_editor(
         std::mutex& mutex,
         std::unique_ptr<T>& pointer,
         std::string& hash,
-        Args&&... params) const;
-    storage::Accounts* accounts() const;
-    storage::BlockchainTransactions* blockchain() const;
-    storage::Contacts* contacts() const;
-    storage::Credentials* credentials() const;
-    storage::Notary* notary(const std::string& id) const;
-    storage::Nyms* nyms() const;
-    storage::Seeds* seeds() const;
-    storage::Servers* servers() const;
-    storage::Units* units() const;
+        Args&&... params) const -> Editor<T>;
+    auto accounts() const -> storage::Accounts*;
+    auto blockchain() const -> storage::BlockchainTransactions*;
+    auto contacts() const -> storage::Contacts*;
+    auto credentials() const -> storage::Credentials*;
+    auto notary(const std::string& id) const -> storage::Notary*;
+    auto nyms() const -> storage::Nyms*;
+    auto seeds() const -> storage::Seeds*;
+    auto servers() const -> storage::Servers*;
+    auto units() const -> storage::Units*;
 
     void init(const std::string& hash) final;
-    bool save(const Lock& lock) const final;
+    auto save(const Lock& lock) const -> bool final;
     template <typename T>
     void save_child(
         T*,
         const Lock& lock,
         std::mutex& hashLock,
         std::string& hash) const;
-    proto::StorageItems serialize() const;
-    bool update_root(const std::string& hash);
+    auto serialize() const -> proto::StorageItems;
+    auto update_root(const std::string& hash) -> bool;
 
     Tree(const opentxs::api::storage::Driver& storage, const std::string& key);
     Tree() = delete;
     Tree(const Tree&);
     Tree(Tree&&) = delete;
-    Tree operator=(const Tree&) = delete;
-    Tree operator=(Tree&&) = delete;
+    auto operator=(const Tree&) -> Tree = delete;
+    auto operator=(Tree &&) -> Tree = delete;
 };
 }  // namespace opentxs::storage

@@ -63,29 +63,29 @@ using ProfileItemRow =
 class ProfileItem final : public ProfileItemRow
 {
 public:
-    std::string ClaimID() const noexcept final
+    auto ClaimID() const noexcept -> std::string final
     {
         sLock lock(shared_lock_);
 
         return row_id_->str();
     }
-    bool Delete() const noexcept final;
-    bool IsActive() const noexcept final
+    auto Delete() const noexcept -> bool final;
+    auto IsActive() const noexcept -> bool final
     {
         sLock lock(shared_lock_);
 
         return item_->isActive();
     }
-    bool IsPrimary() const noexcept final
+    auto IsPrimary() const noexcept -> bool final
     {
         sLock lock(shared_lock_);
 
         return item_->isPrimary();
     }
-    bool SetActive(const bool& active) const noexcept final;
-    bool SetPrimary(const bool& primary) const noexcept final;
-    bool SetValue(const std::string& value) const noexcept final;
-    std::string Value() const noexcept final
+    auto SetActive(const bool& active) const noexcept -> bool final;
+    auto SetPrimary(const bool& primary) const noexcept -> bool final;
+    auto SetValue(const std::string& value) const noexcept -> bool final;
+    auto Value() const noexcept -> std::string final
     {
         sLock lock(shared_lock_);
 
@@ -108,13 +108,13 @@ public:
 private:
     std::unique_ptr<opentxs::ContactItem> item_;
 
-    bool add_claim(const Claim& claim) const noexcept;
-    Claim as_claim() const noexcept;
+    auto add_claim(const Claim& claim) const noexcept -> bool;
+    auto as_claim() const noexcept -> Claim;
 
     ProfileItem() = delete;
     ProfileItem(const ProfileItem&) = delete;
     ProfileItem(ProfileItem&&) = delete;
-    ProfileItem& operator=(const ProfileItem&) = delete;
-    ProfileItem& operator=(ProfileItem&&) = delete;
+    auto operator=(const ProfileItem&) -> ProfileItem& = delete;
+    auto operator=(ProfileItem &&) -> ProfileItem& = delete;
 };
 }  // namespace opentxs::ui::implementation

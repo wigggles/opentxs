@@ -29,10 +29,10 @@
 
 namespace opentxs
 {
-identity::wot::verification::internal::Group* Factory::VerificationGroup(
+auto Factory::VerificationGroup(
     identity::wot::verification::internal::Set& parent,
     const VersionNumber version,
-    bool external)
+    bool external) -> identity::wot::verification::internal::Group*
 {
     using ReturnType =
         opentxs::identity::wot::verification::implementation::Group;
@@ -49,10 +49,10 @@ identity::wot::verification::internal::Group* Factory::VerificationGroup(
     }
 }
 
-identity::wot::verification::internal::Group* Factory::VerificationGroup(
+auto Factory::VerificationGroup(
     identity::wot::verification::internal::Set& parent,
     const proto::VerificationGroup& serialized,
-    bool external)
+    bool external) -> identity::wot::verification::internal::Group*
 {
     using ReturnType =
         opentxs::identity::wot::verification::implementation::Group;

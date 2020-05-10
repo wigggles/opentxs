@@ -139,11 +139,11 @@ namespace zmq = opentxs::network::zeromq;
 
 namespace opentxs
 {
-api::client::OTX* Factory::OTX(
+auto Factory::OTX(
     const Flag& running,
     const api::client::internal::Manager& client,
     OTClient& otclient,
-    const ContextLockCallback& lockCallback)
+    const ContextLockCallback& lockCallback) -> api::client::OTX*
 {
     return new api::client::implementation::OTX(
         running, client, otclient, lockCallback);
@@ -295,13 +295,13 @@ OTX::OTX(
     OT_ASSERT(listening)
 }
 
-OTX::BackgroundTask OTX::AcknowledgeBailment(
+auto OTX::AcknowledgeBailment(
     const identifier::Nym& localNymID,
     const identifier::Server& serverID,
     const identifier::Nym& targetNymID,
     const Identifier& requestID,
     const std::string& instructions,
-    const SetID setID) const
+    const SetID setID) const -> OTX::BackgroundTask
 {
     CHECK_ARGS(localNymID, serverID, targetNymID)
     CHECK_NYM(requestID)
@@ -346,7 +346,7 @@ OTX::BackgroundTask OTX::AcknowledgeBailment(
     }
 }
 
-OTX::BackgroundTask OTX::AcknowledgeConnection(
+auto OTX::AcknowledgeConnection(
     const identifier::Nym& localNymID,
     const identifier::Server& serverID,
     const identifier::Nym& recipientID,
@@ -356,7 +356,7 @@ OTX::BackgroundTask OTX::AcknowledgeConnection(
     const std::string& login,
     const std::string& password,
     const std::string& key,
-    const SetID setID) const
+    const SetID setID) const -> OTX::BackgroundTask
 {
     CHECK_ARGS(localNymID, serverID, recipientID)
     CHECK_NYM(requestID)
@@ -428,13 +428,13 @@ OTX::BackgroundTask OTX::AcknowledgeConnection(
     }
 }
 
-OTX::BackgroundTask OTX::AcknowledgeNotice(
+auto OTX::AcknowledgeNotice(
     const identifier::Nym& localNymID,
     const identifier::Server& serverID,
     const identifier::Nym& recipientID,
     const Identifier& requestID,
     const bool ack,
-    const SetID setID) const
+    const SetID setID) const -> OTX::BackgroundTask
 {
     CHECK_ARGS(localNymID, serverID, recipientID)
     CHECK_NYM(requestID)
@@ -480,13 +480,13 @@ OTX::BackgroundTask OTX::AcknowledgeNotice(
     }
 }
 
-OTX::BackgroundTask OTX::AcknowledgeOutbailment(
+auto OTX::AcknowledgeOutbailment(
     const identifier::Nym& localNymID,
     const identifier::Server& serverID,
     const identifier::Nym& recipientID,
     const Identifier& requestID,
     const std::string& details,
-    const SetID setID) const
+    const SetID setID) const -> OTX::BackgroundTask
 {
     CHECK_ARGS(localNymID, serverID, recipientID)
     CHECK_NYM(requestID)
@@ -531,9 +531,8 @@ OTX::BackgroundTask OTX::AcknowledgeOutbailment(
     }
 }
 
-OTX::BackgroundTask OTX::add_task(
-    const TaskID taskID,
-    const ThreadStatus status) const
+auto OTX::add_task(const TaskID taskID, const ThreadStatus status) const
+    -> OTX::BackgroundTask
 {
     Lock lock(task_status_lock_);
 
@@ -557,13 +556,13 @@ void OTX::associate_message_id(const Identifier& messageID, const TaskID taskID)
     task_message_id_.emplace(taskID, messageID);
 }
 
-Depositability OTX::can_deposit(
+auto OTX::can_deposit(
     const OTPayment& payment,
     const identifier::Nym& recipient,
     const Identifier& accountIDHint,
     identifier::Server& depositServer,
     identifier::UnitDefinition& unitID,
-    Identifier& depositAccount) const
+    Identifier& depositAccount) const -> Depositability
 {
     auto nymID = identifier::Nym::Factory();
 
@@ -627,11 +626,11 @@ Depositability OTX::can_deposit(
     return output;
 }
 
-Messagability OTX::can_message(
+auto OTX::can_message(
     const identifier::Nym& senderNymID,
     const Identifier& recipientContactID,
     identifier::Nym& recipientNymID,
-    identifier::Server& serverID) const
+    identifier::Server& serverID) const -> Messagability
 {
     auto senderNym = client_.Wallet().Nym(senderNymID);
 
@@ -727,19 +726,19 @@ Messagability OTX::can_message(
     return Messagability::READY;
 }
 
-Depositability OTX::CanDeposit(
+auto OTX::CanDeposit(
     const identifier::Nym& recipientNymID,
-    const OTPayment& payment) const
+    const OTPayment& payment) const -> Depositability
 {
     auto accountHint = Identifier::Factory();
 
     return CanDeposit(recipientNymID, accountHint, payment);
 }
 
-Depositability OTX::CanDeposit(
+auto OTX::CanDeposit(
     const identifier::Nym& recipientNymID,
     const Identifier& accountIDHint,
-    const OTPayment& payment) const
+    const OTPayment& payment) const -> Depositability
 {
     auto serverID = identifier::Server::Factory();
     auto unitID = identifier::UnitDefinition::Factory();
@@ -749,10 +748,10 @@ Depositability OTX::CanDeposit(
         payment, recipientNymID, accountIDHint, serverID, unitID, accountID);
 }
 
-Messagability OTX::CanMessage(
+auto OTX::CanMessage(
     const identifier::Nym& senderNymID,
     const Identifier& recipientContactID,
-    const bool startIntroductionServer) const
+    const bool startIntroductionServer) const -> Messagability
 {
     if (startIntroductionServer) { start_introduction_server(senderNymID); }
 
@@ -774,10 +773,10 @@ Messagability OTX::CanMessage(
     return can_message(senderNymID, recipientContactID, nymID, serverID);
 }
 
-bool OTX::CheckTransactionNumbers(
+auto OTX::CheckTransactionNumbers(
     const identifier::Nym& nym,
     const identifier::Server& serverID,
-    const std::size_t quantity) const
+    const std::size_t quantity) const -> bool
 {
     auto context = client_.Wallet().ServerContext(nym, serverID);
 
@@ -818,9 +817,9 @@ bool OTX::CheckTransactionNumbers(
     }
 }
 
-OTX::Finished OTX::ContextIdle(
+auto OTX::ContextIdle(
     const identifier::Nym& nym,
-    const identifier::Server& server) const
+    const identifier::Server& server) const -> OTX::Finished
 {
     try {
         auto& queue = get_operations({nym, server});
@@ -835,7 +834,7 @@ OTX::Finished OTX::ContextIdle(
     }
 }
 
-std::size_t OTX::DepositCheques(const identifier::Nym& nymID) const
+auto OTX::DepositCheques(const identifier::Nym& nymID) const -> std::size_t
 {
     std::size_t output{0};
     const auto workflows = client_.Workflow().List(
@@ -858,9 +857,9 @@ std::size_t OTX::DepositCheques(const identifier::Nym& nymID) const
     return output;
 }
 
-std::size_t OTX::DepositCheques(
+auto OTX::DepositCheques(
     const identifier::Nym& nymID,
-    const std::set<OTIdentifier>& chequeIDs) const
+    const std::set<OTIdentifier>& chequeIDs) const -> std::size_t
 {
     std::size_t output{0};
 
@@ -880,19 +879,21 @@ std::size_t OTX::DepositCheques(
     return {};
 }
 
-OTX::BackgroundTask OTX::DepositPayment(
+auto OTX::DepositPayment(
     const identifier::Nym& recipientNymID,
     const std::shared_ptr<const OTPayment>& payment) const
+    -> OTX::BackgroundTask
 {
     auto notUsed = Identifier::Factory();
 
     return DepositPayment(recipientNymID, notUsed, payment);
 }
 
-OTX::BackgroundTask OTX::DepositPayment(
+auto OTX::DepositPayment(
     const identifier::Nym& recipientNymID,
     const Identifier& accountIDHint,
     const std::shared_ptr<const OTPayment>& payment) const
+    -> OTX::BackgroundTask
 {
     OT_ASSERT(payment)
 
@@ -935,10 +936,10 @@ OTX::BackgroundTask OTX::DepositPayment(
 void OTX::DisableAutoaccept() const { auto_process_inbox_->Off(); }
 
 #if OT_CASH
-OTX::BackgroundTask OTX::DownloadMint(
+auto OTX::DownloadMint(
     const identifier::Nym& nym,
     const identifier::Server& server,
-    const identifier::UnitDefinition& unit) const
+    const identifier::UnitDefinition& unit) const -> OTX::BackgroundTask
 {
     CHECK_ARGS(nym, server, unit);
 
@@ -954,10 +955,10 @@ OTX::BackgroundTask OTX::DownloadMint(
 }
 #endif
 
-OTX::BackgroundTask OTX::DownloadNym(
+auto OTX::DownloadNym(
     const identifier::Nym& localNymID,
     const identifier::Server& serverID,
-    const identifier::Nym& targetNymID) const
+    const identifier::Nym& targetNymID) const -> OTX::BackgroundTask
 {
     CHECK_ARGS(localNymID, serverID, targetNymID)
 
@@ -972,17 +973,17 @@ OTX::BackgroundTask OTX::DownloadNym(
     }
 }
 
-OTX::BackgroundTask OTX::DownloadNymbox(
+auto OTX::DownloadNymbox(
     const identifier::Nym& localNymID,
-    const identifier::Server& serverID) const
+    const identifier::Server& serverID) const -> OTX::BackgroundTask
 {
     return schedule_download_nymbox(localNymID, serverID);
 }
 
-OTX::BackgroundTask OTX::DownloadServerContract(
+auto OTX::DownloadServerContract(
     const identifier::Nym& localNymID,
     const identifier::Server& serverID,
-    const identifier::Server& contractID) const
+    const identifier::Server& contractID) const -> OTX::BackgroundTask
 {
     CHECK_ARGS(localNymID, serverID, contractID)
 
@@ -997,10 +998,10 @@ OTX::BackgroundTask OTX::DownloadServerContract(
     }
 }
 
-OTX::BackgroundTask OTX::DownloadUnitDefinition(
+auto OTX::DownloadUnitDefinition(
     const identifier::Nym& localNymID,
     const identifier::Server& serverID,
-    const identifier::UnitDefinition& contractID) const
+    const identifier::UnitDefinition& contractID) const -> OTX::BackgroundTask
 {
     CHECK_ARGS(localNymID, serverID, contractID)
 
@@ -1016,11 +1017,11 @@ OTX::BackgroundTask OTX::DownloadUnitDefinition(
     }
 }
 
-bool OTX::extract_payment_data(
+auto OTX::extract_payment_data(
     const OTPayment& payment,
     identifier::Nym& nymID,
     identifier::Server& serverID,
-    identifier::UnitDefinition& unitID) const
+    identifier::UnitDefinition& unitID) const -> bool
 {
     if (false == payment.GetRecipientNymID(nymID)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -1053,7 +1054,7 @@ bool OTX::extract_payment_data(
     return true;
 }
 
-OTX::BackgroundTask OTX::error_task()
+auto OTX::error_task() -> OTX::BackgroundTask
 {
     BackgroundTask output{0, Future{}};
 
@@ -1142,7 +1143,7 @@ void OTX::find_unit(const opentxs::network::zeromq::Message& message) const
     }
 }
 
-OTX::BackgroundTask OTX::FindNym(const identifier::Nym& nymID) const
+auto OTX::FindNym(const identifier::Nym& nymID) const -> OTX::BackgroundTask
 {
     CHECK_NYM(nymID)
 
@@ -1153,9 +1154,9 @@ OTX::BackgroundTask OTX::FindNym(const identifier::Nym& nymID) const
     return output;
 }
 
-OTX::BackgroundTask OTX::FindNym(
+auto OTX::FindNym(
     const identifier::Nym& nymID,
-    const identifier::Server& serverIDHint) const
+    const identifier::Server& serverIDHint) const -> OTX::BackgroundTask
 {
     CHECK_NYM(nymID)
 
@@ -1166,7 +1167,8 @@ OTX::BackgroundTask OTX::FindNym(
     return output;
 }
 
-OTX::BackgroundTask OTX::FindServer(const identifier::Server& serverID) const
+auto OTX::FindServer(const identifier::Server& serverID) const
+    -> OTX::BackgroundTask
 {
     CHECK_NYM(serverID)
 
@@ -1176,8 +1178,8 @@ OTX::BackgroundTask OTX::FindServer(const identifier::Server& serverID) const
     return output;
 }
 
-OTX::BackgroundTask OTX::FindUnitDefinition(
-    const identifier::UnitDefinition& unit) const
+auto OTX::FindUnitDefinition(const identifier::UnitDefinition& unit) const
+    -> OTX::BackgroundTask
 {
     CHECK_NYM(unit)
 
@@ -1188,8 +1190,8 @@ OTX::BackgroundTask OTX::FindUnitDefinition(
     return output;
 }
 
-bool OTX::finish_task(const TaskID taskID, const bool success, Result&& result)
-    const
+auto OTX::finish_task(const TaskID taskID, const bool success, Result&& result)
+    const -> bool
 {
     if (success) {
         update_task(taskID, ThreadStatus::FINISHED_SUCCESS, std::move(result));
@@ -1200,7 +1202,7 @@ bool OTX::finish_task(const TaskID taskID, const bool success, Result&& result)
     return success;
 }
 
-OTServerID OTX::get_introduction_server(const Lock& lock) const
+auto OTX::get_introduction_server(const Lock& lock) const -> OTServerID
 {
     OT_ASSERT(CheckLock(lock, introduction_server_lock_))
 
@@ -1220,16 +1222,16 @@ OTServerID OTX::get_introduction_server(const Lock& lock) const
     return identifier::Server::Factory(serverID);
 }
 
-UniqueQueue<OTNymID>& OTX::get_nym_fetch(
-    const identifier::Server& serverID) const
+auto OTX::get_nym_fetch(const identifier::Server& serverID) const
+    -> UniqueQueue<OTNymID>&
 {
     Lock lock(nym_fetch_lock_);
 
     return server_nym_fetch_[serverID];
 }
 
-otx::client::implementation::StateMachine& OTX::get_operations(
-    const ContextID& id) const noexcept(false)
+auto OTX::get_operations(const ContextID& id) const noexcept(false)
+    -> otx::client::implementation::StateMachine&
 {
     Lock lock(shutdown_lock_);
 
@@ -1238,8 +1240,8 @@ otx::client::implementation::StateMachine& OTX::get_operations(
     return get_task(id);
 }
 
-otx::client::implementation::StateMachine& OTX::get_task(
-    const ContextID& id) const
+auto OTX::get_task(const ContextID& id) const
+    -> otx::client::implementation::StateMachine&
 {
     Lock lock(lock_);
     auto it = operations_.find(id);
@@ -1266,7 +1268,8 @@ otx::client::implementation::StateMachine& OTX::get_task(
     return it->second;
 }
 
-OTServerID OTX::import_default_introduction_server(const Lock& lock) const
+auto OTX::import_default_introduction_server(const Lock& lock) const
+    -> OTServerID
 {
     OT_ASSERT(CheckLock(lock, introduction_server_lock_))
 
@@ -1276,12 +1279,12 @@ OTServerID OTX::import_default_introduction_server(const Lock& lock) const
     return set_introduction_server(lock, client_.Wallet().Server(serialized));
 }
 
-OTX::BackgroundTask OTX::InitiateBailment(
+auto OTX::InitiateBailment(
     const identifier::Nym& localNymID,
     const identifier::Server& serverID,
     const identifier::Nym& targetNymID,
     const identifier::UnitDefinition& instrumentDefinitionID,
-    const SetID setID) const
+    const SetID setID) const -> OTX::BackgroundTask
 {
     CHECK_ARGS(localNymID, serverID, instrumentDefinitionID)
     CHECK_NYM(targetNymID)
@@ -1306,14 +1309,14 @@ OTX::BackgroundTask OTX::InitiateBailment(
     }
 }
 
-OTX::BackgroundTask OTX::InitiateOutbailment(
+auto OTX::InitiateOutbailment(
     const identifier::Nym& localNymID,
     const identifier::Server& serverID,
     const identifier::Nym& targetNymID,
     const identifier::UnitDefinition& instrumentDefinitionID,
     const Amount amount,
     const std::string& message,
-    const SetID setID) const
+    const SetID setID) const -> OTX::BackgroundTask
 {
     CHECK_ARGS(localNymID, serverID, instrumentDefinitionID)
     CHECK_NYM(targetNymID)
@@ -1344,12 +1347,12 @@ OTX::BackgroundTask OTX::InitiateOutbailment(
     }
 }
 
-OTX::BackgroundTask OTX::InitiateRequestConnection(
+auto OTX::InitiateRequestConnection(
     const identifier::Nym& localNymID,
     const identifier::Server& serverID,
     const identifier::Nym& targetNymID,
     const proto::ConnectionInfoType& type,
-    const SetID setID) const
+    const SetID setID) const -> OTX::BackgroundTask
 {
     CHECK_SERVER(localNymID, serverID)
     CHECK_NYM(targetNymID)
@@ -1374,14 +1377,14 @@ OTX::BackgroundTask OTX::InitiateRequestConnection(
     }
 }
 
-OTX::BackgroundTask OTX::InitiateStoreSecret(
+auto OTX::InitiateStoreSecret(
     const identifier::Nym& localNymID,
     const identifier::Server& serverID,
     const identifier::Nym& targetNymID,
     const proto::SecretType& type,
     const std::string& primary,
     const std::string& secondary,
-    const SetID setID) const
+    const SetID setID) const -> OTX::BackgroundTask
 {
     CHECK_ARGS(localNymID, serverID, targetNymID)
 
@@ -1415,7 +1418,7 @@ OTX::BackgroundTask OTX::InitiateStoreSecret(
     }
 }
 
-const identifier::Server& OTX::IntroductionServer() const
+auto OTX::IntroductionServer() const -> const identifier::Server&
 {
     Lock lock(introduction_server_lock_);
 
@@ -1428,12 +1431,12 @@ const identifier::Server& OTX::IntroductionServer() const
     return *introduction_server_id_;
 }
 
-OTX::BackgroundTask OTX::IssueUnitDefinition(
+auto OTX::IssueUnitDefinition(
     const identifier::Nym& localNymID,
     const identifier::Server& serverID,
     const identifier::UnitDefinition& unitID,
     const proto::ContactItemType advertise,
-    const std::string& label) const
+    const std::string& label) const -> OTX::BackgroundTask
 {
     CHECK_ARGS(localNymID, serverID, unitID)
 
@@ -1457,11 +1460,11 @@ void OTX::load_introduction_server(const Lock& lock) const
         new OTServerID(get_introduction_server(lock)));
 }
 
-OTX::BackgroundTask OTX::MessageContact(
+auto OTX::MessageContact(
     const identifier::Nym& senderNymID,
     const Identifier& contactID,
     const std::string& message,
-    const SetID setID) const
+    const SetID setID) const -> OTX::BackgroundTask
 {
     CHECK_SERVER(senderNymID, contactID)
 
@@ -1487,8 +1490,8 @@ OTX::BackgroundTask OTX::MessageContact(
     }
 }
 
-std::pair<ThreadStatus, OTX::MessageID> OTX::MessageStatus(
-    const TaskID taskID) const
+auto OTX::MessageStatus(const TaskID taskID) const
+    -> std::pair<ThreadStatus, OTX::MessageID>
 {
     std::pair<ThreadStatus, MessageID> output{{}, Identifier::Factory()};
     auto& [threadStatus, messageID] = output;
@@ -1507,7 +1510,7 @@ std::pair<ThreadStatus, OTX::MessageID> OTX::MessageStatus(
     return output;
 }
 
-OTX::BackgroundTask OTX::NotifyBailment(
+auto OTX::NotifyBailment(
     const identifier::Nym& localNymID,
     const identifier::Server& serverID,
     const identifier::Nym& targetNymID,
@@ -1515,7 +1518,7 @@ OTX::BackgroundTask OTX::NotifyBailment(
     const Identifier& requestID,
     const std::string& txid,
     const Amount amount,
-    const SetID setID) const
+    const SetID setID) const -> OTX::BackgroundTask
 {
     CHECK_ARGS(localNymID, serverID, instrumentDefinitionID)
     CHECK_NYM(targetNymID)
@@ -1548,10 +1551,10 @@ OTX::BackgroundTask OTX::NotifyBailment(
     }
 }
 
-OTX::BackgroundTask OTX::PayContact(
+auto OTX::PayContact(
     const identifier::Nym& senderNymID,
     const Identifier& contactID,
-    std::shared_ptr<const OTPayment> payment) const
+    std::shared_ptr<const OTPayment> payment) const -> OTX::BackgroundTask
 {
     CHECK_SERVER(senderNymID, contactID)
 
@@ -1578,10 +1581,10 @@ OTX::BackgroundTask OTX::PayContact(
 }
 
 #if OT_CASH
-OTX::BackgroundTask OTX::PayContactCash(
+auto OTX::PayContactCash(
     const identifier::Nym& senderNymID,
     const Identifier& contactID,
-    const Identifier& workflowID) const
+    const Identifier& workflowID) const -> OTX::BackgroundTask
 {
     CHECK_SERVER(senderNymID, contactID)
 
@@ -1608,10 +1611,10 @@ OTX::BackgroundTask OTX::PayContactCash(
 }
 #endif  // OT_CASH
 
-OTX::BackgroundTask OTX::ProcessInbox(
+auto OTX::ProcessInbox(
     const identifier::Nym& localNymID,
     const identifier::Server& serverID,
-    const Identifier& accountID) const
+    const Identifier& accountID) const -> OTX::BackgroundTask
 {
     CHECK_ARGS(localNymID, serverID, accountID)
 
@@ -1672,10 +1675,10 @@ void OTX::process_notification(const zmq::Message& message) const
     }
 }
 
-bool OTX::publish_server_registration(
+auto OTX::publish_server_registration(
     const identifier::Nym& nymID,
     const identifier::Server& serverID,
-    const bool forcePrimary) const
+    const bool forcePrimary) const -> bool
 {
     OT_ASSERT(false == nymID.empty())
     OT_ASSERT(false == serverID.empty())
@@ -1685,10 +1688,10 @@ bool OTX::publish_server_registration(
     return nym.AddPreferredOTServer(serverID.str(), forcePrimary, reason_);
 }
 
-OTX::BackgroundTask OTX::PublishServerContract(
+auto OTX::PublishServerContract(
     const identifier::Nym& localNymID,
     const identifier::Server& serverID,
-    const Identifier& contractID) const
+    const Identifier& contractID) const -> OTX::BackgroundTask
 {
     CHECK_ARGS(localNymID, serverID, contractID)
 
@@ -1705,9 +1708,9 @@ OTX::BackgroundTask OTX::PublishServerContract(
     }
 }
 
-bool OTX::queue_cheque_deposit(
+auto OTX::queue_cheque_deposit(
     const identifier::Nym& nymID,
-    const Cheque& cheque) const
+    const Cheque& cheque) const -> bool
 {
     auto payment{client_.Factory().Payment(String::Factory(cheque))};
 
@@ -1734,9 +1737,12 @@ void OTX::Refresh() const
     trigger_all();
 }
 
-std::uint64_t OTX::RefreshCount() const { return refresh_counter_.load(); }
+auto OTX::RefreshCount() const -> std::uint64_t
+{
+    return refresh_counter_.load();
+}
 
-bool OTX::refresh_accounts() const
+auto OTX::refresh_accounts() const -> bool
 {
     LogVerbose(OT_METHOD)(__FUNCTION__)(": Begin").Flush();
     const auto serverList = client_.Wallet().ServerList();
@@ -1803,7 +1809,7 @@ bool OTX::refresh_accounts() const
     return true;
 }
 
-bool OTX::refresh_contacts() const
+auto OTX::refresh_contacts() const -> bool
 {
     for (const auto& it : client_.Contacts().ContactList()) {
         SHUTDOWN()
@@ -1900,19 +1906,19 @@ bool OTX::refresh_contacts() const
     return true;
 }
 
-OTX::BackgroundTask OTX::RegisterAccount(
+auto OTX::RegisterAccount(
     const identifier::Nym& localNymID,
     const identifier::Server& serverID,
     const identifier::UnitDefinition& unitID,
-    const std::string& label) const
+    const std::string& label) const -> OTX::BackgroundTask
 {
     return schedule_register_account(localNymID, serverID, unitID, label);
 }
 
-OTX::BackgroundTask OTX::RegisterNym(
+auto OTX::RegisterNym(
     const identifier::Nym& localNymID,
     const identifier::Server& serverID,
-    const bool resync) const
+    const bool resync) const -> OTX::BackgroundTask
 {
     CHECK_SERVER(localNymID, serverID)
 
@@ -1927,12 +1933,12 @@ OTX::BackgroundTask OTX::RegisterNym(
     }
 }
 
-OTX::BackgroundTask OTX::RegisterNymPublic(
+auto OTX::RegisterNymPublic(
     const identifier::Nym& nymID,
     const identifier::Server& serverID,
     const bool setContactData,
     const bool forcePrimary,
-    const bool resync) const
+    const bool resync) const -> OTX::BackgroundTask
 {
     CHECK_SERVER(nymID, serverID)
 
@@ -1945,16 +1951,17 @@ OTX::BackgroundTask OTX::RegisterNymPublic(
     return RegisterNym(nymID, serverID, resync);
 }
 
-OTServerID OTX::SetIntroductionServer(const contract::Server& contract) const
+auto OTX::SetIntroductionServer(const contract::Server& contract) const
+    -> OTServerID
 {
     Lock lock(introduction_server_lock_);
 
     return set_introduction_server(lock, contract);
 }
 
-OTX::BackgroundTask OTX::schedule_download_nymbox(
+auto OTX::schedule_download_nymbox(
     const identifier::Nym& localNymID,
-    const identifier::Server& serverID) const
+    const identifier::Server& serverID) const -> OTX::BackgroundTask
 {
     CHECK_SERVER(localNymID, serverID)
 
@@ -1969,11 +1976,11 @@ OTX::BackgroundTask OTX::schedule_download_nymbox(
     }
 }
 
-OTX::BackgroundTask OTX::schedule_register_account(
+auto OTX::schedule_register_account(
     const identifier::Nym& localNymID,
     const identifier::Server& serverID,
     const identifier::UnitDefinition& unitID,
-    const std::string& label) const
+    const std::string& label) const -> OTX::BackgroundTask
 {
     CHECK_ARGS(localNymID, serverID, unitID)
 
@@ -1989,14 +1996,14 @@ OTX::BackgroundTask OTX::schedule_register_account(
     }
 }
 
-OTX::BackgroundTask OTX::SendCheque(
+auto OTX::SendCheque(
     const identifier::Nym& localNymID,
     const Identifier& sourceAccountID,
     const Identifier& recipientContactID,
     const Amount value,
     const std::string& memo,
     const Time validFrom,
-    const Time validTo) const
+    const Time validTo) const -> OTX::BackgroundTask
 {
     CHECK_ARGS(localNymID, sourceAccountID, recipientContactID)
 
@@ -2040,13 +2047,13 @@ OTX::BackgroundTask OTX::SendCheque(
     }
 }
 
-OTX::BackgroundTask OTX::SendExternalTransfer(
+auto OTX::SendExternalTransfer(
     const identifier::Nym& localNymID,
     const identifier::Server& serverID,
     const Identifier& sourceAccountID,
     const Identifier& targetAccountID,
     const std::int64_t value,
-    const std::string& memo) const
+    const std::string& memo) const -> OTX::BackgroundTask
 {
     CHECK_ARGS(localNymID, serverID, targetAccountID)
     CHECK_NYM(sourceAccountID)
@@ -2084,13 +2091,13 @@ OTX::BackgroundTask OTX::SendExternalTransfer(
     }
 }
 
-OTX::BackgroundTask OTX::SendTransfer(
+auto OTX::SendTransfer(
     const identifier::Nym& localNymID,
     const identifier::Server& serverID,
     const Identifier& sourceAccountID,
     const Identifier& targetAccountID,
     const std::int64_t value,
-    const std::string& memo) const
+    const std::string& memo) const -> OTX::BackgroundTask
 {
     CHECK_ARGS(localNymID, serverID, targetAccountID)
     CHECK_NYM(sourceAccountID)
@@ -2140,9 +2147,9 @@ void OTX::set_contact(
     }
 }
 
-OTServerID OTX::set_introduction_server(
+auto OTX::set_introduction_server(
     const Lock& lock,
-    const contract::Server& contract) const
+    const contract::Server& contract) const -> OTServerID
 {
     OT_ASSERT(CheckLock(lock, introduction_server_lock_));
 
@@ -2187,7 +2194,8 @@ void OTX::start_introduction_server(const identifier::Nym& nymID) const
     }
 }
 
-OTX::BackgroundTask OTX::start_task(const TaskID taskID, bool success) const
+auto OTX::start_task(const TaskID taskID, bool success) const
+    -> OTX::BackgroundTask
 {
     if (0 == taskID) {
         LogTrace(OT_METHOD)(__FUNCTION__)(": Empty task ID").Flush();
@@ -2209,7 +2217,7 @@ void OTX::StartIntroductionServer(const identifier::Nym& localNymID) const
     start_introduction_server(localNymID);
 }
 
-ThreadStatus OTX::status(const Lock& lock, const TaskID taskID) const
+auto OTX::status(const Lock& lock, const TaskID taskID) const -> ThreadStatus
 {
     OT_ASSERT(CheckLock(lock, task_status_lock_))
 
@@ -2229,7 +2237,7 @@ ThreadStatus OTX::status(const Lock& lock, const TaskID taskID) const
     return output;
 }
 
-ThreadStatus OTX::Status(const TaskID taskID) const
+auto OTX::Status(const TaskID taskID) const -> ThreadStatus
 {
     Lock lock(task_status_lock_);
 
@@ -2298,13 +2306,13 @@ void OTX::update_task(
     }
 }
 
-Depositability OTX::valid_account(
+auto OTX::valid_account(
     const OTPayment& payment,
     const identifier::Nym& recipient,
     const identifier::Server& paymentServerID,
     const identifier::UnitDefinition& paymentUnitID,
     const Identifier& accountIDHint,
-    Identifier& depositAccount) const
+    Identifier& depositAccount) const -> Depositability
 {
     std::set<OTIdentifier> matchingAccounts{};
 
@@ -2350,9 +2358,9 @@ Depositability OTX::valid_account(
     }
 }
 
-bool OTX::valid_context(
+auto OTX::valid_context(
     const identifier::Nym& nymID,
-    const identifier::Server& serverID) const
+    const identifier::Server& serverID) const -> bool
 {
     const auto nyms = client_.Wallet().LocalNyms();
 
@@ -2389,10 +2397,10 @@ bool OTX::valid_context(
     return true;
 }
 
-Depositability OTX::valid_recipient(
+auto OTX::valid_recipient(
     const OTPayment& payment,
     const identifier::Nym& specified,
-    const identifier::Nym& recipient) const
+    const identifier::Nym& recipient) const -> Depositability
 {
     if (specified.empty()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -2408,11 +2416,11 @@ Depositability OTX::valid_recipient(
 }
 
 #if OT_CASH
-OTX::BackgroundTask OTX::WithdrawCash(
+auto OTX::WithdrawCash(
     const identifier::Nym& nymID,
     const identifier::Server& serverID,
     const Identifier& account,
-    const Amount amount) const
+    const Amount amount) const -> OTX::BackgroundTask
 {
     CHECK_ARGS(nymID, serverID, account)
 

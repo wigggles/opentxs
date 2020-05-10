@@ -49,7 +49,7 @@ private:
     typedef StorageFS ot_super;
 
 public:
-    bool EmptyBucket(const bool bucket) const final;
+    auto EmptyBucket(const bool bucket) const -> bool final;
 
     void Cleanup() final;
 
@@ -61,13 +61,13 @@ private:
     crypto::key::Symmetric& encryption_key_;
     const bool encrypted_{false};
 
-    std::string calculate_path(
+    auto calculate_path(
         const std::string& key,
         const bool bucket,
-        std::string& directory) const final;
-    std::string prepare_read(const std::string& ciphertext) const final;
-    std::string prepare_write(const std::string& plaintext) const final;
-    std::string root_filename() const final;
+        std::string& directory) const -> std::string final;
+    auto prepare_read(const std::string& ciphertext) const -> std::string final;
+    auto prepare_write(const std::string& plaintext) const -> std::string final;
+    auto root_filename() const -> std::string final;
 
     void Init_StorageFSArchive();
     void Cleanup_StorageFSArchive();
@@ -83,7 +83,7 @@ private:
     StorageFSArchive() = delete;
     StorageFSArchive(const StorageFSArchive&) = delete;
     StorageFSArchive(StorageFSArchive&&) = delete;
-    StorageFSArchive& operator=(const StorageFSArchive&) = delete;
-    StorageFSArchive& operator=(StorageFSArchive&&) = delete;
+    auto operator=(const StorageFSArchive&) -> StorageFSArchive& = delete;
+    auto operator=(StorageFSArchive &&) -> StorageFSArchive& = delete;
 };
 }  // namespace opentxs::storage::implementation

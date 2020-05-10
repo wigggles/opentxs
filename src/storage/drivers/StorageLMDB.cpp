@@ -20,12 +20,12 @@
 
 namespace opentxs
 {
-opentxs::api::storage::Plugin* Factory::StorageLMDB(
+auto Factory::StorageLMDB(
     const api::storage::Storage& storage,
     const StorageConfig& config,
     const Digest& hash,
     const Random& random,
-    const Flag& bucket)
+    const Flag& bucket) -> opentxs::api::storage::Plugin*
 {
     return new opentxs::storage::implementation::StorageLMDB(
         storage, config, hash, random, bucket);
@@ -63,12 +63,12 @@ void StorageLMDB::Cleanup() { Cleanup_StorageLMDB(); }
 
 void StorageLMDB::Cleanup_StorageLMDB() {}
 
-bool StorageLMDB::EmptyBucket(const bool bucket) const
+auto StorageLMDB::EmptyBucket(const bool bucket) const -> bool
 {
     return lmdb_.Delete(get_table(bucket));
 }
 
-StorageLMDB::Table StorageLMDB::get_table(const bool bucket) const
+auto StorageLMDB::get_table(const bool bucket) const -> StorageLMDB::Table
 {
     return (bucket) ? Table::A : Table::B;
 }
@@ -78,10 +78,10 @@ void StorageLMDB::Init_StorageLMDB()
     LogVerbose(OT_METHOD)(__FUNCTION__)(": Database initialized.").Flush();
 }
 
-bool StorageLMDB::LoadFromBucket(
+auto StorageLMDB::LoadFromBucket(
     const std::string& key,
     std::string& value,
-    const bool bucket) const
+    const bool bucket) const -> bool
 {
     value = {};
     lmdb_.Load(
@@ -90,7 +90,7 @@ bool StorageLMDB::LoadFromBucket(
     return false == value.empty();
 }
 
-std::string StorageLMDB::LoadRoot() const
+auto StorageLMDB::LoadRoot() const -> std::string
 {
     auto output = std::string{};
     lmdb_.Load(
@@ -117,7 +117,8 @@ void StorageLMDB::store(
     }
 }
 
-bool StorageLMDB::StoreRoot(const bool commit, const std::string& hash) const
+auto StorageLMDB::StoreRoot(const bool commit, const std::string& hash) const
+    -> bool
 {
     if (commit) {
         if (lmdb_.Queue(Table::Control, config_.lmdb_root_key_, hash)) {

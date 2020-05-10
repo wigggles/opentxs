@@ -28,16 +28,16 @@ class Work : virtual public blockchain::Work
 public:
     using Type = mp::cpp_bin_float_double;
 
-    bool operator==(const blockchain::Work& rhs) const noexcept final;
-    bool operator!=(const blockchain::Work& rhs) const noexcept final;
-    bool operator<(const blockchain::Work& rhs) const noexcept final;
-    bool operator<=(const blockchain::Work& rhs) const noexcept final;
-    bool operator>(const blockchain::Work& rhs) const noexcept final;
-    bool operator>=(const blockchain::Work& rhs) const noexcept final;
-    OTWork operator+(const blockchain::Work& rhs) const noexcept final;
+    auto operator==(const blockchain::Work& rhs) const noexcept -> bool final;
+    auto operator!=(const blockchain::Work& rhs) const noexcept -> bool final;
+    auto operator<(const blockchain::Work& rhs) const noexcept -> bool final;
+    auto operator<=(const blockchain::Work& rhs) const noexcept -> bool final;
+    auto operator>(const blockchain::Work& rhs) const noexcept -> bool final;
+    auto operator>=(const blockchain::Work& rhs) const noexcept -> bool final;
+    auto operator+(const blockchain::Work& rhs) const noexcept -> OTWork final;
 
-    std::string asHex() const noexcept final;
-    std::string Decimal() const noexcept final { return data_.str(); }
+    auto asHex() const noexcept -> std::string final;
+    auto Decimal() const noexcept -> std::string final { return data_.str(); }
 
     ~Work() final = default;
 
@@ -46,13 +46,13 @@ private:
 
     Type data_;
 
-    Work* clone() const noexcept final { return new Work(*this); }
+    auto clone() const noexcept -> Work* final { return new Work(*this); }
 
     Work(Type&& data) noexcept;
     Work() noexcept;
     Work(const Work& rhs) noexcept;
     Work(Work&& rhs) = delete;
-    Work& operator=(const Work& rhs) = delete;
-    Work& operator=(Work&& rhs) = delete;
+    auto operator=(const Work& rhs) -> Work& = delete;
+    auto operator=(Work&& rhs) -> Work& = delete;
 };
 }  // namespace opentxs::blockchain::implementation

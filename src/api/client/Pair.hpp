@@ -78,25 +78,27 @@ class Pair final : virtual public internal::Pair,
                    opentxs::internal::StateMachine
 {
 public:
-    bool AddIssuer(
+    auto AddIssuer(
         const identifier::Nym& localNymID,
         const identifier::Nym& issuerNymID,
-        const std::string& pairingCode) const noexcept final;
-    bool CheckIssuer(
+        const std::string& pairingCode) const noexcept -> bool final;
+    auto CheckIssuer(
         const identifier::Nym& localNymID,
-        const identifier::UnitDefinition& unitDefinitionID) const
-        noexcept final;
-    std::string IssuerDetails(
+        const identifier::UnitDefinition& unitDefinitionID) const noexcept
+        -> bool final;
+    auto IssuerDetails(
         const identifier::Nym& localNymID,
-        const identifier::Nym& issuerNymID) const noexcept final;
-    std::set<OTNymID> IssuerList(
-        const identifier::Nym& localNymID,
-        const bool onlyTrusted) const noexcept final
+        const identifier::Nym& issuerNymID) const noexcept -> std::string final;
+    auto IssuerList(const identifier::Nym& localNymID, const bool onlyTrusted)
+        const noexcept -> std::set<OTNymID> final
     {
         return state_.IssuerList(localNymID, onlyTrusted);
     }
-    std::shared_future<void> Stop() const noexcept final { return cleanup(); }
-    std::shared_future<void> Wait() const noexcept final
+    auto Stop() const noexcept -> std::shared_future<void> final
+    {
+        return cleanup();
+    }
+    auto Wait() const noexcept -> std::shared_future<void> final
     {
         return StateMachine::Wait();
     }
@@ -138,16 +140,17 @@ private:
             NeedRename>;
         using StateMap = std::map<IssuerID, Details>;
 
-        static std::size_t count_currencies(
-            const std::vector<AccountDetails>& in) noexcept;
-        static std::size_t count_currencies(const ContactSection& in) noexcept;
-        static AccountDetails& get_account(
+        static auto count_currencies(
+            const std::vector<AccountDetails>& in) noexcept -> std::size_t;
+        static auto count_currencies(const ContactSection& in) noexcept
+            -> std::size_t;
+        static auto get_account(
             const identifier::UnitDefinition& unit,
             const Identifier& account,
-            std::vector<AccountDetails>& details) noexcept;
+            std::vector<AccountDetails>& details) noexcept -> AccountDetails&;
 
-        bool CheckIssuer(const identifier::Nym& id) const noexcept;
-        bool check_state() const noexcept;
+        auto CheckIssuer(const identifier::Nym& id) const noexcept -> bool;
+        auto check_state() const noexcept -> bool;
 
         void Add(
             const identifier::Nym& localNymID,
@@ -158,16 +161,17 @@ private:
             const identifier::Nym& localNymID,
             const identifier::Nym& issuerNymID,
             const bool trusted) noexcept;
-        StateMap::iterator begin() noexcept { return state_.begin(); }
-        StateMap::iterator end() noexcept { return state_.end(); }
-        StateMap::iterator GetDetails(
+        auto begin() noexcept -> StateMap::iterator { return state_.begin(); }
+        auto end() noexcept -> StateMap::iterator { return state_.end(); }
+        auto GetDetails(
             const identifier::Nym& localNymID,
-            const identifier::Nym& issuerNymID) noexcept;
-        bool run(const std::function<void(const IssuerID&)> fn) noexcept;
+            const identifier::Nym& issuerNymID) noexcept -> StateMap::iterator;
+        auto run(const std::function<void(const IssuerID&)> fn) noexcept
+            -> bool;
 
-        std::set<OTNymID> IssuerList(
+        auto IssuerList(
             const identifier::Nym& localNymID,
-            const bool onlyTrusted) const noexcept;
+            const bool onlyTrusted) const noexcept -> std::set<OTNymID>;
 
         State(
             std::mutex& lock,
@@ -211,68 +215,72 @@ private:
         bool& needRename) const noexcept;
     void check_store_secret(Issuer& issuer, const identifier::Server& serverID)
         const noexcept;
-    std::shared_future<void> cleanup() const noexcept;
-    std::pair<bool, OTIdentifier> get_connection(
+    auto cleanup() const noexcept -> std::shared_future<void>;
+    auto get_connection(
         const identifier::Nym& localNymID,
         const identifier::Nym& issuerNymID,
         const identifier::Server& serverID,
-        const proto::ConnectionInfoType type) const;
-    std::pair<bool, OTIdentifier> initiate_bailment(
+        const proto::ConnectionInfoType type) const
+        -> std::pair<bool, OTIdentifier>;
+    auto initiate_bailment(
         const identifier::Nym& nymID,
         const identifier::Server& serverID,
         const identifier::Nym& issuerID,
-        const identifier::UnitDefinition& unitID) const;
-    bool process_connection_info(
+        const identifier::UnitDefinition& unitID) const
+        -> std::pair<bool, OTIdentifier>;
+    auto process_connection_info(
         const Lock& lock,
         const identifier::Nym& nymID,
-        const proto::PeerReply& reply) const;
+        const proto::PeerReply& reply) const -> bool;
     void process_peer_replies(const Lock& lock, const identifier::Nym& nymID)
         const;
     void process_peer_requests(const Lock& lock, const identifier::Nym& nymID)
         const;
-    bool process_pending_bailment(
+    auto process_pending_bailment(
         const Lock& lock,
         const identifier::Nym& nymID,
-        const proto::PeerRequest& request) const;
-    bool process_request_bailment(
+        const proto::PeerRequest& request) const -> bool;
+    auto process_request_bailment(
         const Lock& lock,
         const identifier::Nym& nymID,
-        const proto::PeerReply& reply) const;
-    bool process_request_outbailment(
+        const proto::PeerReply& reply) const -> bool;
+    auto process_request_outbailment(
         const Lock& lock,
         const identifier::Nym& nymID,
-        const proto::PeerReply& reply) const;
-    bool process_store_secret(
+        const proto::PeerReply& reply) const -> bool;
+    auto process_store_secret(
         const Lock& lock,
         const identifier::Nym& nymID,
-        const proto::PeerReply& reply) const;
-    OTX::BackgroundTask queue_nym_download(
+        const proto::PeerReply& reply) const -> bool;
+    auto queue_nym_download(
         const identifier::Nym& localNymID,
-        const identifier::Nym& targetNymID) const;
-    OTX::BackgroundTask queue_nym_registration(
+        const identifier::Nym& targetNymID) const -> OTX::BackgroundTask;
+    auto queue_nym_registration(
         const identifier::Nym& nymID,
         const identifier::Server& serverID,
-        const bool setData) const;
-    OTX::BackgroundTask queue_server_contract(
+        const bool setData) const -> OTX::BackgroundTask;
+    auto queue_server_contract(
         const identifier::Nym& nymID,
-        const identifier::Server& serverID) const;
+        const identifier::Server& serverID) const -> OTX::BackgroundTask;
     void queue_unit_definition(
         const identifier::Nym& nymID,
         const identifier::Server& serverID,
         const identifier::UnitDefinition& unitID) const;
-    std::pair<bool, OTIdentifier> register_account(
+    auto register_account(
         const identifier::Nym& nymID,
         const identifier::Server& serverID,
-        const identifier::UnitDefinition& unitID) const;
-    bool need_registration(
+        const identifier::UnitDefinition& unitID) const
+        -> std::pair<bool, OTIdentifier>;
+    auto need_registration(
         const identifier::Nym& localNymID,
-        const identifier::Server& serverID) const;
+        const identifier::Server& serverID) const -> bool;
     void state_machine(const IssuerID& id) const;
 #if OT_CRYPTO_WITH_BIP32
-    std::pair<bool, OTIdentifier> store_secret(
+    auto store_secret(
         const identifier::Nym& localNymID,
         const identifier::Nym& issuerNymID,
-        const identifier::Server& serverID) const;
+        const identifier::Server& serverID) const
+        -> std::pair<bool, OTIdentifier>;
 #endif  // OT_CRYPTO_WITH_BIP32
 
     void callback_nym(const zmq::Message& in) noexcept;
@@ -283,7 +291,7 @@ private:
     Pair() = delete;
     Pair(const Pair&) = delete;
     Pair(Pair&&) = delete;
-    Pair& operator=(const Pair&) = delete;
-    Pair& operator=(Pair&&) = delete;
+    auto operator=(const Pair&) -> Pair& = delete;
+    auto operator=(Pair &&) -> Pair& = delete;
 };
 }  // namespace opentxs::api::client::implementation

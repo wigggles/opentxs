@@ -40,10 +40,11 @@ template class opentxs::network::zeromq::socket::implementation::Receiver<
 
 namespace opentxs
 {
-network::zeromq::socket::Reply* Factory::ReplySocket(
+auto Factory::ReplySocket(
     const network::zeromq::Context& context,
     const bool direction,
     const network::zeromq::ReplyCallback& callback)
+    -> network::zeromq::socket::Reply*
 {
     using ReturnType = network::zeromq::socket::implementation::Reply;
 
@@ -67,12 +68,12 @@ Reply::Reply(
     init();
 }
 
-Reply* Reply::clone() const noexcept
+auto Reply::clone() const noexcept -> Reply*
 {
     return new Reply(context_, direction_, callback_);
 }
 
-bool Reply::have_callback() const noexcept { return true; }
+auto Reply::have_callback() const noexcept -> bool { return true; }
 
 void Reply::process_incoming(const Lock& lock, Message& message) noexcept
 {

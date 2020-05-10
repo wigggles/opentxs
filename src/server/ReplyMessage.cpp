@@ -61,7 +61,7 @@ ReplyMessage::ReplyMessage(
     init_ = init();
 }
 
-std::set<RequestNumber> ReplyMessage::Acknowledged() const
+auto ReplyMessage::Acknowledged() const -> std::set<RequestNumber>
 {
     std::set<RequestNumber> output{};
     original_.m_AcknowledgedReplies.Output(output);
@@ -161,7 +161,7 @@ void ReplyMessage::clear_request()
 
 void ReplyMessage::ClearRequest() { message_.m_ascInReferenceTo->Release(); }
 
-ClientContext& ReplyMessage::Context()
+auto ReplyMessage::Context() -> ClientContext&
 {
     OT_ASSERT(context_);
 
@@ -179,9 +179,9 @@ void ReplyMessage::DropToNymbox(const bool success)
     drop_status_ = success;
 }
 
-bool ReplyMessage::HaveContext() const { return bool(context_); }
+auto ReplyMessage::HaveContext() const -> bool { return bool(context_); }
 
-bool ReplyMessage::init()
+auto ReplyMessage::init() -> bool
 {
     const auto senderNymID = identifier::Nym::Factory(original_.m_strNymID);
     const auto purportedServerID =
@@ -202,16 +202,16 @@ bool ReplyMessage::init()
     return out;
 }
 
-const bool& ReplyMessage::Init() const { return init_; }
+auto ReplyMessage::Init() const -> const bool& { return init_; }
 
-bool ReplyMessage::init_nym()
+auto ReplyMessage::init_nym() -> bool
 {
     sender_nym_ = wallet_.Nym(identifier::Nym::Factory(original_.m_strNymID));
 
     return bool(sender_nym_);
 }
 
-bool ReplyMessage::LoadContext(const PasswordPrompt& reason)
+auto ReplyMessage::LoadContext(const PasswordPrompt& reason) -> bool
 {
     if (false == init_nym()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Nym (")(original_.m_strNymID)(
@@ -227,7 +227,7 @@ bool ReplyMessage::LoadContext(const PasswordPrompt& reason)
     return bool(context_);
 }
 
-const Message& ReplyMessage::Original() const { return original_; }
+auto ReplyMessage::Original() const -> const Message& { return original_; }
 
 void ReplyMessage::OverrideType(const String& replyCommand)
 {
@@ -275,12 +275,12 @@ void ReplyMessage::SetOutboxHash(const Identifier& hash)
     message_.m_strOutboxHash = String::Factory(hash);
 }
 
-bool ReplyMessage::SetPayload(const String& payload)
+auto ReplyMessage::SetPayload(const String& payload) -> bool
 {
     return message_.m_ascPayload->SetString(payload);
 }
 
-bool ReplyMessage::SetPayload(const Data& payload)
+auto ReplyMessage::SetPayload(const Data& payload) -> bool
 {
     return message_.m_ascPayload->SetData(payload);
 }
@@ -290,12 +290,12 @@ void ReplyMessage::SetPayload(const Armored& payload)
     message_.m_ascPayload = payload;
 }
 
-bool ReplyMessage::SetPayload2(const String& payload)
+auto ReplyMessage::SetPayload2(const String& payload) -> bool
 {
     return message_.m_ascPayload2->SetString(payload);
 }
 
-bool ReplyMessage::SetPayload3(const String& payload)
+auto ReplyMessage::SetPayload3(const String& payload) -> bool
 {
     return message_.m_ascPayload3->SetString(payload);
 }
@@ -317,7 +317,10 @@ void ReplyMessage::SetTransactionNumber(const TransactionNumber& number)
     message_.m_lTransactionNum = number;
 }
 
-const bool& ReplyMessage::Success() const { return message_.m_bSuccess; }
+auto ReplyMessage::Success() const -> const bool&
+{
+    return message_.m_bSuccess;
+}
 
 void ReplyMessage::SetTargetNym(const String& nymID)
 {

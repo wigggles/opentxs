@@ -41,7 +41,7 @@ template class opentxs::Pimpl<opentxs::network::zeromq::Context>;
 
 namespace opentxs
 {
-network::zeromq::Context* Factory::ZMQContext()
+auto Factory::ZMQContext() -> network::zeromq::Context*
 {
     using ReturnType = network::zeromq::implementation::Context;
 
@@ -135,125 +135,129 @@ Context::operator void*() const noexcept
     return context_;
 }
 
-std::string Context::BuildEndpoint(
+auto Context::BuildEndpoint(
     const std::string& path,
     const int instance,
-    const int version) const noexcept
+    const int version) const noexcept -> std::string
 {
     return std::string(INPROC_PREFIX) + std::to_string(instance) +
            PATH_SEPERATOR + path + PATH_SEPERATOR + std::to_string(version);
 }
 
-std::string Context::BuildEndpoint(
+auto Context::BuildEndpoint(
     const std::string& path,
     const int instance,
     const int version,
-    const std::string& suffix) const noexcept
+    const std::string& suffix) const noexcept -> std::string
 {
     return BuildEndpoint(path, instance, version) + PATH_SEPERATOR + suffix;
 }
 
-OTZMQDealerSocket Context::DealerSocket(
+auto Context::DealerSocket(
     const ListenCallback& callback,
     const socket::Socket::Direction direction) const noexcept
+    -> OTZMQDealerSocket
 {
     return OTZMQDealerSocket{
         Factory::DealerSocket(*this, static_cast<bool>(direction), callback)};
 }
 
-OTZMQFrame Context::Frame(const void* input, const std::size_t size) const
-    noexcept
+auto Context::Frame(const void* input, const std::size_t size) const noexcept
+    -> OTZMQFrame
 {
     return OTZMQFrame{Factory::ZMQFrame(input, size)};
 }
 
-OTZMQMessage Context::Message() const noexcept
+auto Context::Message() const noexcept -> OTZMQMessage
 {
     return OTZMQMessage{Factory::ZMQMessage()};
 }
 
-OTZMQMessage Context::Message(const ProtobufType& input) const noexcept
+auto Context::Message(const ProtobufType& input) const noexcept -> OTZMQMessage
 {
     return OTZMQMessage{Factory::ZMQMessage(input)};
 }
 
-OTZMQMessage Context::Message(const void* input, const std::size_t size) const
-    noexcept
+auto Context::Message(const void* input, const std::size_t size) const noexcept
+    -> OTZMQMessage
 {
     return OTZMQMessage{Factory::ZMQMessage(input, size)};
 }
 
-OTZMQSubscribeSocket Context::PairEventListener(
+auto Context::PairEventListener(
     const PairEventCallback& callback,
-    const int instance) const noexcept
+    const int instance) const noexcept -> OTZMQSubscribeSocket
 {
     return OTZMQSubscribeSocket(
         new class PairEventListener(*this, callback, instance));
 }
 
-OTZMQPairSocket Context::PairSocket(
+auto Context::PairSocket(
     const opentxs::network::zeromq::ListenCallback& callback) const noexcept
+    -> OTZMQPairSocket
 {
     return OTZMQPairSocket{Factory::PairSocket(*this, callback, true)};
 }
 
-OTZMQPairSocket Context::PairSocket(
+auto Context::PairSocket(
     const opentxs::network::zeromq::ListenCallback& callback,
     const opentxs::network::zeromq::socket::Pair& peer) const noexcept
+    -> OTZMQPairSocket
 {
     return OTZMQPairSocket{Factory::PairSocket(callback, peer, true)};
 }
 
-OTZMQPairSocket Context::PairSocket(
+auto Context::PairSocket(
     const opentxs::network::zeromq::ListenCallback& callback,
-    const std::string& endpoint) const noexcept
+    const std::string& endpoint) const noexcept -> OTZMQPairSocket
 {
     return OTZMQPairSocket{Factory::PairSocket(*this, callback, endpoint)};
 }
 
-OTZMQPipeline Context::Pipeline(
+auto Context::Pipeline(
     const api::internal::Core& api,
     std::function<void(zeromq::Message&)> callback) const noexcept
+    -> OTZMQPipeline
 {
     return OTZMQPipeline{opentxs::Factory::Pipeline(api, *this, callback)};
 }
 
-OTZMQProxy Context::Proxy(
+auto Context::Proxy(
     network::zeromq::socket::Socket& frontend,
-    network::zeromq::socket::Socket& backend) const noexcept
+    network::zeromq::socket::Socket& backend) const noexcept -> OTZMQProxy
 {
     return opentxs::network::zeromq::Proxy::Factory(*this, frontend, backend);
 }
 
-OTZMQPublishSocket Context::PublishSocket() const noexcept
+auto Context::PublishSocket() const noexcept -> OTZMQPublishSocket
 {
     return OTZMQPublishSocket{Factory::PublishSocket(*this)};
 }
 
-OTZMQPullSocket Context::PullSocket(
-    const socket::Socket::Direction direction) const noexcept
+auto Context::PullSocket(const socket::Socket::Direction direction) const
+    noexcept -> OTZMQPullSocket
 {
     return OTZMQPullSocket{
         Factory::PullSocket(*this, static_cast<bool>(direction))};
 }
 
-OTZMQPullSocket Context::PullSocket(
+auto Context::PullSocket(
     const ListenCallback& callback,
-    const socket::Socket::Direction direction) const noexcept
+    const socket::Socket::Direction direction) const noexcept -> OTZMQPullSocket
 {
     return OTZMQPullSocket{
         Factory::PullSocket(*this, static_cast<bool>(direction), callback)};
 }
 
-OTZMQPushSocket Context::PushSocket(
-    const socket::Socket::Direction direction) const noexcept
+auto Context::PushSocket(const socket::Socket::Direction direction) const
+    noexcept -> OTZMQPushSocket
 {
     return OTZMQPushSocket{
         Factory::PushSocket(*this, static_cast<bool>(direction))};
 }
 
-OTZMQMessage Context::ReplyMessage(const zeromq::Message& request) const
-    noexcept
+auto Context::ReplyMessage(const zeromq::Message& request) const noexcept
+    -> OTZMQMessage
 {
     auto output = Message();
 
@@ -268,29 +272,31 @@ OTZMQMessage Context::ReplyMessage(const zeromq::Message& request) const
     return output;
 }
 
-OTZMQReplySocket Context::ReplySocket(
+auto Context::ReplySocket(
     const ReplyCallback& callback,
     const socket::Socket::Direction direction) const noexcept
+    -> OTZMQReplySocket
 {
     return OTZMQReplySocket{
         Factory::ReplySocket(*this, static_cast<bool>(direction), callback)};
 }
 
-OTZMQRequestSocket Context::RequestSocket() const noexcept
+auto Context::RequestSocket() const noexcept -> OTZMQRequestSocket
 {
     return OTZMQRequestSocket{Factory::RequestSocket(*this)};
 }
 
-OTZMQRouterSocket Context::RouterSocket(
+auto Context::RouterSocket(
     const ListenCallback& callback,
     const socket::Socket::Direction direction) const noexcept
+    -> OTZMQRouterSocket
 {
     return OTZMQRouterSocket{
         Factory::RouterSocket(*this, static_cast<bool>(direction), callback)};
 }
 
-OTZMQSubscribeSocket Context::SubscribeSocket(
-    const ListenCallback& callback) const noexcept
+auto Context::SubscribeSocket(const ListenCallback& callback) const noexcept
+    -> OTZMQSubscribeSocket
 {
     return OTZMQSubscribeSocket{Factory::SubscribeSocket(*this, callback)};
 }

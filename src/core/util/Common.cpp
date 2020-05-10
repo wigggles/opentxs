@@ -10,16 +10,19 @@
 #include <memory>
 #include <string>
 
-std::string formatBool(bool in) { return in ? "true" : "false"; }
+auto formatBool(bool in) -> std::string { return in ? "true" : "false"; }
 
-std::string formatTimestamp(const opentxs::Time in)
+auto formatTimestamp(const opentxs::Time in) -> std::string
 {
     return std::to_string(opentxs::Clock::to_time_t(in));
 }
 
-std::string getTimestamp() { return formatTimestamp(opentxs::Clock::now()); }
+auto getTimestamp() -> std::string
+{
+    return formatTimestamp(opentxs::Clock::now());
+}
 
-opentxs::Time parseTimestamp(std::string in)
+auto parseTimestamp(std::string in) -> opentxs::Time
 {
     try {
         return opentxs::Clock::from_time_t(std::stoull(in));

@@ -113,303 +113,303 @@ namespace opentxs::api::storage::implementation
 class Storage final : public opentxs::api::storage::StorageInternal
 {
 public:
-    std::string AccountAlias(const Identifier& accountID) const final;
-    ObjectList AccountList() const final;
-    OTUnitID AccountContract(const Identifier& accountID) const final;
-    OTNymID AccountIssuer(const Identifier& accountID) const final;
-    OTNymID AccountOwner(const Identifier& accountID) const final;
-    OTServerID AccountServer(const Identifier& accountID) const final;
-    OTNymID AccountSigner(const Identifier& accountID) const final;
-    proto::ContactItemType AccountUnit(const Identifier& accountID) const final;
-    std::set<OTIdentifier> AccountsByContract(
-        const identifier::UnitDefinition& contract) const final;
-    std::set<OTIdentifier> AccountsByIssuer(
-        const identifier::Nym& issuerNym) const final;
-    std::set<OTIdentifier> AccountsByOwner(
-        const identifier::Nym& ownerNym) const final;
-    std::set<OTIdentifier> AccountsByServer(
-        const identifier::Server& server) const final;
-    std::set<OTIdentifier> AccountsByUnit(
-        const proto::ContactItemType unit) const final;
-    OTIdentifier Bip47AddressToChannel(
+    auto AccountAlias(const Identifier& accountID) const -> std::string final;
+    auto AccountList() const -> ObjectList final;
+    auto AccountContract(const Identifier& accountID) const -> OTUnitID final;
+    auto AccountIssuer(const Identifier& accountID) const -> OTNymID final;
+    auto AccountOwner(const Identifier& accountID) const -> OTNymID final;
+    auto AccountServer(const Identifier& accountID) const -> OTServerID final;
+    auto AccountSigner(const Identifier& accountID) const -> OTNymID final;
+    auto AccountUnit(const Identifier& accountID) const
+        -> proto::ContactItemType final;
+    auto AccountsByContract(const identifier::UnitDefinition& contract) const
+        -> std::set<OTIdentifier> final;
+    auto AccountsByIssuer(const identifier::Nym& issuerNym) const
+        -> std::set<OTIdentifier> final;
+    auto AccountsByOwner(const identifier::Nym& ownerNym) const
+        -> std::set<OTIdentifier> final;
+    auto AccountsByServer(const identifier::Server& server) const
+        -> std::set<OTIdentifier> final;
+    auto AccountsByUnit(const proto::ContactItemType unit) const
+        -> std::set<OTIdentifier> final;
+    auto Bip47AddressToChannel(
         const identifier::Nym& nymID,
-        const std::string& address) const final;
-    proto::ContactItemType Bip47Chain(
+        const std::string& address) const -> OTIdentifier final;
+    auto Bip47Chain(const identifier::Nym& nymID, const Identifier& channelID)
+        const -> proto::ContactItemType final;
+    auto Bip47ChannelsByContact(
         const identifier::Nym& nymID,
-        const Identifier& channelID) const final;
-    Bip47ChannelList Bip47ChannelsByContact(
+        const Identifier& contactID) const -> Bip47ChannelList final;
+    auto Bip47ChannelsByChain(
         const identifier::Nym& nymID,
-        const Identifier& contactID) const final;
-    Bip47ChannelList Bip47ChannelsByChain(
+        const proto::ContactItemType chain) const -> Bip47ChannelList final;
+    auto Bip47ChannelsByLocalPaymentCode(
         const identifier::Nym& nymID,
-        const proto::ContactItemType chain) const final;
-    Bip47ChannelList Bip47ChannelsByLocalPaymentCode(
+        const std::string& code) const -> Bip47ChannelList final;
+    auto Bip47ChannelsByRemotePaymentCode(
         const identifier::Nym& nymID,
-        const std::string& code) const final;
-    Bip47ChannelList Bip47ChannelsByRemotePaymentCode(
+        const std::string& code) const -> Bip47ChannelList final;
+    auto Bip47ChannelsList(const identifier::Nym& nymID) const
+        -> ObjectList final;
+    auto Bip47Contact(const identifier::Nym& nymID, const Identifier& channelID)
+        const -> OTIdentifier final;
+    auto Bip47LocalPaymentCode(
         const identifier::Nym& nymID,
-        const std::string& code) const final;
-    ObjectList Bip47ChannelsList(const identifier::Nym& nymID) const final;
-    OTIdentifier Bip47Contact(
+        const Identifier& channelID) const -> std::string final;
+    auto Bip47RemotePaymentCode(
         const identifier::Nym& nymID,
-        const Identifier& channelID) const final;
-    std::string Bip47LocalPaymentCode(
-        const identifier::Nym& nymID,
-        const Identifier& channelID) const final;
-    std::string Bip47RemotePaymentCode(
-        const identifier::Nym& nymID,
-        const Identifier& channelID) const final;
-    std::set<std::string> BlockchainAccountList(
+        const Identifier& channelID) const -> std::string final;
+    auto BlockchainAccountList(
         const std::string& nymID,
-        const proto::ContactItemType type) const final;
-    proto::ContactItemType BlockchainAccountType(
+        const proto::ContactItemType type) const -> std::set<std::string> final;
+    auto BlockchainAccountType(
         const std::string& nymID,
-        const std::string& accountID) const final;
-    std::string BlockchainAddressOwner(
+        const std::string& accountID) const -> proto::ContactItemType final;
+    auto BlockchainAddressOwner(
         proto::ContactItemType chain,
-        std::string address) const final;
-    ObjectList BlockchainTransactionList() const final;
+        std::string address) const -> std::string final;
+    auto BlockchainTransactionList() const -> ObjectList final;
 #if OT_CASH
-    bool CheckTokenSpent(
+    auto CheckTokenSpent(
         const identifier::Server& notary,
         const identifier::UnitDefinition& unit,
         const std::uint64_t series,
-        const std::string& key) const final;
+        const std::string& key) const -> bool final;
 #endif
-    std::string ContactAlias(const std::string& id) const final;
-    ObjectList ContactList() const final;
-    ObjectList ContextList(const std::string& nymID) const final;
-    std::string ContactOwnerNym(const std::string& nymID) const final;
+    auto ContactAlias(const std::string& id) const -> std::string final;
+    auto ContactList() const -> ObjectList final;
+    auto ContextList(const std::string& nymID) const -> ObjectList final;
+    auto ContactOwnerNym(const std::string& nymID) const -> std::string final;
     void ContactSaveIndices() const final;
-    VersionNumber ContactUpgradeLevel() const final;
-    bool CreateThread(
+    auto ContactUpgradeLevel() const -> VersionNumber final;
+    auto CreateThread(
         const std::string& nymID,
         const std::string& threadID,
-        const std::set<std::string>& participants) const final;
-    bool DeleteAccount(const std::string& id) const final;
-    std::string DefaultSeed() const final;
-    bool DeleteContact(const std::string& id) const final;
-    bool DeletePaymentWorkflow(
+        const std::set<std::string>& participants) const -> bool final;
+    auto DeleteAccount(const std::string& id) const -> bool final;
+    auto DefaultSeed() const -> std::string final;
+    auto DeleteContact(const std::string& id) const -> bool final;
+    auto DeletePaymentWorkflow(
         const std::string& nymID,
-        const std::string& workflowID) const final;
-    std::uint32_t HashType() const final;
-    ObjectList IssuerList(const std::string& nymID) const final;
-    bool Load(
+        const std::string& workflowID) const -> bool final;
+    auto HashType() const -> std::uint32_t final;
+    auto IssuerList(const std::string& nymID) const -> ObjectList final;
+    auto Load(
         const std::string& accountID,
         std::string& output,
         std::string& alias,
-        const bool checking = false) const final;
-    bool Load(
+        const bool checking = false) const -> bool final;
+    auto Load(
         const std::string& nymID,
         const std::string& accountID,
         std::shared_ptr<proto::HDAccount>& output,
-        const bool checking = false) const final;
-    bool Load(
+        const bool checking = false) const -> bool final;
+    auto Load(
         const identifier::Nym& nymID,
         const Identifier& channelID,
         std::shared_ptr<proto::Bip47Channel>& output,
-        const bool checking = false) const final;
-    bool Load(
+        const bool checking = false) const -> bool final;
+    auto Load(
         const std::string& id,
         std::shared_ptr<proto::BlockchainTransaction>& transaction,
-        const bool checking = false) const final;
-    bool Load(
+        const bool checking = false) const -> bool final;
+    auto Load(
         const std::string& id,
         std::shared_ptr<proto::Contact>& contact,
-        const bool checking = false) const final;
-    bool Load(
+        const bool checking = false) const -> bool final;
+    auto Load(
         const std::string& id,
         std::shared_ptr<proto::Contact>& contact,
         std::string& alias,
-        const bool checking = false) const final;
-    bool Load(
+        const bool checking = false) const -> bool final;
+    auto Load(
         const std::string& nym,
         const std::string& id,
         std::shared_ptr<proto::Context>& context,
-        const bool checking = false) const final;
-    bool Load(
+        const bool checking = false) const -> bool final;
+    auto Load(
         const std::string& id,
         std::shared_ptr<proto::Credential>& cred,
-        const bool checking = false) const final;
-    bool Load(
+        const bool checking = false) const -> bool final;
+    auto Load(
         const std::string& id,
         std::shared_ptr<proto::Nym>& nym,
-        const bool checking = false) const final;
-    bool Load(
+        const bool checking = false) const -> bool final;
+    auto Load(
         const std::string& id,
         std::shared_ptr<proto::Nym>& nym,
         std::string& alias,
-        const bool checking = false) const final;
-    bool Load(
+        const bool checking = false) const -> bool final;
+    auto Load(
         const std::string& nymID,
         const std::string& id,
         std::shared_ptr<proto::Issuer>& issuer,
-        const bool checking = false) const final;
-    bool Load(
+        const bool checking = false) const -> bool final;
+    auto Load(
         const std::string& nymID,
         const std::string& workflowID,
         std::shared_ptr<proto::PaymentWorkflow>& workflow,
-        const bool checking = false) const final;
-    bool Load(
+        const bool checking = false) const -> bool final;
+    auto Load(
         const std::string& nymID,
         const std::string& id,
         const StorageBox box,
         std::string& output,
         std::string& alias,
-        const bool checking = false) const final;
-    bool Load(
+        const bool checking = false) const -> bool final;
+    auto Load(
         const std::string& nymID,
         const std::string& id,
         const StorageBox box,
         std::shared_ptr<proto::PeerReply>& request,
-        const bool checking = false) const final;
-    bool Load(
+        const bool checking = false) const -> bool final;
+    auto Load(
         const std::string& nymID,
         const std::string& id,
         const StorageBox box,
         std::shared_ptr<proto::PeerRequest>& request,
         std::time_t& time,
-        const bool checking = false) const final;
-    bool Load(
+        const bool checking = false) const -> bool final;
+    auto Load(
         const identifier::Nym& nym,
         const identifier::Server& notary,
         const identifier::UnitDefinition& unit,
         std::shared_ptr<proto::Purse>& output,
-        const bool checking) const final;
-    bool Load(
+        const bool checking) const -> bool final;
+    auto Load(
         const std::string& id,
         std::shared_ptr<proto::Seed>& seed,
-        const bool checking = false) const final;
-    bool Load(
+        const bool checking = false) const -> bool final;
+    auto Load(
         const std::string& id,
         std::shared_ptr<proto::Seed>& seed,
         std::string& alias,
-        const bool checking = false) const final;
-    bool Load(
+        const bool checking = false) const -> bool final;
+    auto Load(
         const std::string& id,
         std::shared_ptr<proto::ServerContract>& contract,
-        const bool checking = false) const final;
-    bool Load(
+        const bool checking = false) const -> bool final;
+    auto Load(
         const std::string& id,
         std::shared_ptr<proto::ServerContract>& contract,
         std::string& alias,
-        const bool checking = false) const final;
-    bool Load(
+        const bool checking = false) const -> bool final;
+    auto Load(
         const identifier::Nym& nym,
         const api::client::blockchain::Coin& id,
         std::shared_ptr<proto::StorageBlockchainTxo>& output,
-        const bool checking = false) const final;
-    bool Load(
+        const bool checking = false) const -> bool final;
+    auto Load(
         const std::string& nymId,
         const std::string& threadId,
-        std::shared_ptr<proto::StorageThread>& thread) const final;
-    bool Load(
+        std::shared_ptr<proto::StorageThread>& thread) const -> bool final;
+    auto Load(
         std::shared_ptr<proto::Ciphertext>& output,
-        const bool checking = false) const final;
-    bool Load(
+        const bool checking = false) const -> bool final;
+    auto Load(
         const std::string& id,
         std::shared_ptr<proto::UnitDefinition>& contract,
-        const bool checking = false) const final;
-    bool Load(
+        const bool checking = false) const -> bool final;
+    auto Load(
         const std::string& id,
         std::shared_ptr<proto::UnitDefinition>& contract,
         std::string& alias,
-        const bool checking = false) const final;
-    const std::set<std::string> LocalNyms() const final;
-    std::set<OTNymID> LookupBlockchainTransaction(
-        const std::string& txid) const final;
-    std::set<api::client::blockchain::Coin> LookupElement(
-        const identifier::Nym& nym,
-        const Data& element) const noexcept final;
-    std::set<api::client::blockchain::Coin> LookupTxid(
-        const identifier::Nym& nym,
-        const std::string& txid) const noexcept final;
+        const bool checking = false) const -> bool final;
+    auto LocalNyms() const -> const std::set<std::string> final;
+    auto LookupBlockchainTransaction(const std::string& txid) const
+        -> std::set<OTNymID> final;
+    auto LookupElement(const identifier::Nym& nym, const Data& element) const
+        noexcept -> std::set<api::client::blockchain::Coin> final;
+    auto LookupTxid(const identifier::Nym& nym, const std::string& txid) const
+        noexcept -> std::set<api::client::blockchain::Coin> final;
     void MapPublicNyms(NymLambda& lambda) const final;
     void MapServers(ServerLambda& lambda) const final;
     void MapUnitDefinitions(UnitLambda& lambda) const final;
 #if OT_CASH
-    bool MarkTokenSpent(
+    auto MarkTokenSpent(
         const identifier::Server& notary,
         const identifier::UnitDefinition& unit,
         const std::uint64_t series,
-        const std::string& key) const final;
+        const std::string& key) const -> bool final;
 #endif
-    bool MoveThreadItem(
+    auto MoveThreadItem(
         const std::string& nymId,
         const std::string& fromThreadID,
         const std::string& toThreadID,
-        const std::string& itemID) const final;
-    ObjectList NymBoxList(const std::string& nymID, const StorageBox box)
-        const final;
-    ObjectList NymList() const final;
-    ObjectList PaymentWorkflowList(const std::string& nymID) const final;
-    std::string PaymentWorkflowLookup(
+        const std::string& itemID) const -> bool final;
+    auto NymBoxList(const std::string& nymID, const StorageBox box) const
+        -> ObjectList final;
+    auto NymList() const -> ObjectList final;
+    auto PaymentWorkflowList(const std::string& nymID) const
+        -> ObjectList final;
+    auto PaymentWorkflowLookup(
         const std::string& nymID,
-        const std::string& sourceID) const final;
-    std::set<std::string> PaymentWorkflowsByAccount(
+        const std::string& sourceID) const -> std::string final;
+    auto PaymentWorkflowsByAccount(
         const std::string& nymID,
-        const std::string& accountID) const final;
-    std::set<std::string> PaymentWorkflowsByState(
+        const std::string& accountID) const -> std::set<std::string> final;
+    auto PaymentWorkflowsByState(
         const std::string& nymID,
         const proto::PaymentWorkflowType type,
-        const proto::PaymentWorkflowState state) const final;
-    std::set<std::string> PaymentWorkflowsByUnit(
+        const proto::PaymentWorkflowState state) const
+        -> std::set<std::string> final;
+    auto PaymentWorkflowsByUnit(
         const std::string& nymID,
-        const std::string& unitID) const final;
-    std::pair<proto::PaymentWorkflowType, proto::PaymentWorkflowState>
-    PaymentWorkflowState(
+        const std::string& unitID) const -> std::set<std::string> final;
+    auto PaymentWorkflowState(
         const std::string& nymID,
-        const std::string& workflowID) const final;
-    bool RelabelThread(const std::string& threadID, const std::string& label)
-        const final;
-    bool RemoveNymBoxItem(
+        const std::string& workflowID) const -> std::
+        pair<proto::PaymentWorkflowType, proto::PaymentWorkflowState> final;
+    auto RelabelThread(const std::string& threadID, const std::string& label)
+        const -> bool final;
+    auto RemoveNymBoxItem(
         const std::string& nymID,
         const StorageBox box,
-        const std::string& itemID) const final;
-    bool RemoveServer(const std::string& id) const final;
-    bool RemoveThreadItem(
+        const std::string& itemID) const -> bool final;
+    auto RemoveServer(const std::string& id) const -> bool final;
+    auto RemoveThreadItem(
         const identifier::Nym& nym,
         const Identifier& thread,
-        const std::string& id) const final;
-    bool RemoveTxo(
+        const std::string& id) const -> bool final;
+    auto RemoveTxo(
         const identifier::Nym& nym,
-        const api::client::blockchain::Coin& id) const final;
-    bool RemoveUnitDefinition(const std::string& id) const final;
-    bool RenameThread(
+        const api::client::blockchain::Coin& id) const -> bool final;
+    auto RemoveUnitDefinition(const std::string& id) const -> bool final;
+    auto RenameThread(
         const std::string& nymId,
         const std::string& threadId,
-        const std::string& newID) const final;
+        const std::string& newID) const -> bool final;
     void RunGC() const final;
-    ObjectList SeedList() const final;
-    std::string ServerAlias(const std::string& id) const final;
-    ObjectList ServerList() const final;
-    bool SetAccountAlias(const std::string& id, const std::string& alias)
-        const final;
-    bool SetContactAlias(const std::string& id, const std::string& alias)
-        const final;
-    bool SetDefaultSeed(const std::string& id) const final;
-    bool SetNymAlias(const std::string& id, const std::string& alias)
-        const final;
-    bool SetPeerRequestTime(
+    auto SeedList() const -> ObjectList final;
+    auto ServerAlias(const std::string& id) const -> std::string final;
+    auto ServerList() const -> ObjectList final;
+    auto SetAccountAlias(const std::string& id, const std::string& alias) const
+        -> bool final;
+    auto SetContactAlias(const std::string& id, const std::string& alias) const
+        -> bool final;
+    auto SetDefaultSeed(const std::string& id) const -> bool final;
+    auto SetNymAlias(const std::string& id, const std::string& alias) const
+        -> bool final;
+    auto SetPeerRequestTime(
         const std::string& nymID,
         const std::string& id,
-        const StorageBox box) const final;
-    bool SetReadState(
+        const StorageBox box) const -> bool final;
+    auto SetReadState(
         const std::string& nymId,
         const std::string& threadId,
         const std::string& itemId,
-        const bool unread) const final;
-    bool SetSeedAlias(const std::string& id, const std::string& alias)
-        const final;
-    bool SetServerAlias(const std::string& id, const std::string& alias)
-        const final;
-    bool SetThreadAlias(
+        const bool unread) const -> bool final;
+    auto SetSeedAlias(const std::string& id, const std::string& alias) const
+        -> bool final;
+    auto SetServerAlias(const std::string& id, const std::string& alias) const
+        -> bool final;
+    auto SetThreadAlias(
         const std::string& nymId,
         const std::string& threadId,
-        const std::string& alias) const final;
-    bool SetUnitDefinitionAlias(const std::string& id, const std::string& alias)
-        const final;
-    bool Store(
+        const std::string& alias) const -> bool final;
+    auto SetUnitDefinitionAlias(const std::string& id, const std::string& alias)
+        const -> bool final;
+    auto Store(
         const std::string& accountID,
         const std::string& data,
         const std::string& alias,
@@ -418,30 +418,31 @@ public:
         const identifier::Nym& issuerNym,
         const identifier::Server& server,
         const identifier::UnitDefinition& contract,
-        const proto::ContactItemType unit) const final;
-    bool Store(
+        const proto::ContactItemType unit) const -> bool final;
+    auto Store(
         const std::string& nymID,
         const proto::ContactItemType type,
-        const proto::HDAccount& data) const final;
-    bool Store(
+        const proto::HDAccount& data) const -> bool final;
+    auto Store(
         const identifier::Nym& nymID,
         const proto::Bip47Channel& data,
-        Identifier& channelID) const final;
-    bool Store(
+        Identifier& channelID) const -> bool final;
+    auto Store(
         const identifier::Nym& nym,
-        const proto::BlockchainTransaction& data) const final;
-    bool Store(
+        const proto::BlockchainTransaction& data) const -> bool final;
+    auto Store(
         const proto::Contact& data,
-        std::map<OTData, OTIdentifier>& changed) const final;
-    bool Store(const proto::Context& data) const final;
-    bool Store(const proto::Credential& data) const final;
-    bool Store(
+        std::map<OTData, OTIdentifier>& changed) const -> bool final;
+    auto Store(const proto::Context& data) const -> bool final;
+    auto Store(const proto::Credential& data) const -> bool final;
+    auto Store(
         const proto::Nym& data,
-        const std::string& alias = std::string("")) const final;
-    bool Store(const std::string& nymID, const proto::Issuer& data) const final;
-    bool Store(const std::string& nymID, const proto::PaymentWorkflow& data)
-        const final;
-    bool Store(
+        const std::string& alias = std::string("")) const -> bool final;
+    auto Store(const std::string& nymID, const proto::Issuer& data) const
+        -> bool final;
+    auto Store(const std::string& nymID, const proto::PaymentWorkflow& data)
+        const -> bool final;
+    auto Store(
         const std::string& nymid,
         const std::string& threadid,
         const std::string& itemid,
@@ -449,40 +450,38 @@ public:
         const std::string& alias,
         const std::string& data,
         const StorageBox box,
-        const std::string& account = std::string("")) const final;
-    bool Store(
+        const std::string& account = std::string("")) const -> bool final;
+    auto Store(
         const proto::PeerReply& data,
         const std::string& nymid,
-        const StorageBox box) const final;
-    bool Store(
+        const StorageBox box) const -> bool final;
+    auto Store(
         const proto::PeerRequest& data,
         const std::string& nymid,
-        const StorageBox box) const final;
-    bool Store(const identifier::Nym& nym, const proto::Purse& purse)
-        const final;
-    bool Store(
+        const StorageBox box) const -> bool final;
+    auto Store(const identifier::Nym& nym, const proto::Purse& purse) const
+        -> bool final;
+    auto Store(
         const proto::Seed& data,
-        const std::string& alias = std::string("")) const final;
-    bool Store(
+        const std::string& alias = std::string("")) const -> bool final;
+    auto Store(
         const proto::ServerContract& data,
-        const std::string& alias = std::string("")) const final;
-    bool Store(
+        const std::string& alias = std::string("")) const -> bool final;
+    auto Store(
         const identifier::Nym& nym,
-        const proto::StorageBlockchainTxo& data) const final;
-    bool Store(const proto::Ciphertext& serialized) const final;
-    bool Store(
+        const proto::StorageBlockchainTxo& data) const -> bool final;
+    auto Store(const proto::Ciphertext& serialized) const -> bool final;
+    auto Store(
         const proto::UnitDefinition& data,
-        const std::string& alias = std::string("")) const final;
-    ObjectList ThreadList(const std::string& nymID, const bool unreadOnly)
-        const final;
-    std::string ThreadAlias(
-        const std::string& nymID,
-        const std::string& threadID) const final;
-    std::string UnitDefinitionAlias(const std::string& id) const final;
-    ObjectList UnitDefinitionList() const final;
-    std::size_t UnreadCount(
-        const std::string& nymId,
-        const std::string& threadId) const final;
+        const std::string& alias = std::string("")) const -> bool final;
+    auto ThreadList(const std::string& nymID, const bool unreadOnly) const
+        -> ObjectList final;
+    auto ThreadAlias(const std::string& nymID, const std::string& threadID)
+        const -> std::string final;
+    auto UnitDefinitionAlias(const std::string& id) const -> std::string final;
+    auto UnitDefinitionList() const -> ObjectList final;
+    auto UnreadCount(const std::string& nymId, const std::string& threadId)
+        const -> std::size_t final;
     void UpgradeNyms() final;
 
     ~Storage();
@@ -502,9 +501,9 @@ private:
     std::unique_ptr<Multiplex> multiplex_p_;
     Multiplex& multiplex_;
 
-    opentxs::storage::Root* root() const;
-    const opentxs::storage::Root& Root() const;
-    bool verify_write_lock(const Lock& lock) const;
+    auto root() const -> opentxs::storage::Root*;
+    auto Root() const -> const opentxs::storage::Root&;
+    auto verify_write_lock(const Lock& lock) const -> bool;
 
     void Cleanup();
     void Cleanup_Storage();
@@ -512,7 +511,7 @@ private:
     void InitBackup() final;
     void InitEncryptedBackup(opentxs::crypto::key::Symmetric& key) final;
     void InitPlugins();
-    Editor<opentxs::storage::Root> mutable_Root() const;
+    auto mutable_Root() const -> Editor<opentxs::storage::Root>;
     void RunMapPublicNyms(NymLambda lambda) const;
     void RunMapServers(ServerLambda lambda) const;
     void RunMapUnits(UnitLambda lambda) const;
@@ -529,7 +528,7 @@ private:
         const Random& random);
     Storage(const Storage&) = delete;
     Storage(Storage&&) = delete;
-    Storage& operator=(const Storage&) = delete;
-    Storage& operator=(Storage&&) = delete;
+    auto operator=(const Storage&) -> Storage& = delete;
+    auto operator=(Storage &&) -> Storage& = delete;
 };
 }  // namespace opentxs::api::storage::implementation

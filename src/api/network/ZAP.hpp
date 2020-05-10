@@ -32,9 +32,9 @@ namespace opentxs::api::network::implementation
 class ZAP final : virtual public api::network::ZAP
 {
 public:
-    bool RegisterDomain(const std::string& domain, const Callback& callback)
-        const final;
-    bool SetDefaultPolicy(const Policy policy) const final;
+    auto RegisterDomain(const std::string& domain, const Callback& callback)
+        const -> bool final;
+    auto SetDefaultPolicy(const Policy policy) const -> bool final;
 
     ~ZAP() final = default;
 
@@ -49,7 +49,7 @@ private:
     ZAP() = delete;
     ZAP(const ZAP&) = delete;
     ZAP(ZAP&&) = delete;
-    ZAP& operator=(const ZAP&) = delete;
-    ZAP& operator=(ZAP&&) = delete;
+    auto operator=(const ZAP&) -> ZAP& = delete;
+    auto operator=(ZAP &&) -> ZAP& = delete;
 };
 }  // namespace opentxs::api::network::implementation

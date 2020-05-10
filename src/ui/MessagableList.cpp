@@ -114,10 +114,10 @@ MessagableList::MessagableList(
     OT_ASSERT(startup_)
 }
 
-void* MessagableList::construct_row(
+auto MessagableList::construct_row(
     const MessagableListRowID& id,
     const MessagableListSortKey& index,
-    const CustomData&) const noexcept
+    const CustomData&) const noexcept -> void*
 {
     names_.emplace(id, index);
     const auto [it, added] = items_[index].emplace(
@@ -126,7 +126,7 @@ void* MessagableList::construct_row(
     return it->second.get();
 }
 
-const Identifier& MessagableList::ID() const noexcept
+auto MessagableList::ID() const noexcept -> const Identifier&
 {
     return owner_contact_id_;
 }

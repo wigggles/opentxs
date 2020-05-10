@@ -34,7 +34,7 @@ namespace opentxs
 {
 using ReturnType = identity::credential::implementation::Contact;
 
-identity::credential::internal::Contact* Factory::ContactCredential(
+auto Factory::ContactCredential(
     const api::internal::Core& api,
     identity::internal::Authority& parent,
     const identity::Source& source,
@@ -42,6 +42,7 @@ identity::credential::internal::Contact* Factory::ContactCredential(
     const NymParameters& parameters,
     const VersionNumber version,
     const opentxs::PasswordPrompt& reason)
+    -> identity::credential::internal::Contact*
 {
     try {
 
@@ -56,12 +57,13 @@ identity::credential::internal::Contact* Factory::ContactCredential(
     }
 }
 
-identity::credential::internal::Contact* Factory::ContactCredential(
+auto Factory::ContactCredential(
     const api::internal::Core& api,
     identity::internal::Authority& parent,
     const identity::Source& source,
     const identity::credential::internal::Primary& master,
     const proto::Credential& serialized)
+    -> identity::credential::internal::Contact*
 {
     try {
 
@@ -79,11 +81,11 @@ identity::credential::internal::Contact* Factory::ContactCredential(
 namespace opentxs::identity::credential
 {
 // static
-std::string Contact::ClaimID(
+auto Contact::ClaimID(
     const api::internal::Core& api,
     const std::string& nymid,
     const std::uint32_t section,
-    const proto::ContactItem& item)
+    const proto::ContactItem& item) -> std::string
 {
     proto::Claim preimage;
     preimage.set_version(1);
@@ -99,7 +101,7 @@ std::string Contact::ClaimID(
 }
 
 // static
-std::string Contact::ClaimID(
+auto Contact::ClaimID(
     const api::internal::Core& api,
     const std::string& nymid,
     const proto::ContactSectionName section,
@@ -107,7 +109,7 @@ std::string Contact::ClaimID(
     const std::int64_t start,
     const std::int64_t end,
     const std::string& value,
-    const std::string& subtype)
+    const std::string& subtype) -> std::string
 {
     proto::Claim preimage;
     preimage.set_version(1);
@@ -123,19 +125,19 @@ std::string Contact::ClaimID(
 }
 
 // static
-OTIdentifier Contact::ClaimID(
+auto Contact::ClaimID(
     const api::internal::Core& api,
-    const proto::Claim& preimage)
+    const proto::Claim& preimage) -> OTIdentifier
 {
     return api.Factory().Identifier(preimage);
 }
 
 // static
-Claim Contact::asClaim(
+auto Contact::asClaim(
     const api::internal::Core& api,
     const String& nymid,
     const std::uint32_t section,
-    const proto::ContactItem& item)
+    const proto::ContactItem& item) -> Claim
 {
     std::set<std::uint32_t> attributes;
 
@@ -198,18 +200,19 @@ Contact::Contact(
     init_serialized(lock);
 }
 
-bool Contact::GetContactData(
-    std::unique_ptr<proto::ContactData>& contactData) const
+auto Contact::GetContactData(
+    std::unique_ptr<proto::ContactData>& contactData) const -> bool
 {
     contactData.reset(new proto::ContactData(data_));
 
     return bool(contactData);
 }
 
-std::shared_ptr<Base::SerializedType> Contact::serialize(
+auto Contact::serialize(
     const Lock& lock,
     const SerializationModeFlag asPrivate,
     const SerializationSignatureFlag asSigned) const
+    -> std::shared_ptr<Base::SerializedType>
 {
     auto serializedCredential = Base::serialize(lock, asPrivate, asSigned);
     serializedCredential->set_mode(proto::KEYMODE_NULL);

@@ -43,13 +43,16 @@ class Set final : public internal::Set
 public:
     operator SerializedType() const noexcept final;
 
-    const api::internal::Core& API() const noexcept final { return api_; }
-    const Group& External() const noexcept final { return *external_; }
-    const Group& Internal() const noexcept final { return *internal_; }
-    const identifier::Nym& NymID() const noexcept { return nym_id_; }
-    VersionNumber Version() const noexcept final { return version_; }
+    auto API() const noexcept -> const api::internal::Core& final
+    {
+        return api_;
+    }
+    auto External() const noexcept -> const Group& final { return *external_; }
+    auto Internal() const noexcept -> const Group& final { return *internal_; }
+    auto NymID() const noexcept -> const identifier::Nym& { return nym_id_; }
+    auto Version() const noexcept -> VersionNumber final { return version_; }
 
-    bool AddItem(
+    auto AddItem(
         const identifier::Nym& claimOwner,
         const Identifier& claim,
         const identity::Nym& signer,
@@ -57,16 +60,17 @@ public:
         const Item::Type value,
         const Time start,
         const Time end,
-        const VersionNumber version) noexcept final;
-    bool AddItem(
+        const VersionNumber version) noexcept -> bool final;
+    auto AddItem(
         const identifier::Nym& verifier,
-        const Item::SerializedType verification) noexcept final;
-    bool DeleteItem(const Identifier& item) noexcept final;
-    Group& External() noexcept final { return *external_; }
-    Group& Internal() noexcept final { return *internal_; }
+        const Item::SerializedType verification) noexcept -> bool final;
+    auto DeleteItem(const Identifier& item) noexcept -> bool final;
+    auto External() noexcept -> Group& final { return *external_; }
+    auto Internal() noexcept -> Group& final { return *internal_; }
     void Register(const Identifier& id, const bool external) noexcept final;
     void Unregister(const Identifier& id) noexcept final;
-    bool UpgradeGroupVersion(const VersionNumber groupVersion) noexcept final;
+    auto UpgradeGroupVersion(const VersionNumber groupVersion) noexcept
+        -> bool final;
 
     ~Set() final = default;
 
@@ -83,10 +87,10 @@ private:
     GroupPointer external_;
     std::map<OTIdentifier, bool> map_;
 
-    static GroupPointer instantiate(
+    static auto instantiate(
         internal::Set& parent,
         const ChildType& serialized,
-        bool external) noexcept;
+        bool external) noexcept -> GroupPointer;
 
     Set(const api::internal::Core& api,
         const identifier::Nym& nym,
@@ -97,7 +101,7 @@ private:
     Set() = delete;
     Set(const Set&) = delete;
     Set(Set&&) = delete;
-    Set& operator=(const Set&) = delete;
-    Set& operator=(Set&&) = delete;
+    auto operator=(const Set&) -> Set& = delete;
+    auto operator=(Set &&) -> Set& = delete;
 };
 }  // namespace opentxs::identity::wot::verification::implementation

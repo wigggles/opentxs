@@ -44,9 +44,9 @@ namespace opentxs::blockchain::p2p::bitcoin::message::implementation
 class Getcfilters final : public internal::Getcfilters
 {
 public:
-    block::Height Start() const noexcept final { return start_; }
-    const filter::Hash& Stop() const noexcept final { return stop_; }
-    filter::Type Type() const noexcept final { return type_; }
+    auto Start() const noexcept -> block::Height final { return start_; }
+    auto Stop() const noexcept -> const filter::Hash& final { return stop_; }
+    auto Type() const noexcept -> filter::Type final { return type_; }
 
     ~Getcfilters() final = default;
 
@@ -59,7 +59,7 @@ private:
     const block::Height start_;
     const filter::pHash stop_;
 
-    OTData payload() const noexcept final;
+    auto payload() const noexcept -> OTData final;
 
     Getcfilters(
         const api::internal::Core& api,
@@ -75,7 +75,7 @@ private:
         const filter::Hash& stop) noexcept;
     Getcfilters(const Getcfilters&) = delete;
     Getcfilters(Getcfilters&&) = delete;
-    Getcfilters& operator=(const Getcfilters&) = delete;
-    Getcfilters& operator=(Getcfilters&&) = delete;
+    auto operator=(const Getcfilters&) -> Getcfilters& = delete;
+    auto operator=(Getcfilters &&) -> Getcfilters& = delete;
 };
 }  // namespace opentxs::blockchain::p2p::bitcoin::message::implementation

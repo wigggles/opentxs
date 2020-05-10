@@ -40,13 +40,13 @@
 
 namespace opentxs
 {
-api::HDSeed* Factory::HDSeed(
+auto Factory::HDSeed(
     const api::Factory& factory,
     const api::crypto::Asymmetric& asymmetric,
     const api::crypto::Symmetric& symmetric,
     const api::storage::Storage& storage,
     const crypto::Bip32& bip32,
-    const crypto::Bip39& bip39)
+    const crypto::Bip39& bip39) -> api::HDSeed*
 {
     return new api::implementation::HDSeed(
         factory, asymmetric, symmetric, storage, bip32, bip39);
@@ -83,11 +83,12 @@ HDSeed::HDSeed(
 }
 
 #if OT_CRYPTO_WITH_BIP32
-std::unique_ptr<opentxs::crypto::key::HD> HDSeed::AccountChildKey(
+auto HDSeed::AccountChildKey(
     const proto::HDPath& rootPath,
     const BIP44Chain internal,
     const Bip32Index index,
     const PasswordPrompt& reason) const
+    -> std::unique_ptr<opentxs::crypto::key::HD>
 {
     std::string fingerprint{rootPath.root()};
     const Bip32Index change = internal ? 1 : 0;
@@ -102,9 +103,9 @@ std::unique_ptr<opentxs::crypto::key::HD> HDSeed::AccountChildKey(
 }
 #endif  // OT_CRYPTO_WITH_BIP32
 
-std::string HDSeed::Bip32Root(
+auto HDSeed::Bip32Root(
     const PasswordPrompt& reason,
-    const std::string& fingerprint) const
+    const std::string& fingerprint) const -> std::string
 {
     // TODO: make fingerprint non-const
     std::string input(fingerprint);
@@ -125,12 +126,12 @@ std::string HDSeed::Bip32Root(
     return stream.str();
 }
 
-bool HDSeed::decrypt_seed(
+auto HDSeed::decrypt_seed(
     const proto::Seed& seed,
     OTPassword& words,
     OTPassword& phrase,
     OTPassword& raw,
-    const PasswordPrompt& reason) const
+    const PasswordPrompt& reason) const -> bool
 {
     if (false == proto::Validate(seed, VERBOSE)) { return false; }
 
@@ -186,16 +187,20 @@ bool HDSeed::decrypt_seed(
     return true;
 }
 
-std::string HDSeed::DefaultSeed() const { return storage_.DefaultSeed(); }
+auto HDSeed::DefaultSeed() const -> std::string
+{
+    return storage_.DefaultSeed();
+}
 
 #if OT_CRYPTO_WITH_BIP32
-std::unique_ptr<opentxs::crypto::key::HD> HDSeed::GetHDKey(
+auto HDSeed::GetHDKey(
     std::string& fingerprint,
     const EcdsaCurve& curve,
     const Path& path,
     const PasswordPrompt& reason,
     const proto::KeyRole role,
     const VersionNumber version) const
+    -> std::unique_ptr<opentxs::crypto::key::HD>
 {
     Bip32Index notUsed{0};
     auto seed = Seed(fingerprint, notUsed, reason);
@@ -228,9 +233,9 @@ auto HDSeed::GetPaymentCode(
 }
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 
-OTSymmetricKey HDSeed::GetStorageKey(
+auto HDSeed::GetStorageKey(
     std::string& fingerprint,
-    const PasswordPrompt& reason) const
+    const PasswordPrompt& reason) const -> OTSymmetricKey
 {
     auto pKey = GetHDKey(
         fingerprint,
@@ -253,9 +258,8 @@ OTSymmetricKey HDSeed::GetStorageKey(
 }
 #endif  // OT_CRYPTO_WITH_BIP32
 
-std::string HDSeed::ImportRaw(
-    const OTPassword& entropy,
-    const PasswordPrompt& reason) const
+auto HDSeed::ImportRaw(const OTPassword& entropy, const PasswordPrompt& reason)
+    const -> std::string
 {
     if (false == entropy.isMemory()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid entropy format").Flush();
@@ -282,15 +286,15 @@ std::string HDSeed::ImportRaw(
     return save_seed(text_secret_, text_secret_, entropy, reason);
 }
 
-std::string HDSeed::ImportSeed(
+auto HDSeed::ImportSeed(
     const OTPassword& words,
     const OTPassword& passphrase,
-    const PasswordPrompt& reason) const
+    const PasswordPrompt& reason) const -> std::string
 {
     return save_seed(words, passphrase, binary_secret_, reason);
 }
 
-std::string HDSeed::NewSeed(const PasswordPrompt& reason) const
+auto HDSeed::NewSeed(const PasswordPrompt& reason) const -> std::string
 {
     auto entropy = factory_.BinarySecret();
 
@@ -311,9 +315,9 @@ std::string HDSeed::NewSeed(const PasswordPrompt& reason) const
     return save_seed(words, passphrase, binary_secret_, reason);
 }
 
-std::string HDSeed::Passphrase(
+auto HDSeed::Passphrase(
     const PasswordPrompt& reason,
-    const std::string& fingerprint) const
+    const std::string& fingerprint) const -> std::string
 {
     // TODO: make fingerprint non-const
     std::string input(fingerprint);
@@ -335,11 +339,11 @@ std::string HDSeed::Passphrase(
     return phrase.getPassword();
 }
 
-std::string HDSeed::save_seed(
+auto HDSeed::save_seed(
     const OTPassword& words,
     const OTPassword& passphrase,
     const OTPassword& raw,
-    const PasswordPrompt& reason) const
+    const PasswordPrompt& reason) const -> std::string
 {
     OT_ASSERT(words.isPassword());
     OT_ASSERT(passphrase.isPassword());
@@ -415,10 +419,10 @@ std::string HDSeed::save_seed(
     return fingerprint;
 }
 
-std::shared_ptr<OTPassword> HDSeed::Seed(
+auto HDSeed::Seed(
     std::string& fingerprint,
     Bip32Index& index,
-    const PasswordPrompt& reason) const
+    const PasswordPrompt& reason) const -> std::shared_ptr<OTPassword>
 {
     auto output = factory_.BinarySecret();
 
@@ -451,11 +455,11 @@ std::shared_ptr<OTPassword> HDSeed::Seed(
     return std::move(output);
 }
 
-bool HDSeed::seed_to_data(
+auto HDSeed::seed_to_data(
     const OTPassword& words,
     const OTPassword& passphrase,
     const OTPassword& raw,
-    OTPassword& output) const
+    OTPassword& output) const -> bool
 {
     OT_ASSERT(words.isPassword());
     OT_ASSERT(passphrase.isPassword());
@@ -470,10 +474,10 @@ bool HDSeed::seed_to_data(
     return true;
 }
 
-std::shared_ptr<proto::Seed> HDSeed::serialized_seed(
+auto HDSeed::serialized_seed(
     std::string& fingerprint,
     Bip32Index& index,
-    const PasswordPrompt& reason) const
+    const PasswordPrompt& reason) const -> std::shared_ptr<proto::Seed>
 {
     const bool wantDefaultSeed = fingerprint.empty();
     std::shared_ptr<proto::Seed> serialized;
@@ -500,10 +504,10 @@ std::shared_ptr<proto::Seed> HDSeed::serialized_seed(
     return serialized;
 }
 
-bool HDSeed::UpdateIndex(
+auto HDSeed::UpdateIndex(
     std::string& seed,
     const Bip32Index index,
-    const PasswordPrompt& reason) const
+    const PasswordPrompt& reason) const -> bool
 {
     Bip32Index oldIndex = 0;
     auto serialized = serialized_seed(seed, oldIndex, reason);
@@ -532,9 +536,8 @@ bool HDSeed::UpdateIndex(
     return storage_.Store(*serialized, seed);
 }
 
-std::string HDSeed::Words(
-    const PasswordPrompt& reason,
-    const std::string& fingerprint) const
+auto HDSeed::Words(const PasswordPrompt& reason, const std::string& fingerprint)
+    const -> std::string
 {
     // TODO: make fingerprint non-const
     std::string input(fingerprint);

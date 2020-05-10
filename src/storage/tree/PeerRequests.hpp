@@ -38,8 +38,8 @@ private:
     friend Nym;
 
     void init(const std::string& hash) final;
-    bool save(const std::unique_lock<std::mutex>& lock) const final;
-    proto::StorageNymList serialize() const;
+    auto save(const std::unique_lock<std::mutex>& lock) const -> bool final;
+    auto serialize() const -> proto::StorageNymList;
 
     PeerRequests(
         const opentxs::api::storage::Driver& storage,
@@ -47,19 +47,20 @@ private:
     PeerRequests() = delete;
     PeerRequests(const PeerRequests&) = delete;
     PeerRequests(PeerRequests&&) = delete;
-    PeerRequests operator=(const PeerRequests&) = delete;
-    PeerRequests operator=(PeerRequests&&) = delete;
+    auto operator=(const PeerRequests&) -> PeerRequests = delete;
+    auto operator=(PeerRequests &&) -> PeerRequests = delete;
 
 public:
-    bool Load(
+    auto Load(
         const std::string& id,
         std::shared_ptr<proto::PeerRequest>& output,
         std::string& alias,
-        const bool checking) const;
+        const bool checking) const -> bool;
 
-    bool Delete(const std::string& id);
-    bool SetAlias(const std::string& id, const std::string& alias);
-    bool Store(const proto::PeerRequest& data, const std::string& alias);
+    auto Delete(const std::string& id) -> bool;
+    auto SetAlias(const std::string& id, const std::string& alias) -> bool;
+    auto Store(const proto::PeerRequest& data, const std::string& alias)
+        -> bool;
 
     ~PeerRequests() final = default;
 };

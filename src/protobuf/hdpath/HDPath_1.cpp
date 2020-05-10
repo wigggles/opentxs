@@ -15,7 +15,7 @@ namespace opentxs
 namespace proto
 {
 
-bool CheckProto_1(const HDPath& input, const bool silent)
+auto CheckProto_1(const HDPath& input, const bool silent) -> bool
 {
     CHECK_EXISTS_STRING(root);
 
@@ -24,97 +24,97 @@ bool CheckProto_1(const HDPath& input, const bool silent)
     return true;
 }
 
-bool CheckProto_2(const HDPath& input, const bool silent)
+auto CheckProto_2(const HDPath& input, const bool silent) -> bool
 {
     UNDEFINED_VERSION(2)
 }
 
-bool CheckProto_3(const HDPath& input, const bool silent)
+auto CheckProto_3(const HDPath& input, const bool silent) -> bool
 {
     UNDEFINED_VERSION(3)
 }
 
-bool CheckProto_4(const HDPath& input, const bool silent)
+auto CheckProto_4(const HDPath& input, const bool silent) -> bool
 {
     UNDEFINED_VERSION(4)
 }
 
-bool CheckProto_5(const HDPath& input, const bool silent)
+auto CheckProto_5(const HDPath& input, const bool silent) -> bool
 {
     UNDEFINED_VERSION(5)
 }
 
-bool CheckProto_6(const HDPath& input, const bool silent)
+auto CheckProto_6(const HDPath& input, const bool silent) -> bool
 {
     UNDEFINED_VERSION(6)
 }
 
-bool CheckProto_7(const HDPath& input, const bool silent)
+auto CheckProto_7(const HDPath& input, const bool silent) -> bool
 {
     UNDEFINED_VERSION(7)
 }
 
-bool CheckProto_8(const HDPath& input, const bool silent)
+auto CheckProto_8(const HDPath& input, const bool silent) -> bool
 {
     UNDEFINED_VERSION(8)
 }
 
-bool CheckProto_9(const HDPath& input, const bool silent)
+auto CheckProto_9(const HDPath& input, const bool silent) -> bool
 {
     UNDEFINED_VERSION(9)
 }
 
-bool CheckProto_10(const HDPath& input, const bool silent)
+auto CheckProto_10(const HDPath& input, const bool silent) -> bool
 {
     UNDEFINED_VERSION(10)
 }
 
-bool CheckProto_11(const HDPath& input, const bool silent)
+auto CheckProto_11(const HDPath& input, const bool silent) -> bool
 {
     UNDEFINED_VERSION(11)
 }
 
-bool CheckProto_12(const HDPath& input, const bool silent)
+auto CheckProto_12(const HDPath& input, const bool silent) -> bool
 {
     UNDEFINED_VERSION(12)
 }
 
-bool CheckProto_13(const HDPath& input, const bool silent)
+auto CheckProto_13(const HDPath& input, const bool silent) -> bool
 {
     UNDEFINED_VERSION(13)
 }
 
-bool CheckProto_14(const HDPath& input, const bool silent)
+auto CheckProto_14(const HDPath& input, const bool silent) -> bool
 {
     UNDEFINED_VERSION(14)
 }
 
-bool CheckProto_15(const HDPath& input, const bool silent)
+auto CheckProto_15(const HDPath& input, const bool silent) -> bool
 {
     UNDEFINED_VERSION(15)
 }
 
-bool CheckProto_16(const HDPath& input, const bool silent)
+auto CheckProto_16(const HDPath& input, const bool silent) -> bool
 {
     UNDEFINED_VERSION(16)
 }
 
-bool CheckProto_17(const HDPath& input, const bool silent)
+auto CheckProto_17(const HDPath& input, const bool silent) -> bool
 {
     UNDEFINED_VERSION(17)
 }
 
-bool CheckProto_18(const HDPath& input, const bool silent)
+auto CheckProto_18(const HDPath& input, const bool silent) -> bool
 {
     UNDEFINED_VERSION(18)
 }
 
-bool CheckProto_19(const HDPath& input, const bool silent)
+auto CheckProto_19(const HDPath& input, const bool silent) -> bool
 {
     UNDEFINED_VERSION(19)
 }
 
-bool CheckProto_20(const HDPath& input, const bool silent)
+auto CheckProto_20(const HDPath& input, const bool silent) -> bool
 {
     UNDEFINED_VERSION(20)
 }

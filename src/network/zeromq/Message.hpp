@@ -73,7 +73,7 @@ private:
     auto findDivider() const -> std::size_t;
 
     Message(Message&&) = delete;
-    Message& operator=(const Message&) = delete;
-    Message& operator=(Message&&) = delete;
+    auto operator=(const Message&) -> Message& = delete;
+    auto operator=(Message &&) -> Message& = delete;
 };
 }  // namespace opentxs::network::zeromq::implementation

@@ -52,26 +52,27 @@ private:
     mutable int receive_timeout_;
     mutable std::mutex send_lock_;
 
-    bool apply_timeouts(void* socket, std::mutex& socket_mutex) const noexcept;
-    bool bind(
+    auto apply_timeouts(void* socket, std::mutex& socket_mutex) const noexcept
+        -> bool;
+    auto bind(
         void* socket,
         std::mutex& socket_mutex,
-        const std::string& endpoint) const noexcept;
-    bool connect(
+        const std::string& endpoint) const noexcept -> bool;
+    auto connect(
         void* socket,
         std::mutex& socket_mutex,
-        const std::string& endpoint) const noexcept;
+        const std::string& endpoint) const noexcept -> bool;
 
-    bool process_pull_socket(const Lock& lock) noexcept;
-    bool process_receiver_socket(const Lock& lock) noexcept;
-    bool send(zeromq::Message& message) const noexcept final;
-    bool send(const Lock& lock, zeromq::Message& message) noexcept;
+    auto process_pull_socket(const Lock& lock) noexcept -> bool;
+    auto process_receiver_socket(const Lock& lock) noexcept -> bool;
+    auto send(zeromq::Message& message) const noexcept -> bool final;
+    auto send(const Lock& lock, zeromq::Message& message) noexcept -> bool;
     void thread() noexcept final;
 
     Bidirectional() = delete;
     Bidirectional(const Bidirectional&) = delete;
     Bidirectional(Bidirectional&&) = delete;
-    Bidirectional& operator=(const Bidirectional&) = delete;
-    Bidirectional& operator=(Bidirectional&&) = delete;
+    auto operator=(const Bidirectional&) -> Bidirectional& = delete;
+    auto operator=(Bidirectional &&) -> Bidirectional& = delete;
 };
 }  // namespace opentxs::network::zeromq::socket::implementation

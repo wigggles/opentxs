@@ -24,12 +24,13 @@
 
 namespace opentxs
 {
-blockchain::p2p::bitcoin::message::internal::Block* Factory::BitcoinP2PBlock(
+auto Factory::BitcoinP2PBlock(
     const api::internal::Core& api,
     std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
     const blockchain::p2p::bitcoin::ProtocolVersion version,
     const void* payload,
     const std::size_t size)
+    -> blockchain::p2p::bitcoin::message::internal::Block*
 {
     namespace bitcoin = blockchain::p2p::bitcoin;
     using ReturnType = bitcoin::message::implementation::Block;
@@ -46,10 +47,11 @@ blockchain::p2p::bitcoin::message::internal::Block* Factory::BitcoinP2PBlock(
     return new ReturnType(api, std::move(pHeader), raw_block);
 }
 
-blockchain::p2p::bitcoin::message::internal::Block* Factory::BitcoinP2PBlock(
+auto Factory::BitcoinP2PBlock(
     const api::internal::Core& api,
     const blockchain::Type network,
     const Data& raw_block)
+    -> blockchain::p2p::bitcoin::message::internal::Block*
 {
     namespace bitcoin = blockchain::p2p::bitcoin;
     using ReturnType = bitcoin::message::implementation::Block;

@@ -40,12 +40,13 @@ private:
     typedef Plugin ot_super;
 
 public:
-    bool LoadFromBucket(
+    auto LoadFromBucket(
         const std::string& key,
         std::string& value,
-        const bool bucket) const override;
-    std::string LoadRoot() const override;
-    bool StoreRoot(const bool commit, const std::string& hash) const override;
+        const bool bucket) const -> bool override;
+    auto LoadRoot() const -> std::string override;
+    auto StoreRoot(const bool commit, const std::string& hash) const
+        -> bool override;
 
     void Cleanup() override;
 
@@ -56,7 +57,7 @@ protected:
     const std::string path_seperator_{};
     OTFlag ready_;
 
-    bool sync(const std::string& path) const;
+    auto sync(const std::string& path) const -> bool;
 
     StorageFS(
         const api::storage::Storage& storage,
@@ -70,26 +71,26 @@ private:
     typedef boost::iostreams::stream<boost::iostreams::file_descriptor_sink>
         File;
 
-    virtual std::string calculate_path(
+    virtual auto calculate_path(
         const std::string& key,
         const bool bucket,
-        std::string& directory) const = 0;
-    virtual std::string prepare_read(const std::string& input) const;
-    virtual std::string prepare_write(const std::string& input) const;
-    std::string read_file(const std::string& filename) const;
-    virtual std::string root_filename() const = 0;
+        std::string& directory) const -> std::string = 0;
+    virtual auto prepare_read(const std::string& input) const -> std::string;
+    virtual auto prepare_write(const std::string& input) const -> std::string;
+    auto read_file(const std::string& filename) const -> std::string;
+    virtual auto root_filename() const -> std::string = 0;
     void store(
         const bool isTransaction,
         const std::string& key,
         const std::string& value,
         const bool bucket,
         std::promise<bool>* promise) const override;
-    bool sync(File& file) const;
-    bool sync(int fd) const;
-    bool write_file(
+    auto sync(File& file) const -> bool;
+    auto sync(int fd) const -> bool;
+    auto write_file(
         const std::string& directory,
         const std::string& filename,
-        const std::string& contents) const;
+        const std::string& contents) const -> bool;
 
     void Cleanup_StorageFS();
     void Init_StorageFS();
@@ -97,7 +98,7 @@ private:
     StorageFS() = delete;
     StorageFS(const StorageFS&) = delete;
     StorageFS(StorageFS&&) = delete;
-    StorageFS& operator=(const StorageFS&) = delete;
-    StorageFS& operator=(StorageFS&&) = delete;
+    auto operator=(const StorageFS&) -> StorageFS& = delete;
+    auto operator=(StorageFS &&) -> StorageFS& = delete;
 };
 }  // namespace opentxs

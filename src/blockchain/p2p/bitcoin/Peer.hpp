@@ -121,13 +121,14 @@ private:
     std::atomic<bool> relay_;
     Request get_headers_;
 
-    static std::set<p2p::Service> get_local_services(
+    static auto get_local_services(
         const ProtocolVersion version,
         const blockchain::Type network,
-        const std::set<p2p::Service>& input) noexcept;
-    static Nonce nonce(const api::internal::Core& api) noexcept;
+        const std::set<p2p::Service>& input) noexcept -> std::set<p2p::Service>;
+    static auto nonce(const api::internal::Core& api) noexcept -> Nonce;
 
-    std::size_t get_body_size(const zmq::Frame& header) const noexcept final;
+    auto get_body_size(const zmq::Frame& header) const noexcept
+        -> std::size_t final;
 
     void ping() noexcept final;
     void pong() noexcept final;
@@ -253,7 +254,7 @@ private:
     Peer() = delete;
     Peer(const Peer&) = delete;
     Peer(Peer&&) = delete;
-    Peer& operator=(const Peer&) = delete;
-    Peer& operator=(Peer&&) = delete;
+    auto operator=(const Peer&) -> Peer& = delete;
+    auto operator=(Peer &&) -> Peer& = delete;
 };
 }  // namespace opentxs::blockchain::p2p::bitcoin::implementation

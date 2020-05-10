@@ -31,12 +31,13 @@
 
 namespace opentxs
 {
-api::client::blockchain::internal::BalanceTree* Factory::BlockchainBalanceTree(
+auto Factory::BlockchainBalanceTree(
     const api::client::blockchain::internal::BalanceList& parent,
     const identifier::Nym& id,
     const std::set<OTIdentifier>& hdAccounts,
     [[maybe_unused]] const std::set<OTIdentifier>& importedAccounts,
     [[maybe_unused]] const std::set<OTIdentifier>& paymentCodeAccounts)
+    -> api::client::blockchain::internal::BalanceTree*
 {
     using ReturnType = api::client::blockchain::implementation::BalanceTree;
 

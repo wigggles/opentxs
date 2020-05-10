@@ -36,30 +36,30 @@ template class opentxs::Pimpl<opentxs::network::zeromq::socket::Pair>;
 
 namespace opentxs
 {
-network::zeromq::socket::Pair* Factory::PairSocket(
+auto Factory::PairSocket(
     const network::zeromq::Context& context,
     const network::zeromq::ListenCallback& callback,
-    const bool startThread)
+    const bool startThread) -> network::zeromq::socket::Pair*
 {
     using ReturnType = network::zeromq::socket::implementation::Pair;
 
     return new ReturnType(context, callback, startThread);
 }
 
-network::zeromq::socket::Pair* Factory::PairSocket(
+auto Factory::PairSocket(
     const network::zeromq::ListenCallback& callback,
     const network::zeromq::socket::Pair& peer,
-    const bool startThread)
+    const bool startThread) -> network::zeromq::socket::Pair*
 {
     using ReturnType = network::zeromq::socket::implementation::Pair;
 
     return new ReturnType(callback, peer, startThread);
 }
 
-network::zeromq::socket::Pair* Factory::PairSocket(
+auto Factory::PairSocket(
     const network::zeromq::Context& context,
     const network::zeromq::ListenCallback& callback,
-    const std::string& endpoint)
+    const std::string& endpoint) -> network::zeromq::socket::Pair*
 {
     using ReturnType = network::zeromq::socket::implementation::Pair;
 
@@ -117,14 +117,14 @@ Pair::Pair(
 {
 }
 
-Pair* Pair::clone() const noexcept
+auto Pair::clone() const noexcept -> Pair*
 {
     return new Pair(context_, callback_, endpoint_, direction_, false);
 }
 
-const std::string& Pair::Endpoint() const noexcept { return endpoint_; }
+auto Pair::Endpoint() const noexcept -> const std::string& { return endpoint_; }
 
-bool Pair::have_callback() const noexcept { return true; }
+auto Pair::have_callback() const noexcept -> bool { return true; }
 
 void Pair::init() noexcept
 {

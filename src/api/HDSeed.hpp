@@ -66,57 +66,59 @@ class HDSeed final : public api::HDSeed
 {
 public:
 #if OT_CRYPTO_WITH_BIP32
-    std::unique_ptr<opentxs::crypto::key::HD> AccountChildKey(
+    auto AccountChildKey(
         const proto::HDPath& path,
         const BIP44Chain internal,
         const Bip32Index index,
-        const PasswordPrompt& reason) const final;
+        const PasswordPrompt& reason) const
+        -> std::unique_ptr<opentxs::crypto::key::HD> final;
 #endif  // OT_CRYPTO_WITH_BIP32
-    std::string Bip32Root(
+    auto Bip32Root(
         const PasswordPrompt& reason,
-        const std::string& fingerprint = "") const final;
-    std::string DefaultSeed() const final;
+        const std::string& fingerprint = "") const -> std::string final;
+    auto DefaultSeed() const -> std::string final;
 #if OT_CRYPTO_WITH_BIP32
-    std::unique_ptr<opentxs::crypto::key::HD> GetHDKey(
+    auto GetHDKey(
         std::string& fingerprint,
         const EcdsaCurve& curve,
         const Path& path,
         const PasswordPrompt& reason,
         const proto::KeyRole role = proto::KEYROLE_SIGN,
         const VersionNumber version =
-            opentxs::crypto::key::EllipticCurve::DefaultVersion) const final;
+            opentxs::crypto::key::EllipticCurve::DefaultVersion) const
+        -> std::unique_ptr<opentxs::crypto::key::HD> final;
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-    std::unique_ptr<opentxs::crypto::key::Secp256k1> GetPaymentCode(
+    auto GetPaymentCode(
         std::string& fingerprint,
         const Bip32Index nym,
-        const PasswordPrompt& reason) const final;
+        const PasswordPrompt& reason) const
+        -> std::unique_ptr<opentxs::crypto::key::Secp256k1> final;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-    OTSymmetricKey GetStorageKey(
-        std::string& seed,
-        const PasswordPrompt& reason) const final;
+    auto GetStorageKey(std::string& seed, const PasswordPrompt& reason) const
+        -> OTSymmetricKey final;
 #endif  // OT_CRYPTO_WITH_BIP32
-    std::string ImportRaw(
-        const OTPassword& entropy,
-        const PasswordPrompt& reason) const final;
-    std::string ImportSeed(
+    auto ImportRaw(const OTPassword& entropy, const PasswordPrompt& reason)
+        const -> std::string final;
+    auto ImportSeed(
         const OTPassword& words,
         const OTPassword& passphrase,
-        const PasswordPrompt& reason) const final;
-    std::string NewSeed(const PasswordPrompt& reason) const final;
-    std::string Passphrase(
+        const PasswordPrompt& reason) const -> std::string final;
+    auto NewSeed(const PasswordPrompt& reason) const -> std::string final;
+    auto Passphrase(
         const PasswordPrompt& reason,
-        const std::string& fingerprint = "") const final;
-    std::shared_ptr<OTPassword> Seed(
+        const std::string& fingerprint = "") const -> std::string final;
+    auto Seed(
         std::string& fingerprint,
         Bip32Index& index,
-        const PasswordPrompt& reason) const final;
-    bool UpdateIndex(
+        const PasswordPrompt& reason) const
+        -> std::shared_ptr<OTPassword> final;
+    auto UpdateIndex(
         std::string& seed,
         const Bip32Index index,
-        const PasswordPrompt& reason) const final;
-    std::string Words(
+        const PasswordPrompt& reason) const -> bool final;
+    auto Words(
         const PasswordPrompt& reason,
-        const std::string& fingerprint = "") const final;
+        const std::string& fingerprint = "") const -> std::string final;
 
     virtual ~HDSeed() = default;
 
@@ -136,26 +138,26 @@ private:
     const opentxs::crypto::Bip32& bip32_;
     const opentxs::crypto::Bip39& bip39_;
 
-    bool decrypt_seed(
+    auto decrypt_seed(
         const proto::Seed& seed,
         OTPassword& words,
         OTPassword& phrase,
         OTPassword& raw,
-        const PasswordPrompt& reason) const;
-    std::string save_seed(
+        const PasswordPrompt& reason) const -> bool;
+    auto save_seed(
         const OTPassword& words,
         const OTPassword& passphrase,
         const OTPassword& raw,
-        const PasswordPrompt& reason) const;
-    bool seed_to_data(
+        const PasswordPrompt& reason) const -> std::string;
+    auto seed_to_data(
         const OTPassword& words,
         const OTPassword& passphrase,
         const OTPassword& raw,
-        OTPassword& output) const;
-    std::shared_ptr<proto::Seed> serialized_seed(
+        OTPassword& output) const -> bool;
+    auto serialized_seed(
         std::string& fingerprint,
         Bip32Index& index,
-        const PasswordPrompt& reason) const;
+        const PasswordPrompt& reason) const -> std::shared_ptr<proto::Seed>;
 
     HDSeed(
         const api::Factory& factory,
@@ -167,7 +169,7 @@ private:
     HDSeed() = delete;
     HDSeed(const HDSeed&) = delete;
     HDSeed(HDSeed&&) = delete;
-    HDSeed& operator=(const HDSeed&) = delete;
-    HDSeed& operator=(HDSeed&&) = delete;
+    auto operator=(const HDSeed&) -> HDSeed& = delete;
+    auto operator=(HDSeed &&) -> HDSeed& = delete;
 };
 }  // namespace opentxs::api::implementation

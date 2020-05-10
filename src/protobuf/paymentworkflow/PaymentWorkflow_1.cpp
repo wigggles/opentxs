@@ -36,7 +36,7 @@
 
 namespace opentxs::proto
 {
-bool CheckProto_1(const PaymentWorkflow& input, const bool silent)
+auto CheckProto_1(const PaymentWorkflow& input, const bool silent) -> bool
 {
     CHECK_IDENTIFIER(id)
 

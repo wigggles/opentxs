@@ -33,7 +33,7 @@ void OTCaller::AskTwice(const PasswordPrompt& prompt, OTPassword& output)
     callback_->runTwo(prompt.GetDisplayString(), output);
 }
 
-bool OTCaller::HaveCallback() const { return nullptr != callback_; }
+auto OTCaller::HaveCallback() const -> bool { return nullptr != callback_; }
 
 void OTCaller::SetCallback(OTCallback* callback) { callback_ = callback; }
 

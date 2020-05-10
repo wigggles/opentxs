@@ -44,8 +44,8 @@ namespace opentxs::blockchain::p2p::bitcoin::message::implementation
 class Getcfcheckpt final : public internal::Getcfcheckpt
 {
 public:
-    const filter::Hash& Stop() const noexcept final { return stop_; }
-    filter::Type Type() const noexcept final { return type_; }
+    auto Stop() const noexcept -> const filter::Hash& final { return stop_; }
+    auto Type() const noexcept -> filter::Type final { return type_; }
 
     ~Getcfcheckpt() final = default;
 
@@ -57,7 +57,7 @@ private:
     const filter::Type type_;
     const filter::pHash stop_;
 
-    OTData payload() const noexcept final;
+    auto payload() const noexcept -> OTData final;
 
     Getcfcheckpt(
         const api::internal::Core& api,
@@ -71,7 +71,7 @@ private:
         const filter::Hash& stop) noexcept;
     Getcfcheckpt(const Getcfcheckpt&) = delete;
     Getcfcheckpt(Getcfcheckpt&&) = delete;
-    Getcfcheckpt& operator=(const Getcfcheckpt&) = delete;
-    Getcfcheckpt& operator=(Getcfcheckpt&&) = delete;
+    auto operator=(const Getcfcheckpt&) -> Getcfcheckpt& = delete;
+    auto operator=(Getcfcheckpt &&) -> Getcfcheckpt& = delete;
 };
 }  // namespace opentxs::blockchain::p2p::bitcoin::message::implementation

@@ -41,15 +41,15 @@ public:
     using MintSeries = std::uint64_t;
 
 #if OT_CASH
-    bool CheckSpent(
+    auto CheckSpent(
         const identifier::UnitDefinition& unit,
         const MintSeries series,
-        const std::string& key) const;
+        const std::string& key) const -> bool;
 
-    bool MarkSpent(
+    auto MarkSpent(
         const identifier::UnitDefinition& unit,
         const MintSeries series,
-        const std::string& key);
+        const std::string& key) -> bool;
 #endif
 
     ~Notary() final = default;
@@ -64,17 +64,17 @@ private:
 #if OT_CASH
     mutable UnitMap mint_map_;
 
-    std::string create_list(
+    auto create_list(
         const std::string& unitID,
         const MintSeries series,
-        std::shared_ptr<proto::SpentTokenList>& output) const;
-    proto::SpentTokenList get_or_create_list(
+        std::shared_ptr<proto::SpentTokenList>& output) const -> std::string;
+    auto get_or_create_list(
         const Lock& lock,
         const std::string& unitID,
-        const MintSeries series) const;
+        const MintSeries series) const -> proto::SpentTokenList;
 #endif
-    bool save(const Lock& lock) const final;
-    proto::StorageNotary serialize() const;
+    auto save(const Lock& lock) const -> bool final;
+    auto serialize() const -> proto::StorageNotary;
 
     void init(const std::string& hash) final;
 
@@ -85,7 +85,7 @@ private:
     Notary() = delete;
     Notary(const Notary&) = delete;
     Notary(Notary&&) = delete;
-    Notary operator=(const Notary&) = delete;
-    Notary operator=(Notary&&) = delete;
+    auto operator=(const Notary&) -> Notary = delete;
+    auto operator=(Notary &&) -> Notary = delete;
 };
 }  // namespace opentxs::storage

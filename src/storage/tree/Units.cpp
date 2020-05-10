@@ -37,9 +37,12 @@ Units::Units(
     }
 }
 
-std::string Units::Alias(const std::string& id) const { return get_alias(id); }
+auto Units::Alias(const std::string& id) const -> std::string
+{
+    return get_alias(id);
+}
 
-bool Units::Delete(const std::string& id) { return delete_item(id); }
+auto Units::Delete(const std::string& id) -> bool { return delete_item(id); }
 
 void Units::init(const std::string& hash)
 {
@@ -60,18 +63,18 @@ void Units::init(const std::string& hash)
     }
 }
 
-bool Units::Load(
+auto Units::Load(
     const std::string& id,
     std::shared_ptr<proto::UnitDefinition>& output,
     std::string& alias,
-    const bool checking) const
+    const bool checking) const -> bool
 {
     return load_proto<proto::UnitDefinition>(id, output, alias, checking);
 }
 
 void Units::Map(UnitLambda lambda) const { map<proto::UnitDefinition>(lambda); }
 
-bool Units::save(const std::unique_lock<std::mutex>& lock) const
+auto Units::save(const std::unique_lock<std::mutex>& lock) const -> bool
 {
     if (!verify_write_lock(lock)) {
         std::cerr << __FUNCTION__ << ": Lock failure." << std::endl;
@@ -85,7 +88,7 @@ bool Units::save(const std::unique_lock<std::mutex>& lock) const
     return driver_.StoreProto(serialized, root_);
 }
 
-proto::StorageUnits Units::serialize() const
+auto Units::serialize() const -> proto::StorageUnits
 {
     proto::StorageUnits serialized;
     serialized.set_version(version_);
@@ -104,15 +107,15 @@ proto::StorageUnits Units::serialize() const
     return serialized;
 }
 
-bool Units::SetAlias(const std::string& id, const std::string& alias)
+auto Units::SetAlias(const std::string& id, const std::string& alias) -> bool
 {
     return set_alias(id, alias);
 }
 
-bool Units::Store(
+auto Units::Store(
     const proto::UnitDefinition& data,
     const std::string& alias,
-    std::string& plaintext)
+    std::string& plaintext) -> bool
 {
     return store_proto(data, data.id(), alias, plaintext);
 }

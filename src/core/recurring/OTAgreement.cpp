@@ -102,7 +102,7 @@ void OTAgreement::setCustomerNymId(const identifier::Nym& NYM_ID)
     ot_super::SetSenderNymID(NYM_ID);
 }
 
-bool OTAgreement::SendNoticeToAllParties(
+auto OTAgreement::SendNoticeToAllParties(
     const api::internal::Core& core,
     bool bSuccessMsg,
     const identity::Nym& theServerNym,
@@ -113,7 +113,7 @@ bool OTAgreement::SendNoticeToAllParties(
     const PasswordPrompt& reason,
     OTString pstrNote,
     OTString pstrAttachment,
-    identity::Nym* pActualNym) const
+    identity::Nym* pActualNym) const -> bool
 {
     // Success is defined as ALL parties receiving a notice
     bool bSuccess = true;
@@ -160,7 +160,7 @@ bool OTAgreement::SendNoticeToAllParties(
 // static
 // Used by payment plans and smart contracts. Nym receives an
 // Item::acknowledgment or Item::rejection.
-bool OTAgreement::DropServerNoticeToNymbox(
+auto OTAgreement::DropServerNoticeToNymbox(
     const api::internal::Core& core,
     bool bSuccessMsg,
     const identity::Nym& theServerNym,
@@ -173,7 +173,7 @@ bool OTAgreement::DropServerNoticeToNymbox(
     OTString pstrNote,
     OTString pstrAttachment,
     const identifier::Nym& actualNymID,
-    const PasswordPrompt& reason)
+    const PasswordPrompt& reason) -> bool
 {
     auto theLedger{core.Factory().Ledger(NYM_ID, NYM_ID, NOTARY_ID)};
 
@@ -309,7 +309,7 @@ bool OTAgreement::DropServerNoticeToNymbox(
 }
 
 // Overrides from OTTrackable.
-bool OTAgreement::HasTransactionNum(const std::int64_t& lInput) const
+auto OTAgreement::HasTransactionNum(const std::int64_t& lInput) const -> bool
 {
     if (lInput == GetTransactionNum()) return true;
 
@@ -352,18 +352,18 @@ void OTAgreement::GetAllTransactionNumbers(NumList& numlistOutput) const
 // what I still call here, inside this function. But that's a special case -- an
 // override from the OTScriptable / OTSmartContract version, which verifies
 // parties and agents, etc.
-bool OTAgreement::VerifyNymAsAgent(
+auto OTAgreement::VerifyNymAsAgent(
     const identity::Nym& theNym,
-    const identity::Nym&) const
+    const identity::Nym&) const -> bool
 {
     return VerifySignature(theNym);
 }
 
 // This is an override. See note above.
 //
-bool OTAgreement::VerifyNymAsAgentForAccount(
+auto OTAgreement::VerifyNymAsAgentForAccount(
     const identity::Nym& theNym,
-    const Account& theAccount) const
+    const Account& theAccount) const -> bool
 {
     return theAccount.VerifyOwner(theNym);
 }
@@ -561,7 +561,8 @@ void OTAgreement::onFinalReceipt(
     // onto cron in the first place.
 }
 
-bool OTAgreement::IsValidOpeningNumber(const std::int64_t& lOpeningNum) const
+auto OTAgreement::IsValidOpeningNumber(const std::int64_t& lOpeningNum) const
+    -> bool
 {
     if (GetRecipientOpeningNum() == lOpeningNum) return true;
 
@@ -641,8 +642,8 @@ void OTAgreement::HarvestClosingNumbers(ServerContext& context)
     }
 }
 
-std::int64_t OTAgreement::GetOpeningNumber(
-    const identifier::Nym& theNymID) const
+auto OTAgreement::GetOpeningNumber(const identifier::Nym& theNymID) const
+    -> std::int64_t
 {
     const auto& theRecipientNymID = GetRecipientNymID();
 
@@ -651,7 +652,8 @@ std::int64_t OTAgreement::GetOpeningNumber(
     return ot_super::GetOpeningNumber(theNymID);
 }
 
-std::int64_t OTAgreement::GetClosingNumber(const Identifier& theAcctID) const
+auto OTAgreement::GetClosingNumber(const Identifier& theAcctID) const
+    -> std::int64_t
 {
     const auto& theRecipientAcctID = GetRecipientAcctID();
 
@@ -660,14 +662,14 @@ std::int64_t OTAgreement::GetClosingNumber(const Identifier& theAcctID) const
     return ot_super::GetClosingNumber(theAcctID);
 }
 
-TransactionNumber OTAgreement::GetRecipientOpeningNum() const
+auto OTAgreement::GetRecipientOpeningNum() const -> TransactionNumber
 {
     return (GetRecipientCountClosingNumbers() > 0)
                ? GetRecipientClosingTransactionNoAt(0)
                : 0;  // todo stop hardcoding.
 }
 
-TransactionNumber OTAgreement::GetRecipientClosingNum() const
+auto OTAgreement::GetRecipientClosingNum() const -> TransactionNumber
 {
     return (GetRecipientCountClosingNumbers() > 1)
                ? GetRecipientClosingTransactionNoAt(1)
@@ -679,8 +681,8 @@ TransactionNumber OTAgreement::GetRecipientClosingNum() const
 // used for closing a transaction.
 //
 
-std::int64_t OTAgreement::GetRecipientClosingTransactionNoAt(
-    std::uint32_t nIndex) const
+auto OTAgreement::GetRecipientClosingTransactionNoAt(std::uint32_t nIndex) const
+    -> std::int64_t
 {
     OT_ASSERT_MSG(
         (nIndex < m_dequeRecipientClosingNumbers.size()),
@@ -689,7 +691,7 @@ std::int64_t OTAgreement::GetRecipientClosingTransactionNoAt(
     return m_dequeRecipientClosingNumbers.at(nIndex);
 }
 
-std::int32_t OTAgreement::GetRecipientCountClosingNumbers() const
+auto OTAgreement::GetRecipientCountClosingNumbers() const -> std::int32_t
 {
     return static_cast<std::int32_t>(m_dequeRecipientClosingNumbers.size());
 }
@@ -702,7 +704,7 @@ void OTAgreement::AddRecipientClosingTransactionNo(
 
 // OTCron calls this regularly, which is my chance to expire, etc.
 // Child classes will override this, AND call it (to verify valid date range.)
-bool OTAgreement::ProcessCron(const PasswordPrompt& reason)
+auto OTAgreement::ProcessCron(const PasswordPrompt& reason) -> bool
 {
     // END DATE --------------------------------
     // First call the parent's version (which this overrides) so it has
@@ -728,7 +730,7 @@ bool OTAgreement::ProcessCron(const PasswordPrompt& reason)
 
 /// See if theNym has rights to remove this item from Cron.
 ///
-bool OTAgreement::CanRemoveItemFromCron(const ClientContext& context)
+auto OTAgreement::CanRemoveItemFromCron(const ClientContext& context) -> bool
 {
     // You don't just go willy-nilly and remove a cron item from a market unless
     // you check first and make sure the Nym who requested it actually has said
@@ -799,7 +801,7 @@ bool OTAgreement::CanRemoveItemFromCron(const ClientContext& context)
     // Only if that fails, do you need to dig deeper...
 }
 
-bool OTAgreement::CompareAgreement(const OTAgreement& rhs) const
+auto OTAgreement::CompareAgreement(const OTAgreement& rhs) const -> bool
 {
     // Compare OTAgreement specific info here.
     if ((m_strConsideration->Compare(rhs.m_strConsideration)) &&
@@ -832,13 +834,13 @@ bool OTAgreement::CompareAgreement(const OTAgreement& rhs) const
 //
 // (lMerchantTransactionNumber, lMerchantClosingNumber are set internally in
 // this call, from MERCHANT_NYM.)
-bool OTAgreement::SetProposal(
+auto OTAgreement::SetProposal(
     ServerContext& context,
     const Account& MERCHANT_ACCT,
     const String& strConsideration,
     const Time VALID_FROM,
-    const Time VALID_TO)  // VALID_TO is a length here. (i.e. it's ADDED to
-                          // valid_from)
+    const Time VALID_TO) -> bool  // VALID_TO is a length here. (i.e. it's ADDED
+                                  // to valid_from)
 {
     const auto& nym = *context.Nym();
     const auto& id_MERCHANT_NYM = nym.ID();
@@ -973,11 +975,11 @@ bool OTAgreement::SetProposal(
 // THIS FUNCTION IS CALLED BY THE CUSTOMER
 //
 // (Transaction number and closing number are retrieved from Nym at this time.)
-bool OTAgreement::Confirm(
+auto OTAgreement::Confirm(
     ServerContext& context,
     const Account& PAYER_ACCT,
     const identifier::Nym& p_id_MERCHANT_NYM,
-    const identity::Nym* pMERCHANT_NYM)
+    const identity::Nym* pMERCHANT_NYM) -> bool
 {
     auto nym = context.Nym();
 
@@ -1168,7 +1170,7 @@ void OTAgreement::UpdateContents(const PasswordPrompt& reason)
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-std::int32_t OTAgreement::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
+auto OTAgreement::ProcessXMLNode(irr::io::IrrXMLReader*& xml) -> std::int32_t
 {
     std::int32_t nReturnVal = 0;
 

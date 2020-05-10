@@ -35,11 +35,11 @@ namespace be = boost::endian;
 
 namespace opentxs::blockchain::bitcoin
 {
-bool DecodeCompactSizeFromPayload(
+auto DecodeCompactSizeFromPayload(
     ByteIterator& it,
     std::size_t& expected,
     const std::size_t size,
-    std::size_t& output) noexcept
+    std::size_t& output) noexcept -> bool
 {
     auto cs = CompactSize{};
     auto ret = DecodeCompactSizeFromPayload(it, expected, size, cs);
@@ -48,12 +48,12 @@ bool DecodeCompactSizeFromPayload(
     return ret;
 }
 
-bool DecodeCompactSizeFromPayload(
+auto DecodeCompactSizeFromPayload(
     ByteIterator& it,
     std::size_t& expected,
     const std::size_t size,
     std::size_t& output,
-    std::size_t& csExtraBytes) noexcept
+    std::size_t& csExtraBytes) noexcept -> bool
 {
     auto cs = CompactSize{};
     auto ret = DecodeCompactSizeFromPayload(it, expected, size, cs);
@@ -63,11 +63,11 @@ bool DecodeCompactSizeFromPayload(
     return ret;
 }
 
-bool DecodeCompactSizeFromPayload(
+auto DecodeCompactSizeFromPayload(
     ByteIterator& it,
     std::size_t& expectedSize,
     const std::size_t size,
-    CompactSize& output) noexcept
+    CompactSize& output) noexcept -> bool
 {
     if (std::byte{0} == *it) {
         output = CompactSize{0};
@@ -119,14 +119,14 @@ CompactSize::CompactSize(const Bytes& bytes) noexcept(false)
     }
 }
 
-CompactSize& CompactSize::operator=(const std::uint64_t rhs) noexcept
+auto CompactSize::operator=(const std::uint64_t rhs) noexcept -> CompactSize&
 {
     data_ = rhs;
 
     return *this;
 }
 
-std::uint64_t CompactSize::CalculateSize(const std::byte first) noexcept
+auto CompactSize::CalculateSize(const std::byte first) noexcept -> std::uint64_t
 {
     auto marker{reinterpret_cast<const uint8_t&>(first)};
 
@@ -178,7 +178,7 @@ auto CompactSize::convert_to_raw(AllocateOutput output) const noexcept -> bool
     return true;
 }
 
-bool CompactSize::Decode(const std::vector<std::byte>& bytes) noexcept
+auto CompactSize::Decode(const std::vector<std::byte>& bytes) noexcept -> bool
 {
     bool output{true};
 
@@ -200,7 +200,7 @@ bool CompactSize::Decode(const std::vector<std::byte>& bytes) noexcept
     return output;
 }
 
-std::vector<std::byte> CompactSize::Encode() const noexcept
+auto CompactSize::Encode() const noexcept -> std::vector<std::byte>
 {
     auto output = Space{};
     Encode(writer(output));
@@ -208,7 +208,7 @@ std::vector<std::byte> CompactSize::Encode() const noexcept
     return output;
 }
 
-bool CompactSize::Encode(AllocateOutput destination) const noexcept
+auto CompactSize::Encode(AllocateOutput destination) const noexcept -> bool
 {
     if (false == bool(destination)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid output allocator")
@@ -251,7 +251,7 @@ bool CompactSize::Encode(AllocateOutput destination) const noexcept
     return true;
 }
 
-std::size_t CompactSize::Size() const noexcept
+auto CompactSize::Size() const noexcept -> std::size_t
 {
     if (data_ <= OT_COMPACT_SIZE_THRESHOLD_1) {
         return 1;
@@ -264,10 +264,10 @@ std::size_t CompactSize::Size() const noexcept
     }
 }
 
-std::size_t CompactSize::Total() const noexcept
+auto CompactSize::Total() const noexcept -> std::size_t
 {
     return Size() + static_cast<std::size_t>(data_);
 }
 
-std::uint64_t CompactSize::Value() const noexcept { return data_; }
+auto CompactSize::Value() const noexcept -> std::uint64_t { return data_; }
 }  // namespace opentxs::blockchain::bitcoin

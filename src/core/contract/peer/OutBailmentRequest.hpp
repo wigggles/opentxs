@@ -70,13 +70,16 @@ private:
     const OTServerID server_;
     const Amount amount_;
 
-    Outbailment* clone() const noexcept final { return new Outbailment(*this); }
-    SerializedType IDVersion(const Lock& lock) const final;
+    auto clone() const noexcept -> Outbailment* final
+    {
+        return new Outbailment(*this);
+    }
+    auto IDVersion(const Lock& lock) const -> SerializedType final;
 
     Outbailment() = delete;
     Outbailment(const Outbailment&);
     Outbailment(Outbailment&&) = delete;
-    Outbailment& operator=(const Outbailment&) = delete;
-    Outbailment& operator=(Outbailment&&) = delete;
+    auto operator=(const Outbailment&) -> Outbailment& = delete;
+    auto operator=(Outbailment &&) -> Outbailment& = delete;
 };
 }  // namespace opentxs::contract::peer::request::implementation

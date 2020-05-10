@@ -133,7 +133,7 @@ private:
     AccountActivity() = delete;
     AccountActivity(const AccountActivity&) = delete;
     AccountActivity(AccountActivity&&) = delete;
-    AccountActivity& operator=(const AccountActivity&) = delete;
-    AccountActivity& operator=(AccountActivity&&) = delete;
+    auto operator=(const AccountActivity&) -> AccountActivity& = delete;
+    auto operator=(AccountActivity &&) -> AccountActivity& = delete;
 };
 }  // namespace opentxs::ui::implementation

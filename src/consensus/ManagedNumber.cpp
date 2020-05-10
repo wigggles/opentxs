@@ -14,14 +14,14 @@
 
 namespace opentxs
 {
-opentxs::ManagedNumber* Factory::ManagedNumber(
+auto Factory::ManagedNumber(
     const TransactionNumber number,
-    opentxs::ServerContext& context)
+    opentxs::ServerContext& context) -> opentxs::ManagedNumber*
 {
     return new implementation::ManagedNumber(number, context);
 }
 
-bool operator<(const OTManagedNumber& lhs, const OTManagedNumber& rhs)
+auto operator<(const OTManagedNumber& lhs, const OTManagedNumber& rhs) -> bool
 {
     return lhs->Value() < rhs->Value();
 }
@@ -41,9 +41,9 @@ ManagedNumber::ManagedNumber(
 
 void ManagedNumber::SetSuccess(const bool value) const { success_->Set(value); }
 
-bool ManagedNumber::Valid() const { return managed_; }
+auto ManagedNumber::Valid() const -> bool { return managed_; }
 
-TransactionNumber ManagedNumber::Value() const { return number_; }
+auto ManagedNumber::Value() const -> TransactionNumber { return number_; }
 
 ManagedNumber::~ManagedNumber()
 {

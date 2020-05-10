@@ -50,52 +50,56 @@ class Base : virtual public credential::internal::Base,
 public:
     using SerializedType = proto::Credential;
 
-    std::string asString(const bool asPrivate = false) const final;
-    const Identifier& CredentialID() const final { return id_.get(); }
-    bool GetContactData(
-        std::unique_ptr<proto::ContactData>& output) const override
+    auto asString(const bool asPrivate = false) const -> std::string final;
+    auto CredentialID() const -> const Identifier& final { return id_.get(); }
+    auto GetContactData(std::unique_ptr<proto::ContactData>& output) const
+        -> bool override
     {
         return false;
     }
-    bool GetVerificationSet(
-        std::unique_ptr<proto::VerificationSet>& output) const override
+    auto GetVerificationSet(
+        std::unique_ptr<proto::VerificationSet>& output) const -> bool override
     {
         return false;
     }
-    bool hasCapability(const NymCapability& capability) const override
+    auto hasCapability(const NymCapability& capability) const -> bool override
     {
         return false;
     }
-    Signature MasterSignature() const final;
-    proto::KeyMode Mode() const final { return mode_; }
-    proto::CredentialRole Role() const final { return role_; }
-    bool Private() const final { return (proto::KEYMODE_PRIVATE == mode_); }
-    bool Save() const final;
-    Signature SelfSignature(
-        CredentialModeFlag version = PUBLIC_VERSION) const final;
-    OTData Serialize() const final;
-    std::shared_ptr<SerializedType> Serialized(
+    auto MasterSignature() const -> Signature final;
+    auto Mode() const -> proto::KeyMode final { return mode_; }
+    auto Role() const -> proto::CredentialRole final { return role_; }
+    auto Private() const -> bool final
+    {
+        return (proto::KEYMODE_PRIVATE == mode_);
+    }
+    auto Save() const -> bool final;
+    auto SelfSignature(CredentialModeFlag version = PUBLIC_VERSION) const
+        -> Signature final;
+    auto Serialize() const -> OTData final;
+    auto Serialized(
         const SerializationModeFlag asPrivate,
-        const SerializationSignatureFlag asSigned) const final;
-    Signature SourceSignature() const final;
-    bool TransportKey(
+        const SerializationSignatureFlag asSigned) const
+        -> std::shared_ptr<SerializedType> final;
+    auto SourceSignature() const -> Signature final;
+    auto TransportKey(
         Data& publicKey,
         OTPassword& privateKey,
-        const PasswordPrompt& reason) const override;
-    proto::CredentialType Type() const final { return type_; }
-    bool Validate() const final;
-    bool Verify(
+        const PasswordPrompt& reason) const -> bool override;
+    auto Type() const -> proto::CredentialType final { return type_; }
+    auto Validate() const -> bool final;
+    auto Verify(
         const Data& plaintext,
         const proto::Signature& sig,
-        const proto::KeyRole key = proto::KEYROLE_SIGN) const override
+        const proto::KeyRole key = proto::KEYROLE_SIGN) const -> bool override
     {
         return false;
     }
-    bool Verify(
+    auto Verify(
         const proto::Credential& credential,
         const proto::CredentialRole& role,
         const Identifier& masterID,
-        const proto::Signature& masterSig) const override
+        const proto::Signature& masterSig) const -> bool override
     {
         return false;
     }
@@ -113,17 +117,19 @@ protected:
     const proto::CredentialRole role_;
     const proto::KeyMode mode_;
 
-    static std::string get_master_id(const internal::Primary& master) noexcept;
-    static std::string get_master_id(
+    static auto get_master_id(const internal::Primary& master) noexcept
+        -> std::string;
+    static auto get_master_id(
         const proto::Credential& serialized,
-        const internal::Primary& master) noexcept(false);
+        const internal::Primary& master) noexcept(false) -> std::string;
 
-    virtual std::shared_ptr<SerializedType> serialize(
+    virtual auto serialize(
         const Lock& lock,
         const SerializationModeFlag asPrivate,
-        const SerializationSignatureFlag asSigned) const;
-    bool validate(const Lock& lock) const final;
-    virtual bool verify_internally(const Lock& lock) const;
+        const SerializationSignatureFlag asSigned) const
+        -> std::shared_ptr<SerializedType>;
+    auto validate(const Lock& lock) const -> bool final;
+    virtual auto verify_internally(const Lock& lock) const -> bool;
 
     void init(
         const identity::credential::internal::Primary& master,
@@ -149,17 +155,18 @@ protected:
         const std::string& masterID) noexcept(false);
 
 private:
-    static Signatures extract_signatures(const SerializedType& serialized);
+    static auto extract_signatures(const SerializedType& serialized)
+        -> Signatures;
 
-    Base* clone() const noexcept final { return nullptr; }
-    OTIdentifier GetID(const Lock& lock) const final;
+    auto clone() const noexcept -> Base* final { return nullptr; }
+    auto GetID(const Lock& lock) const -> OTIdentifier final;
     // Syntax (non cryptographic) validation
-    bool isValid(const Lock& lock) const;
+    auto isValid(const Lock& lock) const -> bool;
     // Returns the serialized form to prevent unnecessary serializations
-    bool isValid(const Lock& lock, std::shared_ptr<SerializedType>& credential)
-        const;
-    std::string Name() const final { return id_->str(); }
-    bool verify_master_signature(const Lock& lock) const;
+    auto isValid(const Lock& lock, std::shared_ptr<SerializedType>& credential)
+        const -> bool;
+    auto Name() const -> std::string final { return id_->str(); }
+    auto verify_master_signature(const Lock& lock) const -> bool;
 
     void add_master_signature(
         const Lock& lock,
@@ -169,7 +176,7 @@ private:
     Base() = delete;
     Base(const Base&) = delete;
     Base(Base&&) = delete;
-    Base& operator=(const Base&) = delete;
-    Base& operator=(Base&&) = delete;
+    auto operator=(const Base&) -> Base& = delete;
+    auto operator=(Base &&) -> Base& = delete;
 };
 }  // namespace opentxs::identity::credential::implementation

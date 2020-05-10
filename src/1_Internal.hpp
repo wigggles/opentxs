@@ -426,9 +426,9 @@ class OpenSSL;
 #endif
 class StorageConfig;
 
-bool operator==(
+auto operator==(
     const opentxs::ProtobufType& lhs,
-    const opentxs::ProtobufType& rhs) noexcept;
+    const opentxs::ProtobufType& rhs) noexcept -> bool;
 
 template <typename T>
 void dedup(std::vector<T>& vector) noexcept
@@ -459,11 +459,11 @@ HDIndex(const Bip43Purpose, const Bip32Child)->HDIndex<Bip43Purpose>;
 
 template <typename T>
 struct make_blank {
-    static T value(const api::Core&) { return T{}; }
+    static auto value(const api::Core&) -> T { return T{}; }
 };
 
 template <typename I>
-int polarity(const I value)
+auto polarity(const I value) -> int
 {
     if (0 == value) { return 0; }
 
@@ -471,7 +471,8 @@ int polarity(const I value)
 }
 
 template <typename Key, typename Value>
-std::map<Value, Key> reverse_map(const std::map<Key, Value>& map) noexcept
+auto reverse_map(const std::map<Key, Value>& map) noexcept
+    -> std::map<Value, Key>
 {
     std::map<Value, Key> output{};
 

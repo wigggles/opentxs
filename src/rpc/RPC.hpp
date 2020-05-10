@@ -75,7 +75,8 @@ namespace opentxs::rpc::implementation
 class RPC final : virtual public rpc::internal::RPC, Lockable
 {
 public:
-    proto::RPCResponse Process(const proto::RPCCommand& command) const final;
+    auto Process(const proto::RPCCommand& command) const
+        -> proto::RPCResponse final;
 
     ~RPC() final = default;
 
@@ -115,26 +116,32 @@ private:
     static void add_output_task(
         proto::RPCResponse& output,
         const std::string& taskid);
-    static ArgList get_args(const Args& serialized);
-    static std::size_t get_index(std::int32_t instance);
-    static proto::RPCResponse init(const proto::RPCCommand& command);
-    static proto::RPCResponse invalid_command(const proto::RPCCommand& command);
-    static proto::AccountEventType storagebox_to_accounteventtype(
-        StorageBox storagebox);
+    static auto get_args(const Args& serialized) -> ArgList;
+    static auto get_index(std::int32_t instance) -> std::size_t;
+    static auto init(const proto::RPCCommand& command) -> proto::RPCResponse;
+    static auto invalid_command(const proto::RPCCommand& command)
+        -> proto::RPCResponse;
+    static auto storagebox_to_accounteventtype(StorageBox storagebox)
+        -> proto::AccountEventType;
 
-    proto::RPCResponse accept_pending_payments(
-        const proto::RPCCommand& command) const;
-    proto::RPCResponse add_claim(const proto::RPCCommand& command) const;
-    proto::RPCResponse add_contact(const proto::RPCCommand& command) const;
-    proto::RPCResponse create_account(const proto::RPCCommand& command) const;
-    proto::RPCResponse create_compatible_account(
-        const proto::RPCCommand& command) const;
-    proto::RPCResponse create_issuer_account(
-        const proto::RPCCommand& command) const;
-    proto::RPCResponse create_nym(const proto::RPCCommand& command) const;
-    proto::RPCResponse create_unit_definition(
-        const proto::RPCCommand& command) const;
-    proto::RPCResponse delete_claim(const proto::RPCCommand& command) const;
+    auto accept_pending_payments(const proto::RPCCommand& command) const
+        -> proto::RPCResponse;
+    auto add_claim(const proto::RPCCommand& command) const
+        -> proto::RPCResponse;
+    auto add_contact(const proto::RPCCommand& command) const
+        -> proto::RPCResponse;
+    auto create_account(const proto::RPCCommand& command) const
+        -> proto::RPCResponse;
+    auto create_compatible_account(const proto::RPCCommand& command) const
+        -> proto::RPCResponse;
+    auto create_issuer_account(const proto::RPCCommand& command) const
+        -> proto::RPCResponse;
+    auto create_nym(const proto::RPCCommand& command) const
+        -> proto::RPCResponse;
+    auto create_unit_definition(const proto::RPCCommand& command) const
+        -> proto::RPCResponse;
+    auto delete_claim(const proto::RPCCommand& command) const
+        -> proto::RPCResponse;
     void evaluate_deposit_payment(
         const api::client::internal::Manager& client,
         const api::client::OTX::Result& result,
@@ -165,75 +172,88 @@ private:
         T& output,
         const proto::RPCResponseCode code =
             proto::RPCRESPONSE_TRANSACTION_FAILED) const;
-    const api::client::internal::Manager* get_client(
-        std::int32_t instance) const;
-    proto::RPCResponse get_account_activity(
-        const proto::RPCCommand& command) const;
-    proto::RPCResponse get_account_balance(
-        const proto::RPCCommand& command) const;
-    proto::RPCResponse get_compatible_accounts(
-        const proto::RPCCommand& command) const;
-    proto::RPCResponse get_nyms(const proto::RPCCommand& command) const;
-    proto::RPCResponse get_pending_payments(
-        const proto::RPCCommand& command) const;
-    proto::RPCResponse get_seeds(const proto::RPCCommand& command) const;
-    const api::server::Manager* get_server(std::int32_t instance) const;
-    proto::RPCResponse get_server_admin_nym(
-        const proto::RPCCommand& command) const;
-    proto::RPCResponse get_server_contracts(
-        const proto::RPCCommand& command) const;
-    proto::RPCResponse get_server_password(
-        const proto::RPCCommand& command) const;
-    const api::Core& get_session(std::int32_t instance) const;
-    proto::RPCResponse get_transaction_data(
-        const proto::RPCCommand& command) const;
-    proto::RPCResponse get_unit_definitions(
-        const proto::RPCCommand& command) const;
-    proto::RPCResponse get_workflow(const proto::RPCCommand& command) const;
-    bool immediate_create_account(
+    auto get_client(std::int32_t instance) const
+        -> const api::client::internal::Manager*;
+    auto get_account_activity(const proto::RPCCommand& command) const
+        -> proto::RPCResponse;
+    auto get_account_balance(const proto::RPCCommand& command) const
+        -> proto::RPCResponse;
+    auto get_compatible_accounts(const proto::RPCCommand& command) const
+        -> proto::RPCResponse;
+    auto get_nyms(const proto::RPCCommand& command) const -> proto::RPCResponse;
+    auto get_pending_payments(const proto::RPCCommand& command) const
+        -> proto::RPCResponse;
+    auto get_seeds(const proto::RPCCommand& command) const
+        -> proto::RPCResponse;
+    auto get_server(std::int32_t instance) const -> const api::server::Manager*;
+    auto get_server_admin_nym(const proto::RPCCommand& command) const
+        -> proto::RPCResponse;
+    auto get_server_contracts(const proto::RPCCommand& command) const
+        -> proto::RPCResponse;
+    auto get_server_password(const proto::RPCCommand& command) const
+        -> proto::RPCResponse;
+    auto get_session(std::int32_t instance) const -> const api::Core&;
+    auto get_transaction_data(const proto::RPCCommand& command) const
+        -> proto::RPCResponse;
+    auto get_unit_definitions(const proto::RPCCommand& command) const
+        -> proto::RPCResponse;
+    auto get_workflow(const proto::RPCCommand& command) const
+        -> proto::RPCResponse;
+    auto immediate_create_account(
         const api::client::internal::Manager& client,
         const identifier::Nym& owner,
         const identifier::Server& notary,
-        const identifier::UnitDefinition& unit) const;
-    bool immediate_register_issuer_account(
+        const identifier::UnitDefinition& unit) const -> bool;
+    auto immediate_register_issuer_account(
         const api::client::internal::Manager& client,
         const identifier::Nym& owner,
-        const identifier::Server& notary) const;
-    bool immediate_register_nym(
+        const identifier::Server& notary) const -> bool;
+    auto immediate_register_nym(
         const api::client::internal::Manager& client,
-        const identifier::Server& notary) const;
-    proto::RPCResponse import_seed(const proto::RPCCommand& command) const;
-    proto::RPCResponse import_server_contract(
-        const proto::RPCCommand& command) const;
-    bool is_client_session(std::int32_t instance) const;
-    bool is_server_session(std::int32_t instance) const;
-    bool is_session_valid(std::int32_t instance) const;
-    proto::RPCResponse list_accounts(const proto::RPCCommand& command) const;
-    proto::RPCResponse list_contacts(const proto::RPCCommand& command) const;
-    proto::RPCResponse list_client_sessions(
-        const proto::RPCCommand& command) const;
-    proto::RPCResponse list_seeds(const proto::RPCCommand& command) const;
-    proto::RPCResponse list_nyms(const proto::RPCCommand& command) const;
-    proto::RPCResponse list_server_contracts(
-        const proto::RPCCommand& command) const;
-    proto::RPCResponse list_server_sessions(
-        const proto::RPCCommand& command) const;
-    proto::RPCResponse list_unit_definitions(
-        const proto::RPCCommand& command) const;
-    proto::RPCResponse lookup_account_id(
-        const proto::RPCCommand& command) const;
-    proto::RPCResponse move_funds(const proto::RPCCommand& command) const;
+        const identifier::Server& notary) const -> bool;
+    auto import_seed(const proto::RPCCommand& command) const
+        -> proto::RPCResponse;
+    auto import_server_contract(const proto::RPCCommand& command) const
+        -> proto::RPCResponse;
+    auto is_client_session(std::int32_t instance) const -> bool;
+    auto is_server_session(std::int32_t instance) const -> bool;
+    auto is_session_valid(std::int32_t instance) const -> bool;
+    auto list_accounts(const proto::RPCCommand& command) const
+        -> proto::RPCResponse;
+    auto list_contacts(const proto::RPCCommand& command) const
+        -> proto::RPCResponse;
+    auto list_client_sessions(const proto::RPCCommand& command) const
+        -> proto::RPCResponse;
+    auto list_seeds(const proto::RPCCommand& command) const
+        -> proto::RPCResponse;
+    auto list_nyms(const proto::RPCCommand& command) const
+        -> proto::RPCResponse;
+    auto list_server_contracts(const proto::RPCCommand& command) const
+        -> proto::RPCResponse;
+    auto list_server_sessions(const proto::RPCCommand& command) const
+        -> proto::RPCResponse;
+    auto list_unit_definitions(const proto::RPCCommand& command) const
+        -> proto::RPCResponse;
+    auto lookup_account_id(const proto::RPCCommand& command) const
+        -> proto::RPCResponse;
+    auto move_funds(const proto::RPCCommand& command) const
+        -> proto::RPCResponse;
     void queue_task(
         const identifier::Nym& nymID,
         const std::string taskID,
         Finish&& finish,
         Future&& future,
         proto::RPCResponse& output) const;
-    proto::RPCResponse register_nym(const proto::RPCCommand& command) const;
-    proto::RPCResponse rename_account(const proto::RPCCommand& command) const;
-    proto::RPCResponse send_payment(const proto::RPCCommand& command) const;
-    proto::RPCResponse start_client(const proto::RPCCommand& command) const;
-    proto::RPCResponse start_server(const proto::RPCCommand& command) const;
+    auto register_nym(const proto::RPCCommand& command) const
+        -> proto::RPCResponse;
+    auto rename_account(const proto::RPCCommand& command) const
+        -> proto::RPCResponse;
+    auto send_payment(const proto::RPCCommand& command) const
+        -> proto::RPCResponse;
+    auto start_client(const proto::RPCCommand& command) const
+        -> proto::RPCResponse;
+    auto start_server(const proto::RPCCommand& command) const
+        -> proto::RPCResponse;
 
     void task_handler(const zmq::Message& message);
 
@@ -241,7 +261,7 @@ private:
     RPC() = delete;
     RPC(const RPC&) = delete;
     RPC(RPC&&) = delete;
-    RPC& operator=(const RPC&) = delete;
-    RPC& operator=(RPC&&) = delete;
+    auto operator=(const RPC&) -> RPC& = delete;
+    auto operator=(RPC &&) -> RPC& = delete;
 };
 }  // namespace opentxs::rpc::implementation

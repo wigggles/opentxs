@@ -48,15 +48,18 @@ namespace opentxs::blockchain::p2p::bitcoin::message
 class Getblocktxn final : virtual public bitcoin::Message
 {
 public:
-    OTData getBlockHash() const noexcept { return Data::Factory(block_hash_); }
-    const std::vector<std::size_t>& getIndices() const noexcept
+    auto getBlockHash() const noexcept -> OTData
+    {
+        return Data::Factory(block_hash_);
+    }
+    auto getIndices() const noexcept -> const std::vector<std::size_t>&
     {
         return txn_indices_;
     }
 
     ~Getblocktxn() final = default;
 
-    OTData payload() const noexcept final;
+    auto payload() const noexcept -> OTData final;
 
 private:
     friend opentxs::Factory;
@@ -76,7 +79,7 @@ private:
         const std::vector<std::size_t>& txn_indices) noexcept(false);
     Getblocktxn(const Getblocktxn&) = delete;
     Getblocktxn(Getblocktxn&&) = delete;
-    Getblocktxn& operator=(const Getblocktxn&) = delete;
-    Getblocktxn& operator=(Getblocktxn&&) = delete;
+    auto operator=(const Getblocktxn&) -> Getblocktxn& = delete;
+    auto operator=(Getblocktxn &&) -> Getblocktxn& = delete;
 };
 }  // namespace opentxs::blockchain::p2p::bitcoin::message
