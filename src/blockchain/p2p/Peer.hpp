@@ -73,11 +73,11 @@ public:
     }
     auto Connected() const noexcept -> ConnectionStatus final
     {
-        return connected_;
+        return state_.connect_.future_;
     }
     auto HandshakeComplete() const noexcept -> Handshake final
     {
-        return handshake_;
+        return state_.handshake_.future_;
     }
     auto Shutdown() noexcept -> std::shared_future<void> final;
 
@@ -88,6 +88,15 @@ protected:
     using SendPromise = std::promise<SendResult>;
     using SendFuture = std::future<SendResult>;
     using Task = client::internal::PeerManager::Task;
+
+    enum class State : std::uint8_t {
+        Connect,
+        Handshake,
+        Verify,
+        Subscribe,
+        Run,
+        Shutdown,
+    };
 
     struct Address {
         using pointer = std::unique_ptr<internal::Address>;
@@ -122,29 +131,99 @@ protected:
         Time downloaded_;
     };
 
-    struct Subscriptions {
-        using value_type = std::vector<Task>;
+    template <typename ValueType>
+    struct StateData {
+        std::atomic<State>& state_;
+        Time started_;
+        bool first_action_;
+        bool second_action_;
+        std::promise<ValueType> promise_;
+        std::shared_future<ValueType> future_;
 
-        auto Push(value_type& tasks) noexcept -> void;
-        auto Pop() noexcept -> value_type;
+        auto done() const noexcept -> bool
+        {
+            try {
+                const auto status =
+                    future_.wait_for(std::chrono::microseconds(5));
 
-    private:
-        std::mutex lock_{};
-        value_type tasks_{};
+                return std::future_status::ready == status;
+            } catch (...) {
+
+                return false;
+            }
+        }
+
+        auto break_promise() noexcept -> void { promise_ = {}; }
+        auto run(
+            const std::chrono::seconds limit,
+            SimpleCallback firstAction,
+            const State nextState) noexcept -> bool
+        {
+            if (firstAction && (false == first_action_)) {
+                firstAction();
+                first_action_ = true;
+                started_ = Clock::now();
+
+                return false;
+            }
+
+            auto disconnect{true};
+
+            if (done()) {
+                disconnect = false;
+                state_.store(nextState);
+            } else {
+                disconnect = ((Clock::now() - started_) < limit);
+            }
+
+            return disconnect;
+        }
+
+        StateData(std::atomic<State>& state) noexcept
+            : state_(state)
+            , started_()
+            , first_action_(false)
+            , second_action_(false)
+            , promise_()
+            , future_(promise_.get_future())
+        {
+        }
+    };
+
+    struct States {
+        std::atomic<State> value_;
+        StateData<bool> connect_;
+        StateData<void> handshake_;
+        StateData<void> verify_;
+
+        auto break_promises() noexcept -> void
+        {
+            connect_.break_promise();
+            handshake_.break_promise();
+            verify_.break_promise();
+        }
+
+        States() noexcept
+            : value_(State::Connect)
+            , connect_(value_)
+            , handshake_(value_)
+            , verify_(value_)
+        {
+        }
     };
 
     const client::internal::Network& network_;
     const client::internal::PeerManager& manager_;
+    const blockchain::Type chain_;
     const tcp::endpoint endpoint_;
     SendPromise send_promise_;
     SendFuture send_future_;
     Address address_;
     DownloadPeers download_peers_;
     OTData header_;
-    bool outgoing_handshake_;
-    bool incoming_handshake_;
-    Subscriptions subscribe_;
+    States state_;
 
+    bool verifying() noexcept;
     void check_handshake() noexcept;
     void disconnect() noexcept;
     auto local_endpoint() noexcept -> tcp::socket::endpoint_type;
@@ -173,12 +252,6 @@ protected:
 
 private:
     friend Executor<Peer>;
-
-    enum class State : std::uint8_t {
-        Handshake,
-        Run,
-        Shutdown,
-    };
 
     struct Activity {
         auto get() const noexcept -> Time;
@@ -213,13 +286,8 @@ private:
     tcp::socket socket_;
     OTData outgoing_message_;
     std::promise<void> connection_id_promise_;
-    std::promise<bool> connection_promise_;
-    std::shared_future<bool> connected_;
-    std::promise<void> handshake_promise_;
-    Handshake handshake_;
     SendPromises send_promises_;
     Activity activity_;
-    mutable std::atomic<State> state_;
     OTZMQListenCallback cb_;
     OTZMQDealerSocket dealer_;
 
@@ -237,7 +305,6 @@ private:
     void check_activity() noexcept;
     void check_download_peers() noexcept;
     void connect() noexcept;
-    void handshake() noexcept;
     void init_send_promise() noexcept;
     void pipeline(zmq::Message& message) noexcept;
     void pipeline_d(zmq::Message& message) noexcept;
@@ -248,9 +315,11 @@ private:
     void run() noexcept;
     void shutdown(std::promise<void>& promise) noexcept;
     virtual void start_handshake() noexcept = 0;
-    void subscribe_work() noexcept;
+    virtual void start_verify() noexcept = 0;
+    void subscribe() noexcept;
     void transmit(zmq::Message& message) noexcept;
     void update_address_activity() noexcept;
+    void verify() noexcept;
 
     Peer() = delete;
     Peer(const Peer&) = delete;
