@@ -37,13 +37,14 @@ private:
 
     opentxs::PairEventCallbackSwig* callback_;
 
-    PairEventCallbackSwig* clone() const final;
+    auto clone() const -> PairEventCallbackSwig* final;
 
     PairEventCallbackSwig(opentxs::PairEventCallbackSwig* callback);
     PairEventCallbackSwig() = delete;
     PairEventCallbackSwig(const PairEventCallbackSwig&) = delete;
     PairEventCallbackSwig(PairEventCallbackSwig&&) = delete;
-    PairEventCallbackSwig& operator=(const PairEventCallbackSwig&) = delete;
-    PairEventCallbackSwig& operator=(PairEventCallbackSwig&&) = delete;
+    auto operator=(const PairEventCallbackSwig&)
+        -> PairEventCallbackSwig& = delete;
+    auto operator=(PairEventCallbackSwig &&) -> PairEventCallbackSwig& = delete;
 };
 }  // namespace opentxs::network::zeromq::implementation

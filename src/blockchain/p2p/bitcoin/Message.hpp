@@ -36,12 +36,12 @@ namespace opentxs::blockchain::p2p::bitcoin
 class Message
 {
 public:
-    static std::size_t MaxPayload();
+    static auto MaxPayload() -> std::size_t;
 
-    OTData Encode() const;
+    auto Encode() const -> OTData;
 
-    const Header& header() const { return *header_; }
-    virtual OTData payload() const noexcept = 0;
+    auto header() const -> const Header& { return *header_; }
+    virtual auto payload() const noexcept -> OTData = 0;
 
     virtual ~Message() = default;
 
@@ -62,12 +62,12 @@ protected:
         std::unique_ptr<Header> header) noexcept;
 
 private:
-    OTData calculate_checksum(const Data& payload) const noexcept;
+    auto calculate_checksum(const Data& payload) const noexcept -> OTData;
 
     Message() = delete;
     Message(const Message&) = delete;
     Message(Message&&) = delete;
-    Message& operator=(const Message&) = delete;
-    Message& operator=(Message&&) = delete;
+    auto operator=(const Message&) -> Message& = delete;
+    auto operator=(Message &&) -> Message& = delete;
 };
 }  // namespace opentxs::blockchain::p2p::bitcoin

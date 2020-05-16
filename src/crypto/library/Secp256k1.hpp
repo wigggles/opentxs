@@ -57,36 +57,36 @@ class Secp256k1 final : virtual public crypto::Secp256k1,
                         public EcdsaProvider
 {
 public:
-    bool RandomKeypair(
+    auto RandomKeypair(
         const AllocateOutput privateKey,
         const AllocateOutput publicKey,
         const proto::KeyRole role,
         const NymParameters& options,
-        const AllocateOutput params) const noexcept final;
-    bool ScalarAdd(
+        const AllocateOutput params) const noexcept -> bool final;
+    auto ScalarAdd(
         const ReadView lhs,
         const ReadView rhs,
-        const AllocateOutput result) const noexcept final;
-    bool ScalarMultiplyBase(const ReadView scalar, const AllocateOutput result)
-        const noexcept final;
-    bool SharedSecret(
+        const AllocateOutput result) const noexcept -> bool final;
+    auto ScalarMultiplyBase(const ReadView scalar, const AllocateOutput result)
+        const noexcept -> bool final;
+    auto SharedSecret(
         const key::Asymmetric& publicKey,
         const key::Asymmetric& privateKey,
         const PasswordPrompt& reason,
-        OTPassword& secret) const noexcept final;
-    bool Sign(
+        OTPassword& secret) const noexcept -> bool final;
+    auto Sign(
         const api::internal::Core& api,
         const Data& plaintext,
         const key::Asymmetric& theKey,
         const proto::HashType hashType,
         Data& signature,  // output
         const PasswordPrompt& reason,
-        const OTPassword* exportPassword = nullptr) const final;
-    bool Verify(
+        const OTPassword* exportPassword = nullptr) const -> bool final;
+    auto Verify(
         const Data& plaintext,
         const key::Asymmetric& theKey,
         const Data& signature,
-        const proto::HashType hashType) const final;
+        const proto::HashType hashType) const -> bool final;
 
     void Init() final;
 
@@ -113,7 +113,7 @@ private:
     Secp256k1() = delete;
     Secp256k1(const Secp256k1&) = delete;
     Secp256k1(Secp256k1&&) = delete;
-    Secp256k1& operator=(const Secp256k1&) = delete;
-    Secp256k1& operator=(Secp256k1&&) = delete;
+    auto operator=(const Secp256k1&) -> Secp256k1& = delete;
+    auto operator=(Secp256k1 &&) -> Secp256k1& = delete;
 };
 }  // namespace opentxs::crypto::implementation

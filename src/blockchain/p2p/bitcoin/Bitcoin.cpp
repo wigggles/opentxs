@@ -175,7 +175,8 @@ AddressVersion::AddressVersion() noexcept
     static_assert(26 == sizeof(AddressVersion));
 }
 
-AddressByteField AddressVersion::Encode(const Network type, const Data& bytes)
+auto AddressVersion::Encode(const Network type, const Data& bytes)
+    -> AddressByteField
 {
     AddressByteField output{};
 
@@ -212,7 +213,7 @@ AddressByteField AddressVersion::Encode(const Network type, const Data& bytes)
     return output;
 }
 
-OTData BitcoinString(const std::string& in) noexcept
+auto BitcoinString(const std::string& in) noexcept -> OTData
 {
     const auto size = CompactSize(in.size()).Encode();
     auto output = Data::Factory(size.data(), size.size());
@@ -222,7 +223,7 @@ OTData BitcoinString(const std::string& in) noexcept
     return output;
 }
 
-std::string CommandName(const Command command) noexcept
+auto CommandName(const Command command) noexcept -> std::string
 {
     try {
         return command_map_.at(command);
@@ -231,7 +232,7 @@ std::string CommandName(const Command command) noexcept
     }
 }
 
-bitcoin::Service convert_service_bit(BitVector8 value) noexcept
+auto convert_service_bit(BitVector8 value) noexcept -> bitcoin::Service
 {
     if (0 == value) { return Service::None; }
 
@@ -242,7 +243,7 @@ bitcoin::Service convert_service_bit(BitVector8 value) noexcept
     return static_cast<bitcoin::Service>(log);
 }
 
-BitVector8 convert_service_bit(const bitcoin::Service value) noexcept
+auto convert_service_bit(const bitcoin::Service value) noexcept -> BitVector8
 {
     if (bitcoin::Service::None == value) { return {}; }
 
@@ -252,7 +253,7 @@ BitVector8 convert_service_bit(const bitcoin::Service value) noexcept
     return output;
 }
 
-Command GetCommand(const CommandField& bytes) noexcept
+auto GetCommand(const CommandField& bytes) noexcept -> Command
 {
     try {
         const std::string raw{reinterpret_cast<const char*>(bytes.data()),
@@ -266,7 +267,7 @@ Command GetCommand(const CommandField& bytes) noexcept
     }
 }
 
-Magic GetMagic(const blockchain::Type type) noexcept
+auto GetMagic(const blockchain::Type type) noexcept -> Magic
 {
     try {
         return network_map_.at(type);
@@ -275,7 +276,7 @@ Magic GetMagic(const blockchain::Type type) noexcept
     }
 }
 
-Magic GetMagic(const std::uint32_t magic) noexcept
+auto GetMagic(const std::uint32_t magic) noexcept -> Magic
 {
     try {
         return magic_map_.at(magic);
@@ -284,7 +285,7 @@ Magic GetMagic(const std::uint32_t magic) noexcept
     }
 }
 
-blockchain::Type GetNetwork(const Magic magic) noexcept
+auto GetNetwork(const Magic magic) noexcept -> blockchain::Type
 {
     try {
         return network_reverse_map_.at(magic);
@@ -293,7 +294,8 @@ blockchain::Type GetNetwork(const Magic magic) noexcept
     }
 }
 
-BitVector8 GetServiceBytes(const std::set<bitcoin::Service>& services) noexcept
+auto GetServiceBytes(const std::set<bitcoin::Service>& services) noexcept
+    -> BitVector8
 {
     BitVector8 output{0};
 
@@ -306,7 +308,7 @@ BitVector8 GetServiceBytes(const std::set<bitcoin::Service>& services) noexcept
     return output;
 }
 
-std::set<bitcoin::Service> GetServices(const BitVector8 data) noexcept
+auto GetServices(const BitVector8 data) noexcept -> std::set<bitcoin::Service>
 {
     if (0 == data) { return {}; }
 
@@ -324,7 +326,7 @@ std::set<bitcoin::Service> GetServices(const BitVector8 data) noexcept
     return output;
 }
 
-CommandField SerializeCommand(const Command command) noexcept
+auto SerializeCommand(const Command command) noexcept -> CommandField
 {
     CommandField output{};
 
@@ -340,10 +342,10 @@ CommandField SerializeCommand(const Command command) noexcept
     return output;
 }
 
-std::set<bitcoin::Service> TranslateServices(
+auto TranslateServices(
     const blockchain::Type chain,
     [[maybe_unused]] const ProtocolVersion version,
-    const std::set<p2p::Service>& input) noexcept
+    const std::set<p2p::Service>& input) noexcept -> std::set<bitcoin::Service>
 {
     std::set<bitcoin::Service> output{};
     std::for_each(
@@ -359,10 +361,10 @@ std::set<bitcoin::Service> TranslateServices(
     return output;
 }
 
-std::set<p2p::Service> TranslateServices(
+auto TranslateServices(
     const blockchain::Type chain,
     [[maybe_unused]] const ProtocolVersion version,
-    const std::set<bitcoin::Service>& input) noexcept
+    const std::set<bitcoin::Service>& input) noexcept -> std::set<p2p::Service>
 {
     std::set<p2p::Service> output{};
     std::for_each(

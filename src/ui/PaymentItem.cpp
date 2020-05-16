@@ -103,14 +103,14 @@ PaymentItem::PaymentItem(
     OT_ASSERT(load_)
 }
 
-opentxs::Amount PaymentItem::Amount() const noexcept
+auto PaymentItem::Amount() const noexcept -> opentxs::Amount
 {
     sLock lock(shared_lock_);
 
     return amount_;
 }
 
-bool PaymentItem::Deposit() const noexcept
+auto PaymentItem::Deposit() const noexcept -> bool
 {
     switch (box_) {
         case StorageBox::INCOMINGCHEQUE: {
@@ -155,7 +155,7 @@ bool PaymentItem::Deposit() const noexcept
     return true;
 }
 
-std::string PaymentItem::DisplayAmount() const noexcept
+auto PaymentItem::DisplayAmount() const noexcept -> std::string
 {
     sLock lock(shared_lock_);
 
@@ -226,7 +226,7 @@ void PaymentItem::load() noexcept
     UpdateNotify();
 }
 
-std::string PaymentItem::Memo() const noexcept
+auto PaymentItem::Memo() const noexcept -> std::string
 {
     sLock lock(shared_lock_);
 

@@ -12,227 +12,232 @@
 namespace opentxs::otx::client::implementation
 {
 template <>
-CheckNymTask& StateMachine::get_param()
+auto StateMachine::get_param() -> CheckNymTask&
 {
     return param_.check_nym_;
 }
 template <>
-DepositPaymentTask& StateMachine::get_param()
+auto StateMachine::get_param() -> DepositPaymentTask&
 {
     return param_.deposit_payment_;
 }
 template <>
-DownloadContractTask& StateMachine::get_param()
+auto StateMachine::get_param() -> DownloadContractTask&
 {
     return param_.download_contract_;
 }
 #if OT_CASH
 template <>
-DownloadMintTask& StateMachine::get_param()
+auto StateMachine::get_param() -> DownloadMintTask&
 {
     return param_.download_mint_;
 }
 #endif
 template <>
-DownloadNymboxTask& StateMachine::get_param()
+auto StateMachine::get_param() -> DownloadNymboxTask&
 {
     return param_.download_nymbox_;
 }
 template <>
-DownloadUnitDefinitionTask& StateMachine::get_param()
+auto StateMachine::get_param() -> DownloadUnitDefinitionTask&
 {
     return param_.download_unit_definition_;
 }
 template <>
-GetTransactionNumbersTask& StateMachine::get_param()
+auto StateMachine::get_param() -> GetTransactionNumbersTask&
 {
     return param_.get_transaction_numbers_;
 }
 template <>
-IssueUnitDefinitionTask& StateMachine::get_param()
+auto StateMachine::get_param() -> IssueUnitDefinitionTask&
 {
     return param_.issue_unit_definition_;
 }
 template <>
-MessageTask& StateMachine::get_param()
+auto StateMachine::get_param() -> MessageTask&
 {
     return param_.send_message_;
 }
 #if OT_CASH
 template <>
-PayCashTask& StateMachine::get_param()
+auto StateMachine::get_param() -> PayCashTask&
 {
     return param_.send_cash_;
 }
 #endif
 template <>
-PaymentTask& StateMachine::get_param()
+auto StateMachine::get_param() -> PaymentTask&
 {
     return param_.send_payment_;
 }
 template <>
-PeerReplyTask& StateMachine::get_param()
+auto StateMachine::get_param() -> PeerReplyTask&
 {
     return param_.peer_reply_;
 }
 template <>
-PeerRequestTask& StateMachine::get_param()
+auto StateMachine::get_param() -> PeerRequestTask&
 {
     return param_.peer_request_;
 }
 template <>
-ProcessInboxTask& StateMachine::get_param()
+auto StateMachine::get_param() -> ProcessInboxTask&
 {
     return param_.process_inbox_;
 }
 template <>
-PublishServerContractTask& StateMachine::get_param()
+auto StateMachine::get_param() -> PublishServerContractTask&
 {
     return param_.publish_server_contract_;
 }
 template <>
-RegisterAccountTask& StateMachine::get_param()
+auto StateMachine::get_param() -> RegisterAccountTask&
 {
     return param_.register_account_;
 }
 template <>
-RegisterNymTask& StateMachine::get_param()
+auto StateMachine::get_param() -> RegisterNymTask&
 {
     return param_.register_nym_;
 }
 template <>
-SendChequeTask& StateMachine::get_param()
+auto StateMachine::get_param() -> SendChequeTask&
 {
     return param_.send_cheque_;
 }
 template <>
-SendTransferTask& StateMachine::get_param()
+auto StateMachine::get_param() -> SendTransferTask&
 {
     return param_.send_transfer_;
 }
 #if OT_CASH
 template <>
-WithdrawCashTask& StateMachine::get_param()
+auto StateMachine::get_param() -> WithdrawCashTask&
 {
     return param_.withdraw_cash_;
 }
 #endif
 
 template <>
-const UniqueQueue<CheckNymTask>& StateMachine::get_task() const
+auto StateMachine::get_task() const -> const UniqueQueue<CheckNymTask>&
 {
     return check_nym_;
 }
 template <>
-const UniqueQueue<DepositPaymentTask>& StateMachine::get_task() const
+auto StateMachine::get_task() const -> const UniqueQueue<DepositPaymentTask>&
 {
     return deposit_payment_;
 }
 template <>
-const UniqueQueue<DownloadContractTask>& StateMachine::get_task() const
+auto StateMachine::get_task() const -> const UniqueQueue<DownloadContractTask>&
 {
     return download_contract_;
 }
 #if OT_CASH
 template <>
-const UniqueQueue<DownloadMintTask>& StateMachine::get_task() const
+auto StateMachine::get_task() const -> const UniqueQueue<DownloadMintTask>&
 {
     return download_mint_;
 }
 #endif
 template <>
-const UniqueQueue<DownloadNymboxTask>& StateMachine::get_task() const
+auto StateMachine::get_task() const -> const UniqueQueue<DownloadNymboxTask>&
 {
     return download_nymbox_;
 }
 template <>
-const UniqueQueue<DownloadUnitDefinitionTask>& StateMachine::get_task() const
+auto StateMachine::get_task() const
+    -> const UniqueQueue<DownloadUnitDefinitionTask>&
 {
     return download_unit_definition_;
 }
 template <>
-const UniqueQueue<GetTransactionNumbersTask>& StateMachine::get_task() const
+auto StateMachine::get_task() const
+    -> const UniqueQueue<GetTransactionNumbersTask>&
 {
     return get_transaction_numbers_;
 }
 template <>
-const UniqueQueue<IssueUnitDefinitionTask>& StateMachine::get_task() const
+auto StateMachine::get_task() const
+    -> const UniqueQueue<IssueUnitDefinitionTask>&
 {
     return issue_unit_definition_;
 }
 template <>
-const UniqueQueue<MessageTask>& StateMachine::get_task() const
+auto StateMachine::get_task() const -> const UniqueQueue<MessageTask>&
 {
     return send_message_;
 }
 #if OT_CASH
 template <>
-const UniqueQueue<PayCashTask>& StateMachine::get_task() const
+auto StateMachine::get_task() const -> const UniqueQueue<PayCashTask>&
 {
     return send_cash_;
 }
 #endif
 template <>
-const UniqueQueue<PaymentTask>& StateMachine::get_task() const
+auto StateMachine::get_task() const -> const UniqueQueue<PaymentTask>&
 {
     return send_payment_;
 }
 template <>
-const UniqueQueue<PeerReplyTask>& StateMachine::get_task() const
+auto StateMachine::get_task() const -> const UniqueQueue<PeerReplyTask>&
 {
     return peer_reply_;
 }
 template <>
-const UniqueQueue<PeerRequestTask>& StateMachine::get_task() const
+auto StateMachine::get_task() const -> const UniqueQueue<PeerRequestTask>&
 {
     return peer_request_;
 }
 template <>
-const UniqueQueue<ProcessInboxTask>& StateMachine::get_task() const
+auto StateMachine::get_task() const -> const UniqueQueue<ProcessInboxTask>&
 {
     return process_inbox_;
 }
 template <>
-const UniqueQueue<PublishServerContractTask>& StateMachine::get_task() const
+auto StateMachine::get_task() const
+    -> const UniqueQueue<PublishServerContractTask>&
 {
     return publish_server_contract_;
 }
 template <>
-const UniqueQueue<RegisterAccountTask>& StateMachine::get_task() const
+auto StateMachine::get_task() const -> const UniqueQueue<RegisterAccountTask>&
 {
     return register_account_;
 }
 template <>
-const UniqueQueue<RegisterNymTask>& StateMachine::get_task() const
+auto StateMachine::get_task() const -> const UniqueQueue<RegisterNymTask>&
 {
     return register_nym_;
 }
 template <>
-const UniqueQueue<SendChequeTask>& StateMachine::get_task() const
+auto StateMachine::get_task() const -> const UniqueQueue<SendChequeTask>&
 {
     return send_cheque_;
 }
 template <>
-const UniqueQueue<SendTransferTask>& StateMachine::get_task() const
+auto StateMachine::get_task() const -> const UniqueQueue<SendTransferTask>&
 {
     return send_transfer_;
 }
 #if OT_CASH
 template <>
-const UniqueQueue<WithdrawCashTask>& StateMachine::get_task() const
+auto StateMachine::get_task() const -> const UniqueQueue<WithdrawCashTask>&
 {
     return withdraw_cash_;
 }
 #endif
 
 template <>
-bool StateMachine::load_contract<CheckNymTask>(const identifier::Nym& id) const
+auto StateMachine::load_contract<CheckNymTask>(const identifier::Nym& id) const
+    -> bool
 {
     return bool(client_.Wallet().Nym(id));
 }
 template <>
-bool StateMachine::load_contract<DownloadContractTask>(
-    const identifier::Server& id) const
+auto StateMachine::load_contract<DownloadContractTask>(
+    const identifier::Server& id) const -> bool
 {
     try {
         client_.Wallet().Server(id);
@@ -245,8 +250,8 @@ bool StateMachine::load_contract<DownloadContractTask>(
 }
 
 template <>
-bool StateMachine::load_contract<DownloadUnitDefinitionTask>(
-    const identifier::UnitDefinition& id) const
+auto StateMachine::load_contract<DownloadUnitDefinitionTask>(
+    const identifier::UnitDefinition& id) const -> bool
 {
     try {
         client_.Wallet().UnitDefinition(id);

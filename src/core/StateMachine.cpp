@@ -46,9 +46,8 @@ void StateMachine::execute() const noexcept
     if (shutdown_.load()) { clean(lock); }
 }
 
-StateMachine::WaitFuture StateMachine::make_wait_promise(
-    const Lock& lock,
-    const bool set) const noexcept
+auto StateMachine::make_wait_promise(const Lock& lock, const bool set) const
+    noexcept -> StateMachine::WaitFuture
 {
     waiting_ = {};
     waiting_future_ = waiting_.get_future();
@@ -58,7 +57,7 @@ StateMachine::WaitFuture StateMachine::make_wait_promise(
     return waiting_future_;
 }
 
-StateMachine::StopFuture StateMachine::Stop() const noexcept
+auto StateMachine::Stop() const noexcept -> StateMachine::StopFuture
 {
     Lock lock(decision_lock_);
 
@@ -71,7 +70,7 @@ StateMachine::StopFuture StateMachine::Stop() const noexcept
     return stopping_future_;
 }
 
-bool StateMachine::trigger(const Lock& lock) const noexcept
+auto StateMachine::trigger(const Lock& lock) const noexcept -> bool
 {
     if (shutdown_.load()) { return false; }
 
@@ -87,14 +86,14 @@ bool StateMachine::trigger(const Lock& lock) const noexcept
     return true;
 }
 
-bool StateMachine::Trigger() const noexcept
+auto StateMachine::Trigger() const noexcept -> bool
 {
     Lock lock(decision_lock_);
 
     return trigger(lock);
 }
 
-StateMachine::WaitFuture StateMachine::Wait() const noexcept
+auto StateMachine::Wait() const noexcept -> StateMachine::WaitFuture
 {
     Lock lock(decision_lock_);
 

@@ -11,14 +11,17 @@
 namespace opentxs::server
 {
 struct ServerSettings {
-    static std::int64_t GetMinMarketScale() { return __min_market_scale; }
+    static auto GetMinMarketScale() -> std::int64_t
+    {
+        return __min_market_scale;
+    }
 
     static void SetMinMarketScale(std::int64_t value)
     {
         __min_market_scale = value;
     }
 
-    static std::int32_t GetHeartbeatNoRequests()
+    static auto GetHeartbeatNoRequests() -> std::int32_t
     {
         return __heartbeat_no_requests;
     }
@@ -28,7 +31,7 @@ struct ServerSettings {
         __heartbeat_no_requests = value;
     }
 
-    static std::int32_t GetHeartbeatMsBetweenBeats()
+    static auto GetHeartbeatMsBetweenBeats() -> std::int32_t
     {
         return __heartbeat_ms_between_beats;
     }
@@ -38,7 +41,10 @@ struct ServerSettings {
         __heartbeat_ms_between_beats = value;
     }
 
-    static const std::string& GetOverrideNymID() { return __override_nym_id; }
+    static auto GetOverrideNymID() -> const std::string&
+    {
+        return __override_nym_id;
+    }
 
     static void SetOverrideNymID(const std::string& id)
     {

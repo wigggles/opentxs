@@ -44,7 +44,7 @@ namespace opentxs::blockchain::p2p::bitcoin::message::implementation
 class Filterload final : virtual public internal::Filterload
 {
 public:
-    virtual OTBloomFilter Filter() const noexcept { return payload_; }
+    virtual auto Filter() const noexcept -> OTBloomFilter { return payload_; }
 
     ~Filterload() final = default;
 
@@ -53,7 +53,10 @@ private:
 
     const OTBloomFilter payload_;
 
-    OTData payload() const noexcept final { return payload_->Serialize(); }
+    auto payload() const noexcept -> OTData final
+    {
+        return payload_->Serialize();
+    }
 
     Filterload(
         const api::internal::Core& api,
@@ -65,7 +68,7 @@ private:
         const blockchain::BloomFilter& filter) noexcept;
     Filterload(const Filterload&) = delete;
     Filterload(Filterload&&) = delete;
-    Filterload& operator=(const Filterload&) = delete;
-    Filterload& operator=(Filterload&&) = delete;
+    auto operator=(const Filterload&) -> Filterload& = delete;
+    auto operator=(Filterload &&) -> Filterload& = delete;
 };
 }  // namespace opentxs::blockchain::p2p::bitcoin::message::implementation

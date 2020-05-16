@@ -58,30 +58,31 @@ namespace opentxs::api::client::implementation
 class Activity final : virtual public api::client::internal::Activity, Lockable
 {
 public:
-    bool AddBlockchainTransaction(
+    auto AddBlockchainTransaction(
         const identifier::Nym& nymID,
         const Identifier& threadID,
         const std::string& txid,
-        const Time time) const final;
+        const Time time) const -> bool final;
 
-    bool AddPaymentEvent(
+    auto AddPaymentEvent(
         const identifier::Nym& nymID,
         const Identifier& threadID,
         const StorageBox type,
         const Identifier& itemID,
         const Identifier& workflowID,
-        std::chrono::time_point<std::chrono::system_clock> time) const final;
+        std::chrono::time_point<std::chrono::system_clock> time) const
+        -> bool final;
 
-    bool MoveIncomingBlockchainTransaction(
+    auto MoveIncomingBlockchainTransaction(
         const identifier::Nym& nymID,
         const Identifier& fromThreadID,
         const Identifier& toThreadID,
-        const std::string& txid) const final;
+        const std::string& txid) const -> bool final;
 
-    bool UnassignBlockchainTransaction(
+    auto UnassignBlockchainTransaction(
         const identifier::Nym& nymID,
         const Identifier& fromThreadID,
-        const std::string& txid) const final;
+        const std::string& txid) const -> bool final;
 
     /**   Load a mail object
      *
@@ -91,10 +92,10 @@ public:
      *    \returns A smart pointer to the object. The smart pointer will not be
      *             instantiated if the object does not exist or is invalid.
      */
-    std::unique_ptr<Message> Mail(
+    auto Mail(
         const identifier::Nym& nym,
         const Identifier& id,
-        const StorageBox& box) const final;
+        const StorageBox& box) const -> std::unique_ptr<Message> final;
 
     /**   Store a mail object
      *
@@ -104,19 +105,19 @@ public:
      *    \returns The id of the stored message. The string will be empty if
      *             the mail object can not be stored.
      */
-    std::string Mail(
+    auto Mail(
         const identifier::Nym& nym,
         const Message& mail,
         const StorageBox box,
-        const PasswordPrompt& reason) const final;
+        const PasswordPrompt& reason) const -> std::string final;
 
     /**   Obtain a list of mail objects in a specified box
      *
      *    \param[in] nym the identifier of the nym who owns the mail box
      *    \param[in] box the box to be listed
      */
-    ObjectList Mail(const identifier::Nym& nym, const StorageBox box)
-        const final;
+    auto Mail(const identifier::Nym& nym, const StorageBox box) const
+        -> ObjectList final;
 
     /**   Delete a mail object
      *
@@ -126,10 +127,10 @@ public:
      *    \returns The id of the stored message. The string will be empty if
      *             the mail object can not be stored.
      */
-    bool MailRemove(
+    auto MailRemove(
         const identifier::Nym& nym,
         const Identifier& id,
-        const StorageBox box) const final;
+        const StorageBox box) const -> bool final;
 
     /**   Retrieve the text from a message
      *
@@ -139,11 +140,12 @@ public:
      *    \returns A smart pointer to the object. The smart pointer will not be
      *             instantiated if the object does not exist or is invalid.
      */
-    std::shared_ptr<const std::string> MailText(
+    auto MailText(
         const identifier::Nym& nym,
         const Identifier& id,
         const StorageBox& box,
-        const PasswordPrompt& reason) const final;
+        const PasswordPrompt& reason) const
+        -> std::shared_ptr<const std::string> final;
 
     /**   Mark a thread item as read
      *
@@ -152,10 +154,10 @@ public:
      *    \param[in] itemId the identifier of the item to be marked read
      *    \returns False if the nym, thread, or item does not exist
      */
-    bool MarkRead(
+    auto MarkRead(
         const identifier::Nym& nymId,
         const Identifier& threadId,
-        const Identifier& itemId) const final;
+        const Identifier& itemId) const -> bool final;
 
     /**   Mark a thread item as unread
      *
@@ -164,20 +166,20 @@ public:
      *    \param[in] itemId the identifier of the item to be marked unread
      *    \returns False if the nym, thread, or item does not exist
      */
-    bool MarkUnread(
+    auto MarkUnread(
         const identifier::Nym& nymId,
         const Identifier& threadId,
-        const Identifier& itemId) const final;
+        const Identifier& itemId) const -> bool final;
 
-    ChequeData Cheque(
+    auto Cheque(
         const identifier::Nym& nym,
         const std::string& id,
-        const std::string& workflow) const final;
+        const std::string& workflow) const -> ChequeData final;
 
-    TransferData Transfer(
+    auto Transfer(
         const identifier::Nym& nym,
         const std::string& id,
-        const std::string& workflow) const final;
+        const std::string& workflow) const -> TransferData final;
 
     /**   Summarize a payment workflow event in human-friendly test form
      *
@@ -187,10 +189,11 @@ public:
      *    \returns A smart pointer to the object. The smart pointer will not be
      *             instantiated if the object does not exist or is invalid.
      */
-    std::shared_ptr<const std::string> PaymentText(
+    auto PaymentText(
         const identifier::Nym& nym,
         const std::string& id,
-        const std::string& workflow) const final;
+        const std::string& workflow) const
+        -> std::shared_ptr<const std::string> final;
 
     /**   Asynchronously cache the most recent items in each of a nym's threads
      *
@@ -216,34 +219,32 @@ public:
         const std::size_t count,
         const PasswordPrompt& reason) const final;
 
-    std::shared_ptr<proto::StorageThread> Thread(
-        const identifier::Nym& nymID,
-        const Identifier& threadID) const final;
+    auto Thread(const identifier::Nym& nymID, const Identifier& threadID) const
+        -> std::shared_ptr<proto::StorageThread> final;
 
     /**   Obtain a list of thread ids for the specified nym
      *
      *    \param[in] nym the identifier of the nym
      *    \param[in] unreadOnly if true, only return threads with unread items
      */
-    ObjectList Threads(
-        const identifier::Nym& nym,
-        const bool unreadOnly = false) const final;
+    auto Threads(const identifier::Nym& nym, const bool unreadOnly = false)
+        const -> ObjectList final;
 
     /**   Return the total number of unread thread items for a nym
      *
      *    \param[in] nymId
      */
-    std::size_t UnreadCount(const identifier::Nym& nym) const final;
+    auto UnreadCount(const identifier::Nym& nym) const -> std::size_t final;
 
-    std::string ThreadPublisher(const identifier::Nym& nym) const final;
+    auto ThreadPublisher(const identifier::Nym& nym) const -> std::string final;
 
     ~Activity() = default;
 
 private:
     friend opentxs::Factory;
 
-    typedef std::map<OTIdentifier, std::shared_ptr<const std::string>>
-        MailCache;
+    using MailCache =
+        std::map<OTIdentifier, std::shared_ptr<const std::string>>;
 
     const api::internal::Core& api_;
     const client::Contacts& contact_;
@@ -273,13 +274,12 @@ private:
         const std::size_t start,
         const std::size_t count) const;
 
-    std::shared_ptr<const Contact> nym_to_contact(
-        const std::string& nymID) const;
-    const opentxs::network::zeromq::socket::Publish& get_publisher(
-        const identifier::Nym& nymID) const;
-    const opentxs::network::zeromq::socket::Publish& get_publisher(
-        const identifier::Nym& nymID,
-        std::string& endpoint) const;
+    auto nym_to_contact(const std::string& nymID) const
+        -> std::shared_ptr<const Contact>;
+    auto get_publisher(const identifier::Nym& nymID) const
+        -> const opentxs::network::zeromq::socket::Publish&;
+    auto get_publisher(const identifier::Nym& nymID, std::string& endpoint)
+        const -> const opentxs::network::zeromq::socket::Publish&;
     void publish(const identifier::Nym& nymID, const std::string& threadID)
         const;
 
@@ -287,7 +287,7 @@ private:
     Activity() = delete;
     Activity(const Activity&) = delete;
     Activity(Activity&&) = delete;
-    Activity& operator=(const Activity&) = delete;
-    Activity& operator=(Activity&&) = delete;
+    auto operator=(const Activity&) -> Activity& = delete;
+    auto operator=(Activity &&) -> Activity& = delete;
 };
 }  // namespace opentxs::api::client::implementation

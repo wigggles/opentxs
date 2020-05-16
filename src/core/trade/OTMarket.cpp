@@ -111,7 +111,7 @@ OTMarket::OTMarket(
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-std::int32_t OTMarket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
+auto OTMarket::ProcessXMLNode(irr::io::IrrXMLReader*& xml) -> std::int32_t
 {
     std::int32_t nReturnVal = 0;
     // Here we call the parent class first.
@@ -264,7 +264,7 @@ void OTMarket::UpdateContents(const PasswordPrompt& reason)
     m_xmlUnsigned->Concatenate("%s", str_result.c_str());
 }
 
-std::int64_t OTMarket::GetTotalAvailableAssets()
+auto OTMarket::GetTotalAvailableAssets() -> std::int64_t
 {
     std::int64_t lTotal = 0;
 
@@ -280,10 +280,10 @@ std::int64_t OTMarket::GetTotalAvailableAssets()
 
 // Get list of offers for a particular Nym, to send that Nym
 //
-bool OTMarket::GetNym_OfferList(
+auto OTMarket::GetNym_OfferList(
     const identifier::Nym& NYM_ID,
     OTDB::OfferListNym& theOutputList,
-    std::int32_t& nNymOfferCount)
+    std::int32_t& nNymOfferCount) -> bool
 {
     nNymOfferCount =
         0;  // Outputs the count of offers for NYM_ID (on this market.)
@@ -382,7 +382,8 @@ bool OTMarket::GetNym_OfferList(
     return true;
 }
 
-bool OTMarket::GetRecentTradeList(Armored& ascOutput, std::int32_t& nTradeCount)
+auto OTMarket::GetRecentTradeList(Armored& ascOutput, std::int32_t& nTradeCount)
+    -> bool
 {
     nTradeCount = 0;  // Output the count of trades in the list being returned.
                       // (If success..)
@@ -453,10 +454,10 @@ bool OTMarket::GetRecentTradeList(Armored& ascOutput, std::int32_t& nTradeCount)
 
 // OTDB::OfferListMarket
 //
-bool OTMarket::GetOfferList(
+auto OTMarket::GetOfferList(
     Armored& ascOutput,
     std::int64_t lDepth,
-    std::int32_t& nOfferCount)
+    std::int32_t& nOfferCount) -> bool
 {
     nOfferCount = 0;  // Outputs the actual count of offers being returned.
 
@@ -601,7 +602,7 @@ bool OTMarket::GetOfferList(
 // mapOfOffers    m_mapBids; // The buyers, ordered
 // mapOfOffers    m_mapAsks; // The sellers, ordered
 
-OTOffer* OTMarket::GetOffer(const std::int64_t& lTransactionNum)
+auto OTMarket::GetOffer(const std::int64_t& lTransactionNum) -> OTOffer*
 {
     // See if there's something there with that transaction number.
     auto it = m_mapOffers.find(lTransactionNum);
@@ -630,9 +631,9 @@ OTOffer* OTMarket::GetOffer(const std::int64_t& lTransactionNum)
 }
 
 // if false, offer wasn't found.
-bool OTMarket::RemoveOffer(
+auto OTMarket::RemoveOffer(
     const std::int64_t& lTransactionNum,
-    const PasswordPrompt& reason)
+    const PasswordPrompt& reason) -> bool
 {
     bool bReturnValue = false;
 
@@ -669,8 +670,7 @@ bool OTMarket::RemoveOffer(
         // list to remove. Todo.
         OTOffer* pSameOffer = nullptr;
 
-        for (mapOfOffers::iterator iii = pMap->begin(); iii != pMap->end();
-             ++iii) {
+        for (auto iii = pMap->begin(); iii != pMap->end(); ++iii) {
             pSameOffer = iii->second;
 
             OT_ASSERT_MSG(
@@ -726,12 +726,12 @@ bool OTMarket::RemoveOffer(
 //
 // If NOT successful adding, caller must clear up his own memory.
 //
-bool OTMarket::AddOffer(
+auto OTMarket::AddOffer(
     OTTrade* pTrade,
     OTOffer& theOffer,
     const PasswordPrompt& reason,
     const bool bSaveFile,
-    const Time tDateAddedToMarket)
+    const Time tDateAddedToMarket) -> bool
 {
     const std::int64_t lTransactionNum = theOffer.GetTransactionNum(),
                        lPriceLimit = theOffer.GetPriceLimit();
@@ -820,7 +820,7 @@ bool OTMarket::AddOffer(
     return false;
 }
 
-bool OTMarket::LoadMarket()
+auto OTMarket::LoadMarket() -> bool
 {
     OT_ASSERT(nullptr != GetCron());
     OT_ASSERT(nullptr != GetCron()->GetServerNym());
@@ -861,7 +861,7 @@ bool OTMarket::LoadMarket()
     return bSuccess;
 }
 
-bool OTMarket::SaveMarket(const PasswordPrompt& reason)
+auto OTMarket::SaveMarket(const PasswordPrompt& reason) -> bool
 {
     OT_ASSERT(nullptr != GetCron());
     OT_ASSERT(nullptr != GetCron()->GetServerNym());
@@ -940,11 +940,11 @@ void OTMarket::GetIdentifier(Identifier& theIdentifier) const
 
 // returns 0 if there are no bids. Otherwise returns the value of the highest
 // bid on the market.
-std::int64_t OTMarket::GetHighestBidPrice()
+auto OTMarket::GetHighestBidPrice() -> std::int64_t
 {
     std::int64_t lPrice = 0;
 
-    mapOfOffers::reverse_iterator rr = m_mapBids.rbegin();
+    auto rr = m_mapBids.rbegin();
 
     if (rr != m_mapBids.rend()) { lPrice = rr->first; }
 
@@ -953,7 +953,7 @@ std::int64_t OTMarket::GetHighestBidPrice()
 
 // returns 0 if there are no asks. Otherwise returns the value of the lowest ask
 // on the market.
-std::int64_t OTMarket::GetLowestAskPrice()
+auto OTMarket::GetLowestAskPrice() -> std::int64_t
 {
     std::int64_t lPrice = 0;
 
@@ -2359,11 +2359,11 @@ void OTMarket::ProcessTrade(
 
 // Return True if Trade should stay on the Cron list for more
 // processing. Return False if it should be removed and deleted.
-bool OTMarket::ProcessTrade(
+auto OTMarket::ProcessTrade(
     const api::Wallet& wallet,
     OTTrade& theTrade,
     OTOffer& theOffer,
-    const PasswordPrompt& reason)
+    const PasswordPrompt& reason) -> bool
 {
     if (theOffer.GetAmountAvailable() < theOffer.GetMinimumIncrement()) {
         LogVerbose(OT_METHOD)(__FUNCTION__)(": Removing offer from ")(
@@ -2433,9 +2433,7 @@ bool OTMarket::ProcessTrade(
         // other hand, is first in line.  So we start there, and loop
         // backwards until there are no other bids within my price
         // range.
-        for (mapOfOffers::reverse_iterator rr = m_mapBids.rbegin();
-             rr != m_mapBids.rend();
-             ++rr) {
+        for (auto rr = m_mapBids.rbegin(); rr != m_mapBids.rend(); ++rr) {
             // then I want to start at the highest bidder and loop DOWN
             // until hitting my price limit.
             OTOffer* pBid = rr->second;
@@ -2627,7 +2625,7 @@ bool OTMarket::ProcessTrade(
 
 // Make sure the offer is for the right instrument definition, the right
 // currency, etc.
-bool OTMarket::ValidateOfferForMarket(OTOffer& theOffer)
+auto OTMarket::ValidateOfferForMarket(OTOffer& theOffer) -> bool
 {
     bool bValidOffer = true;
     auto strReason = String::Factory();

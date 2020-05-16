@@ -38,8 +38,8 @@ private:
     friend Nym;
 
     void init(const std::string& hash) final;
-    bool save(const std::unique_lock<std::mutex>& lock) const final;
-    proto::StorageNymList serialize() const;
+    auto save(const std::unique_lock<std::mutex>& lock) const -> bool final;
+    auto serialize() const -> proto::StorageNymList;
 
     PeerReplies(
         const opentxs::api::storage::Driver& storage,
@@ -47,17 +47,17 @@ private:
     PeerReplies() = delete;
     PeerReplies(const PeerReplies&) = delete;
     PeerReplies(PeerReplies&&) = delete;
-    PeerReplies operator=(const PeerReplies&) = delete;
-    PeerReplies operator=(PeerReplies&&) = delete;
+    auto operator=(const PeerReplies&) -> PeerReplies = delete;
+    auto operator=(PeerReplies &&) -> PeerReplies = delete;
 
 public:
-    bool Load(
+    auto Load(
         const std::string& id,
         std::shared_ptr<proto::PeerReply>& output,
-        const bool checking) const;
+        const bool checking) const -> bool;
 
-    bool Delete(const std::string& id);
-    bool Store(const proto::PeerReply& data);
+    auto Delete(const std::string& id) -> bool;
+    auto Store(const proto::PeerReply& data) -> bool;
 
     ~PeerReplies() final = default;
 };

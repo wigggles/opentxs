@@ -40,13 +40,14 @@ class StorageLMDB final : public virtual Plugin,
                           public virtual opentxs::api::storage::Driver
 {
 public:
-    bool EmptyBucket(const bool bucket) const final;
-    bool LoadFromBucket(
+    auto EmptyBucket(const bool bucket) const -> bool final;
+    auto LoadFromBucket(
         const std::string& key,
         std::string& value,
-        const bool bucket) const final;
-    std::string LoadRoot() const final;
-    bool StoreRoot(const bool commit, const std::string& hash) const final;
+        const bool bucket) const -> bool final;
+    auto LoadRoot() const -> std::string final;
+    auto StoreRoot(const bool commit, const std::string& hash) const
+        -> bool final;
 
     void Cleanup() final;
     void Cleanup_StorageLMDB();
@@ -67,7 +68,7 @@ private:
     const lmdb::TableNames table_names_;
     lmdb::LMDB lmdb_;
 
-    Table get_table(const bool bucket) const;
+    auto get_table(const bool bucket) const -> Table;
     void store(
         const bool isTransaction,
         const std::string& key,
@@ -86,7 +87,7 @@ private:
     StorageLMDB() = delete;
     StorageLMDB(const StorageLMDB&) = delete;
     StorageLMDB(StorageLMDB&&) = delete;
-    StorageLMDB& operator=(const StorageLMDB&) = delete;
-    StorageLMDB& operator=(StorageLMDB&&) = delete;
+    auto operator=(const StorageLMDB&) -> StorageLMDB& = delete;
+    auto operator=(StorageLMDB &&) -> StorageLMDB& = delete;
 };
 }  // namespace opentxs::storage::implementation

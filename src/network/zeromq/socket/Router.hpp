@@ -48,7 +48,7 @@ class Router final : public Bidirectional<zeromq::socket::Router>,
                      public zeromq::curve::implementation::Server
 {
 public:
-    bool SetSocksProxy(const std::string& proxy) const noexcept final
+    auto SetSocksProxy(const std::string& proxy) const noexcept -> bool final
     {
         return set_socks_proxy(proxy);
     }
@@ -66,15 +66,15 @@ protected:
 private:
     friend opentxs::Factory;
 
-    Router* clone() const noexcept final;
-    bool have_callback() const noexcept final { return true; }
+    auto clone() const noexcept -> Router* final;
+    auto have_callback() const noexcept -> bool final { return true; }
 
     void process_incoming(const Lock& lock, Message& message) noexcept final;
 
     Router() = delete;
     Router(const Router&) = delete;
     Router(Router&&) = delete;
-    Router& operator=(const Router&) = delete;
-    Router& operator=(Router&&) = delete;
+    auto operator=(const Router&) -> Router& = delete;
+    auto operator=(Router &&) -> Router& = delete;
 };
 }  // namespace opentxs::network::zeromq::socket::implementation

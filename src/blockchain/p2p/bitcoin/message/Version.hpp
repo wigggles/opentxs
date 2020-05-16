@@ -48,30 +48,38 @@ namespace opentxs::blockchain::p2p::bitcoin::message::implementation
 class Version final : public internal::Version
 {
 public:
-    block::Height Height() const noexcept final { return height_; }
-    tcp::endpoint LocalAddress() const noexcept final { return local_address_; }
-    std::set<blockchain::p2p::Service> LocalServices() const noexcept final
+    auto Height() const noexcept -> block::Height final { return height_; }
+    auto LocalAddress() const noexcept -> tcp::endpoint final
+    {
+        return local_address_;
+    }
+    auto LocalServices() const noexcept
+        -> std::set<blockchain::p2p::Service> final
     {
         return local_services_;
     }
-    api::client::blockchain::Nonce Nonce() const noexcept final
+    auto Nonce() const noexcept -> api::client::blockchain::Nonce final
     {
         return nonce_;
     }
-    bitcoin::ProtocolVersion ProtocolVersion() const noexcept final
+    auto ProtocolVersion() const noexcept -> bitcoin::ProtocolVersion final
     {
         return version_;
     }
-    bool Relay() const noexcept final { return relay_; }
-    tcp::endpoint RemoteAddress() const noexcept final
+    auto Relay() const noexcept -> bool final { return relay_; }
+    auto RemoteAddress() const noexcept -> tcp::endpoint final
     {
         return remote_address_;
     }
-    std::set<blockchain::p2p::Service> RemoteServices() const noexcept final
+    auto RemoteServices() const noexcept
+        -> std::set<blockchain::p2p::Service> final
     {
         return remote_services_;
     }
-    const std::string& UserAgent() const noexcept final { return user_agent_; }
+    auto UserAgent() const noexcept -> const std::string& final
+    {
+        return user_agent_;
+    }
 
     ~Version() final = default;
 
@@ -123,7 +131,7 @@ private:
     const bool relay_;
     const Time timestamp_;
 
-    OTData payload() const noexcept final;
+    auto payload() const noexcept -> OTData final;
 
     Version(
         const api::internal::Core& api,
@@ -155,7 +163,7 @@ private:
         const Time time = Clock::now()) noexcept;
     Version(const Version&) = delete;
     Version(Version&&) = delete;
-    Version& operator=(const Version&) = delete;
-    Version& operator=(Version&&) = delete;
+    auto operator=(const Version&) -> Version& = delete;
+    auto operator=(Version &&) -> Version& = delete;
 };
 }  // namespace opentxs::blockchain::p2p::bitcoin::message::implementation

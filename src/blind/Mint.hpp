@@ -45,24 +45,26 @@ namespace opentxs::blind::mint::implementation
 class Mint : virtual public opentxs::blind::Mint, virtual public Contract
 {
 public:
-    OTIdentifier AccountID() const override { return m_CashAccountID; }
-    bool Expired() const override;
-    std::int64_t GetDenomination(std::int32_t nIndex) const override;
-    std::int32_t GetDenominationCount() const override
+    auto AccountID() const -> OTIdentifier override { return m_CashAccountID; }
+    auto Expired() const -> bool override;
+    auto GetDenomination(std::int32_t nIndex) const -> std::int64_t override;
+    auto GetDenominationCount() const -> std::int32_t override
     {
         return m_nDenominationCount;
     }
 
-    Time GetExpiration() const override { return m_EXPIRATION; }
-    std::int64_t GetLargestDenomination(std::int64_t lAmount) const override;
-    bool GetPrivate(Armored& theArmor, std::int64_t lDenomination)
-        const override;
-    bool GetPublic(Armored& theArmor, std::int64_t lDenomination)
-        const override;
-    std::int32_t GetSeries() const override { return m_nSeries; }
-    Time GetValidFrom() const override { return m_VALID_FROM; }
-    Time GetValidTo() const override { return m_VALID_TO; }
-    const identifier::UnitDefinition& InstrumentDefinitionID() const override
+    auto GetExpiration() const -> Time override { return m_EXPIRATION; }
+    auto GetLargestDenomination(std::int64_t lAmount) const
+        -> std::int64_t override;
+    auto GetPrivate(Armored& theArmor, std::int64_t lDenomination) const
+        -> bool override;
+    auto GetPublic(Armored& theArmor, std::int64_t lDenomination) const
+        -> bool override;
+    auto GetSeries() const -> std::int32_t override { return m_nSeries; }
+    auto GetValidFrom() const -> Time override { return m_VALID_FROM; }
+    auto GetValidTo() const -> Time override { return m_VALID_TO; }
+    auto InstrumentDefinitionID() const
+        -> const identifier::UnitDefinition& override
     {
         return m_InstrumentDefinitionID;
     }
@@ -88,12 +90,12 @@ public:
         const std::int64_t nDenom10,
         const std::size_t keySize,
         const PasswordPrompt& reason) override;
-    bool LoadContract() override;
-    bool LoadMint(const char* szAppend = nullptr) override;
+    auto LoadContract() -> bool override;
+    auto LoadMint(const char* szAppend = nullptr) -> bool override;
     void Release() override;
     void Release_Mint() override;
     void ReleaseDenominations() override;
-    bool SaveMint(const char* szAppend = nullptr) override;
+    auto SaveMint(const char* szAppend = nullptr) -> bool override;
     void SetInstrumentDefinitionID(
         const identifier::UnitDefinition& newID) override
     {
@@ -104,15 +106,15 @@ public:
         m_bSavePrivateKeys = bDoIt;
     }
     void UpdateContents(const PasswordPrompt& reason) override;
-    bool VerifyContractID() const override;
-    bool VerifyMint(const identity::Nym& theOperator) override;
+    auto VerifyContractID() const -> bool override;
+    auto VerifyMint(const identity::Nym& theOperator) -> bool override;
 
     ~Mint() override;
 
 protected:
     using mapOfArmor = std::map<std::int64_t, OTArmored>;
 
-    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
+    auto ProcessXMLNode(irr::io::IrrXMLReader*& xml) -> std::int32_t override;
 
     void InitMint();
 

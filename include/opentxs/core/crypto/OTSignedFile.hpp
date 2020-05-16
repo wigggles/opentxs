@@ -88,7 +88,7 @@ protected:
 private:  // Private prevents erroneous use by other classes.
     friend api::implementation::Factory;
 
-    typedef Contract ot_super;
+    using ot_super = Contract;
 
     // These assume SetFilename() was already called,
     // or at least one of the constructors that uses it.

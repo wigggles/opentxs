@@ -213,7 +213,7 @@ protected:
 private:
     friend api::implementation::Factory;
 
-    typedef OTCronItem ot_super;
+    using ot_super = OTCronItem;
 
     OTUnitID currencyTypeID_;      // GOLD (Asset) is trading for DOLLARS
                                    // (Currency).

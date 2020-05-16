@@ -70,14 +70,14 @@ void Socket::add_endpoint(const std::string& endpoint) const noexcept
     endpoints_.emplace(endpoint);
 }
 
-bool Socket::apply_socket(SocketCallback&& cb) const noexcept
+auto Socket::apply_socket(SocketCallback&& cb) const noexcept -> bool
 {
     Lock lock(lock_);
 
     return cb(lock);
 }
 
-bool Socket::apply_timeouts(const Lock& lock) const noexcept
+auto Socket::apply_timeouts(const Lock& lock) const noexcept -> bool
 {
     OT_ASSERT(nullptr != socket_)
     OT_ASSERT(verify_lock(lock))
@@ -114,7 +114,8 @@ bool Socket::apply_timeouts(const Lock& lock) const noexcept
     return true;
 }
 
-bool Socket::bind(const Lock& lock, const std::string& endpoint) const noexcept
+auto Socket::bind(const Lock& lock, const std::string& endpoint) const noexcept
+    -> bool
 {
     if (false == apply_timeouts(lock)) { return false; }
 
@@ -131,8 +132,8 @@ bool Socket::bind(const Lock& lock, const std::string& endpoint) const noexcept
     return output;
 }
 
-bool Socket::connect(const Lock& lock, const std::string& endpoint) const
-    noexcept
+auto Socket::connect(const Lock& lock, const std::string& endpoint) const
+    noexcept -> bool
 {
     if (false == apply_timeouts(lock)) { return false; }
 
@@ -149,7 +150,7 @@ bool Socket::connect(const Lock& lock, const std::string& endpoint) const
     return output;
 }
 
-bool Socket::Close() const noexcept
+auto Socket::Close() const noexcept -> bool
 {
     running_->Off();
     Lock lock(lock_);
@@ -161,10 +162,10 @@ bool Socket::Close() const noexcept
     return true;
 }
 
-bool Socket::receive_message(
+auto Socket::receive_message(
     const Lock& lock,
     void* socket,
-    zeromq::Message& message) noexcept
+    zeromq::Message& message) noexcept -> bool
 {
     bool receiving{true};
 
@@ -210,10 +211,10 @@ bool Socket::receive_message(
     return true;
 }
 
-bool Socket::send_message(
+auto Socket::send_message(
     const Lock& lock,
     void* socket,
-    Message& message) noexcept
+    Message& message) noexcept -> bool
 {
     bool sent{true};
     const auto parts = message.size();
@@ -235,12 +236,13 @@ bool Socket::send_message(
     return sent;
 }
 
-bool Socket::send_message(const Lock& lock, Message& message) const noexcept
+auto Socket::send_message(const Lock& lock, Message& message) const noexcept
+    -> bool
 {
     return send_message(lock, socket_, message);
 }
 
-std::string Socket::random_inproc_endpoint() noexcept
+auto Socket::random_inproc_endpoint() noexcept -> std::string
 {
     std::random_device seed;
     std::mt19937 generator(seed());
@@ -250,12 +252,13 @@ std::string Socket::random_inproc_endpoint() noexcept
            std::to_string(rand(generator));
 }
 
-bool Socket::receive_message(const Lock& lock, Message& message) const noexcept
+auto Socket::receive_message(const Lock& lock, Message& message) const noexcept
+    -> bool
 {
     return receive_message(lock, socket_, message);
 }
 
-bool Socket::set_socks_proxy(const std::string& proxy) const noexcept
+auto Socket::set_socks_proxy(const std::string& proxy) const noexcept -> bool
 {
     OT_ASSERT(nullptr != socket_);
 
@@ -269,10 +272,10 @@ bool Socket::set_socks_proxy(const std::string& proxy) const noexcept
     return apply_socket(std::move(cb));
 }
 
-bool Socket::SetTimeouts(
+auto Socket::SetTimeouts(
     const std::chrono::milliseconds& linger,
     const std::chrono::milliseconds& send,
-    const std::chrono::milliseconds& receive) const noexcept
+    const std::chrono::milliseconds& receive) const noexcept -> bool
 {
     OT_ASSERT(nullptr != socket_);
 
@@ -302,7 +305,7 @@ void Socket::shutdown(const Lock& lock) noexcept
     if (0 == zmq_close(socket_)) { socket_ = nullptr; }
 }
 
-bool Socket::Start(const std::string& endpoint) const noexcept
+auto Socket::Start(const std::string& endpoint) const noexcept -> bool
 {
     SocketCallback cb{
         [&](const Lock& lock) -> bool { return start(lock, endpoint); }};
@@ -310,7 +313,8 @@ bool Socket::Start(const std::string& endpoint) const noexcept
     return apply_socket(std::move(cb));
 }
 
-bool Socket::start(const Lock& lock, const std::string& endpoint) const noexcept
+auto Socket::start(const Lock& lock, const std::string& endpoint) const noexcept
+    -> bool
 {
     if (Socket::Direction::Connect == direction_) {
 

@@ -16,7 +16,7 @@
 
 namespace opentxs
 {
-OTCallback* Factory::NullCallback()
+auto Factory::NullCallback() -> OTCallback*
 {
     return new implementation::NullCallback();
 }

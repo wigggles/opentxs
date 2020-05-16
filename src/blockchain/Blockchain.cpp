@@ -149,9 +149,9 @@ BitReader::BitReader(std::uint8_t* data, int len)
 {
 }
 
-bool BitReader::eof() { return (len_ == 0 && n_ == 0); }
+auto BitReader::eof() -> bool { return (len_ == 0 && n_ == 0); }
 
-std::uint64_t BitReader::read(std::size_t nbits)
+auto BitReader::read(std::size_t nbits) -> std::uint64_t
 {
     // nbits is the number of bits the programmer is trying to read from our
     // internal data and, interpreted as big endian, return to the caller in

@@ -49,7 +49,7 @@ namespace zmq = opentxs::network::zeromq;
 
 namespace opentxs
 {
-api::network::Dht* Factory::Dht(
+auto Factory::Dht(
     const bool defaultEnable,
     const api::internal::Core& api,
     std::int64_t& nymPublishInterval,
@@ -57,7 +57,7 @@ api::network::Dht* Factory::Dht(
     std::int64_t& serverPublishInterval,
     std::int64_t& serverRefreshInterval,
     std::int64_t& unitPublishInterval,
-    std::int64_t& unitRefreshInterval)
+    std::int64_t& unitRefreshInterval) -> api::network::Dht*
 {
     DhtConfig config;
     bool notUsed;
@@ -246,12 +246,12 @@ void Dht::GetUnitDefinition([[maybe_unused]] const std::string& key) const
 }
 
 #if OT_DHT
-const opentxs::network::OpenDHT& Dht::OpenDHT() const { return *node_; }
+auto Dht::OpenDHT() const -> const opentxs::network::OpenDHT& { return *node_; }
 #endif
 
-OTZMQMessage Dht::process_request(
+auto Dht::process_request(
     const zmq::Message& incoming,
-    void (Dht::*get)(const std::string&) const) const
+    void (Dht::*get)(const std::string&) const) const -> OTZMQMessage
 {
     OT_ASSERT(nullptr != get)
 
@@ -271,11 +271,11 @@ OTZMQMessage Dht::process_request(
 }
 
 #if OT_DHT
-bool Dht::ProcessPublicNym(
+auto Dht::ProcessPublicNym(
     const api::internal::Core& api,
     const std::string key,
     const DhtResults& values,
-    NotifyCB notifyCB)
+    NotifyCB notifyCB) -> bool
 {
     std::string theresult;
     bool foundData = false;
@@ -325,11 +325,11 @@ bool Dht::ProcessPublicNym(
     return foundData;
 }
 
-bool Dht::ProcessServerContract(
+auto Dht::ProcessServerContract(
     const api::internal::Core& api,
     const std::string key,
     const DhtResults& values,
-    NotifyCB notifyCB)
+    NotifyCB notifyCB) -> bool
 {
     std::string theresult;
     bool foundData = false;
@@ -376,11 +376,11 @@ bool Dht::ProcessServerContract(
     return foundData;
 }
 
-bool Dht::ProcessUnitDefinition(
+auto Dht::ProcessUnitDefinition(
     const api::internal::Core& api,
     const std::string key,
     const DhtResults& values,
-    NotifyCB notifyCB)
+    NotifyCB notifyCB) -> bool
 {
     std::string theresult;
     bool foundData = false;

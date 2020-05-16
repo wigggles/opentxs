@@ -47,38 +47,39 @@ namespace opentxs::storage::implementation
 class StorageMultiplex final : virtual public opentxs::api::storage::Multiplex
 {
 public:
-    bool EmptyBucket(const bool bucket) const final;
-    bool LoadFromBucket(
+    auto EmptyBucket(const bool bucket) const -> bool final;
+    auto LoadFromBucket(
         const std::string& key,
         std::string& value,
-        const bool bucket) const final;
-    bool Load(const std::string& key, const bool checking, std::string& value)
-        const final;
-    std::string LoadRoot() const final;
-    bool Migrate(
+        const bool bucket) const -> bool final;
+    auto Load(const std::string& key, const bool checking, std::string& value)
+        const -> bool final;
+    auto LoadRoot() const -> std::string final;
+    auto Migrate(
         const std::string& key,
-        const opentxs::api::storage::Driver& to) const final;
-    bool Store(
+        const opentxs::api::storage::Driver& to) const -> bool final;
+    auto Store(
         const bool isTransaction,
         const std::string& key,
         const std::string& value,
-        const bool bucket) const final;
+        const bool bucket) const -> bool final;
     void Store(
         const bool isTransaction,
         const std::string& key,
         const std::string& value,
         const bool bucket,
         std::promise<bool>& promise) const final;
-    bool Store(
+    auto Store(
         const bool isTransaction,
         const std::string& value,
-        std::string& key) const final;
-    bool StoreRoot(const bool commit, const std::string& hash) const final;
+        std::string& key) const -> bool final;
+    auto StoreRoot(const bool commit, const std::string& hash) const
+        -> bool final;
 
-    std::string BestRoot(bool& primaryOutOfSync) final;
+    auto BestRoot(bool& primaryOutOfSync) -> std::string final;
     void InitBackup() final;
     void InitEncryptedBackup(crypto::key::Symmetric& key) final;
-    opentxs::api::storage::Driver& Primary() final;
+    auto Primary() -> opentxs::api::storage::Driver& final;
     void SynchronizePlugins(
         const std::string& hash,
         const storage::Root& root,
@@ -110,8 +111,8 @@ private:
     StorageMultiplex() = delete;
     StorageMultiplex(const StorageMultiplex&) = delete;
     StorageMultiplex(StorageMultiplex&&) = delete;
-    StorageMultiplex& operator=(const StorageMultiplex&) = delete;
-    StorageMultiplex& operator=(StorageMultiplex&&) = delete;
+    auto operator=(const StorageMultiplex&) -> StorageMultiplex& = delete;
+    auto operator=(StorageMultiplex &&) -> StorageMultiplex& = delete;
 
     void Cleanup();
     void Cleanup_StorageMultiplex();

@@ -93,7 +93,7 @@ private:
     GCS() = delete;
     GCS(const GCS&) = delete;
     GCS(GCS&&) = delete;
-    GCS& operator=(const GCS&) = delete;
-    GCS& operator=(GCS&&) = delete;
+    auto operator=(const GCS&) -> GCS& = delete;
+    auto operator=(GCS &&) -> GCS& = delete;
 };
 }  // namespace opentxs::blockchain::implementation

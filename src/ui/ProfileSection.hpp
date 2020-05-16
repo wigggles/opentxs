@@ -75,14 +75,14 @@ class ProfileSection final
     : public Combined<ProfileSectionList, ProfileSectionRow, ProfileSortKey>
 {
 public:
-    bool AddClaim(
+    auto AddClaim(
         const proto::ContactItemType type,
         const std::string& value,
         const bool primary,
-        const bool active) const noexcept final;
-    bool Delete(const int type, const std::string& claimID) const
-        noexcept final;
-    ItemTypeList Items(const std::string& lang) const noexcept final;
+        const bool active) const noexcept -> bool final;
+    auto Delete(const int type, const std::string& claimID) const noexcept
+        -> bool final;
+    auto Items(const std::string& lang) const noexcept -> ItemTypeList final;
 #if OT_QT
     int FindRow(const ProfileSectionRowID& id, const ProfileSectionSortKey& key)
         const noexcept final
@@ -90,21 +90,27 @@ public:
         return find_row(id, key);
     }
 #endif
-    std::string Name(const std::string& lang) const noexcept final;
-    const identifier::Nym& NymID() const noexcept final { return primary_id_; }
-    bool SetActive(
+    auto Name(const std::string& lang) const noexcept -> std::string final;
+    auto NymID() const noexcept -> const identifier::Nym& final
+    {
+        return primary_id_;
+    }
+    auto SetActive(
         const int type,
         const std::string& claimID,
-        const bool active) const noexcept final;
-    bool SetPrimary(
+        const bool active) const noexcept -> bool final;
+    auto SetPrimary(
         const int type,
         const std::string& claimID,
-        const bool primary) const noexcept final;
-    bool SetValue(
+        const bool primary) const noexcept -> bool final;
+    auto SetValue(
         const int type,
         const std::string& claimID,
-        const std::string& value) const noexcept final;
-    proto::ContactSectionName Type() const noexcept final { return row_id_; }
+        const std::string& value) const noexcept -> bool final;
+    auto Type() const noexcept -> proto::ContactSectionName final
+    {
+        return row_id_;
+    }
 
     void reindex(
         const ProfileSortKey& key,
@@ -125,26 +131,26 @@ public:
     ~ProfileSection() = default;
 
 private:
-    static int sort_key(const ProfileSectionRowID type) noexcept;
-    static bool check_type(const ProfileSectionRowID type) noexcept;
+    static auto sort_key(const ProfileSectionRowID type) noexcept -> int;
+    static auto check_type(const ProfileSectionRowID type) noexcept -> bool;
 
-    void* construct_row(
+    auto construct_row(
         const ProfileSectionRowID& id,
         const ProfileSectionSortKey& index,
-        const CustomData& custom) const noexcept final;
+        const CustomData& custom) const noexcept -> void* final;
 
-    bool last(const ProfileSectionRowID& id) const noexcept final
+    auto last(const ProfileSectionRowID& id) const noexcept -> bool final
     {
         return ProfileSectionList::last(id);
     }
-    std::set<ProfileSectionRowID> process_section(
-        const opentxs::ContactSection& section) noexcept;
+    auto process_section(const opentxs::ContactSection& section) noexcept
+        -> std::set<ProfileSectionRowID>;
     void startup(const CustomData& custom) noexcept;
 
     ProfileSection() = delete;
     ProfileSection(const ProfileSection&) = delete;
     ProfileSection(ProfileSection&&) = delete;
-    ProfileSection& operator=(const ProfileSection&) = delete;
-    ProfileSection& operator=(ProfileSection&&) = delete;
+    auto operator=(const ProfileSection&) -> ProfileSection& = delete;
+    auto operator=(ProfileSection &&) -> ProfileSection& = delete;
 };
 }  // namespace opentxs::ui::implementation

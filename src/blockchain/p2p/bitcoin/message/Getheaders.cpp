@@ -26,13 +26,13 @@
 
 namespace opentxs
 {
-blockchain::p2p::bitcoin::message::internal::Getheaders* Factory::
-    BitcoinP2PGetheaders(
-        const api::internal::Core& api,
-        std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
-        const blockchain::p2p::bitcoin::ProtocolVersion,
-        const void* payload,
-        const std::size_t size)
+auto Factory::BitcoinP2PGetheaders(
+    const api::internal::Core& api,
+    std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
+    const blockchain::p2p::bitcoin::ProtocolVersion,
+    const void* payload,
+    const std::size_t size)
+    -> blockchain::p2p::bitcoin::message::internal::Getheaders*
 {
     namespace bitcoin = blockchain::p2p::bitcoin;
     using ReturnType = bitcoin::message::implementation::Getheaders;
@@ -120,13 +120,13 @@ blockchain::p2p::bitcoin::message::internal::Getheaders* Factory::
         std::move(stop));
 }
 
-blockchain::p2p::bitcoin::message::internal::Getheaders* Factory::
-    BitcoinP2PGetheaders(
-        const api::internal::Core& api,
-        const blockchain::Type network,
-        const blockchain::p2p::bitcoin::ProtocolVersionUnsigned version,
-        std::vector<blockchain::block::pHash>&& history,
-        blockchain::block::pHash&& stop)
+auto Factory::BitcoinP2PGetheaders(
+    const api::internal::Core& api,
+    const blockchain::Type network,
+    const blockchain::p2p::bitcoin::ProtocolVersionUnsigned version,
+    std::vector<blockchain::block::pHash>&& history,
+    blockchain::block::pHash&& stop)
+    -> blockchain::p2p::bitcoin::message::internal::Getheaders*
 {
     namespace bitcoin = blockchain::p2p::bitcoin;
     using ReturnType = bitcoin::message::implementation::Getheaders;
@@ -165,7 +165,7 @@ Getheaders::Getheaders(
 {
 }
 
-OTData Getheaders::payload() const noexcept
+auto Getheaders::payload() const noexcept -> OTData
 {
     ProtocolVersionField version{version_};
     auto output = Data::Factory(&version, sizeof(version));

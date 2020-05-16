@@ -63,7 +63,7 @@ OTStashItem::~OTStashItem() {}
 
  */
 
-bool OTStashItem::CreditStash(const std::int64_t& lAmount)
+auto OTStashItem::CreditStash(const std::int64_t& lAmount) -> bool
 {
     if (lAmount < 0) {
         {
@@ -80,7 +80,7 @@ bool OTStashItem::CreditStash(const std::int64_t& lAmount)
     return true;
 }
 
-bool OTStashItem::DebitStash(const std::int64_t& lAmount)
+auto OTStashItem::DebitStash(const std::int64_t& lAmount) -> bool
 {
     if (lAmount < 0) {
         {

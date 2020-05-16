@@ -77,9 +77,10 @@ template class opentxs::Pimpl<opentxs::network::zeromq::socket::Publish>;
 
 namespace opentxs
 {
-api::client::internal::Pair* Factory::PairAPI(
+auto Factory::PairAPI(
     const Flag& running,
     const api::client::internal::Manager& client)
+    -> api::client::internal::Pair*
 {
     return new api::client::implementation::Pair(running, client);
 }
@@ -166,14 +167,14 @@ void Pair::State::Add(
     Add(lock, OTNymID{localNymID}, OTNymID{issuerNymID}, trusted);
 }
 
-bool Pair::State::CheckIssuer(const identifier::Nym& id) const noexcept
+auto Pair::State::CheckIssuer(const identifier::Nym& id) const noexcept -> bool
 {
     Lock lock(lock_);
 
     return 0 < issuers_.count(id);
 }
 
-bool Pair::State::check_state() const noexcept
+auto Pair::State::check_state() const noexcept -> bool
 {
     Lock lock(lock_);
 
@@ -236,8 +237,8 @@ repeat:
     return true;
 }
 
-std::size_t Pair::State::count_currencies(
-    const std::vector<AccountDetails>& in) noexcept
+auto Pair::State::count_currencies(
+    const std::vector<AccountDetails>& in) noexcept -> std::size_t
 {
     auto unique = std::set<OTUnitID>{};
     std::transform(
@@ -249,7 +250,8 @@ std::size_t Pair::State::count_currencies(
     return unique.size();
 }
 
-std::size_t Pair::State::count_currencies(const ContactSection& in) noexcept
+auto Pair::State::count_currencies(const ContactSection& in) noexcept
+    -> std::size_t
 {
     auto unique = std::set<OTUnitID>{};
 
@@ -297,9 +299,9 @@ auto Pair::State::GetDetails(
     return state_.find({localNymID, issuerNymID});
 }
 
-std::set<OTNymID> Pair::State::IssuerList(
+auto Pair::State::IssuerList(
     const identifier::Nym& localNymID,
-    const bool onlyTrusted) const noexcept
+    const bool onlyTrusted) const noexcept -> std::set<OTNymID>
 {
     Lock lock(lock_);
     std::set<OTNymID> output{};
@@ -319,7 +321,8 @@ std::set<OTNymID> Pair::State::IssuerList(
     return output;
 }
 
-bool Pair::State::run(const std::function<void(const IssuerID&)> fn) noexcept
+auto Pair::State::run(const std::function<void(const IssuerID&)> fn) noexcept
+    -> bool
 {
     auto list = std::set<IssuerID>{};
 
@@ -337,10 +340,10 @@ bool Pair::State::run(const std::function<void(const IssuerID&)> fn) noexcept
     return check_state();
 }
 
-bool Pair::AddIssuer(
+auto Pair::AddIssuer(
     const identifier::Nym& localNymID,
     const identifier::Nym& issuerNymID,
-    const std::string& pairingCode) const noexcept
+    const std::string& pairingCode) const noexcept -> bool
 {
     if (localNymID.empty()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid local nym id.").Flush();
@@ -686,9 +689,9 @@ void Pair::check_store_secret(
 #endif  // OT_CRYPTO_WITH_BIP32
 }
 
-bool Pair::CheckIssuer(
+auto Pair::CheckIssuer(
     const identifier::Nym& localNymID,
-    const identifier::UnitDefinition& unitDefinitionID) const noexcept
+    const identifier::UnitDefinition& unitDefinitionID) const noexcept -> bool
 {
     try {
         const auto contract = client_.Wallet().UnitDefinition(unitDefinitionID);
@@ -703,7 +706,7 @@ bool Pair::CheckIssuer(
     }
 }
 
-std::shared_future<void> Pair::cleanup() const noexcept
+auto Pair::cleanup() const noexcept -> std::shared_future<void>
 {
     peer_request_subscriber_->Close();
     peer_reply_subscriber_->Close();
@@ -712,11 +715,11 @@ std::shared_future<void> Pair::cleanup() const noexcept
     return StateMachine::Stop();
 }
 
-std::pair<bool, OTIdentifier> Pair::get_connection(
+auto Pair::get_connection(
     const identifier::Nym& localNymID,
     const identifier::Nym& issuerNymID,
     const identifier::Server& serverID,
-    const proto::ConnectionInfoType type) const
+    const proto::ConnectionInfoType type) const -> std::pair<bool, OTIdentifier>
 {
     std::pair<bool, OTIdentifier> output{false, Identifier::Factory()};
     auto& [success, requestID] = output;
@@ -756,11 +759,12 @@ void Pair::init() noexcept
     Trigger();
 }
 
-std::pair<bool, OTIdentifier> Pair::initiate_bailment(
+auto Pair::initiate_bailment(
     const identifier::Nym& nymID,
     const identifier::Server& serverID,
     const identifier::Nym& issuerID,
     const identifier::UnitDefinition& unitID) const
+    -> std::pair<bool, OTIdentifier>
 {
     auto output = std::pair<bool, OTIdentifier>{false, Identifier::Factory()};
     auto& success = std::get<0>(output);
@@ -785,9 +789,9 @@ std::pair<bool, OTIdentifier> Pair::initiate_bailment(
     return output;
 }
 
-std::string Pair::IssuerDetails(
+auto Pair::IssuerDetails(
     const identifier::Nym& localNymID,
-    const identifier::Nym& issuerNymID) const noexcept
+    const identifier::Nym& issuerNymID) const noexcept -> std::string
 {
     auto issuer = client_.Wallet().Issuer(localNymID, issuerNymID);
 
@@ -796,9 +800,9 @@ std::string Pair::IssuerDetails(
     return issuer->toString();
 }
 
-bool Pair::need_registration(
+auto Pair::need_registration(
     const identifier::Nym& localNymID,
-    const identifier::Server& serverID) const
+    const identifier::Server& serverID) const -> bool
 {
     auto context = client_.Wallet().ServerContext(localNymID, serverID);
 
@@ -807,10 +811,10 @@ bool Pair::need_registration(
     return true;
 }
 
-bool Pair::process_connection_info(
+auto Pair::process_connection_info(
     const Lock& lock,
     const identifier::Nym& nymID,
-    const proto::PeerReply& reply) const
+    const proto::PeerReply& reply) const -> bool
 {
     OT_ASSERT(CheckLock(lock, decision_lock_))
     OT_ASSERT(nymID == Identifier::Factory(reply.initiator()))
@@ -937,10 +941,10 @@ void Pair::process_peer_requests(const Lock& lock, const identifier::Nym& nymID)
     }
 }
 
-bool Pair::process_pending_bailment(
+auto Pair::process_pending_bailment(
     const Lock& lock,
     const identifier::Nym& nymID,
-    const proto::PeerRequest& request) const
+    const proto::PeerRequest& request) const -> bool
 {
     OT_ASSERT(CheckLock(lock, decision_lock_))
     OT_ASSERT(nymID == Identifier::Factory(request.recipient()))
@@ -996,10 +1000,10 @@ bool Pair::process_pending_bailment(
     return false;
 }
 
-bool Pair::process_request_bailment(
+auto Pair::process_request_bailment(
     const Lock& lock,
     const identifier::Nym& nymID,
-    const proto::PeerReply& reply) const
+    const proto::PeerReply& reply) const -> bool
 {
     OT_ASSERT(CheckLock(lock, decision_lock_))
     OT_ASSERT(nymID == Identifier::Factory(reply.initiator()))
@@ -1024,10 +1028,10 @@ bool Pair::process_request_bailment(
     }
 }
 
-bool Pair::process_request_outbailment(
+auto Pair::process_request_outbailment(
     const Lock& lock,
     const identifier::Nym& nymID,
-    const proto::PeerReply& reply) const
+    const proto::PeerReply& reply) const -> bool
 {
     OT_ASSERT(CheckLock(lock, decision_lock_))
     OT_ASSERT(nymID == Identifier::Factory(reply.initiator()))
@@ -1052,10 +1056,10 @@ bool Pair::process_request_outbailment(
     }
 }
 
-bool Pair::process_store_secret(
+auto Pair::process_store_secret(
     const Lock& lock,
     const identifier::Nym& nymID,
-    const proto::PeerReply& reply) const
+    const proto::PeerReply& reply) const -> bool
 {
     OT_ASSERT(CheckLock(lock, decision_lock_))
     OT_ASSERT(nymID == Identifier::Factory(reply.initiator()))
@@ -1095,26 +1099,26 @@ bool Pair::process_store_secret(
     }
 }
 
-OTX::BackgroundTask Pair::queue_nym_download(
+auto Pair::queue_nym_download(
     const identifier::Nym& localNymID,
-    const identifier::Nym& targetNymID) const
+    const identifier::Nym& targetNymID) const -> OTX::BackgroundTask
 {
     client_.OTX().StartIntroductionServer(localNymID);
 
     return client_.OTX().FindNym(targetNymID);
 }
 
-OTX::BackgroundTask Pair::queue_nym_registration(
+auto Pair::queue_nym_registration(
     const identifier::Nym& nymID,
     const identifier::Server& serverID,
-    const bool setData) const
+    const bool setData) const -> OTX::BackgroundTask
 {
     return client_.OTX().RegisterNym(nymID, serverID, setData);
 }
 
-OTX::BackgroundTask Pair::queue_server_contract(
+auto Pair::queue_server_contract(
     const identifier::Nym& nymID,
-    const identifier::Server& serverID) const
+    const identifier::Server& serverID) const -> OTX::BackgroundTask
 {
     client_.OTX().StartIntroductionServer(nymID);
 
@@ -1151,10 +1155,11 @@ void Pair::queue_unit_definition(
     }
 }
 
-std::pair<bool, OTIdentifier> Pair::register_account(
+auto Pair::register_account(
     const identifier::Nym& nymID,
     const identifier::Server& serverID,
     const identifier::UnitDefinition& unitID) const
+    -> std::pair<bool, OTIdentifier>
 {
     std::pair<bool, OTIdentifier> output{false, Identifier::Factory()};
     auto& [success, accountID] = output;
@@ -1349,10 +1354,10 @@ void Pair::state_machine(const IssuerID& id) const
 }
 
 #if OT_CRYPTO_WITH_BIP32
-std::pair<bool, OTIdentifier> Pair::store_secret(
+auto Pair::store_secret(
     const identifier::Nym& localNymID,
     const identifier::Nym& issuerNymID,
-    const identifier::Server& serverID) const
+    const identifier::Server& serverID) const -> std::pair<bool, OTIdentifier>
 {
     auto reason = client_.Factory().PasswordPrompt(
         "Backing up BIP-39 data to paired node");

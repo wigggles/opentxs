@@ -46,19 +46,19 @@ ContactListItem::ContactListItem(
 {
 }
 
-std::string ContactListItem::ContactID() const noexcept
+auto ContactListItem::ContactID() const noexcept -> std::string
 {
     return row_id_->str();
 }
 
-std::string ContactListItem::DisplayName() const noexcept
+auto ContactListItem::DisplayName() const noexcept -> std::string
 {
     Lock lock(lock_);
 
     return key_;
 }
 
-std::string ContactListItem::ImageURI() const noexcept
+auto ContactListItem::ImageURI() const noexcept -> std::string
 {
     // TODO
 
@@ -98,7 +98,7 @@ void ContactListItem::reindex(
     key_ = key;
 }
 
-std::string ContactListItem::Section() const noexcept
+auto ContactListItem::Section() const noexcept -> std::string
 {
     Lock lock(lock_);
 

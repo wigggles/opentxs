@@ -49,56 +49,56 @@ public:
     static const std::map<VersionNumber, VersionNumber>
         unit_of_account_version_map_;
 
-    static OTIdentifier GetID(
+    static auto GetID(
         const api::internal::Core& api,
-        const SerializedType& contract);
+        const SerializedType& contract) -> OTIdentifier;
 
-    bool AddAccountRecord(
+    auto AddAccountRecord(
         const std::string& dataFolder,
-        const Account& theAccount) const override;
-    SerializedType Contract() const override;
-    std::int32_t DecimalPower() const override { return 0; }
-    bool DisplayStatistics(String& strContents) const override;
-    bool EraseAccountRecord(
+        const Account& theAccount) const -> bool override;
+    auto Contract() const -> SerializedType override;
+    auto DecimalPower() const -> std::int32_t override { return 0; }
+    auto DisplayStatistics(String& strContents) const -> bool override;
+    auto EraseAccountRecord(
         const std::string& dataFolder,
-        const Identifier& theAcctID) const override;
-    bool FormatAmountLocale(
+        const Identifier& theAcctID) const -> bool override;
+    auto FormatAmountLocale(
         std::int64_t amount,
         std::string& str_output,
         const std::string& str_thousand,
-        const std::string& str_decimal) const override;
-    bool FormatAmountWithoutSymbolLocale(
+        const std::string& str_decimal) const -> bool override;
+    auto FormatAmountWithoutSymbolLocale(
         std::int64_t amount,
         std::string& str_output,
         const std::string& str_thousand,
-        const std::string& str_decimal) const override;
-    std::string FractionalUnitName() const override { return ""; }
-    const std::string& GetCurrencyName() const override
+        const std::string& str_decimal) const -> bool override;
+    auto FractionalUnitName() const -> std::string override { return ""; }
+    auto GetCurrencyName() const -> const std::string& override
     {
         return primary_unit_name_;
     }
-    const std::string& GetCurrencySymbol() const override
+    auto GetCurrencySymbol() const -> const std::string& override
     {
         return primary_unit_symbol_;
     }
-    std::string Name() const override { return short_name_; }
-    SerializedType PublicContract() const override;
-    OTData Serialize() const override;
-    bool StringToAmountLocale(
+    auto Name() const -> std::string override { return short_name_; }
+    auto PublicContract() const -> SerializedType override;
+    auto Serialize() const -> OTData override;
+    auto StringToAmountLocale(
         std::int64_t& amount,
         const std::string& str_input,
         const std::string& str_thousand,
-        const std::string& str_decimal) const override;
-    std::string TLA() const override { return short_name_; }
-    proto::UnitType Type() const override = 0;
-    proto::ContactItemType UnitOfAccount() const override
+        const std::string& str_decimal) const -> bool override;
+    auto TLA() const -> std::string override { return short_name_; }
+    auto Type() const -> proto::UnitType override = 0;
+    auto UnitOfAccount() const -> proto::ContactItemType override
     {
         return unit_of_account_;
     }
-    bool VisitAccountRecords(
+    auto VisitAccountRecords(
         const std::string& dataFolder,
         AccountVisitor& visitor,
-        const PasswordPrompt& reason) const override;
+        const PasswordPrompt& reason) const -> bool override;
 
     void InitAlias(const std::string& alias) final
     {
@@ -112,12 +112,12 @@ protected:
     const std::string primary_unit_symbol_;
     const proto::ContactItemType unit_of_account_;
 
-    virtual SerializedType IDVersion(const Lock& lock) const;
-    virtual SerializedType SigVersion(const Lock& lock) const;
-    bool validate(const Lock& lock) const override;
+    virtual auto IDVersion(const Lock& lock) const -> SerializedType;
+    virtual auto SigVersion(const Lock& lock) const -> SerializedType;
+    auto validate(const Lock& lock) const -> bool override;
 
-    bool update_signature(const Lock& lock, const PasswordPrompt& reason)
-        override;
+    auto update_signature(const Lock& lock, const PasswordPrompt& reason)
+        -> bool override;
 
     Unit(
         const api::internal::Core& api,
@@ -140,13 +140,13 @@ private:
     const std::string primary_unit_name_;
     const std::string short_name_;
 
-    SerializedType contract(const Lock& lock) const;
-    OTIdentifier GetID(const Lock& lock) const override;
-    bool verify_signature(const Lock& lock, const proto::Signature& signature)
-        const override;
+    auto contract(const Lock& lock) const -> SerializedType;
+    auto GetID(const Lock& lock) const -> OTIdentifier override;
+    auto verify_signature(const Lock& lock, const proto::Signature& signature)
+        const -> bool override;
 
     Unit(Unit&&) = delete;
-    Unit& operator=(const Unit&) = delete;
-    Unit& operator=(Unit&&) = delete;
+    auto operator=(const Unit&) -> Unit& = delete;
+    auto operator=(Unit &&) -> Unit& = delete;
 };
 }  // namespace opentxs::contract::implementation

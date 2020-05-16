@@ -38,22 +38,22 @@ namespace opentxs::crypto::implementation
 class AsymmetricProvider : virtual public crypto::AsymmetricProvider
 {
 public:
-    bool SeedToCurveKey(
+    auto SeedToCurveKey(
         const ReadView seed,
         const AllocateOutput privateKey,
-        const AllocateOutput publicKey) const noexcept final;
-    bool SignContract(
+        const AllocateOutput publicKey) const noexcept -> bool final;
+    auto SignContract(
         const api::internal::Core& api,
         const String& strContractUnsigned,
         const key::Asymmetric& theKey,
         Signature& theSignature,  // output
         const proto::HashType hashType,
-        const PasswordPrompt& reason) const override;
-    bool VerifyContractSignature(
+        const PasswordPrompt& reason) const -> bool override;
+    auto VerifyContractSignature(
         const String& strContractToVerify,
         const key::Asymmetric& theKey,
         const Signature& theSignature,
-        const proto::HashType hashType) const override;
+        const proto::HashType hashType) const -> bool override;
 
     ~AsymmetricProvider() override = default;
 
@@ -63,7 +63,7 @@ protected:
 private:
     AsymmetricProvider(const AsymmetricProvider&) = delete;
     AsymmetricProvider(AsymmetricProvider&&) = delete;
-    AsymmetricProvider& operator=(const AsymmetricProvider&) = delete;
-    AsymmetricProvider& operator=(AsymmetricProvider&&) = delete;
+    auto operator=(const AsymmetricProvider&) -> AsymmetricProvider& = delete;
+    auto operator=(AsymmetricProvider &&) -> AsymmetricProvider& = delete;
 };
 }  // namespace opentxs::crypto::implementation

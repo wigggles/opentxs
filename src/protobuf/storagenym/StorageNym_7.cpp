@@ -14,7 +14,7 @@
 
 namespace opentxs::proto
 {
-bool CheckProto_7(const StorageNym& input, const bool silent)
+auto CheckProto_7(const StorageNym& input, const bool silent) -> bool
 {
     OPTIONAL_SUBOBJECT(credlist, StorageNymAllowedStorageItemHash())
     OPTIONAL_SUBOBJECT(sentpeerrequests, StorageNymAllowedStorageItemHash())

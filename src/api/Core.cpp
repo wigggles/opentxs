@@ -40,11 +40,11 @@ namespace
 {
 opentxs::OTCaller* external_password_callback_{nullptr};
 
-extern "C" std::int32_t internal_password_cb(
+extern "C" auto internal_password_cb(
     char* output,
     std::int32_t size,
     std::int32_t rwflag,
-    void* userdata)
+    void* userdata) -> std::int32_t
 {
     OT_ASSERT(nullptr != userdata);
     OT_ASSERT(nullptr != external_password_callback_);
@@ -164,14 +164,15 @@ void Core::cleanup()
     if (password_timeout_.joinable()) { password_timeout_.join(); }
 }
 
-const api::network::Dht& Core::DHT() const
+auto Core::DHT() const -> const api::network::Dht&
 {
     OT_ASSERT(dht_)
 
     return *dht_;
 }
 
-const api::internal::Core& Core::get_api(const PasswordPrompt& reason) noexcept
+auto Core::get_api(const PasswordPrompt& reason) noexcept
+    -> const api::internal::Core&
 {
     return reason.api_;
 }
@@ -181,11 +182,11 @@ INTERNAL_PASSWORD_CALLBACK* Core::GetInternalPasswordCallback() const
     return &internal_password_cb;
 }
 
-bool Core::GetSecret(
+auto Core::GetSecret(
     const opentxs::Lock& lock,
     OTPassword& secret,
     const PasswordPrompt& reason,
-    const bool twice) const
+    const bool twice) const -> bool
 {
     bump_password_timer(lock);
 
@@ -235,13 +236,13 @@ bool Core::GetSecret(
     return true;
 }
 
-OTSymmetricKey Core::make_master_key(
+auto Core::make_master_key(
     const api::internal::Context& parent,
     const api::Factory& factory,
     const proto::Ciphertext& encrypted_secret,
     std::unique_ptr<OTPassword>& master_secret,
     const api::crypto::Symmetric& symmetric,
-    const api::storage::Storage& storage)
+    const api::storage::Storage& storage) -> OTSymmetricKey
 {
     auto& caller = parent.GetPasswordCaller();
     external_password_callback_ = &caller;
@@ -285,13 +286,13 @@ OTSymmetricKey Core::make_master_key(
     return output;
 }
 
-const opentxs::crypto::key::Symmetric& Core::MasterKey(
-    const opentxs::Lock& lock) const
+auto Core::MasterKey(const opentxs::Lock& lock) const
+    -> const opentxs::crypto::key::Symmetric&
 {
     return master_key_;
 }
 
-const api::HDSeed& Core::Seeds() const
+auto Core::Seeds() const -> const api::HDSeed&
 {
     OT_ASSERT(seeds_);
 
@@ -304,7 +305,7 @@ void Core::SetMasterKeyTimeout(const std::chrono::seconds& timeout) const
     password_duration_ = timeout;
 }
 
-const api::storage::Storage& Core::Storage() const
+auto Core::Storage() const -> const api::storage::Storage&
 {
     OT_ASSERT(storage_)
 
@@ -353,7 +354,7 @@ void Core::password_timeout() const
     }
 }
 
-const api::Wallet& Core::Wallet() const
+auto Core::Wallet() const -> const api::Wallet&
 {
     OT_ASSERT(wallet_);
 

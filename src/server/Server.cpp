@@ -144,14 +144,20 @@ void Server::ProcessCron()
     // Such as sweeping server accounts after expiration dates, etc.
 }
 
-const identifier::Server& Server::GetServerID() const { return m_notaryID; }
+auto Server::GetServerID() const -> const identifier::Server&
+{
+    return m_notaryID;
+}
 
-const identity::Nym& Server::GetServerNym() const { return *m_nymServer; }
+auto Server::GetServerNym() const -> const identity::Nym&
+{
+    return *m_nymServer;
+}
 
-bool Server::IsFlaggedForShutdown() const { return m_bShutdownFlag; }
+auto Server::IsFlaggedForShutdown() const -> bool { return m_bShutdownFlag; }
 
-std::pair<std::string, std::string> Server::parse_seed_backup(
-    const std::string& input) const
+auto Server::parse_seed_backup(const std::string& input) const
+    -> std::pair<std::string, std::string>
 {
     std::pair<std::string, std::string> output{};
     auto& phrase = output.first;
@@ -540,7 +546,7 @@ void Server::Init(bool readOnly)
     // ready for operation!
 }
 
-bool Server::LoadServerNym(const identifier::Nym& nymID)
+auto Server::LoadServerNym(const identifier::Nym& nymID) -> bool
 {
     auto nym = manager_.Wallet().Nym(nymID);
 
@@ -563,12 +569,12 @@ bool Server::LoadServerNym(const identifier::Nym& nymID)
 // our own msg here (with payment inside) to be attached to the receipt.
 // szCommand for passing payDividend (as the message command instead of
 // sendNymInstrument, the default.)
-bool Server::SendInstrumentToNym(
+auto Server::SendInstrumentToNym(
     const identifier::Server& NOTARY_ID,
     const identifier::Nym& SENDER_NYM_ID,
     const identifier::Nym& RECIPIENT_NYM_ID,
     const OTPayment& pPayment,
-    const char* szCommand)
+    const char* szCommand) -> bool
 {
     OT_ASSERT(pPayment.IsValid());
 
@@ -595,11 +601,11 @@ bool Server::SendInstrumentToNym(
     return bDropped;
 }
 
-bool Server::SendInstrumentToNym(
+auto Server::SendInstrumentToNym(
     const identifier::Server& NOTARY_ID,
     const identifier::Nym& SENDER_NYM_ID,
     const identifier::Nym& RECIPIENT_NYM_ID,
-    const Message& pMsg)
+    const Message& pMsg) -> bool
 {
     return DropMessageToNymbox(
         NOTARY_ID,
@@ -609,12 +615,12 @@ bool Server::SendInstrumentToNym(
         pMsg);
 }
 
-bool Server::DropMessageToNymbox(
+auto Server::DropMessageToNymbox(
     const identifier::Server& notaryID,
     const identifier::Nym& senderNymID,
     const identifier::Nym& recipientNymID,
     transactionType transactionType,
-    const Message& msg)
+    const Message& msg) -> bool
 {
     return DropMessageToNymbox(
         notaryID, senderNymID, recipientNymID, transactionType, &msg);
@@ -681,15 +687,15 @@ bool Server::DropMessageToNymbox(
 // pass it in here and attach it to the new message. Or maybe we just set it as
 // the voucher memo.
 //
-bool Server::DropMessageToNymbox(
+auto Server::DropMessageToNymbox(
     const identifier::Server& NOTARY_ID,
     const identifier::Nym& SENDER_NYM_ID,
     const identifier::Nym& RECIPIENT_NYM_ID,
     transactionType theType,
     const Message* pMsg,
     const String& pstrMessage,
-    const char* szCommand)  // If you pass something here, it will
-{                           // replace pMsg->m_strCommand below.
+    const char* szCommand) -> bool  // If you pass something here, it will
+{                                   // replace pMsg->m_strCommand below.
     OT_ASSERT_MSG(
         !((nullptr == pMsg) && (pstrMessage.empty())),
         "pMsg and pstrMessage -- these can't BOTH be nullptr.\n");
@@ -891,10 +897,10 @@ bool Server::DropMessageToNymbox(
     return false;
 }
 
-bool Server::GetConnectInfo(
+auto Server::GetConnectInfo(
     proto::AddressType& type,
     std::string& strHostname,
-    std::uint32_t& nPort) const
+    std::uint32_t& nPort) const -> bool
 {
     auto contract = manager_.Wallet().Server(m_notaryID);
     std::string contractHostname{};
@@ -926,9 +932,9 @@ bool Server::GetConnectInfo(
     return (haveIP && havePort);
 }
 
-OTZMQMessage Server::nymbox_push(
+auto Server::nymbox_push(
     const identifier::Nym& nymID,
-    const OTTransaction& item) const
+    const OTTransaction& item) const -> OTZMQMessage
 {
     auto output = zmq::Message::Factory();
     output->AddFrame(nymID.str());
@@ -941,7 +947,7 @@ OTZMQMessage Server::nymbox_push(
     return output;
 }
 
-std::unique_ptr<OTPassword> Server::TransportKey(Data& pubkey) const
+auto Server::TransportKey(Data& pubkey) const -> std::unique_ptr<OTPassword>
 {
     return manager_.Wallet().Server(m_notaryID)->TransportKey(pubkey, reason_);
 }

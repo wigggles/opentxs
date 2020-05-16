@@ -26,8 +26,8 @@ extern "C" {
 
 namespace opentxs::crypto
 {
-proto::AsymmetricKeyType AsymmetricProvider::CurveToKeyType(
-    const EcdsaCurve& curve)
+auto AsymmetricProvider::CurveToKeyType(const EcdsaCurve& curve)
+    -> proto::AsymmetricKeyType
 {
     proto::AsymmetricKeyType output = proto::AKEYTYPE_ERROR;
 
@@ -49,8 +49,8 @@ proto::AsymmetricKeyType AsymmetricProvider::CurveToKeyType(
     return output;
 }
 
-EcdsaCurve AsymmetricProvider::KeyTypeToCurve(
-    const proto::AsymmetricKeyType& type)
+auto AsymmetricProvider::KeyTypeToCurve(const proto::AsymmetricKeyType& type)
+    -> EcdsaCurve
 {
     EcdsaCurve output = EcdsaCurve::invalid;
 

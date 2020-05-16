@@ -47,7 +47,7 @@ Nyms::Nyms(
     }
 }
 
-bool Nyms::Exists(const std::string& id) const
+auto Nyms::Exists(const std::string& id) const -> bool
 {
     Lock lock(write_lock_);
 
@@ -78,7 +78,10 @@ void Nyms::init(const std::string& hash)
     }
 }
 
-const std::set<std::string> Nyms::LocalNyms() const { return local_nyms_; }
+auto Nyms::LocalNyms() const -> const std::set<std::string>
+{
+    return local_nyms_;
+}
 
 void Nyms::Map(NymLambda lambda) const
 {
@@ -99,7 +102,7 @@ void Nyms::Map(NymLambda lambda) const
     }
 }
 
-bool Nyms::Migrate(const opentxs::api::storage::Driver& to) const
+auto Nyms::Migrate(const opentxs::api::storage::Driver& to) const -> bool
 {
     bool output{true};
 
@@ -114,7 +117,7 @@ bool Nyms::Migrate(const opentxs::api::storage::Driver& to) const
     return output;
 }
 
-Editor<storage::Nym> Nyms::mutable_Nym(const std::string& id)
+auto Nyms::mutable_Nym(const std::string& id) -> Editor<storage::Nym>
 {
     std::function<void(storage::Nym*, Lock&)> callback =
         [&](storage::Nym* in, Lock& lock) -> void { this->save(in, lock, id); };
@@ -122,14 +125,14 @@ Editor<storage::Nym> Nyms::mutable_Nym(const std::string& id)
     return Editor<storage::Nym>(write_lock_, nym(id), callback);
 }
 
-storage::Nym* Nyms::nym(const std::string& id) const
+auto Nyms::nym(const std::string& id) const -> storage::Nym*
 {
     Lock lock(write_lock_);
 
     return nym(lock, id);
 }
 
-storage::Nym* Nyms::nym(const Lock& lock, const std::string& id) const
+auto Nyms::nym(const Lock& lock, const std::string& id) const -> storage::Nym*
 {
     OT_ASSERT(verify_write_lock(lock))
 
@@ -151,9 +154,13 @@ storage::Nym* Nyms::nym(const Lock& lock, const std::string& id) const
     return node.get();
 }
 
-const storage::Nym& Nyms::Nym(const std::string& id) const { return *nym(id); }
+auto Nyms::Nym(const std::string& id) const -> const storage::Nym&
+{
+    return *nym(id);
+}
 
-bool Nyms::RelabelThread(const std::string& threadID, const std::string label)
+auto Nyms::RelabelThread(const std::string& threadID, const std::string label)
+    -> bool
 {
     Lock lock(write_lock_);
     std::set<std::string> nyms{};
@@ -187,7 +194,7 @@ bool Nyms::RelabelThread(const std::string& threadID, const std::string label)
     return output;
 }
 
-bool Nyms::save(const Lock& lock) const
+auto Nyms::save(const Lock& lock) const -> bool
 {
     if (!verify_write_lock(lock)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Lock failure.").Flush();
@@ -229,7 +236,7 @@ void Nyms::save(storage::Nym* nym, const Lock& lock, const std::string& id)
     }
 }
 
-proto::StorageNymList Nyms::serialize() const
+auto Nyms::serialize() const -> proto::StorageNymList
 {
     proto::StorageNymList serialized;
     serialized.set_version(version_);

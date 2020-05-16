@@ -55,7 +55,7 @@ auto Factory::GenesisBlockHeader(
 
 namespace opentxs::blockchain::block
 {
-pHash BlankHash() noexcept
+auto BlankHash() noexcept -> pHash
 {
     return Data::Factory(
         "0x0000000000000000000000000000000000000000000000000000000000000000",
@@ -171,7 +171,7 @@ Header::Header(const Header& rhs) noexcept
 {
 }
 
-Header::Status Header::EffectiveState() const noexcept
+auto Header::EffectiveState() const noexcept -> Header::Status
 {
     if (Status::CheckpointBanned == inherit_status_) { return inherit_status_; }
 
@@ -197,11 +197,11 @@ void Header::CompareToCheckpoint(const block::Position& checkpoint) noexcept
     }
 }
 
-const block::Hash& Header::Hash() const noexcept { return hash_; }
+auto Header::Hash() const noexcept -> const block::Hash& { return hash_; }
 
-block::Height Header::Height() const noexcept { return height_; }
+auto Header::Height() const noexcept -> block::Height { return height_; }
 
-Header::Status Header::InheritedState() const noexcept
+auto Header::InheritedState() const noexcept -> Header::Status
 {
     return inherit_status_;
 }
@@ -229,19 +229,19 @@ void Header::InheritWork(const blockchain::Work& work) noexcept
     inherit_work_ = work;
 }
 
-bool Header::IsDisconnected() const noexcept
+auto Header::IsDisconnected() const noexcept -> bool
 {
     return Status::Disconnected == EffectiveState();
 }
 
-bool Header::IsBlacklisted() const noexcept
+auto Header::IsBlacklisted() const noexcept -> bool
 {
     return Status::CheckpointBanned == EffectiveState();
 }
 
-Header::Status Header::LocalState() const noexcept { return status_; }
+auto Header::LocalState() const noexcept -> Header::Status { return status_; }
 
-OTWork Header::minimum_work()
+auto Header::minimum_work() -> OTWork
 {
     const auto maxTarget =
         OTNumericHash{Factory::NumericHashNBits(NumericHash::MaxTarget)};
@@ -249,14 +249,20 @@ OTWork Header::minimum_work()
     return OTWork{Factory::Work(maxTarget)};
 }
 
-OTNumericHash Header::NumericHash() const noexcept
+auto Header::NumericHash() const noexcept -> OTNumericHash
 {
     return OTNumericHash{Factory::NumericHash(hash_)};
 }
 
-const block::Hash& Header::ParentHash() const noexcept { return parent_hash_; }
+auto Header::ParentHash() const noexcept -> const block::Hash&
+{
+    return parent_hash_;
+}
 
-block::Position Header::Position() const noexcept { return {height_, hash_}; }
+auto Header::Position() const noexcept -> block::Position
+{
+    return {height_, hash_};
+}
 
 void Header::RemoveBlacklistState() noexcept
 {
@@ -266,7 +272,7 @@ void Header::RemoveBlacklistState() noexcept
 
 void Header::RemoveCheckpointState() noexcept { status_ = Status::Normal; }
 
-Header::SerializedType Header::Serialize() const noexcept
+auto Header::Serialize() const noexcept -> Header::SerializedType
 {
     proto::BlockchainBlockHeader output{};
     output.set_version(version_);
@@ -288,9 +294,9 @@ void Header::SetDisconnectedState() noexcept
     inherit_status_ = Status::Error;
 }
 
-bool Header::Valid() const noexcept { return NumericHash() < Target(); }
+auto Header::Valid() const noexcept -> bool { return NumericHash() < Target(); }
 
-OTWork Header::Work() const noexcept
+auto Header::Work() const noexcept -> OTWork
 {
     if (parent_hash_->IsNull()) {
         return work_;

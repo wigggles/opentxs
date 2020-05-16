@@ -41,7 +41,7 @@ ActivityThreadItem::ActivityThreadItem(
 {
 }
 
-bool ActivityThreadItem::MarkRead() const noexcept
+auto ActivityThreadItem::MarkRead() const noexcept -> bool
 {
     return api_.Activity().MarkRead(
         nym_id_, Identifier::Factory(parent_.ThreadID()), item_id_);
@@ -112,15 +112,15 @@ void ActivityThreadItem::reindex(
     }
 }
 
-std::string ActivityThreadItem::Text() const noexcept
+auto ActivityThreadItem::Text() const noexcept -> std::string
 {
     sLock lock(shared_lock_);
 
     return text_;
 }
 
-std::chrono::system_clock::time_point ActivityThreadItem::Timestamp() const
-    noexcept
+auto ActivityThreadItem::Timestamp() const noexcept
+    -> std::chrono::system_clock::time_point
 {
     sLock lock(shared_lock_);
 

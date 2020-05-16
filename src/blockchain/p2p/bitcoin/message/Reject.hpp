@@ -46,14 +46,17 @@ namespace opentxs::blockchain::p2p::bitcoin::message
 class Reject final : virtual public bitcoin::Message
 {
 public:
-    const std::string& getMessage() const noexcept { return message_; }
-    bitcoin::RejectCode getRejectCode() const noexcept { return code_; }
-    const std::string& getReason() const noexcept { return reason_; }
-    OTData getExtraData() const noexcept { return Data::Factory(extra_); }
+    auto getMessage() const noexcept -> const std::string& { return message_; }
+    auto getRejectCode() const noexcept -> bitcoin::RejectCode { return code_; }
+    auto getReason() const noexcept -> const std::string& { return reason_; }
+    auto getExtraData() const noexcept -> OTData
+    {
+        return Data::Factory(extra_);
+    }
 
     ~Reject() final = default;
 
-    OTData payload() const noexcept final;
+    auto payload() const noexcept -> OTData final;
 
 private:
     friend opentxs::Factory;
@@ -79,7 +82,7 @@ private:
         const Data& extra) noexcept(false);
     Reject(const Reject&) = delete;
     Reject(Reject&&) = delete;
-    Reject& operator=(const Reject&) = delete;
-    Reject& operator=(Reject&&) = delete;
+    auto operator=(const Reject&) -> Reject& = delete;
+    auto operator=(Reject &&) -> Reject& = delete;
 };
 }  // namespace opentxs::blockchain::p2p::bitcoin::message

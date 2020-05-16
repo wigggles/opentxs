@@ -21,14 +21,14 @@
 namespace opentxs::contract::blank
 {
 struct Signable : virtual public opentxs::contract::Signable {
-    std::string Alias() const final { return {}; }
-    OTIdentifier ID() const final { return id_; }
-    std::string Name() const final { return {}; }
-    Nym_p Nym() const final { return {}; }
-    const std::string& Terms() const final { return terms_; }
-    OTData Serialize() const final { return OTData{id_}; }
-    bool Validate() const final { return {}; }
-    VersionNumber Version() const final { return 0; }
+    auto Alias() const -> std::string final { return {}; }
+    auto ID() const -> OTIdentifier final { return id_; }
+    auto Name() const -> std::string final { return {}; }
+    auto Nym() const -> Nym_p final { return {}; }
+    auto Terms() const -> const std::string& final { return terms_; }
+    auto Serialize() const -> OTData final { return OTData{id_}; }
+    auto Validate() const -> bool final { return {}; }
+    auto Version() const -> VersionNumber final { return 0; }
 
     void SetAlias(const std::string&) final {}
 
@@ -52,52 +52,57 @@ protected:
 };
 
 struct Unit final : virtual public opentxs::contract::Unit, public Signable {
-    bool AddAccountRecord(const std::string&, const Account&) const final
+    auto AddAccountRecord(const std::string&, const Account&) const
+        -> bool final
     {
         return {};
     }
-    SerializedType Contract() const final { return {}; }
-    std::int32_t DecimalPower() const final { return {}; }
-    bool DisplayStatistics(String&) const final { return {}; }
-    bool EraseAccountRecord(const std::string&, const Identifier&) const final
+    auto Contract() const -> SerializedType final { return {}; }
+    auto DecimalPower() const -> std::int32_t final { return {}; }
+    auto DisplayStatistics(String&) const -> bool final { return {}; }
+    auto EraseAccountRecord(const std::string&, const Identifier&) const
+        -> bool final
     {
         return {};
     }
-    bool FormatAmountLocale(
+    auto FormatAmountLocale(
         Amount,
         std::string&,
         const std::string&,
-        const std::string&) const final
+        const std::string&) const -> bool final
     {
         return {};
     }
-    bool FormatAmountWithoutSymbolLocale(
+    auto FormatAmountWithoutSymbolLocale(
         Amount amount,
         std::string&,
         const std::string&,
-        const std::string&) const final
+        const std::string&) const -> bool final
     {
         return {};
     }
-    std::string FractionalUnitName() const final { return {}; }
-    const std::string& GetCurrencyName() const final { return terms_; }
-    const std::string& GetCurrencySymbol() const final { return terms_; }
-    SerializedType PublicContract() const final { return {}; }
-    bool StringToAmountLocale(
+    auto FractionalUnitName() const -> std::string final { return {}; }
+    auto GetCurrencyName() const -> const std::string& final { return terms_; }
+    auto GetCurrencySymbol() const -> const std::string& final
+    {
+        return terms_;
+    }
+    auto PublicContract() const -> SerializedType final { return {}; }
+    auto StringToAmountLocale(
         Amount&,
         const std::string&,
         const std::string&,
-        const std::string&) const final
+        const std::string&) const -> bool final
     {
         return {};
     }
-    std::string TLA() const final { return {}; }
-    proto::UnitType Type() const final { return {}; }
-    proto::ContactItemType UnitOfAccount() const final { return {}; }
-    bool VisitAccountRecords(
+    auto TLA() const -> std::string final { return {}; }
+    auto Type() const -> proto::UnitType final { return {}; }
+    auto UnitOfAccount() const -> proto::ContactItemType final { return {}; }
+    auto VisitAccountRecords(
         const std::string&,
         AccountVisitor&,
-        const PasswordPrompt&) const final
+        const PasswordPrompt&) const -> bool final
     {
         return {};
     }
@@ -112,7 +117,7 @@ struct Unit final : virtual public opentxs::contract::Unit, public Signable {
     ~Unit() override = default;
 
 private:
-    Unit* clone() const noexcept override { return new Unit(*this); }
+    auto clone() const noexcept -> Unit* override { return new Unit(*this); }
 
     Unit(const Unit& rhs)
         : Signable(rhs)
@@ -122,21 +127,21 @@ private:
 
 struct Server final : virtual public opentxs::contract::Server,
                       public blank::Signable {
-    bool ConnectInfo(
+    auto ConnectInfo(
         std::string&,
         std::uint32_t&,
         proto::AddressType&,
-        const proto::AddressType&) const final
+        const proto::AddressType&) const -> bool final
     {
         return {};
     }
-    proto::ServerContract Contract() const final { return {}; }
-    std::string EffectiveName() const final { return {}; }
-    proto::ServerContract PublicContract() const final { return {}; }
-    bool Statistics(String&) const final { return {}; }
-    const Data& TransportKey() const final { return id_; }
-    std::unique_ptr<OTPassword> TransportKey(Data&, const PasswordPrompt&)
-        const final
+    auto Contract() const -> proto::ServerContract final { return {}; }
+    auto EffectiveName() const -> std::string final { return {}; }
+    auto PublicContract() const -> proto::ServerContract final { return {}; }
+    auto Statistics(String&) const -> bool final { return {}; }
+    auto TransportKey() const -> const Data& final { return id_; }
+    auto TransportKey(Data&, const PasswordPrompt&) const
+        -> std::unique_ptr<OTPassword> final
     {
         return {};
     }
@@ -151,7 +156,7 @@ struct Server final : virtual public opentxs::contract::Server,
     ~Server() final = default;
 
 private:
-    Server* clone() const noexcept final { return new Server(*this); }
+    auto clone() const noexcept -> Server* final { return new Server(*this); }
 
     Server(const Server& rhs)
         : Signable(rhs)
@@ -164,8 +169,8 @@ namespace opentxs::contract::peer::blank
 {
 struct Reply final : virtual public opentxs::contract::peer::Reply,
                      public contract::blank::Signable {
-    SerializedType Contract() const final { return {}; }
-    proto::PeerRequestType Type() const final
+    auto Contract() const -> SerializedType final { return {}; }
+    auto Type() const -> proto::PeerRequestType final
     {
         return proto::PEERREQUEST_ERROR;
     }
@@ -178,7 +183,7 @@ struct Reply final : virtual public opentxs::contract::peer::Reply,
     ~Reply() final = default;
 
 private:
-    Reply* clone() const noexcept final { return new Reply(*this); }
+    auto clone() const noexcept -> Reply* final { return new Reply(*this); }
 
     Reply(const Reply& rhs)
         : Signable(rhs)
@@ -188,10 +193,10 @@ private:
 
 struct Request final : virtual public opentxs::contract::peer::Request,
                        public contract::blank::Signable {
-    SerializedType Contract() const final { return {}; }
-    const identifier::Nym& Initiator() const { return nym_; }
-    const identifier::Nym& Recipient() const { return nym_; }
-    proto::PeerRequestType Type() const final
+    auto Contract() const -> SerializedType final { return {}; }
+    auto Initiator() const -> const identifier::Nym& { return nym_; }
+    auto Recipient() const -> const identifier::Nym& { return nym_; }
+    auto Type() const -> proto::PeerRequestType final
     {
         return proto::PEERREQUEST_ERROR;
     }
@@ -207,7 +212,7 @@ struct Request final : virtual public opentxs::contract::peer::Request,
 private:
     const identifier::Nym& nym_;
 
-    Request* clone() const noexcept final { return new Request(*this); }
+    auto clone() const noexcept -> Request* final { return new Request(*this); }
 
     Request(const Request& rhs)
         : Signable(rhs)

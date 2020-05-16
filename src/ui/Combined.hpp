@@ -100,8 +100,8 @@ protected:
     Combined() = delete;
     Combined(const Combined&) = delete;
     Combined(Combined&&) = delete;
-    Combined& operator=(const Combined&) = delete;
-    Combined& operator=(Combined&&) = delete;
+    auto operator=(const Combined&) -> Combined& = delete;
+    auto operator=(Combined &&) -> Combined& = delete;
 
     virtual ~Combined() = default;
 };

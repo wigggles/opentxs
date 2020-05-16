@@ -62,11 +62,11 @@ namespace zmq = opentxs::network::zeromq;
 
 namespace opentxs::network
 {
-OTServerConnection ServerConnection::Factory(
+auto ServerConnection::Factory(
     const api::internal::Core& api,
     const api::network::ZMQ& zmq,
     const zeromq::socket::Publish& updates,
-    const OTServerContract& contract)
+    const OTServerContract& contract) -> OTServerConnection
 {
     return OTServerConnection(
         new implementation::ServerConnection(api, zmq, updates, contract));
@@ -137,7 +137,7 @@ void ServerConnection::activity_timer()
     }
 }
 
-OTZMQDealerSocket ServerConnection::async_socket(const Lock& lock) const
+auto ServerConnection::async_socket(const Lock& lock) const -> OTZMQDealerSocket
 {
     auto output = zmq_.Context().DealerSocket(
         callback_, zmq::socket::Socket::Direction::Connect);
@@ -149,7 +149,7 @@ OTZMQDealerSocket ServerConnection::async_socket(const Lock& lock) const
     return output;
 }
 
-bool ServerConnection::ChangeAddressType(const proto::AddressType type)
+auto ServerConnection::ChangeAddressType(const proto::AddressType type) -> bool
 {
     Lock lock(lock_);
     address_type_ = type;
@@ -158,8 +158,8 @@ bool ServerConnection::ChangeAddressType(const proto::AddressType type)
     return true;
 }
 
-std::pair<bool, proto::ServerReply> ServerConnection::check_for_protobuf(
-    const zeromq::Frame& frame)
+auto ServerConnection::check_for_protobuf(const zeromq::Frame& frame)
+    -> std::pair<bool, proto::ServerReply>
 {
     std::pair<bool, proto::ServerReply> output{false, {}};
     auto& [valid, serialized] = output;
@@ -169,7 +169,7 @@ std::pair<bool, proto::ServerReply> ServerConnection::check_for_protobuf(
     return output;
 }
 
-bool ServerConnection::ClearProxy()
+auto ServerConnection::ClearProxy() -> bool
 {
     Lock lock(lock_);
     use_proxy_->Off();
@@ -178,7 +178,7 @@ bool ServerConnection::ClearProxy()
     return true;
 }
 
-bool ServerConnection::EnableProxy()
+auto ServerConnection::EnableProxy() -> bool
 {
     Lock lock(lock_);
     use_proxy_->On();
@@ -193,7 +193,7 @@ void ServerConnection::disable_push(const identifier::Nym& nymID)
     registered_for_push_[nymID] = true;
 }
 
-std::string ServerConnection::endpoint() const
+auto ServerConnection::endpoint() const -> std::string
 {
     std::uint32_t port{0};
     std::string hostname{""};
@@ -215,10 +215,10 @@ std::string ServerConnection::endpoint() const
     return endpoint;
 }
 
-std::string ServerConnection::form_endpoint(
+auto ServerConnection::form_endpoint(
     proto::AddressType type,
     std::string hostname,
-    std::uint32_t port) const
+    std::uint32_t port) const -> std::string
 {
     std::string output{};
 
@@ -237,7 +237,7 @@ std::string ServerConnection::form_endpoint(
     return output;
 }
 
-zeromq::socket::Dealer& ServerConnection::get_async(const Lock& lock)
+auto ServerConnection::get_async(const Lock& lock) -> zeromq::socket::Dealer&
 {
     OT_ASSERT(verify_lock(lock))
 
@@ -250,7 +250,7 @@ zeromq::socket::Dealer& ServerConnection::get_async(const Lock& lock)
     return registration_socket_;
 }
 
-zeromq::socket::Request& ServerConnection::get_sync(const Lock& lock)
+auto ServerConnection::get_sync(const Lock& lock) -> zeromq::socket::Request&
 {
     OT_ASSERT(verify_lock(lock))
 
@@ -263,8 +263,8 @@ zeromq::socket::Request& ServerConnection::get_sync(const Lock& lock)
     return socket_;
 }
 
-std::chrono::time_point<std::chrono::system_clock> ServerConnection::
-    get_timeout()
+auto ServerConnection::get_timeout()
+    -> std::chrono::time_point<std::chrono::system_clock>
 {
     return std::chrono::system_clock::now() + zmq_.SendTimeout();
 }
@@ -379,11 +379,11 @@ void ServerConnection::reset_timer()
     last_activity_.store(std::time(nullptr));
 }
 
-NetworkReplyMessage ServerConnection::Send(
+auto ServerConnection::Send(
     const ServerContext& context,
     const Message& message,
     const PasswordPrompt& reason,
-    const Push push)
+    const Push push) -> NetworkReplyMessage
 {
     struct Cleanup {
         const Lock& lock_;
@@ -551,7 +551,7 @@ void ServerConnection::set_timeouts(
     OT_ASSERT(set);
 }
 
-OTZMQRequestSocket ServerConnection::sync_socket(const Lock& lock) const
+auto ServerConnection::sync_socket(const Lock& lock) const -> OTZMQRequestSocket
 {
     auto output = zmq_.Context().RequestSocket();
     set_timeouts(lock, output);
@@ -561,7 +561,7 @@ OTZMQRequestSocket ServerConnection::sync_socket(const Lock& lock) const
     return output;
 }
 
-bool ServerConnection::Status() const { return status_.get(); }
+auto ServerConnection::Status() const -> bool { return status_.get(); }
 
 ServerConnection::~ServerConnection()
 {

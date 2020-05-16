@@ -33,21 +33,22 @@ namespace opentxs::api::crypto::implementation
 class Encode final : virtual public api::crypto::Encode
 {
 public:
-    std::string DataEncode(const std::string& input) const final;
-    std::string DataEncode(const Data& input) const final;
-    std::string DataDecode(const std::string& input) const final;
-    std::string IdentifierEncode(const Data& input) const final;
-    std::string IdentifierDecode(const std::string& input) const final;
-    bool IsBase62(const std::string& str) const final;
-    OTString Nonce(const std::uint32_t size) const final;
-    OTString Nonce(const std::uint32_t size, Data& rawOutput) const final;
-    std::string RandomFilename() const final;
-    std::string SanatizeBase58(const std::string& input) const final;
-    std::string SanatizeBase64(const std::string& input) const final;
-    std::string Z85Encode(const Data& input) const final;
-    std::string Z85Encode(const std::string& input) const final;
-    OTData Z85Decode(const Data& input) const final;
-    std::string Z85Decode(const std::string& input) const final;
+    auto DataEncode(const std::string& input) const -> std::string final;
+    auto DataEncode(const Data& input) const -> std::string final;
+    auto DataDecode(const std::string& input) const -> std::string final;
+    auto IdentifierEncode(const Data& input) const -> std::string final;
+    auto IdentifierDecode(const std::string& input) const -> std::string final;
+    auto IsBase62(const std::string& str) const -> bool final;
+    auto Nonce(const std::uint32_t size) const -> OTString final;
+    auto Nonce(const std::uint32_t size, Data& rawOutput) const
+        -> OTString final;
+    auto RandomFilename() const -> std::string final;
+    auto SanatizeBase58(const std::string& input) const -> std::string final;
+    auto SanatizeBase64(const std::string& input) const -> std::string final;
+    auto Z85Encode(const Data& input) const -> std::string final;
+    auto Z85Encode(const std::string& input) const -> std::string final;
+    auto Z85Decode(const Data& input) const -> OTData final;
+    auto Z85Decode(const std::string& input) const -> std::string final;
 
     ~Encode() final = default;
 
@@ -58,16 +59,16 @@ private:
 
     const api::Crypto& crypto_;
 
-    std::string Base64Encode(
+    auto Base64Encode(
         const std::uint8_t* inputStart,
-        const std::size_t& inputSize) const;
-    bool Base64Decode(const std::string&& input, RawData& output) const;
-    std::string BreakLines(const std::string& input) const;
-    std::string IdentifierEncode(const OTPassword& input) const;
+        const std::size_t& inputSize) const -> std::string;
+    auto Base64Decode(const std::string&& input, RawData& output) const -> bool;
+    auto BreakLines(const std::string& input) const -> std::string;
+    auto IdentifierEncode(const OTPassword& input) const -> std::string;
 
     Encode(const api::Crypto& crypto);
     Encode() = delete;
     Encode(const Encode&) = delete;
-    Encode& operator=(const Encode&) = delete;
+    auto operator=(const Encode&) -> Encode& = delete;
 };
 }  // namespace opentxs::api::crypto::implementation

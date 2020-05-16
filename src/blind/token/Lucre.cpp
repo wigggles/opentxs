@@ -201,7 +201,7 @@ Lucre::Lucre(
     }
 }
 
-bool Lucre::AddSignature(const String& signature)
+auto Lucre::AddSignature(const String& signature) -> bool
 {
     if (signature.empty()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Missing signature").Flush();
@@ -215,10 +215,10 @@ bool Lucre::AddSignature(const String& signature)
     return true;
 }
 
-bool Lucre::ChangeOwner(
+auto Lucre::ChangeOwner(
     Purse& oldOwner,
     Purse& newOwner,
-    const PasswordPrompt& reason)
+    const PasswordPrompt& reason) -> bool
 {
     // NOTE: private_ is never re-encrypted
 
@@ -250,10 +250,10 @@ bool Lucre::ChangeOwner(
     return true;
 }
 
-bool Lucre::GenerateTokenRequest(
+auto Lucre::GenerateTokenRequest(
     const identity::Nym& owner,
     const Mint& mint,
-    const PasswordPrompt& reason)
+    const PasswordPrompt& reason) -> bool
 {
 #if OT_LUCRE_DEBUG
     LucreDumper setDumper;
@@ -357,7 +357,8 @@ bool Lucre::GenerateTokenRequest(
     return true;
 }
 
-bool Lucre::GetPublicPrototoken(String& output, const PasswordPrompt& reason)
+auto Lucre::GetPublicPrototoken(String& output, const PasswordPrompt& reason)
+    -> bool
 {
     if (false == bool(public_)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Missing public prototoken")
@@ -387,7 +388,8 @@ bool Lucre::GetPublicPrototoken(String& output, const PasswordPrompt& reason)
     return decrypted;
 }
 
-bool Lucre::GetSpendable(String& output, const PasswordPrompt& reason) const
+auto Lucre::GetSpendable(String& output, const PasswordPrompt& reason) const
+    -> bool
 {
     if (false == bool(spend_)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Missing spendable token").Flush();
@@ -417,7 +419,7 @@ bool Lucre::GetSpendable(String& output, const PasswordPrompt& reason) const
     return decrypted;
 }
 
-std::string Lucre::ID(const PasswordPrompt& reason) const
+auto Lucre::ID(const PasswordPrompt& reason) const -> std::string
 {
     auto spendable = String::Factory();
 
@@ -441,7 +443,7 @@ std::string Lucre::ID(const PasswordPrompt& reason) const
     return output;
 }
 
-bool Lucre::IsSpent(const PasswordPrompt& reason) const
+auto Lucre::IsSpent(const PasswordPrompt& reason) const -> bool
 {
     switch (state_) {
         case proto::TOKENSTATE_SPENT: {
@@ -470,7 +472,7 @@ bool Lucre::IsSpent(const PasswordPrompt& reason) const
     return api_.Storage().CheckTokenSpent(notary_, unit_, series_, id);
 }
 
-bool Lucre::MarkSpent(const PasswordPrompt& reason)
+auto Lucre::MarkSpent(const PasswordPrompt& reason) -> bool
 {
     if (proto::TOKENSTATE_READY != state_) {
         throw std::runtime_error("invalid token state");
@@ -495,10 +497,10 @@ bool Lucre::MarkSpent(const PasswordPrompt& reason)
     return output;
 }
 
-bool Lucre::Process(
+auto Lucre::Process(
     const identity::Nym& owner,
     const Mint& mint,
-    const PasswordPrompt& reason)
+    const PasswordPrompt& reason) -> bool
 {
     if (proto::TOKENSTATE_SIGNED != state_) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Incorrect token state.").Flush();
@@ -643,7 +645,7 @@ bool Lucre::Process(
     return true;
 }
 
-proto::Token Lucre::Serialize() const
+auto Lucre::Serialize() const -> proto::Token
 {
     auto output = Token::Serialize();
     auto& lucre = *output.mutable_lucre();

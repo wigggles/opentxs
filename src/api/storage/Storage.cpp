@@ -68,7 +68,7 @@
 
 namespace opentxs
 {
-api::storage::StorageInternal* Factory::Storage(
+auto Factory::Storage(
     const Flag& running,
     const api::Crypto& crypto,
     const api::Settings& config,
@@ -78,7 +78,7 @@ api::storage::StorageInternal* Factory::Storage(
     const String& archiveDirectoryCLI,
     const std::chrono::seconds gcIntervalCLI,
     String& encryptedDirectoryCLI,
-    StorageConfig& storageConfig)
+    StorageConfig& storageConfig) -> api::storage::StorageInternal*
 {
     Digest hash = std::bind(
         static_cast<bool (api::crypto::Hash::*)(
@@ -365,79 +365,80 @@ Storage::Storage(
     OT_ASSERT(multiplex_p_);
 }
 
-std::string Storage::AccountAlias(const Identifier& accountID) const
+auto Storage::AccountAlias(const Identifier& accountID) const -> std::string
 {
     return Root().Tree().Accounts().Alias(accountID.str());
 }
 
-ObjectList Storage::AccountList() const
+auto Storage::AccountList() const -> ObjectList
 {
     return Root().Tree().Accounts().List();
 }
 
-OTUnitID Storage::AccountContract(const Identifier& accountID) const
+auto Storage::AccountContract(const Identifier& accountID) const -> OTUnitID
 {
     return Root().Tree().Accounts().AccountContract(accountID);
 }
 
-OTNymID Storage::AccountIssuer(const Identifier& accountID) const
+auto Storage::AccountIssuer(const Identifier& accountID) const -> OTNymID
 {
     return Root().Tree().Accounts().AccountIssuer(accountID);
 }
 
-OTNymID Storage::AccountOwner(const Identifier& accountID) const
+auto Storage::AccountOwner(const Identifier& accountID) const -> OTNymID
 {
     return Root().Tree().Accounts().AccountOwner(accountID);
 }
 
-OTServerID Storage::AccountServer(const Identifier& accountID) const
+auto Storage::AccountServer(const Identifier& accountID) const -> OTServerID
 {
     return Root().Tree().Accounts().AccountServer(accountID);
 }
 
-OTNymID Storage::AccountSigner(const Identifier& accountID) const
+auto Storage::AccountSigner(const Identifier& accountID) const -> OTNymID
 {
     return Root().Tree().Accounts().AccountSigner(accountID);
 }
 
-proto::ContactItemType Storage::AccountUnit(const Identifier& accountID) const
+auto Storage::AccountUnit(const Identifier& accountID) const
+    -> proto::ContactItemType
 {
     return Root().Tree().Accounts().AccountUnit(accountID);
 }
 
-std::set<OTIdentifier> Storage::AccountsByContract(
-    const identifier::UnitDefinition& contract) const
+auto Storage::AccountsByContract(
+    const identifier::UnitDefinition& contract) const -> std::set<OTIdentifier>
 {
     return Root().Tree().Accounts().AccountsByContract(contract);
 }
 
-std::set<OTIdentifier> Storage::AccountsByIssuer(
-    const identifier::Nym& issuerNym) const
+auto Storage::AccountsByIssuer(const identifier::Nym& issuerNym) const
+    -> std::set<OTIdentifier>
 {
     return Root().Tree().Accounts().AccountsByIssuer(issuerNym);
 }
 
-std::set<OTIdentifier> Storage::AccountsByOwner(
-    const identifier::Nym& ownerNym) const
+auto Storage::AccountsByOwner(const identifier::Nym& ownerNym) const
+    -> std::set<OTIdentifier>
 {
     return Root().Tree().Accounts().AccountsByOwner(ownerNym);
 }
 
-std::set<OTIdentifier> Storage::AccountsByServer(
-    const identifier::Server& server) const
+auto Storage::AccountsByServer(const identifier::Server& server) const
+    -> std::set<OTIdentifier>
 {
     return Root().Tree().Accounts().AccountsByServer(server);
 }
 
-std::set<OTIdentifier> Storage::AccountsByUnit(
-    const proto::ContactItemType unit) const
+auto Storage::AccountsByUnit(const proto::ContactItemType unit) const
+    -> std::set<OTIdentifier>
 {
     return Root().Tree().Accounts().AccountsByUnit(unit);
 }
 
-OTIdentifier Storage::Bip47AddressToChannel(
+auto Storage::Bip47AddressToChannel(
     const identifier::Nym& nymID,
-    const std::string& address) const
+    const std::string& address) const -> OTIdentifier
 {
     const bool exists = Root().Tree().Nyms().Exists(nymID.str());
 
@@ -456,9 +457,9 @@ OTIdentifier Storage::Bip47AddressToChannel(
         .AddressToChannel(address);
 }
 
-proto::ContactItemType Storage::Bip47Chain(
+auto Storage::Bip47Chain(
     const identifier::Nym& nymID,
-    const Identifier& channelID) const
+    const Identifier& channelID) const -> proto::ContactItemType
 {
     const bool exists = Root().Tree().Nyms().Exists(nymID.str());
 
@@ -477,9 +478,9 @@ proto::ContactItemType Storage::Bip47Chain(
         .Chain(channelID);
 }
 
-Storage::Bip47ChannelList Storage::Bip47ChannelsByContact(
+auto Storage::Bip47ChannelsByContact(
     const identifier::Nym& nymID,
-    const Identifier& contactID) const
+    const Identifier& contactID) const -> Storage::Bip47ChannelList
 {
     const bool exists = Root().Tree().Nyms().Exists(nymID.str());
 
@@ -498,9 +499,9 @@ Storage::Bip47ChannelList Storage::Bip47ChannelsByContact(
         .ChannelsByContact(contactID);
 }
 
-Storage::Bip47ChannelList Storage::Bip47ChannelsByChain(
+auto Storage::Bip47ChannelsByChain(
     const identifier::Nym& nymID,
-    const proto::ContactItemType chain) const
+    const proto::ContactItemType chain) const -> Storage::Bip47ChannelList
 {
     const bool exists = Root().Tree().Nyms().Exists(nymID.str());
 
@@ -519,9 +520,9 @@ Storage::Bip47ChannelList Storage::Bip47ChannelsByChain(
         .ChannelsByChain(chain);
 }
 
-Storage::Bip47ChannelList Storage::Bip47ChannelsByLocalPaymentCode(
+auto Storage::Bip47ChannelsByLocalPaymentCode(
     const identifier::Nym& nymID,
-    const std::string& code) const
+    const std::string& code) const -> Storage::Bip47ChannelList
 {
     const bool exists = Root().Tree().Nyms().Exists(nymID.str());
 
@@ -540,9 +541,9 @@ Storage::Bip47ChannelList Storage::Bip47ChannelsByLocalPaymentCode(
         .ChannelsByLocalPaymentCode(code);
 }
 
-Storage::Bip47ChannelList Storage::Bip47ChannelsByRemotePaymentCode(
+auto Storage::Bip47ChannelsByRemotePaymentCode(
     const identifier::Nym& nymID,
-    const std::string& code) const
+    const std::string& code) const -> Storage::Bip47ChannelList
 {
     const bool exists = Root().Tree().Nyms().Exists(nymID.str());
 
@@ -561,7 +562,8 @@ Storage::Bip47ChannelList Storage::Bip47ChannelsByRemotePaymentCode(
         .ChannelsByRemotePaymentCode(code);
 }
 
-ObjectList Storage::Bip47ChannelsList(const identifier::Nym& nymID) const
+auto Storage::Bip47ChannelsList(const identifier::Nym& nymID) const
+    -> ObjectList
 {
     const bool exists = Root().Tree().Nyms().Exists(nymID.str());
 
@@ -575,9 +577,9 @@ ObjectList Storage::Bip47ChannelsList(const identifier::Nym& nymID) const
     return Root().Tree().Nyms().Nym(nymID.str()).Bip47Channels().List();
 }
 
-OTIdentifier Storage::Bip47Contact(
+auto Storage::Bip47Contact(
     const identifier::Nym& nymID,
-    const Identifier& channelID) const
+    const Identifier& channelID) const -> OTIdentifier
 {
     const bool exists = Root().Tree().Nyms().Exists(nymID.str());
 
@@ -596,9 +598,9 @@ OTIdentifier Storage::Bip47Contact(
         .Contact(channelID);
 }
 
-std::string Storage::Bip47LocalPaymentCode(
+auto Storage::Bip47LocalPaymentCode(
     const identifier::Nym& nymID,
-    const Identifier& channelID) const
+    const Identifier& channelID) const -> std::string
 {
     const bool exists = Root().Tree().Nyms().Exists(nymID.str());
 
@@ -617,9 +619,9 @@ std::string Storage::Bip47LocalPaymentCode(
         .LocalPaymentCode(channelID);
 }
 
-std::string Storage::Bip47RemotePaymentCode(
+auto Storage::Bip47RemotePaymentCode(
     const identifier::Nym& nymID,
-    const Identifier& channelID) const
+    const Identifier& channelID) const -> std::string
 {
     const bool exists = Root().Tree().Nyms().Exists(nymID.str());
 
@@ -638,39 +640,39 @@ std::string Storage::Bip47RemotePaymentCode(
         .RemotePaymentCode(channelID);
 }
 
-std::set<std::string> Storage::BlockchainAccountList(
+auto Storage::BlockchainAccountList(
     const std::string& nymID,
-    const proto::ContactItemType type) const
+    const proto::ContactItemType type) const -> std::set<std::string>
 {
     return Root().Tree().Nyms().Nym(nymID).BlockchainAccountList(type);
 }
 
-proto::ContactItemType Storage::BlockchainAccountType(
+auto Storage::BlockchainAccountType(
     const std::string& nymID,
-    const std::string& accountID) const
+    const std::string& accountID) const -> proto::ContactItemType
 {
     return Root().Tree().Nyms().Nym(nymID).BlockchainAccountType(accountID);
 }
 
-std::string Storage::BlockchainAddressOwner(
+auto Storage::BlockchainAddressOwner(
     proto::ContactItemType chain,
-    std::string address) const
+    std::string address) const -> std::string
 {
     return Root().Tree().Contacts().AddressOwner(chain, address);
 }
 
-ObjectList Storage::BlockchainTransactionList() const
+auto Storage::BlockchainTransactionList() const -> ObjectList
 {
 
     return Root().Tree().Blockchain().List();
 }
 
 #if OT_CASH
-bool Storage::CheckTokenSpent(
+auto Storage::CheckTokenSpent(
     const identifier::Server& notary,
     const identifier::UnitDefinition& unit,
     const std::uint64_t series,
-    const std::string& key) const
+    const std::string& key) const -> bool
 {
     return Root().Tree().Notary(notary.str()).CheckSpent(unit, series, key);
 }
@@ -689,17 +691,17 @@ void Storage::Cleanup() { Cleanup_Storage(); }
 
 void Storage::CollectGarbage() const { Root().Migrate(multiplex_.Primary()); }
 
-std::string Storage::ContactAlias(const std::string& id) const
+auto Storage::ContactAlias(const std::string& id) const -> std::string
 {
     return Root().Tree().Contacts().Alias(id);
 }
 
-ObjectList Storage::ContactList() const
+auto Storage::ContactList() const -> ObjectList
 {
     return Root().Tree().Contacts().List();
 }
 
-std::string Storage::ContactOwnerNym(const std::string& nymID) const
+auto Storage::ContactOwnerNym(const std::string& nymID) const -> std::string
 {
     return Root().Tree().Contacts().NymOwner(nymID);
 }
@@ -709,20 +711,20 @@ void Storage::ContactSaveIndices() const
     mutable_Root().get().mutable_Tree().get().mutable_Contacts().get().Save();
 }
 
-VersionNumber Storage::ContactUpgradeLevel() const
+auto Storage::ContactUpgradeLevel() const -> VersionNumber
 {
     return Root().Tree().Contacts().UpgradeLevel();
 }
 
-ObjectList Storage::ContextList(const std::string& nymID) const
+auto Storage::ContextList(const std::string& nymID) const -> ObjectList
 {
     return Root().Tree().Nyms().Nym(nymID).Contexts().List();
 }
 
-bool Storage::CreateThread(
+auto Storage::CreateThread(
     const std::string& nymID,
     const std::string& threadID,
-    const std::set<std::string>& participants) const
+    const std::set<std::string>& participants) const -> bool
 {
     const auto id = mutable_Root()
                         .get()
@@ -739,12 +741,12 @@ bool Storage::CreateThread(
     return (false == id.empty());
 }
 
-std::string Storage::DefaultSeed() const
+auto Storage::DefaultSeed() const -> std::string
 {
     return Root().Tree().Seeds().Default();
 }
 
-bool Storage::DeleteAccount(const std::string& id) const
+auto Storage::DeleteAccount(const std::string& id) const -> bool
 {
     return mutable_Root()
         .get()
@@ -755,7 +757,7 @@ bool Storage::DeleteAccount(const std::string& id) const
         .Delete(id);
 }
 
-bool Storage::DeleteContact(const std::string& id) const
+auto Storage::DeleteContact(const std::string& id) const -> bool
 {
     return mutable_Root()
         .get()
@@ -766,9 +768,9 @@ bool Storage::DeleteContact(const std::string& id) const
         .Delete(id);
 }
 
-bool Storage::DeletePaymentWorkflow(
+auto Storage::DeletePaymentWorkflow(
     const std::string& nymID,
-    const std::string& workflowID) const
+    const std::string& workflowID) const -> bool
 {
     const bool exists = Root().Tree().Nyms().Exists(nymID);
 
@@ -792,7 +794,7 @@ bool Storage::DeletePaymentWorkflow(
         .Delete(workflowID);
 }
 
-std::uint32_t Storage::HashType() const { return HASH_TYPE; }
+auto Storage::HashType() const -> std::uint32_t { return HASH_TYPE; }
 
 void Storage::InitBackup() { multiplex_.InitBackup(); }
 
@@ -819,7 +821,7 @@ void Storage::InitPlugins()
     multiplex_.SynchronizePlugins(hash, *root, syncPrimary);
 }
 
-ObjectList Storage::IssuerList(const std::string& nymID) const
+auto Storage::IssuerList(const std::string& nymID) const -> ObjectList
 {
     const bool exists = Root().Tree().Nyms().Exists(nymID);
 
@@ -833,29 +835,29 @@ ObjectList Storage::IssuerList(const std::string& nymID) const
     return Root().Tree().Nyms().Nym(nymID).Issuers().List();
 }
 
-bool Storage::Load(
+auto Storage::Load(
     const std::string& accountID,
     std::string& output,
     std::string& alias,
-    const bool checking) const
+    const bool checking) const -> bool
 {
     return Root().Tree().Accounts().Load(accountID, output, alias, checking);
 }
 
-bool Storage::Load(
+auto Storage::Load(
     const std::string& nymID,
     const std::string& accountID,
     std::shared_ptr<proto::HDAccount>& output,
-    const bool checking) const
+    const bool checking) const -> bool
 {
     return Root().Tree().Nyms().Nym(nymID).Load(accountID, output, checking);
 }
 
-bool Storage::Load(
+auto Storage::Load(
     const identifier::Nym& nymID,
     const Identifier& channelID,
     std::shared_ptr<proto::Bip47Channel>& output,
-    const bool checking) const
+    const bool checking) const -> bool
 {
     const bool exists = Root().Tree().Nyms().Exists(nymID.str());
 
@@ -874,38 +876,38 @@ bool Storage::Load(
         .Load(channelID, output, checking);
 }
 
-bool Storage::Load(
+auto Storage::Load(
     const std::string& id,
     std::shared_ptr<proto::BlockchainTransaction>& transaction,
-    const bool checking) const
+    const bool checking) const -> bool
 {
     return Root().Tree().Blockchain().Load(id, transaction, checking);
 }
 
-bool Storage::Load(
+auto Storage::Load(
     const std::string& id,
     std::shared_ptr<proto::Contact>& contact,
-    const bool checking) const
+    const bool checking) const -> bool
 {
     std::string notUsed{};
 
     return Load(id, contact, notUsed, checking);
 }
 
-bool Storage::Load(
+auto Storage::Load(
     const std::string& id,
     std::shared_ptr<proto::Contact>& contact,
     std::string& alias,
-    const bool checking) const
+    const bool checking) const -> bool
 {
     return Root().Tree().Contacts().Load(id, contact, alias, checking);
 }
 
-bool Storage::Load(
+auto Storage::Load(
     const std::string& nym,
     const std::string& id,
     std::shared_ptr<proto::Context>& context,
-    const bool checking) const
+    const bool checking) const -> bool
 {
     std::string notUsed;
 
@@ -913,38 +915,38 @@ bool Storage::Load(
         id, context, notUsed, checking);
 }
 
-bool Storage::Load(
+auto Storage::Load(
     const std::string& id,
     std::shared_ptr<proto::Credential>& cred,
-    const bool checking) const
+    const bool checking) const -> bool
 {
     return Root().Tree().Credentials().Load(id, cred, checking);
 }
 
-bool Storage::Load(
+auto Storage::Load(
     const std::string& id,
     std::shared_ptr<proto::Nym>& nym,
-    const bool checking) const
+    const bool checking) const -> bool
 {
     std::string notUsed;
 
     return Load(id, nym, notUsed, checking);
 }
 
-bool Storage::Load(
+auto Storage::Load(
     const std::string& id,
     std::shared_ptr<proto::Nym>& nym,
     std::string& alias,
-    const bool checking) const
+    const bool checking) const -> bool
 {
     return Root().Tree().Nyms().Nym(id).Load(nym, alias, checking);
 }
 
-bool Storage::Load(
+auto Storage::Load(
     const std::string& nymID,
     const std::string& id,
     std::shared_ptr<proto::Issuer>& issuer,
-    const bool checking) const
+    const bool checking) const -> bool
 {
     if (false == Root().Tree().Nyms().Exists(nymID)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Nym ")(nymID)(" doesn't exist.")
@@ -959,11 +961,11 @@ bool Storage::Load(
         id, issuer, notUsed, checking);
 }
 
-bool Storage::Load(
+auto Storage::Load(
     const std::string& nymID,
     const std::string& workflowID,
     std::shared_ptr<proto::PaymentWorkflow>& workflow,
-    const bool checking) const
+    const bool checking) const -> bool
 {
     if (false == Root().Tree().Nyms().Exists(nymID)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Nym ")(nymID)(" doesn't exist.")
@@ -976,13 +978,13 @@ bool Storage::Load(
         workflowID, workflow, checking);
 }
 
-bool Storage::Load(
+auto Storage::Load(
     const std::string& nymID,
     const std::string& id,
     const StorageBox box,
     std::string& output,
     std::string& alias,
-    const bool checking) const
+    const bool checking) const -> bool
 {
     switch (box) {
         case StorageBox::MAILINBOX: {
@@ -999,12 +1001,12 @@ bool Storage::Load(
     }
 }
 
-bool Storage::Load(
+auto Storage::Load(
     const std::string& nymID,
     const std::string& id,
     const StorageBox box,
     std::shared_ptr<proto::PeerReply>& reply,
-    const bool checking) const
+    const bool checking) const -> bool
 {
     switch (box) {
         case StorageBox::SENTPEERREPLY: {
@@ -1029,13 +1031,13 @@ bool Storage::Load(
     }
 }
 
-bool Storage::Load(
+auto Storage::Load(
     const std::string& nymID,
     const std::string& id,
     const StorageBox box,
     std::shared_ptr<proto::PeerRequest>& request,
     std::time_t& time,
-    const bool checking) const
+    const bool checking) const -> bool
 {
     bool output = false;
     std::string alias;
@@ -1074,12 +1076,12 @@ bool Storage::Load(
     return output;
 }
 
-bool Storage::Load(
+auto Storage::Load(
     const identifier::Nym& nym,
     const identifier::Server& notary,
     const identifier::UnitDefinition& unit,
     std::shared_ptr<proto::Purse>& output,
-    const bool checking) const
+    const bool checking) const -> bool
 {
     const auto& nymNode = Root().Tree().Nyms();
 
@@ -1093,49 +1095,49 @@ bool Storage::Load(
     return nymNode.Nym(nym.str()).Load(notary, unit, output, checking);
 }
 
-bool Storage::Load(
+auto Storage::Load(
     const std::string& id,
     std::shared_ptr<proto::Seed>& seed,
-    const bool checking) const
+    const bool checking) const -> bool
 {
     std::string notUsed;
 
     return Load(id, seed, notUsed, checking);
 }
 
-bool Storage::Load(
+auto Storage::Load(
     const std::string& id,
     std::shared_ptr<proto::Seed>& seed,
     std::string& alias,
-    const bool checking) const
+    const bool checking) const -> bool
 {
     return Root().Tree().Seeds().Load(id, seed, alias, checking);
 }
 
-bool Storage::Load(
+auto Storage::Load(
     const std::string& id,
     std::shared_ptr<proto::ServerContract>& contract,
-    const bool checking) const
+    const bool checking) const -> bool
 {
     std::string notUsed;
 
     return Load(id, contract, notUsed, checking);
 }
 
-bool Storage::Load(
+auto Storage::Load(
     const std::string& id,
     std::shared_ptr<proto::ServerContract>& contract,
     std::string& alias,
-    const bool checking) const
+    const bool checking) const -> bool
 {
     return Root().Tree().Servers().Load(id, contract, alias, checking);
 }
 
-bool Storage::Load(
+auto Storage::Load(
     const identifier::Nym& nym,
     const api::client::blockchain::Coin& id,
     std::shared_ptr<proto::StorageBlockchainTxo>& output,
-    const bool checking) const
+    const bool checking) const -> bool
 {
     const auto& nyms = Root().Tree().Nyms();
 
@@ -1144,10 +1146,10 @@ bool Storage::Load(
     return nyms.Nym(nym.str()).TXOs().Load(id, output, checking);
 }
 
-bool Storage::Load(
+auto Storage::Load(
     const std::string& nymId,
     const std::string& threadId,
-    std::shared_ptr<proto::StorageThread>& thread) const
+    std::shared_ptr<proto::StorageThread>& thread) const -> bool
 {
     const bool exists =
         Root().Tree().Nyms().Nym(nymId).Threads().Exists(threadId);
@@ -1164,46 +1166,45 @@ bool Storage::Load(
     return bool(thread);
 }
 
-bool Storage::Load(
+auto Storage::Load(
     std::shared_ptr<proto::Ciphertext>& output,
-    const bool checking) const
+    const bool checking) const -> bool
 {
     return Root().Tree().Load(output, checking);
 }
 
-bool Storage::Load(
+auto Storage::Load(
     const std::string& id,
     std::shared_ptr<proto::UnitDefinition>& contract,
-    const bool checking) const
+    const bool checking) const -> bool
 {
     std::string notUsed;
 
     return Load(id, contract, notUsed, checking);
 }
 
-bool Storage::Load(
+auto Storage::Load(
     const std::string& id,
     std::shared_ptr<proto::UnitDefinition>& contract,
     std::string& alias,
-    const bool checking) const
+    const bool checking) const -> bool
 {
     return Root().Tree().Units().Load(id, contract, alias, checking);
 }
 
-const std::set<std::string> Storage::LocalNyms() const
+auto Storage::LocalNyms() const -> const std::set<std::string>
 {
     return Root().Tree().Nyms().LocalNyms();
 }
 
-std::set<OTNymID> Storage::LookupBlockchainTransaction(
-    const std::string& txid) const
+auto Storage::LookupBlockchainTransaction(const std::string& txid) const
+    -> std::set<OTNymID>
 {
     return Root().Tree().Blockchain().LookupNyms(txid);
 }
 
-std::set<api::client::blockchain::Coin> Storage::LookupElement(
-    const identifier::Nym& nym,
-    const Data& element) const noexcept
+auto Storage::LookupElement(const identifier::Nym& nym, const Data& element)
+    const noexcept -> std::set<api::client::blockchain::Coin>
 {
     const auto& nyms = Root().Tree().Nyms();
 
@@ -1212,9 +1213,8 @@ std::set<api::client::blockchain::Coin> Storage::LookupElement(
     return nyms.Nym(nym.str()).TXOs().LookupElement(element);
 }
 
-std::set<api::client::blockchain::Coin> Storage::LookupTxid(
-    const identifier::Nym& nym,
-    const std::string& txid) const noexcept
+auto Storage::LookupTxid(const identifier::Nym& nym, const std::string& txid)
+    const noexcept -> std::set<api::client::blockchain::Coin>
 {
     const auto& nyms = Root().Tree().Nyms();
 
@@ -1247,11 +1247,11 @@ void Storage::MapUnitDefinitions(UnitLambda& lambda) const
 }
 
 #if OT_CASH
-bool Storage::MarkTokenSpent(
+auto Storage::MarkTokenSpent(
     const identifier::Server& notary,
     const identifier::UnitDefinition& unit,
     const std::uint64_t series,
-    const std::string& key) const
+    const std::string& key) const -> bool
 {
     return mutable_Root()
         .get()
@@ -1263,11 +1263,11 @@ bool Storage::MarkTokenSpent(
 }
 #endif
 
-bool Storage::MoveThreadItem(
+auto Storage::MoveThreadItem(
     const std::string& nymId,
     const std::string& fromThreadID,
     const std::string& toThreadID,
-    const std::string& itemID) const
+    const std::string& itemID) const -> bool
 {
     const auto& nyms = Root().Tree().Nyms();
 
@@ -1365,7 +1365,7 @@ bool Storage::MoveThreadItem(
     return true;
 }
 
-Editor<opentxs::storage::Root> Storage::mutable_Root() const
+auto Storage::mutable_Root() const -> Editor<opentxs::storage::Root>
 {
     std::function<void(opentxs::storage::Root*, Lock&)> callback =
         [&](opentxs::storage::Root* in, Lock& lock) -> void {
@@ -1375,8 +1375,8 @@ Editor<opentxs::storage::Root> Storage::mutable_Root() const
     return Editor<opentxs::storage::Root>(write_lock_, root(), callback);
 }
 
-ObjectList Storage::NymBoxList(const std::string& nymID, const StorageBox box)
-    const
+auto Storage::NymBoxList(const std::string& nymID, const StorageBox box) const
+    -> ObjectList
 {
     switch (box) {
         case StorageBox::SENTPEERREQUEST: {
@@ -1415,9 +1415,12 @@ ObjectList Storage::NymBoxList(const std::string& nymID, const StorageBox box)
     }
 }
 
-ObjectList Storage::NymList() const { return Root().Tree().Nyms().List(); }
+auto Storage::NymList() const -> ObjectList
+{
+    return Root().Tree().Nyms().List();
+}
 
-ObjectList Storage::PaymentWorkflowList(const std::string& nymID) const
+auto Storage::PaymentWorkflowList(const std::string& nymID) const -> ObjectList
 {
     if (false == Root().Tree().Nyms().Exists(nymID)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Nym ")(nymID)(" doesn't exist.")
@@ -1429,9 +1432,9 @@ ObjectList Storage::PaymentWorkflowList(const std::string& nymID) const
     return Root().Tree().Nyms().Nym(nymID).PaymentWorkflows().List();
 }
 
-std::string Storage::PaymentWorkflowLookup(
+auto Storage::PaymentWorkflowLookup(
     const std::string& nymID,
-    const std::string& sourceID) const
+    const std::string& sourceID) const -> std::string
 {
     if (false == Root().Tree().Nyms().Exists(nymID)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Nym ")(nymID)(" doesn't exist.")
@@ -1444,9 +1447,9 @@ std::string Storage::PaymentWorkflowLookup(
         sourceID);
 }
 
-std::set<std::string> Storage::PaymentWorkflowsByAccount(
+auto Storage::PaymentWorkflowsByAccount(
     const std::string& nymID,
-    const std::string& accountID) const
+    const std::string& accountID) const -> std::set<std::string>
 {
     if (false == Root().Tree().Nyms().Exists(nymID)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Nym ")(nymID)(" doesn't exist.")
@@ -1459,10 +1462,10 @@ std::set<std::string> Storage::PaymentWorkflowsByAccount(
         accountID);
 }
 
-std::set<std::string> Storage::PaymentWorkflowsByState(
+auto Storage::PaymentWorkflowsByState(
     const std::string& nymID,
     const proto::PaymentWorkflowType type,
-    const proto::PaymentWorkflowState state) const
+    const proto::PaymentWorkflowState state) const -> std::set<std::string>
 {
     if (false == Root().Tree().Nyms().Exists(nymID)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Nym ")(nymID)(" doesn't exist.")
@@ -1475,9 +1478,9 @@ std::set<std::string> Storage::PaymentWorkflowsByState(
         type, state);
 }
 
-std::set<std::string> Storage::PaymentWorkflowsByUnit(
+auto Storage::PaymentWorkflowsByUnit(
     const std::string& nymID,
-    const std::string& unitID) const
+    const std::string& unitID) const -> std::set<std::string>
 {
     if (false == Root().Tree().Nyms().Exists(nymID)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Nym ")(nymID)(" doesn't exist.")
@@ -1490,10 +1493,10 @@ std::set<std::string> Storage::PaymentWorkflowsByUnit(
         unitID);
 }
 
-std::pair<proto::PaymentWorkflowType, proto::PaymentWorkflowState> Storage::
-    PaymentWorkflowState(
-        const std::string& nymID,
-        const std::string& workflowID) const
+auto Storage::PaymentWorkflowState(
+    const std::string& nymID,
+    const std::string& workflowID) const
+    -> std::pair<proto::PaymentWorkflowType, proto::PaymentWorkflowState>
 {
     if (false == Root().Tree().Nyms().Exists(nymID)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Nym ")(nymID)(" doesn't exist.")
@@ -1506,9 +1509,9 @@ std::pair<proto::PaymentWorkflowType, proto::PaymentWorkflowState> Storage::
         workflowID);
 }
 
-bool Storage::RelabelThread(
+auto Storage::RelabelThread(
     const std::string& threadID,
-    const std::string& label) const
+    const std::string& label) const -> bool
 {
     return mutable_Root()
         .get()
@@ -1519,10 +1522,10 @@ bool Storage::RelabelThread(
         .RelabelThread(threadID, label);
 }
 
-bool Storage::RemoveNymBoxItem(
+auto Storage::RemoveNymBoxItem(
     const std::string& nymID,
     const StorageBox box,
-    const std::string& itemID) const
+    const std::string& itemID) const -> bool
 {
     switch (box) {
         case StorageBox::SENTPEERREQUEST: {
@@ -1695,7 +1698,7 @@ bool Storage::RemoveNymBoxItem(
     }
 }
 
-bool Storage::RemoveServer(const std::string& id) const
+auto Storage::RemoveServer(const std::string& id) const -> bool
 {
     return mutable_Root()
         .get()
@@ -1706,10 +1709,10 @@ bool Storage::RemoveServer(const std::string& id) const
         .Delete(id);
 }
 
-bool Storage::RemoveThreadItem(
+auto Storage::RemoveThreadItem(
     const identifier::Nym& nym,
     const Identifier& threadID,
-    const std::string& id) const
+    const std::string& id) const -> bool
 {
     const auto& nyms = Root().Tree().Nyms();
 
@@ -1768,9 +1771,9 @@ bool Storage::RemoveThreadItem(
     return true;
 }
 
-bool Storage::RemoveTxo(
+auto Storage::RemoveTxo(
     const identifier::Nym& nym,
-    const api::client::blockchain::Coin& id) const
+    const api::client::blockchain::Coin& id) const -> bool
 {
     const auto exists = Root().Tree().Nyms().Exists(nym.str());
 
@@ -1789,7 +1792,7 @@ bool Storage::RemoveTxo(
         .Delete(id);
 }
 
-bool Storage::RemoveUnitDefinition(const std::string& id) const
+auto Storage::RemoveUnitDefinition(const std::string& id) const -> bool
 {
     return mutable_Root()
         .get()
@@ -1800,10 +1803,10 @@ bool Storage::RemoveUnitDefinition(const std::string& id) const
         .Delete(id);
 }
 
-bool Storage::RenameThread(
+auto Storage::RenameThread(
     const std::string& nymId,
     const std::string& threadId,
-    const std::string& newID) const
+    const std::string& newID) const -> bool
 {
     return mutable_Root()
         .get()
@@ -1818,7 +1821,7 @@ bool Storage::RenameThread(
         .Rename(threadId, newID);
 }
 
-opentxs::storage::Root* Storage::root() const
+auto Storage::root() const -> opentxs::storage::Root*
 {
     Lock lock(write_lock_);
 
@@ -1834,7 +1837,7 @@ opentxs::storage::Root* Storage::root() const
     return root_.get();
 }
 
-const opentxs::storage::Root& Storage::Root() const { return *root(); }
+auto Storage::Root() const -> const opentxs::storage::Root& { return *root(); }
 
 void Storage::RunGC() const
 {
@@ -1866,10 +1869,13 @@ void Storage::save(opentxs::storage::Root* in, const Lock& lock) const
     multiplex_.StoreRoot(true, in->root_);
 }
 
-ObjectList Storage::SeedList() const { return Root().Tree().Seeds().List(); }
+auto Storage::SeedList() const -> ObjectList
+{
+    return Root().Tree().Seeds().List();
+}
 
-bool Storage::SetAccountAlias(const std::string& id, const std::string& alias)
-    const
+auto Storage::SetAccountAlias(const std::string& id, const std::string& alias)
+    const -> bool
 {
     return mutable_Root()
         .get()
@@ -1880,8 +1886,8 @@ bool Storage::SetAccountAlias(const std::string& id, const std::string& alias)
         .SetAlias(id, alias);
 }
 
-bool Storage::SetContactAlias(const std::string& id, const std::string& alias)
-    const
+auto Storage::SetContactAlias(const std::string& id, const std::string& alias)
+    const -> bool
 {
     return mutable_Root()
         .get()
@@ -1892,7 +1898,7 @@ bool Storage::SetContactAlias(const std::string& id, const std::string& alias)
         .SetAlias(id, alias);
 }
 
-bool Storage::SetDefaultSeed(const std::string& id) const
+auto Storage::SetDefaultSeed(const std::string& id) const -> bool
 {
     return mutable_Root()
         .get()
@@ -1903,7 +1909,8 @@ bool Storage::SetDefaultSeed(const std::string& id) const
         .SetDefault(id);
 }
 
-bool Storage::SetNymAlias(const std::string& id, const std::string& alias) const
+auto Storage::SetNymAlias(const std::string& id, const std::string& alias) const
+    -> bool
 {
     return mutable_Root()
         .get()
@@ -1916,10 +1923,10 @@ bool Storage::SetNymAlias(const std::string& id, const std::string& alias) const
         .SetAlias(alias);
 }
 
-bool Storage::SetPeerRequestTime(
+auto Storage::SetPeerRequestTime(
     const std::string& nymID,
     const std::string& id,
-    const StorageBox box) const
+    const StorageBox box) const -> bool
 {
     const std::string now = std::to_string(time(nullptr));
 
@@ -1982,11 +1989,11 @@ bool Storage::SetPeerRequestTime(
     }
 }
 
-bool Storage::SetReadState(
+auto Storage::SetReadState(
     const std::string& nymId,
     const std::string& threadId,
     const std::string& itemId,
-    const bool unread) const
+    const bool unread) const -> bool
 {
     auto& nyms = mutable_Root().get().mutable_Tree().get().mutable_Nyms().get();
 
@@ -2010,8 +2017,8 @@ bool Storage::SetReadState(
     return threads.mutable_Thread(threadId).get().Read(itemId, unread);
 }
 
-bool Storage::SetSeedAlias(const std::string& id, const std::string& alias)
-    const
+auto Storage::SetSeedAlias(const std::string& id, const std::string& alias)
+    const -> bool
 {
     return mutable_Root()
         .get()
@@ -2022,8 +2029,8 @@ bool Storage::SetSeedAlias(const std::string& id, const std::string& alias)
         .SetAlias(id, alias);
 }
 
-bool Storage::SetServerAlias(const std::string& id, const std::string& alias)
-    const
+auto Storage::SetServerAlias(const std::string& id, const std::string& alias)
+    const -> bool
 {
     return mutable_Root()
         .get()
@@ -2034,10 +2041,10 @@ bool Storage::SetServerAlias(const std::string& id, const std::string& alias)
         .SetAlias(id, alias);
 }
 
-bool Storage::SetThreadAlias(
+auto Storage::SetThreadAlias(
     const std::string& nymId,
     const std::string& threadId,
-    const std::string& alias) const
+    const std::string& alias) const -> bool
 {
     return mutable_Root()
         .get()
@@ -2054,9 +2061,9 @@ bool Storage::SetThreadAlias(
         .SetAlias(alias);
 }
 
-bool Storage::SetUnitDefinitionAlias(
+auto Storage::SetUnitDefinitionAlias(
     const std::string& id,
-    const std::string& alias) const
+    const std::string& alias) const -> bool
 {
     return mutable_Root()
         .get()
@@ -2067,19 +2074,19 @@ bool Storage::SetUnitDefinitionAlias(
         .SetAlias(id, alias);
 }
 
-std::string Storage::ServerAlias(const std::string& id) const
+auto Storage::ServerAlias(const std::string& id) const -> std::string
 {
     return Root().Tree().Servers().Alias(id);
 }
 
-ObjectList Storage::ServerList() const
+auto Storage::ServerList() const -> ObjectList
 {
     return Root().Tree().Servers().List();
 }
 
 void Storage::start() { InitPlugins(); }
 
-bool Storage::Store(
+auto Storage::Store(
     const std::string& accountID,
     const std::string& data,
     const std::string& alias,
@@ -2088,7 +2095,7 @@ bool Storage::Store(
     const identifier::Nym& issuerNym,
     const identifier::Server& server,
     const identifier::UnitDefinition& contract,
-    const proto::ContactItemType unit) const
+    const proto::ContactItemType unit) const -> bool
 {
     return mutable_Root()
         .get()
@@ -2108,10 +2115,10 @@ bool Storage::Store(
             unit);
 }
 
-bool Storage::Store(
+auto Storage::Store(
     const std::string& nymID,
     const proto::ContactItemType type,
-    const proto::HDAccount& data) const
+    const proto::HDAccount& data) const -> bool
 {
     return mutable_Root()
         .get()
@@ -2124,10 +2131,10 @@ bool Storage::Store(
         .Store(type, data);
 }
 
-bool Storage::Store(
+auto Storage::Store(
     const identifier::Nym& nymID,
     const proto::Bip47Channel& data,
-    Identifier& channelID) const
+    Identifier& channelID) const -> bool
 {
     const bool exists = Root().Tree().Nyms().Exists(nymID.str());
 
@@ -2151,9 +2158,9 @@ bool Storage::Store(
         .Store(data, channelID);
 }
 
-bool Storage::Store(
+auto Storage::Store(
     const identifier::Nym& nym,
-    const proto::BlockchainTransaction& data) const
+    const proto::BlockchainTransaction& data) const -> bool
 {
     return mutable_Root()
         .get()
@@ -2164,9 +2171,9 @@ bool Storage::Store(
         .Store(nym, data);
 }
 
-bool Storage::Store(
+auto Storage::Store(
     const proto::Contact& data,
-    std::map<OTData, OTIdentifier>& changed) const
+    std::map<OTData, OTIdentifier>& changed) const -> bool
 {
     return mutable_Root()
         .get()
@@ -2177,7 +2184,7 @@ bool Storage::Store(
         .Store(data, data.label(), changed);
 }
 
-bool Storage::Store(const proto::Context& data) const
+auto Storage::Store(const proto::Context& data) const -> bool
 {
     std::string notUsed;
 
@@ -2194,7 +2201,7 @@ bool Storage::Store(const proto::Context& data) const
         .Store(data, notUsed);
 }
 
-bool Storage::Store(const proto::Credential& data) const
+auto Storage::Store(const proto::Credential& data) const -> bool
 {
     std::string notUsed;
 
@@ -2207,7 +2214,8 @@ bool Storage::Store(const proto::Credential& data) const
         .Store(data, notUsed);
 }
 
-bool Storage::Store(const proto::Nym& data, const std::string& alias) const
+auto Storage::Store(const proto::Nym& data, const std::string& alias) const
+    -> bool
 {
     std::string plaintext;
     const bool saved = mutable_Root()
@@ -2231,7 +2239,8 @@ bool Storage::Store(const proto::Nym& data, const std::string& alias) const
     return false;
 }
 
-bool Storage::Store(const std::string& nymID, const proto::Issuer& data) const
+auto Storage::Store(const std::string& nymID, const proto::Issuer& data) const
+    -> bool
 {
     const bool exists = Root().Tree().Nyms().Exists(nymID);
 
@@ -2255,9 +2264,9 @@ bool Storage::Store(const std::string& nymID, const proto::Issuer& data) const
         .Store(data, {""});
 }
 
-bool Storage::Store(
+auto Storage::Store(
     const std::string& nymID,
-    const proto::PaymentWorkflow& data) const
+    const proto::PaymentWorkflow& data) const -> bool
 {
     const bool exists = Root().Tree().Nyms().Exists(nymID);
 
@@ -2283,7 +2292,7 @@ bool Storage::Store(
         .Store(data, notUsed);
 }
 
-bool Storage::Store(
+auto Storage::Store(
     const std::string& nymid,
     const std::string& threadid,
     const std::string& itemid,
@@ -2291,7 +2300,7 @@ bool Storage::Store(
     const std::string& alias,
     const std::string& data,
     const StorageBox box,
-    const std::string& account) const
+    const std::string& account) const -> bool
 {
     return mutable_Root()
         .get()
@@ -2308,10 +2317,10 @@ bool Storage::Store(
         .Add(itemid, time, box, alias, data, 0, account);
 }
 
-bool Storage::Store(
+auto Storage::Store(
     const proto::PeerReply& data,
     const std::string& nymID,
-    const StorageBox box) const
+    const StorageBox box) const -> bool
 {
     switch (box) {
         case StorageBox::SENTPEERREPLY: {
@@ -2372,10 +2381,10 @@ bool Storage::Store(
     }
 }
 
-bool Storage::Store(
+auto Storage::Store(
     const proto::PeerRequest& data,
     const std::string& nymID,
-    const StorageBox box) const
+    const StorageBox box) const -> bool
 {
     // Use the alias field to store the time at which the request was saved.
     // Useful for managing retry logic in the high level api
@@ -2440,7 +2449,8 @@ bool Storage::Store(
     }
 }
 
-bool Storage::Store(const identifier::Nym& nym, const proto::Purse& purse) const
+auto Storage::Store(const identifier::Nym& nym, const proto::Purse& purse) const
+    -> bool
 {
     auto nymNode = mutable_Root().get().mutable_Tree().get().mutable_Nyms();
 
@@ -2454,7 +2464,8 @@ bool Storage::Store(const identifier::Nym& nym, const proto::Purse& purse) const
     return nymNode.get().mutable_Nym(nym.str()).get().Store(purse);
 }
 
-bool Storage::Store(const proto::Seed& data, const std::string& alias) const
+auto Storage::Store(const proto::Seed& data, const std::string& alias) const
+    -> bool
 {
     return mutable_Root()
         .get()
@@ -2465,8 +2476,8 @@ bool Storage::Store(const proto::Seed& data, const std::string& alias) const
         .Store(data, alias);
 }
 
-bool Storage::Store(const proto::ServerContract& data, const std::string& alias)
-    const
+auto Storage::Store(const proto::ServerContract& data, const std::string& alias)
+    const -> bool
 {
     auto storageVersion(data);
     storageVersion.clear_publicnym();
@@ -2486,9 +2497,9 @@ bool Storage::Store(const proto::ServerContract& data, const std::string& alias)
     return false;
 }
 
-bool Storage::Store(
+auto Storage::Store(
     const identifier::Nym& nym,
-    const proto::StorageBlockchainTxo& data) const
+    const proto::StorageBlockchainTxo& data) const -> bool
 {
     const auto exists = Root().Tree().Nyms().Exists(nym.str());
 
@@ -2507,13 +2518,13 @@ bool Storage::Store(
         .Store(data);
 }
 
-bool Storage::Store(const proto::Ciphertext& serialized) const
+auto Storage::Store(const proto::Ciphertext& serialized) const -> bool
 {
     return mutable_Root().get().mutable_Tree().get().Store(serialized);
 }
 
-bool Storage::Store(const proto::UnitDefinition& data, const std::string& alias)
-    const
+auto Storage::Store(const proto::UnitDefinition& data, const std::string& alias)
+    const -> bool
 {
     auto storageVersion(data);
     storageVersion.clear_publicnym();
@@ -2533,32 +2544,30 @@ bool Storage::Store(const proto::UnitDefinition& data, const std::string& alias)
     return false;
 }
 
-ObjectList Storage::ThreadList(const std::string& nymID, const bool unreadOnly)
-    const
+auto Storage::ThreadList(const std::string& nymID, const bool unreadOnly) const
+    -> ObjectList
 {
     return Root().Tree().Nyms().Nym(nymID).Threads().List(unreadOnly);
 }
 
-std::string Storage::ThreadAlias(
-    const std::string& nymID,
-    const std::string& threadID) const
+auto Storage::ThreadAlias(const std::string& nymID, const std::string& threadID)
+    const -> std::string
 {
     return Root().Tree().Nyms().Nym(nymID).Threads().Thread(threadID).Alias();
 }
 
-std::string Storage::UnitDefinitionAlias(const std::string& id) const
+auto Storage::UnitDefinitionAlias(const std::string& id) const -> std::string
 {
     return Root().Tree().Units().Alias(id);
 }
 
-ObjectList Storage::UnitDefinitionList() const
+auto Storage::UnitDefinitionList() const -> ObjectList
 {
     return Root().Tree().Units().List();
 }
 
-std::size_t Storage::UnreadCount(
-    const std::string& nymId,
-    const std::string& threadId) const
+auto Storage::UnreadCount(const std::string& nymId, const std::string& threadId)
+    const -> std::size_t
 {
     auto& nyms = Root().Tree().Nyms();
 
@@ -2604,7 +2613,7 @@ void Storage::UpgradeNyms()
     }
 }
 
-bool Storage::verify_write_lock(const Lock& lock) const
+auto Storage::verify_write_lock(const Lock& lock) const -> bool
 {
     if (lock.mutex() != &write_lock_) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Incorrect mutex.").Flush();

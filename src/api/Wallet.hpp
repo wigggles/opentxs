@@ -106,175 +106,189 @@ namespace opentxs::api::implementation
 class Wallet : virtual public opentxs::api::Wallet, public Lockable
 {
 public:
-    SharedAccount Account(const Identifier& accountID) const final;
-    OTIdentifier AccountPartialMatch(const std::string& hint) const final;
-    ExclusiveAccount CreateAccount(
+    auto Account(const Identifier& accountID) const -> SharedAccount final;
+    auto AccountPartialMatch(const std::string& hint) const
+        -> OTIdentifier final;
+    auto CreateAccount(
         const identifier::Nym& ownerNymID,
         const identifier::Server& notaryID,
         const identifier::UnitDefinition& instrumentDefinitionID,
         const identity::Nym& signer,
         Account::AccountType type,
         TransactionNumber stash,
-        const PasswordPrompt& reason) const final;
-    bool DeleteAccount(const Identifier& accountID) const final;
-    SharedAccount IssuerAccount(
-        const identifier::UnitDefinition& unitID) const final;
-    ExclusiveAccount mutable_Account(
+        const PasswordPrompt& reason) const -> ExclusiveAccount final;
+    auto DeleteAccount(const Identifier& accountID) const -> bool final;
+    auto IssuerAccount(const identifier::UnitDefinition& unitID) const
+        -> SharedAccount final;
+    auto mutable_Account(
         const Identifier& accountID,
         const PasswordPrompt& reason,
-        const AccountCallback callback) const final;
-    bool UpdateAccount(
+        const AccountCallback callback) const -> ExclusiveAccount final;
+    auto UpdateAccount(
         const Identifier& accountID,
         const opentxs::ServerContext& context,
         const String& serialized,
-        const PasswordPrompt& reason) const final;
-    bool UpdateAccount(
+        const PasswordPrompt& reason) const -> bool final;
+    auto UpdateAccount(
         const Identifier& accountID,
         const opentxs::ServerContext& context,
         const String& serialized,
         const std::string& label,
-        const PasswordPrompt& reason) const final;
-    bool ImportAccount(std::unique_ptr<opentxs::Account>& imported) const final;
-    std::shared_ptr<const opentxs::ClientContext> ClientContext(
-        const identifier::Nym& remoteNymID) const override;
-    std::shared_ptr<const opentxs::ServerContext> ServerContext(
+        const PasswordPrompt& reason) const -> bool final;
+    auto ImportAccount(std::unique_ptr<opentxs::Account>& imported) const
+        -> bool final;
+    auto ClientContext(const identifier::Nym& remoteNymID) const
+        -> std::shared_ptr<const opentxs::ClientContext> override;
+    auto ServerContext(
         const identifier::Nym& localNymID,
-        const Identifier& remoteID) const override;
-    Editor<opentxs::ClientContext> mutable_ClientContext(
+        const Identifier& remoteID) const
+        -> std::shared_ptr<const opentxs::ServerContext> override;
+    auto mutable_ClientContext(
         const identifier::Nym& remoteNymID,
-        const PasswordPrompt& reason) const override;
-    Editor<opentxs::ServerContext> mutable_ServerContext(
+        const PasswordPrompt& reason) const
+        -> Editor<opentxs::ClientContext> override;
+    auto mutable_ServerContext(
         const identifier::Nym& localNymID,
         const Identifier& remoteID,
-        const PasswordPrompt& reason) const override;
-    std::set<OTNymID> IssuerList(const identifier::Nym& nymID) const final;
-    std::shared_ptr<const api::client::Issuer> Issuer(
+        const PasswordPrompt& reason) const
+        -> Editor<opentxs::ServerContext> override;
+    auto IssuerList(const identifier::Nym& nymID) const
+        -> std::set<OTNymID> final;
+    auto Issuer(const identifier::Nym& nymID, const identifier::Nym& issuerID)
+        const -> std::shared_ptr<const api::client::Issuer> final;
+    auto mutable_Issuer(
         const identifier::Nym& nymID,
-        const identifier::Nym& issuerID) const final;
-    Editor<api::client::Issuer> mutable_Issuer(
-        const identifier::Nym& nymID,
-        const identifier::Nym& issuerID) const final;
-    bool IsLocalNym(const std::string& id) const final;
-    std::size_t LocalNymCount() const final;
-    std::set<OTNymID> LocalNyms() const final;
-    Nym_p Nym(
+        const identifier::Nym& issuerID) const
+        -> Editor<api::client::Issuer> final;
+    auto IsLocalNym(const std::string& id) const -> bool final;
+    auto LocalNymCount() const -> std::size_t final;
+    auto LocalNyms() const -> std::set<OTNymID> final;
+    auto Nym(
         const identifier::Nym& id,
         const std::chrono::milliseconds& timeout =
-            std::chrono::milliseconds(0)) const final;
-    Nym_p Nym(const proto::Nym& nym) const final;
-    Nym_p Nym(
+            std::chrono::milliseconds(0)) const -> Nym_p final;
+    auto Nym(const proto::Nym& nym) const -> Nym_p final;
+    auto Nym(
         const PasswordPrompt& reason,
         const std::string name,
         const NymParameters& parameters,
-        const proto::ContactItemType type) const final;
-    NymData mutable_Nym(const identifier::Nym& id, const PasswordPrompt& reason)
-        const final;
-    std::unique_ptr<const opentxs::NymFile> Nymfile(
+        const proto::ContactItemType type) const -> Nym_p final;
+    auto mutable_Nym(const identifier::Nym& id, const PasswordPrompt& reason)
+        const -> NymData final;
+    auto Nymfile(const identifier::Nym& id, const PasswordPrompt& reason) const
+        -> std::unique_ptr<const opentxs::NymFile> final;
+    auto mutable_Nymfile(
         const identifier::Nym& id,
-        const PasswordPrompt& reason) const final;
-    Editor<opentxs::NymFile> mutable_Nymfile(
-        const identifier::Nym& id,
-        const PasswordPrompt& reason) const final;
-    Nym_p NymByIDPartialMatch(const std::string& partialId) const final;
-    ObjectList NymList() const final;
-    bool NymNameByIndex(const std::size_t index, String& name) const final;
-    std::shared_ptr<proto::PeerReply> PeerReply(
+        const PasswordPrompt& reason) const -> Editor<opentxs::NymFile> final;
+    auto NymByIDPartialMatch(const std::string& partialId) const -> Nym_p final;
+    auto NymList() const -> ObjectList final;
+    auto NymNameByIndex(const std::size_t index, String& name) const
+        -> bool final;
+    auto PeerReply(
         const identifier::Nym& nym,
         const Identifier& reply,
-        const StorageBox& box) const final;
-    bool PeerReplyComplete(
+        const StorageBox& box) const -> std::shared_ptr<proto::PeerReply> final;
+    auto PeerReplyComplete(
         const identifier::Nym& nym,
-        const Identifier& replyOrRequest) const final;
-    bool PeerReplyCreate(
+        const Identifier& replyOrRequest) const -> bool final;
+    auto PeerReplyCreate(
         const identifier::Nym& nym,
         const proto::PeerRequest& request,
-        const proto::PeerReply& reply) const final;
-    bool PeerReplyCreateRollback(
+        const proto::PeerReply& reply) const -> bool final;
+    auto PeerReplyCreateRollback(
         const identifier::Nym& nym,
         const Identifier& request,
-        const Identifier& reply) const final;
-    ObjectList PeerReplySent(const identifier::Nym& nym) const final;
-    ObjectList PeerReplyIncoming(const identifier::Nym& nym) const final;
-    ObjectList PeerReplyFinished(const identifier::Nym& nym) const final;
-    ObjectList PeerReplyProcessed(const identifier::Nym& nym) const final;
-    bool PeerReplyReceive(const identifier::Nym& nym, const PeerObject& reply)
-        const final;
-    std::shared_ptr<proto::PeerRequest> PeerRequest(
+        const Identifier& reply) const -> bool final;
+    auto PeerReplySent(const identifier::Nym& nym) const -> ObjectList final;
+    auto PeerReplyIncoming(const identifier::Nym& nym) const
+        -> ObjectList final;
+    auto PeerReplyFinished(const identifier::Nym& nym) const
+        -> ObjectList final;
+    auto PeerReplyProcessed(const identifier::Nym& nym) const
+        -> ObjectList final;
+    auto PeerReplyReceive(const identifier::Nym& nym, const PeerObject& reply)
+        const -> bool final;
+    auto PeerRequest(
         const identifier::Nym& nym,
         const Identifier& request,
         const StorageBox& box,
-        std::time_t& time) const final;
-    bool PeerRequestComplete(
+        std::time_t& time) const -> std::shared_ptr<proto::PeerRequest> final;
+    auto PeerRequestComplete(
         const identifier::Nym& nym,
-        const Identifier& reply) const final;
-    bool PeerRequestCreate(
+        const Identifier& reply) const -> bool final;
+    auto PeerRequestCreate(
         const identifier::Nym& nym,
-        const proto::PeerRequest& request) const final;
-    bool PeerRequestCreateRollback(
+        const proto::PeerRequest& request) const -> bool final;
+    auto PeerRequestCreateRollback(
         const identifier::Nym& nym,
-        const Identifier& request) const final;
-    bool PeerRequestDelete(
-        const identifier::Nym& nym,
-        const Identifier& request,
-        const StorageBox& box) const final;
-    ObjectList PeerRequestSent(const identifier::Nym& nym) const final;
-    ObjectList PeerRequestIncoming(const identifier::Nym& nym) const final;
-    ObjectList PeerRequestFinished(const identifier::Nym& nym) const final;
-    ObjectList PeerRequestProcessed(const identifier::Nym& nym) const final;
-    bool PeerRequestReceive(
-        const identifier::Nym& nym,
-        const PeerObject& request) const final;
-    bool PeerRequestUpdate(
+        const Identifier& request) const -> bool final;
+    auto PeerRequestDelete(
         const identifier::Nym& nym,
         const Identifier& request,
-        const StorageBox& box) const final;
+        const StorageBox& box) const -> bool final;
+    auto PeerRequestSent(const identifier::Nym& nym) const -> ObjectList final;
+    auto PeerRequestIncoming(const identifier::Nym& nym) const
+        -> ObjectList final;
+    auto PeerRequestFinished(const identifier::Nym& nym) const
+        -> ObjectList final;
+    auto PeerRequestProcessed(const identifier::Nym& nym) const
+        -> ObjectList final;
+    auto PeerRequestReceive(
+        const identifier::Nym& nym,
+        const PeerObject& request) const -> bool final;
+    auto PeerRequestUpdate(
+        const identifier::Nym& nym,
+        const Identifier& request,
+        const StorageBox& box) const -> bool final;
 #if OT_CASH
-    std::unique_ptr<const blind::Purse> Purse(
+    auto Purse(
         const identifier::Nym& nym,
         const identifier::Server& server,
         const identifier::UnitDefinition& unit,
-        const bool checking) const final;
-    Editor<blind::Purse> mutable_Purse(
+        const bool checking) const -> std::unique_ptr<const blind::Purse> final;
+    auto mutable_Purse(
         const identifier::Nym& nym,
         const identifier::Server& server,
         const identifier::UnitDefinition& unit,
         const PasswordPrompt& reason,
-        const proto::CashType type) const final;
+        const proto::CashType type) const -> Editor<blind::Purse> final;
 #endif
-    bool RemoveServer(const identifier::Server& id) const final;
-    bool RemoveUnitDefinition(const identifier::UnitDefinition& id) const final;
-    OTServerContract Server(
+    auto RemoveServer(const identifier::Server& id) const -> bool final;
+    auto RemoveUnitDefinition(const identifier::UnitDefinition& id) const
+        -> bool final;
+    auto Server(
         const identifier::Server& id,
         const std::chrono::milliseconds& timeout =
-            std::chrono::milliseconds(0)) const final;
-    OTServerContract Server(const proto::ServerContract& contract) const final;
-    OTServerContract Server(
+            std::chrono::milliseconds(0)) const -> OTServerContract final;
+    auto Server(const proto::ServerContract& contract) const
+        -> OTServerContract final;
+    auto Server(
         const std::string& nymid,
         const std::string& name,
         const std::string& terms,
         const std::list<contract::Server::Endpoint>& endpoints,
         const PasswordPrompt& reason,
-        const VersionNumber version) const final;
-    ObjectList ServerList() const final;
-    bool SetNymAlias(const identifier::Nym& id, const std::string& alias)
-        const final;
-    bool SetServerAlias(const identifier::Server& id, const std::string& alias)
-        const final;
-    bool SetUnitDefinitionAlias(
+        const VersionNumber version) const -> OTServerContract final;
+    auto ServerList() const -> ObjectList final;
+    auto SetNymAlias(const identifier::Nym& id, const std::string& alias) const
+        -> bool final;
+    auto SetServerAlias(const identifier::Server& id, const std::string& alias)
+        const -> bool final;
+    auto SetUnitDefinitionAlias(
         const identifier::UnitDefinition& id,
-        const std::string& alias) const final;
-    ObjectList UnitDefinitionList() const final;
-    OTUnitDefinition UnitDefinition(
-        const identifier::UnitDefinition& id,
-        const std::chrono::milliseconds& timeout =
-            std::chrono::milliseconds(0)) const final;
-    OTBasketContract BasketContract(
+        const std::string& alias) const -> bool final;
+    auto UnitDefinitionList() const -> ObjectList final;
+    auto UnitDefinition(
         const identifier::UnitDefinition& id,
         const std::chrono::milliseconds& timeout =
-            std::chrono::milliseconds(0)) const noexcept(false) final;
-    OTUnitDefinition UnitDefinition(
-        const proto::UnitDefinition& contract) const final;
-    OTUnitDefinition UnitDefinition(
+            std::chrono::milliseconds(0)) const -> OTUnitDefinition final;
+    auto BasketContract(
+        const identifier::UnitDefinition& id,
+        const std::chrono::milliseconds& timeout = std::chrono::milliseconds(
+            0)) const noexcept(false) -> OTBasketContract final;
+    auto UnitDefinition(const proto::UnitDefinition& contract) const
+        -> OTUnitDefinition final;
+    auto UnitDefinition(
         const std::string& nymid,
         const std::string& shortname,
         const std::string& name,
@@ -285,9 +299,9 @@ public:
         const std::string& fraction,
         const proto::ContactItemType unitOfAccount,
         const PasswordPrompt& reason,
-        const VersionNumber version =
-            contract::Unit::DefaultVersion) const final;
-    OTUnitDefinition UnitDefinition(
+        const VersionNumber version = contract::Unit::DefaultVersion) const
+        -> OTUnitDefinition final;
+    auto UnitDefinition(
         const std::string& nymid,
         const std::string& shortname,
         const std::string& name,
@@ -295,15 +309,17 @@ public:
         const std::string& terms,
         const proto::ContactItemType unitOfAccount,
         const PasswordPrompt& reason,
-        const VersionNumber version =
-            contract::Unit::DefaultVersion) const final;
-    proto::ContactItemType CurrencyTypeBasedOnUnitType(
-        const identifier::UnitDefinition& contractID) const final;
+        const VersionNumber version = contract::Unit::DefaultVersion) const
+        -> OTUnitDefinition final;
+    auto CurrencyTypeBasedOnUnitType(
+        const identifier::UnitDefinition& contractID) const
+        -> proto::ContactItemType final;
 
-    bool LoadCredential(
+    auto LoadCredential(
         const std::string& id,
-        std::shared_ptr<proto::Credential>& credential) const final;
-    bool SaveCredential(const proto::Credential& credential) const final;
+        std::shared_ptr<proto::Credential>& credential) const -> bool final;
+    auto SaveCredential(const proto::Credential& credential) const
+        -> bool final;
 
     ~Wallet() override = default;
 
@@ -318,15 +334,17 @@ protected:
     mutable ContextMap context_map_;
     mutable std::mutex context_map_lock_;
 
-    std::shared_ptr<opentxs::Context> context(
+    auto context(
         const identifier::Nym& localNymID,
-        const identifier::Nym& remoteNymID) const;
-    proto::ContactItemType extract_unit(
-        const identifier::UnitDefinition& contractID) const;
-    proto::ContactItemType extract_unit(const contract::Unit& contract) const;
+        const identifier::Nym& remoteNymID) const
+        -> std::shared_ptr<opentxs::Context>;
+    auto extract_unit(const identifier::UnitDefinition& contractID) const
+        -> proto::ContactItemType;
+    auto extract_unit(const contract::Unit& contract) const
+        -> proto::ContactItemType;
     void save(const PasswordPrompt& reason, opentxs::internal::Context* context)
         const;
-    OTNymID server_to_nym(Identifier& nymOrNotaryID) const;
+    auto server_to_nym(Identifier& nymOrNotaryID) const -> OTNymID;
 
     Wallet(const api::internal::Core& core);
 
@@ -380,20 +398,19 @@ private:
     OTZMQRequestSocket dht_unit_requester_;
     OTZMQPushSocket find_nym_;
 
-    static UnitNameReverse reverse_unit_map(const UnitNameMap& map);
+    static auto reverse_unit_map(const UnitNameMap& map) -> UnitNameReverse;
 
-    std::string account_alias(
-        const std::string& accountID,
-        const std::string& hint) const;
-    opentxs::Account* account_factory(
+    auto account_alias(const std::string& accountID, const std::string& hint)
+        const -> std::string;
+    auto account_factory(
         const Identifier& accountID,
         const std::string& alias,
-        const std::string& serialized) const;
+        const std::string& serialized) const -> opentxs::Account*;
 #if OT_CASH
-    std::mutex& get_purse_lock(
+    auto get_purse_lock(
         const identifier::Nym& nym,
         const identifier::Server& server,
-        const identifier::UnitDefinition& unit) const;
+        const identifier::UnitDefinition& unit) const -> std::mutex&;
 #endif
     virtual void instantiate_client_context(
         const proto::Context& serialized,
@@ -409,32 +426,32 @@ private:
         std::shared_ptr<opentxs::internal::Context>& output) const
     {
     }
-    virtual bool load_legacy_account(
+    virtual auto load_legacy_account(
         const Identifier& accountID,
         const eLock& lock,
-        AccountLock& row) const
+        AccountLock& row) const -> bool
     {
         return false;
     }
-    Editor<opentxs::NymFile> mutable_nymfile(
+    auto mutable_nymfile(
         const Nym_p& targetNym,
         const Nym_p& signerNym,
         const identifier::Nym& id,
-        const PasswordPrompt& reason) const;
+        const PasswordPrompt& reason) const -> Editor<opentxs::NymFile>;
     virtual void nym_to_contact(
         [[maybe_unused]] const identity::Nym& nym,
         [[maybe_unused]] const std::string& name) const noexcept
     {
     }
-    std::mutex& nymfile_lock(const identifier::Nym& nymID) const;
-    std::mutex& peer_lock(const std::string& nymID) const;
+    auto nymfile_lock(const identifier::Nym& nymID) const -> std::mutex&;
+    auto peer_lock(const std::string& nymID) const -> std::mutex&;
     void publish_server(const identifier::Server& id) const;
 #if OT_CASH
-    std::unique_ptr<blind::Purse> purse(
+    auto purse(
         const identifier::Nym& nym,
         const identifier::Server& server,
         const identifier::UnitDefinition& unit,
-        const bool checking) const;
+        const bool checking) const -> std::unique_ptr<blind::Purse>;
 #endif
     void save(
         const PasswordPrompt& reason,
@@ -451,28 +468,28 @@ private:
         const PasswordPrompt& reason,
         opentxs::NymFile* nym,
         const Lock& lock) const;
-    bool SaveCredentialIDs(const identity::Nym& nym) const;
-    virtual Nym_p signer_nym(const identifier::Nym& id) const = 0;
+    auto SaveCredentialIDs(const identity::Nym& nym) const -> bool;
+    virtual auto signer_nym(const identifier::Nym& id) const -> Nym_p = 0;
 
     /* Throws std::out_of_range for missing accounts */
-    AccountLock& account(
+    auto account(
         const Lock& lock,
         const Identifier& accountID,
-        const bool create) const;
-    IssuerLock& issuer(
+        const bool create) const -> AccountLock&;
+    auto issuer(
         const identifier::Nym& nymID,
         const identifier::Nym& issuerID,
-        const bool create) const;
+        const bool create) const -> IssuerLock&;
 
-    OTServerContract server(std::unique_ptr<contract::Server> contract) const
-        noexcept(false);
-    OTUnitDefinition unit_definition(
-        std::shared_ptr<contract::Unit>&& contract) const;
+    auto server(std::unique_ptr<contract::Server> contract) const
+        noexcept(false) -> OTServerContract;
+    auto unit_definition(std::shared_ptr<contract::Unit>&& contract) const
+        -> OTUnitDefinition;
 
     Wallet() = delete;
     Wallet(const Wallet&) = delete;
     Wallet(Wallet&&) = delete;
-    Wallet& operator=(const Wallet&) = delete;
-    Wallet& operator=(Wallet&&) = delete;
+    auto operator=(const Wallet&) -> Wallet& = delete;
+    auto operator=(Wallet &&) -> Wallet& = delete;
 };
 }  // namespace opentxs::api::implementation

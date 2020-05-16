@@ -66,7 +66,7 @@ private:
     Log() = delete;
     Log(const Log&) = delete;
     Log(Log&&) = delete;
-    Log& operator=(const Log&) = delete;
-    Log& operator=(Log&&) = delete;
+    auto operator=(const Log&) -> Log& = delete;
+    auto operator=(Log &&) -> Log& = delete;
 };
 }  // namespace opentxs::api::implementation

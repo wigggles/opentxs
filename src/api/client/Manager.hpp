@@ -65,21 +65,20 @@ class Manager final : opentxs::api::client::internal::Manager,
                       api::implementation::Core
 {
 public:
-    const api::client::Activity& Activity() const final;
-    const api::client::Blockchain& Blockchain() const final;
-    const api::client::Contacts& Contacts() const final;
-    const OTAPI_Exec& Exec(const std::string& wallet = "") const final;
+    auto Activity() const -> const api::client::Activity& final;
+    auto Blockchain() const -> const api::client::Blockchain& final;
+    auto Contacts() const -> const api::client::Contacts& final;
+    auto Exec(const std::string& wallet = "") const -> const OTAPI_Exec& final;
     using Core::Lock;
-    std::recursive_mutex& Lock(
-        const identifier::Nym& nymID,
-        const identifier::Server& serverID) const final;
-    const OT_API& OTAPI(const std::string& wallet = "") const final;
-    const client::OTX& OTX() const final;
-    const api::client::Pair& Pair() const final;
-    const client::ServerAction& ServerAction() const final;
-    const api::client::UI& UI() const final;
-    const client::Workflow& Workflow() const final;
-    const api::network::ZMQ& ZMQ() const final;
+    auto Lock(const identifier::Nym& nymID, const identifier::Server& serverID)
+        const -> std::recursive_mutex& final;
+    auto OTAPI(const std::string& wallet = "") const -> const OT_API& final;
+    auto OTX() const -> const client::OTX& final;
+    auto Pair() const -> const api::client::Pair& final;
+    auto ServerAction() const -> const client::ServerAction& final;
+    auto UI() const -> const api::client::UI& final;
+    auto Workflow() const -> const client::Workflow& final;
+    auto ZMQ() const -> const api::network::ZMQ& final;
 
     void StartActivity() final;
     void StartContacts() final;
@@ -103,7 +102,7 @@ private:
     mutable std::mutex map_lock_;
     mutable std::map<ContextID, std::recursive_mutex> context_locks_;
 
-    std::recursive_mutex& get_lock(const ContextID context) const;
+    auto get_lock(const ContextID context) const -> std::recursive_mutex&;
 
     void Cleanup();
     void Init();
@@ -120,7 +119,7 @@ private:
     Manager() = delete;
     Manager(const Manager&) = delete;
     Manager(Manager&&) = delete;
-    Manager& operator=(const Manager&) = delete;
-    Manager& operator=(Manager&&) = delete;
+    auto operator=(const Manager&) -> Manager& = delete;
+    auto operator=(Manager &&) -> Manager& = delete;
 };
 }  // namespace opentxs::api::client::implementation

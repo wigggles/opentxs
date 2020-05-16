@@ -35,24 +35,23 @@ class Nym;
 class Threads final : public Node
 {
 private:
-    typedef Node ot_super;
+    using ot_super = Node;
     friend Nym;
 
     mutable std::map<std::string, std::unique_ptr<class Thread>> threads_;
     Mailbox& mail_inbox_;
     Mailbox& mail_outbox_;
 
-    bool save(const std::unique_lock<std::mutex>& lock) const final;
-    proto::StorageNymList serialize() const;
-    class Thread* thread(const std::string& id) const;
-    class Thread* thread(
-        const std::string& id,
-        const std::unique_lock<std::mutex>& lock) const;
+    auto save(const std::unique_lock<std::mutex>& lock) const -> bool final;
+    auto serialize() const -> proto::StorageNymList;
+    auto thread(const std::string& id) const -> class Thread*;
+    auto thread(const std::string& id, const std::unique_lock<std::mutex>& lock)
+        const -> class Thread*;
 
-    std::string create(
+    auto create(
         const Lock& lock,
         const std::string& id,
-        const std::set<std::string>& participants);
+        const std::set<std::string>& participants) -> std::string;
     void init(const std::string& hash) final;
     void save(
         class Thread* thread,
@@ -67,22 +66,23 @@ private:
     Threads() = delete;
     Threads(const Threads&) = delete;
     Threads(Threads&&) = delete;
-    Threads operator=(const Threads&) = delete;
-    Threads operator=(Threads&&) = delete;
+    auto operator=(const Threads&) -> Threads = delete;
+    auto operator=(Threads &&) -> Threads = delete;
 
 public:
-    bool Exists(const std::string& id) const;
+    auto Exists(const std::string& id) const -> bool;
     using ot_super::List;
-    ObjectList List(const bool unreadOnly) const;
-    bool Migrate(const opentxs::api::storage::Driver& to) const final;
-    const class Thread& Thread(const std::string& id) const;
+    auto List(const bool unreadOnly) const -> ObjectList;
+    auto Migrate(const opentxs::api::storage::Driver& to) const -> bool final;
+    auto Thread(const std::string& id) const -> const class Thread&;
 
-    std::string Create(
+    auto Create(
         const std::string& id,
-        const std::set<std::string>& participants);
-    bool FindAndDeleteItem(const std::string& itemID);
-    Editor<class Thread> mutable_Thread(const std::string& id);
-    bool Rename(const std::string& existingID, const std::string& newID);
+        const std::set<std::string>& participants) -> std::string;
+    auto FindAndDeleteItem(const std::string& itemID) -> bool;
+    auto mutable_Thread(const std::string& id) -> Editor<class Thread>;
+    auto Rename(const std::string& existingID, const std::string& newID)
+        -> bool;
 
     ~Threads() final = default;
 };

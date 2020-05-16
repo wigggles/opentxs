@@ -367,7 +367,7 @@ InitOTDBDetails::~InitOTDBDetails()  // Destructor for namespace
 
 // INTERFACE for the Namespace (for coders to use.)
 
-Storage* GetDefaultStorage() { return OTDB::details::s_pStorage; }
+auto GetDefaultStorage() -> Storage* { return OTDB::details::s_pStorage; }
 
 // You might normally create your own Storage object, choosing the storage type
 // and the packing type, and then call Init() on that object in order to get it
@@ -375,7 +375,7 @@ Storage* GetDefaultStorage() { return OTDB::details::s_pStorage; }
 // the
 // DEFAULT storage object (which OT uses when none is specified.)
 //
-bool InitDefaultStorage(StorageType eStoreType, PackType ePackType)
+auto InitDefaultStorage(StorageType eStoreType, PackType ePackType) -> bool
 {
     // This allows you to call multiple times if you want to change the default
     // storage.
@@ -409,7 +409,8 @@ bool InitDefaultStorage(StorageType eStoreType, PackType ePackType)
 }
 
 // %newobject Factory::createObj();
-Storage* CreateStorageContext(StorageType eStoreType, PackType ePackType)
+auto CreateStorageContext(StorageType eStoreType, PackType ePackType)
+    -> Storage*
 {
     Storage* pStorage = Storage::Create(eStoreType, ePackType);
 
@@ -417,7 +418,7 @@ Storage* CreateStorageContext(StorageType eStoreType, PackType ePackType)
 }
 
 // %newobject Factory::createObj();
-Storable* CreateObject(StoredObjectType eType)
+auto CreateObject(StoredObjectType eType) -> Storable*
 {
     Storage* pStorage = details::s_pStorage;
 
@@ -436,13 +437,13 @@ Storable* CreateObject(StoredObjectType eType)
 
 // Check that if oneStr is "", then twoStr and threeStr are "" also... and so
 // on...
-bool CheckStringsExistInOrder(
+auto CheckStringsExistInOrder(
     const std::string& dataFolder,
     const std::string& strFolder,
     const std::string& oneStr,
     const std::string& twoStr,
     const std::string& threeStr,
-    const char* szFuncName)
+    const char* szFuncName) -> bool
 {
     if (nullptr == szFuncName) szFuncName = __FUNCTION__;
 
@@ -484,13 +485,13 @@ bool CheckStringsExistInOrder(
 }
 
 // See if the file is there.
-bool Exists(
+auto Exists(
     const api::internal::Core& api,
     const std::string& dataFolder,
     std::string strFolder,
     std::string oneStr,
     std::string twoStr,
-    std::string threeStr)
+    std::string threeStr) -> bool
 {
     {
         auto ot_strFolder = String::Factory(strFolder),
@@ -522,14 +523,14 @@ bool Exists(
         api, dataFolder, strFolder, oneStr, twoStr, threeStr);
 }
 
-std::int64_t FormPathString(
+auto FormPathString(
     const api::internal::Core& api,
     std::string& strOutput,
     const std::string& dataFolder,
     const std::string& strFolder,
     const std::string& oneStr,
     const std::string& twoStr,
-    const std::string& threeStr)
+    const std::string& threeStr) -> std::int64_t
 {
     auto ot_strFolder = String::Factory(strFolder),
          ot_oneStr = String::Factory(oneStr),
@@ -567,14 +568,14 @@ std::int64_t FormPathString(
 
 // Store/Retrieve a string.
 
-bool StoreString(
+auto StoreString(
     const api::internal::Core& api,
     const std::string& strContents,
     const std::string& dataFolder,
     const std::string& strFolder,
     const std::string& oneStr,
     const std::string& twoStr,
-    const std::string& threeStr)
+    const std::string& threeStr) -> bool
 {
     auto ot_strFolder = String::Factory(strFolder),
          ot_oneStr = String::Factory(oneStr),
@@ -605,13 +606,13 @@ bool StoreString(
         threeStr);
 }
 
-std::string QueryString(
+auto QueryString(
     const api::internal::Core& api,
     const std::string& dataFolder,
     const std::string& strFolder,
     const std::string& oneStr,
     const std::string& twoStr,
-    const std::string& threeStr)
+    const std::string& threeStr) -> std::string
 {
     auto ot_strFolder = String::Factory(strFolder),
          ot_oneStr = String::Factory(oneStr),
@@ -645,14 +646,14 @@ std::string QueryString(
 
 // Store/Retrieve a plain string.
 
-bool StorePlainString(
+auto StorePlainString(
     const api::internal::Core& api,
     const std::string& strContents,
     const std::string& dataFolder,
     const std::string& strFolder,
     const std::string& oneStr,
     const std::string& twoStr,
-    const std::string& threeStr)
+    const std::string& threeStr) -> bool
 {
     auto ot_strFolder = String::Factory(strFolder),
          ot_oneStr = String::Factory(oneStr),
@@ -685,13 +686,13 @@ bool StorePlainString(
         threeStr);
 }
 
-std::string QueryPlainString(
+auto QueryPlainString(
     const api::internal::Core& api,
     const std::string& dataFolder,
     const std::string& strFolder,
     const std::string& oneStr,
     const std::string& twoStr,
-    const std::string& threeStr)
+    const std::string& threeStr) -> std::string
 {
     auto ot_strFolder = String::Factory(strFolder),
          ot_oneStr = String::Factory(oneStr),
@@ -726,14 +727,14 @@ std::string QueryPlainString(
 
 // Store/Retrieve an object. (Storable.)
 
-bool StoreObject(
+auto StoreObject(
     const api::internal::Core& api,
     Storable& theContents,
     const std::string& dataFolder,
     const std::string& strFolder,
     const std::string& oneStr,
     const std::string& twoStr,
-    const std::string& threeStr)
+    const std::string& threeStr) -> bool
 {
     auto ot_strFolder = String::Factory(strFolder),
          ot_oneStr = String::Factory(oneStr),
@@ -770,14 +771,14 @@ bool StoreObject(
 }
 
 // Use %newobject Storage::Query();
-Storable* QueryObject(
+auto QueryObject(
     const api::internal::Core& api,
     const StoredObjectType theObjectType,
     const std::string& dataFolder,
     const std::string& strFolder,
     const std::string& oneStr,
     const std::string& twoStr,
-    const std::string& threeStr)
+    const std::string& threeStr) -> Storable*
 {
     auto ot_strFolder = String::Factory(strFolder),
          ot_oneStr = String::Factory(oneStr),
@@ -810,7 +811,8 @@ Storable* QueryObject(
 
 // Store/Retrieve a Storable object to/from an Armored object.
 
-std::string EncodeObject(const api::internal::Core& api, Storable& theContents)
+auto EncodeObject(const api::internal::Core& api, Storable& theContents)
+    -> std::string
 {
     Storage* pStorage = details::s_pStorage;
 
@@ -824,9 +826,9 @@ std::string EncodeObject(const api::internal::Core& api, Storable& theContents)
 }
 
 // Use %newobject Storage::DecodeObject();
-Storable* DecodeObject(
+auto DecodeObject(
     const StoredObjectType theObjectType,
-    const std::string& strInput)
+    const std::string& strInput) -> Storable*
 {
     Storage* pStorage = details::s_pStorage;
 
@@ -837,13 +839,13 @@ Storable* DecodeObject(
 
 // Erase a value by location.
 
-bool EraseValueByKey(
+auto EraseValueByKey(
     const api::internal::Core& api,
     const std::string& dataFolder,
     const std::string& strFolder,
     const std::string& oneStr,
     const std::string& twoStr,
-    const std::string& threeStr)
+    const std::string& threeStr) -> bool
 {
     Storage* pStorage = details::s_pStorage;
 
@@ -861,7 +863,7 @@ bool EraseValueByKey(
 // Used internally. Creates the right subclass for any stored object type,
 // based on which packer is needed.
 
-Storable* Storable::Create(StoredObjectType eType, PackType thePackType)
+auto Storable::Create(StoredObjectType eType, PackType thePackType) -> Storable*
 {
     if (nullptr == details::pFunctionMap) return nullptr;
 
@@ -890,7 +892,7 @@ Storable* Storable::Create(StoredObjectType eType, PackType thePackType)
 
 // static. OTPacker Factory.
 //
-OTPacker* OTPacker::Create(PackType ePackType)
+auto OTPacker::Create(PackType ePackType) -> OTPacker*
 {
     OTPacker* pPacker = nullptr;
 
@@ -915,7 +917,7 @@ OTPacker* OTPacker::Create(PackType ePackType)
     return pPacker;  // May return nullptr...
 }
 
-PackType OTPacker::GetType() const
+auto OTPacker::GetType() const -> PackType
 {
 #if defined(OTDB_MESSAGE_PACK)
     if (typeid(*this) == typeid(PackerMsgpack)) return PACK_MESSAGE_PACK;
@@ -931,9 +933,9 @@ PackType OTPacker::GetType() const
 // can override onPack(). Those two methods will be where all the action is,
 // for each subclass of OTPacker.
 //
-PackedBuffer* OTPacker::Pack(Storable& inObj)
+auto OTPacker::Pack(Storable& inObj) -> PackedBuffer*
 {
-    IStorable* pStorable = dynamic_cast<IStorable*>(&inObj);
+    auto* pStorable = dynamic_cast<IStorable*>(&inObj);
 
     if (nullptr == pStorable)  // ALL Storables should implement SOME
                                // subinterface of IStorable
@@ -974,9 +976,9 @@ PackedBuffer* OTPacker::Pack(Storable& inObj)
 // it.  Also assumes that the Storable's actual object type is the
 // appropriate one for the data that is sitting in that buffer.
 //
-bool OTPacker::Unpack(PackedBuffer& inBuf, Storable& outObj)
+auto OTPacker::Unpack(PackedBuffer& inBuf, Storable& outObj) -> bool
 {
-    IStorable* pStorable = dynamic_cast<IStorable*>(&outObj);
+    auto* pStorable = dynamic_cast<IStorable*>(&outObj);
 
     if (nullptr == pStorable) return false;
 
@@ -992,7 +994,7 @@ bool OTPacker::Unpack(PackedBuffer& inBuf, Storable& outObj)
     return true;
 }
 
-PackedBuffer* OTPacker::Pack(const std::string& inObj)
+auto OTPacker::Pack(const std::string& inObj) -> PackedBuffer*
 {
     // This is polymorphic, so we get the right kind of buffer for the packer.
     //
@@ -1009,7 +1011,7 @@ PackedBuffer* OTPacker::Pack(const std::string& inObj)
     return pBuffer;
 }
 
-bool OTPacker::Unpack(PackedBuffer& inBuf, std::string& outObj)
+auto OTPacker::Unpack(PackedBuffer& inBuf, std::string& outObj) -> bool
 {
 
     // outObj is the OUTPUT OBJECT.
@@ -1027,9 +1029,9 @@ bool OTPacker::Unpack(PackedBuffer& inBuf, std::string& outObj)
 
 #define IMPLEMENT_GET_ADD_REMOVE(scope, name)                                  \
                                                                                \
-    typedef std::shared_ptr<name> PointerTo##name;                             \
+    using PointerTo##name = std::shared_ptr<name>;                             \
                                                                                \
-    typedef std::deque<PointerTo##name> listOf##name##s;                       \
+    using listOf##name##s = std::deque<PointerTo##name>;                       \
                                                                                \
     size_t scope Get##name##Count() { return list_##name##s.size(); }          \
                                                                                \
@@ -1341,9 +1343,10 @@ AddressBook::~AddressBook()
 //
 #if defined(OTDB_PROTOCOL_BUFFERS)
 
-::google::protobuf::MessageLite* IStorablePB::getPBMessage()  // This is really
-                                                              // only here so it
-                                                              // can be
+auto IStorablePB::getPBMessage()
+    -> ::google::protobuf::MessageLite*  // This is really
+                                         // only here so it
+                                         // can be
 // overridden. Only
 // subclasses of
 // IStorablePB will
@@ -1356,10 +1359,8 @@ template <
     class theBaseType,
     class theInternalType,
     StoredObjectType theObjectType>
-::google::protobuf::MessageLite* ProtobufSubclass<
-    theBaseType,
-    theInternalType,
-    theObjectType>::getPBMessage()
+auto ProtobufSubclass<theBaseType, theInternalType, theObjectType>::
+    getPBMessage() -> ::google::protobuf::MessageLite*
 {
     return (&__pb_obj);
 }
@@ -1370,12 +1371,12 @@ template <
 //    return makeTStorablePBgetPBMessage();
 //}
 
-bool IStorablePB::onPack(
+auto IStorablePB::onPack(
     PackedBuffer& theBuffer,
-    Storable&)  // buffer is OUTPUT.
+    Storable&) -> bool  // buffer is OUTPUT.
 {
     // check here to make sure theBuffer is the right TYPE.
-    BufferPB* pBuffer = dynamic_cast<BufferPB*>(&theBuffer);
+    auto* pBuffer = dynamic_cast<BufferPB*>(&theBuffer);
 
     if (nullptr == pBuffer)  // Buffer is wrong type!!
         return false;
@@ -1389,12 +1390,12 @@ bool IStorablePB::onPack(
     return true;
 }
 
-bool IStorablePB::onUnpack(
+auto IStorablePB::onUnpack(
     PackedBuffer& theBuffer,
-    Storable&)  // buffer is INPUT.
+    Storable&) -> bool  // buffer is INPUT.
 {
     // check here to make sure theBuffer is the right TYPE.
-    BufferPB* pBuffer = dynamic_cast<BufferPB*>(&theBuffer);
+    auto* pBuffer = dynamic_cast<BufferPB*>(&theBuffer);
 
     if (nullptr == pBuffer)  // Buffer is wrong type!!
         return false;
@@ -1417,7 +1418,7 @@ bool IStorablePB::onUnpack(
  bool ParseFromString(const string& data);:
  parses a message from the given string.
  */
-bool BufferPB::PackString(const std::string& theString)
+auto BufferPB::PackString(const std::string& theString) -> bool
 {
     StringPB theWrapper;
 
@@ -1425,7 +1426,7 @@ bool BufferPB::PackString(const std::string& theString)
 
     if (nullptr == pMessage) return false;
 
-    String_InternalPB* pBuffer = dynamic_cast<String_InternalPB*>(pMessage);
+    auto* pBuffer = dynamic_cast<String_InternalPB*>(pMessage);
 
     if (nullptr == pBuffer)  // Buffer is wrong type!!
         return false;
@@ -1437,7 +1438,7 @@ bool BufferPB::PackString(const std::string& theString)
     return true;
 }
 
-bool BufferPB::UnpackString(std::string& theString)
+auto BufferPB::UnpackString(std::string& theString) -> bool
 {
     StringPB theWrapper;
 
@@ -1445,7 +1446,7 @@ bool BufferPB::UnpackString(std::string& theString)
 
     if (nullptr == pMessage) return false;
 
-    String_InternalPB* pBuffer = dynamic_cast<String_InternalPB*>(pMessage);
+    auto* pBuffer = dynamic_cast<String_InternalPB*>(pMessage);
 
     if (nullptr == pBuffer)  // Buffer is wrong type!!
         return false;
@@ -1457,9 +1458,10 @@ bool BufferPB::UnpackString(std::string& theString)
     return true;
 }
 
-bool BufferPB::ReadFromIStream(std::istream& inStream, std::int64_t lFilesize)
+auto BufferPB::ReadFromIStream(std::istream& inStream, std::int64_t lFilesize)
+    -> bool
 {
-    unsigned long size = static_cast<unsigned long>(lFilesize);
+    auto size = static_cast<unsigned long>(lFilesize);
 
     char* buf = new char[size];
     OT_ASSERT(nullptr != buf);
@@ -1480,7 +1482,7 @@ bool BufferPB::ReadFromIStream(std::istream& inStream, std::int64_t lFilesize)
     // m_buffer.ParseFromIstream(&inStream);
 }
 
-bool BufferPB::WriteToOStream(std::ostream& outStream)
+auto BufferPB::WriteToOStream(std::ostream& outStream) -> bool
 {
     // bool    SerializeToOstream(ostream* output) const
     if (m_buffer.length() > 0) {
@@ -1496,12 +1498,12 @@ bool BufferPB::WriteToOStream(std::ostream& outStream)
     // m_buffer.SerializeToOstream(&outStream);
 }
 
-const std::uint8_t* BufferPB::GetData()
+auto BufferPB::GetData() -> const std::uint8_t*
 {
     return reinterpret_cast<const std::uint8_t*>(m_buffer.c_str());
 }
 
-size_t BufferPB::GetSize() { return m_buffer.size(); }
+auto BufferPB::GetSize() -> size_t { return m_buffer.size(); }
 
 void BufferPB::SetData(const std::uint8_t* pData, size_t theSize)
 {
@@ -2115,7 +2117,7 @@ void TradeListNymPB::hookAfterUnpack()
 // instance
 // of Storage.)
 //
-OTPacker* Storage::GetPacker(PackType ePackType)
+auto Storage::GetPacker(PackType ePackType) -> OTPacker*
 {
     // Normally if you use Create(), the packer is created at that time.
     // However, in the future, coders using the API may create subclasses of
@@ -2138,7 +2140,7 @@ OTPacker* Storage::GetPacker(PackType ePackType)
 //
 // Factory for Storable objects...
 //
-Storable* Storage::CreateObject(const StoredObjectType& eType)
+auto Storage::CreateObject(const StoredObjectType& eType) -> Storable*
 {
     OTPacker* pPacker = GetPacker();
 
@@ -2156,9 +2158,8 @@ Storable* Storage::CreateObject(const StoredObjectType& eType)
 
 // Factory for the Storage context itself.
 //
-Storage* Storage::Create(
-    const StorageType& eStorageType,
-    const PackType& ePackType)
+auto Storage::Create(const StorageType& eStorageType, const PackType& ePackType)
+    -> Storage*
 {
     Storage* pStore = nullptr;
 
@@ -2205,7 +2206,7 @@ Storage* Storage::Create(
     return pStore;  // Possible to return nullptr.
 }
 
-StorageType Storage::GetType() const
+auto Storage::GetType() const -> StorageType
 {
     // If I find the type, then I return it. Otherwise I ASSUME
     // that the coder using the API has subclassed Storage, and
@@ -2221,14 +2222,14 @@ StorageType Storage::GetType() const
                                      // subclassed Storage himself.
 }
 
-bool Storage::StoreString(
+auto Storage::StoreString(
     const api::internal::Core& api,
     const std::string& strContents,
     const std::string& dataFolder,
     const std::string& strFolder,
     const std::string& oneStr,
     const std::string& twoStr,
-    const std::string& threeStr)
+    const std::string& threeStr) -> bool
 {
     auto ot_strFolder = String::Factory(strFolder),
          ot_oneStr = String::Factory(oneStr),
@@ -2269,13 +2270,13 @@ bool Storage::StoreString(
     return bSuccess;
 }
 
-std::string Storage::QueryString(
+auto Storage::QueryString(
     const api::internal::Core& api,
     const std::string& dataFolder,
     const std::string& strFolder,
     const std::string& oneStr,
     const std::string& twoStr,
-    const std::string& threeStr)
+    const std::string& threeStr) -> std::string
 {
     std::string theString("");
 
@@ -2320,26 +2321,26 @@ std::string Storage::QueryString(
 
 // For when you want NO PACKING.
 
-bool Storage::StorePlainString(
+auto Storage::StorePlainString(
     const api::internal::Core& api,
     const std::string& strContents,
     const std::string& dataFolder,
     const std::string& strFolder,
     const std::string& oneStr,
     const std::string& twoStr,
-    const std::string& threeStr)
+    const std::string& threeStr) -> bool
 {
     return onStorePlainString(
         api, strContents, dataFolder, strFolder, oneStr, twoStr, threeStr);
 }
 
-std::string Storage::QueryPlainString(
+auto Storage::QueryPlainString(
     const api::internal::Core& api,
     const std::string& dataFolder,
     const std::string& strFolder,
     const std::string& oneStr,
     const std::string& twoStr,
-    const std::string& threeStr)
+    const std::string& threeStr) -> std::string
 {
     std::string theString("");
 
@@ -2350,14 +2351,14 @@ std::string Storage::QueryPlainString(
     return theString;
 }
 
-bool Storage::StoreObject(
+auto Storage::StoreObject(
     const api::internal::Core& api,
     Storable& theContents,
     const std::string& dataFolder,
     const std::string& strFolder,
     const std::string& oneStr,
     const std::string& twoStr,
-    const std::string& threeStr)
+    const std::string& threeStr) -> bool
 {
     OTPacker* pPacker = GetPacker();
 
@@ -2393,14 +2394,14 @@ bool Storage::StoreObject(
 
 // Use %newobject Storage::Query();
 //
-Storable* Storage::QueryObject(
+auto Storage::QueryObject(
     const api::internal::Core& api,
     const StoredObjectType& theObjectType,
     const std::string& dataFolder,
     const std::string& strFolder,
     const std::string& oneStr,
     const std::string& twoStr,
-    const std::string& threeStr)
+    const std::string& threeStr) -> Storable*
 {
     OTPacker* pPacker = GetPacker();
 
@@ -2451,9 +2452,9 @@ Storable* Storage::QueryObject(
     return pStorable;  // caller is responsible to delete.
 }
 
-std::string Storage::EncodeObject(
+auto Storage::EncodeObject(
     const api::internal::Core& api,
-    Storable& theContents)
+    Storable& theContents) -> std::string
 {
     std::string strReturnValue("");
 
@@ -2499,9 +2500,9 @@ std::string Storage::EncodeObject(
 
 // Use %newobject Storage::DecodeObject();
 //
-Storable* Storage::DecodeObject(
+auto Storage::DecodeObject(
     const StoredObjectType& theObjectType,
-    const std::string& strInput)
+    const std::string& strInput) -> Storable*
 {
     if (strInput.size() < 1) return nullptr;
 
@@ -2554,13 +2555,13 @@ Storable* Storage::DecodeObject(
     return pStorable;  // caller is responsible to delete.
 }
 
-bool Storage::EraseValueByKey(
+auto Storage::EraseValueByKey(
     const api::internal::Core& api,
     const std::string& dataFolder,
     const std::string& strFolder,
     const std::string& oneStr,
     const std::string& twoStr,
-    const std::string& threeStr)
+    const std::string& threeStr) -> bool
 {
     bool bSuccess =
         onEraseValueByKey(api, dataFolder, strFolder, oneStr, twoStr, threeStr);
@@ -2590,33 +2591,33 @@ bool Storage::EraseValueByKey(
   1+    -- File found and it's length.
 
  */
-std::int64_t StorageFS::ConstructAndCreatePath(
+auto StorageFS::ConstructAndCreatePath(
     const api::internal::Core& api,
     std::string& strOutput,
     const std::string& dataFolder,
     const std::string& strFolder,
     const std::string& oneStr,
     const std::string& twoStr,
-    const std::string& threeStr)
+    const std::string& threeStr) -> std::int64_t
 {
     return ConstructAndConfirmPathImp(
         api, true, strOutput, dataFolder, strFolder, oneStr, twoStr, threeStr);
 }
 
-std::int64_t StorageFS::ConstructAndConfirmPath(
+auto StorageFS::ConstructAndConfirmPath(
     const api::internal::Core& api,
     std::string& strOutput,
     const std::string& dataFolder,
     const std::string& strFolder,
     const std::string& oneStr,
     const std::string& twoStr,
-    const std::string& threeStr)
+    const std::string& threeStr) -> std::int64_t
 {
     return ConstructAndConfirmPathImp(
         api, false, strOutput, dataFolder, strFolder, oneStr, twoStr, threeStr);
 }
 
-std::int64_t StorageFS::ConstructAndConfirmPathImp(
+auto StorageFS::ConstructAndConfirmPathImp(
     const api::internal::Core& api,
     const bool bMakePath,
     std::string& strOutput,
@@ -2624,7 +2625,7 @@ std::int64_t StorageFS::ConstructAndConfirmPathImp(
     const std::string& zeroStr,
     const std::string& oneStr,
     const std::string& twoStr,
-    const std::string& threeStr)
+    const std::string& threeStr) -> std::int64_t
 {
     const std::string strRoot(dataFolder.c_str());
     const std::string strZero(3 > zeroStr.length() ? "" : zeroStr);
@@ -2748,14 +2749,14 @@ ot_exit_block:
 
 // Store/Retrieve an object. (Storable.)
 
-bool StorageFS::onStorePackedBuffer(
+auto StorageFS::onStorePackedBuffer(
     const api::internal::Core& api,
     PackedBuffer& theBuffer,
     const std::string& dataFolder,
     const std::string& strFolder,
     const std::string& oneStr,
     const std::string& twoStr,
-    const std::string& threeStr)
+    const std::string& threeStr) -> bool
 {
     std::string strOutput;
 
@@ -2792,14 +2793,14 @@ bool StorageFS::onStorePackedBuffer(
     return bSuccess;
 }
 
-bool StorageFS::onQueryPackedBuffer(
+auto StorageFS::onQueryPackedBuffer(
     const api::internal::Core& api,
     PackedBuffer& theBuffer,
     const std::string& dataFolder,
     const std::string& strFolder,
     const std::string& oneStr,
     const std::string& twoStr,
-    const std::string& threeStr)
+    const std::string& threeStr) -> bool
 {
     std::string strOutput;
 
@@ -2837,14 +2838,14 @@ bool StorageFS::onQueryPackedBuffer(
 
 // Store/Retrieve a plain string, (without any packing.)
 
-bool StorageFS::onStorePlainString(
+auto StorageFS::onStorePlainString(
     const api::internal::Core& api,
     const std::string& theBuffer,
     const std::string& dataFolder,
     const std::string& strFolder,
     const std::string& oneStr,
     const std::string& twoStr,
-    const std::string& threeStr)
+    const std::string& threeStr) -> bool
 {
     std::string strOutput;
 
@@ -2888,14 +2889,14 @@ bool StorageFS::onStorePlainString(
     return bSuccess;
 }
 
-bool StorageFS::onQueryPlainString(
+auto StorageFS::onQueryPlainString(
     const api::internal::Core& api,
     std::string& theBuffer,
     const std::string& dataFolder,
     const std::string& strFolder,
     const std::string& oneStr,
     const std::string& twoStr,
-    const std::string& threeStr)
+    const std::string& threeStr) -> bool
 {
     std::string strOutput;
 
@@ -2947,13 +2948,13 @@ bool StorageFS::onQueryPlainString(
 
 // Erase a value by location.
 //
-bool StorageFS::onEraseValueByKey(
+auto StorageFS::onEraseValueByKey(
     const api::internal::Core& api,
     const std::string& dataFolder,
     const std::string& strFolder,
     const std::string& oneStr,
     const std::string& twoStr,
-    const std::string& threeStr)
+    const std::string& threeStr) -> bool
 {
     std::string strOutput;
 
@@ -3029,13 +3030,13 @@ StorageFS::~StorageFS() {}
 
 // See if the file is there.
 
-bool StorageFS::Exists(
+auto StorageFS::Exists(
     const api::internal::Core& api,
     const std::string& dataFolder,
     const std::string& strFolder,
     const std::string& oneStr,
     const std::string& twoStr,
-    const std::string& threeStr)
+    const std::string& threeStr) -> bool
 {
     std::string strOutput;
 
@@ -3047,14 +3048,14 @@ bool StorageFS::Exists(
 
 // Returns path size, plus path in strOutput.
 //
-std::int64_t StorageFS::FormPathString(
+auto StorageFS::FormPathString(
     const api::internal::Core& api,
     std::string& strOutput,
     const std::string& dataFolder,
     const std::string& strFolder,
     const std::string& oneStr,
     const std::string& twoStr,
-    const std::string& threeStr)
+    const std::string& threeStr) -> std::int64_t
 {
     return ConstructAndConfirmPath(
         api, strOutput, dataFolder, strFolder, oneStr, twoStr, threeStr);

@@ -67,8 +67,8 @@ using ContactType = List<
 class Contact final : public ContactType
 {
 public:
-    std::string ContactID() const noexcept final;
-    std::string DisplayName() const noexcept final;
+    auto ContactID() const noexcept -> std::string final;
+    auto DisplayName() const noexcept -> std::string final;
 #if OT_QT
     int FindRow(const ContactRowID& id, const ContactSortKey& key) const
         noexcept final
@@ -76,7 +76,7 @@ public:
         return find_row(id, key);
     }
 #endif
-    std::string PaymentCode() const noexcept final;
+    auto PaymentCode() const noexcept -> std::string final;
 
     Contact(
         const api::client::internal::Manager& api,
@@ -97,15 +97,16 @@ private:
     std::string name_;
     std::string payment_code_;
 
-    static int sort_key(const proto::ContactSectionName type) noexcept;
-    static bool check_type(const proto::ContactSectionName type) noexcept;
+    static auto sort_key(const proto::ContactSectionName type) noexcept -> int;
+    static auto check_type(const proto::ContactSectionName type) noexcept
+        -> bool;
 
-    void* construct_row(
+    auto construct_row(
         const ContactRowID& id,
         const ContactSortKey& index,
-        const CustomData& custom) const noexcept final;
+        const CustomData& custom) const noexcept -> void* final;
 
-    bool last(const ContactRowID& id) const noexcept final
+    auto last(const ContactRowID& id) const noexcept -> bool final
     {
         return ContactType::last(id);
     }
@@ -119,7 +120,7 @@ private:
     Contact() = delete;
     Contact(const Contact&) = delete;
     Contact(Contact&&) = delete;
-    Contact& operator=(const Contact&) = delete;
-    Contact& operator=(Contact&&) = delete;
+    auto operator=(const Contact&) -> Contact& = delete;
+    auto operator=(Contact &&) -> Contact& = delete;
 };
 }  // namespace opentxs::ui::implementation

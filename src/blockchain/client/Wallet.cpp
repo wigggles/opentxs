@@ -83,8 +83,8 @@ auto Wallet::ProcessTask(const zmq::Message& in) noexcept -> void
     const auto body = in.Body();
 
     if (2 > body.size()) {
-        LogOutput("opentxs::blockchain::client::internal::")(__FUNCTION__)(
-            ": Invalid message")
+        LogOutput("opentxs::blockchain::client::internal:Wallet:::")(
+            __FUNCTION__)(": Invalid message")
             .Flush();
 
         OT_FAIL;

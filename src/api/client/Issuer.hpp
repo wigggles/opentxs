@@ -42,61 +42,64 @@ namespace opentxs::api::client::implementation
 class Issuer final : virtual public opentxs::api::client::Issuer, Lockable
 {
 public:
-    std::string toString() const final;
+    auto toString() const -> std::string final;
 
-    std::set<OTIdentifier> AccountList(
+    auto AccountList(
         const proto::ContactItemType type,
-        const identifier::UnitDefinition& unitID) const final;
-    bool BailmentInitiated(
-        const identifier::UnitDefinition& unitID) const final;
-    std::vector<BailmentDetails> BailmentInstructions(
+        const identifier::UnitDefinition& unitID) const
+        -> std::set<OTIdentifier> final;
+    auto BailmentInitiated(const identifier::UnitDefinition& unitID) const
+        -> bool final;
+    auto BailmentInstructions(
         const identifier::UnitDefinition& unitID,
-        const bool onlyUnused = true) const final;
-    std::vector<ConnectionDetails> ConnectionInfo(
-        const proto::ConnectionInfoType type) const final;
-    bool ConnectionInfoInitiated(
-        const proto::ConnectionInfoType type) const final;
-    std::set<std::tuple<OTIdentifier, OTIdentifier, bool>> GetRequests(
+        const bool onlyUnused = true) const
+        -> std::vector<BailmentDetails> final;
+    auto ConnectionInfo(const proto::ConnectionInfoType type) const
+        -> std::vector<ConnectionDetails> final;
+    auto ConnectionInfoInitiated(const proto::ConnectionInfoType type) const
+        -> bool final;
+    auto GetRequests(
         const proto::PeerRequestType type,
-        const RequestStatus state = RequestStatus::All) const final;
-    const identifier::Nym& IssuerID() const final { return issuer_id_; }
-    const identifier::Nym& LocalNymID() const final { return nym_id_; }
-    bool Paired() const final;
-    const std::string& PairingCode() const final;
-    OTServerID PrimaryServer() const final;
-    std::set<proto::PeerRequestType> RequestTypes() const final;
-    proto::Issuer Serialize() const final;
-    bool StoreSecretComplete() const final;
-    bool StoreSecretInitiated() const final;
+        const RequestStatus state = RequestStatus::All) const
+        -> std::set<std::tuple<OTIdentifier, OTIdentifier, bool>> final;
+    auto IssuerID() const -> const identifier::Nym& final { return issuer_id_; }
+    auto LocalNymID() const -> const identifier::Nym& final { return nym_id_; }
+    auto Paired() const -> bool final;
+    auto PairingCode() const -> const std::string& final;
+    auto PrimaryServer() const -> OTServerID final;
+    auto RequestTypes() const -> std::set<proto::PeerRequestType> final;
+    auto Serialize() const -> proto::Issuer final;
+    auto StoreSecretComplete() const -> bool final;
+    auto StoreSecretInitiated() const -> bool final;
 
     void AddAccount(
         const proto::ContactItemType type,
         const identifier::UnitDefinition& unitID,
         const Identifier& accountID) final;
-    bool AddReply(
+    auto AddReply(
         const proto::PeerRequestType type,
         const Identifier& requestID,
-        const Identifier& replyID) final;
-    bool AddRequest(
+        const Identifier& replyID) -> bool final;
+    auto AddRequest(
         const proto::PeerRequestType type,
-        const Identifier& requestID) final;
-    bool RemoveAccount(
+        const Identifier& requestID) -> bool final;
+    auto RemoveAccount(
         const proto::ContactItemType type,
         const identifier::UnitDefinition& unitID,
-        const Identifier& accountID) final;
+        const Identifier& accountID) -> bool final;
     void SetPaired(const bool paired) final;
     void SetPairingCode(const std::string& code) final;
-    bool SetUsed(
+    auto SetUsed(
         const proto::PeerRequestType type,
         const Identifier& requestID,
-        const bool isUsed = true) final;
+        const bool isUsed = true) -> bool final;
 
     ~Issuer() final;
 
 private:
-    typedef std::map<OTIdentifier, std::pair<OTIdentifier, bool>> Workflow;
-    typedef std::map<proto::PeerRequestType, Workflow> WorkflowMap;
-    typedef std::pair<OTUnitID, OTIdentifier> UnitAccountPair;
+    using Workflow = std::map<OTIdentifier, std::pair<OTIdentifier, bool>>;
+    using WorkflowMap = std::map<proto::PeerRequestType, Workflow>;
+    using UnitAccountPair = std::pair<OTUnitID, OTIdentifier>;
 
     friend opentxs::Factory;
     const api::Wallet& wallet_;
@@ -108,20 +111,21 @@ private:
     std::map<proto::ContactItemType, std::set<UnitAccountPair>> account_map_;
     WorkflowMap peer_requests_;
 
-    std::pair<bool, Workflow::iterator> find_request(
+    auto find_request(
         const Lock& lock,
         const proto::PeerRequestType type,
-        const Identifier& requestID);
-    std::set<std::tuple<OTIdentifier, OTIdentifier, bool>> get_requests(
+        const Identifier& requestID) -> std::pair<bool, Workflow::iterator>;
+    auto get_requests(
         const Lock& lock,
         const proto::PeerRequestType type,
-        const RequestStatus state = RequestStatus::All) const;
+        const RequestStatus state = RequestStatus::All) const
+        -> std::set<std::tuple<OTIdentifier, OTIdentifier, bool>>;
 
-    bool add_request(
+    auto add_request(
         const Lock& lock,
         const proto::PeerRequestType type,
         const Identifier& requestID,
-        const Identifier& replyID);
+        const Identifier& replyID) -> bool;
 
     Issuer(
         const api::Wallet& wallet,
@@ -134,7 +138,7 @@ private:
     Issuer() = delete;
     Issuer(const Issuer&) = delete;
     Issuer(Issuer&&) = delete;
-    Issuer& operator=(const Issuer&) = delete;
-    Issuer& operator=(Issuer&&) = delete;
+    auto operator=(const Issuer&) -> Issuer& = delete;
+    auto operator=(Issuer &&) -> Issuer& = delete;
 };
 }  // namespace opentxs::api::client::implementation

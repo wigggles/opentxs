@@ -44,32 +44,36 @@ class Group final : public internal::Group
 public:
     operator SerializedType() const noexcept final;
 
-    const api::internal::Core& API() const noexcept final
+    auto API() const noexcept -> const api::internal::Core& final
     {
         return parent_.API();
     }
     /// Throws std::out_of_range for invalid position
-    const value_type& at(const std::size_t position) const noexcept(false) final
+    auto at(const std::size_t position) const noexcept(false)
+        -> const value_type& final
     {
         return *nyms_.at(position);
     }
-    const_iterator begin() const noexcept final { return cbegin(); }
-    const_iterator cbegin() const noexcept final
+    auto begin() const noexcept -> const_iterator final { return cbegin(); }
+    auto cbegin() const noexcept -> const_iterator final
     {
         return const_iterator(this, 0);
     }
-    const_iterator cend() const noexcept final
+    auto cend() const noexcept -> const_iterator final
     {
         return const_iterator(this, nyms_.size());
     }
-    const_iterator end() const noexcept final { return cend(); }
-    bool External() const noexcept { return external_; }
-    const identifier::Nym& NymID() const noexcept { return parent_.NymID(); }
-    std::size_t size() const noexcept final { return nyms_.size(); }
-    bool UpgradeNymVersion(const VersionNumber version) noexcept final;
-    VersionNumber Version() const noexcept final { return version_; }
+    auto end() const noexcept -> const_iterator final { return cend(); }
+    auto External() const noexcept -> bool { return external_; }
+    auto NymID() const noexcept -> const identifier::Nym&
+    {
+        return parent_.NymID();
+    }
+    auto size() const noexcept -> std::size_t final { return nyms_.size(); }
+    auto UpgradeNymVersion(const VersionNumber version) noexcept -> bool final;
+    auto Version() const noexcept -> VersionNumber final { return version_; }
 
-    bool AddItem(
+    auto AddItem(
         const identifier::Nym& claimOwner,
         const Identifier& claim,
         const identity::Nym& signer,
@@ -77,18 +81,21 @@ public:
         const Item::Type value,
         const Time start,
         const Time end,
-        const VersionNumber version) noexcept final;
-    bool AddItem(
+        const VersionNumber version) noexcept -> bool final;
+    auto AddItem(
         const identifier::Nym& verifier,
-        const Item::SerializedType verification) noexcept final;
+        const Item::SerializedType verification) noexcept -> bool final;
     /// Throws std::out_of_range for invalid position
-    value_type& at(const std::size_t position) noexcept(false) final
+    auto at(const std::size_t position) noexcept(false) -> value_type& final
     {
         return *nyms_.at(position);
     }
-    iterator begin() noexcept final { return iterator(this, 0); }
-    bool DeleteItem(const Identifier& item) noexcept final;
-    iterator end() noexcept final { return iterator(this, nyms_.size()); }
+    auto begin() noexcept -> iterator final { return iterator(this, 0); }
+    auto DeleteItem(const Identifier& item) noexcept -> bool final;
+    auto end() noexcept -> iterator final
+    {
+        return iterator(this, nyms_.size());
+    }
     void Register(
         const Identifier& id,
         const identifier::Nym& nym) noexcept final;
@@ -107,11 +114,11 @@ private:
     Vector nyms_;
     std::map<OTIdentifier, OTNymID> map_;
 
-    static Vector instantiate(
+    static auto instantiate(
         internal::Group& parent,
-        const SerializedType& serialized) noexcept;
+        const SerializedType& serialized) noexcept -> Vector;
 
-    internal::Nym& get_nym(const identifier::Nym& nym) noexcept;
+    auto get_nym(const identifier::Nym& nym) noexcept -> internal::Nym&;
 
     Group(
         internal::Set& parent,
@@ -124,7 +131,7 @@ private:
     Group() = delete;
     Group(const Group&) = delete;
     Group(Group&&) = delete;
-    Group& operator=(const Group&) = delete;
-    Group& operator=(Group&&) = delete;
+    auto operator=(const Group&) -> Group& = delete;
+    auto operator=(Group &&) -> Group& = delete;
 };
 }  // namespace opentxs::identity::wot::verification::implementation

@@ -41,7 +41,7 @@ Txos::Txos(
     }
 }
 
-bool Txos::Delete(const Coin& id) noexcept
+auto Txos::Delete(const Coin& id) noexcept -> bool
 {
     Lock lock(write_lock_);
     const auto it = txos_.find(id);
@@ -101,10 +101,10 @@ void Txos::init(const std::string& hash)
     }
 }
 
-bool Txos::Load(
+auto Txos::Load(
     const Coin& id,
     std::shared_ptr<PayloadType>& output,
-    const bool checking) const noexcept
+    const bool checking) const noexcept -> bool
 {
     Lock lock(write_lock_);
     const auto it = txos_.find(id);
@@ -122,7 +122,8 @@ bool Txos::Load(
     return bool(output);
 }
 
-std::set<Txos::Coin> Txos::LookupElement(const Data& element) const noexcept
+auto Txos::LookupElement(const Data& element) const noexcept
+    -> std::set<Txos::Coin>
 {
     Lock lock(write_lock_);
 
@@ -135,7 +136,8 @@ std::set<Txos::Coin> Txos::LookupElement(const Data& element) const noexcept
     }
 }
 
-std::set<Txos::Coin> Txos::LookupTxid(const std::string& txid) const noexcept
+auto Txos::LookupTxid(const std::string& txid) const noexcept
+    -> std::set<Txos::Coin>
 {
     Lock lock(write_lock_);
 
@@ -148,7 +150,7 @@ std::set<Txos::Coin> Txos::LookupTxid(const std::string& txid) const noexcept
     }
 }
 
-bool Txos::save(const std::unique_lock<std::mutex>& lock) const
+auto Txos::save(const std::unique_lock<std::mutex>& lock) const -> bool
 {
     if (false == verify_write_lock(lock)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Lock failure.").Flush();
@@ -162,7 +164,7 @@ bool Txos::save(const std::unique_lock<std::mutex>& lock) const
     return driver_.StoreProto(serialized, root_);
 }
 
-Txos::SerializedType Txos::serialize() const noexcept
+auto Txos::serialize() const noexcept -> Txos::SerializedType
 {
     auto output = SerializedType{};
     output.set_version(version_);
@@ -176,7 +178,7 @@ Txos::SerializedType Txos::serialize() const noexcept
     return output;
 }
 
-bool Txos::Store(const PayloadType& data) noexcept
+auto Txos::Store(const PayloadType& data) noexcept -> bool
 {
     Lock lock(write_lock_);
     txos_[Coin{data.output().txid(), data.output().index()}] =

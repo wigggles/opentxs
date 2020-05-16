@@ -71,11 +71,11 @@ public:
         Ledger& inbox,
         Ledger& outbox,
         bool& outSuccess);
-    bool NotarizeProcessNymbox(
+    auto NotarizeProcessNymbox(
         ClientContext& context,
         OTTransaction& tranIn,
         OTTransaction& tranOut,
-        bool& outSuccess);
+        bool& outSuccess) -> bool;
     void NotarizeTransaction(
         ClientContext& context,
         OTTransaction& tranIn,
@@ -114,10 +114,10 @@ private:
         const Ledger& inbox,
         const Ledger& outbox,
         const Identifier& accounthash) const;
-    std::unique_ptr<Cheque> extract_cheque(
+    auto extract_cheque(
         const identifier::Server& serverID,
         const identifier::UnitDefinition& unitID,
-        const Item& item) const;
+        const Item& item) const -> std::unique_ptr<Cheque>;
     void send_push_notification(
         const Account& account,
         const std::shared_ptr<const Ledger>& inbox,
@@ -276,18 +276,18 @@ private:
         Item& responseItem,
         Item& responseBalanceItem);
 #if OT_CASH
-    bool process_token_deposit(
+    auto process_token_deposit(
         ExclusiveAccount& reserveAccount,
         Account& depositAccount,
-        blind::Token& token);
-    bool process_token_withdrawal(
+        blind::Token& token) -> bool;
+    auto process_token_withdrawal(
         const identifier::UnitDefinition& unit,
         ClientContext& context,
         ExclusiveAccount& reserveAccount,
         Account& account,
         blind::Purse& replyPurse,
-        std::shared_ptr<blind::Token> pToken);
-    bool verify_token(blind::Mint& mint, blind::Token& token);
+        std::shared_ptr<blind::Token> pToken) -> bool;
+    auto verify_token(blind::Mint& mint, blind::Token& token) -> bool;
 #endif
 
     Notary(
@@ -297,7 +297,7 @@ private:
     Notary() = delete;
     Notary(const Notary&) = delete;
     Notary(Notary&&) = delete;
-    Notary& operator=(const Notary&) = delete;
-    Notary& operator=(Notary&&) = delete;
+    auto operator=(const Notary&) -> Notary& = delete;
+    auto operator=(Notary &&) -> Notary& = delete;
 };
 }  // namespace opentxs::server

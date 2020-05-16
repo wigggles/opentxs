@@ -84,24 +84,27 @@ class ProfileSubsection final : public Combined<
                                     ProfileSectionSortKey>
 {
 public:
-    bool AddItem(
+    auto AddItem(
         const std::string& value,
         const bool primary,
-        const bool active) const noexcept final;
-    bool Delete(const std::string& claimID) const noexcept final;
-    std::string Name(const std::string& lang) const noexcept final;
-    const identifier::Nym& NymID() const noexcept final { return primary_id_; }
-    proto::ContactSectionName Section() const noexcept final
+        const bool active) const noexcept -> bool final;
+    auto Delete(const std::string& claimID) const noexcept -> bool final;
+    auto Name(const std::string& lang) const noexcept -> std::string final;
+    auto NymID() const noexcept -> const identifier::Nym& final
+    {
+        return primary_id_;
+    }
+    auto Section() const noexcept -> proto::ContactSectionName final
     {
         return row_id_.first;
     }
-    bool SetActive(const std::string& claimID, const bool active) const
-        noexcept final;
-    bool SetPrimary(const std::string& claimID, const bool primary) const
-        noexcept final;
-    bool SetValue(const std::string& claimID, const std::string& value) const
-        noexcept final;
-    proto::ContactItemType Type() const noexcept final
+    auto SetActive(const std::string& claimID, const bool active) const noexcept
+        -> bool final;
+    auto SetPrimary(const std::string& claimID, const bool primary) const
+        noexcept -> bool final;
+    auto SetValue(const std::string& claimID, const std::string& value) const
+        noexcept -> bool final;
+    auto Type() const noexcept -> proto::ContactItemType final
     {
         return row_id_.second;
     }
@@ -125,27 +128,27 @@ public:
     ~ProfileSubsection() = default;
 
 private:
-    static bool check_type(const ProfileSubsectionRowID type);
+    static auto check_type(const ProfileSubsectionRowID type) -> bool;
 
-    void* construct_row(
+    auto construct_row(
         const ProfileSubsectionRowID& id,
         const ProfileSubsectionSortKey& index,
-        const CustomData& custom) const noexcept final;
+        const CustomData& custom) const noexcept -> void* final;
 
-    bool last(const ProfileSubsectionRowID& id) const noexcept final
+    auto last(const ProfileSubsectionRowID& id) const noexcept -> bool final
     {
         return ProfileSubsectionList::last(id);
     }
-    std::set<ProfileSubsectionRowID> process_group(
-        const opentxs::ContactGroup& group) noexcept;
-    int sort_key(const ProfileSubsectionRowID type) const noexcept;
+    auto process_group(const opentxs::ContactGroup& group) noexcept
+        -> std::set<ProfileSubsectionRowID>;
+    auto sort_key(const ProfileSubsectionRowID type) const noexcept -> int;
     void startup(const CustomData& custom) noexcept;
 
     ProfileSubsection() = delete;
     ProfileSubsection(const ProfileSubsection&) = delete;
     ProfileSubsection(ProfileSubsection&&) = delete;
-    ProfileSubsection& operator=(const ProfileSubsection&) = delete;
-    ProfileSubsection& operator=(ProfileSubsection&&) = delete;
+    auto operator=(const ProfileSubsection&) -> ProfileSubsection& = delete;
+    auto operator=(ProfileSubsection &&) -> ProfileSubsection& = delete;
 };
 }  // namespace opentxs::ui::implementation
 

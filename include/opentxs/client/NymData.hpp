@@ -276,8 +276,8 @@ public:
 private:
     friend api::implementation::Wallet;
 
-    typedef std::unique_lock<std::mutex> Lock;
-    typedef std::function<void(NymData*, Lock&)> LockedSave;
+    using Lock = std::unique_lock<std::mutex>;
+    using LockedSave = std::function<void(NymData*, Lock&)>;
 
     const api::Factory& factory_;
     std::unique_ptr<Lock> object_lock_;

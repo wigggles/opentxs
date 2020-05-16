@@ -48,11 +48,11 @@ namespace opentxs::blockchain::p2p::bitcoin::message
 class Feefilter final : virtual public bitcoin::Message
 {
 public:
-    std::uint64_t feeRate() const noexcept { return fee_rate_; }
+    auto feeRate() const noexcept -> std::uint64_t { return fee_rate_; }
 
     ~Feefilter() final = default;
 
-    OTData payload() const noexcept final;
+    auto payload() const noexcept -> OTData final;
 
 private:
     friend opentxs::Factory;
@@ -69,7 +69,7 @@ private:
         const std::uint64_t fee_rate) noexcept(false);
     Feefilter(const Feefilter&) = delete;
     Feefilter(Feefilter&&) = delete;
-    Feefilter& operator=(const Feefilter&) = delete;
-    Feefilter& operator=(Feefilter&&) = delete;
+    auto operator=(const Feefilter&) -> Feefilter& = delete;
+    auto operator=(Feefilter &&) -> Feefilter& = delete;
 };
 }  // namespace opentxs::blockchain::p2p::bitcoin::message

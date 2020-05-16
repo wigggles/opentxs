@@ -128,10 +128,10 @@ AccountSummary::AccountSummary(
     OT_ASSERT(startup_)
 }
 
-void* AccountSummary::construct_row(
+auto AccountSummary::construct_row(
     const AccountSummaryRowID& id,
     const AccountSummarySortKey& index,
-    const CustomData& custom) const noexcept
+    const CustomData& custom) const noexcept -> void*
 {
     names_.emplace(id, index);
     const auto [it, added] = items_[index].emplace(
@@ -153,9 +153,9 @@ void* AccountSummary::construct_row(
     return it->second.get();
 }
 
-AccountSummarySortKey AccountSummary::extract_key(
+auto AccountSummary::extract_key(
     const identifier::Nym& nymID,
-    const identifier::Nym& issuerID) noexcept
+    const identifier::Nym& issuerID) noexcept -> AccountSummarySortKey
 {
     AccountSummarySortKey output{false, "opentxs notary"};
     auto& [state, name] = output;

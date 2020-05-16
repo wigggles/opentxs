@@ -39,10 +39,11 @@ template class opentxs::Pimpl<opentxs::network::zeromq::Pipeline>;
 
 namespace opentxs
 {
-opentxs::network::zeromq::Pipeline* Factory::Pipeline(
+auto Factory::Pipeline(
     const api::internal::Core& api,
     const network::zeromq::Context& context,
     std::function<void(network::zeromq::Message&)> callback)
+    -> opentxs::network::zeromq::Pipeline*
 {
     return new opentxs::network::zeromq::socket::implementation::Pipeline(
         api, context, callback);
@@ -67,7 +68,7 @@ Pipeline::Pipeline(
     OT_ASSERT(started);
 }
 
-bool Pipeline::Close() const noexcept
+auto Pipeline::Close() const noexcept -> bool
 {
     return sender_->Close() && receiver_->Close();
 }

@@ -45,7 +45,7 @@ class StorageMultiplex;
 class Root final : public Node
 {
 private:
-    typedef Node ot_super;
+    using ot_super = Node;
     friend class opentxs::storage::implementation::StorageMultiplex;
     friend class api::storage::implementation::Storage;
 
@@ -62,15 +62,16 @@ private:
     mutable std::mutex tree_lock_;
     mutable std::unique_ptr<storage::Tree> tree_;
 
-    proto::StorageRoot serialize() const;
-    storage::Tree* tree() const;
+    auto serialize() const -> proto::StorageRoot;
+    auto tree() const -> storage::Tree*;
 
     void blank(const VersionNumber version) final;
     void cleanup() const;
     void collect_garbage(const opentxs::api::storage::Driver* to) const;
     void init(const std::string& hash) final;
-    bool save(const Lock& lock, const opentxs::api::storage::Driver& to) const;
-    bool save(const Lock& lock) const final;
+    auto save(const Lock& lock, const opentxs::api::storage::Driver& to) const
+        -> bool;
+    auto save(const Lock& lock) const -> bool final;
     void save(storage::Tree* tree, const Lock& lock);
 
     Root(
@@ -81,17 +82,17 @@ private:
     Root() = delete;
     Root(const Root&) = delete;
     Root(Root&&) = delete;
-    Root operator=(const Root&) = delete;
-    Root operator=(Root&&) = delete;
+    auto operator=(const Root&) -> Root = delete;
+    auto operator=(Root &&) -> Root = delete;
 
 public:
-    const storage::Tree& Tree() const;
+    auto Tree() const -> const storage::Tree&;
 
-    Editor<storage::Tree> mutable_Tree();
+    auto mutable_Tree() -> Editor<storage::Tree>;
 
-    bool Migrate(const opentxs::api::storage::Driver& to) const final;
-    bool Save(const opentxs::api::storage::Driver& to) const;
-    std::uint64_t Sequence() const;
+    auto Migrate(const opentxs::api::storage::Driver& to) const -> bool final;
+    auto Save(const opentxs::api::storage::Driver& to) const -> bool;
+    auto Sequence() const -> std::uint64_t;
 
     ~Root() final = default;
 };

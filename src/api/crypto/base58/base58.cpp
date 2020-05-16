@@ -17,7 +17,7 @@ namespace bitcoin_base58
 static const char* pszBase58 =
     "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 
-bool DecodeBase58(const char* psz, std::vector<unsigned char>& vch)
+auto DecodeBase58(const char* psz, std::vector<unsigned char>& vch) -> bool
 {
     // Skip leading spaces.
     while (*psz && isspace(*psz)) psz++;
@@ -37,9 +37,7 @@ bool DecodeBase58(const char* psz, std::vector<unsigned char>& vch)
         if (ch == nullptr) return false;
         // Apply "b256 = b256 * 58 + ch".
         int carry = ch - pszBase58;
-        for (std::vector<unsigned char>::reverse_iterator it = b256.rbegin();
-             it != b256.rend();
-             it++) {
+        for (auto it = b256.rbegin(); it != b256.rend(); it++) {
             carry += static_cast<int>(58 * (*it));
             *it = static_cast<unsigned char>(carry % 256);
             carry /= 256;
@@ -51,7 +49,7 @@ bool DecodeBase58(const char* psz, std::vector<unsigned char>& vch)
     while (isspace(*psz)) psz++;
     if (*psz != 0) return false;
     // Skip leading zeroes in b256.
-    std::vector<unsigned char>::iterator it = b256.begin();
+    auto it = b256.begin();
     while (it != b256.end() && *it == 0) it++;
     // Copy result into output vector.
     vch.reserve(zeroes + (b256.end() - it));
@@ -60,7 +58,8 @@ bool DecodeBase58(const char* psz, std::vector<unsigned char>& vch)
     return true;
 }
 
-std::string EncodeBase58(const unsigned char* pbegin, const unsigned char* pend)
+auto EncodeBase58(const unsigned char* pbegin, const unsigned char* pend)
+    -> std::string
 {
     // Skip & count leading zeroes.
     int zeroes = 0;
@@ -75,9 +74,7 @@ std::string EncodeBase58(const unsigned char* pbegin, const unsigned char* pend)
     while (pbegin != pend) {
         int carry = *pbegin;
         // Apply "b58 = b58 * 256 + ch".
-        for (std::vector<unsigned char>::reverse_iterator it = b58.rbegin();
-             it != b58.rend();
-             it++) {
+        for (auto it = b58.rbegin(); it != b58.rend(); it++) {
             carry += 256 * (*it);
             *it = carry % 58;
             carry /= 58;
@@ -86,7 +83,7 @@ std::string EncodeBase58(const unsigned char* pbegin, const unsigned char* pend)
         pbegin++;
     }
     // Skip leading zeroes in base58 result.
-    std::vector<unsigned char>::iterator it = b58.begin();
+    auto it = b58.begin();
     while (it != b58.end() && *it == 0) it++;
     // Translate the result into a string.
     std::string str;

@@ -44,20 +44,20 @@ namespace opentxs::blind::mint::implementation
 class Lucre final : Mint
 {
 public:
-    bool AddDenomination(
+    auto AddDenomination(
         const identity::Nym& theNotary,
         const std::int64_t denomination,
         const std::size_t keySize,
-        const PasswordPrompt& reason) final;
+        const PasswordPrompt& reason) -> bool final;
 
-    bool SignToken(
+    auto SignToken(
         const identity::Nym& notary,
         blind::Token& token,
-        const PasswordPrompt& reason) final;
-    bool VerifyToken(
+        const PasswordPrompt& reason) -> bool final;
+    auto VerifyToken(
         const identity::Nym& notary,
         const blind::Token& token,
-        const PasswordPrompt& reason) final;
+        const PasswordPrompt& reason) -> bool final;
 
     ~Lucre() final = default;
 

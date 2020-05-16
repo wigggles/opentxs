@@ -29,13 +29,13 @@
 
 namespace opentxs
 {
-blockchain::p2p::bitcoin::message::internal::Getdata* Factory::
-    BitcoinP2PGetdata(
-        const api::internal::Core& api,
-        std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
-        const blockchain::p2p::bitcoin::ProtocolVersion version,
-        const void* payload,
-        const std::size_t size)
+auto Factory::BitcoinP2PGetdata(
+    const api::internal::Core& api,
+    std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
+    const blockchain::p2p::bitcoin::ProtocolVersion version,
+    const void* payload,
+    const std::size_t size)
+    -> blockchain::p2p::bitcoin::message::internal::Getdata*
 {
     namespace bitcoin = blockchain::p2p::bitcoin::message;
     using ReturnType = bitcoin::implementation::Getdata;
@@ -90,11 +90,11 @@ blockchain::p2p::bitcoin::message::internal::Getdata* Factory::
     return new ReturnType(api, std::move(pHeader), std::move(items));
 }
 
-blockchain::p2p::bitcoin::message::internal::Getdata* Factory::
-    BitcoinP2PGetdata(
-        const api::internal::Core& api,
-        const blockchain::Type network,
-        std::vector<blockchain::bitcoin::Inventory>&& payload)
+auto Factory::BitcoinP2PGetdata(
+    const api::internal::Core& api,
+    const blockchain::Type network,
+    std::vector<blockchain::bitcoin::Inventory>&& payload)
+    -> blockchain::p2p::bitcoin::message::internal::Getdata*
 {
     namespace bitcoin = blockchain::p2p::bitcoin;
     using ReturnType = bitcoin::message::implementation::Getdata;
@@ -124,7 +124,7 @@ Getdata::Getdata(
 {
 }
 
-OTData Getdata::payload() const noexcept
+auto Getdata::payload() const noexcept -> OTData
 {
     try {
         auto output = Data::Factory(CompactSize(payload_.size()).Encode());

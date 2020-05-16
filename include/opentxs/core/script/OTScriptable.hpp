@@ -50,10 +50,10 @@ class PasswordPrompt;
 class ServerContext;
 class Tag;
 
-typedef std::map<std::string, OTBylaw*> mapOfBylaws;
-typedef std::map<std::string, OTClause*> mapOfClauses;
-typedef std::map<std::string, OTParty*> mapOfParties;
-typedef std::map<std::string, OTVariable*> mapOfVariables;
+using mapOfBylaws = std::map<std::string, OTBylaw*>;
+using mapOfClauses = std::map<std::string, OTClause*>;
+using mapOfParties = std::map<std::string, OTParty*>;
+using mapOfVariables = std::map<std::string, OTVariable*>;
 
 std::string vectorToString(const std::vector<std::int64_t>& v);
 std::vector<std::int64_t> stringToVector(const std::string& s);
@@ -382,7 +382,7 @@ protected:
     OTScriptable(const api::internal::Core& api);
 
 private:
-    typedef Contract ot_super;
+    using ot_super = Contract;
 
     static bool is_ot_namechar_invalid(char c);
 

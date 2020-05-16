@@ -23,10 +23,10 @@ template class opentxs::Pimpl<opentxs::network::zeromq::Proxy>;
 
 namespace opentxs::network::zeromq
 {
-OTZMQProxy Proxy::Factory(
+auto Proxy::Factory(
     const zeromq::Context& context,
     socket::Socket& frontend,
-    socket::Socket& backend)
+    socket::Socket& backend) -> OTZMQProxy
 {
     return OTZMQProxy(new implementation::Proxy(context, frontend, backend));
 }
@@ -56,7 +56,10 @@ Proxy::Proxy(
     OT_ASSERT(thread_)
 }
 
-Proxy* Proxy::clone() const { return new Proxy(context_, frontend_, backend_); }
+auto Proxy::clone() const -> Proxy*
+{
+    return new Proxy(context_, frontend_, backend_);
+}
 
 void Proxy::proxy() const
 {

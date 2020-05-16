@@ -95,7 +95,7 @@ OTAPI_Exec::OTAPI_Exec(
 //    number. The sender also had to burn a transaction number (to
 //    submit it) so now, both have verified trns#s in this way.
 //
-std::string OTAPI_Exec::ProposePaymentPlan(
+auto OTAPI_Exec::ProposePaymentPlan(
     const std::string& NOTARY_ID,
     const Time& VALID_FROM,  // Default (0 or nullptr) == current time
                              // measured
@@ -131,7 +131,7 @@ std::string OTAPI_Exec::ProposePaymentPlan(
                                                    // ""
                                                    // (no
                                                    // maximum payments.)
-) const
+) const -> std::string
 {
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(SENDER_NYM_ID);
@@ -197,7 +197,7 @@ std::string OTAPI_Exec::ProposePaymentPlan(
 // 4. Add 'propose' and 'confirm' (for payment plan) commands to opentxs client.
 // 5. Finish opentxs basket commands, so opentxs is COMPLETE.
 
-std::string OTAPI_Exec::EasyProposePlan(
+auto OTAPI_Exec::EasyProposePlan(
     const std::string& NOTARY_ID,
     const std::string& DATE_RANGE,  // "from,to"  Default 'from' (0 or "") ==
                                     // NOW, and default 'to' (0 or "") == no
@@ -222,7 +222,7 @@ std::string OTAPI_Exec::EasyProposePlan(
     // lifetime in seconds. 'number' is maximum
     // number of payments in seconds. 0 or "" is
     // unlimited.
-) const
+) const -> std::string
 {
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(SENDER_NYM_ID);
@@ -341,12 +341,12 @@ std::string OTAPI_Exec::EasyProposePlan(
 // "PAYMENT_PLAN" is the output of the above function (ProposePaymentPlan)
 // Customer should call OTAPI_Exec::depositPaymentPlan after this.
 //
-std::string OTAPI_Exec::ConfirmPaymentPlan(
+auto OTAPI_Exec::ConfirmPaymentPlan(
     const std::string& NOTARY_ID,
     const std::string& SENDER_NYM_ID,
     const std::string& SENDER_ACCT_ID,
     const std::string& RECIPIENT_NYM_ID,
-    const std::string& PAYMENT_PLAN) const
+    const std::string& PAYMENT_PLAN) const -> std::string
 {
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(SENDER_NYM_ID);
@@ -393,7 +393,7 @@ std::string OTAPI_Exec::ConfirmPaymentPlan(
 
 // RETURNS:  the Smart Contract itself. (Or "".)
 //
-std::string OTAPI_Exec::Create_SmartContract(
+auto OTAPI_Exec::Create_SmartContract(
     const std::string& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
                                        // signing
     // at this postd::int32_t is only to cause a
@@ -405,7 +405,7 @@ std::string OTAPI_Exec::Create_SmartContract(
                              // every named account.
     bool SPECIFY_PARTIES     // This means Nym IDs must be provided for every
                              // party.
-) const
+) const -> std::string
 {
     OT_VERIFY_ID_STR(SIGNER_NYM_ID);
 
@@ -438,8 +438,8 @@ std::string OTAPI_Exec::Create_SmartContract(
     return strOutput->Get();
 }
 
-bool OTAPI_Exec::Smart_ArePartiesSpecified(
-    const std::string& THE_CONTRACT) const
+auto OTAPI_Exec::Smart_ArePartiesSpecified(
+    const std::string& THE_CONTRACT) const -> bool
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
 
@@ -448,8 +448,8 @@ bool OTAPI_Exec::Smart_ArePartiesSpecified(
     return ot_api_.Smart_ArePartiesSpecified(strContract);
 }
 
-bool OTAPI_Exec::Smart_AreAssetTypesSpecified(
-    const std::string& THE_CONTRACT) const
+auto OTAPI_Exec::Smart_AreAssetTypesSpecified(
+    const std::string& THE_CONTRACT) const -> bool
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
 
@@ -460,16 +460,15 @@ bool OTAPI_Exec::Smart_AreAssetTypesSpecified(
 
 // RETURNS:  the Smart Contract itself. (Or "".)
 //
-std::string OTAPI_Exec::SmartContract_SetDates(
+auto OTAPI_Exec::SmartContract_SetDates(
     const std::string& THE_CONTRACT,   // The contract, about to have the
                                        // dates changed on it.
     const std::string& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
                                        // signing at this point is only to
                                        // cause a save.)
     const Time& VALID_FROM,            // Default (0 or nullptr) == NOW
-    const Time& VALID_TO) const        // Default (0 or nullptr) == no expiry /
-                                       // cancel
-                                       // anytime.
+    const Time& VALID_TO) const -> std::string  // Default (0 or nullptr) == no
+                                                // expiry / cancel anytime.
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_ID_STR(SIGNER_NYM_ID);
@@ -509,15 +508,15 @@ std::string OTAPI_Exec::SmartContract_SetDates(
 // anyway.)
 //
 // returns: the updated smart contract (or "")
-std::string OTAPI_Exec::SmartContract_AddBylaw(
+auto OTAPI_Exec::SmartContract_AddBylaw(
     const std::string& THE_CONTRACT,   // The contract, about to have the bylaw
                                        // added to it.
     const std::string& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
                                        // signing
                                        // at this point is only to cause a
                                        // save.)
-    const std::string& BYLAW_NAME) const  // The Bylaw's NAME as referenced in
-                                          // the
+    const std::string& BYLAW_NAME) const -> std::string  // The Bylaw's NAME as
+                                                         // referenced in the
 // smart contract. (And the scripts...)
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
@@ -543,15 +542,15 @@ std::string OTAPI_Exec::SmartContract_AddBylaw(
 }
 
 // returns: the updated smart contract (or "")
-std::string OTAPI_Exec::SmartContract_RemoveBylaw(
+auto OTAPI_Exec::SmartContract_RemoveBylaw(
     const std::string& THE_CONTRACT,   // The contract, about to have the bylaw
                                        // removed from it.
     const std::string& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
                                        // signing
     // at this postd::int32_t is only to cause a
     // save.)
-    const std::string& BYLAW_NAME) const  // The Bylaw's NAME as referenced in
-                                          // the
+    const std::string& BYLAW_NAME) const -> std::string  // The Bylaw's NAME as
+                                                         // referenced in the
 // smart contract. (And the scripts...)
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
@@ -577,7 +576,7 @@ std::string OTAPI_Exec::SmartContract_RemoveBylaw(
 }
 
 // returns: the updated smart contract (or "")
-std::string OTAPI_Exec::SmartContract_AddClause(
+auto OTAPI_Exec::SmartContract_AddClause(
     const std::string& THE_CONTRACT,   // The contract, about to have the clause
                                        // added to it.
     const std::string& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
@@ -588,8 +587,9 @@ std::string OTAPI_Exec::SmartContract_AddClause(
                                      // way we can find it.)
     const std::string& CLAUSE_NAME,  // The Clause's name as referenced in the
                                      // smart contract. (And the scripts...)
-    const std::string& SOURCE_CODE) const  // The actual source code for the
-                                           // clause.
+    const std::string& SOURCE_CODE) const
+    -> std::string  // The actual source code for the
+                    // clause.
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_ID_STR(SIGNER_NYM_ID);
@@ -621,7 +621,7 @@ std::string OTAPI_Exec::SmartContract_AddClause(
 }
 
 // returns: the updated smart contract (or "")
-std::string OTAPI_Exec::SmartContract_UpdateClause(
+auto OTAPI_Exec::SmartContract_UpdateClause(
     const std::string& THE_CONTRACT,   // The contract, about to have the clause
                                        // updated on it.
     const std::string& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
@@ -632,8 +632,9 @@ std::string OTAPI_Exec::SmartContract_UpdateClause(
                                      // way we can find it.)
     const std::string& CLAUSE_NAME,  // The Clause's name as referenced in the
                                      // smart contract. (And the scripts...)
-    const std::string& SOURCE_CODE) const  // The actual source code for the
-                                           // clause.
+    const std::string& SOURCE_CODE) const
+    -> std::string  // The actual source code for the
+                    // clause.
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_ID_STR(SIGNER_NYM_ID);
@@ -666,7 +667,7 @@ std::string OTAPI_Exec::SmartContract_UpdateClause(
 }
 
 // returns: the updated smart contract (or "")
-std::string OTAPI_Exec::SmartContract_RemoveClause(
+auto OTAPI_Exec::SmartContract_RemoveClause(
     const std::string& THE_CONTRACT,   // The contract, about to have the clause
                                        // added to it.
     const std::string& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
@@ -675,7 +676,7 @@ std::string OTAPI_Exec::SmartContract_RemoveClause(
     // save.)
     const std::string& BYLAW_NAME,  // Should already be on the contract. (This
                                     // way we can find it.)
-    const std::string& CLAUSE_NAME) const
+    const std::string& CLAUSE_NAME) const -> std::string
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_ID_STR(SIGNER_NYM_ID);
@@ -705,7 +706,7 @@ std::string OTAPI_Exec::SmartContract_RemoveClause(
 }
 
 // returns: the updated smart contract (or "")
-std::string OTAPI_Exec::SmartContract_AddVariable(
+auto OTAPI_Exec::SmartContract_AddVariable(
     const std::string& THE_CONTRACT,   // The contract, about to have the
                                        // variable
                                        // added to it.
@@ -719,8 +720,8 @@ std::string OTAPI_Exec::SmartContract_AddVariable(
                                     // smart contract. (And the scripts...)
     const std::string& VAR_ACCESS,  // "constant", "persistent", or "important".
     const std::string& VAR_TYPE,    // "string", "std::int64_t", or "bool"
-    const std::string& VAR_VALUE) const  // Contains a string. If type is
-                                         // std::int64_t,
+    const std::string& VAR_VALUE) const -> std::string  // Contains a string. If
+                                                        // type is std::int64_t,
 // StringToLong() will be used to convert
 // value to a std::int64_t. If type is bool, the
 // strings "true" or "false" are expected here
@@ -765,7 +766,7 @@ std::string OTAPI_Exec::SmartContract_AddVariable(
 }
 
 // returns: the updated smart contract (or "")
-std::string OTAPI_Exec::SmartContract_RemoveVariable(
+auto OTAPI_Exec::SmartContract_RemoveVariable(
     const std::string& THE_CONTRACT,   // The contract, about to have the
                                        // variable
                                        // added to it.
@@ -777,7 +778,7 @@ std::string OTAPI_Exec::SmartContract_RemoveVariable(
                                     // way we can find it.)
     const std::string& VAR_NAME     // The Variable's name as referenced in the
                                     // smart contract. (And the scripts...)
-) const
+) const -> std::string
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_ID_STR(SIGNER_NYM_ID);
@@ -806,7 +807,7 @@ std::string OTAPI_Exec::SmartContract_RemoveVariable(
 }
 
 // returns: the updated smart contract (or "")
-std::string OTAPI_Exec::SmartContract_AddCallback(
+auto OTAPI_Exec::SmartContract_AddCallback(
     const std::string& THE_CONTRACT,   // The contract, about to have the
                                        // callback
                                        // added to it.
@@ -819,9 +820,10 @@ std::string OTAPI_Exec::SmartContract_AddCallback(
     const std::string& CALLBACK_NAME,  // The Callback's name as referenced in
                                        // the smart contract. (And the
                                        // scripts...)
-    const std::string& CLAUSE_NAME) const  // The actual clause that will be
-                                           // triggered
-                                           // by the callback. (Must exist.)
+    const std::string& CLAUSE_NAME) const
+    -> std::string  // The actual clause that will be
+                    // triggered
+                    // by the callback. (Must exist.)
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_ID_STR(SIGNER_NYM_ID);
@@ -854,7 +856,7 @@ std::string OTAPI_Exec::SmartContract_AddCallback(
 }
 
 // returns: the updated smart contract (or "")
-std::string OTAPI_Exec::SmartContract_RemoveCallback(
+auto OTAPI_Exec::SmartContract_RemoveCallback(
     const std::string& THE_CONTRACT,   // The contract, about to have the
                                        // callback
                                        // removed from it.
@@ -867,7 +869,7 @@ std::string OTAPI_Exec::SmartContract_RemoveCallback(
     const std::string& CALLBACK_NAME  // The Callback's name as referenced in
                                       // the smart contract. (And the
                                       // scripts...)
-) const
+) const -> std::string
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_ID_STR(SIGNER_NYM_ID);
@@ -896,7 +898,7 @@ std::string OTAPI_Exec::SmartContract_RemoveCallback(
 }
 
 // returns: the updated smart contract (or "")
-std::string OTAPI_Exec::SmartContract_AddHook(
+auto OTAPI_Exec::SmartContract_AddHook(
     const std::string& THE_CONTRACT,   // The contract, about to have the hook
                                        // added to it.
     const std::string& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
@@ -907,8 +909,9 @@ std::string OTAPI_Exec::SmartContract_AddHook(
                                     // way we can find it.)
     const std::string& HOOK_NAME,  // The Hook's name as referenced in the smart
                                    // contract. (And the scripts...)
-    const std::string& CLAUSE_NAME) const  // The actual clause that will be
-                                           // triggered
+    const std::string& CLAUSE_NAME) const
+    -> std::string  // The actual clause that will be
+                    // triggered
 // by the hook. (You can call this multiple
 // times, and have multiple clauses trigger
 // on the same hook.)
@@ -945,7 +948,7 @@ std::string OTAPI_Exec::SmartContract_AddHook(
 }
 
 // returns: the updated smart contract (or "")
-std::string OTAPI_Exec::SmartContract_RemoveHook(
+auto OTAPI_Exec::SmartContract_RemoveHook(
     const std::string& THE_CONTRACT,   // The contract, about to have the hook
                                        // removed from it.
     const std::string& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
@@ -956,8 +959,9 @@ std::string OTAPI_Exec::SmartContract_RemoveHook(
                                     // way we can find it.)
     const std::string& HOOK_NAME,  // The Hook's name as referenced in the smart
                                    // contract. (And the scripts...)
-    const std::string& CLAUSE_NAME) const  // The actual clause that will be
-                                           // triggered
+    const std::string& CLAUSE_NAME) const
+    -> std::string  // The actual clause that will be
+                    // triggered
 // by the hook. (You can call this multiple
 // times, and have multiple clauses trigger
 // on the same hook.)
@@ -994,7 +998,7 @@ std::string OTAPI_Exec::SmartContract_RemoveHook(
 }
 
 // RETURNS: Updated version of THE_CONTRACT. (Or "".)
-std::string OTAPI_Exec::SmartContract_AddParty(
+auto OTAPI_Exec::SmartContract_AddParty(
     const std::string& THE_CONTRACT,   // The contract, about to have the party
                                        // added to it.
     const std::string& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
@@ -1006,9 +1010,10 @@ std::string OTAPI_Exec::SmartContract_AddParty(
                                       // specified. Otherwise must be empty.
     const std::string& PARTY_NAME,    // The Party's NAME as referenced in the
                                       // smart contract. (And the scripts...)
-    const std::string& AGENT_NAME) const  // An AGENT will be added by default
-                                          // for this
-                                          // party. Need Agent NAME.
+    const std::string& AGENT_NAME) const
+    -> std::string  // An AGENT will be added by default
+                    // for this
+                    // party. Need Agent NAME.
 // (FYI, that is basically the only option, until I code Entities and Roles.
 // Until then, a party can ONLY be
 // a Nym, with himself as the agent representing that same party. Nym ID is
@@ -1043,7 +1048,7 @@ std::string OTAPI_Exec::SmartContract_AddParty(
 }
 
 // RETURNS: Updated version of THE_CONTRACT. (Or "".)
-std::string OTAPI_Exec::SmartContract_RemoveParty(
+auto OTAPI_Exec::SmartContract_RemoveParty(
     const std::string& THE_CONTRACT,   // The contract, about to have the party
                                        // added to it.
     const std::string& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
@@ -1052,7 +1057,7 @@ std::string OTAPI_Exec::SmartContract_RemoveParty(
     // save.)
     const std::string& PARTY_NAME  // The Party's NAME as referenced in the
                                    // smart contract. (And the scripts...)
-) const
+) const -> std::string
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_ID_STR(SIGNER_NYM_ID);
@@ -1080,7 +1085,7 @@ std::string OTAPI_Exec::SmartContract_RemoveParty(
 // over again with different parties.)
 //
 // returns: the updated smart contract (or "")
-std::string OTAPI_Exec::SmartContract_AddAccount(
+auto OTAPI_Exec::SmartContract_AddAccount(
     const std::string& THE_CONTRACT,  // The contract, about to have the account
                                       // added to it.
     const std::string& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
@@ -1091,7 +1096,8 @@ std::string OTAPI_Exec::SmartContract_AddAccount(
                                     // smart contract. (And the scripts...)
     const std::string& ACCT_NAME,   // The Account's name as referenced in the
                                     // smart contract
-    const std::string& INSTRUMENT_DEFINITION_ID) const  // Instrument Definition
+    const std::string& INSTRUMENT_DEFINITION_ID) const
+    -> std::string  // Instrument Definition
 // ID for the Account. (Optional.)
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
@@ -1128,7 +1134,7 @@ std::string OTAPI_Exec::SmartContract_AddAccount(
 }
 
 // returns: the updated smart contract (or "")
-std::string OTAPI_Exec::SmartContract_RemoveAccount(
+auto OTAPI_Exec::SmartContract_RemoveAccount(
     const std::string& THE_CONTRACT,  // The contract, about to have the account
                                       // removed from it.
     const std::string& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
@@ -1139,7 +1145,7 @@ std::string OTAPI_Exec::SmartContract_RemoveAccount(
                                     // smart contract. (And the scripts...)
     const std::string& ACCT_NAME    // The Account's name as referenced in the
                                     // smart contract
-) const
+) const -> std::string
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_ID_STR(SIGNER_NYM_ID);
@@ -1182,10 +1188,10 @@ std::string OTAPI_Exec::SmartContract_RemoveAccount(
 // first grab however
 // many transaction#s he will need in order to confirm this smart contract.
 //
-std::int32_t OTAPI_Exec::SmartContract_CountNumsNeeded(
+auto OTAPI_Exec::SmartContract_CountNumsNeeded(
     const std::string& THE_CONTRACT,  // The smart contract, about to be queried
                                       // by this function.
-    const std::string& AGENT_NAME) const
+    const std::string& AGENT_NAME) const -> std::int32_t
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(AGENT_NAME);
@@ -1201,14 +1207,15 @@ std::int32_t OTAPI_Exec::SmartContract_CountNumsNeeded(
 // party name and acct name.
 // Returns the updated smart contract (or "".)
 //
-std::string OTAPI_Exec::SmartContract_ConfirmAccount(
+auto OTAPI_Exec::SmartContract_ConfirmAccount(
     const std::string& THE_CONTRACT,
     const std::string& SIGNER_NYM_ID,
-    const std::string& PARTY_NAME,     // Should already be on the contract.
-    const std::string& ACCT_NAME,      // Should already be on the contract.
-    const std::string& AGENT_NAME,     // The agent name for this asset account.
-    const std::string& ACCT_ID) const  // AcctID for the asset account. (For
-                                       // acct_name).
+    const std::string& PARTY_NAME,  // Should already be on the contract.
+    const std::string& ACCT_NAME,   // Should already be on the contract.
+    const std::string& AGENT_NAME,  // The agent name for this asset account.
+    const std::string& ACCT_ID) const
+    -> std::string  // AcctID for the asset account. (For
+                    // acct_name).
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_ID_STR(SIGNER_NYM_ID);
@@ -1245,13 +1252,13 @@ std::string OTAPI_Exec::SmartContract_ConfirmAccount(
 // This is the last call you make before either passing it on to another party
 // to confirm, or calling OTAPI_Exec::activateSmartContract().
 // Returns the updated smart contract (or "".)
-std::string OTAPI_Exec::SmartContract_ConfirmParty(
+auto OTAPI_Exec::SmartContract_ConfirmParty(
     const std::string& THE_CONTRACT,  // The smart contract, about to be changed
                                       // by this function.
     const std::string& PARTY_NAME,    // Should already be on the contract. This
                                       // way we can find it.
     const std::string& NYM_ID,
-    const std::string& NOTARY_ID) const
+    const std::string& NOTARY_ID) const -> std::string
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(PARTY_NAME);
@@ -1276,8 +1283,8 @@ std::string OTAPI_Exec::SmartContract_ConfirmParty(
     return strOutput->Get();
 }
 
-bool OTAPI_Exec::Smart_AreAllPartiesConfirmed(
-    const std::string& THE_CONTRACT) const  // true or false?
+auto OTAPI_Exec::Smart_AreAllPartiesConfirmed(
+    const std::string& THE_CONTRACT) const -> bool  // true or false?
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
 
@@ -1331,11 +1338,11 @@ bool OTAPI_Exec::Smart_AreAllPartiesConfirmed(
     return false;
 }
 
-bool OTAPI_Exec::Smart_IsPartyConfirmed(
+auto OTAPI_Exec::Smart_IsPartyConfirmed(
     const std::string& THE_CONTRACT,
-    const std::string& PARTY_NAME) const  // true
-                                          // or
-                                          // false?
+    const std::string& PARTY_NAME) const -> bool  // true
+                                                  // or
+                                                  // false?
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(PARTY_NAME);
@@ -1412,8 +1419,8 @@ bool OTAPI_Exec::Smart_IsPartyConfirmed(
     return true;
 }
 
-std::int32_t OTAPI_Exec::Smart_GetPartyCount(
-    const std::string& THE_CONTRACT) const
+auto OTAPI_Exec::Smart_GetPartyCount(const std::string& THE_CONTRACT) const
+    -> std::int32_t
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
 
@@ -1430,8 +1437,8 @@ std::int32_t OTAPI_Exec::Smart_GetPartyCount(
     return pScriptable->GetPartyCount();
 }
 
-std::int32_t OTAPI_Exec::Smart_GetBylawCount(
-    const std::string& THE_CONTRACT) const
+auto OTAPI_Exec::Smart_GetBylawCount(const std::string& THE_CONTRACT) const
+    -> std::int32_t
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
 
@@ -1449,9 +1456,9 @@ std::int32_t OTAPI_Exec::Smart_GetBylawCount(
 }
 
 /// returns the name of the party.
-std::string OTAPI_Exec::Smart_GetPartyByIndex(
+auto OTAPI_Exec::Smart_GetPartyByIndex(
     const std::string& THE_CONTRACT,
-    const std::int32_t& nIndex) const
+    const std::int32_t& nIndex) const -> std::string
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
 
@@ -1480,9 +1487,9 @@ std::string OTAPI_Exec::Smart_GetPartyByIndex(
 }
 
 /// returns the name of the bylaw.
-std::string OTAPI_Exec::Smart_GetBylawByIndex(
+auto OTAPI_Exec::Smart_GetBylawByIndex(
     const std::string& THE_CONTRACT,
-    const std::int32_t& nIndex) const
+    const std::int32_t& nIndex) const -> std::string
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
 
@@ -1511,9 +1518,9 @@ std::string OTAPI_Exec::Smart_GetBylawByIndex(
     return pBylaw->GetName().Get();
 }
 
-std::string OTAPI_Exec::Bylaw_GetLanguage(
+auto OTAPI_Exec::Bylaw_GetLanguage(
     const std::string& THE_CONTRACT,
-    const std::string& BYLAW_NAME) const
+    const std::string& BYLAW_NAME) const -> std::string
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(BYLAW_NAME);
@@ -1541,9 +1548,9 @@ std::string OTAPI_Exec::Bylaw_GetLanguage(
     return pBylaw->GetLanguage();
 }
 
-std::int32_t OTAPI_Exec::Bylaw_GetClauseCount(
+auto OTAPI_Exec::Bylaw_GetClauseCount(
     const std::string& THE_CONTRACT,
-    const std::string& BYLAW_NAME) const
+    const std::string& BYLAW_NAME) const -> std::int32_t
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(BYLAW_NAME);
@@ -1570,9 +1577,9 @@ std::int32_t OTAPI_Exec::Bylaw_GetClauseCount(
     return pBylaw->GetClauseCount();
 }
 
-std::int32_t OTAPI_Exec::Bylaw_GetVariableCount(
+auto OTAPI_Exec::Bylaw_GetVariableCount(
     const std::string& THE_CONTRACT,
-    const std::string& BYLAW_NAME) const
+    const std::string& BYLAW_NAME) const -> std::int32_t
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(BYLAW_NAME);
@@ -1599,9 +1606,9 @@ std::int32_t OTAPI_Exec::Bylaw_GetVariableCount(
     return pBylaw->GetVariableCount();
 }
 
-std::int32_t OTAPI_Exec::Bylaw_GetHookCount(
+auto OTAPI_Exec::Bylaw_GetHookCount(
     const std::string& THE_CONTRACT,
-    const std::string& BYLAW_NAME) const
+    const std::string& BYLAW_NAME) const -> std::int32_t
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(BYLAW_NAME);
@@ -1628,9 +1635,9 @@ std::int32_t OTAPI_Exec::Bylaw_GetHookCount(
     return pBylaw->GetHookCount();
 }
 
-std::int32_t OTAPI_Exec::Bylaw_GetCallbackCount(
+auto OTAPI_Exec::Bylaw_GetCallbackCount(
     const std::string& THE_CONTRACT,
-    const std::string& BYLAW_NAME) const
+    const std::string& BYLAW_NAME) const -> std::int32_t
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(BYLAW_NAME);
@@ -1657,10 +1664,11 @@ std::int32_t OTAPI_Exec::Bylaw_GetCallbackCount(
     return pBylaw->GetCallbackCount();
 }
 
-std::string OTAPI_Exec::Clause_GetNameByIndex(
+auto OTAPI_Exec::Clause_GetNameByIndex(
     const std::string& THE_CONTRACT,
     const std::string& BYLAW_NAME,
-    const std::int32_t& nIndex) const  // returns the name of the clause.
+    const std::int32_t& nIndex) const
+    -> std::string  // returns the name of the clause.
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(BYLAW_NAME);
@@ -1699,11 +1707,12 @@ std::string OTAPI_Exec::Clause_GetNameByIndex(
     return pClause->GetName().Get();
 }
 
-std::string OTAPI_Exec::Clause_GetContents(
+auto OTAPI_Exec::Clause_GetContents(
     const std::string& THE_CONTRACT,
     const std::string& BYLAW_NAME,
-    const std::string& CLAUSE_NAME) const  // returns the contents of the
-                                           // clause.
+    const std::string& CLAUSE_NAME) const
+    -> std::string  // returns the contents of the
+                    // clause.
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(BYLAW_NAME);
@@ -1742,10 +1751,11 @@ std::string OTAPI_Exec::Clause_GetContents(
     return pClause->GetCode();
 }
 
-std::string OTAPI_Exec::Variable_GetNameByIndex(
+auto OTAPI_Exec::Variable_GetNameByIndex(
     const std::string& THE_CONTRACT,
     const std::string& BYLAW_NAME,
-    const std::int32_t& nIndex) const  // returns the name of the variable.
+    const std::int32_t& nIndex) const
+    -> std::string  // returns the name of the variable.
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(BYLAW_NAME);
@@ -1783,11 +1793,11 @@ std::string OTAPI_Exec::Variable_GetNameByIndex(
     return pVar->GetName().Get();
 }
 
-std::string OTAPI_Exec::Variable_GetType(
+auto OTAPI_Exec::Variable_GetType(
     const std::string& THE_CONTRACT,
     const std::string& BYLAW_NAME,
-    const std::string& VARIABLE_NAME) const  // returns the type of the
-                                             // variable.
+    const std::string& VARIABLE_NAME) const -> std::string  // returns the type
+                                                            // of the variable.
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(BYLAW_NAME);
@@ -1827,11 +1837,12 @@ std::string OTAPI_Exec::Variable_GetType(
     return "error_type";
 }
 
-std::string OTAPI_Exec::Variable_GetAccess(
+auto OTAPI_Exec::Variable_GetAccess(
     const std::string& THE_CONTRACT,
     const std::string& BYLAW_NAME,
-    const std::string& VARIABLE_NAME) const  // returns the access level of the
-                                             // variable.
+    const std::string& VARIABLE_NAME) const
+    -> std::string  // returns the access level of the
+                    // variable.
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(BYLAW_NAME);
@@ -1871,11 +1882,12 @@ std::string OTAPI_Exec::Variable_GetAccess(
     return "error_access";
 }
 
-std::string OTAPI_Exec::Variable_GetContents(
+auto OTAPI_Exec::Variable_GetContents(
     const std::string& THE_CONTRACT,
     const std::string& BYLAW_NAME,
-    const std::string& VARIABLE_NAME) const  // returns the contents of the
-                                             // variable.
+    const std::string& VARIABLE_NAME) const
+    -> std::string  // returns the contents of the
+                    // variable.
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(BYLAW_NAME);
@@ -1925,10 +1937,11 @@ std::string OTAPI_Exec::Variable_GetContents(
     }
 }
 
-std::string OTAPI_Exec::Hook_GetNameByIndex(
+auto OTAPI_Exec::Hook_GetNameByIndex(
     const std::string& THE_CONTRACT,
     const std::string& BYLAW_NAME,
-    const std::int32_t& nIndex) const  // returns the name of the hook.
+    const std::int32_t& nIndex) const
+    -> std::string  // returns the name of the hook.
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(BYLAW_NAME);
@@ -1957,10 +1970,10 @@ std::string OTAPI_Exec::Hook_GetNameByIndex(
 }
 
 /// Returns the number of clauses attached to a specific hook.
-std::int32_t OTAPI_Exec::Hook_GetClauseCount(
+auto OTAPI_Exec::Hook_GetClauseCount(
     const std::string& THE_CONTRACT,
     const std::string& BYLAW_NAME,
-    const std::string& HOOK_NAME) const
+    const std::string& HOOK_NAME) const -> std::int32_t
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(BYLAW_NAME);
@@ -1997,11 +2010,11 @@ std::int32_t OTAPI_Exec::Hook_GetClauseCount(
 /// iterate through them.
 /// This function returns the name for the clause at the specified index.
 ///
-std::string OTAPI_Exec::Hook_GetClauseAtIndex(
+auto OTAPI_Exec::Hook_GetClauseAtIndex(
     const std::string& THE_CONTRACT,
     const std::string& BYLAW_NAME,
     const std::string& HOOK_NAME,
-    const std::int32_t& nIndex) const
+    const std::int32_t& nIndex) const -> std::string
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(BYLAW_NAME);
@@ -2046,10 +2059,11 @@ std::string OTAPI_Exec::Hook_GetClauseAtIndex(
     return {};
 }
 
-std::string OTAPI_Exec::Callback_GetNameByIndex(
+auto OTAPI_Exec::Callback_GetNameByIndex(
     const std::string& THE_CONTRACT,
     const std::string& BYLAW_NAME,
-    const std::int32_t& nIndex) const  // returns the name of the callback.
+    const std::int32_t& nIndex) const
+    -> std::string  // returns the name of the callback.
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(BYLAW_NAME);
@@ -2077,11 +2091,12 @@ std::string OTAPI_Exec::Callback_GetNameByIndex(
     return pBylaw->GetCallbackNameByIndex(nTempIndex);
 }
 
-std::string OTAPI_Exec::Callback_GetClause(
+auto OTAPI_Exec::Callback_GetClause(
     const std::string& THE_CONTRACT,
     const std::string& BYLAW_NAME,
-    const std::string& CALLBACK_NAME) const  // returns name of clause attached
-                                             // to callback.
+    const std::string& CALLBACK_NAME) const
+    -> std::string  // returns name of clause attached
+                    // to callback.
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(BYLAW_NAME);
@@ -2118,9 +2133,9 @@ std::string OTAPI_Exec::Callback_GetClause(
     return pClause->GetName().Get();
 }
 
-std::int32_t OTAPI_Exec::Party_GetAcctCount(
+auto OTAPI_Exec::Party_GetAcctCount(
     const std::string& THE_CONTRACT,
-    const std::string& PARTY_NAME) const
+    const std::string& PARTY_NAME) const -> std::int32_t
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(PARTY_NAME);
@@ -2147,9 +2162,9 @@ std::int32_t OTAPI_Exec::Party_GetAcctCount(
     return pParty->GetAccountCount();
 }
 
-std::int32_t OTAPI_Exec::Party_GetAgentCount(
+auto OTAPI_Exec::Party_GetAgentCount(
     const std::string& THE_CONTRACT,
-    const std::string& PARTY_NAME) const
+    const std::string& PARTY_NAME) const -> std::int32_t
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(PARTY_NAME);
@@ -2180,9 +2195,9 @@ std::int32_t OTAPI_Exec::Party_GetAgentCount(
 // returns either NymID or Entity ID.
 // (If there is one... Contract might not be
 // signed yet.)
-std::string OTAPI_Exec::Party_GetID(
+auto OTAPI_Exec::Party_GetID(
     const std::string& THE_CONTRACT,
-    const std::string& PARTY_NAME) const
+    const std::string& PARTY_NAME) const -> std::string
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(PARTY_NAME);
@@ -2210,10 +2225,11 @@ std::string OTAPI_Exec::Party_GetID(
     return pParty->GetPartyID();
 }
 
-std::string OTAPI_Exec::Party_GetAcctNameByIndex(
+auto OTAPI_Exec::Party_GetAcctNameByIndex(
     const std::string& THE_CONTRACT,
     const std::string& PARTY_NAME,
-    const std::int32_t& nIndex) const  // returns the name of the clause.
+    const std::int32_t& nIndex) const
+    -> std::string  // returns the name of the clause.
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(PARTY_NAME);
@@ -2252,12 +2268,13 @@ std::string OTAPI_Exec::Party_GetAcctNameByIndex(
     return pAcct->GetName().Get();
 }
 
-std::string OTAPI_Exec::Party_GetAcctID(
+auto OTAPI_Exec::Party_GetAcctID(
     const std::string& THE_CONTRACT,
     const std::string& PARTY_NAME,
-    const std::string& ACCT_NAME) const  // returns the account ID based on the
-                                         // account
-                                         // name. (If there is one yet...)
+    const std::string& ACCT_NAME) const
+    -> std::string  // returns the account ID based on the
+                    // account
+                    // name. (If there is one yet...)
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(PARTY_NAME);
@@ -2296,13 +2313,14 @@ std::string OTAPI_Exec::Party_GetAcctID(
     return pAcct->GetAcctID().Get();
 }
 
-std::string OTAPI_Exec::Party_GetAcctInstrumentDefinitionID(
+auto OTAPI_Exec::Party_GetAcctInstrumentDefinitionID(
     const std::string& THE_CONTRACT,
     const std::string& PARTY_NAME,
-    const std::string& ACCT_NAME) const  // returns the instrument definition ID
-                                         // based on
-                                         // the
-                                         // account name.
+    const std::string& ACCT_NAME) const
+    -> std::string  // returns the instrument definition ID
+                    // based on
+                    // the
+                    // account name.
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(PARTY_NAME);
@@ -2344,12 +2362,13 @@ std::string OTAPI_Exec::Party_GetAcctInstrumentDefinitionID(
     return {};
 }
 
-std::string OTAPI_Exec::Party_GetAcctAgentName(
+auto OTAPI_Exec::Party_GetAcctAgentName(
     const std::string& THE_CONTRACT,
     const std::string& PARTY_NAME,
-    const std::string& ACCT_NAME) const  // returns the authorized agent for the
-                                         // named
-                                         // account.
+    const std::string& ACCT_NAME) const
+    -> std::string  // returns the authorized agent for the
+                    // named
+                    // account.
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(PARTY_NAME);
@@ -2391,10 +2410,11 @@ std::string OTAPI_Exec::Party_GetAcctAgentName(
     return {};
 }
 
-std::string OTAPI_Exec::Party_GetAgentNameByIndex(
+auto OTAPI_Exec::Party_GetAgentNameByIndex(
     const std::string& THE_CONTRACT,
     const std::string& PARTY_NAME,
-    const std::int32_t& nIndex) const  // returns the name of the agent.
+    const std::int32_t& nIndex) const
+    -> std::string  // returns the name of the agent.
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(PARTY_NAME);
@@ -2435,11 +2455,12 @@ std::string OTAPI_Exec::Party_GetAgentNameByIndex(
     return {};
 }
 
-std::string OTAPI_Exec::Party_GetAgentID(
+auto OTAPI_Exec::Party_GetAgentID(
     const std::string& THE_CONTRACT,
     const std::string& PARTY_NAME,
-    const std::string& AGENT_NAME) const  // returns ID of the agent. (If
-                                          // there is one...)
+    const std::string& AGENT_NAME) const
+    -> std::string  // returns ID of the agent. (If
+                    // there is one...)
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(PARTY_NAME);
@@ -2489,8 +2510,8 @@ std::string OTAPI_Exec::Party_GetAgentID(
 //
 // returns bool (true or false aka 1 or 0.)
 //
-bool OTAPI_Exec::IsBasketCurrency(
-    const std::string& INSTRUMENT_DEFINITION_ID) const
+auto OTAPI_Exec::IsBasketCurrency(
+    const std::string& INSTRUMENT_DEFINITION_ID) const -> bool
 {
     OT_VERIFY_ID_STR(INSTRUMENT_DEFINITION_ID);
 
@@ -2508,8 +2529,8 @@ bool OTAPI_Exec::IsBasketCurrency(
 // Returns the number of instrument definitions that make up this basket.
 // (Or zero.)
 //
-std::int32_t OTAPI_Exec::Basket_GetMemberCount(
-    const std::string& INSTRUMENT_DEFINITION_ID) const
+auto OTAPI_Exec::Basket_GetMemberCount(
+    const std::string& INSTRUMENT_DEFINITION_ID) const -> std::int32_t
 {
     OT_VERIFY_ID_STR(INSTRUMENT_DEFINITION_ID);
 
@@ -2523,9 +2544,9 @@ std::int32_t OTAPI_Exec::Basket_GetMemberCount(
 //
 // (Returns a string containing Instrument Definition ID, or "").
 //
-std::string OTAPI_Exec::Basket_GetMemberType(
+auto OTAPI_Exec::Basket_GetMemberType(
     const std::string& BASKET_INSTRUMENT_DEFINITION_ID,
-    const std::int32_t& nIndex) const
+    const std::int32_t& nIndex) const -> std::string
 {
     OT_VERIFY_ID_STR(BASKET_INSTRUMENT_DEFINITION_ID);
     OT_VERIFY_MIN_BOUND(nIndex, 0);
@@ -2554,8 +2575,8 @@ std::string OTAPI_Exec::Basket_GetMemberType(
 // then the minimum transfer amount for the basket is 10. This function
 // would return a string containing "10", in that example.
 //
-std::int64_t OTAPI_Exec::Basket_GetMinimumTransferAmount(
-    const std::string& BASKET_INSTRUMENT_DEFINITION_ID) const
+auto OTAPI_Exec::Basket_GetMinimumTransferAmount(
+    const std::string& BASKET_INSTRUMENT_DEFINITION_ID) const -> std::int64_t
 {
     OT_VERIFY_ID_STR(BASKET_INSTRUMENT_DEFINITION_ID);
 
@@ -2590,9 +2611,9 @@ std::int64_t OTAPI_Exec::Basket_GetMinimumTransferAmount(
 // index 1 is 5, and the minimum transfer amount for the member
 // currency at index 2 is 8.
 //
-std::int64_t OTAPI_Exec::Basket_GetMemberMinimumTransferAmount(
+auto OTAPI_Exec::Basket_GetMemberMinimumTransferAmount(
     const std::string& BASKET_INSTRUMENT_DEFINITION_ID,
-    const std::int32_t& nIndex) const
+    const std::int32_t& nIndex) const -> std::int64_t
 {
     OT_VERIFY_ID_STR(BASKET_INSTRUMENT_DEFINITION_ID);
     OT_VERIFY_MIN_BOUND(nIndex, 0);
@@ -2622,14 +2643,14 @@ std::int64_t OTAPI_Exec::Basket_GetMemberMinimumTransferAmount(
 // the various currencies to the basket, and then call
 // OTAPI_Exec::issueBasket to send the request to the server.
 //
-std::string OTAPI_Exec::GenerateBasketCreation(
+auto OTAPI_Exec::GenerateBasketCreation(
     const std::string& serverID,
     const std::string& shortname,
     const std::string& name,
     const std::string& symbol,
     const std::string& terms,
     const std::uint64_t weight,
-    const VersionNumber version) const
+    const VersionNumber version) const -> std::string
 {
     try {
         const auto serverContract =
@@ -2662,10 +2683,10 @@ std::string OTAPI_Exec::GenerateBasketCreation(
 // currencies to the basket, and then call OTAPI_Exec::issueBasket
 // to send the request to the server.
 //
-std::string OTAPI_Exec::AddBasketCreationItem(
+auto OTAPI_Exec::AddBasketCreationItem(
     const std::string& basketTemplate,
     const std::string& currencyID,
-    const std::uint64_t& weight) const
+    const std::uint64_t& weight) const -> std::string
 {
     OT_ASSERT_MSG(
         !basketTemplate.empty(),
@@ -2695,12 +2716,12 @@ std::string OTAPI_Exec::AddBasketCreationItem(
 // multiple times, and then finally call OTAPI_Exec::exchangeBasket to
 // send the request to the server.
 //
-std::string OTAPI_Exec::GenerateBasketExchange(
+auto OTAPI_Exec::GenerateBasketExchange(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID,
     const std::string& BASKET_INSTRUMENT_DEFINITION_ID,
     const std::string& BASKET_ASSET_ACCT_ID,
-    const std::int32_t& TRANSFER_MULTIPLE) const
+    const std::int32_t& TRANSFER_MULTIPLE) const -> std::string
 // 1            2            3
 // 5=2,3,4  OR  10=4,6,8  OR 15=6,9,12
 {
@@ -2746,12 +2767,12 @@ std::string OTAPI_Exec::GenerateBasketExchange(
 // times, and then finally call OTAPI_Exec::exchangeBasket to send
 // the request to the server.
 //
-std::string OTAPI_Exec::AddBasketExchangeItem(
+auto OTAPI_Exec::AddBasketExchangeItem(
     const std::string& NOTARY_ID,
     const std::string& NYM_ID,
     const std::string& THE_BASKET,
     const std::string& INSTRUMENT_DEFINITION_ID,
-    const std::string& ASSET_ACCT_ID) const
+    const std::string& ASSET_ACCT_ID) const -> std::string
 {
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(NYM_ID);
@@ -2790,9 +2811,9 @@ std::string OTAPI_Exec::AddBasketExchangeItem(
     return pBuf;
 }
 
-std::string OTAPI_Exec::Wallet_ImportSeed(
+auto OTAPI_Exec::Wallet_ImportSeed(
     const std::string& words,
-    const std::string& passphrase) const
+    const std::string& passphrase) const -> std::string
 {
     auto reason = api_.Factory().PasswordPrompt("Importing a BIP-39 seed");
     OTPassword secureWords, securePassphrase;

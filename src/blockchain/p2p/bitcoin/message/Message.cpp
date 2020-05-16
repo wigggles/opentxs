@@ -44,13 +44,13 @@ FilterPrefixBasic::FilterPrefixBasic() noexcept
     static_assert(33 == sizeof(FilterPrefixBasic));
 }
 
-filter::pHash FilterPrefixBasic::Hash() const noexcept
+auto FilterPrefixBasic::Hash() const noexcept -> filter::pHash
 {
     return Data::Factory(hash_.data(), hash_.size());
 }
 
-filter::Type FilterPrefixBasic::Type(const blockchain::Type chain) const
-    noexcept
+auto FilterPrefixBasic::Type(const blockchain::Type chain) const noexcept
+    -> filter::Type
 {
     return blockchain::internal::Deserialize(chain, type_.value());
 }
@@ -86,18 +86,18 @@ FilterPrefixChained::FilterPrefixChained() noexcept
     static_assert(65 == sizeof(FilterPrefixChained));
 }
 
-filter::pHash FilterPrefixChained::Previous() const noexcept
+auto FilterPrefixChained::Previous() const noexcept -> filter::pHash
 {
     return Data::Factory(previous_.data(), previous_.size());
 }
 
-filter::pHash FilterPrefixChained::Stop() const noexcept
+auto FilterPrefixChained::Stop() const noexcept -> filter::pHash
 {
     return Data::Factory(hash_.data(), hash_.size());
 }
 
-filter::Type FilterPrefixChained::Type(const blockchain::Type chain) const
-    noexcept
+auto FilterPrefixChained::Type(const blockchain::Type chain) const noexcept
+    -> filter::Type
 {
     return blockchain::internal::Deserialize(chain, type_.value());
 }
@@ -128,22 +128,26 @@ FilterRequest::FilterRequest() noexcept
     static_assert(37 == sizeof(FilterRequest));
 }
 
-block::Height FilterRequest::Start() const noexcept { return start_.value(); }
+auto FilterRequest::Start() const noexcept -> block::Height
+{
+    return start_.value();
+}
 
-filter::pHash FilterRequest::Stop() const noexcept
+auto FilterRequest::Stop() const noexcept -> filter::pHash
 {
     return Data::Factory(stop_.data(), stop_.size());
 }
 
-filter::Type FilterRequest::Type(const blockchain::Type chain) const noexcept
+auto FilterRequest::Type(const blockchain::Type chain) const noexcept
+    -> filter::Type
 {
     return blockchain::internal::Deserialize(chain, type_.value());
 }
 
-bool VerifyChecksum(
+auto VerifyChecksum(
     const api::internal::Core& api,
     const Header& header,
-    const network::zeromq::Frame& payload) noexcept
+    const network::zeromq::Frame& payload) noexcept -> bool
 {
     auto checksum = Data::Factory();
 

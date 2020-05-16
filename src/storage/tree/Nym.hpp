@@ -60,68 +60,69 @@ namespace opentxs::storage
 class Nym final : public Node
 {
 public:
-    std::set<std::string> BlockchainAccountList(
-        const proto::ContactItemType type) const;
-    proto::ContactItemType BlockchainAccountType(
-        const std::string& accountID) const;
+    auto BlockchainAccountList(const proto::ContactItemType type) const
+        -> std::set<std::string>;
+    auto BlockchainAccountType(const std::string& accountID) const
+        -> proto::ContactItemType;
 
-    const storage::Bip47Channels& Bip47Channels() const;
-    const storage::Contexts& Contexts() const;
-    const PeerReplies& FinishedReplyBox() const;
-    const PeerRequests& FinishedRequestBox() const;
-    const PeerReplies& IncomingReplyBox() const;
-    const PeerRequests& IncomingRequestBox() const;
-    const storage::Issuers& Issuers() const;
-    const Mailbox& MailInbox() const;
-    const Mailbox& MailOutbox() const;
-    const PeerReplies& ProcessedReplyBox() const;
-    const PeerRequests& ProcessedRequestBox() const;
-    const PeerReplies& SentReplyBox() const;
-    const PeerRequests& SentRequestBox() const;
-    const storage::Threads& Threads() const;
-    const storage::PaymentWorkflows& PaymentWorkflows() const;
-    const storage::Txos& TXOs() const { return *txos(); }
+    auto Bip47Channels() const -> const storage::Bip47Channels&;
+    auto Contexts() const -> const storage::Contexts&;
+    auto FinishedReplyBox() const -> const PeerReplies&;
+    auto FinishedRequestBox() const -> const PeerRequests&;
+    auto IncomingReplyBox() const -> const PeerReplies&;
+    auto IncomingRequestBox() const -> const PeerRequests&;
+    auto Issuers() const -> const storage::Issuers&;
+    auto MailInbox() const -> const Mailbox&;
+    auto MailOutbox() const -> const Mailbox&;
+    auto ProcessedReplyBox() const -> const PeerReplies&;
+    auto ProcessedRequestBox() const -> const PeerRequests&;
+    auto SentReplyBox() const -> const PeerReplies&;
+    auto SentRequestBox() const -> const PeerRequests&;
+    auto Threads() const -> const storage::Threads&;
+    auto PaymentWorkflows() const -> const storage::PaymentWorkflows&;
+    auto TXOs() const -> const storage::Txos& { return *txos(); }
 
-    Editor<storage::Bip47Channels> mutable_Bip47Channels();
-    Editor<storage::Contexts> mutable_Contexts();
-    Editor<PeerReplies> mutable_FinishedReplyBox();
-    Editor<PeerRequests> mutable_FinishedRequestBox();
-    Editor<PeerReplies> mutable_IncomingReplyBox();
-    Editor<PeerRequests> mutable_IncomingRequestBox();
-    Editor<storage::Issuers> mutable_Issuers();
-    Editor<Mailbox> mutable_MailInbox();
-    Editor<Mailbox> mutable_MailOutbox();
-    Editor<PeerReplies> mutable_ProcessedReplyBox();
-    Editor<PeerRequests> mutable_ProcessedRequestBox();
-    Editor<PeerReplies> mutable_SentReplyBox();
-    Editor<PeerRequests> mutable_SentRequestBox();
-    Editor<storage::Threads> mutable_Threads();
-    Editor<storage::PaymentWorkflows> mutable_PaymentWorkflows();
-    Editor<storage::Txos> mutable_TXOs();
+    auto mutable_Bip47Channels() -> Editor<storage::Bip47Channels>;
+    auto mutable_Contexts() -> Editor<storage::Contexts>;
+    auto mutable_FinishedReplyBox() -> Editor<PeerReplies>;
+    auto mutable_FinishedRequestBox() -> Editor<PeerRequests>;
+    auto mutable_IncomingReplyBox() -> Editor<PeerReplies>;
+    auto mutable_IncomingRequestBox() -> Editor<PeerRequests>;
+    auto mutable_Issuers() -> Editor<storage::Issuers>;
+    auto mutable_MailInbox() -> Editor<Mailbox>;
+    auto mutable_MailOutbox() -> Editor<Mailbox>;
+    auto mutable_ProcessedReplyBox() -> Editor<PeerReplies>;
+    auto mutable_ProcessedRequestBox() -> Editor<PeerRequests>;
+    auto mutable_SentReplyBox() -> Editor<PeerReplies>;
+    auto mutable_SentRequestBox() -> Editor<PeerRequests>;
+    auto mutable_Threads() -> Editor<storage::Threads>;
+    auto mutable_PaymentWorkflows() -> Editor<storage::PaymentWorkflows>;
+    auto mutable_TXOs() -> Editor<storage::Txos>;
 
-    std::string Alias() const;
-    bool Load(
+    auto Alias() const -> std::string;
+    auto Load(
         const std::string& id,
         std::shared_ptr<proto::HDAccount>& output,
-        const bool checking) const;
-    bool Load(
+        const bool checking) const -> bool;
+    auto Load(
         std::shared_ptr<proto::Nym>& output,
         std::string& alias,
-        const bool checking) const;
-    bool Load(
+        const bool checking) const -> bool;
+    auto Load(
         const identifier::Server& notary,
         const identifier::UnitDefinition& unit,
         std::shared_ptr<proto::Purse>& output,
-        const bool checking) const;
-    bool Migrate(const opentxs::api::storage::Driver& to) const final;
+        const bool checking) const -> bool;
+    auto Migrate(const opentxs::api::storage::Driver& to) const -> bool final;
 
-    bool SetAlias(const std::string& alias);
-    bool Store(const proto::ContactItemType type, const proto::HDAccount& data);
-    bool Store(
+    auto SetAlias(const std::string& alias) -> bool;
+    auto Store(const proto::ContactItemType type, const proto::HDAccount& data)
+        -> bool;
+    auto Store(
         const proto::Nym& data,
         const std::string& alias,
-        std::string& plaintext);
-    bool Store(const proto::Purse& purse);
+        std::string& plaintext) -> bool;
+    auto Store(const proto::Purse& purse) -> bool;
 
     ~Nym();
 
@@ -195,47 +196,45 @@ private:
     std::string txo_root_;
 
     template <typename T, typename... Args>
-    T* construct(
+    auto construct(
         std::mutex& mutex,
         std::unique_ptr<T>& pointer,
         const std::string& root,
-        Args&&... params) const;
+        Args&&... params) const -> T*;
 
-    storage::Bip47Channels* bip47() const;
-    PeerRequests* sent_request_box() const;
-    PeerRequests* incoming_request_box() const;
-    PeerReplies* sent_reply_box() const;
-    PeerReplies* incoming_reply_box() const;
-    PeerRequests* finished_request_box() const;
-    PeerReplies* finished_reply_box() const;
-    PeerRequests* processed_request_box() const;
-    PeerReplies* processed_reply_box() const;
-    Mailbox* mail_inbox() const;
-    Mailbox* mail_outbox() const;
-    storage::Threads* threads() const;
-    storage::Contexts* contexts() const;
-    storage::Issuers* issuers() const;
-    storage::PaymentWorkflows* workflows() const;
-    storage::Txos* txos() const
+    auto bip47() const -> storage::Bip47Channels*;
+    auto sent_request_box() const -> PeerRequests*;
+    auto incoming_request_box() const -> PeerRequests*;
+    auto sent_reply_box() const -> PeerReplies*;
+    auto incoming_reply_box() const -> PeerReplies*;
+    auto finished_request_box() const -> PeerRequests*;
+    auto finished_reply_box() const -> PeerReplies*;
+    auto processed_request_box() const -> PeerRequests*;
+    auto processed_reply_box() const -> PeerReplies*;
+    auto mail_inbox() const -> Mailbox*;
+    auto mail_outbox() const -> Mailbox*;
+    auto threads() const -> storage::Threads*;
+    auto contexts() const -> storage::Contexts*;
+    auto issuers() const -> storage::Issuers*;
+    auto workflows() const -> storage::PaymentWorkflows*;
+    auto txos() const -> storage::Txos*
     {
         return construct<storage::Txos>(txo_lock_, txo_, txo_root_);
     }
 
     template <typename T>
-    Editor<T> editor(
-        std::string& root,
-        std::mutex& mutex,
-        T* (Nym::*get)() const);
+    auto editor(std::string& root, std::mutex& mutex, T* (Nym::*get)() const)
+        -> Editor<T>;
 
     void init(const std::string& hash) final;
-    bool save(const Lock& lock) const final;
+    auto save(const Lock& lock) const -> bool final;
     template <typename O>
     void _save(
         O* input,
         const Lock& lock,
         std::mutex& mutex,
         std::string& root);
-    proto::StorageNym serialize() const;
+    auto serialize() const -> proto::StorageNym;
 
     Nym(const opentxs::api::storage::Driver& storage,
         const std::string& id,
@@ -244,7 +243,7 @@ private:
     Nym() = delete;
     Nym(const identity::Nym&) = delete;
     Nym(Nym&&) = delete;
-    Nym operator=(const identity::Nym&) = delete;
-    Nym operator=(Nym&&) = delete;
+    auto operator=(const identity::Nym&) -> Nym = delete;
+    auto operator=(Nym &&) -> Nym = delete;
 };
 }  // namespace opentxs::storage

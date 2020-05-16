@@ -50,10 +50,13 @@ namespace opentxs::ui::implementation
 class PendingSend final : public ActivityThreadItem
 {
 public:
-    opentxs::Amount Amount() const noexcept final { return amount_; }
-    bool Deposit() const noexcept final { return false; }
-    std::string DisplayAmount() const noexcept final { return display_amount_; }
-    std::string Memo() const noexcept final { return memo_; }
+    auto Amount() const noexcept -> opentxs::Amount final { return amount_; }
+    auto Deposit() const noexcept -> bool final { return false; }
+    auto DisplayAmount() const noexcept -> std::string final
+    {
+        return display_amount_;
+    }
+    auto Memo() const noexcept -> std::string final { return memo_; }
 
     PendingSend(
         const ActivityThreadInternalInterface& parent,
@@ -73,7 +76,7 @@ private:
     PendingSend() = delete;
     PendingSend(const PendingSend&) = delete;
     PendingSend(PendingSend&&) = delete;
-    PendingSend& operator=(const PendingSend&) = delete;
-    PendingSend& operator=(PendingSend&&) = delete;
+    auto operator=(const PendingSend&) -> PendingSend& = delete;
+    auto operator=(PendingSend &&) -> PendingSend& = delete;
 };
 }  // namespace opentxs::ui::implementation

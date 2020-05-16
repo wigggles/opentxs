@@ -38,8 +38,8 @@ namespace opentxs::blockchain::implementation
 class BloomFilter final : virtual public blockchain::BloomFilter
 {
 public:
-    OTData Serialize() const noexcept final;
-    bool Test(const Data& element) const noexcept final;
+    auto Serialize() const noexcept -> OTData final;
+    auto Test(const Data& element) const noexcept -> bool final;
 
     void AddElement(const Data& element) noexcept final;
 
@@ -62,9 +62,12 @@ private:
     std::size_t function_count_{};
     Filter filter_;
 
-    BloomFilter* clone() const noexcept final { return new BloomFilter(*this); }
-    std::uint32_t hash(const Data& input, std::size_t hash_index) const
-        noexcept;
+    auto clone() const noexcept -> BloomFilter* final
+    {
+        return new BloomFilter(*this);
+    }
+    auto hash(const Data& input, std::size_t hash_index) const noexcept
+        -> std::uint32_t;
 
     BloomFilter(
         const api::internal::Core& api,
@@ -87,7 +90,7 @@ private:
     BloomFilter() = delete;
     BloomFilter(const BloomFilter& rhs) noexcept;
     BloomFilter(BloomFilter&&) = delete;
-    BloomFilter& operator=(const BloomFilter&) = delete;
-    BloomFilter& operator=(BloomFilter&&) = delete;
+    auto operator=(const BloomFilter&) -> BloomFilter& = delete;
+    auto operator=(BloomFilter &&) -> BloomFilter& = delete;
 };
 }  // namespace opentxs::blockchain::implementation

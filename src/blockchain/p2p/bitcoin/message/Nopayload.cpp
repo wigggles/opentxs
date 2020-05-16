@@ -16,10 +16,10 @@ namespace message = bitcoin::message;
 
 namespace opentxs
 {
-blockchain::p2p::bitcoin::message::internal::Filterclear* Factory::
-    BitcoinP2PFilterclear(
-        const api::internal::Core& api,
-        std::unique_ptr<blockchain::p2p::bitcoin::Header> header)
+auto Factory::BitcoinP2PFilterclear(
+    const api::internal::Core& api,
+    std::unique_ptr<blockchain::p2p::bitcoin::Header> header)
+    -> blockchain::p2p::bitcoin::message::internal::Filterclear*
 {
     using ReturnType =
         message::implementation::Nopayload<message::internal::Filterclear>;
@@ -27,20 +27,20 @@ blockchain::p2p::bitcoin::message::internal::Filterclear* Factory::
     return new ReturnType(api, std::move(header));
 }
 
-blockchain::p2p::bitcoin::message::internal::Filterclear* Factory::
-    BitcoinP2PFilterclear(
-        const api::internal::Core& api,
-        const blockchain::Type network)
+auto Factory::BitcoinP2PFilterclear(
+    const api::internal::Core& api,
+    const blockchain::Type network)
+    -> blockchain::p2p::bitcoin::message::internal::Filterclear*
 {
     using ReturnType =
         message::implementation::Nopayload<message::internal::Filterclear>;
 
     return new ReturnType(api, network, bitcoin::Command::filterclear);
 }
-blockchain::p2p::bitcoin::message::internal::Getaddr* Factory::
-    BitcoinP2PGetaddr(
-        const api::internal::Core& api,
-        std::unique_ptr<blockchain::p2p::bitcoin::Header> header)
+auto Factory::BitcoinP2PGetaddr(
+    const api::internal::Core& api,
+    std::unique_ptr<blockchain::p2p::bitcoin::Header> header)
+    -> blockchain::p2p::bitcoin::message::internal::Getaddr*
 {
     using ReturnType =
         message::implementation::Nopayload<message::internal::Getaddr>;
@@ -48,10 +48,10 @@ blockchain::p2p::bitcoin::message::internal::Getaddr* Factory::
     return new ReturnType(api, std::move(header));
 }
 
-blockchain::p2p::bitcoin::message::internal::Getaddr* Factory::
-    BitcoinP2PGetaddr(
-        const api::internal::Core& api,
-        const blockchain::Type network)
+auto Factory::BitcoinP2PGetaddr(
+    const api::internal::Core& api,
+    const blockchain::Type network)
+    -> blockchain::p2p::bitcoin::message::internal::Getaddr*
 {
     using ReturnType =
         message::implementation::Nopayload<message::internal::Getaddr>;
@@ -59,10 +59,10 @@ blockchain::p2p::bitcoin::message::internal::Getaddr* Factory::
     return new ReturnType(api, network, bitcoin::Command::getaddr);
 }
 
-blockchain::p2p::bitcoin::message::internal::Mempool* Factory::
-    BitcoinP2PMempool(
-        const api::internal::Core& api,
-        std::unique_ptr<blockchain::p2p::bitcoin::Header> header)
+auto Factory::BitcoinP2PMempool(
+    const api::internal::Core& api,
+    std::unique_ptr<blockchain::p2p::bitcoin::Header> header)
+    -> blockchain::p2p::bitcoin::message::internal::Mempool*
 {
     using ReturnType =
         message::implementation::Nopayload<message::internal::Mempool>;
@@ -70,10 +70,10 @@ blockchain::p2p::bitcoin::message::internal::Mempool* Factory::
     return new ReturnType(api, std::move(header));
 }
 
-blockchain::p2p::bitcoin::message::internal::Mempool* Factory::
-    BitcoinP2PMempool(
-        const api::internal::Core& api,
-        const blockchain::Type network)
+auto Factory::BitcoinP2PMempool(
+    const api::internal::Core& api,
+    const blockchain::Type network)
+    -> blockchain::p2p::bitcoin::message::internal::Mempool*
 {
     using ReturnType =
         message::implementation::Nopayload<message::internal::Mempool>;
@@ -81,10 +81,10 @@ blockchain::p2p::bitcoin::message::internal::Mempool* Factory::
     return new ReturnType(api, network, bitcoin::Command::mempool);
 }
 
-blockchain::p2p::bitcoin::message::internal::Sendheaders* Factory::
-    BitcoinP2PSendheaders(
-        const api::internal::Core& api,
-        std::unique_ptr<blockchain::p2p::bitcoin::Header> header)
+auto Factory::BitcoinP2PSendheaders(
+    const api::internal::Core& api,
+    std::unique_ptr<blockchain::p2p::bitcoin::Header> header)
+    -> blockchain::p2p::bitcoin::message::internal::Sendheaders*
 {
     using ReturnType =
         message::implementation::Nopayload<message::internal::Sendheaders>;
@@ -92,10 +92,10 @@ blockchain::p2p::bitcoin::message::internal::Sendheaders* Factory::
     return new ReturnType(api, std::move(header));
 }
 
-blockchain::p2p::bitcoin::message::internal::Sendheaders* Factory::
-    BitcoinP2PSendheaders(
-        const api::internal::Core& api,
-        const blockchain::Type network)
+auto Factory::BitcoinP2PSendheaders(
+    const api::internal::Core& api,
+    const blockchain::Type network)
+    -> blockchain::p2p::bitcoin::message::internal::Sendheaders*
 {
     using ReturnType =
         message::implementation::Nopayload<message::internal::Sendheaders>;
@@ -103,9 +103,10 @@ blockchain::p2p::bitcoin::message::internal::Sendheaders* Factory::
     return new ReturnType(api, network, bitcoin::Command::sendheaders);
 }
 
-blockchain::p2p::bitcoin::message::internal::Verack* Factory::BitcoinP2PVerack(
+auto Factory::BitcoinP2PVerack(
     const api::internal::Core& api,
     std::unique_ptr<blockchain::p2p::bitcoin::Header> header)
+    -> blockchain::p2p::bitcoin::message::internal::Verack*
 {
     using ReturnType =
         message::implementation::Nopayload<message::internal::Verack>;
@@ -113,9 +114,10 @@ blockchain::p2p::bitcoin::message::internal::Verack* Factory::BitcoinP2PVerack(
     return new ReturnType(api, std::move(header));
 }
 
-blockchain::p2p::bitcoin::message::internal::Verack* Factory::BitcoinP2PVerack(
+auto Factory::BitcoinP2PVerack(
     const api::internal::Core& api,
     const blockchain::Type network)
+    -> blockchain::p2p::bitcoin::message::internal::Verack*
 {
     using ReturnType =
         message::implementation::Nopayload<message::internal::Verack>;

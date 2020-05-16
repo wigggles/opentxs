@@ -123,13 +123,14 @@ OTPayment::OTPayment(const api::internal::Core& core, const String& strPayment)
 }
 
 // static
-const char* OTPayment::_GetTypeString(paymentType theType)
+auto OTPayment::_GetTypeString(paymentType theType) -> const char*
 {
-    std::int32_t nType = static_cast<std::int32_t>(theType);
+    auto nType = static_cast<std::int32_t>(theType);
     return __TypeStringsPayment[nType];
 }
 
-OTPayment::paymentType OTPayment::GetTypeFromString(const String& strType)
+auto OTPayment::GetTypeFromString(const String& strType)
+    -> OTPayment::paymentType
 {
 #define OT_NUM_ELEM(blah) (sizeof(blah) / sizeof(*(blah)))
     for (std::uint32_t i = 0; i < (OT_NUM_ELEM(__TypeStringsPayment) - 1);
@@ -141,7 +142,7 @@ OTPayment::paymentType OTPayment::GetTypeFromString(const String& strType)
     return OTPayment::ERROR_STATE;
 }
 
-bool OTPayment::SetTempRecipientNymID(const identifier::Nym& id)
+auto OTPayment::SetTempRecipientNymID(const identifier::Nym& id) -> bool
 {
     m_RecipientNymID = id;
 
@@ -156,8 +157,9 @@ bool OTPayment::SetTempRecipientNymID(const identifier::Nym& id)
 // values will
 // be available thereafter.
 //
-bool OTPayment::SetTempValues(const PasswordPrompt& reason)  // This version for
-                                                             // OTTrackable
+auto OTPayment::SetTempValues(const PasswordPrompt& reason)
+    -> bool  // This version for
+             // OTTrackable
 {
     if (OTPayment::NOTICE == m_Type) {
         // Perform instantiation of a notice (OTTransaction), then use it to set
@@ -249,7 +251,7 @@ bool OTPayment::SetTempValues(const PasswordPrompt& reason)  // This version for
     return false;  // Should never actually reach this point.
 }
 
-bool OTPayment::SetTempValuesFromCheque(const Cheque& theInput)
+auto OTPayment::SetTempValuesFromCheque(const Cheque& theInput) -> bool
 {
     switch (m_Type) {
         case OTPayment::CHEQUE:
@@ -312,9 +314,9 @@ bool OTPayment::SetTempValuesFromCheque(const Cheque& theInput)
     return false;
 }
 
-bool OTPayment::SetTempValuesFromNotice(
+auto OTPayment::SetTempValuesFromNotice(
     const OTTransaction& theInput,
-    const PasswordPrompt& reason)
+    const PasswordPrompt& reason) -> bool
 {
     if (OTPayment::NOTICE == m_Type) {
         m_bAreTempValuesSet = true;
@@ -376,9 +378,8 @@ bool OTPayment::SetTempValuesFromNotice(
         }
         std::unique_ptr<OTTrackable> theTrackableAngel(pTrackable);
         // -------------------------------------------
-        OTPaymentPlan* pPlan = dynamic_cast<OTPaymentPlan*>(pTrackable);
-        OTSmartContract* pSmartContract =
-            dynamic_cast<OTSmartContract*>(pTrackable);
+        auto* pPlan = dynamic_cast<OTPaymentPlan*>(pTrackable);
+        auto* pSmartContract = dynamic_cast<OTSmartContract*>(pTrackable);
 
         if (nullptr != pPlan) {
             lowLevelSetTempValuesFromPaymentPlan(*pPlan);
@@ -435,7 +436,8 @@ void OTPayment::lowLevelSetTempValuesFromPaymentPlan(
     m_VALID_TO = theInput.GetValidTo();
 }
 
-bool OTPayment::SetTempValuesFromPaymentPlan(const OTPaymentPlan& theInput)
+auto OTPayment::SetTempValuesFromPaymentPlan(const OTPaymentPlan& theInput)
+    -> bool
 {
     if (OTPayment::PAYMENT_PLAN == m_Type) {
         lowLevelSetTempValuesFromPaymentPlan(theInput);
@@ -527,7 +529,8 @@ void OTPayment::lowLevelSetTempValuesFromSmartContract(
     m_VALID_TO = theInput.GetValidTo();
 }
 
-bool OTPayment::SetTempValuesFromSmartContract(const OTSmartContract& theInput)
+auto OTPayment::SetTempValuesFromSmartContract(const OTSmartContract& theInput)
+    -> bool
 {
     if (OTPayment::SMART_CONTRACT == m_Type) {
         lowLevelSetTempValuesFromSmartContract(theInput);
@@ -540,7 +543,7 @@ bool OTPayment::SetTempValuesFromSmartContract(const OTSmartContract& theInput)
     return false;
 }
 
-bool OTPayment::GetMemo(String& strOutput) const
+auto OTPayment::GetMemo(String& strOutput) const -> bool
 {
     strOutput.Release();
 
@@ -573,7 +576,7 @@ bool OTPayment::GetMemo(String& strOutput) const
     return bSuccess;
 }
 
-bool OTPayment::GetAmount(std::int64_t& lOutput) const
+auto OTPayment::GetAmount(std::int64_t& lOutput) const -> bool
 {
     lOutput = 0;
 
@@ -604,9 +607,9 @@ bool OTPayment::GetAmount(std::int64_t& lOutput) const
     return bSuccess;
 }
 
-bool OTPayment::GetAllTransactionNumbers(
+auto OTPayment::GetAllTransactionNumbers(
     NumList& numlistOutput,
-    const PasswordPrompt& reason) const
+    const PasswordPrompt& reason) const -> bool
 {
     OT_ASSERT_MSG(
         m_bAreTempValuesSet,
@@ -636,9 +639,8 @@ bool OTPayment::GetAllTransactionNumbers(
         }  // Below THIS POINT, MUST DELETE pTrackable!
         std::unique_ptr<OTTrackable> theTrackableAngel(pTrackable);
 
-        OTPaymentPlan* pPlan = dynamic_cast<OTPaymentPlan*>(pTrackable);
-        OTSmartContract* pSmartContract =
-            dynamic_cast<OTSmartContract*>(pTrackable);
+        auto* pPlan = dynamic_cast<OTPaymentPlan*>(pTrackable);
+        auto* pSmartContract = dynamic_cast<OTSmartContract*>(pTrackable);
 
         if (nullptr != pPlan) {
             pPlan->GetAllTransactionNumbers(numlistOutput);
@@ -741,9 +743,9 @@ bool OTPayment::GetAllTransactionNumbers(
 // This works with a cheque who has a transaction number.
 // It also works with a payment plan or smart contract, for opening AND closing
 // numbers.
-bool OTPayment::HasTransactionNum(
+auto OTPayment::HasTransactionNum(
     const std::int64_t& lInput,
-    const PasswordPrompt& reason) const
+    const PasswordPrompt& reason) const -> bool
 {
     OT_ASSERT_MSG(
         m_bAreTempValuesSet,
@@ -856,10 +858,10 @@ bool OTPayment::HasTransactionNum(
     return bSuccess;
 }
 
-bool OTPayment::GetClosingNum(
+auto OTPayment::GetClosingNum(
     std::int64_t& lOutput,
     const Identifier& theAcctID,
-    const PasswordPrompt& reason) const
+    const PasswordPrompt& reason) const -> bool
 {
     lOutput = 0;
 
@@ -975,10 +977,10 @@ bool OTPayment::GetClosingNum(
     return bSuccess;
 }
 
-bool OTPayment::GetOpeningNum(
+auto OTPayment::GetOpeningNum(
     std::int64_t& lOutput,
     const identifier::Nym& theNymID,
-    const PasswordPrompt& reason) const
+    const PasswordPrompt& reason) const -> bool
 {
     lOutput = 0;
 
@@ -1113,7 +1115,7 @@ bool OTPayment::GetOpeningNum(
     return bSuccess;
 }
 
-bool OTPayment::GetTransNumDisplay(std::int64_t& lOutput) const
+auto OTPayment::GetTransNumDisplay(std::int64_t& lOutput) const -> bool
 {
     lOutput = 0;
 
@@ -1172,7 +1174,7 @@ bool OTPayment::GetTransNumDisplay(std::int64_t& lOutput) const
     return bSuccess;
 }
 
-bool OTPayment::GetTransactionNum(std::int64_t& lOutput) const
+auto OTPayment::GetTransactionNum(std::int64_t& lOutput) const -> bool
 {
     lOutput = 0;
 
@@ -1204,7 +1206,7 @@ bool OTPayment::GetTransactionNum(std::int64_t& lOutput) const
     return bSuccess;
 }
 
-bool OTPayment::GetValidFrom(Time& tOutput) const
+auto OTPayment::GetValidFrom(Time& tOutput) const -> bool
 {
     tOutput = Time{};
 
@@ -1231,7 +1233,7 @@ bool OTPayment::GetValidFrom(Time& tOutput) const
     return bSuccess;
 }
 
-bool OTPayment::GetValidTo(Time& tOutput) const
+auto OTPayment::GetValidTo(Time& tOutput) const -> bool
 {
     tOutput = Time{};
 
@@ -1265,7 +1267,7 @@ bool OTPayment::GetValidTo(Time& tOutput) const
 // to know if it's expired, regardless of whether it's valid yet. So this
 // function answers that for you.
 //
-bool OTPayment::IsExpired(bool& bExpired)
+auto OTPayment::IsExpired(bool& bExpired) -> bool
 {
     if (!m_bAreTempValuesSet) return false;
 
@@ -1286,7 +1288,7 @@ bool OTPayment::IsExpired(bool& bExpired)
 
 // Verify whether the CURRENT date is WITHIN the VALID FROM / TO dates.
 //
-bool OTPayment::VerifyCurrentDate(bool& bVerified)
+auto OTPayment::VerifyCurrentDate(bool& bVerified) -> bool
 {
     if (!m_bAreTempValuesSet) return false;
 
@@ -1302,7 +1304,7 @@ bool OTPayment::VerifyCurrentDate(bool& bVerified)
     return true;
 }
 
-bool OTPayment::GetInstrumentDefinitionID(Identifier& theOutput) const
+auto OTPayment::GetInstrumentDefinitionID(Identifier& theOutput) const -> bool
 {
     theOutput.Release();
 
@@ -1332,7 +1334,7 @@ bool OTPayment::GetInstrumentDefinitionID(Identifier& theOutput) const
     return bSuccess;
 }
 
-bool OTPayment::GetNotaryID(Identifier& theOutput) const
+auto OTPayment::GetNotaryID(Identifier& theOutput) const -> bool
 {
     theOutput.Release();
 
@@ -1367,7 +1369,7 @@ bool OTPayment::GetNotaryID(Identifier& theOutput) const
 // With a voucher (cashier's cheque) the "bank" is the "sender",
 // whereas the actual Nym who purchased it is the "remitter."
 //
-bool OTPayment::GetRemitterNymID(identifier::Nym& theOutput) const
+auto OTPayment::GetRemitterNymID(identifier::Nym& theOutput) const -> bool
 {
     theOutput.Release();
 
@@ -1395,7 +1397,7 @@ bool OTPayment::GetRemitterNymID(identifier::Nym& theOutput) const
 // whereas the actual account originally used to purchase it is the "remitter"
 // acct.
 //
-bool OTPayment::GetRemitterAcctID(Identifier& theOutput) const
+auto OTPayment::GetRemitterAcctID(Identifier& theOutput) const -> bool
 {
     theOutput.Release();
 
@@ -1419,21 +1421,22 @@ bool OTPayment::GetRemitterAcctID(Identifier& theOutput) const
     return bSuccess;
 }
 
-bool OTPayment::GetSenderNymIDForDisplay(identifier::Nym& theOutput) const
+auto OTPayment::GetSenderNymIDForDisplay(identifier::Nym& theOutput) const
+    -> bool
 {
     if (IsVoucher()) return GetRemitterNymID(theOutput);
 
     return GetSenderNymID(theOutput);
 }
 
-bool OTPayment::GetSenderAcctIDForDisplay(Identifier& theOutput) const
+auto OTPayment::GetSenderAcctIDForDisplay(Identifier& theOutput) const -> bool
 {
     if (IsVoucher()) return GetRemitterAcctID(theOutput);
 
     return GetSenderAcctID(theOutput);
 }
 
-bool OTPayment::GetSenderNymID(identifier::Nym& theOutput) const
+auto OTPayment::GetSenderNymID(identifier::Nym& theOutput) const -> bool
 {
     theOutput.Release();
 
@@ -1460,7 +1463,7 @@ bool OTPayment::GetSenderNymID(identifier::Nym& theOutput) const
     return bSuccess;
 }
 
-bool OTPayment::GetSenderAcctID(Identifier& theOutput) const
+auto OTPayment::GetSenderAcctID(Identifier& theOutput) const -> bool
 {
     theOutput.Release();
 
@@ -1490,7 +1493,7 @@ bool OTPayment::GetSenderAcctID(Identifier& theOutput) const
     return bSuccess;
 }
 
-bool OTPayment::GetRecipientNymID(identifier::Nym& theOutput) const
+auto OTPayment::GetRecipientNymID(identifier::Nym& theOutput) const -> bool
 {
     theOutput.Release();
 
@@ -1524,7 +1527,7 @@ bool OTPayment::GetRecipientNymID(identifier::Nym& theOutput) const
     return bSuccess;
 }
 
-bool OTPayment::GetRecipientAcctID(Identifier& theOutput) const
+auto OTPayment::GetRecipientAcctID(Identifier& theOutput) const -> bool
 {
     // NOTE:
     // A cheque HAS NO "Recipient Asset Acct ID", since the recipient's account
@@ -1582,7 +1585,7 @@ void OTPayment::InitPayment()
 
 // CALLER is responsible to delete.
 //
-OTTrackable* OTPayment::Instantiate() const
+auto OTPayment::Instantiate() const -> OTTrackable*
 {
     std::unique_ptr<Contract> pContract;
     OTTrackable* pTrackable = nullptr;
@@ -1675,14 +1678,14 @@ OTTrackable* OTPayment::Instantiate() const
     return pTrackable;
 }
 
-OTTrackable* OTPayment::Instantiate(const String& strPayment)
+auto OTPayment::Instantiate(const String& strPayment) -> OTTrackable*
 {
     if (SetPayment(strPayment)) return Instantiate();
 
     return nullptr;
 }
 
-OTTransaction* OTPayment::InstantiateNotice(const String& strNotice)
+auto OTPayment::InstantiateNotice(const String& strNotice) -> OTTransaction*
 {
     if (!SetPayment(strNotice))
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -1700,7 +1703,7 @@ OTTransaction* OTPayment::InstantiateNotice(const String& strNotice)
     return nullptr;
 }
 
-OTTransaction* OTPayment::InstantiateNotice() const
+auto OTPayment::InstantiateNotice() const -> OTTransaction*
 {
     if (m_strPayment->Exists() && (OTPayment::NOTICE == GetType())) {
         auto pType = api_.Factory().Transaction(m_strPayment);
@@ -1714,7 +1717,7 @@ OTTransaction* OTPayment::InstantiateNotice() const
             return nullptr;
         }
 
-        OTTransaction* pNotice = dynamic_cast<OTTransaction*>(pType.release());
+        auto* pNotice = dynamic_cast<OTTransaction*>(pType.release());
 
         if (nullptr == pNotice) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -1735,7 +1738,7 @@ OTTransaction* OTPayment::InstantiateNotice() const
     return nullptr;
 }
 
-bool OTPayment::IsCancelledCheque(const PasswordPrompt& reason)
+auto OTPayment::IsCancelledCheque(const PasswordPrompt& reason) -> bool
 {
     if (false == m_bAreTempValuesSet) {
         if (false == SetTempValues(reason)) {
@@ -1781,7 +1784,7 @@ bool OTPayment::IsCancelledCheque(const PasswordPrompt& reason)
     return true;
 }
 
-std::int32_t OTPayment::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
+auto OTPayment::ProcessXMLNode(irr::io::IrrXMLReader*& xml) -> std::int32_t
 {
     const auto strNodeName = String::Factory(xml->getNodeName());
 
@@ -1858,7 +1861,7 @@ void OTPayment::Release_Payment()
     m_RemitterAcctID->Release();
 }
 
-bool OTPayment::SetPayment(const String& strPayment)
+auto OTPayment::SetPayment(const String& strPayment) -> bool
 {
     if (!strPayment.Exists()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Empty input string.").Flush();

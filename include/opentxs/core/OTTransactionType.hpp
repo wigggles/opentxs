@@ -729,7 +729,7 @@ protected:
     explicit OTTransactionType(const api::internal::Core& core);
 
 private:
-    typedef Contract ot_super;
+    using ot_super = Contract;
 
     OTTransactionType() = delete;
 };

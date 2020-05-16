@@ -69,7 +69,7 @@ using PayableListList = List<
 class PayableList final : public PayableListList
 {
 public:
-    const Identifier& ID() const final;
+    auto ID() const -> const Identifier& final;
 
     PayableList(
         const api::client::internal::Manager& api,
@@ -88,11 +88,11 @@ private:
     const OTIdentifier owner_contact_id_;
     const proto::ContactItemType currency_;
 
-    void* construct_row(
+    auto construct_row(
         const PayableListRowID& id,
         const PayableListSortKey& index,
-        const CustomData& custom) const noexcept final;
-    bool last(const PayableListRowID& id) const noexcept final
+        const CustomData& custom) const noexcept -> void* final;
+    auto last(const PayableListRowID& id) const noexcept -> bool final
     {
         return PayableListList::last(id);
     }
@@ -107,7 +107,7 @@ private:
     PayableList() = delete;
     PayableList(const PayableList&) = delete;
     PayableList(PayableList&&) = delete;
-    PayableList& operator=(const PayableList&) = delete;
-    PayableList& operator=(PayableList&&) = delete;
+    auto operator=(const PayableList&) -> PayableList& = delete;
+    auto operator=(PayableList &&) -> PayableList& = delete;
 };
 }  // namespace opentxs::ui::implementation

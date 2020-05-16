@@ -181,7 +181,7 @@ Basket::Basket(const Basket& rhs)
 {
 }
 
-OTIdentifier Basket::BasketID() const
+auto Basket::BasketID() const -> OTIdentifier
 {
     Lock lock(lock_);
 

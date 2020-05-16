@@ -28,14 +28,14 @@ namespace opentxs::api::crypto::implementation
 class Config final : public api::crypto::Config
 {
 public:
-    std::uint32_t IterationCount() const override;
-    std::uint32_t SymmetricSaltSize() const override;
-    std::uint32_t SymmetricKeySize() const override;
-    std::uint32_t SymmetricKeySizeMax() const override;
-    std::uint32_t SymmetricIvSize() const override;
-    std::uint32_t SymmetricBufferSize() const override;
-    std::uint32_t PublicKeysize() const override;
-    std::uint32_t PublicKeysizeMax() const override;
+    auto IterationCount() const -> std::uint32_t override;
+    auto SymmetricSaltSize() const -> std::uint32_t override;
+    auto SymmetricKeySize() const -> std::uint32_t override;
+    auto SymmetricKeySizeMax() const -> std::uint32_t override;
+    auto SymmetricIvSize() const -> std::uint32_t override;
+    auto SymmetricBufferSize() const -> std::uint32_t override;
+    auto PublicKeysize() const -> std::uint32_t override;
+    auto PublicKeysizeMax() const -> std::uint32_t override;
 
 private:
     friend opentxs::Factory;
@@ -50,17 +50,17 @@ private:
     mutable std::int32_t sp_nPublicKeysize{0};
     mutable std::int32_t sp_nPublicKeysizeMax{0};
 
-    bool GetSetAll() const;
-    bool GetSetValue(
+    auto GetSetAll() const -> bool;
+    auto GetSetValue(
         const std::string& strKeyName,
         const std::int32_t nDefaultValue,
-        std::int32_t& out_nValue) const;
+        std::int32_t& out_nValue) const -> bool;
 
     Config(const api::Settings& settings);
     Config() = delete;
     Config(const Config&) = delete;
     Config(Config&&) = delete;
-    Config& operator=(const Config&) = delete;
-    Config& operator=(Config&&) = delete;
+    auto operator=(const Config&) -> Config& = delete;
+    auto operator=(Config &&) -> Config& = delete;
 };
 }  // namespace opentxs::api::crypto::implementation

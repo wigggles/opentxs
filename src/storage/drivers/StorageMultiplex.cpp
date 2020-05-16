@@ -32,7 +32,7 @@
 
 namespace opentxs
 {
-opentxs::api::storage::Multiplex* Factory::StorageMultiplex(
+auto Factory::StorageMultiplex(
     const api::storage::Storage& storage,
     const Flag& primaryBucket,
     const StorageConfig& config,
@@ -40,7 +40,7 @@ opentxs::api::storage::Multiplex* Factory::StorageMultiplex(
     const bool migrate,
     const String& previous,
     const Digest& hash,
-    const Random& random)
+    const Random& random) -> opentxs::api::storage::Multiplex*
 {
     return new opentxs::storage::implementation::StorageMultiplex(
         storage,
@@ -77,7 +77,7 @@ StorageMultiplex::StorageMultiplex(
     Init_StorageMultiplex(primary, migrate, previous);
 }
 
-std::string StorageMultiplex::BestRoot(bool& primaryOutOfSync)
+auto StorageMultiplex::BestRoot(bool& primaryOutOfSync) -> std::string
 {
     OT_ASSERT(primary_plugin_);
 
@@ -136,7 +136,7 @@ void StorageMultiplex::Cleanup() { Cleanup_StorageMultiplex(); }
 
 void StorageMultiplex::Cleanup_StorageMultiplex() {}
 
-bool StorageMultiplex::EmptyBucket(const bool bucket) const
+auto StorageMultiplex::EmptyBucket(const bool bucket) const -> bool
 {
     OT_ASSERT(primary_plugin_);
 
@@ -273,10 +273,10 @@ void StorageMultiplex::InitEncryptedBackup([
 #endif
 }
 
-bool StorageMultiplex::Load(
+auto StorageMultiplex::Load(
     const std::string& key,
     const bool checking,
-    std::string& value) const
+    std::string& value) const -> bool
 {
     OT_ASSERT(primary_plugin_);
 
@@ -319,10 +319,10 @@ bool StorageMultiplex::Load(
     return false;
 }
 
-bool StorageMultiplex::LoadFromBucket(
+auto StorageMultiplex::LoadFromBucket(
     const std::string& key,
     std::string& value,
-    const bool bucket) const
+    const bool bucket) const -> bool
 {
     OT_ASSERT(primary_plugin_);
 
@@ -337,7 +337,7 @@ bool StorageMultiplex::LoadFromBucket(
     return false;
 }
 
-std::string StorageMultiplex::LoadRoot() const
+auto StorageMultiplex::LoadRoot() const -> std::string
 {
     OT_ASSERT(primary_plugin_);
 
@@ -356,9 +356,9 @@ std::string StorageMultiplex::LoadRoot() const
     return root;
 }
 
-bool StorageMultiplex::Migrate(
+auto StorageMultiplex::Migrate(
     const std::string& key,
-    const opentxs::api::storage::Driver& to) const
+    const opentxs::api::storage::Driver& to) const -> bool
 {
     OT_ASSERT(primary_plugin_);
 
@@ -417,18 +417,18 @@ void StorageMultiplex::migrate_primary(
     old.reset(newPlugin.release());
 }
 
-opentxs::api::storage::Driver& StorageMultiplex::Primary()
+auto StorageMultiplex::Primary() -> opentxs::api::storage::Driver&
 {
     OT_ASSERT(primary_plugin_);
 
     return *primary_plugin_;
 }
 
-bool StorageMultiplex::Store(
+auto StorageMultiplex::Store(
     const bool isTransaction,
     const std::string& key,
     const std::string& value,
-    const bool bucket) const
+    const bool bucket) const -> bool
 {
     OT_ASSERT(primary_plugin_);
 
@@ -467,10 +467,10 @@ void StorageMultiplex::Store(
     OT_FAIL;
 }
 
-bool StorageMultiplex::Store(
+auto StorageMultiplex::Store(
     const bool isTransaction,
     const std::string& key,
-    std::string& value) const
+    std::string& value) const -> bool
 {
     OT_ASSERT(primary_plugin_);
 
@@ -485,8 +485,8 @@ bool StorageMultiplex::Store(
     return output;
 }
 
-bool StorageMultiplex::StoreRoot(const bool commit, const std::string& hash)
-    const
+auto StorageMultiplex::StoreRoot(const bool commit, const std::string& hash)
+    const -> bool
 {
     OT_ASSERT(primary_plugin_);
 

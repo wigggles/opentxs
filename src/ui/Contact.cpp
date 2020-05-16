@@ -131,15 +131,15 @@ Contact::Contact(
     OT_ASSERT(startup_)
 }
 
-bool Contact::check_type(const proto::ContactSectionName type) noexcept
+auto Contact::check_type(const proto::ContactSectionName type) noexcept -> bool
 {
     return 1 == allowed_types_.count(type);
 }
 
-void* Contact::construct_row(
+auto Contact::construct_row(
     const ContactRowID& id,
     const ContactSortKey& index,
-    const CustomData& custom) const noexcept
+    const CustomData& custom) const noexcept -> void*
 {
     names_.emplace(id, index);
     const auto [it, added] = items_[index].emplace(
@@ -160,16 +160,19 @@ void* Contact::construct_row(
     return it->second.get();
 }
 
-std::string Contact::ContactID() const noexcept { return primary_id_->str(); }
+auto Contact::ContactID() const noexcept -> std::string
+{
+    return primary_id_->str();
+}
 
-std::string Contact::DisplayName() const noexcept
+auto Contact::DisplayName() const noexcept -> std::string
 {
     Lock lock(lock_);
 
     return name_;
 }
 
-std::string Contact::PaymentCode() const noexcept
+auto Contact::PaymentCode() const noexcept -> std::string
 {
     Lock lock(lock_);
 
@@ -223,7 +226,7 @@ void Contact::process_contact(const network::zeromq::Message& message) noexcept
     process_contact(*contact);
 }
 
-int Contact::sort_key(const proto::ContactSectionName type) noexcept
+auto Contact::sort_key(const proto::ContactSectionName type) noexcept -> int
 {
     return sort_keys_.at(type);
 }

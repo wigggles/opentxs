@@ -43,8 +43,8 @@ namespace opentxs::blockchain::p2p::bitcoin::message::implementation
 class Blocktxn final : public internal::Blocktxn
 {
 public:
-    OTData BlockTransactions() const noexcept final { return payload_; }
-    OTData payload() const noexcept final { return payload_; }
+    auto BlockTransactions() const noexcept -> OTData final { return payload_; }
+    auto payload() const noexcept -> OTData final { return payload_; }
 
     ~Blocktxn() final = default;
 
@@ -63,7 +63,7 @@ private:
         const Data& raw_Blocktxn) noexcept;
     Blocktxn(const Blocktxn&) = delete;
     Blocktxn(Blocktxn&&) = delete;
-    Blocktxn& operator=(const Blocktxn&) = delete;
-    Blocktxn& operator=(Blocktxn&&) = delete;
+    auto operator=(const Blocktxn&) -> Blocktxn& = delete;
+    auto operator=(Blocktxn &&) -> Blocktxn& = delete;
 };
 }  // namespace opentxs::blockchain::p2p::bitcoin::message::implementation

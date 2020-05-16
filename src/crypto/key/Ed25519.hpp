@@ -50,14 +50,14 @@ namespace opentxs::crypto::key::implementation
 class Ed25519 final : virtual public key::Ed25519, public HD
 {
 public:
-    NymParameterType CreateType() const final
+    auto CreateType() const -> NymParameterType final
     {
         return NymParameterType::ed25519;
     }
-    bool TransportKey(
+    auto TransportKey(
         Data& publicKey,
         OTPassword& privateKey,
-        const PasswordPrompt& reason) const noexcept final;
+        const PasswordPrompt& reason) const noexcept -> bool final;
 
     Ed25519(
         const api::internal::Core& api,
@@ -89,9 +89,9 @@ public:
 private:
     using ot_super = HD;
 
-    Ed25519* clone() const noexcept final { return new Ed25519(*this); }
-    Ed25519* clone_ec() const noexcept final { return clone(); }
-    std::shared_ptr<proto::AsymmetricKey> get_public() const final
+    auto clone() const noexcept -> Ed25519* final { return new Ed25519(*this); }
+    auto clone_ec() const noexcept -> Ed25519* final { return clone(); }
+    auto get_public() const -> std::shared_ptr<proto::AsymmetricKey> final
     {
         return serialize_public(clone());
     }
@@ -99,7 +99,7 @@ private:
     Ed25519() = delete;
     Ed25519(const Ed25519&) noexcept;
     Ed25519(Ed25519&&) = delete;
-    Ed25519& operator=(const Ed25519&) = delete;
-    Ed25519& operator=(Ed25519&&) = delete;
+    auto operator=(const Ed25519&) -> Ed25519& = delete;
+    auto operator=(Ed25519 &&) -> Ed25519& = delete;
 };
 }  // namespace opentxs::crypto::key::implementation

@@ -95,15 +95,16 @@ private:
     const ListenerDefinitions listeners_;
     const Flag& running_;
 
-    static const proto::StorageThreadItem& newest_item(
+    static auto newest_item(
         const proto::StorageThread& thread,
-        CustomData& custom) noexcept;
+        CustomData& custom) noexcept -> const proto::StorageThreadItem&;
 
-    void* construct_row(
+    auto construct_row(
         const ActivitySummaryRowID& id,
         const ActivitySummarySortKey& index,
-        const CustomData& custom) const noexcept final;
-    std::string display_name(const proto::StorageThread& thread) const noexcept;
+        const CustomData& custom) const noexcept -> void* final;
+    auto display_name(const proto::StorageThread& thread) const noexcept
+        -> std::string;
 
     void process_thread(const std::string& threadID) noexcept;
     void process_thread(const network::zeromq::Message& message) noexcept;
@@ -112,7 +113,7 @@ private:
     ActivitySummary() = delete;
     ActivitySummary(const ActivitySummary&) = delete;
     ActivitySummary(ActivitySummary&&) = delete;
-    ActivitySummary& operator=(const ActivitySummary&) = delete;
-    ActivitySummary& operator=(ActivitySummary&&) = delete;
+    auto operator=(const ActivitySummary&) -> ActivitySummary& = delete;
+    auto operator=(ActivitySummary &&) -> ActivitySummary& = delete;
 };
 }  // namespace opentxs::ui::implementation

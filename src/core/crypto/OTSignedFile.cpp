@@ -96,14 +96,17 @@ OTSignedFile::OTSignedFile(
     SetFilename(strLocalSubdir, strFile_Name);
 }
 
-String& OTSignedFile::GetFilePayload() { return m_strSignedFilePayload; }
+auto OTSignedFile::GetFilePayload() -> String&
+{
+    return m_strSignedFilePayload;
+}
 
 void OTSignedFile::SetFilePayload(const String& strArg)
 {
     m_strSignedFilePayload = strArg;
 }
 
-String& OTSignedFile::GetSignerNymID() { return m_strSignerNymID; }
+auto OTSignedFile::GetSignerNymID() -> String& { return m_strSignerNymID; }
 
 void OTSignedFile::SetSignerNymID(const String& strArg)
 {
@@ -136,7 +139,7 @@ void OTSignedFile::UpdateContents(const PasswordPrompt& reason)
     m_xmlUnsigned->Concatenate("%s", str_result.c_str());
 }
 
-std::int32_t OTSignedFile::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
+auto OTSignedFile::ProcessXMLNode(irr::io::IrrXMLReader*& xml) -> std::int32_t
 {
     std::int32_t nReturnVal = 0;
 
@@ -186,7 +189,7 @@ std::int32_t OTSignedFile::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 // like this  :-)
 //
 // Assumes SetFilename() has been set, and that LoadFile() has just been called.
-bool OTSignedFile::VerifyFile()
+auto OTSignedFile::VerifyFile() -> bool
 {
     if (m_strLocalDir->Compare(m_strPurportedLocalDir) &&
         m_strSignedFilename->Compare(m_strPurportedFilename))
@@ -205,7 +208,7 @@ bool OTSignedFile::VerifyFile()
 // for saving the internal file payload based on the internal file information,
 // which
 // this method assumes has already been set (using SetFilename())
-bool OTSignedFile::SaveFile()
+auto OTSignedFile::SaveFile() -> bool
 {
     const auto strTheFileName(m_strFilename);
     const auto strTheFolderName(m_strFoldername);
@@ -224,7 +227,7 @@ bool OTSignedFile::SaveFile()
 }
 
 // Assumes SetFilename() has already been set.
-bool OTSignedFile::LoadFile()
+auto OTSignedFile::LoadFile() -> bool
 {
     if (OTDB::Exists(
             api_,

@@ -46,9 +46,9 @@ Bidirectional<InterfaceType, MessageType>::Bidirectional(
 }
 
 template <typename InterfaceType, typename MessageType>
-bool Bidirectional<InterfaceType, MessageType>::apply_timeouts(
+auto Bidirectional<InterfaceType, MessageType>::apply_timeouts(
     void* socket,
-    std::mutex& socket_mutex) const noexcept
+    std::mutex& socket_mutex) const noexcept -> bool
 {
     OT_ASSERT(nullptr != socket);
     Lock lock(socket_mutex);
@@ -89,10 +89,10 @@ bool Bidirectional<InterfaceType, MessageType>::apply_timeouts(
 }
 
 template <typename InterfaceType, typename MessageType>
-bool Bidirectional<InterfaceType, MessageType>::bind(
+auto Bidirectional<InterfaceType, MessageType>::bind(
     void* socket,
     std::mutex& socket_mutex,
-    const std::string& endpoint) const noexcept
+    const std::string& endpoint) const noexcept -> bool
 {
     apply_timeouts(socket, socket_mutex);
 
@@ -100,10 +100,10 @@ bool Bidirectional<InterfaceType, MessageType>::bind(
 }
 
 template <typename InterfaceType, typename MessageType>
-bool Bidirectional<InterfaceType, MessageType>::connect(
+auto Bidirectional<InterfaceType, MessageType>::connect(
     void* socket,
     std::mutex& socket_mutex,
-    const std::string& endpoint) const noexcept
+    const std::string& endpoint) const noexcept -> bool
 {
     apply_timeouts(socket, socket_mutex);
 
@@ -145,8 +145,8 @@ void Bidirectional<InterfaceType, MessageType>::init() noexcept
 }
 
 template <typename InterfaceType, typename MessageType>
-bool Bidirectional<InterfaceType, MessageType>::process_pull_socket(
-    const Lock& lock) noexcept
+auto Bidirectional<InterfaceType, MessageType>::process_pull_socket(
+    const Lock& lock) noexcept -> bool
 {
     auto msg = Message::Factory();
     const auto received = Socket::receive_message(lock, pull_socket_, msg);
@@ -159,8 +159,8 @@ bool Bidirectional<InterfaceType, MessageType>::process_pull_socket(
 }
 
 template <typename InterfaceType, typename MessageType>
-bool Bidirectional<InterfaceType, MessageType>::process_receiver_socket(
-    const Lock& lock) noexcept
+auto Bidirectional<InterfaceType, MessageType>::process_receiver_socket(
+    const Lock& lock) noexcept -> bool
 {
     auto reply = Message::Factory();
     const auto received = Socket::receive_message(lock, this->socket_, reply);
@@ -173,8 +173,8 @@ bool Bidirectional<InterfaceType, MessageType>::process_receiver_socket(
 }
 
 template <typename InterfaceType, typename MessageType>
-bool Bidirectional<InterfaceType, MessageType>::send(
-    zeromq::Message& message) const noexcept
+auto Bidirectional<InterfaceType, MessageType>::send(
+    zeromq::Message& message) const noexcept -> bool
 {
     Lock lock(send_lock_);
 
@@ -186,9 +186,9 @@ bool Bidirectional<InterfaceType, MessageType>::send(
 }
 
 template <typename InterfaceType, typename MessageType>
-bool Bidirectional<InterfaceType, MessageType>::send(
+auto Bidirectional<InterfaceType, MessageType>::send(
     const Lock& lock,
-    zeromq::Message& message) noexcept
+    zeromq::Message& message) noexcept -> bool
 {
     return Socket::send_message(lock, this->socket_, message);
 }

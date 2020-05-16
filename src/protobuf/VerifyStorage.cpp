@@ -7,7 +7,7 @@
 
 namespace opentxs::proto
 {
-const VersionMap& BlindedSeriesListAllowedStorageItemHash() noexcept
+auto BlindedSeriesListAllowedStorageItemHash() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 2}},
@@ -15,7 +15,7 @@ const VersionMap& BlindedSeriesListAllowedStorageItemHash() noexcept
 
     return output;
 }
-const VersionMap& StorageAccountsAllowedStorageAccountIndex() noexcept
+auto StorageAccountsAllowedStorageAccountIndex() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -23,7 +23,7 @@ const VersionMap& StorageAccountsAllowedStorageAccountIndex() noexcept
 
     return output;
 }
-const VersionMap& StorageAccountsAllowedStorageItemHash() noexcept
+auto StorageAccountsAllowedStorageItemHash() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 2}},
@@ -31,7 +31,7 @@ const VersionMap& StorageAccountsAllowedStorageItemHash() noexcept
 
     return output;
 }
-const VersionMap& StorageAccountsAllowedStorageIDList() noexcept
+auto StorageAccountsAllowedStorageIDList() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -39,26 +39,28 @@ const VersionMap& StorageAccountsAllowedStorageIDList() noexcept
 
     return output;
 }
-const VersionMap& StorageBip47ContextsAllowedStorageBip47AddressIndex() noexcept
+auto StorageBip47ContextsAllowedStorageBip47AddressIndex() noexcept
+    -> const VersionMap&
 {
     static const auto output = VersionMap{{1, {1, 1}}};
 
     return output;
 }
-const VersionMap& StorageBip47ContextsAllowedStorageItemHash() noexcept
+auto StorageBip47ContextsAllowedStorageItemHash() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{{1, {1, 2}}};
 
     return output;
 }
-const VersionMap& StorageBip47ContextsAllowedStorageBip47ChannelList() noexcept
+auto StorageBip47ContextsAllowedStorageBip47ChannelList() noexcept
+    -> const VersionMap&
 {
     static const auto output = VersionMap{{1, {1, 1}}};
 
     return output;
 }
-const VersionMap&
-StorageBlockchainTransactionsAllowedStorageContactNymIndex() noexcept
+auto StorageBlockchainTransactionsAllowedStorageContactNymIndex() noexcept
+    -> const VersionMap&
 {
     static const auto output = VersionMap{
         {2, {1, 1}},
@@ -66,7 +68,8 @@ StorageBlockchainTransactionsAllowedStorageContactNymIndex() noexcept
 
     return output;
 }
-const VersionMap& StorageBlockchainTransactionsAllowedStorageItemHash() noexcept
+auto StorageBlockchainTransactionsAllowedStorageItemHash() noexcept
+    -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 2}},
@@ -75,13 +78,14 @@ const VersionMap& StorageBlockchainTransactionsAllowedStorageItemHash() noexcept
 
     return output;
 }
-const VersionMap& StorageBlockchainTxoAllowedBlockchainPreviousOutput() noexcept
+auto StorageBlockchainTxoAllowedBlockchainPreviousOutput() noexcept
+    -> const VersionMap&
 {
     static const auto output = VersionMap{{1, {1, 1}}};
 
     return output;
 }
-const VersionMap& StorageContactsAllowedAddress() noexcept
+auto StorageContactsAllowedAddress() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -90,7 +94,7 @@ const VersionMap& StorageContactsAllowedAddress() noexcept
 
     return output;
 }
-const VersionMap& StorageContactsAllowedList() noexcept
+auto StorageContactsAllowedList() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -99,7 +103,8 @@ const VersionMap& StorageContactsAllowedList() noexcept
 
     return output;
 }
-const VersionMap& StorageContactsAllowedStorageContactNymIndex() noexcept
+auto StorageContactsAllowedStorageContactNymIndex() noexcept
+    -> const VersionMap&
 {
     static const auto output = VersionMap{
         {2, {1, 1}},
@@ -107,7 +112,7 @@ const VersionMap& StorageContactsAllowedStorageContactNymIndex() noexcept
 
     return output;
 }
-const VersionMap& StorageContactsAllowedStorageItemHash() noexcept
+auto StorageContactsAllowedStorageItemHash() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 2}},
@@ -116,7 +121,7 @@ const VersionMap& StorageContactsAllowedStorageItemHash() noexcept
 
     return output;
 }
-const VersionMap& StorageCredentialAllowedStorageItemHash() noexcept
+auto StorageCredentialAllowedStorageItemHash() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -125,7 +130,7 @@ const VersionMap& StorageCredentialAllowedStorageItemHash() noexcept
 
     return output;
 }
-const VersionMap& StorageIssuerAllowedStorageItemHash() noexcept
+auto StorageIssuerAllowedStorageItemHash() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 2}},
@@ -133,7 +138,7 @@ const VersionMap& StorageIssuerAllowedStorageItemHash() noexcept
 
     return output;
 }
-const VersionMap& StorageItemsAllowedSymmetricKey() noexcept
+auto StorageItemsAllowedSymmetricKey() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {6, {1, 1}},
@@ -141,7 +146,7 @@ const VersionMap& StorageItemsAllowedSymmetricKey() noexcept
 
     return output;
 }
-const VersionMap& StorageNotaryAllowedBlindedSeriesList() noexcept
+auto StorageNotaryAllowedBlindedSeriesList() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -149,7 +154,7 @@ const VersionMap& StorageNotaryAllowedBlindedSeriesList() noexcept
 
     return output;
 }
-const VersionMap& StorageNymAllowedBlockchainAccountList() noexcept
+auto StorageNymAllowedBlockchainAccountList() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {4, {1, 1}},
@@ -162,7 +167,7 @@ const VersionMap& StorageNymAllowedBlockchainAccountList() noexcept
 
     return output;
 }
-const VersionMap& StorageNymAllowedHDAccount() noexcept
+auto StorageNymAllowedHDAccount() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {4, {1, 1}},
@@ -175,7 +180,7 @@ const VersionMap& StorageNymAllowedHDAccount() noexcept
 
     return output;
 }
-const VersionMap& StorageNymAllowedStorageBip47AddressIndex() noexcept
+auto StorageNymAllowedStorageBip47AddressIndex() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {7, {1, 1}},
@@ -185,7 +190,7 @@ const VersionMap& StorageNymAllowedStorageBip47AddressIndex() noexcept
 
     return output;
 }
-const VersionMap& StorageNymAllowedStorageItemHash() noexcept
+auto StorageNymAllowedStorageItemHash() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -201,7 +206,7 @@ const VersionMap& StorageNymAllowedStorageItemHash() noexcept
 
     return output;
 }
-const VersionMap& StorageNymAllowedStoragePurse() noexcept
+auto StorageNymAllowedStoragePurse() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {8, {1, 1}},
@@ -210,7 +215,8 @@ const VersionMap& StorageNymAllowedStoragePurse() noexcept
 
     return output;
 }
-const VersionMap& StorageNymListAllowedStorageBip47NymAddressIndex() noexcept
+auto StorageNymListAllowedStorageBip47NymAddressIndex() noexcept
+    -> const VersionMap&
 {
     static const auto output = VersionMap{
         {4, {1, 1}},
@@ -218,7 +224,7 @@ const VersionMap& StorageNymListAllowedStorageBip47NymAddressIndex() noexcept
 
     return output;
 }
-const VersionMap& StorageNymListAllowedStorageItemHash() noexcept
+auto StorageNymListAllowedStorageItemHash() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -229,7 +235,8 @@ const VersionMap& StorageNymListAllowedStorageItemHash() noexcept
 
     return output;
 }
-const VersionMap& StoragePaymentWorkflowsAllowedStorageItemHash() noexcept
+auto StoragePaymentWorkflowsAllowedStorageItemHash() noexcept
+    -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 2}},
@@ -239,8 +246,8 @@ const VersionMap& StoragePaymentWorkflowsAllowedStorageItemHash() noexcept
 
     return output;
 }
-const VersionMap&
-StoragePaymentWorkflowsAllowedStoragePaymentWorkflowType() noexcept
+auto StoragePaymentWorkflowsAllowedStoragePaymentWorkflowType() noexcept
+    -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -250,7 +257,8 @@ StoragePaymentWorkflowsAllowedStoragePaymentWorkflowType() noexcept
 
     return output;
 }
-const VersionMap& StoragePaymentWorkflowsAllowedStorageWorkflowIndex() noexcept
+auto StoragePaymentWorkflowsAllowedStorageWorkflowIndex() noexcept
+    -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -260,7 +268,7 @@ const VersionMap& StoragePaymentWorkflowsAllowedStorageWorkflowIndex() noexcept
 
     return output;
 }
-const VersionMap& StoragePurseAllowedStorageItemHash() noexcept
+auto StoragePurseAllowedStorageItemHash() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 2}},
@@ -268,7 +276,7 @@ const VersionMap& StoragePurseAllowedStorageItemHash() noexcept
 
     return output;
 }
-const VersionMap& StorageSeedsAllowedStorageItemHash() noexcept
+auto StorageSeedsAllowedStorageItemHash() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -277,7 +285,7 @@ const VersionMap& StorageSeedsAllowedStorageItemHash() noexcept
 
     return output;
 }
-const VersionMap& StorageServersAllowedStorageItemHash() noexcept
+auto StorageServersAllowedStorageItemHash() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -286,7 +294,7 @@ const VersionMap& StorageServersAllowedStorageItemHash() noexcept
 
     return output;
 }
-const VersionMap& StorageThreadAllowedItem() noexcept
+auto StorageThreadAllowedItem() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -294,7 +302,7 @@ const VersionMap& StorageThreadAllowedItem() noexcept
 
     return output;
 }
-const VersionMap& StorageTxoIndexAllowedStorageBlockchainTxo() noexcept
+auto StorageTxoIndexAllowedStorageBlockchainTxo() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -302,7 +310,7 @@ const VersionMap& StorageTxoIndexAllowedStorageBlockchainTxo() noexcept
 
     return output;
 }
-const VersionMap& StorageUnitsAllowedStorageItemHash() noexcept
+auto StorageUnitsAllowedStorageItemHash() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},

@@ -47,37 +47,39 @@ class ClientContext final : virtual public internal::ClientContext,
                             public Context
 {
 public:
-    proto::Context GetContract(const Lock& lock) const final
+    auto GetContract(const Lock& lock) const -> proto::Context final
     {
         return contract(lock);
     }
-    bool hasOpenTransactions() const final;
+    auto hasOpenTransactions() const -> bool final;
     using implementation::Context::IssuedNumbers;
-    std::size_t IssuedNumbers(
-        const std::set<TransactionNumber>& exclude) const final;
-    std::size_t OpenCronItems() const final;
-    proto::ConsensusType Type() const final;
-    bool ValidateContext(const Lock& lock) const final
+    auto IssuedNumbers(const std::set<TransactionNumber>& exclude) const
+        -> std::size_t final;
+    auto OpenCronItems() const -> std::size_t final;
+    auto Type() const -> proto::ConsensusType final;
+    auto ValidateContext(const Lock& lock) const -> bool final
     {
         return validate(lock);
     }
-    bool Verify(
+    auto Verify(
         const TransactionStatement& statement,
         const std::set<TransactionNumber>& excluded,
-        const std::set<TransactionNumber>& included) const final;
-    bool VerifyCronItem(const TransactionNumber number) const final;
+        const std::set<TransactionNumber>& included) const -> bool final;
+    auto VerifyCronItem(const TransactionNumber number) const -> bool final;
     using implementation::Context::VerifyIssuedNumber;
-    bool VerifyIssuedNumber(
+    auto VerifyIssuedNumber(
         const TransactionNumber& number,
-        const std::set<TransactionNumber>& exclude) const final;
+        const std::set<TransactionNumber>& exclude) const -> bool final;
 
-    bool AcceptIssuedNumbers(std::set<TransactionNumber>& newNumbers) final;
-    bool CloseCronItem(const TransactionNumber number) final;
+    auto AcceptIssuedNumbers(std::set<TransactionNumber>& newNumbers)
+        -> bool final;
+    auto CloseCronItem(const TransactionNumber number) -> bool final;
     void FinishAcknowledgements(const std::set<RequestNumber>& req) final;
-    std::mutex& GetLock() final { return lock_; }
-    bool IssueNumber(const TransactionNumber& number) final;
-    bool OpenCronItem(const TransactionNumber number) final;
-    bool UpdateSignature(const Lock& lock, const PasswordPrompt& reason) final
+    auto GetLock() -> std::mutex& final { return lock_; }
+    auto IssueNumber(const TransactionNumber& number) -> bool final;
+    auto OpenCronItem(const TransactionNumber number) -> bool final;
+    auto UpdateSignature(const Lock& lock, const PasswordPrompt& reason)
+        -> bool final
     {
         return update_signature(lock, reason);
     }
@@ -89,11 +91,11 @@ private:
 
     std::set<TransactionNumber> open_cron_items_{};
 
-    const identifier::Nym& client_nym_id(const Lock& lock) const final;
+    auto client_nym_id(const Lock& lock) const -> const identifier::Nym& final;
     using implementation::Context::serialize;
-    proto::Context serialize(const Lock& lock) const final;
-    const identifier::Nym& server_nym_id(const Lock& lock) const final;
-    std::string type() const final { return "client"; }
+    auto serialize(const Lock& lock) const -> proto::Context final;
+    auto server_nym_id(const Lock& lock) const -> const identifier::Nym& final;
+    auto type() const -> std::string final { return "client"; }
 
     ClientContext(
         const api::internal::Core& api,
@@ -109,7 +111,7 @@ private:
     ClientContext() = delete;
     ClientContext(const ClientContext&) = delete;
     ClientContext(ClientContext&&) = delete;
-    ClientContext& operator=(const ClientContext&) = delete;
-    ClientContext& operator=(ClientContext&&) = delete;
+    auto operator=(const ClientContext&) -> ClientContext& = delete;
+    auto operator=(ClientContext &&) -> ClientContext& = delete;
 };
 }  // namespace opentxs::implementation

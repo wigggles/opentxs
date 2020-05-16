@@ -70,17 +70,26 @@ using AccountListItemRow =
 class AccountListItem final : public AccountListItemRow
 {
 public:
-    std::string AccountID() const noexcept final { return row_id_->str(); }
-    Amount Balance() const noexcept final { return balance_; }
-    std::string ContractID() const noexcept final
+    auto AccountID() const noexcept -> std::string final
+    {
+        return row_id_->str();
+    }
+    auto Balance() const noexcept -> Amount final { return balance_; }
+    auto ContractID() const noexcept -> std::string final
     {
         return contract_->ID()->str();
     }
-    std::string DisplayBalance() const noexcept final;
-    std::string DisplayUnit() const noexcept final { return contract_->TLA(); }
-    std::string Name() const noexcept final { return name_; }
-    std::string NotaryID() const noexcept final { return notary_->ID()->str(); }
-    std::string NotaryName() const noexcept final
+    auto DisplayBalance() const noexcept -> std::string final;
+    auto DisplayUnit() const noexcept -> std::string final
+    {
+        return contract_->TLA();
+    }
+    auto Name() const noexcept -> std::string final { return name_; }
+    auto NotaryID() const noexcept -> std::string final
+    {
+        return notary_->ID()->str();
+    }
+    auto NotaryName() const noexcept -> std::string final
     {
         return notary_->EffectiveName();
     }
@@ -89,8 +98,8 @@ public:
         const CustomData& custom) noexcept final
     {
     }
-    AccountType Type() const noexcept final { return type_; }
-    proto::ContactItemType Unit() const noexcept final { return unit_; }
+    auto Type() const noexcept -> AccountType final { return type_; }
+    auto Unit() const noexcept -> proto::ContactItemType final { return unit_; }
 
 #if OT_QT
     QVariant qt_data(const int column, const int role) const noexcept final;
@@ -114,18 +123,17 @@ private:
     const OTServerContract notary_;
     const std::string name_;
 
-    static OTServerContract load_server(
+    static auto load_server(const api::Core& api, const identifier::Server& id)
+        -> OTServerContract;
+    static auto load_unit(
         const api::Core& api,
-        const identifier::Server& id);
-    static OTUnitDefinition load_unit(
-        const api::Core& api,
-        const identifier::UnitDefinition& id);
+        const identifier::UnitDefinition& id) -> OTUnitDefinition;
 
     AccountListItem() = delete;
     AccountListItem(const AccountListItem&) = delete;
     AccountListItem(AccountListItem&&) = delete;
-    AccountListItem& operator=(const AccountListItem&) = delete;
-    AccountListItem& operator=(AccountListItem&&) = delete;
+    auto operator=(const AccountListItem&) -> AccountListItem& = delete;
+    auto operator=(AccountListItem &&) -> AccountListItem& = delete;
 };
 }  // namespace opentxs::ui::implementation
 

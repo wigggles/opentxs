@@ -24,21 +24,21 @@
 
 namespace opentxs
 {
-internal::ClientContext* Factory::ClientContext(
+auto Factory::ClientContext(
     const api::internal::Core& api,
     const Nym_p& local,
     const Nym_p& remote,
-    const identifier::Server& server)
+    const identifier::Server& server) -> internal::ClientContext*
 {
     return new implementation::ClientContext(api, local, remote, server);
 }
 
-internal::ClientContext* Factory::ClientContext(
+auto Factory::ClientContext(
     const api::internal::Core& api,
     const proto::Context& serialized,
     const Nym_p& local,
     const Nym_p& remote,
-    const identifier::Server& server)
+    const identifier::Server& server) -> internal::ClientContext*
 {
     return new implementation::ClientContext(
         api, serialized, local, remote, server);
@@ -86,7 +86,8 @@ ClientContext::ClientContext(
     }
 }
 
-bool ClientContext::AcceptIssuedNumbers(std::set<TransactionNumber>& newNumbers)
+auto ClientContext::AcceptIssuedNumbers(std::set<TransactionNumber>& newNumbers)
+    -> bool
 {
     Lock lock(lock_);
 
@@ -110,14 +111,15 @@ bool ClientContext::AcceptIssuedNumbers(std::set<TransactionNumber>& newNumbers)
     return (added == offered);
 }
 
-const identifier::Nym& ClientContext::client_nym_id(const Lock& lock) const
+auto ClientContext::client_nym_id(const Lock& lock) const
+    -> const identifier::Nym&
 {
     OT_ASSERT(remote_nym_);
 
     return remote_nym_->ID();
 }
 
-bool ClientContext::CloseCronItem(const TransactionNumber number)
+auto ClientContext::CloseCronItem(const TransactionNumber number) -> bool
 {
     Lock lock(lock_);
     auto output = open_cron_items_.erase(number);
@@ -133,7 +135,7 @@ void ClientContext::FinishAcknowledgements(const std::set<RequestNumber>& req)
     finish_acknowledgements(lock, req);
 }
 
-bool ClientContext::hasOpenTransactions() const
+auto ClientContext::hasOpenTransactions() const -> bool
 {
     Lock lock(lock_);
 
@@ -143,8 +145,8 @@ bool ClientContext::hasOpenTransactions() const
     return available != issued;
 }
 
-std::size_t ClientContext::IssuedNumbers(
-    const std::set<TransactionNumber>& exclude) const
+auto ClientContext::IssuedNumbers(
+    const std::set<TransactionNumber>& exclude) const -> std::size_t
 {
     Lock lock(lock_);
 
@@ -159,14 +161,14 @@ std::size_t ClientContext::IssuedNumbers(
     return output;
 }
 
-bool ClientContext::IssueNumber(const TransactionNumber& number)
+auto ClientContext::IssueNumber(const TransactionNumber& number) -> bool
 {
     Lock lock(lock_);
 
     return issue_number(lock, number);
 }
 
-bool ClientContext::OpenCronItem(const TransactionNumber number)
+auto ClientContext::OpenCronItem(const TransactionNumber number) -> bool
 {
     Lock lock(lock_);
 
@@ -177,12 +179,12 @@ bool ClientContext::OpenCronItem(const TransactionNumber number)
     return output.second;
 }
 
-std::size_t ClientContext::OpenCronItems() const
+auto ClientContext::OpenCronItems() const -> std::size_t
 {
     return open_cron_items_.size();
 }
 
-proto::Context ClientContext::serialize(const Lock& lock) const
+auto ClientContext::serialize(const Lock& lock) const -> proto::Context
 {
     OT_ASSERT(verify_write_lock(lock));
 
@@ -195,22 +197,23 @@ proto::Context ClientContext::serialize(const Lock& lock) const
     return output;
 }
 
-const identifier::Nym& ClientContext::server_nym_id(const Lock& lock) const
+auto ClientContext::server_nym_id(const Lock& lock) const
+    -> const identifier::Nym&
 {
     OT_ASSERT(nym_);
 
     return nym_->ID();
 }
 
-proto::ConsensusType ClientContext::Type() const
+auto ClientContext::Type() const -> proto::ConsensusType
 {
     return proto::CONSENSUSTYPE_CLIENT;
 }
 
-bool ClientContext::Verify(
+auto ClientContext::Verify(
     const TransactionStatement& statement,
     const std::set<TransactionNumber>& excluded,
-    const std::set<TransactionNumber>& included) const
+    const std::set<TransactionNumber>& included) const -> bool
 {
     Lock lock(lock_);
 
@@ -278,14 +281,14 @@ bool ClientContext::Verify(
     return true;
 }
 
-bool ClientContext::VerifyCronItem(const TransactionNumber number) const
+auto ClientContext::VerifyCronItem(const TransactionNumber number) const -> bool
 {
     return (0 < open_cron_items_.count(number));
 }
 
-bool ClientContext::VerifyIssuedNumber(
+auto ClientContext::VerifyIssuedNumber(
     const TransactionNumber& number,
-    const std::set<TransactionNumber>& exclude) const
+    const std::set<TransactionNumber>& exclude) const -> bool
 {
     const bool excluded = (1 == exclude.count(number));
 

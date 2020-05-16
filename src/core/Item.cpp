@@ -168,21 +168,21 @@ Item::Item(
 // shouldn't happen IF the client has been properly notified about these numbers
 // before sending his request.  Such notifications are dropped into the Nymbox
 // AND related asset account inboxes.
-bool Item::VerifyTransactionStatement(
+auto Item::VerifyTransactionStatement(
     const ClientContext& context,
     const OTTransaction& transaction,
-    const bool real) const
+    const bool real) const -> bool
 {
     const std::set<TransactionNumber> empty;
 
     return VerifyTransactionStatement(context, transaction, empty, real);
 }
 
-bool Item::VerifyTransactionStatement(
+auto Item::VerifyTransactionStatement(
     const ClientContext& context,
     const OTTransaction& TARGET_TRANSACTION,
     const std::set<TransactionNumber> newNumbers,
-    const bool bIsRealTransaction) const
+    const bool bIsRealTransaction) const -> bool
 {
     if (GetType() != itemType::transactionStatement) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
@@ -277,7 +277,7 @@ bool Item::VerifyTransactionStatement(
 //    of sub-items on THIS balance item.
 // 3) That the transactions on the Nym, minus the current transaction number
 //    being processed, are all still there.
-bool Item::VerifyBalanceStatement(
+auto Item::VerifyBalanceStatement(
     std::int64_t lActualAdjustment,
     const ClientContext& context,
     const Ledger& THE_INBOX,
@@ -286,13 +286,14 @@ bool Item::VerifyBalanceStatement(
     const OTTransaction& TARGET_TRANSACTION,
     const std::set<TransactionNumber>& excluded,
     const PasswordPrompt& reason,
-    TransactionNumber outboxNum) const  // Only used in the case of transfer,
-                                        // where the user doesn't know the
-                                        // outbox trans# in advance, so he sends
-                                        // a dummy number (currently '1') which
-                                        // we verify against the actual outbox
-                                        // trans# successfully, only in that
-                                        // special case.
+    TransactionNumber outboxNum) const
+    -> bool  // Only used in the case of transfer,
+             // where the user doesn't know the
+             // outbox trans# in advance, so he sends
+             // a dummy number (currently '1') which
+             // we verify against the actual outbox
+             // trans# successfully, only in that
+             // special case.
 {
     std::set<TransactionNumber> removed(excluded);
 
@@ -723,7 +724,7 @@ void Item::AddItem(std::shared_ptr<Item> theItem)
 
 // While processing a transaction, you may wish to query it for items of a
 // certain type.
-std::shared_ptr<Item> Item::GetItem(std::int32_t nIndex)
+auto Item::GetItem(std::int32_t nIndex) -> std::shared_ptr<Item>
 {
     std::int32_t nTempIndex = (-1);
 
@@ -739,7 +740,7 @@ std::shared_ptr<Item> Item::GetItem(std::int32_t nIndex)
     return nullptr;
 }
 
-std::shared_ptr<const Item> Item::GetItem(std::int32_t nIndex) const
+auto Item::GetItem(std::int32_t nIndex) const -> std::shared_ptr<const Item>
 {
     std::int32_t nTempIndex = (-1);
 
@@ -756,8 +757,8 @@ std::shared_ptr<const Item> Item::GetItem(std::int32_t nIndex) const
 }
 
 // While processing an item, you may wish to query it for sub-items
-std::shared_ptr<Item> Item::GetItemByTransactionNum(
-    std::int64_t lTransactionNumber)
+auto Item::GetItemByTransactionNum(std::int64_t lTransactionNumber)
+    -> std::shared_ptr<Item>
 {
     for (auto& it : m_listItems) {
         const auto pItem = it;
@@ -773,7 +774,7 @@ std::shared_ptr<Item> Item::GetItemByTransactionNum(
 //
 // Might want to change this so that it only counts ACCEPTED receipts.
 //
-std::int32_t Item::GetItemCountInRefTo(std::int64_t lReference)
+auto Item::GetItemCountInRefTo(std::int64_t lReference) -> std::int32_t
 {
     std::int32_t nCount = 0;
 
@@ -791,8 +792,8 @@ std::int32_t Item::GetItemCountInRefTo(std::int64_t lReference)
 // its "in reference to" value. (Others such as marketReceipts and
 // paymentReceipts.)
 //
-std::shared_ptr<Item> Item::GetFinalReceiptItemByReferenceNum(
-    std::int64_t lReferenceNumber)
+auto Item::GetFinalReceiptItemByReferenceNum(std::int64_t lReferenceNumber)
+    -> std::shared_ptr<Item>
 {
     for (auto& it : m_listItems) {
         const auto pItem = it;
@@ -807,14 +808,14 @@ std::shared_ptr<Item> Item::GetFinalReceiptItemByReferenceNum(
 
 // For "Item::acceptTransaction"
 //
-bool Item::AddBlankNumbersToItem(const NumList& theAddition)
+auto Item::AddBlankNumbersToItem(const NumList& theAddition) -> bool
 {
     return m_Numlist.Add(theAddition);
 }
 
 // Need to know the transaction number of the ORIGINAL transaction? Call this.
 // virtual
-std::int64_t Item::GetNumberOfOrigin()
+auto Item::GetNumberOfOrigin() -> std::int64_t
 {
 
     if (0 == m_lNumberOfOrigin) {
@@ -1204,7 +1205,7 @@ void Item::Release_Item()
 
 void Item::ReleaseItems() { m_listItems.clear(); }
 
-itemType Item::GetItemTypeFromString(const String& strType)
+auto Item::GetItemTypeFromString(const String& strType) -> itemType
 {
     itemType theType = itemType::error_state;
 
@@ -1368,7 +1369,7 @@ itemType Item::GetItemTypeFromString(const String& strType)
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-std::int32_t Item::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
+auto Item::ProcessXMLNode(irr::io::IrrXMLReader*& xml) -> std::int32_t
 {
     if (!strcmp("item", xml->getNodeName())) {
         auto strType = String::Factory(), strStatus = String::Factory();
@@ -1601,7 +1602,10 @@ std::int32_t Item::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 }
 
 // Used in balance agreement, part of the inbox report.
-std::int64_t Item::GetClosingNum() const { return m_lClosingTransactionNo; }
+auto Item::GetClosingNum() const -> std::int64_t
+{
+    return m_lClosingTransactionNo;
+}
 
 void Item::SetClosingNum(std::int64_t lClosingNum)
 {

@@ -41,7 +41,7 @@ BlockchainTransactions::BlockchainTransactions(
     }
 }
 
-bool BlockchainTransactions::Delete(const std::string& id)
+auto BlockchainTransactions::Delete(const std::string& id) -> bool
 {
     return delete_item(id);
 }
@@ -77,10 +77,10 @@ void BlockchainTransactions::init(const std::string& hash)
     }
 }
 
-bool BlockchainTransactions::Load(
+auto BlockchainTransactions::Load(
     const std::string& id,
     std::shared_ptr<proto::BlockchainTransaction>& output,
-    const bool checking) const
+    const bool checking) const -> bool
 {
     auto alias = std::string{};
 
@@ -88,8 +88,8 @@ bool BlockchainTransactions::Load(
         id, output, alias, checking);
 }
 
-std::set<OTNymID> BlockchainTransactions::LookupNyms(
-    const std::string& txid) const
+auto BlockchainTransactions::LookupNyms(const std::string& txid) const
+    -> std::set<OTNymID>
 {
     Lock lock(write_lock_);
 
@@ -102,7 +102,7 @@ std::set<OTNymID> BlockchainTransactions::LookupNyms(
     }
 }
 
-bool BlockchainTransactions::save(const Lock& lock) const
+auto BlockchainTransactions::save(const Lock& lock) const -> bool
 {
     if (false == verify_write_lock(lock)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Lock failure.").Flush();
@@ -117,7 +117,8 @@ bool BlockchainTransactions::save(const Lock& lock) const
     return driver_.StoreProto(serialized, root_);
 }
 
-BlockchainTransactions::SerializedType BlockchainTransactions::serialize() const
+auto BlockchainTransactions::serialize() const
+    -> BlockchainTransactions::SerializedType
 {
     auto output = SerializedType{};
     output.set_version(version_);
@@ -145,9 +146,9 @@ BlockchainTransactions::SerializedType BlockchainTransactions::serialize() const
     return output;
 }
 
-bool BlockchainTransactions::Store(
+auto BlockchainTransactions::Store(
     const identifier::Nym& nym,
-    const proto::BlockchainTransaction& data)
+    const proto::BlockchainTransaction& data) -> bool
 {
     auto alias = std::string{};
     auto plaintext = std::string{};

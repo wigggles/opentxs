@@ -43,20 +43,20 @@ const char* OT_END_ARMORED_escaped = "- -----END OT ARMORED";
 const char* OT_BEGIN_SIGNED = "-----BEGIN SIGNED";
 const char* OT_BEGIN_SIGNED_escaped = "- -----BEGIN SIGNED";
 
-OTArmored Armored::Factory()
+auto Armored::Factory() -> OTArmored
 {
     return OTArmored(new implementation::Armored());
 }
 
-OTArmored Armored::Factory(const opentxs::String& value)
+auto Armored::Factory(const opentxs::String& value) -> OTArmored
 {
     return OTArmored(new implementation::Armored(value));
 }
 
-bool Armored::LoadFromString(
+auto Armored::LoadFromString(
     Armored& ascArmor,
     const String& strInput,
-    std::string str_bookend)
+    std::string str_bookend) -> bool
 {
 
     if (strInput.Contains(String::Factory(str_bookend)))  // YES there are
@@ -83,19 +83,22 @@ bool Armored::LoadFromString(
     return true;
 }
 
-opentxs::Armored* Factory::Armored() { return new implementation::Armored(); }
+auto Factory::Armored() -> opentxs::Armored*
+{
+    return new implementation::Armored();
+}
 
-opentxs::Armored* Factory::Armored(const Data& input)
+auto Factory::Armored(const Data& input) -> opentxs::Armored*
 {
     return new implementation::Armored(input);
 }
 
-opentxs::Armored* Factory::Armored(const String& input)
+auto Factory::Armored(const String& input) -> opentxs::Armored*
 {
     return new implementation::Armored(input);
 }
 
-opentxs::Armored* Factory::Armored(const crypto::Envelope& input)
+auto Factory::Armored(const crypto::Envelope& input) -> opentxs::Armored*
 {
     return new implementation::Armored(input);
 }
@@ -139,14 +142,14 @@ Armored::Armored(const Armored& strValue)
 }
 
 // copies, assumes already encoded.
-Armored& Armored::operator=(const char* szValue)
+auto Armored::operator=(const char* szValue) -> Armored&
 {
     Set(szValue);
     return *this;
 }
 
 // encodes
-Armored& Armored::operator=(const opentxs::String& strValue)
+auto Armored::operator=(const opentxs::String& strValue) -> Armored&
 {
     if ((&strValue) != (&(dynamic_cast<const opentxs::String&>(*this)))) {
         SetString(strValue);
@@ -155,14 +158,14 @@ Armored& Armored::operator=(const opentxs::String& strValue)
 }
 
 // encodes
-Armored& Armored::operator=(const Data& theValue)
+auto Armored::operator=(const Data& theValue) -> Armored&
 {
     SetData(theValue);
     return *this;
 }
 
 // assumes is already encoded and just copies the encoded text
-Armored& Armored::operator=(const Armored& strValue)
+auto Armored::operator=(const Armored& strValue) -> Armored&
 {
     if ((&strValue) != this)  // prevent self-assignment
     {
@@ -171,14 +174,14 @@ Armored& Armored::operator=(const Armored& strValue)
     return *this;
 }
 
-Armored* Armored::clone() const { return new Armored(*this); }
+auto Armored::clone() const -> Armored* { return new Armored(*this); }
 
 // Source for these two functions: http://panthema.net/2007/0328-ZLibString.html
 /** Compress a STL string using zlib with given compression level and return
  * the binary data. */
-std::string Armored::compress_string(
+auto Armored::compress_string(
     const std::string& str,
-    std::int32_t compressionlevel = Z_BEST_COMPRESSION) const
+    std::int32_t compressionlevel = Z_BEST_COMPRESSION) const -> std::string
 {
     z_stream zs;  // z_stream is zlib's control structure
     memset(&zs, 0, sizeof(zs));
@@ -218,7 +221,7 @@ std::string Armored::compress_string(
 }
 
 /** Decompress an STL string using zlib and return the original data. */
-std::string Armored::decompress_string(const std::string& str) const
+auto Armored::decompress_string(const std::string& str) const -> std::string
 {
     z_stream zs;  // z_stream is zlib's control structure
     memset(&zs, 0, sizeof(zs));
@@ -259,7 +262,7 @@ std::string Armored::decompress_string(const std::string& str) const
 }
 
 // Base64-decode
-bool Armored::GetData(Data& theData, bool bLineBreaks) const
+auto Armored::GetData(Data& theData, bool bLineBreaks) const -> bool
 {
     theData.Release();
 
@@ -274,7 +277,8 @@ bool Armored::GetData(Data& theData, bool bLineBreaks) const
 }
 
 // Base64-decode and decompress
-bool Armored::GetString(opentxs::String& strData, bool bLineBreaks) const
+auto Armored::GetString(opentxs::String& strData, bool bLineBreaks) const
+    -> bool
 {
     strData.Release();
 
@@ -305,7 +309,7 @@ bool Armored::GetString(opentxs::String& strData, bool bLineBreaks) const
 
 // This code reads up the file, discards the bookends, and saves only the
 // gibberish itself.
-bool Armored::LoadFrom_ifstream(std::ifstream& fin)
+auto Armored::LoadFrom_ifstream(std::ifstream& fin) -> bool
 {
     std::stringstream buffer;
     buffer << fin.rdbuf();
@@ -318,7 +322,7 @@ bool Armored::LoadFrom_ifstream(std::ifstream& fin)
     return LoadFromString(theString);
 }
 
-bool Armored::LoadFromExactPath(const std::string& filename)
+auto Armored::LoadFromExactPath(const std::string& filename) -> bool
 {
     std::ifstream fin(filename.c_str(), std::ios::binary);
 
@@ -331,10 +335,10 @@ bool Armored::LoadFromExactPath(const std::string& filename)
     return LoadFrom_ifstream(fin);
 }
 
-bool Armored::LoadFromString(
+auto Armored::LoadFromString(
     opentxs::String& theStr,  // input
     bool bEscaped,
-    const std::string str_override)
+    const std::string str_override) -> bool
 {
     // Should never be 0 size, as default is "-----BEGIN"
     // But if you want to load a private key, try "-----BEGIN ENCRYPTED PRIVATE"
@@ -456,7 +460,7 @@ bool Armored::LoadFromString(
 }
 
 // Base64-encode
-bool Armored::SetData(const Data& theData, bool)
+auto Armored::SetData(const Data& theData, bool) -> bool
 {
     Release();
 
@@ -475,7 +479,7 @@ bool Armored::SetData(const Data& theData, bool)
     return true;
 }
 
-bool Armored::SaveTo_ofstream(std::ofstream& fout)
+auto Armored::SaveTo_ofstream(std::ofstream& fout) -> bool
 {
     auto strOutput = String::Factory();
     std::string str_type("DATA");  // -----BEGIN OT ARMORED DATA-----
@@ -498,7 +502,7 @@ bool Armored::SaveTo_ofstream(std::ofstream& fout)
     return false;
 }
 
-bool Armored::SaveToExactPath(const std::string& filename)
+auto Armored::SaveToExactPath(const std::string& filename) -> bool
 {
     std::ofstream fout(filename.c_str(), std::ios::out | std::ios::binary);
 
@@ -512,9 +516,9 @@ bool Armored::SaveToExactPath(const std::string& filename)
 }
 
 // Compress and Base64-encode
-bool Armored::SetString(
+auto Armored::SetString(
     const opentxs::String& strData,
-    bool bLineBreaks)  //=true
+    bool bLineBreaks) -> bool  //=true
 {
     Release();
 
@@ -542,12 +546,12 @@ bool Armored::SetString(
     return true;
 }
 
-bool Armored::WriteArmoredString(
+auto Armored::WriteArmoredString(
     opentxs::String& strOutput,
     const std::string str_type,  // for "-----BEGIN OT LEDGER-----", str_type
                                  // would contain "LEDGER" There's no default,
                                  // to force you to enter the right string.
-    bool bEscaped) const
+    bool bEscaped) const -> bool
 {
     const char* szEscape = "- ";
 

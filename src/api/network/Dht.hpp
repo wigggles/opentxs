@@ -54,7 +54,7 @@ public:
     void Insert(const proto::ServerContract& contract) const final;
     void Insert(const proto::UnitDefinition& contract) const final;
 #if OT_DHT
-    const opentxs::network::OpenDHT& OpenDHT() const final;
+    auto OpenDHT() const -> const opentxs::network::OpenDHT& final;
 #endif
     void RegisterCallbacks(const CallbackMap& callbacks) const final;
 
@@ -77,32 +77,32 @@ private:
     OTZMQReplySocket request_unit_socket_;
 
 #if OT_DHT
-    static bool ProcessPublicNym(
+    static auto ProcessPublicNym(
         const api::internal::Core& api,
         const std::string key,
         const DhtResults& values,
-        NotifyCB notifyCB);
-    static bool ProcessServerContract(
+        NotifyCB notifyCB) -> bool;
+    static auto ProcessServerContract(
         const api::internal::Core& api,
         const std::string key,
         const DhtResults& values,
-        NotifyCB notifyCB);
-    static bool ProcessUnitDefinition(
+        NotifyCB notifyCB) -> bool;
+    static auto ProcessUnitDefinition(
         const api::internal::Core& api,
         const std::string key,
         const DhtResults& values,
-        NotifyCB notifyCB);
+        NotifyCB notifyCB) -> bool;
 #endif
 
-    OTZMQMessage process_request(
+    auto process_request(
         const opentxs::network::zeromq::Message& incoming,
-        void (Dht::*get)(const std::string&) const) const;
+        void (Dht::*get)(const std::string&) const) const -> OTZMQMessage;
 
     Dht(DhtConfig& config, const api::internal::Core& api);
     Dht() = delete;
     Dht(const Dht&) = delete;
     Dht(Dht&&) = delete;
-    Dht& operator=(const Dht&) = delete;
-    Dht& operator=(Dht&&) = delete;
+    auto operator=(const Dht&) -> Dht& = delete;
+    auto operator=(Dht &&) -> Dht& = delete;
 };
 }  // namespace opentxs::api::network::implementation

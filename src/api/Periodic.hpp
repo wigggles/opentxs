@@ -25,13 +25,13 @@ namespace opentxs::api::implementation
 class Periodic : virtual public api::Periodic
 {
 public:
-    bool Cancel(const int task) const final;
-    bool Reschedule(const int task, const std::chrono::seconds& interval)
-        const final;
-    int Schedule(
+    auto Cancel(const int task) const -> bool final;
+    auto Reschedule(const int task, const std::chrono::seconds& interval) const
+        -> bool final;
+    auto Schedule(
         const std::chrono::seconds& interval,
         const PeriodicTask& task,
-        const std::chrono::seconds& last) const final;
+        const std::chrono::seconds& last) const -> int final;
 
     ~Periodic() override;
 
@@ -55,8 +55,8 @@ private:
     Periodic() = delete;
     Periodic(const Periodic&) = delete;
     Periodic(Periodic&&) = delete;
-    Periodic& operator=(const Periodic&) = delete;
-    Periodic& operator=(Periodic&&) = delete;
+    auto operator=(const Periodic&) -> Periodic& = delete;
+    auto operator=(Periodic &&) -> Periodic& = delete;
 
     void thread();
 };

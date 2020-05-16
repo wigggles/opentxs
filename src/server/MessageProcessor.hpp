@@ -94,29 +94,32 @@ private:
     std::map<OTIdentifier, OTData> active_connections_;
     mutable std::shared_mutex connection_map_lock_;
 
-    static OTData get_connection(const network::zeromq::Message& incoming);
+    static auto get_connection(const network::zeromq::Message& incoming)
+        -> OTData;
 
-    proto::ServerRequest extract_proto(
-        const network::zeromq::Frame& incoming) const;
+    auto extract_proto(const network::zeromq::Frame& incoming) const
+        -> proto::ServerRequest;
 
     void associate_connection(
         const identifier::Nym& nymID,
         const Data& connection);
-    OTZMQMessage process_backend(const network::zeromq::Message& incoming);
-    bool process_command(
+    auto process_backend(const network::zeromq::Message& incoming)
+        -> OTZMQMessage;
+    auto process_command(
         const proto::ServerRequest& request,
-        identifier::Nym& nymID);
+        identifier::Nym& nymID) -> bool;
     void process_frontend(const network::zeromq::Message& incoming);
     void process_internal(const network::zeromq::Message& incoming);
     void process_legacy(
         const Data& id,
         const network::zeromq::Message& incoming);
-    bool process_message(const std::string& messageString, std::string& reply);
+    auto process_message(const std::string& messageString, std::string& reply)
+        -> bool;
     void process_notification(const network::zeromq::Message& incoming);
     void process_proto(
         const Data& id,
         const network::zeromq::Message& incoming);
-    OTData query_connection(const identifier::Nym& nymID);
+    auto query_connection(const identifier::Nym& nymID) -> OTData;
     void run();
 
     MessageProcessor() = delete;

@@ -35,10 +35,10 @@ class Credentials final : public Node
 private:
     friend class Tree;
 
-    bool check_existing(const bool incoming, Metadata& metadata) const;
+    auto check_existing(const bool incoming, Metadata& metadata) const -> bool;
     void init(const std::string& hash) final;
-    bool save(const std::unique_lock<std::mutex>& lock) const final;
-    proto::StorageCredentials serialize() const;
+    auto save(const std::unique_lock<std::mutex>& lock) const -> bool final;
+    auto serialize() const -> proto::StorageCredentials;
 
     Credentials(
         const opentxs::api::storage::Driver& storage,
@@ -46,19 +46,19 @@ private:
     Credentials() = delete;
     Credentials(const Credentials&) = delete;
     Credentials(Credentials&&) = delete;
-    Credentials operator=(const Credentials&) = delete;
-    Credentials operator=(Credentials&&) = delete;
+    auto operator=(const Credentials&) -> Credentials = delete;
+    auto operator=(Credentials &&) -> Credentials = delete;
 
 public:
-    std::string Alias(const std::string& id) const;
-    bool Load(
+    auto Alias(const std::string& id) const -> std::string;
+    auto Load(
         const std::string& id,
         std::shared_ptr<proto::Credential>& output,
-        const bool checking) const;
+        const bool checking) const -> bool;
 
-    bool Delete(const std::string& id);
-    bool SetAlias(const std::string& id, const std::string& alias);
-    bool Store(const proto::Credential& data, const std::string& alias);
+    auto Delete(const std::string& id) -> bool;
+    auto SetAlias(const std::string& id, const std::string& alias) -> bool;
+    auto Store(const proto::Credential& data, const std::string& alias) -> bool;
 
     ~Credentials() final = default;
 };

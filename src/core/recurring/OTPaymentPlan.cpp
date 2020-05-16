@@ -138,7 +138,7 @@ OTPaymentPlan::OTPaymentPlan(
     InitPaymentPlan();
 }
 
-std::int32_t OTPaymentPlan::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
+auto OTPaymentPlan::ProcessXMLNode(irr::io::IrrXMLReader*& xml) -> std::int32_t
 {
     std::int32_t nReturnVal = 0;
 
@@ -372,9 +372,9 @@ void OTPaymentPlan::UpdateContents(const PasswordPrompt& reason)
 
 // *** Set Initial Payment ***  / Make sure to call SetAgreement() first.
 
-bool OTPaymentPlan::SetInitialPayment(
+auto OTPaymentPlan::SetInitialPayment(
     const Amount amount,
-    const std::chrono::seconds tTimeUntilInitialPayment)
+    const std::chrono::seconds tTimeUntilInitialPayment) -> bool
 {
     m_bInitialPayment = true;       // There is now an initial payment.
     m_bInitialPaymentDone = false;  // It has not yet been paid.
@@ -387,12 +387,12 @@ bool OTPaymentPlan::SetInitialPayment(
     return true;
 }
 
-bool OTPaymentPlan::CompareAgreement(const OTAgreement& rhs) const
+auto OTPaymentPlan::CompareAgreement(const OTAgreement& rhs) const -> bool
 {
     if (!ot_super::CompareAgreement(rhs)) return false;
 
     // Compare OTPaymentPlan specific info here.
-    const OTPaymentPlan* pPlan = dynamic_cast<const OTPaymentPlan*>(&rhs);
+    const auto* pPlan = dynamic_cast<const OTPaymentPlan*>(&rhs);
 
     if ((nullptr != pPlan) &&
         (HasInitialPayment() == pPlan->HasInitialPayment()) &&
@@ -409,8 +409,8 @@ bool OTPaymentPlan::CompareAgreement(const OTAgreement& rhs) const
     return false;
 }
 
-bool OTPaymentPlan::VerifyMerchantSignature(
-    const identity::Nym& RECIPIENT_NYM) const
+auto OTPaymentPlan::VerifyMerchantSignature(
+    const identity::Nym& RECIPIENT_NYM) const -> bool
 {
     // Load up the merchant's copy.
     OTPaymentPlan theMerchantCopy{api_};
@@ -445,8 +445,8 @@ bool OTPaymentPlan::VerifyMerchantSignature(
     return true;
 }
 
-bool OTPaymentPlan::VerifyCustomerSignature(
-    const identity::Nym& SENDER_NYM) const
+auto OTPaymentPlan::VerifyCustomerSignature(
+    const identity::Nym& SENDER_NYM) const -> bool
 {
     if (!VerifySignature(SENDER_NYM)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
@@ -461,9 +461,9 @@ bool OTPaymentPlan::VerifyCustomerSignature(
 // This function assumes that it is the customer's copy, with the customer's
 // transaction numbers, and that the merchant's copy is attached within. The
 // function tries to verify they are the same, and properly signed.
-bool OTPaymentPlan::VerifyAgreement(
+auto OTPaymentPlan::VerifyAgreement(
     const ClientContext& recipient,
-    const ClientContext& sender) const
+    const ClientContext& sender) const -> bool
 {
     if (!VerifyMerchantSignature(recipient.RemoteNym())) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -529,12 +529,12 @@ bool OTPaymentPlan::VerifyAgreement(
 
 // *** Set Payment Plan *** / Make sure to call SetAgreement() first.
 // default: 1st payment in 30 days
-bool OTPaymentPlan::SetPaymentPlan(
+auto OTPaymentPlan::SetPaymentPlan(
     const Amount lPaymentAmount,
     const std::chrono::seconds tTimeUntilPlanStart,
     const std::chrono::seconds tBetweenPayments,
     const std::chrono::seconds tPlanLength,
-    const std::int32_t nMaxPayments)
+    const std::int32_t nMaxPayments) -> bool
 {
 
     if (lPaymentAmount <= 0) {
@@ -601,7 +601,7 @@ bool OTPaymentPlan::SetPaymentPlan(
     return true;
 }
 
-bool OTPaymentPlan::SetInitialPaymentDone()
+auto OTPaymentPlan::SetInitialPaymentDone() -> bool
 {
     if (m_bInitialPaymentDone)  // if done already.
         return false;
@@ -618,10 +618,10 @@ bool OTPaymentPlan::SetInitialPaymentDone()
 
 // This can be called by either the initial payment code, or by the payment plan
 // code. true == success, false == failure.
-bool OTPaymentPlan::ProcessPayment(
+auto OTPaymentPlan::ProcessPayment(
     const api::Wallet& wallet,
     const Amount& amount,
-    const PasswordPrompt& reason)
+    const PasswordPrompt& reason) -> bool
 {
     const OTCron* pCron = GetCron();
     OT_ASSERT(nullptr != pCron);
@@ -747,7 +747,7 @@ bool OTPaymentPlan::ProcessPayment(
     // SIGNED the original request. FYI, their signatures wouldn't be on the
     // updated version in Cron--the server signs that one--which is *this.
 
-    OTPaymentPlan* pPlan = dynamic_cast<OTPaymentPlan*>(pOrigCronItem.get());
+    auto* pPlan = dynamic_cast<OTPaymentPlan*>(pOrigCronItem.get());
 
     if ((nullptr == pPlan) || !pPlan->VerifyMerchantSignature(*pRecipientNym) ||
         !pPlan->VerifyCustomerSignature(*pSenderNym)) {
@@ -1384,7 +1384,7 @@ void OTPaymentPlan::ProcessPaymentPlan(
 // OTCron calls this regularly, which is my chance to expire, etc.
 // Return True if I should stay on the Cron list for more processing.
 // Return False if I should be removed and deleted.
-bool OTPaymentPlan::ProcessCron(const PasswordPrompt& reason)
+auto OTPaymentPlan::ProcessCron(const PasswordPrompt& reason) -> bool
 {
     OT_ASSERT(nullptr != GetCron());
 

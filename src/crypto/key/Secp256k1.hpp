@@ -50,7 +50,7 @@ namespace opentxs::crypto::key::implementation
 class Secp256k1 final : virtual public key::Secp256k1, public HD
 {
 public:
-    NymParameterType CreateType() const final
+    auto CreateType() const -> NymParameterType final
     {
         return NymParameterType::secp256k1;
     }
@@ -85,9 +85,12 @@ public:
 private:
     using ot_super = HD;
 
-    Secp256k1* clone() const noexcept final { return new Secp256k1(*this); }
-    Secp256k1* clone_ec() const noexcept final { return clone(); }
-    std::shared_ptr<proto::AsymmetricKey> get_public() const final
+    auto clone() const noexcept -> Secp256k1* final
+    {
+        return new Secp256k1(*this);
+    }
+    auto clone_ec() const noexcept -> Secp256k1* final { return clone(); }
+    auto get_public() const -> std::shared_ptr<proto::AsymmetricKey> final
     {
         return serialize_public(clone());
     }
@@ -95,7 +98,7 @@ private:
     Secp256k1() = delete;
     Secp256k1(const Secp256k1&) noexcept;
     Secp256k1(Secp256k1&&) = delete;
-    Secp256k1& operator=(const Secp256k1&) = delete;
-    Secp256k1& operator=(Secp256k1&&) = delete;
+    auto operator=(const Secp256k1&) -> Secp256k1& = delete;
+    auto operator=(Secp256k1 &&) -> Secp256k1& = delete;
 };
 }  // namespace opentxs::crypto::key::implementation

@@ -36,25 +36,24 @@ struct Blockchain : virtual public api::client::Blockchain {
     struct TxoDB {
         using Status = std::pair<blockchain::Coin, bool>;
 
-        virtual bool AddSpent(
+        virtual auto AddSpent(
             const identifier::Nym& nym,
             const blockchain::Coin txo,
-            const std::string txid) const noexcept = 0;
-        virtual bool AddUnspent(
+            const std::string txid) const noexcept -> bool = 0;
+        virtual auto AddUnspent(
             const identifier::Nym& nym,
             const blockchain::Coin txo,
-            const std::vector<OTData>& elements) const noexcept = 0;
-        virtual bool Claim(
+            const std::vector<OTData>& elements) const noexcept -> bool = 0;
+        virtual auto Claim(
             const identifier::Nym& nym,
-            const blockchain::Coin txo) const noexcept = 0;
-        virtual std::vector<Status> Lookup(
-            const identifier::Nym& nym,
-            const Data& element) const noexcept = 0;
+            const blockchain::Coin txo) const noexcept -> bool = 0;
+        virtual auto Lookup(const identifier::Nym& nym, const Data& element)
+            const noexcept -> std::vector<Status> = 0;
 
         virtual ~TxoDB() = default;
     };
 
-    virtual const api::internal::Core& API() const noexcept = 0;
+    virtual auto API() const noexcept -> const api::internal::Core& = 0;
     /// Throws std::runtime_error if type is invalid
     OPENTXS_EXPORT virtual auto BalanceTree(
         const identifier::Nym& nymID,
@@ -106,21 +105,21 @@ struct OTX : virtual public api::client::OTX {
     virtual void associate_message_id(
         const Identifier& messageID,
         const TaskID taskID) const = 0;
-    virtual Depositability can_deposit(
+    virtual auto can_deposit(
         const OTPayment& payment,
         const identifier::Nym& recipient,
         const Identifier& accountIDHint,
         identifier::Server& depositServer,
         identifier::UnitDefinition& unitID,
-        Identifier& depositAccount) const = 0;
-    virtual bool finish_task(
+        Identifier& depositAccount) const -> Depositability = 0;
+    virtual auto finish_task(
         const TaskID taskID,
         const bool success,
-        Result&& result) const = 0;
-    virtual UniqueQueue<OTNymID>& get_nym_fetch(
-        const identifier::Server& serverID) const = 0;
-    virtual BackgroundTask start_task(const TaskID taskID, bool success)
-        const = 0;
+        Result&& result) const -> bool = 0;
+    virtual auto get_nym_fetch(const identifier::Server& serverID) const
+        -> UniqueQueue<OTNymID>& = 0;
+    virtual auto start_task(const TaskID taskID, bool success) const
+        -> BackgroundTask = 0;
 };
 struct Pair : virtual public opentxs::api::client::Pair {
     virtual void init() noexcept = 0;

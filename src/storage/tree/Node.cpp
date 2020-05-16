@@ -34,7 +34,7 @@ void Node::blank(const VersionNumber version)
     root_ = BLANK_HASH;
 }
 
-bool Node::check_hash(const std::string& hash) const
+auto Node::check_hash(const std::string& hash) const -> bool
 {
     const bool empty = hash.empty();
     const bool blank = (Node::BLANK_HASH == hash);
@@ -42,14 +42,14 @@ bool Node::check_hash(const std::string& hash) const
     return !(empty || blank);
 }
 
-bool Node::delete_item(const std::string& id)
+auto Node::delete_item(const std::string& id) -> bool
 {
     Lock lock(write_lock_);
 
     return delete_item(lock, id);
 }
 
-bool Node::delete_item(const Lock& lock, const std::string& id)
+auto Node::delete_item(const Lock& lock, const std::string& id) -> bool
 {
     OT_ASSERT(verify_write_lock(lock))
 
@@ -60,22 +60,22 @@ bool Node::delete_item(const Lock& lock, const std::string& id)
     return save(lock);
 }
 
-std::uint64_t Node::extract_revision(const proto::Contact& input) const
+auto Node::extract_revision(const proto::Contact& input) const -> std::uint64_t
 {
     return input.revision();
 }
 
-std::uint64_t Node::extract_revision(const proto::Nym& input) const
+auto Node::extract_revision(const proto::Nym& input) const -> std::uint64_t
 {
     return input.revision();
 }
 
-std::uint64_t Node::extract_revision(const proto::Seed& input) const
+auto Node::extract_revision(const proto::Seed& input) const -> std::uint64_t
 {
     return input.index();
 }
 
-std::string Node::get_alias(const std::string& id) const
+auto Node::get_alias(const std::string& id) const -> std::string
 {
     std::string output;
     std::lock_guard<std::mutex> lock(write_lock_);
@@ -86,7 +86,7 @@ std::string Node::get_alias(const std::string& id) const
     return output;
 }
 
-ObjectList Node::List() const
+auto Node::List() const -> ObjectList
 {
     ObjectList output;
     Lock lock(write_lock_);
@@ -100,11 +100,11 @@ ObjectList Node::List() const
     return output;
 }
 
-bool Node::load_raw(
+auto Node::load_raw(
     const std::string& id,
     std::string& output,
     std::string& alias,
-    const bool checking) const
+    const bool checking) const -> bool
 {
     std::lock_guard<std::mutex> lock(write_lock_);
     const auto& it = item_map_.find(id);
@@ -125,16 +125,16 @@ bool Node::load_raw(
     return driver_.Load(std::get<0>(it->second), checking, output);
 }
 
-bool Node::migrate(
+auto Node::migrate(
     const std::string& hash,
-    const opentxs::api::storage::Driver& to) const
+    const opentxs::api::storage::Driver& to) const -> bool
 {
     if (false == check_hash(hash)) { return true; }
 
     return driver_.Migrate(hash, to);
 }
 
-bool Node::Migrate(const opentxs::api::storage::Driver& to) const
+auto Node::Migrate(const opentxs::api::storage::Driver& to) const -> bool
 {
     if (std::string(BLANK_HASH) == root_) {
         if (0 < item_map_.size()) {
@@ -159,7 +159,7 @@ bool Node::Migrate(const opentxs::api::storage::Driver& to) const
     return output;
 }
 
-std::string Node::normalize_hash(const std::string& hash)
+auto Node::normalize_hash(const std::string& hash) -> std::string
 {
     if (hash.empty()) { return BLANK_HASH; }
 
@@ -182,7 +182,7 @@ std::string Node::normalize_hash(const std::string& hash)
     return hash;
 }
 
-std::string Node::Root() const
+auto Node::Root() const -> std::string
 {
     Lock lock_(write_lock_);
 
@@ -200,7 +200,7 @@ void Node::serialize_index(
     output.set_alias(std::get<1>(metadata));
 }
 
-bool Node::set_alias(const std::string& id, const std::string& alias)
+auto Node::set_alias(const std::string& id, const std::string& alias) -> bool
 {
     std::string output;
     Lock lock(write_lock_);
@@ -242,21 +242,21 @@ void Node::set_hash(
     output.set_type(type);
 }
 
-bool Node::store_raw(
+auto Node::store_raw(
     const std::string& data,
     const std::string& id,
-    const std::string& alias)
+    const std::string& alias) -> bool
 {
     Lock lock(write_lock_);
 
     return store_raw(lock, data, id, alias);
 }
 
-bool Node::store_raw(
+auto Node::store_raw(
     const Lock& lock,
     const std::string& data,
     const std::string& id,
-    const std::string& alias)
+    const std::string& alias) -> bool
 {
     OT_ASSERT(verify_write_lock(lock))
 
@@ -270,9 +270,9 @@ bool Node::store_raw(
     return save(lock);
 }
 
-VersionNumber Node::UpgradeLevel() const { return original_version_; }
+auto Node::UpgradeLevel() const -> VersionNumber { return original_version_; }
 
-bool Node::verify_write_lock(const Lock& lock) const
+auto Node::verify_write_lock(const Lock& lock) const -> bool
 {
     if (lock.mutex() != &write_lock_) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Incorrect mutex.").Flush();

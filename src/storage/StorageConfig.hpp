@@ -23,7 +23,7 @@ namespace C = std::chrono;
 namespace opentxs
 {
 
-typedef std::function<void(const std::string&, const std::string&)> InsertCB;
+using InsertCB = std::function<void(const std::string&, const std::string&)>;
 
 class StorageConfig
 {

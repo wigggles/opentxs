@@ -42,16 +42,19 @@ Seeds::Seeds(
     }
 }
 
-std::string Seeds::Alias(const std::string& id) const { return get_alias(id); }
+auto Seeds::Alias(const std::string& id) const -> std::string
+{
+    return get_alias(id);
+}
 
-std::string Seeds::Default() const
+auto Seeds::Default() const -> std::string
 {
     std::lock_guard<std::mutex> lock(write_lock_);
 
     return default_seed_;
 }
 
-bool Seeds::Delete(const std::string& id) { return delete_item(id); }
+auto Seeds::Delete(const std::string& id) -> bool { return delete_item(id); }
 
 void Seeds::init(const std::string& hash)
 {
@@ -73,16 +76,16 @@ void Seeds::init(const std::string& hash)
     }
 }
 
-bool Seeds::Load(
+auto Seeds::Load(
     const std::string& id,
     std::shared_ptr<proto::Seed>& output,
     std::string& alias,
-    const bool checking) const
+    const bool checking) const -> bool
 {
     return load_proto<proto::Seed>(id, output, alias, checking);
 }
 
-bool Seeds::save(const std::unique_lock<std::mutex>& lock) const
+auto Seeds::save(const std::unique_lock<std::mutex>& lock) const -> bool
 {
     if (!verify_write_lock(lock)) {
         std::cerr << __FUNCTION__ << ": Lock failure." << std::endl;
@@ -96,7 +99,7 @@ bool Seeds::save(const std::unique_lock<std::mutex>& lock) const
     return driver_.StoreProto(serialized, root_);
 }
 
-proto::StorageSeeds Seeds::serialize() const
+auto Seeds::serialize() const -> proto::StorageSeeds
 {
     proto::StorageSeeds serialized;
     serialized.set_version(version_);
@@ -115,7 +118,7 @@ proto::StorageSeeds Seeds::serialize() const
 
     return serialized;
 }
-bool Seeds::SetAlias(const std::string& id, const std::string& alias)
+auto Seeds::SetAlias(const std::string& id, const std::string& alias) -> bool
 {
     return set_alias(id, alias);
 }
@@ -132,7 +135,7 @@ void Seeds::set_default(
     default_seed_ = id;
 }
 
-bool Seeds::SetDefault(const std::string& id)
+auto Seeds::SetDefault(const std::string& id) -> bool
 {
     std::unique_lock<std::mutex> lock(write_lock_);
 
@@ -141,7 +144,7 @@ bool Seeds::SetDefault(const std::string& id)
     return save(lock);
 }
 
-bool Seeds::Store(const proto::Seed& data, const std::string& alias)
+auto Seeds::Store(const proto::Seed& data, const std::string& alias) -> bool
 {
     std::unique_lock<std::mutex> lock(write_lock_);
 

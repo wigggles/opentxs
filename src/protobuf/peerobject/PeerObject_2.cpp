@@ -22,7 +22,7 @@
 
 namespace opentxs::proto
 {
-bool CheckProto_5(const PeerObject& input, const bool silent)
+auto CheckProto_5(const PeerObject& input, const bool silent) -> bool
 {
     if (!input.has_type()) { FAIL_1("missing type") }
 
@@ -137,7 +137,7 @@ bool CheckProto_5(const PeerObject& input, const bool silent)
     return true;
 }
 
-bool CheckProto_6(const PeerObject& input, const bool silent)
+auto CheckProto_6(const PeerObject& input, const bool silent) -> bool
 {
     return CheckProto_5(input, silent);
 }

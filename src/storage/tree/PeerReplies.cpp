@@ -36,7 +36,10 @@ PeerReplies::PeerReplies(
     }
 }
 
-bool PeerReplies::Delete(const std::string& id) { return delete_item(id); }
+auto PeerReplies::Delete(const std::string& id) -> bool
+{
+    return delete_item(id);
+}
 
 void PeerReplies::init(const std::string& hash)
 {
@@ -57,10 +60,10 @@ void PeerReplies::init(const std::string& hash)
     }
 }
 
-bool PeerReplies::Load(
+auto PeerReplies::Load(
     const std::string& id,
     std::shared_ptr<proto::PeerReply>& output,
-    const bool checking) const
+    const bool checking) const -> bool
 {
     std::string notUsed;
 
@@ -91,7 +94,7 @@ bool PeerReplies::Load(
     ;
 }
 
-bool PeerReplies::save(const std::unique_lock<std::mutex>& lock) const
+auto PeerReplies::save(const std::unique_lock<std::mutex>& lock) const -> bool
 {
     if (!verify_write_lock(lock)) {
         std::cerr << __FUNCTION__ << ": Lock failure." << std::endl;
@@ -105,7 +108,7 @@ bool PeerReplies::save(const std::unique_lock<std::mutex>& lock) const
     return driver_.StoreProto(serialized, root_);
 }
 
-proto::StorageNymList PeerReplies::serialize() const
+auto PeerReplies::serialize() const -> proto::StorageNymList
 {
     proto::StorageNymList serialized;
     serialized.set_version(version_);
@@ -124,7 +127,7 @@ proto::StorageNymList PeerReplies::serialize() const
     return serialized;
 }
 
-bool PeerReplies::Store(const proto::PeerReply& data)
+auto PeerReplies::Store(const proto::PeerReply& data) -> bool
 {
     return store_proto(data, data.id(), data.cookie());
 }

@@ -83,7 +83,7 @@ ActivitySummaryItem::ActivitySummaryItem(
     OT_ASSERT(newest_item_thread_)
 }
 
-std::string ActivitySummaryItem::DisplayName() const noexcept
+auto ActivitySummaryItem::DisplayName() const noexcept -> std::string
 {
     sLock lock(shared_lock_);
 
@@ -92,9 +92,9 @@ std::string ActivitySummaryItem::DisplayName() const noexcept
     return display_name_;
 }
 
-std::string ActivitySummaryItem::find_text(
+auto ActivitySummaryItem::find_text(
     const PasswordPrompt& reason,
-    const ItemLocator& locator) const noexcept
+    const ItemLocator& locator) const noexcept -> std::string
 {
     const auto& [itemID, box, accountID] = locator;
 
@@ -157,7 +157,7 @@ void ActivitySummaryItem::get_text() noexcept
     }
 }
 
-std::string ActivitySummaryItem::ImageURI() const noexcept
+auto ActivitySummaryItem::ImageURI() const noexcept -> std::string
 {
     // TODO
 
@@ -216,27 +216,27 @@ void ActivitySummaryItem::startup(
     queue.Push(++next_task_id_, locator);
 }
 
-std::string ActivitySummaryItem::Text() const noexcept
+auto ActivitySummaryItem::Text() const noexcept -> std::string
 {
     sLock lock(shared_lock_);
 
     return text_;
 }
 
-std::string ActivitySummaryItem::ThreadID() const noexcept
+auto ActivitySummaryItem::ThreadID() const noexcept -> std::string
 {
     return row_id_->str();
 }
 
-std::chrono::system_clock::time_point ActivitySummaryItem::Timestamp() const
-    noexcept
+auto ActivitySummaryItem::Timestamp() const noexcept
+    -> std::chrono::system_clock::time_point
 {
     sLock lock(shared_lock_);
 
     return time_;
 }
 
-StorageBox ActivitySummaryItem::Type() const noexcept
+auto ActivitySummaryItem::Type() const noexcept -> StorageBox
 {
     sLock lock(shared_lock_);
 

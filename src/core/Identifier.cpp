@@ -41,9 +41,9 @@ template class std::map<opentxs::OTIdentifier, std::set<opentxs::OTIdentifier>>;
 
 namespace std
 {
-bool less<opentxs::Pimpl<opentxs::Identifier>>::operator()(
+auto less<opentxs::Pimpl<opentxs::Identifier>>::operator()(
     const opentxs::OTIdentifier& lhs,
-    const opentxs::OTIdentifier& rhs) const
+    const opentxs::OTIdentifier& rhs) const -> bool
 {
     return lhs.get() < rhs.get();
 }
@@ -51,147 +51,147 @@ bool less<opentxs::Pimpl<opentxs::Identifier>>::operator()(
 
 namespace opentxs
 {
-bool operator==(const OTIdentifier& lhs, const Identifier& rhs)
+auto operator==(const OTIdentifier& lhs, const Identifier& rhs) -> bool
 {
     return lhs.get().operator==(rhs);
 }
 
-bool operator==(const OTNymID& lhs, const opentxs::Identifier& rhs)
+auto operator==(const OTNymID& lhs, const opentxs::Identifier& rhs) -> bool
 {
     return lhs.get().operator==(rhs);
 }
 
-bool operator==(const OTServerID& lhs, const opentxs::Identifier& rhs)
+auto operator==(const OTServerID& lhs, const opentxs::Identifier& rhs) -> bool
 {
     return lhs.get().operator==(rhs);
 }
 
-bool operator==(const OTUnitID& lhs, const opentxs::Identifier& rhs)
+auto operator==(const OTUnitID& lhs, const opentxs::Identifier& rhs) -> bool
 {
     return lhs.get().operator==(rhs);
 }
 
-bool operator!=(const OTIdentifier& lhs, const Identifier& rhs)
+auto operator!=(const OTIdentifier& lhs, const Identifier& rhs) -> bool
 {
     return lhs.get().operator!=(rhs);
 }
 
-bool operator!=(const OTNymID& lhs, const opentxs::Identifier& rhs)
+auto operator!=(const OTNymID& lhs, const opentxs::Identifier& rhs) -> bool
 {
     return lhs.get().operator!=(rhs);
 }
 
-bool operator!=(const OTServerID& lhs, const opentxs::Identifier& rhs)
+auto operator!=(const OTServerID& lhs, const opentxs::Identifier& rhs) -> bool
 {
     return lhs.get().operator!=(rhs);
 }
 
-bool operator!=(const OTUnitID& lhs, const opentxs::Identifier& rhs)
+auto operator!=(const OTUnitID& lhs, const opentxs::Identifier& rhs) -> bool
 {
     return lhs.get().operator!=(rhs);
 }
 
-bool operator<(const OTIdentifier& lhs, const opentxs::Identifier& rhs)
+auto operator<(const OTIdentifier& lhs, const opentxs::Identifier& rhs) -> bool
 {
     return lhs.get().operator<(rhs);
 }
 
-bool operator<(const OTNymID& lhs, const opentxs::Identifier& rhs)
+auto operator<(const OTNymID& lhs, const opentxs::Identifier& rhs) -> bool
 {
     return lhs.get().operator<(rhs);
 }
 
-bool operator<(const OTServerID& lhs, const opentxs::Identifier& rhs)
+auto operator<(const OTServerID& lhs, const opentxs::Identifier& rhs) -> bool
 {
     return lhs.get().operator<(rhs);
 }
 
-bool operator<(const OTUnitID& lhs, const opentxs::Identifier& rhs)
+auto operator<(const OTUnitID& lhs, const opentxs::Identifier& rhs) -> bool
 {
     return lhs.get().operator<(rhs);
 }
 
-bool operator>(const OTIdentifier& lhs, const opentxs::Identifier& rhs)
+auto operator>(const OTIdentifier& lhs, const opentxs::Identifier& rhs) -> bool
 {
     return lhs.get().operator>(rhs);
 }
 
-bool operator>(const OTNymID& lhs, const opentxs::Identifier& rhs)
+auto operator>(const OTNymID& lhs, const opentxs::Identifier& rhs) -> bool
 {
     return lhs.get().operator>(rhs);
 }
 
-bool operator>(const OTServerID& lhs, const opentxs::Identifier& rhs)
+auto operator>(const OTServerID& lhs, const opentxs::Identifier& rhs) -> bool
 {
     return lhs.get().operator>(rhs);
 }
 
-bool operator>(const OTUnitID& lhs, const opentxs::Identifier& rhs)
+auto operator>(const OTUnitID& lhs, const opentxs::Identifier& rhs) -> bool
 {
     return lhs.get().operator>(rhs);
 }
 
-bool operator<=(const OTIdentifier& lhs, const opentxs::Identifier& rhs)
+auto operator<=(const OTIdentifier& lhs, const opentxs::Identifier& rhs) -> bool
 {
     return lhs.get().operator<=(rhs);
 }
 
-bool operator<=(const OTNymID& lhs, const opentxs::Identifier& rhs)
+auto operator<=(const OTNymID& lhs, const opentxs::Identifier& rhs) -> bool
 {
     return lhs.get().operator<=(rhs);
 }
 
-bool operator<=(const OTServerID& lhs, const opentxs::Identifier& rhs)
+auto operator<=(const OTServerID& lhs, const opentxs::Identifier& rhs) -> bool
 {
     return lhs.get().operator<=(rhs);
 }
 
-bool operator<=(const OTUnitID& lhs, const opentxs::Identifier& rhs)
+auto operator<=(const OTUnitID& lhs, const opentxs::Identifier& rhs) -> bool
 {
     return lhs.get().operator<=(rhs);
 }
 
-bool operator>=(const OTIdentifier& lhs, const opentxs::Identifier& rhs)
+auto operator>=(const OTIdentifier& lhs, const opentxs::Identifier& rhs) -> bool
 {
     return lhs.get().operator>=(rhs);
 }
 
-bool operator>=(const OTNymID& lhs, const opentxs::Identifier& rhs)
+auto operator>=(const OTNymID& lhs, const opentxs::Identifier& rhs) -> bool
 {
     return lhs.get().operator>=(rhs);
 }
 
-bool operator>=(const OTServerID& lhs, const opentxs::Identifier& rhs)
+auto operator>=(const OTServerID& lhs, const opentxs::Identifier& rhs) -> bool
 {
     return lhs.get().operator>=(rhs);
 }
 
-bool operator>=(const OTUnitID& lhs, const opentxs::Identifier& rhs)
+auto operator>=(const OTUnitID& lhs, const opentxs::Identifier& rhs) -> bool
 {
     return lhs.get().operator>=(rhs);
 }
 
-OTIdentifier Identifier::Factory()
+auto Identifier::Factory() -> OTIdentifier
 {
     return OTIdentifier(new implementation::Identifier());
 }
 
-OTNymID identifier::Nym::Factory()
+auto identifier::Nym::Factory() -> OTNymID
 {
     return OTNymID(new implementation::Identifier());
 }
 
-OTServerID identifier::Server::Factory()
+auto identifier::Server::Factory() -> OTServerID
 {
     return OTServerID(new implementation::Identifier());
 }
 
-OTUnitID identifier::UnitDefinition::Factory()
+auto identifier::UnitDefinition::Factory() -> OTUnitID
 {
     return OTUnitID(new implementation::Identifier());
 }
 
-OTIdentifier Identifier::Factory(const Identifier& rhs)
+auto Identifier::Factory(const Identifier& rhs) -> OTIdentifier
 {
     return OTIdentifier(
 #ifndef _WIN32
@@ -202,81 +202,81 @@ OTIdentifier Identifier::Factory(const Identifier& rhs)
     );
 }
 
-OTIdentifier Identifier::Factory(const std::string& rhs)
+auto Identifier::Factory(const std::string& rhs) -> OTIdentifier
 {
     return OTIdentifier(new implementation::Identifier(rhs));
 }
 
-OTNymID identifier::Nym::Factory(const std::string& rhs)
+auto identifier::Nym::Factory(const std::string& rhs) -> OTNymID
 {
     return OTNymID(new implementation::Identifier(rhs));
 }
 
-OTServerID identifier::Server::Factory(const std::string& rhs)
+auto identifier::Server::Factory(const std::string& rhs) -> OTServerID
 {
     return OTServerID(new implementation::Identifier(rhs));
 }
 
-OTUnitID identifier::UnitDefinition::Factory(const std::string& rhs)
+auto identifier::UnitDefinition::Factory(const std::string& rhs) -> OTUnitID
 {
     return OTUnitID(new implementation::Identifier(rhs));
 }
 
-OTIdentifier Identifier::Factory(const String& rhs)
+auto Identifier::Factory(const String& rhs) -> OTIdentifier
 {
     return OTIdentifier(new implementation::Identifier(rhs));
 }
 
-OTNymID identifier::Nym::Factory(const String& rhs)
+auto identifier::Nym::Factory(const String& rhs) -> OTNymID
 {
     return OTNymID(new implementation::Identifier(rhs));
 }
 
-OTServerID identifier::Server::Factory(const String& rhs)
+auto identifier::Server::Factory(const String& rhs) -> OTServerID
 {
     return OTServerID(new implementation::Identifier(rhs));
 }
 
-OTUnitID identifier::UnitDefinition::Factory(const String& rhs)
+auto identifier::UnitDefinition::Factory(const String& rhs) -> OTUnitID
 {
     return OTUnitID(new implementation::Identifier(rhs));
 }
 
-OTIdentifier Identifier::Factory(const identity::Nym& nym)
+auto Identifier::Factory(const identity::Nym& nym) -> OTIdentifier
 {
     return OTIdentifier(new implementation::Identifier(nym));
 }
 
-OTNymID identifier::Nym::Factory(const identity::Nym& rhs)
+auto identifier::Nym::Factory(const identity::Nym& rhs) -> OTNymID
 {
     return OTNymID(new implementation::Identifier(rhs));
 }
 
-OTIdentifier Identifier::Factory(const Contract& contract)
+auto Identifier::Factory(const Contract& contract) -> OTIdentifier
 {
     return OTIdentifier(new implementation::Identifier(contract));
 }
 
-OTIdentifier Identifier::Factory(const Cheque& cheque)
+auto Identifier::Factory(const Cheque& cheque) -> OTIdentifier
 {
     return OTIdentifier(
         implementation::Identifier::contract_contents_to_identifier(cheque));
 }
 
-OTIdentifier Identifier::Factory(const Item& item)
+auto Identifier::Factory(const Item& item) -> OTIdentifier
 {
     return OTIdentifier(
         implementation::Identifier::contract_contents_to_identifier(item));
 }
 
-OTIdentifier Identifier::Factory(
+auto Identifier::Factory(
     const proto::ContactItemType type,
-    const proto::HDPath& path)
+    const proto::HDPath& path) -> OTIdentifier
 {
     return OTIdentifier(new implementation::Identifier(type, path));
 }
 
-OTIdentifier Identifier::Random()
+auto Identifier::Random() -> OTIdentifier
 {
     OTIdentifier output{new implementation::Identifier};
     auto nonce = Data::Factory();
@@ -291,7 +291,7 @@ OTIdentifier Identifier::Random()
     return output;
 }
 
-bool Identifier::Validate(const std::string& input)
+auto Identifier::Validate(const std::string& input) -> bool
 {
     if (input.empty()) { return false; }
 
@@ -349,43 +349,43 @@ Identifier::Identifier(
     CalculateDigest(path_to_data(type, path)->Bytes(), DefaultType);
 }
 
-bool Identifier::operator==(const opentxs::Identifier& s2) const
+auto Identifier::operator==(const opentxs::Identifier& s2) const -> bool
 {
     const auto ots1 = String::Factory(*this), ots2 = String::Factory(s2);
     return ots1->Compare(ots2);
 }
 
-bool Identifier::operator!=(const opentxs::Identifier& s2) const
+auto Identifier::operator!=(const opentxs::Identifier& s2) const -> bool
 {
     const auto ots1 = String::Factory(*this), ots2 = String::Factory(s2);
     return !(ots1->Compare(ots2));
 }
 
-bool Identifier::operator>(const opentxs::Identifier& s2) const
+auto Identifier::operator>(const opentxs::Identifier& s2) const -> bool
 {
     const auto ots1 = String::Factory(*this), ots2 = String::Factory(s2);
     return ots1->operator>(ots2);
 }
 
-bool Identifier::operator<(const opentxs::Identifier& s2) const
+auto Identifier::operator<(const opentxs::Identifier& s2) const -> bool
 {
     const auto ots1 = String::Factory(*this), ots2 = String::Factory(s2);
     return ots1->operator<(ots2);
 }
 
-bool Identifier::operator<=(const opentxs::Identifier& s2) const
+auto Identifier::operator<=(const opentxs::Identifier& s2) const -> bool
 {
     const auto ots1 = String::Factory(*this), ots2 = String::Factory(s2);
     return ots1->operator<=(ots2);
 }
 
-bool Identifier::operator>=(const opentxs::Identifier& s2) const
+auto Identifier::operator>=(const opentxs::Identifier& s2) const -> bool
 {
     const auto ots1 = String::Factory(*this), ots2 = String::Factory(s2);
     return ots1->operator>=(ots2);
 }
 
-bool Identifier::CalculateDigest(const ReadView bytes, const ID type)
+auto Identifier::CalculateDigest(const ReadView bytes, const ID type) -> bool
 {
     type_ = type;
 
@@ -393,12 +393,13 @@ bool Identifier::CalculateDigest(const ReadView bytes, const ID type)
         IDToHashType(type_), bytes, WriteInto());
 }
 
-Identifier* Identifier::clone() const
+auto Identifier::clone() const -> Identifier*
 {
     return new Identifier(data_, position_, type_);
 }
 
-Identifier* Identifier::contract_contents_to_identifier(const Contract& in)
+auto Identifier::contract_contents_to_identifier(const Contract& in)
+    -> Identifier*
 {
     auto output = new Identifier();
 
@@ -429,7 +430,7 @@ void Identifier::GetString(String& id) const
     id.swap(output);
 }
 
-proto::HashType Identifier::IDToHashType(const ID type)
+auto Identifier::IDToHashType(const ID type) -> proto::HashType
 {
     switch (type) {
         case (ID::sha256): {
@@ -444,9 +445,9 @@ proto::HashType Identifier::IDToHashType(const ID type)
     }
 }
 
-OTData Identifier::path_to_data(
+auto Identifier::path_to_data(
     const proto::ContactItemType type,
-    const proto::HDPath& path)
+    const proto::HDPath& path) -> OTData
 {
     auto output = Data::Factory(static_cast<const void*>(&type), sizeof(type));
     output += Data::Factory(path.root().c_str(), path.root().size());
@@ -497,7 +498,7 @@ void Identifier::SetString(const std::string& encoded)
     }
 }
 
-std::string Identifier::str() const
+auto Identifier::str() const -> std::string
 {
     auto output = String::Factory();
     GetString(output);

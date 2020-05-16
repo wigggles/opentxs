@@ -159,7 +159,7 @@
 
 namespace opentxs
 {
-rpc::internal::RPC* Factory::RPC(const api::Context& native)
+auto Factory::RPC(const api::Context& native) -> rpc::internal::RPC*
 {
     return new rpc::implementation::RPC(native);
 }
@@ -199,8 +199,8 @@ RPC::RPC(const api::Context& native)
     OT_ASSERT(bound)
 }
 
-proto::RPCResponse RPC::accept_pending_payments(
-    const proto::RPCCommand& command) const
+auto RPC::accept_pending_payments(const proto::RPCCommand& command) const
+    -> proto::RPCResponse
 {
     INIT_CLIENT_ONLY();
     CHECK_INPUT(acceptpendingpayment, proto::RPCRESPONSE_INVALID);
@@ -292,7 +292,8 @@ proto::RPCResponse RPC::accept_pending_payments(
     return output;
 }
 
-proto::RPCResponse RPC::add_claim(const proto::RPCCommand& command) const
+auto RPC::add_claim(const proto::RPCCommand& command) const
+    -> proto::RPCResponse
 {
     INIT_SESSION();
     CHECK_OWNER();
@@ -324,7 +325,8 @@ proto::RPCResponse RPC::add_claim(const proto::RPCCommand& command) const
     return output;
 }
 
-proto::RPCResponse RPC::add_contact(const proto::RPCCommand& command) const
+auto RPC::add_contact(const proto::RPCCommand& command) const
+    -> proto::RPCResponse
 {
     INIT_CLIENT_ONLY();
     CHECK_INPUT(addcontact, proto::RPCRESPONSE_INVALID);
@@ -389,7 +391,8 @@ void RPC::add_output_task(proto::RPCResponse& output, const std::string& taskid)
     task.set_id(taskid);
 }
 
-proto::RPCResponse RPC::create_account(const proto::RPCCommand& command) const
+auto RPC::create_account(const proto::RPCCommand& command) const
+    -> proto::RPCResponse
 {
     INIT_CLIENT_ONLY();
     CHECK_OWNER();
@@ -424,8 +427,8 @@ proto::RPCResponse RPC::create_account(const proto::RPCCommand& command) const
     return output;
 }
 
-proto::RPCResponse RPC::create_compatible_account(
-    const proto::RPCCommand& command) const
+auto RPC::create_compatible_account(const proto::RPCCommand& command) const
+    -> proto::RPCResponse
 {
     INIT_CLIENT_ONLY();
     CHECK_OWNER();
@@ -492,8 +495,8 @@ proto::RPCResponse RPC::create_compatible_account(
     return output;
 }
 
-proto::RPCResponse RPC::create_issuer_account(
-    const proto::RPCCommand& command) const
+auto RPC::create_issuer_account(const proto::RPCCommand& command) const
+    -> proto::RPCResponse
 {
     INIT_CLIENT_ONLY();
     CHECK_OWNER();
@@ -557,7 +560,8 @@ proto::RPCResponse RPC::create_issuer_account(
     return output;
 }
 
-proto::RPCResponse RPC::create_nym(const proto::RPCCommand& command) const
+auto RPC::create_nym(const proto::RPCCommand& command) const
+    -> proto::RPCResponse
 {
     INIT_CLIENT_ONLY();
 
@@ -601,8 +605,8 @@ proto::RPCResponse RPC::create_nym(const proto::RPCCommand& command) const
     return output;
 }
 
-proto::RPCResponse RPC::create_unit_definition(
-    const proto::RPCCommand& command) const
+auto RPC::create_unit_definition(const proto::RPCCommand& command) const
+    -> proto::RPCResponse
 {
     INIT_SESSION();
     CHECK_OWNER();
@@ -632,7 +636,8 @@ proto::RPCResponse RPC::create_unit_definition(
     return output;
 }
 
-proto::RPCResponse RPC::delete_claim(const proto::RPCCommand& command) const
+auto RPC::delete_claim(const proto::RPCCommand& command) const
+    -> proto::RPCResponse
 {
     INIT_SESSION();
     CHECK_OWNER();
@@ -746,8 +751,8 @@ void RPC::evaluate_send_payment_transfer(
     }
 }
 
-proto::RPCResponse RPC::get_account_activity(
-    const proto::RPCCommand& command) const
+auto RPC::get_account_activity(const proto::RPCCommand& command) const
+    -> proto::RPCResponse
 {
     INIT_CLIENT_ONLY();
     CHECK_INPUT(identifier, proto::RPCRESPONSE_INVALID);
@@ -821,8 +826,8 @@ proto::RPCResponse RPC::get_account_activity(
     return output;
 }
 
-proto::RPCResponse RPC::get_account_balance(
-    const proto::RPCCommand& command) const
+auto RPC::get_account_balance(const proto::RPCCommand& command) const
+    -> proto::RPCResponse
 {
     INIT_SESSION();
     CHECK_INPUT(identifier, proto::RPCRESPONSE_INVALID);
@@ -860,7 +865,7 @@ proto::RPCResponse RPC::get_account_balance(
     return output;
 }
 
-ArgList RPC::get_args(const Args& serialized)
+auto RPC::get_args(const Args& serialized) -> ArgList
 {
     ArgList output{};
 
@@ -873,8 +878,8 @@ ArgList RPC::get_args(const Args& serialized)
     return output;
 }
 
-const api::client::internal::Manager* RPC::get_client(
-    const std::int32_t instance) const
+auto RPC::get_client(const std::int32_t instance) const
+    -> const api::client::internal::Manager*
 {
     if (is_server_session(instance)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error: provided instance ")(
@@ -896,8 +901,8 @@ const api::client::internal::Manager* RPC::get_client(
     }
 }
 
-proto::RPCResponse RPC::get_compatible_accounts(
-    const proto::RPCCommand& command) const
+auto RPC::get_compatible_accounts(const proto::RPCCommand& command) const
+    -> proto::RPCResponse
 {
     INIT_CLIENT_ONLY();
     CHECK_OWNER();
@@ -961,12 +966,12 @@ proto::RPCResponse RPC::get_compatible_accounts(
     return output;
 }
 
-std::size_t RPC::get_index(const std::int32_t instance)
+auto RPC::get_index(const std::int32_t instance) -> std::size_t
 {
     return (instance - (instance % 2)) / 2;
 }
 
-proto::RPCResponse RPC::get_nyms(const proto::RPCCommand& command) const
+auto RPC::get_nyms(const proto::RPCCommand& command) const -> proto::RPCResponse
 {
     INIT_SESSION();
     CHECK_INPUT(identifier, proto::RPCRESPONSE_INVALID);
@@ -986,8 +991,8 @@ proto::RPCResponse RPC::get_nyms(const proto::RPCCommand& command) const
     return output;
 }
 
-proto::RPCResponse RPC::get_pending_payments(
-    const proto::RPCCommand& command) const
+auto RPC::get_pending_payments(const proto::RPCCommand& command) const
+    -> proto::RPCResponse
 {
     INIT_CLIENT_ONLY();
     CHECK_OWNER();
@@ -1054,7 +1059,8 @@ proto::RPCResponse RPC::get_pending_payments(
     return output;
 }
 
-proto::RPCResponse RPC::get_seeds(const proto::RPCCommand& command) const
+auto RPC::get_seeds(const proto::RPCCommand& command) const
+    -> proto::RPCResponse
 {
     INIT_SESSION();
     CHECK_INPUT(identifier, proto::RPCRESPONSE_INVALID);
@@ -1082,7 +1088,8 @@ proto::RPCResponse RPC::get_seeds(const proto::RPCCommand& command) const
     return output;
 }
 
-const api::server::Manager* RPC::get_server(const std::int32_t instance) const
+auto RPC::get_server(const std::int32_t instance) const
+    -> const api::server::Manager*
 {
     if (is_client_session(instance)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error: provided instance ")(
@@ -1103,8 +1110,8 @@ const api::server::Manager* RPC::get_server(const std::int32_t instance) const
     }
 }
 
-proto::RPCResponse RPC::get_server_admin_nym(
-    const proto::RPCCommand& command) const
+auto RPC::get_server_admin_nym(const proto::RPCCommand& command) const
+    -> proto::RPCResponse
 {
     INIT_SERVER_ONLY();
 
@@ -1120,8 +1127,8 @@ proto::RPCResponse RPC::get_server_admin_nym(
     return output;
 }
 
-proto::RPCResponse RPC::get_server_contracts(
-    const proto::RPCCommand& command) const
+auto RPC::get_server_contracts(const proto::RPCCommand& command) const
+    -> proto::RPCResponse
 {
     INIT_SESSION();
     CHECK_INPUT(identifier, proto::RPCRESPONSE_INVALID);
@@ -1140,8 +1147,8 @@ proto::RPCResponse RPC::get_server_contracts(
     return output;
 }
 
-proto::RPCResponse RPC::get_server_password(
-    const proto::RPCCommand& command) const
+auto RPC::get_server_password(const proto::RPCCommand& command) const
+    -> proto::RPCResponse
 {
     INIT_SERVER_ONLY();
 
@@ -1157,7 +1164,7 @@ proto::RPCResponse RPC::get_server_password(
     return output;
 }
 
-const api::Core& RPC::get_session(const std::int32_t instance) const
+auto RPC::get_session(const std::int32_t instance) const -> const api::Core&
 {
     if (is_server_session(instance)) {
         return ot_.Server(get_index(instance));
@@ -1166,8 +1173,8 @@ const api::Core& RPC::get_session(const std::int32_t instance) const
     }
 }
 
-proto::RPCResponse RPC::get_transaction_data(
-    const proto::RPCCommand& command) const
+auto RPC::get_transaction_data(const proto::RPCCommand& command) const
+    -> proto::RPCResponse
 {
     INIT_CLIENT_ONLY();
     CHECK_INPUT(identifier, proto::RPCRESPONSE_INVALID);
@@ -1179,8 +1186,8 @@ proto::RPCResponse RPC::get_transaction_data(
     return output;
 }
 
-proto::RPCResponse RPC::get_unit_definitions(
-    const proto::RPCCommand& command) const
+auto RPC::get_unit_definitions(const proto::RPCCommand& command) const
+    -> proto::RPCResponse
 {
     INIT_SESSION();
     CHECK_INPUT(identifier, proto::RPCRESPONSE_INVALID);
@@ -1205,7 +1212,8 @@ proto::RPCResponse RPC::get_unit_definitions(
     return output;
 }
 
-proto::RPCResponse RPC::get_workflow(const proto::RPCCommand& command) const
+auto RPC::get_workflow(const proto::RPCCommand& command) const
+    -> proto::RPCResponse
 {
     INIT_CLIENT_ONLY();
     CHECK_INPUT(getworkflow, proto::RPCRESPONSE_INVALID);
@@ -1227,11 +1235,11 @@ proto::RPCResponse RPC::get_workflow(const proto::RPCCommand& command) const
     return output;
 }
 
-bool RPC::immediate_create_account(
+auto RPC::immediate_create_account(
     const api::client::internal::Manager& client,
     const identifier::Nym& owner,
     const identifier::Server& notary,
-    const identifier::UnitDefinition& unit) const
+    const identifier::UnitDefinition& unit) const -> bool
 {
     const auto registered =
         client.OTAPI().IsNym_RegisteredAtServer(owner, notary);
@@ -1246,17 +1254,17 @@ bool RPC::immediate_create_account(
     return registered;
 }
 
-bool RPC::immediate_register_issuer_account(
+auto RPC::immediate_register_issuer_account(
     const api::client::internal::Manager& client,
     const identifier::Nym& owner,
-    const identifier::Server& notary) const
+    const identifier::Server& notary) const -> bool
 {
     return client.OTAPI().IsNym_RegisteredAtServer(owner, notary);
 }
 
-bool RPC::immediate_register_nym(
+auto RPC::immediate_register_nym(
     const api::client::internal::Manager& client,
-    const identifier::Server& notary) const
+    const identifier::Server& notary) const -> bool
 {
     try {
         client.Wallet().Server(notary);
@@ -1268,7 +1276,8 @@ bool RPC::immediate_register_nym(
     }
 }
 
-proto::RPCResponse RPC::import_seed(const proto::RPCCommand& command) const
+auto RPC::import_seed(const proto::RPCCommand& command) const
+    -> proto::RPCResponse
 {
     INIT_SESSION();
 
@@ -1292,8 +1301,8 @@ proto::RPCResponse RPC::import_seed(const proto::RPCCommand& command) const
     return output;
 }
 
-proto::RPCResponse RPC::import_server_contract(
-    const proto::RPCCommand& command) const
+auto RPC::import_server_contract(const proto::RPCCommand& command) const
+    -> proto::RPCResponse
 {
     INIT_SESSION();
     CHECK_INPUT(server, proto::RPCRESPONSE_INVALID);
@@ -1310,7 +1319,7 @@ proto::RPCResponse RPC::import_server_contract(
     return output;
 }
 
-proto::RPCResponse RPC::init(const proto::RPCCommand& command)
+auto RPC::init(const proto::RPCCommand& command) -> proto::RPCResponse
 {
     proto::RPCResponse output{};
     output.set_version(command.version());
@@ -1320,7 +1329,8 @@ proto::RPCResponse RPC::init(const proto::RPCCommand& command)
     return output;
 }
 
-proto::RPCResponse RPC::invalid_command(const proto::RPCCommand& command)
+auto RPC::invalid_command(const proto::RPCCommand& command)
+    -> proto::RPCResponse
 {
     INIT();
 
@@ -1329,17 +1339,17 @@ proto::RPCResponse RPC::invalid_command(const proto::RPCCommand& command)
     return output;
 }
 
-bool RPC::is_client_session(std::int32_t instance) const
+auto RPC::is_client_session(std::int32_t instance) const -> bool
 {
     return instance % 2 == 0;
 }
 
-bool RPC::is_server_session(std::int32_t instance) const
+auto RPC::is_server_session(std::int32_t instance) const -> bool
 {
     return instance % 2 != 0;
 }
 
-bool RPC::is_session_valid(std::int32_t instance) const
+auto RPC::is_session_valid(std::int32_t instance) const -> bool
 {
     Lock lock(lock_);
     auto index = get_index(instance);
@@ -1351,7 +1361,8 @@ bool RPC::is_session_valid(std::int32_t instance) const
     }
 }
 
-proto::RPCResponse RPC::list_accounts(const proto::RPCCommand& command) const
+auto RPC::list_accounts(const proto::RPCCommand& command) const
+    -> proto::RPCResponse
 {
     INIT_CLIENT_ONLY();
 
@@ -1368,8 +1379,8 @@ proto::RPCResponse RPC::list_accounts(const proto::RPCCommand& command) const
     return output;
 }
 
-proto::RPCResponse RPC::list_client_sessions(
-    const proto::RPCCommand& command) const
+auto RPC::list_client_sessions(const proto::RPCCommand& command) const
+    -> proto::RPCResponse
 {
     INIT();
     Lock lock(lock_);
@@ -1389,7 +1400,8 @@ proto::RPCResponse RPC::list_client_sessions(
     return output;
 }
 
-proto::RPCResponse RPC::list_contacts(const proto::RPCCommand& command) const
+auto RPC::list_contacts(const proto::RPCCommand& command) const
+    -> proto::RPCResponse
 {
     INIT_CLIENT_ONLY();
 
@@ -1408,7 +1420,8 @@ proto::RPCResponse RPC::list_contacts(const proto::RPCCommand& command) const
     return output;
 }
 
-proto::RPCResponse RPC::list_nyms(const proto::RPCCommand& command) const
+auto RPC::list_nyms(const proto::RPCCommand& command) const
+    -> proto::RPCResponse
 {
     INIT_SESSION();
 
@@ -1425,7 +1438,8 @@ proto::RPCResponse RPC::list_nyms(const proto::RPCCommand& command) const
     return output;
 }
 
-proto::RPCResponse RPC::list_seeds(const proto::RPCCommand& command) const
+auto RPC::list_seeds(const proto::RPCCommand& command) const
+    -> proto::RPCResponse
 {
     INIT_SESSION();
 
@@ -1444,8 +1458,8 @@ proto::RPCResponse RPC::list_seeds(const proto::RPCCommand& command) const
     return output;
 }
 
-proto::RPCResponse RPC::list_server_contracts(
-    const proto::RPCCommand& command) const
+auto RPC::list_server_contracts(const proto::RPCCommand& command) const
+    -> proto::RPCResponse
 {
     INIT_SESSION();
 
@@ -1462,8 +1476,8 @@ proto::RPCResponse RPC::list_server_contracts(
     return output;
 }
 
-proto::RPCResponse RPC::list_server_sessions(
-    const proto::RPCCommand& command) const
+auto RPC::list_server_sessions(const proto::RPCCommand& command) const
+    -> proto::RPCResponse
 {
     INIT();
     Lock lock(lock_);
@@ -1483,8 +1497,8 @@ proto::RPCResponse RPC::list_server_sessions(
     return output;
 }
 
-proto::RPCResponse RPC::list_unit_definitions(
-    const proto::RPCCommand& command) const
+auto RPC::list_unit_definitions(const proto::RPCCommand& command) const
+    -> proto::RPCResponse
 {
     INIT_SESSION();
 
@@ -1503,8 +1517,8 @@ proto::RPCResponse RPC::list_unit_definitions(
     return output;
 }
 
-proto::RPCResponse RPC::lookup_account_id(
-    const proto::RPCCommand& command) const
+auto RPC::lookup_account_id(const proto::RPCCommand& command) const
+    -> proto::RPCResponse
 {
     INIT_SESSION();
 
@@ -1523,7 +1537,8 @@ proto::RPCResponse RPC::lookup_account_id(
     return output;
 }
 
-proto::RPCResponse RPC::move_funds(const proto::RPCCommand& command) const
+auto RPC::move_funds(const proto::RPCCommand& command) const
+    -> proto::RPCResponse
 {
     INIT_CLIENT_ONLY();
 
@@ -1570,7 +1585,7 @@ proto::RPCResponse RPC::move_funds(const proto::RPCCommand& command) const
     return output;
 }
 
-proto::RPCResponse RPC::Process(const proto::RPCCommand& command) const
+auto RPC::Process(const proto::RPCCommand& command) const -> proto::RPCResponse
 {
     const auto valid = proto::Validate(command, VERBOSE);
 
@@ -1731,7 +1746,8 @@ void RPC::queue_task(
     add_output_status(output, proto::RPCRESPONSE_QUEUED);
 }
 
-proto::RPCResponse RPC::register_nym(const proto::RPCCommand& command) const
+auto RPC::register_nym(const proto::RPCCommand& command) const
+    -> proto::RPCResponse
 {
     INIT_CLIENT_ONLY();
     CHECK_OWNER();
@@ -1770,7 +1786,8 @@ proto::RPCResponse RPC::register_nym(const proto::RPCCommand& command) const
     return output;
 }
 
-proto::RPCResponse RPC::rename_account(const proto::RPCCommand& command) const
+auto RPC::rename_account(const proto::RPCCommand& command) const
+    -> proto::RPCResponse
 {
     INIT_CLIENT_ONLY();
     CHECK_INPUT(modifyaccount, proto::RPCRESPONSE_INVALID);
@@ -1790,7 +1807,8 @@ proto::RPCResponse RPC::rename_account(const proto::RPCCommand& command) const
     return output;
 }
 
-proto::RPCResponse RPC::send_payment(const proto::RPCCommand& command) const
+auto RPC::send_payment(const proto::RPCCommand& command) const
+    -> proto::RPCResponse
 {
     INIT_CLIENT_ONLY();
 
@@ -1904,7 +1922,8 @@ proto::RPCResponse RPC::send_payment(const proto::RPCCommand& command) const
     return output;
 }
 
-proto::RPCResponse RPC::start_client(const proto::RPCCommand& command) const
+auto RPC::start_client(const proto::RPCCommand& command) const
+    -> proto::RPCResponse
 {
     INIT();
     Lock lock(lock_);
@@ -1933,7 +1952,8 @@ proto::RPCResponse RPC::start_client(const proto::RPCCommand& command) const
     return output;
 }
 
-proto::RPCResponse RPC::start_server(const proto::RPCCommand& command) const
+auto RPC::start_server(const proto::RPCCommand& command) const
+    -> proto::RPCResponse
 {
     INIT();
     Lock lock(lock_);
@@ -1958,8 +1978,8 @@ proto::RPCResponse RPC::start_server(const proto::RPCCommand& command) const
     return output;
 }
 
-proto::AccountEventType RPC::storagebox_to_accounteventtype(
-    StorageBox storagebox)
+auto RPC::storagebox_to_accounteventtype(StorageBox storagebox)
+    -> proto::AccountEventType
 {
     proto::AccountEventType accounteventtype = proto::ACCOUNTEVENT_ERROR;
 

@@ -53,21 +53,21 @@ namespace opentxs::crypto::implementation
 class Envelope final : public crypto::Envelope
 {
 public:
-    bool Armored(opentxs::Armored& ciphertext) const noexcept final;
-    bool Open(
+    auto Armored(opentxs::Armored& ciphertext) const noexcept -> bool final;
+    auto Open(
         const identity::Nym& recipient,
         const AllocateOutput plaintext,
-        const PasswordPrompt& reason) const noexcept final;
-    SerializedType Serialize() const noexcept final;
+        const PasswordPrompt& reason) const noexcept -> bool final;
+    auto Serialize() const noexcept -> SerializedType final;
 
-    bool Seal(
+    auto Seal(
         const Recipients& recipients,
         const ReadView plaintext,
-        const PasswordPrompt& reason) noexcept final;
-    bool Seal(
+        const PasswordPrompt& reason) noexcept -> bool final;
+    auto Seal(
         const identity::Nym& theRecipient,
         const ReadView plaintext,
-        const PasswordPrompt& reason) noexcept final;
+        const PasswordPrompt& reason) noexcept -> bool final;
 
     Envelope(const api::internal::Core& api) noexcept;
     Envelope(
@@ -128,7 +128,10 @@ private:
         const Requirements& requirements,
         Solution& map) noexcept -> bool;
 
-    Envelope* clone() const noexcept final { return new Envelope{*this}; }
+    auto clone() const noexcept -> Envelope* final
+    {
+        return new Envelope{*this};
+    }
     auto unlock_session_key(
         const identity::Nym& recipient,
         PasswordPrompt& reason) const noexcept(false) -> const key::Symmetric&;
@@ -151,7 +154,7 @@ private:
     Envelope() = delete;
     Envelope(const Envelope&) noexcept;
     Envelope(Envelope&&) = delete;
-    Envelope& operator=(const Envelope&) = delete;
-    Envelope& operator=(Envelope&&) = delete;
+    auto operator=(const Envelope&) -> Envelope& = delete;
+    auto operator=(Envelope &&) -> Envelope& = delete;
 };
 }  // namespace opentxs::crypto::implementation

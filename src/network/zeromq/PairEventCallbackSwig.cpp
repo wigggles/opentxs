@@ -21,8 +21,8 @@
 
 namespace opentxs::network::zeromq
 {
-OTZMQPairEventCallback PairEventCallback::Factory(
-    opentxs::PairEventCallbackSwig* callback)
+auto PairEventCallback::Factory(opentxs::PairEventCallbackSwig* callback)
+    -> OTZMQPairEventCallback
 {
     return OTZMQPairEventCallback(
         new implementation::PairEventCallbackSwig(callback));
@@ -43,7 +43,7 @@ PairEventCallbackSwig::PairEventCallbackSwig(
     }
 }
 
-PairEventCallbackSwig* PairEventCallbackSwig::clone() const
+auto PairEventCallbackSwig::clone() const -> PairEventCallbackSwig*
 {
     return new PairEventCallbackSwig(callback_);
 }

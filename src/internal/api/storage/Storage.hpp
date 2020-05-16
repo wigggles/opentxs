@@ -24,7 +24,7 @@ protected:
 private:
     StorageInternal(const StorageInternal&) = delete;
     StorageInternal(StorageInternal&&) = delete;
-    StorageInternal& operator=(const StorageInternal&) = delete;
-    StorageInternal& operator=(StorageInternal&&) = delete;
+    auto operator=(const StorageInternal&) -> StorageInternal& = delete;
+    auto operator=(StorageInternal &&) -> StorageInternal& = delete;
 };
 }  // namespace opentxs::api::storage

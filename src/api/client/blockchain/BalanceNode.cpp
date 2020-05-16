@@ -112,21 +112,21 @@ BalanceNode::Element::Element(
 {
 }
 
-std::string BalanceNode::Element::Address(const AddressStyle format) const
-    noexcept
+auto BalanceNode::Element::Address(const AddressStyle format) const noexcept
+    -> std::string
 {
     return api_.CalculateAddress(
         chain_, format, api_.API().Factory().Data(key_.PublicKey()));
 }
 
-OTIdentifier BalanceNode::Element::Contact() const noexcept
+auto BalanceNode::Element::Contact() const noexcept -> OTIdentifier
 {
     Lock lock(lock_);
 
     return contact_;
 }
 
-std::set<OTData> BalanceNode::Element::Elements() const noexcept
+auto BalanceNode::Element::Elements() const noexcept -> std::set<OTData>
 {
     auto output = std::set<OTData>{};
     Lock lock(lock_);
@@ -141,17 +141,17 @@ std::set<OTData> BalanceNode::Element::Elements() const noexcept
     return output;
 }
 
-std::set<std::string> BalanceNode::Element::IncomingTransactions() const
-    noexcept
+auto BalanceNode::Element::IncomingTransactions() const noexcept
+    -> std::set<std::string>
 {
     return parent_.IncomingTransactions(
         blockchain::Key{parent_.ID().str(), subchain_, index_});
 }
 
-std::unique_ptr<opentxs::crypto::key::EllipticCurve> BalanceNode::Element::
-    instantiate(
-        const api::internal::Core& api,
-        const proto::AsymmetricKey& serialized) noexcept(false)
+auto BalanceNode::Element::instantiate(
+    const api::internal::Core& api,
+    const proto::AsymmetricKey& serialized) noexcept(false)
+    -> std::unique_ptr<opentxs::crypto::key::EllipticCurve>
 {
     auto output = api.Asymmetric().InstantiateECKey(serialized);
 
@@ -164,29 +164,29 @@ std::unique_ptr<opentxs::crypto::key::EllipticCurve> BalanceNode::Element::
     return output->asPublicEC();
 }
 
-ECKey BalanceNode::Element::Key() const noexcept
+auto BalanceNode::Element::Key() const noexcept -> ECKey
 {
     Lock lock(lock_);
 
     return pkey_;
 }
 
-std::string BalanceNode::Element::Label() const noexcept
+auto BalanceNode::Element::Label() const noexcept -> std::string
 {
     Lock lock(lock_);
 
     return label_;
 }
 
-OTData BalanceNode::Element::PubkeyHash() const noexcept
+auto BalanceNode::Element::PubkeyHash() const noexcept -> OTData
 {
     const auto key = api_.API().Factory().Data(key_.PublicKey());
 
     return api_.PubkeyHash(chain_, key);
 }
 
-BalanceNode::Element::SerializedType BalanceNode::Element::Serialize() const
-    noexcept
+auto BalanceNode::Element::Serialize() const noexcept
+    -> BalanceNode::Element::SerializedType
 {
     auto serialized = key_.Serialize();
 
@@ -223,11 +223,11 @@ void BalanceNode::Element::SetMetadata(
     label_ = label;
 }
 
-bool BalanceNode::AssociateTransaction(
+auto BalanceNode::AssociateTransaction(
     const std::vector<Activity>& unspent,
     const std::vector<Activity>& spent,
     std::set<OTIdentifier>& contacts,
-    const PasswordPrompt& reason) const noexcept
+    const PasswordPrompt& reason) const noexcept -> bool
 {
     Lock lock(lock_);
 
@@ -269,7 +269,7 @@ void BalanceNode::claim_element(
     }
 }
 
-proto::BlockchainActivity BalanceNode::convert(Activity&& in) noexcept
+auto BalanceNode::convert(Activity&& in) noexcept -> proto::BlockchainActivity
 {
     const auto& [coin, key, value] = in;
     const auto& [txid, out] = coin;
@@ -286,7 +286,8 @@ proto::BlockchainActivity BalanceNode::convert(Activity&& in) noexcept
     return output;
 }
 
-Activity BalanceNode::convert(const proto::BlockchainActivity& in) noexcept
+auto BalanceNode::convert(const proto::BlockchainActivity& in) noexcept
+    -> Activity
 {
     Activity output{};
     auto& [coin, key, value] = output;
@@ -302,8 +303,8 @@ Activity BalanceNode::convert(const proto::BlockchainActivity& in) noexcept
     return output;
 }
 
-internal::ActivityMap BalanceNode::convert(
-    const std::vector<Activity>& in) noexcept
+auto BalanceNode::convert(const std::vector<Activity>& in) noexcept
+    -> internal::ActivityMap
 {
     auto output = internal::ActivityMap{};
 
@@ -317,8 +318,8 @@ internal::ActivityMap BalanceNode::convert(
     return output;
 }
 
-std::set<std::string> BalanceNode::IncomingTransactions(
-    const Key& element) const noexcept
+auto BalanceNode::IncomingTransactions(const Key& element) const noexcept
+    -> std::set<std::string>
 {
     Lock lock(lock_);
     auto output = std::set<std::string>{};
@@ -382,10 +383,10 @@ void BalanceNode::process_unspent(
     }
 }
 
-bool BalanceNode::SetContact(
+auto BalanceNode::SetContact(
     const Subchain type,
     const Bip32Index index,
-    const Identifier& id) noexcept(false)
+    const Identifier& id) noexcept(false) -> bool
 {
     Lock lock(lock_);
 
@@ -399,10 +400,10 @@ bool BalanceNode::SetContact(
     }
 }
 
-bool BalanceNode::SetLabel(
+auto BalanceNode::SetLabel(
     const Subchain type,
     const Bip32Index index,
-    const std::string& label) noexcept(false)
+    const std::string& label) noexcept(false) -> bool
 {
     Lock lock(lock_);
 

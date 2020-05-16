@@ -29,11 +29,11 @@ protected:
     ~Sender() override = default;
 
 private:
-    bool send(zeromq::Message& data) const noexcept override;
+    auto send(zeromq::Message& data) const noexcept -> bool override;
 
     Sender(const Sender&) = delete;
     Sender(Sender&&) = delete;
-    Sender& operator=(const Sender&) = delete;
-    Sender& operator=(Sender&&) = delete;
+    auto operator=(const Sender&) -> Sender& = delete;
+    auto operator=(Sender &&) -> Sender& = delete;
 };
 }  // namespace opentxs::network::zeromq::socket::implementation

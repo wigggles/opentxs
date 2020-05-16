@@ -38,12 +38,13 @@ Credentials::Credentials(
     }
 }
 
-std::string Credentials::Alias(const std::string& id) const
+auto Credentials::Alias(const std::string& id) const -> std::string
 {
     return get_alias(id);
 }
 
-bool Credentials::check_existing(const bool incoming, Metadata& metadata) const
+auto Credentials::check_existing(const bool incoming, Metadata& metadata) const
+    -> bool
 {
     const auto& hash = std::get<0>(metadata);
     auto& isPrivate = std::get<3>(metadata);
@@ -75,7 +76,10 @@ bool Credentials::check_existing(const bool incoming, Metadata& metadata) const
     return !isPrivate;
 }
 
-bool Credentials::Delete(const std::string& id) { return delete_item(id); }
+auto Credentials::Delete(const std::string& id) -> bool
+{
+    return delete_item(id);
+}
 
 void Credentials::init(const std::string& hash)
 {
@@ -96,10 +100,10 @@ void Credentials::init(const std::string& hash)
     }
 }
 
-bool Credentials::Load(
+auto Credentials::Load(
     const std::string& id,
     std::shared_ptr<proto::Credential>& cred,
-    const bool checking) const
+    const bool checking) const -> bool
 {
     std::lock_guard<std::mutex> lock(write_lock_);
     const bool exists = (item_map_.end() != item_map_.find(id));
@@ -125,7 +129,7 @@ bool Credentials::Load(
     return true;
 }
 
-bool Credentials::save(const std::unique_lock<std::mutex>& lock) const
+auto Credentials::save(const std::unique_lock<std::mutex>& lock) const -> bool
 {
     if (!verify_write_lock(lock)) {
         std::cerr << __FUNCTION__ << ": Lock failure." << std::endl;
@@ -139,7 +143,7 @@ bool Credentials::save(const std::unique_lock<std::mutex>& lock) const
     return driver_.StoreProto(serialized, root_);
 }
 
-proto::StorageCredentials Credentials::serialize() const
+auto Credentials::serialize() const -> proto::StorageCredentials
 {
     proto::StorageCredentials serialized;
     serialized.set_version(version_);
@@ -158,12 +162,14 @@ proto::StorageCredentials Credentials::serialize() const
     return serialized;
 }
 
-bool Credentials::SetAlias(const std::string& id, const std::string& alias)
+auto Credentials::SetAlias(const std::string& id, const std::string& alias)
+    -> bool
 {
     return set_alias(id, alias);
 }
 
-bool Credentials::Store(const proto::Credential& cred, const std::string& alias)
+auto Credentials::Store(const proto::Credential& cred, const std::string& alias)
+    -> bool
 {
     std::unique_lock<std::mutex> lock(write_lock_);
 

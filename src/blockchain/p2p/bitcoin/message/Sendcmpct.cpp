@@ -22,12 +22,12 @@
 namespace opentxs
 {
 // We have a header and a raw payload. Parse it.
-blockchain::p2p::bitcoin::message::Sendcmpct* Factory::BitcoinP2PSendcmpct(
+auto Factory::BitcoinP2PSendcmpct(
     const api::internal::Core& api,
     std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
     const blockchain::p2p::bitcoin::ProtocolVersion,
     const void* payload,
-    const std::size_t size)
+    const std::size_t size) -> blockchain::p2p::bitcoin::message::Sendcmpct*
 {
     namespace bitcoin = blockchain::p2p::bitcoin;
     using ReturnType = bitcoin::message::Sendcmpct;
@@ -69,11 +69,12 @@ blockchain::p2p::bitcoin::message::Sendcmpct* Factory::BitcoinP2PSendcmpct(
 }
 
 // We have all the data members to create the message from scratch (for sending)
-blockchain::p2p::bitcoin::message::Sendcmpct* Factory::BitcoinP2PSendcmpct(
+auto Factory::BitcoinP2PSendcmpct(
     const api::internal::Core& api,
     const blockchain::Type network,
     const bool announce,
     const std::uint64_t version)
+    -> blockchain::p2p::bitcoin::message::Sendcmpct*
 {
     namespace bitcoin = blockchain::p2p::bitcoin;
     using ReturnType = bitcoin::message::Sendcmpct;
@@ -123,7 +124,7 @@ Sendcmpct::Raw::Raw() noexcept
 {
 }
 
-OTData Sendcmpct::payload() const noexcept
+auto Sendcmpct::payload() const noexcept -> OTData
 {
     try {
         Sendcmpct::Raw raw_item(announce_, version_);

@@ -65,51 +65,56 @@ namespace opentxs::api::client::blockchain::implementation
 class BalanceNode : virtual public internal::BalanceNode
 {
 public:
-    bool AssociateTransaction(
+    auto AssociateTransaction(
         const std::vector<Activity>& unspent,
         const std::vector<Activity>& outgoing,
         std::set<OTIdentifier>& contacts,
-        const PasswordPrompt& reason) const noexcept final;
-    const Identifier& ID() const noexcept final { return id_; }
-    std::set<std::string> IncomingTransactions(const Key& key) const
-        noexcept final;
-    const internal::BalanceTree& Parent() const noexcept final
+        const PasswordPrompt& reason) const noexcept -> bool final;
+    auto ID() const noexcept -> const Identifier& final { return id_; }
+    auto IncomingTransactions(const Key& key) const noexcept
+        -> std::set<std::string> final;
+    auto Parent() const noexcept -> const internal::BalanceTree& final
     {
         return parent_;
     }
-    bool SetContact(
+    auto SetContact(
         const Subchain type,
         const Bip32Index index,
-        const Identifier& id) noexcept(false) final;
-    bool SetLabel(
+        const Identifier& id) noexcept(false) -> bool final;
+    auto SetLabel(
         const Subchain type,
         const Bip32Index index,
-        const std::string& label) noexcept(false) final;
-    BalanceNodeType Type() const noexcept final { return type_; }
+        const std::string& label) noexcept(false) -> bool final;
+    auto Type() const noexcept -> BalanceNodeType final { return type_; }
 
     ~BalanceNode() override = default;
 
 protected:
     struct Element final : virtual public internal::BalanceElement {
-        std::string Address(const AddressStyle format) const noexcept final;
-        OTIdentifier Contact() const noexcept final;
-        std::set<OTData> Elements() const noexcept final;
-        const Identifier& ID() const noexcept final { return parent_.ID(); }
-        std::set<std::string> IncomingTransactions() const noexcept final;
-        Bip32Index Index() const noexcept final { return index_; }
-        ECKey Key() const noexcept final;
-        std::string Label() const noexcept final;
-        const identifier::Nym& NymID() const noexcept final
+        auto Address(const AddressStyle format) const noexcept
+            -> std::string final;
+        auto Contact() const noexcept -> OTIdentifier final;
+        auto Elements() const noexcept -> std::set<OTData> final;
+        auto ID() const noexcept -> const Identifier& final
+        {
+            return parent_.ID();
+        }
+        auto IncomingTransactions() const noexcept
+            -> std::set<std::string> final;
+        auto Index() const noexcept -> Bip32Index final { return index_; }
+        auto Key() const noexcept -> ECKey final;
+        auto Label() const noexcept -> std::string final;
+        auto NymID() const noexcept -> const identifier::Nym& final
         {
             return parent_.Parent().NymID();
         }
-        const blockchain::BalanceNode& Parent() const noexcept final
+        auto Parent() const noexcept -> const blockchain::BalanceNode& final
         {
             return parent_;
         }
-        OTData PubkeyHash() const noexcept final;
-        SerializedType Serialize() const noexcept final;
-        blockchain::Subchain Subchain() const noexcept final
+        auto PubkeyHash() const noexcept -> OTData final;
+        auto Serialize() const noexcept -> SerializedType final;
+        auto Subchain() const noexcept -> blockchain::Subchain final
         {
             return subchain_;
         }
@@ -150,9 +155,10 @@ protected:
         std::shared_ptr<opentxs::crypto::key::EllipticCurve> pkey_;
         opentxs::crypto::key::EllipticCurve& key_;
 
-        static std::unique_ptr<opentxs::crypto::key::EllipticCurve> instantiate(
+        static auto instantiate(
             const api::internal::Core& api,
-            const proto::AsymmetricKey& serialized) noexcept(false);
+            const proto::AsymmetricKey& serialized) noexcept(false)
+            -> std::unique_ptr<opentxs::crypto::key::EllipticCurve>;
 
         Element(
             const internal::BalanceNode& parent,
@@ -177,10 +183,11 @@ protected:
     mutable internal::ActivityMap unspent_;
     mutable internal::ActivityMap spent_;
 
-    static proto::BlockchainActivity convert(Activity&& in) noexcept;
-    static Activity convert(const proto::BlockchainActivity& in) noexcept;
-    static internal::ActivityMap convert(
-        const std::vector<Activity>& in) noexcept;
+    static auto convert(Activity&& in) noexcept -> proto::BlockchainActivity;
+    static auto convert(const proto::BlockchainActivity& in) noexcept
+        -> Activity;
+    static auto convert(const std::vector<Activity>& in) noexcept
+        -> internal::ActivityMap;
 
     void claim_element(
         const Lock& lock,
@@ -196,14 +203,15 @@ protected:
         const Coin& coin,
         const blockchain::Key key,
         const Amount value) const noexcept;
-    virtual bool save(const Lock& lock) const noexcept = 0;
+    virtual auto save(const Lock& lock) const noexcept -> bool = 0;
 
     // NOTE call only from final constructor bodies
     void init() noexcept;
-    virtual internal::BalanceElement& mutable_element(
+    virtual auto mutable_element(
         const Lock& lock,
         const Subchain type,
-        const Bip32Index index) noexcept(false) = 0;
+        const Bip32Index index) noexcept(false)
+        -> internal::BalanceElement& = 0;
 
     BalanceNode(
         const internal::BalanceTree& parent,
@@ -215,16 +223,16 @@ protected:
 private:
     static const VersionNumber ActivityVersion{1};
 
-    virtual bool check_activity(
+    virtual auto check_activity(
         const Lock& lock,
         const std::vector<Activity>& unspent,
         std::set<OTIdentifier>& contacts,
-        const PasswordPrompt& reason) const noexcept = 0;
+        const PasswordPrompt& reason) const noexcept -> bool = 0;
 
     BalanceNode() = delete;
     BalanceNode(const BalanceNode&) = delete;
     BalanceNode(BalanceNode&&) = delete;
-    BalanceNode& operator=(const BalanceNode&) = delete;
-    BalanceNode& operator=(BalanceNode&&) = delete;
+    auto operator=(const BalanceNode&) -> BalanceNode& = delete;
+    auto operator=(BalanceNode &&) -> BalanceNode& = delete;
 };
 }  // namespace opentxs::api::client::blockchain::implementation

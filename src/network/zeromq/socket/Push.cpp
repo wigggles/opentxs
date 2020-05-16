@@ -36,9 +36,9 @@ template class opentxs::Pimpl<opentxs::network::zeromq::socket::Push>;
 
 namespace opentxs
 {
-network::zeromq::socket::Push* Factory::PushSocket(
+auto Factory::PushSocket(
     const network::zeromq::Context& context,
-    const bool direction)
+    const bool direction) -> network::zeromq::socket::Push*
 {
     using ReturnType = network::zeromq::socket::implementation::Push;
 

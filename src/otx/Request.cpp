@@ -36,13 +36,13 @@ namespace opentxs::otx
 const VersionNumber Request::DefaultVersion{2};
 const VersionNumber Request::MaxVersion{2};
 
-OTXRequest Request::Factory(
+auto Request::Factory(
     const api::internal::Core& api,
     const Nym_p signer,
     const identifier::Server& server,
     const proto::ServerRequestType type,
     const RequestNumber number,
-    const PasswordPrompt& reason)
+    const PasswordPrompt& reason) -> OTXRequest
 {
     OT_ASSERT(signer);
 
@@ -59,9 +59,9 @@ OTXRequest Request::Factory(
     return OTXRequest{output.release()};
 }
 
-OTXRequest Request::Factory(
+auto Request::Factory(
     const api::internal::Core& api,
-    const proto::ServerRequest serialized)
+    const proto::ServerRequest serialized) -> OTXRequest
 {
     return OTXRequest{new implementation::Request(api, serialized)};
 }
@@ -121,7 +121,7 @@ Request::Request(const Request& rhs)
 {
 }
 
-proto::ServerRequest Request::Contract() const
+auto Request::Contract() const -> proto::ServerRequest
 {
     Lock lock(lock_);
     auto output = full_version(lock);
@@ -129,9 +129,9 @@ proto::ServerRequest Request::Contract() const
     return output;
 }
 
-Nym_p Request::extract_nym(
+auto Request::extract_nym(
     const api::internal::Core& api,
-    const proto::ServerRequest serialized)
+    const proto::ServerRequest serialized) -> Nym_p
 {
     if (serialized.has_credentials()) {
 
@@ -144,7 +144,7 @@ Nym_p Request::extract_nym(
     return nullptr;
 }
 
-proto::ServerRequest Request::full_version(const Lock& lock) const
+auto Request::full_version(const Lock& lock) const -> proto::ServerRequest
 {
     auto contract = signature_version(lock);
 
@@ -159,12 +159,12 @@ proto::ServerRequest Request::full_version(const Lock& lock) const
     return contract;
 }
 
-OTIdentifier Request::GetID(const Lock& lock) const
+auto Request::GetID(const Lock& lock) const -> OTIdentifier
 {
     return api_.Factory().Identifier(id_version(lock));
 }
 
-proto::ServerRequest Request::id_version(const Lock& lock) const
+auto Request::id_version(const Lock& lock) const -> proto::ServerRequest
 {
     proto::ServerRequest output{};
     output.set_version(version_);
@@ -178,21 +178,22 @@ proto::ServerRequest Request::id_version(const Lock& lock) const
     return output;
 }
 
-RequestNumber Request::Number() const
+auto Request::Number() const -> RequestNumber
 {
     Lock lock(lock_);
 
     return number_;
 }
 
-OTData Request::Serialize() const
+auto Request::Serialize() const -> OTData
 {
     Lock lock(lock_);
 
     return api_.Factory().Data(full_version(lock));
 }
 
-bool Request::SetIncludeNym(const bool include, const PasswordPrompt& reason)
+auto Request::SetIncludeNym(const bool include, const PasswordPrompt& reason)
+    -> bool
 {
     Lock lock(lock_);
 
@@ -205,7 +206,7 @@ bool Request::SetIncludeNym(const bool include, const PasswordPrompt& reason)
     return update_signature(lock, reason);
 }
 
-proto::ServerRequest Request::signature_version(const Lock& lock) const
+auto Request::signature_version(const Lock& lock) const -> proto::ServerRequest
 {
     auto contract = id_version(lock);
     contract.set_id(id_->str());
@@ -213,7 +214,8 @@ proto::ServerRequest Request::signature_version(const Lock& lock) const
     return contract;
 }
 
-bool Request::update_signature(const Lock& lock, const PasswordPrompt& reason)
+auto Request::update_signature(const Lock& lock, const PasswordPrompt& reason)
+    -> bool
 {
     if (false == Signable::update_signature(lock, reason)) { return false; }
 
@@ -234,7 +236,7 @@ bool Request::update_signature(const Lock& lock, const PasswordPrompt& reason)
     return success;
 }
 
-bool Request::validate(const Lock& lock) const
+auto Request::validate(const Lock& lock) const -> bool
 {
     bool validNym{false};
 
@@ -275,9 +277,9 @@ bool Request::validate(const Lock& lock) const
     return true;
 }
 
-bool Request::verify_signature(
+auto Request::verify_signature(
     const Lock& lock,
-    const proto::Signature& signature) const
+    const proto::Signature& signature) const -> bool
 {
     if (false == Signable::verify_signature(lock, signature)) { return false; }
 

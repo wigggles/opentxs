@@ -35,9 +35,8 @@ namespace zmq = opentxs::network::zeromq;
 
 namespace opentxs
 {
-api::internal::Log* Factory::Log(
-    const zmq::Context& zmq,
-    const std::string& endpoint)
+auto Factory::Log(const zmq::Context& zmq, const std::string& endpoint)
+    -> api::internal::Log*
 {
     return new api::implementation::Log(zmq, endpoint);
 }

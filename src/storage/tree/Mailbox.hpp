@@ -32,8 +32,8 @@ private:
     friend Nym;
 
     void init(const std::string& hash) final;
-    bool save(const std::unique_lock<std::mutex>& lock) const final;
-    proto::StorageNymList serialize() const;
+    auto save(const std::unique_lock<std::mutex>& lock) const -> bool final;
+    auto serialize() const -> proto::StorageNymList;
 
     Mailbox(
         const opentxs::api::storage::Driver& storage,
@@ -41,21 +41,21 @@ private:
     Mailbox() = delete;
     Mailbox(const Mailbox&) = delete;
     Mailbox(Mailbox&&) = delete;
-    Mailbox operator=(const Mailbox&) = delete;
-    Mailbox operator=(Mailbox&&) = delete;
+    auto operator=(const Mailbox&) -> Mailbox = delete;
+    auto operator=(Mailbox &&) -> Mailbox = delete;
 
 public:
-    bool Load(
+    auto Load(
         const std::string& id,
         std::string& output,
         std::string& alias,
-        const bool checking) const;
+        const bool checking) const -> bool;
 
-    bool Delete(const std::string& id);
-    bool Store(
+    auto Delete(const std::string& id) -> bool;
+    auto Store(
         const std::string& id,
         const std::string& data,
-        const std::string& alias);
+        const std::string& alias) -> bool;
 
     ~Mailbox() final = default;
 };

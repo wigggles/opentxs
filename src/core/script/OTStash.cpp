@@ -44,7 +44,7 @@ OTStash::OTStash(const String& strInstrumentDefinitionID, std::int64_t lAmount)
     : m_str_stash_name()
     , m_mapStashItems()
 {
-    OTStashItem* pItem = new OTStashItem(strInstrumentDefinitionID, lAmount);
+    auto* pItem = new OTStashItem(strInstrumentDefinitionID, lAmount);
     OT_ASSERT(nullptr != pItem);
 
     m_mapStashItems.insert(std::pair<std::string, OTStashItem*>(
@@ -57,7 +57,7 @@ OTStash::OTStash(
     : m_str_stash_name()
     , m_mapStashItems()
 {
-    OTStashItem* pItem = new OTStashItem(theInstrumentDefinitionID, lAmount);
+    auto* pItem = new OTStashItem(theInstrumentDefinitionID, lAmount);
     OT_ASSERT(nullptr != pItem);
 
     auto strInstrumentDefinitionID = String::Factory(theInstrumentDefinitionID);
@@ -96,10 +96,10 @@ void OTStash::Serialize(Tag& parent) const
     parent.add_tag(pTag);
 }
 
-std::int32_t OTStash::ReadFromXMLNode(
+auto OTStash::ReadFromXMLNode(
     irr::io::IrrXMLReader*& xml,
     const String& strStashName,
-    const String& strItemCount)
+    const String& strItemCount) -> std::int32_t
 {
     if (!strStashName.Exists()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed: Empty stash 'name' "
@@ -182,7 +182,8 @@ std::int32_t OTStash::ReadFromXMLNode(
 // Creates it if it's not already there.
 // (*this owns it and will clean it up when destroyed.)
 //
-OTStashItem* OTStash::GetStash(const std::string& str_instrument_definition_id)
+auto OTStash::GetStash(const std::string& str_instrument_definition_id)
+    -> OTStashItem*
 {
     auto it = m_mapStashItems.find(str_instrument_definition_id);
 
@@ -191,7 +192,7 @@ OTStashItem* OTStash::GetStash(const std::string& str_instrument_definition_id)
     {
         const auto strInstrumentDefinitionID =
             String::Factory(str_instrument_definition_id.c_str());
-        OTStashItem* pStashItem = new OTStashItem(strInstrumentDefinitionID);
+        auto* pStashItem = new OTStashItem(strInstrumentDefinitionID);
         OT_ASSERT(nullptr != pStashItem);
 
         m_mapStashItems.insert(std::pair<std::string, OTStashItem*>(
@@ -205,7 +206,8 @@ OTStashItem* OTStash::GetStash(const std::string& str_instrument_definition_id)
     return pStashItem;
 }
 
-std::int64_t OTStash::GetAmount(const std::string& str_instrument_definition_id)
+auto OTStash::GetAmount(const std::string& str_instrument_definition_id)
+    -> std::int64_t
 {
     OTStashItem* pStashItem =
         GetStash(str_instrument_definition_id);  // (Always succeeds, and will
@@ -215,9 +217,9 @@ std::int64_t OTStash::GetAmount(const std::string& str_instrument_definition_id)
     return pStashItem->GetAmount();
 }
 
-bool OTStash::CreditStash(
+auto OTStash::CreditStash(
     const std::string& str_instrument_definition_id,
-    const std::int64_t& lAmount)
+    const std::int64_t& lAmount) -> bool
 {
     OTStashItem* pStashItem =
         GetStash(str_instrument_definition_id);  // (Always succeeds, and will
@@ -227,9 +229,9 @@ bool OTStash::CreditStash(
     return pStashItem->CreditStash(lAmount);
 }
 
-bool OTStash::DebitStash(
+auto OTStash::DebitStash(
     const std::string& str_instrument_definition_id,
-    const std::int64_t& lAmount)
+    const std::int64_t& lAmount) -> bool
 {
     OTStashItem* pStashItem =
         GetStash(str_instrument_definition_id);  // (Always succeeds, and will

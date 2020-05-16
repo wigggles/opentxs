@@ -31,10 +31,10 @@ struct Contact : virtual public Base,
     virtual ~Contact() = default;
 };
 struct Key : virtual public Base, virtual public identity::credential::Key {
-    virtual bool SelfSign(
+    virtual auto SelfSign(
         const PasswordPrompt& reason,
         const OTPassword* exportPassword = nullptr,
-        const bool onlyPrivate = false) = 0;
+        const bool onlyPrivate = false) -> bool = 0;
 
 #ifdef _MSC_VER
     Key() {}

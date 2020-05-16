@@ -47,7 +47,7 @@ Instrument::Instrument(
 // valid date range to use this instrument. But sometimes you only want
 // to know if it's expired, regardless of whether it's valid yet. So this
 // function answers that for you.
-bool Instrument::IsExpired()
+auto Instrument::IsExpired() -> bool
 {
     const auto CURRENT_TIME = Clock::now();
 
@@ -62,7 +62,7 @@ bool Instrument::IsExpired()
 }
 
 // Verify whether the CURRENT date is WITHIN the VALID FROM / TO dates.
-bool Instrument::VerifyCurrentDate()
+auto Instrument::VerifyCurrentDate() -> bool
 {
     const auto CURRENT_TIME = Clock::now();
 
@@ -91,7 +91,7 @@ void Instrument::Release()
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-std::int32_t Instrument::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
+auto Instrument::ProcessXMLNode(irr::io::IrrXMLReader*& xml) -> std::int32_t
 {
     //    otErr << "OTInstrument::ProcessXMLNode...\n";
     std::int32_t nReturnVal = 0;

@@ -33,8 +33,7 @@ class IFileReadCallBack;
 class IXMLBase;
 template <class char_type, class super_class>
 class IIrrXMLReader;
-
-typedef IIrrXMLReader<char, IXMLBase> IrrXMLReader;
+using IrrXMLReader = IIrrXMLReader<char, IXMLBase>;
 }  // namespace io
 }  // namespace irr
 
@@ -68,7 +67,7 @@ class Tag;
 
 namespace opentxs
 {
-typedef std::list<OTSignature> listOfSignatures;
+using listOfSignatures = std::list<OTSignature>;
 
 OTString trim(const String& str);
 

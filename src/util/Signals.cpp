@@ -82,7 +82,7 @@ void Signals::handle()
 #endif
 }
 
-bool Signals::process(const int signal)
+auto Signals::process(const int signal) -> bool
 {
     auto handler = handler_.find(signal);
 
@@ -97,7 +97,7 @@ bool Signals::process(const int signal)
     return std::get<1>(*handler)();
 }
 
-bool Signals::shutdown()
+auto Signals::shutdown() -> bool
 {
     Cleanup();
 

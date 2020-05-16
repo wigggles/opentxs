@@ -58,7 +58,7 @@ class PasswordPrompt;
 class ServerContext;
 }  // namespace opentxs
 
-bool VerifyStringVal(const std::string&);
+auto VerifyStringVal(const std::string&) -> bool;
 
 namespace opentxs
 {
@@ -229,10 +229,10 @@ public:
         const Amount& activationPrice,
         const std::string& stopSign);
 
-    SendResult LastSendResult() const final { return {}; }
-    const std::shared_ptr<Message> Reply() const final { return {}; }
+    auto LastSendResult() const -> SendResult final { return {}; }
+    auto Reply() const -> const std::shared_ptr<Message> final { return {}; }
 
-    std::string Run(const std::size_t totalRetries = 2) final;
+    auto Run(const std::size_t totalRetries = 2) -> std::string final;
 
     ~OTAPI_Func() final;
 
@@ -297,10 +297,10 @@ private:
     proto::UnitDefinition unitDefinition_{};
 
     void run();
-    std::string send_once(
+    auto send_once(
         const bool bIsTransaction,
         const bool bWillRetryAfterThis,
-        bool& bCanRetryAfterThis);
+        bool& bCanRetryAfterThis) -> std::string;
 
     explicit OTAPI_Func(
         const PasswordPrompt& reason,

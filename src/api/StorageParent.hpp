@@ -73,24 +73,25 @@ protected:
     virtual ~StorageParent() = default;
 
 private:
-    static OTString extract_arg(const std::string& name, const ArgList& args);
-    static OTString extract_archive_directory(const ArgList& args);
-    static OTString extract_encrypted_directory(const ArgList& args);
-    static OTString extract_primary_storage_plugin(const ArgList& args);
+    static auto extract_arg(const std::string& name, const ArgList& args)
+        -> OTString;
+    static auto extract_archive_directory(const ArgList& args) -> OTString;
+    static auto extract_encrypted_directory(const ArgList& args) -> OTString;
+    static auto extract_primary_storage_plugin(const ArgList& args) -> OTString;
 #if OT_QT
     static bool extract_qt(const ArgList& args);
 #endif
-    static OTString get_primary_storage_plugin(
+    static auto get_primary_storage_plugin(
         const api::Settings& config,
         const StorageConfig& storageConfig,
         const ArgList args,
         bool& migrate,
-        String& previous);
+        String& previous) -> OTString;
 
     StorageParent() = delete;
     StorageParent(const StorageParent&) = delete;
     StorageParent(StorageParent&&) = delete;
-    StorageParent& operator=(const StorageParent&) = delete;
-    StorageParent& operator=(StorageParent&&) = delete;
+    auto operator=(const StorageParent&) -> StorageParent& = delete;
+    auto operator=(StorageParent &&) -> StorageParent& = delete;
 };
 }  // namespace opentxs::api::implementation

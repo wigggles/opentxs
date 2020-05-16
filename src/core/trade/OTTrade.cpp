@@ -96,23 +96,23 @@ OTTrade::OTTrade(
 // from the OTScriptable / OTSmartContract version, which verifies parties and
 // agents, etc.
 //
-bool OTTrade::VerifyNymAsAgent(const identity::Nym& nym, const identity::Nym&)
-    const
+auto OTTrade::VerifyNymAsAgent(const identity::Nym& nym, const identity::Nym&)
+    const -> bool
 {
     return VerifySignature(nym);
 }
 
 // This is an override. See note above.
 //
-bool OTTrade::VerifyNymAsAgentForAccount(
+auto OTTrade::VerifyNymAsAgentForAccount(
     const identity::Nym& nym,
-    const Account& account) const
+    const Account& account) const -> bool
 {
     return account.VerifyOwner(nym);
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-std::int32_t OTTrade::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
+auto OTTrade::ProcessXMLNode(irr::io::IrrXMLReader*& xml) -> std::int32_t
 {
     std::int32_t returnVal = 0;
 
@@ -329,7 +329,7 @@ void OTTrade::UpdateContents(const PasswordPrompt& reason)
 // between this trade and the offer, in order to fully verify the offer's
 // authenticity.
 //
-bool OTTrade::VerifyOffer(OTOffer& offer) const
+auto OTTrade::VerifyOffer(OTOffer& offer) const -> bool
 {
     // At this point, I have a working, loaded, model of the Offer.
     // Let's verify the thing.
@@ -368,17 +368,18 @@ bool OTTrade::VerifyOffer(OTOffer& offer) const
 // Otherwise it will fail. (Perhaps it's a stop order, and not ready to activate
 // yet.)
 
-OTOffer* OTTrade::GetOffer(const PasswordPrompt& reason, OTMarket** market)
+auto OTTrade::GetOffer(const PasswordPrompt& reason, OTMarket** market)
+    -> OTOffer*
 {
     auto id = api_.Factory().Identifier();
 
     return GetOffer(id, reason, market);
 }
 
-OTOffer* OTTrade::GetOffer(
+auto OTTrade::GetOffer(
     Identifier& offerMarketId,
     const PasswordPrompt& reason,
-    OTMarket** market)
+    OTMarket** market) -> OTOffer*
 {
     OT_ASSERT(GetCron() != nullptr);
 
@@ -737,7 +738,7 @@ void OTTrade::onRemovalFromCron(const PasswordPrompt& reason)
 //    GetSenderAcctID()    -- asset account.
 //    GetCurrencyAcctID()    -- currency account.
 
-std::int64_t OTTrade::GetClosingNumber(const Identifier& acctId) const
+auto OTTrade::GetClosingNumber(const Identifier& acctId) const -> std::int64_t
 {
     if (acctId == GetSenderAcctID())
         return GetAssetAcctClosingNum();
@@ -746,20 +747,20 @@ std::int64_t OTTrade::GetClosingNumber(const Identifier& acctId) const
     return 0;
 }
 
-std::int64_t OTTrade::GetAssetAcctClosingNum() const
+auto OTTrade::GetAssetAcctClosingNum() const -> std::int64_t
 {
     return (GetCountClosingNumbers() > 0) ? GetClosingTransactionNoAt(0)
                                           : 0;  // todo stop hardcoding.
 }
 
-std::int64_t OTTrade::GetCurrencyAcctClosingNum() const
+auto OTTrade::GetCurrencyAcctClosingNum() const -> std::int64_t
 {
     return (GetCountClosingNumbers() > 1) ? GetClosingTransactionNoAt(1)
                                           : 0;  // todo stop hardcoding.
 }
 
 /// See if nym has rights to remove this item from Cron.
-bool OTTrade::CanRemoveItemFromCron(const ClientContext& context)
+auto OTTrade::CanRemoveItemFromCron(const ClientContext& context) -> bool
 {
     // I don't call the parent class' version of this function, in the case of
     // OTTrade, since it would just be redundant.
@@ -1015,7 +1016,7 @@ void OTTrade::onFinalReceipt(
 // OTCron calls this regularly, which is my chance to expire, etc.
 // Return True if I should stay on the Cron list for more processing.
 // Return False if I should be removed and deleted.
-bool OTTrade::ProcessCron(const PasswordPrompt& reason)
+auto OTTrade::ProcessCron(const PasswordPrompt& reason) -> bool
 {
     // Right now Cron is called 10 times per second.
     // I'm going to slow down all trades so they are once every
@@ -1139,7 +1140,8 @@ processed through this order? We keep track.
 // This is called by the client side. First you call MakeOffer() to set up the
 // Offer,
 // then you call IssueTrade() and pass the Offer into it here.
-bool OTTrade::IssueTrade(OTOffer& offer, char stopSign, std::int64_t stopPrice)
+auto OTTrade::IssueTrade(OTOffer& offer, char stopSign, std::int64_t stopPrice)
+    -> bool
 {
     // Make sure the Stop Sign is within parameters (0, '<', or '>')
     if ((stopSign == 0) || (stopSign == '<') || (stopSign == '>'))

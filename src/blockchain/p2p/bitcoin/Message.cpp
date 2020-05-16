@@ -34,12 +34,12 @@
 
 namespace opentxs
 {
-blockchain::p2p::bitcoin::Message* Factory::BitcoinP2PMessage(
+auto Factory::BitcoinP2PMessage(
     const api::internal::Core& api,
     std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
     const blockchain::p2p::bitcoin::ProtocolVersion version,
     const void* payload,
-    const std::size_t size)
+    const std::size_t size) -> blockchain::p2p::bitcoin::Message*
 {
     namespace bitcoin = blockchain::p2p::bitcoin;
     using ReturnType = bitcoin::Message;
@@ -215,7 +215,7 @@ Message::Message(
     OT_ASSERT(header_);
 }
 
-OTData Message::Encode() const
+auto Message::Encode() const -> OTData
 {
     OTData output = header_->Encode();
     output += payload();
@@ -223,7 +223,7 @@ OTData Message::Encode() const
     return output;
 }
 
-OTData Message::calculate_checksum(const Data& payload) const noexcept
+auto Message::calculate_checksum(const Data& payload) const noexcept -> OTData
 {
     auto output = Data::Factory();
     P2PMessageHash(
@@ -239,7 +239,7 @@ void Message::init_hash() noexcept
     header_->SetChecksum(size, calculate_checksum(data));
 }
 
-std::size_t Message::MaxPayload()
+auto Message::MaxPayload() -> std::size_t
 {
     static_assert(
         std::numeric_limits<std::size_t>::max() >=

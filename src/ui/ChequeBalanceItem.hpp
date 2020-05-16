@@ -54,10 +54,13 @@ namespace opentxs::ui::implementation
 class ChequeBalanceItem final : public BalanceItem
 {
 public:
-    opentxs::Amount Amount() const noexcept final { return effective_amount(); }
-    std::string Memo() const noexcept final;
-    std::string UUID() const noexcept final;
-    std::string Workflow() const noexcept final { return workflow_; }
+    auto Amount() const noexcept -> opentxs::Amount final
+    {
+        return effective_amount();
+    }
+    auto Memo() const noexcept -> std::string final;
+    auto UUID() const noexcept -> std::string final;
+    auto Workflow() const noexcept -> std::string final { return workflow_; }
 
     void reindex(
         const implementation::AccountActivitySortKey& key,
@@ -77,15 +80,15 @@ public:
 private:
     std::unique_ptr<const opentxs::Cheque> cheque_;
 
-    opentxs::Amount effective_amount() const noexcept final;
-    bool get_contract() const noexcept final;
+    auto effective_amount() const noexcept -> opentxs::Amount final;
+    auto get_contract() const noexcept -> bool final;
 
     void startup(const CustomData& custom) noexcept;
 
     ChequeBalanceItem() = delete;
     ChequeBalanceItem(const ChequeBalanceItem&) = delete;
     ChequeBalanceItem(ChequeBalanceItem&&) = delete;
-    ChequeBalanceItem& operator=(const ChequeBalanceItem&) = delete;
-    ChequeBalanceItem& operator=(ChequeBalanceItem&&) = delete;
+    auto operator=(const ChequeBalanceItem&) -> ChequeBalanceItem& = delete;
+    auto operator=(ChequeBalanceItem &&) -> ChequeBalanceItem& = delete;
 };
 }  // namespace opentxs::ui::implementation

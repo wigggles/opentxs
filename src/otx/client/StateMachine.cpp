@@ -213,7 +213,7 @@ StateMachine::StateMachine(
     OT_ASSERT(pOp_);
 }
 
-bool StateMachine::bump_task(const bool bump) const
+auto StateMachine::bump_task(const bool bump) const -> bool
 {
     if (bump) {
         LogInsane(OT_METHOD)(__FUNCTION__)(": ")(++task_count_).Flush();
@@ -224,7 +224,7 @@ bool StateMachine::bump_task(const bool bump) const
 
 // If this server was added by a pairing operation that included a server
 // password then request admin permissions on the server
-bool StateMachine::check_admin(const ServerContext& context) const
+auto StateMachine::check_admin(const ServerContext& context) const -> bool
 {
     bool needAdmin{false};
     const auto haveAdmin = context.isAdmin();
@@ -246,8 +246,8 @@ bool StateMachine::check_admin(const ServerContext& context) const
 }
 
 template <typename T, typename C, typename M, typename U>
-bool StateMachine::check_missing_contract(M& missing, U& unknown, bool skip)
-    const
+auto StateMachine::check_missing_contract(M& missing, U& unknown, bool skip)
+    const -> bool
 {
     auto items = missing.Copy();
 
@@ -274,9 +274,9 @@ void StateMachine::check_nym_revision(const ServerContext& context) const
     }
 }
 
-bool StateMachine::check_registration(
+auto StateMachine::check_registration(
     const identifier::Nym& nymID,
-    const identifier::Server& serverID) const
+    const identifier::Server& serverID) const -> bool
 {
     OT_ASSERT(false == nymID.empty())
     OT_ASSERT(false == serverID.empty())
@@ -322,8 +322,8 @@ bool StateMachine::check_registration(
     }
 }
 
-bool StateMachine::check_server_contract(
-    const identifier::Server& serverID) const
+auto StateMachine::check_server_contract(
+    const identifier::Server& serverID) const -> bool
 {
     OT_ASSERT(false == serverID.empty())
 
@@ -348,7 +348,7 @@ bool StateMachine::check_server_contract(
     return true;
 }
 
-bool StateMachine::check_server_name(const ServerContext& context) const
+auto StateMachine::check_server_name(const ServerContext& context) const -> bool
 {
     try {
         const auto server = client_.Wallet().Server(op_.ServerID());
@@ -396,9 +396,9 @@ void StateMachine::check_transaction_numbers(const ServerContext& context) const
     bump_task(get_task<GetTransactionNumbersTask>().Push(next_task_id(), {}));
 }
 
-bool StateMachine::deposit_cheque(
+auto StateMachine::deposit_cheque(
     const TaskID taskID,
-    const DepositPaymentTask& task) const
+    const DepositPaymentTask& task) const -> bool
 {
     const auto& [unitID, accountID, payment] = task;
 
@@ -430,10 +430,10 @@ bool StateMachine::deposit_cheque(
     return false;
 }
 
-bool StateMachine::deposit_cheque_wrapper(
+auto StateMachine::deposit_cheque_wrapper(
     const TaskID task,
     const DepositPaymentTask& param,
-    UniqueQueue<DepositPaymentTask>& retry) const
+    UniqueQueue<DepositPaymentTask>& retry) const -> bool
 {
     bool output{false};
     const auto& [unitID, accountIDHint, payment] = param;
@@ -454,9 +454,9 @@ bool StateMachine::deposit_cheque_wrapper(
 }
 
 #if OT_CASH
-bool StateMachine::download_mint(
+auto StateMachine::download_mint(
     const TaskID taskID,
-    const DownloadMintTask& task) const
+    const DownloadMintTask& task) const -> bool
 {
     DO_OPERATION(
         Start, client::internal::Operation::Type::DownloadMint, task.first, {});
@@ -465,8 +465,8 @@ bool StateMachine::download_mint(
 }
 #endif
 
-bool StateMachine::download_nym(const TaskID taskID, const CheckNymTask& id)
-    const
+auto StateMachine::download_nym(const TaskID taskID, const CheckNymTask& id)
+    const -> bool
 {
     OT_ASSERT(false == id->empty())
 
@@ -479,7 +479,7 @@ bool StateMachine::download_nym(const TaskID taskID, const CheckNymTask& id)
     return finish_task(taskID, success, std::move(result));
 }
 
-bool StateMachine::download_nymbox(const TaskID taskID) const
+auto StateMachine::download_nymbox(const TaskID taskID) const -> bool
 {
     op_.join();
     auto contextE = client_.Wallet().mutable_ServerContext(
@@ -501,16 +501,16 @@ bool StateMachine::download_nymbox(const TaskID taskID) const
     return finish_task(taskID, success, std::move(result));
 }
 
-StateMachine::Result StateMachine::error_result() const
+auto StateMachine::error_result() const -> StateMachine::Result
 {
     Result output{proto::LASTREPLYSTATUS_NOTSENT, nullptr};
 
     return output;
 }
 
-bool StateMachine::download_server(
+auto StateMachine::download_server(
     const TaskID taskID,
-    const DownloadContractTask& contractID) const
+    const DownloadContractTask& contractID) const -> bool
 {
     OT_ASSERT(false == contractID->empty())
 
@@ -523,9 +523,9 @@ bool StateMachine::download_server(
     return finish_task(taskID, success, std::move(result));
 }
 
-bool StateMachine::download_unit_definition(
+auto StateMachine::download_unit_definition(
     const TaskID taskID,
-    const DownloadUnitDefinitionTask& id) const
+    const DownloadUnitDefinitionTask& id) const -> bool
 {
     OT_ASSERT(false == id->empty())
 
@@ -539,12 +539,12 @@ bool StateMachine::download_unit_definition(
 }
 
 template <typename T, typename C, typename I, typename M, typename U>
-bool StateMachine::find_contract(
+auto StateMachine::find_contract(
     const TaskID taskID,
     const I& targetID,
     M& missing,
     U& unknown,
-    const bool skipExisting) const
+    const bool skipExisting) const -> bool
 {
     if (load_contract<T>(targetID.get())) {
         if (skipExisting) {
@@ -579,15 +579,15 @@ bool StateMachine::find_contract(
     return false;
 }
 
-bool StateMachine::get_admin(const TaskID taskID, const OTPassword& password)
-    const
+auto StateMachine::get_admin(const TaskID taskID, const OTPassword& password)
+    const -> bool
 {
     DO_OPERATION(RequestAdmin, String::Factory(password.getPassword()));
 
     return finish_task(taskID, success, std::move(result));
 }
 
-bool StateMachine::get_transaction_numbers(const TaskID taskID) const
+auto StateMachine::get_transaction_numbers(const TaskID taskID) const -> bool
 {
     ServerContext::ExtraArgs args{};
 
@@ -617,9 +617,9 @@ void StateMachine::increment_counter(const bool run)
     }
 }
 
-bool StateMachine::initiate_peer_reply(
+auto StateMachine::initiate_peer_reply(
     const TaskID taskID,
-    const PeerReplyTask& task) const
+    const PeerReplyTask& task) const -> bool
 {
     const auto [targetNymID, peerReply, peerRequest] = task;
 
@@ -628,9 +628,9 @@ bool StateMachine::initiate_peer_reply(
     return finish_task(taskID, success, std::move(result));
 }
 
-bool StateMachine::initiate_peer_request(
+auto StateMachine::initiate_peer_request(
     const TaskID taskID,
-    const PeerRequestTask& task) const
+    const PeerRequestTask& task) const -> bool
 {
     const auto& [targetNymID, peerRequest] = task;
 
@@ -639,9 +639,9 @@ bool StateMachine::initiate_peer_request(
     return finish_task(taskID, success, std::move(result));
 }
 
-bool StateMachine::issue_unit_definition(
+auto StateMachine::issue_unit_definition(
     const TaskID taskID,
-    const IssueUnitDefinitionTask& task) const
+    const IssueUnitDefinitionTask& task) const -> bool
 {
     try {
         const auto& [unitID, label, advertise] = task;
@@ -675,9 +675,9 @@ bool StateMachine::issue_unit_definition(
     }
 }
 
-bool StateMachine::issue_unit_definition_wrapper(
+auto StateMachine::issue_unit_definition_wrapper(
     const TaskID task,
-    const IssueUnitDefinitionTask& param) const
+    const IssueUnitDefinitionTask& param) const -> bool
 {
     const auto output = issue_unit_definition(task, param);
     bump_task(get_task<RegisterNymTask>().Push(next_task_id(), false));
@@ -685,7 +685,7 @@ bool StateMachine::issue_unit_definition_wrapper(
     return output;
 }
 
-bool StateMachine::main_loop() noexcept
+auto StateMachine::main_loop() noexcept -> bool
 {
     int next{0};
     const auto tasks = task_count_.load();
@@ -758,8 +758,8 @@ bool StateMachine::main_loop() noexcept
     return run;
 }
 
-bool StateMachine::message_nym(const TaskID taskID, const MessageTask& task)
-    const
+auto StateMachine::message_nym(const TaskID taskID, const MessageTask& task)
+    const -> bool
 {
     const auto& [recipient, text, setID] = task;
     auto messageID = Identifier::Factory();
@@ -791,7 +791,8 @@ bool StateMachine::message_nym(const TaskID taskID, const MessageTask& task)
     return finish_task(taskID, success, std::move(result));
 }
 
-bool StateMachine::pay_nym(const TaskID taskID, const PaymentTask& task) const
+auto StateMachine::pay_nym(const TaskID taskID, const PaymentTask& task) const
+    -> bool
 {
     const auto& [recipient, payment] = task;
 
@@ -803,8 +804,8 @@ bool StateMachine::pay_nym(const TaskID taskID, const PaymentTask& task) const
 }
 
 #if OT_CASH
-bool StateMachine::pay_nym_cash(const TaskID taskID, const PayCashTask& task)
-    const
+auto StateMachine::pay_nym_cash(const TaskID taskID, const PayCashTask& task)
+    const -> bool
 {
     const auto& [recipient, workflowID] = task;
 
@@ -816,9 +817,9 @@ bool StateMachine::pay_nym_cash(const TaskID taskID, const PayCashTask& task)
 }
 #endif  // OT_CASH
 
-bool StateMachine::process_inbox(
+auto StateMachine::process_inbox(
     const TaskID taskID,
-    const ProcessInboxTask& id) const
+    const ProcessInboxTask& id) const -> bool
 {
     OT_ASSERT(false == id->empty())
 
@@ -827,9 +828,9 @@ bool StateMachine::process_inbox(
     return finish_task(taskID, success, std::move(result));
 }
 
-bool StateMachine::publish_server_contract(
+auto StateMachine::publish_server_contract(
     const TaskID taskID,
-    const PublishServerContractTask& task) const
+    const PublishServerContractTask& task) const -> bool
 {
     const auto& id = task.first;
 
@@ -840,7 +841,8 @@ bool StateMachine::publish_server_contract(
     return finish_task(taskID, success, std::move(result));
 }
 
-bool StateMachine::queue_contracts(const ServerContext& context, int& next)
+auto StateMachine::queue_contracts(const ServerContext& context, int& next)
+    -> bool
 {
     check_server_nym(context);
     check_missing_contract<CheckNymTask, identity::Nym>(
@@ -860,7 +862,7 @@ bool StateMachine::queue_contracts(const ServerContext& context, int& next)
     return true;
 }
 
-bool StateMachine::queue_nyms()
+auto StateMachine::queue_nyms() -> bool
 {
     const auto blank = client_.Factory().ServerID();
     auto nymID = client_.Factory().NymID();
@@ -884,9 +886,9 @@ bool StateMachine::queue_nyms()
     return true;
 }
 
-bool StateMachine::register_account(
+auto StateMachine::register_account(
     const TaskID taskID,
-    const RegisterAccountTask& task) const
+    const RegisterAccountTask& task) const -> bool
 {
     const auto& [label, unitID] = task;
 
@@ -915,9 +917,9 @@ bool StateMachine::register_account(
     return success;
 }
 
-bool StateMachine::register_account_wrapper(
+auto StateMachine::register_account_wrapper(
     const TaskID task,
-    const RegisterAccountTask& param) const
+    const RegisterAccountTask& param) const -> bool
 {
     const auto done = register_account(task, param);
 
@@ -928,9 +930,9 @@ bool StateMachine::register_account_wrapper(
     return done;
 }
 
-bool StateMachine::register_nym(
+auto StateMachine::register_nym(
     const TaskID taskID,
-    const RegisterNymTask& resync) const
+    const RegisterNymTask& resync) const -> bool
 {
     ServerContext::ExtraArgs args{};
 
@@ -942,10 +944,10 @@ bool StateMachine::register_nym(
 }
 
 // Register the nym, if scheduled. Keep trying until success
-bool StateMachine::register_nym_wrapper(
+auto StateMachine::register_nym_wrapper(
     const TaskID task,
     const RegisterNymTask& param,
-    UniqueQueue<RegisterNymTask>& retry) const
+    UniqueQueue<RegisterNymTask>& retry) const -> bool
 {
     const auto output = register_nym(task, param);
 
@@ -983,23 +985,24 @@ void StateMachine::resolve_unknown(const I& id, const bool found, M& map) const
 }
 
 template <typename T>
-bool StateMachine::run_task(bool (StateMachine::*func)(const TaskID) const)
+auto StateMachine::run_task(bool (StateMachine::*func)(const TaskID) const)
+    -> bool
 {
     return run_task<T>(std::bind(func, this, std::placeholders::_1));
 }
 
 template <typename T>
-bool StateMachine::run_task(bool (StateMachine::*func)(const TaskID, const T&)
-                                const)
+auto StateMachine::run_task(bool (StateMachine::*func)(const TaskID, const T&)
+                                const) -> bool
 {
     return run_task<T>(
         std::bind(func, this, std::placeholders::_1, std::placeholders::_2));
 }
 
 template <typename T, typename R>
-bool StateMachine::run_task(
+auto StateMachine::run_task(
     bool (StateMachine::*func)(const TaskID, const T&, R&) const,
-    R& retry)
+    R& retry) -> bool
 {
     const auto output = run_task<T>(
         [this, func, &retry](const TaskID task, const T& param) -> bool {
@@ -1015,7 +1018,8 @@ bool StateMachine::run_task(
 }
 
 template <typename T>
-bool StateMachine::run_task(std::function<bool(const TaskID, const T&)> func)
+auto StateMachine::run_task(std::function<bool(const TaskID, const T&)> func)
+    -> bool
 {
     auto& param = get_param<T>();
     new (&param) T(make_blank<T>::value(client_));
@@ -1048,9 +1052,9 @@ void StateMachine::scan_unknown(const M& map, int& next) const
     }
 }
 
-bool StateMachine::send_transfer(
+auto StateMachine::send_transfer(
     const TaskID taskID,
-    const SendTransferTask& task) const
+    const SendTransferTask& task) const -> bool
 {
     const auto& [sourceAccountID, targetAccountID, value, memo] = task;
 
@@ -1065,15 +1069,15 @@ bool StateMachine::send_transfer(
 }
 
 template <typename T>
-StateMachine::BackgroundTask StateMachine::StartTask(const T& params) const
+auto StateMachine::StartTask(const T& params) const
+    -> StateMachine::BackgroundTask
 {
     return StartTask<T>(next_task_id(), params);
 }
 
 template <typename T>
-StateMachine::BackgroundTask StateMachine::StartTask(
-    const TaskID taskID,
-    const T& params) const
+auto StateMachine::StartTask(const TaskID taskID, const T& params) const
+    -> StateMachine::BackgroundTask
 {
     Lock lock(decision_lock_);
 
@@ -1090,7 +1094,7 @@ StateMachine::BackgroundTask StateMachine::StartTask(
     return output;
 }
 
-bool StateMachine::state_machine() noexcept
+auto StateMachine::state_machine() noexcept -> bool
 {
     const auto& nymID = op_.NymID();
     const auto& serverID = op_.ServerID();
@@ -1120,9 +1124,9 @@ bool StateMachine::state_machine() noexcept
 }
 
 #if OT_CASH
-bool StateMachine::withdraw_cash(
+auto StateMachine::withdraw_cash(
     const TaskID taskID,
-    const WithdrawCashTask& task) const
+    const WithdrawCashTask& task) const -> bool
 {
     const auto& [accountID, amount] = task;
 
@@ -1132,9 +1136,9 @@ bool StateMachine::withdraw_cash(
 }
 #endif  // OT_CASH
 
-StateMachine::TaskDone StateMachine::write_and_send_cheque(
+auto StateMachine::write_and_send_cheque(
     const TaskID taskID,
-    const SendChequeTask& task) const
+    const SendChequeTask& task) const -> StateMachine::TaskDone
 {
     const auto& [accountID, recipient, value, memo, validFrom, validTo] = task;
 
@@ -1193,10 +1197,10 @@ StateMachine::TaskDone StateMachine::write_and_send_cheque(
     return task_done(finish_task(taskID, success, std::move(result)));
 }
 
-bool StateMachine::write_and_send_cheque_wrapper(
+auto StateMachine::write_and_send_cheque_wrapper(
     const TaskID task,
     const SendChequeTask& param,
-    UniqueQueue<SendChequeTask>& retry) const
+    UniqueQueue<SendChequeTask>& retry) const -> bool
 {
     const auto done = write_and_send_cheque(task, param);
 

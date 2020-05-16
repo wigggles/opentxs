@@ -37,8 +37,11 @@ struct reverse_display<AccountActivityInternalInterface> {
 template <typename Map, typename T, typename Enable = void>
 struct sort_order {
     using iterator = typename Map::const_iterator;
-    static iterator begin(const Map& map) noexcept { return map.cbegin(); }
-    static iterator end(const Map& map) noexcept { return map.cend(); }
+    static auto begin(const Map& map) noexcept -> iterator
+    {
+        return map.cbegin();
+    }
+    static auto end(const Map& map) noexcept -> iterator { return map.cend(); }
 };
 template <typename Map, typename T>
 struct sort_order<
@@ -46,8 +49,11 @@ struct sort_order<
     T,
     typename std::enable_if<reverse_display<T>::value>::type> {
     using iterator = typename Map::const_reverse_iterator;
-    static iterator begin(const Map& map) noexcept { return map.crbegin(); }
-    static iterator end(const Map& map) noexcept { return map.crend(); }
+    static auto begin(const Map& map) noexcept -> iterator
+    {
+        return map.crbegin();
+    }
+    static auto end(const Map& map) noexcept -> iterator { return map.crend(); }
 };
 
 template <
@@ -138,19 +144,19 @@ public:
     using Roles = QHash<int, QByteArray>;
 #endif  // OT_QT
 
-    SharedPimpl<RowInterface> First() const noexcept override
+    auto First() const noexcept -> SharedPimpl<RowInterface> override
     {
         Lock lock(lock_);
 
         return SharedPimpl<RowInterface>(first(lock));
     }
-    virtual bool last(const RowID& id) const noexcept override
+    virtual auto last(const RowID& id) const noexcept -> bool override
     {
         Lock lock(lock_);
 
         return start_.get() && same(id, last_id_);
     }
-    SharedPimpl<RowInterface> Next() const noexcept override
+    auto Next() const noexcept -> SharedPimpl<RowInterface> override
     {
         Lock lock(lock_);
 
@@ -158,7 +164,10 @@ public:
 
         return SharedPimpl<RowInterface>(next(lock));
     }
-    OTIdentifier WidgetID() const noexcept override { return widget_id_; }
+    auto WidgetID() const noexcept -> OTIdentifier override
+    {
+        return widget_id_;
+    }
 
     ~List() override
     {
@@ -353,7 +362,8 @@ protected:
 
         finish_remove_row();
     }
-    RowInternal& find_by_id(const Lock& lock, const RowID& id) const noexcept
+    auto find_by_id(const Lock& lock, const RowID& id) const noexcept
+        -> RowInternal&
     {
         OT_ASSERT(verify_lock(lock));
 
@@ -409,7 +419,7 @@ protected:
      *  If this function returns false, then no valid names are present and
      *  the values of outer_ and inner_ are undefined.
      */
-    bool first_valid_item(const Lock& lock) const noexcept
+    auto first_valid_item(const Lock& lock) const noexcept -> bool
     {
         OT_ASSERT(verify_lock(lock));
 
@@ -537,13 +547,14 @@ private:
     std::promise<void> startup_promise_;
     std::shared_future<void> startup_future_;
 
-    virtual void* construct_row(
+    virtual auto construct_row(
         const RowID& id,
         const SortKey& index,
-        const CustomData& custom) const noexcept = 0;
+        const CustomData& custom) const noexcept -> void* = 0;
     /** Returns item reference by the inner_ iterator. Does not increment
      *  iterators. */
-    const std::shared_ptr<const RowInternal> current(const Lock& lock) const
+    auto current(const Lock& lock) const
+        -> const std::shared_ptr<const RowInternal>
     {
         OT_ASSERT(verify_lock(lock));
 
@@ -651,8 +662,8 @@ private:
     /** Returns first contact, or blank if none exists. Sets up iterators for
      *  next row
      */
-    virtual std::shared_ptr<const RowInternal> first(const Lock& lock) const
-        noexcept
+    virtual auto first(const Lock& lock) const noexcept
+        -> std::shared_ptr<const RowInternal>
     {
         OT_ASSERT(verify_lock(lock));
 
@@ -717,7 +728,7 @@ private:
      *
      *  inner_ is an invalid iterator at this point
      */
-    bool increment_outer(const Lock& lock) const noexcept
+    auto increment_outer(const Lock& lock) const noexcept -> bool
     {
         OT_ASSERT(outer_end() != outer_)
 
@@ -752,16 +763,22 @@ private:
     QModelIndex me() const noexcept override { return {}; }
 #endif  // OT_QT
     /** Returns the next item and increments iterators */
-    const std::shared_ptr<const RowInternal> next(const Lock& lock) const
-        noexcept
+    auto next(const Lock& lock) const noexcept
+        -> const std::shared_ptr<const RowInternal>
     {
         const auto output = current(lock);
         increment_inner(lock);
 
         return output;
     }
-    OuterIterator outer_first() const noexcept { return Sort::begin(items_); }
-    OuterIterator outer_end() const noexcept { return Sort::end(items_); }
+    auto outer_first() const noexcept -> OuterIterator
+    {
+        return Sort::begin(items_);
+    }
+    auto outer_end() const noexcept -> OuterIterator
+    {
+        return Sort::end(items_);
+    }
     void reindex_item(
         const Lock& lock,
         const RowID& id,
@@ -800,7 +817,7 @@ private:
         items_[newIndex].emplace(id, std::move(row));
         finish_insert_row();
     }
-    virtual bool same(const RowID& lhs, const RowID& rhs) const noexcept
+    virtual auto same(const RowID& lhs, const RowID& rhs) const noexcept -> bool
     {
         return (lhs == rhs);
     }
@@ -872,7 +889,7 @@ private:
     List() = delete;
     List(const List&) = delete;
     List(List&&) = delete;
-    List& operator=(const List&) = delete;
-    List& operator=(List&&) = delete;
+    auto operator=(const List&) -> List& = delete;
+    auto operator=(List &&) -> List& = delete;
 };
 }  // namespace opentxs::ui::implementation

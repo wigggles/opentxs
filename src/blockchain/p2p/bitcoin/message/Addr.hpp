@@ -55,27 +55,29 @@ public:
     using pAddress = std::unique_ptr<blockchain::p2p::internal::Address>;
     using AddressVector = std::vector<pAddress>;
 
-    static std::pair<p2p::Network, OTData> ExtractAddress(
-        AddressByteField in) noexcept;
-    static bool SerializeTimestamp(const ProtocolVersion version) noexcept;
+    static auto ExtractAddress(AddressByteField in) noexcept
+        -> std::pair<p2p::Network, OTData>;
+    static auto SerializeTimestamp(const ProtocolVersion version) noexcept
+        -> bool;
 
-    const value_type& at(const std::size_t position) const noexcept(false) final
+    auto at(const std::size_t position) const noexcept(false)
+        -> const value_type& final
     {
         return *payload_.at(position);
     }
-    const_iterator begin() const noexcept final
+    auto begin() const noexcept -> const_iterator final
     {
         return const_iterator(this, 0);
     }
-    const_iterator end() const noexcept final
+    auto end() const noexcept -> const_iterator final
     {
         return const_iterator(this, payload_.size());
     }
-    bool SerializeTimestamp() const noexcept
+    auto SerializeTimestamp() const noexcept -> bool
     {
         return SerializeTimestamp(version_);
     }
-    std::size_t size() const noexcept final { return payload_.size(); }
+    auto size() const noexcept -> std::size_t final { return payload_.size(); }
 
     ~Addr() final = default;
 
@@ -96,7 +98,7 @@ private:
     const ProtocolVersion version_;
     const AddressVector payload_;
 
-    OTData payload() const noexcept final;
+    auto payload() const noexcept -> OTData final;
 
     Addr(
         const api::internal::Core& api,
@@ -110,7 +112,7 @@ private:
         AddressVector&& addresses) noexcept;
     Addr(const Addr&) = delete;
     Addr(Addr&&) = delete;
-    Addr& operator=(const Addr&) = delete;
-    Addr& operator=(Addr&&) = delete;
+    auto operator=(const Addr&) -> Addr& = delete;
+    auto operator=(Addr &&) -> Addr& = delete;
 };
 }  // namespace opentxs::blockchain::p2p::bitcoin::message::implementation

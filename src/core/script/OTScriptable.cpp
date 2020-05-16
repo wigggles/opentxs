@@ -98,13 +98,13 @@ void OTScriptable::SetDisplayLabel(const std::string* pstrLabel)
 // Only alphanumerics are valid, or '_' (underscore)
 //
 
-bool OTScriptable::is_ot_namechar_invalid(char c)
+auto OTScriptable::is_ot_namechar_invalid(char c) -> bool
 {
     return !(isalnum(c) || (c == '_'));
 }
 
 // static
-bool OTScriptable::ValidateName(const std::string& str_name)
+auto OTScriptable::ValidateName(const std::string& str_name) -> bool
 {
     if (str_name.size() <= 0) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Name has zero size.").Flush();
@@ -122,7 +122,7 @@ bool OTScriptable::ValidateName(const std::string& str_name)
 }
 
 // static
-bool OTScriptable::ValidateBylawName(const std::string& str_name)
+auto OTScriptable::ValidateBylawName(const std::string& str_name) -> bool
 {
     if (!ValidateName(str_name)) return false;
 
@@ -130,7 +130,7 @@ bool OTScriptable::ValidateBylawName(const std::string& str_name)
 }
 
 // static
-bool OTScriptable::ValidatePartyName(const std::string& str_name)
+auto OTScriptable::ValidatePartyName(const std::string& str_name) -> bool
 {
     if (!ValidateName(str_name)) return false;
 
@@ -138,7 +138,7 @@ bool OTScriptable::ValidatePartyName(const std::string& str_name)
 }
 
 // static
-bool OTScriptable::ValidateAgentName(const std::string& str_name)
+auto OTScriptable::ValidateAgentName(const std::string& str_name) -> bool
 {
     if (!ValidateName(str_name)) return false;
 
@@ -146,7 +146,7 @@ bool OTScriptable::ValidateAgentName(const std::string& str_name)
 }
 
 // static
-bool OTScriptable::ValidateAccountName(const std::string& str_name)
+auto OTScriptable::ValidateAccountName(const std::string& str_name) -> bool
 {
     if (!ValidateName(str_name)) return false;
 
@@ -154,7 +154,7 @@ bool OTScriptable::ValidateAccountName(const std::string& str_name)
 }
 
 // static
-bool OTScriptable::ValidateVariableName(const std::string& str_name)
+auto OTScriptable::ValidateVariableName(const std::string& str_name) -> bool
 {
     if (!ValidateName(str_name)) return false;
 
@@ -177,7 +177,7 @@ bool OTScriptable::ValidateVariableName(const std::string& str_name)
 }
 
 // static
-bool OTScriptable::ValidateClauseName(const std::string& str_name)
+auto OTScriptable::ValidateClauseName(const std::string& str_name) -> bool
 {
     if (!ValidateName(str_name)) return false;
 
@@ -215,7 +215,7 @@ bool OTScriptable::ValidateClauseName(const std::string& str_name)
 }
 
 // static
-bool OTScriptable::ValidateHookName(const std::string& str_name)
+auto OTScriptable::ValidateHookName(const std::string& str_name) -> bool
 {
     if (!ValidateName(str_name)) return false;
 
@@ -231,7 +231,7 @@ bool OTScriptable::ValidateHookName(const std::string& str_name)
 }
 
 // static
-bool OTScriptable::ValidateCallbackName(const std::string& str_name)
+auto OTScriptable::ValidateCallbackName(const std::string& str_name) -> bool
 {
     if (!ValidateName(str_name)) return false;
 
@@ -259,7 +259,7 @@ void OTScriptable::RegisterOTNativeCallsWithScript([
     // In the future, this will be polymorphic.
     // But for now, I'm forcing things...
 
-    OTScriptChai* pScript = dynamic_cast<OTScriptChai*>(&theScript);
+    auto* pScript = dynamic_cast<OTScriptChai*>(&theScript);
 
     if (nullptr != pScript) {
         OT_ASSERT(nullptr != pScript->chai_)
@@ -280,8 +280,9 @@ void OTScriptable::RegisterOTNativeCallsWithScript([
 }
 
 // static
-std::string OTScriptable::GetTime()  // Returns a string, containing seconds as
-                                     // std::int32_t. (Time in seconds.)
+auto OTScriptable::GetTime()
+    -> std::string  // Returns a string, containing seconds as
+                    // std::int32_t. (Time in seconds.)
 {
     const std::int64_t lTime = Clock::to_time_t(Clock::now());
 
@@ -298,9 +299,9 @@ std::string OTScriptable::GetTime()  // Returns a string, containing seconds as
 // script, which will call this function,
 // which will trigger the script callback_party_may_execute_clause(), etc.
 //
-bool OTScriptable::CanExecuteClause(
+auto OTScriptable::CanExecuteClause(
     std::string str_party_name,
-    std::string str_clause_name)
+    std::string str_clause_name) -> bool
 {
     OTParty* pParty = GetParty(str_party_name);
     OTClause* pClause = GetClause(str_clause_name);
@@ -490,7 +491,7 @@ bool OTScriptable::CanExecuteClause(
 // client can only check to see that at least a signed copy is supposedly
 // available for every single party.)
 //
-bool OTScriptable::AllPartiesHaveSupposedlyConfirmed()
+auto OTScriptable::AllPartiesHaveSupposedlyConfirmed() -> bool
 {
     bool bReturnVal = !m_mapParties.empty();
 
@@ -514,10 +515,10 @@ void OTScriptable::ClearTemporaryPointers()
     }
 }
 
-bool OTScriptable::ExecuteCallback(
+auto OTScriptable::ExecuteCallback(
     OTClause& theCallbackClause,
     mapOfVariables& theParameters,
-    OTVariable& varReturnVal)
+    OTVariable& varReturnVal) -> bool
 {
     const std::string str_clause_name = theCallbackClause.GetName().Exists()
                                             ? theCallbackClause.GetName().Get()
@@ -650,7 +651,7 @@ bool OTScriptable::ExecuteCallback(
 // posting" the hash of the notice ...without in any way revealing the notice
 // contents.
 
-bool OTScriptable::SendNoticeToAllParties(
+auto OTScriptable::SendNoticeToAllParties(
     bool bSuccessMsg,
     const identity::Nym& theServerNym,
     const identifier::Server& theNotaryID,
@@ -661,7 +662,7 @@ bool OTScriptable::SendNoticeToAllParties(
     const PasswordPrompt& reason,
     OTString pstrNote,
     OTString pstrAttachment,
-    identity::Nym* pActualNym) const
+    identity::Nym* pActualNym) const -> bool
 {
     bool bSuccess =
         true;  // Success is defined as ALL parties receiving a notice
@@ -710,7 +711,7 @@ bool OTScriptable::SendNoticeToAllParties(
 // So you can tell if any persistent or important variables have CHANGED since
 // it was last set clean.
 //
-bool OTScriptable::IsDirty() const
+auto OTScriptable::IsDirty() const -> bool
 {
     bool bIsDirty = false;
 
@@ -730,7 +731,7 @@ bool OTScriptable::IsDirty() const
 // So you can tell if ONLY the IMPORTANT variables have CHANGED since it was
 // last set clean.
 //
-bool OTScriptable::IsDirtyImportant() const
+auto OTScriptable::IsDirtyImportant() const -> bool
 {
     bool bIsDirty = false;
 
@@ -772,8 +773,8 @@ void OTScriptable::SetAsClean()
 // not the
 // authorized agent for any party's accounts.
 //
-std::int32_t OTScriptable::GetCountTransNumsNeededForAgent(
-    std::string str_agent_name) const
+auto OTScriptable::GetCountTransNumsNeededForAgent(
+    std::string str_agent_name) const -> std::int32_t
 {
     std::int32_t nReturnVal = 0;
 
@@ -801,7 +802,8 @@ std::int32_t OTScriptable::GetCountTransNumsNeededForAgent(
     return nReturnVal;
 }
 
-OTPartyAccount* OTScriptable::GetPartyAccount(std::string str_acct_name) const
+auto OTScriptable::GetPartyAccount(std::string str_acct_name) const
+    -> OTPartyAccount*
 {
     if (!OTScriptable::ValidateName(str_acct_name))  // this logs, FYI.
     {
@@ -819,8 +821,8 @@ OTPartyAccount* OTScriptable::GetPartyAccount(std::string str_acct_name) const
     return nullptr;
 }
 
-OTPartyAccount* OTScriptable::GetPartyAccountByID(
-    const Identifier& theAcctID) const
+auto OTScriptable::GetPartyAccountByID(const Identifier& theAcctID) const
+    -> OTPartyAccount*
 {
     for (const auto& it : m_mapParties) {
         OTParty* pParty = it.second;
@@ -835,9 +837,9 @@ OTPartyAccount* OTScriptable::GetPartyAccountByID(
     return nullptr;
 }
 
-OTParty* OTScriptable::FindPartyBasedOnNymIDAsAgent(
+auto OTScriptable::FindPartyBasedOnNymIDAsAgent(
     const identifier::Nym& theNymID,
-    OTAgent** ppAgent) const
+    OTAgent** ppAgent) const -> OTParty*
 {
     for (const auto& it : m_mapParties) {
         OTParty* pParty = it.second;
@@ -848,9 +850,9 @@ OTParty* OTScriptable::FindPartyBasedOnNymIDAsAgent(
     return nullptr;
 }
 
-OTParty* OTScriptable::FindPartyBasedOnNymIDAsAuthAgent(
+auto OTScriptable::FindPartyBasedOnNymIDAsAuthAgent(
     const identifier::Nym& theNymID,
-    OTAgent** ppAgent) const
+    OTAgent** ppAgent) const -> OTParty*
 {
     for (auto& it : m_mapParties) {
         OTParty* pParty = it.second;
@@ -862,9 +864,9 @@ OTParty* OTScriptable::FindPartyBasedOnNymIDAsAuthAgent(
     return nullptr;
 }
 
-OTParty* OTScriptable::FindPartyBasedOnAccountID(
+auto OTScriptable::FindPartyBasedOnAccountID(
     const Identifier& theAcctID,
-    OTPartyAccount** ppPartyAccount) const
+    OTPartyAccount** ppPartyAccount) const -> OTParty*
 {
     for (auto& it : m_mapParties) {
         OTParty* pParty = it.second;
@@ -877,9 +879,9 @@ OTParty* OTScriptable::FindPartyBasedOnAccountID(
     return nullptr;
 }
 
-OTParty* OTScriptable::FindPartyBasedOnNymAsAgent(
+auto OTScriptable::FindPartyBasedOnNymAsAgent(
     const identity::Nym& theNym,
-    OTAgent** ppAgent) const
+    OTAgent** ppAgent) const -> OTParty*
 {
     for (auto& it : m_mapParties) {
         OTParty* pParty = it.second;
@@ -890,9 +892,9 @@ OTParty* OTScriptable::FindPartyBasedOnNymAsAgent(
     return nullptr;
 }
 
-OTParty* OTScriptable::FindPartyBasedOnNymAsAuthAgent(
+auto OTScriptable::FindPartyBasedOnNymAsAuthAgent(
     const identity::Nym& theNym,
-    OTAgent** ppAgent) const
+    OTAgent** ppAgent) const -> OTParty*
 {
     for (auto& it : m_mapParties) {
         OTParty* pParty = it.second;
@@ -903,9 +905,9 @@ OTParty* OTScriptable::FindPartyBasedOnNymAsAuthAgent(
     return nullptr;
 }
 
-OTParty* OTScriptable::FindPartyBasedOnAccount(
+auto OTScriptable::FindPartyBasedOnAccount(
     const Account& theAccount,
-    OTPartyAccount** ppPartyAccount) const
+    OTPartyAccount** ppPartyAccount) const -> OTParty*
 {
     for (auto& it : m_mapParties) {
         OTParty* pParty = it.second;
@@ -957,7 +959,7 @@ OTParty* OTScriptable::FindPartyBasedOnAccount(
 // since
 // I'm always verifying the number as long as one is there.
 //
-bool OTScriptable::VerifyPartyAuthorization(
+auto OTScriptable::VerifyPartyAuthorization(
     OTParty& theParty,  // The party that supposedly is authorized for this
                         // supposedly executed agreement.
     const identity::Nym& theSignerNym,  // For verifying signature on the
@@ -965,14 +967,14 @@ bool OTScriptable::VerifyPartyAuthorization(
     const String& strNotaryID,  // For verifying issued num, need the notaryID
                                 // the # goes with.
     const PasswordPrompt& reason,
-    const bool bBurnTransNo)  // In Server::VerifySmartContract(),
-                              // it not only wants to verify the # is
-                              // properly issued, but it additionally
-                              // wants to see that it hasn't been USED
-                              // yet -- AND it wants to burn it, so it
-                              // can't be used again!  This bool
-                              // allows you to tell the function
-                              // whether or not to do that.
+    const bool bBurnTransNo) -> bool  // In Server::VerifySmartContract(),
+                                      // it not only wants to verify the # is
+                                      // properly issued, but it additionally
+                                      // wants to see that it hasn't been USED
+                                      // yet -- AND it wants to burn it, so it
+                                      // can't be used again!  This bool
+                                      // allows you to tell the function
+                                      // whether or not to do that.
 {
     // This function DOES assume that theParty was initially FOUND on
     // OTScriptable.
@@ -1165,9 +1167,9 @@ bool OTScriptable::VerifyPartyAuthorization(
 // and cleans the pointers
 // when it's done.
 //
-bool OTScriptable::VerifyNymAsAgent(
+auto OTScriptable::VerifyNymAsAgent(
     const identity::Nym& theNym,
-    const identity::Nym& theSignerNym) const
+    const identity::Nym& theSignerNym) const -> bool
 {
     // (COmmented out) existing trades / payment plans on OT basically just have
     // this one line:
@@ -1367,21 +1369,21 @@ bool OTScriptable::VerifyNymAsAgent(
 // This function verifies ownership AND agency of the account, and it
 // also handles closing transaction numbers when appropriate.
 //
-bool OTScriptable::VerifyPartyAcctAuthorization(
+auto OTScriptable::VerifyPartyAcctAuthorization(
     const PasswordPrompt& reason,
     OTPartyAccount& thePartyAcct,  // The party is assumed to have been verified
                                    // already via VerifyPartyAuthorization()
     const String& strNotaryID,  // For verifying issued num, need the notaryID
                                 // the # goes with.
-    const bool bBurnTransNo)    // In Server::VerifySmartContract(),
-                                // it not only wants to verify the
-                                // closing # is properly issued, but it
-                                // additionally wants to see that it
-                                // hasn't been USED yet -- AND it wants
-                                // to burn it, so it can't be used
-                                // again!  This bool allows you to tell
-                                // the function whether or not to do
-                                // that.
+    const bool bBurnTransNo) -> bool  // In Server::VerifySmartContract(),
+                                      // it not only wants to verify the
+                                      // closing # is properly issued, but it
+                                      // additionally wants to see that it
+                                      // hasn't been USED yet -- AND it wants
+                                      // to burn it, so it can't be used
+                                      // again!  This bool allows you to tell
+                                      // the function whether or not to do
+                                      // that.
 {
     OTParty* pParty = thePartyAcct.GetParty();
 
@@ -1514,9 +1516,9 @@ bool OTScriptable::VerifyPartyAcctAuthorization(
 //
 // AGAIN: CALL VerifyNymAsAgent() BEFORE you call this function! Otherwise you
 // aren't proving nearly as much. ALWAYS call it first.
-bool OTScriptable::VerifyNymAsAgentForAccount(
+auto OTScriptable::VerifyNymAsAgentForAccount(
     const identity::Nym& theNym,
-    const Account& theAccount) const
+    const Account& theAccount) const -> bool
 {
 
     // Lookup the party via the ACCOUNT.
@@ -1727,7 +1729,7 @@ bool OTScriptable::VerifyNymAsAgentForAccount(
 // Find the first (and hopefully the only) clause on this scriptable object,
 // with a given name. (Searches ALL Bylaws on *this.)
 //
-OTClause* OTScriptable::GetClause(std::string str_clause_name) const
+auto OTScriptable::GetClause(std::string str_clause_name) const -> OTClause*
 {
     if (!OTScriptable::ValidateName(str_clause_name))  // this logs, FYI.
     {
@@ -1748,7 +1750,7 @@ OTClause* OTScriptable::GetClause(std::string str_clause_name) const
     return nullptr;
 }
 
-OTAgent* OTScriptable::GetAgent(std::string str_agent_name) const
+auto OTScriptable::GetAgent(std::string str_agent_name) const -> OTAgent*
 {
     if (!OTScriptable::ValidateName(str_agent_name))  // this logs, FYI.
     {
@@ -1769,7 +1771,7 @@ OTAgent* OTScriptable::GetAgent(std::string str_agent_name) const
     return nullptr;
 }
 
-OTBylaw* OTScriptable::GetBylaw(std::string str_bylaw_name) const
+auto OTScriptable::GetBylaw(std::string str_bylaw_name) const -> OTBylaw*
 {
     if (!OTScriptable::ValidateName(str_bylaw_name))  // this logs, FYI.
     {
@@ -1790,7 +1792,7 @@ OTBylaw* OTScriptable::GetBylaw(std::string str_bylaw_name) const
     return pBylaw;
 }
 
-OTParty* OTScriptable::GetParty(std::string str_party_name) const
+auto OTScriptable::GetParty(std::string str_party_name) const -> OTParty*
 {
     if (!OTScriptable::ValidateName(str_party_name))  // this logs, FYI.
     {
@@ -1811,7 +1813,7 @@ OTParty* OTScriptable::GetParty(std::string str_party_name) const
     return pParty;
 }
 
-OTParty* OTScriptable::GetPartyByIndex(std::int32_t nIndex) const
+auto OTScriptable::GetPartyByIndex(std::int32_t nIndex) const -> OTParty*
 {
     if ((nIndex < 0) ||
         (nIndex >= static_cast<std::int64_t>(m_mapParties.size()))) {
@@ -1834,7 +1836,7 @@ OTParty* OTScriptable::GetPartyByIndex(std::int32_t nIndex) const
     return nullptr;
 }
 
-OTBylaw* OTScriptable::GetBylawByIndex(std::int32_t nIndex) const
+auto OTScriptable::GetBylawByIndex(std::int32_t nIndex) const -> OTBylaw*
 {
     if ((nIndex < 0) ||
         (nIndex >= static_cast<std::int64_t>(m_mapBylaws.size()))) {
@@ -1860,7 +1862,7 @@ OTBylaw* OTScriptable::GetBylawByIndex(std::int32_t nIndex) const
 // Verify the contents of THIS contract against signed copies of it that are
 // stored in each Party.
 //
-bool OTScriptable::VerifyThisAgainstAllPartiesSignedCopies()
+auto OTScriptable::VerifyThisAgainstAllPartiesSignedCopies() -> bool
 {
     bool bReturnVal = !m_mapParties.empty();
 
@@ -1918,10 +1920,10 @@ bool OTScriptable::VerifyThisAgainstAllPartiesSignedCopies()
 // with the actual one. Then it signs the contract and saves a copy inside the
 // party.
 //
-bool OTScriptable::ConfirmParty(
+auto OTScriptable::ConfirmParty(
     OTParty& theParty,
     ServerContext&,
-    const PasswordPrompt& reason)
+    const PasswordPrompt& reason) -> bool
 {
     const std::string str_party_name = theParty.GetPartyName();
 
@@ -2027,7 +2029,7 @@ bool OTScriptable::ConfirmParty(
 // ONLY adds it if it's not already there.
 // Used during the design of the smartcontract. (Adding theoretical parties.)
 //
-bool OTScriptable::AddParty(OTParty& theParty)
+auto OTScriptable::AddParty(OTParty& theParty) -> bool
 {
     const std::string str_party_name = theParty.GetPartyName();
 
@@ -2055,7 +2057,7 @@ bool OTScriptable::AddParty(OTParty& theParty)
     return false;
 }
 
-bool OTScriptable::RemoveParty(std::string str_Name)
+auto OTScriptable::RemoveParty(std::string str_Name) -> bool
 {
     if (!OTScriptable::ValidatePartyName(str_Name))  // this logs, FYI.
     {
@@ -2083,7 +2085,7 @@ bool OTScriptable::RemoveParty(std::string str_Name)
     return false;
 }
 
-bool OTScriptable::RemoveBylaw(std::string str_Name)
+auto OTScriptable::RemoveBylaw(std::string str_Name) -> bool
 {
     if (!OTScriptable::ValidateBylawName(str_Name))  // this logs, FYI.
     {
@@ -2111,7 +2113,7 @@ bool OTScriptable::RemoveBylaw(std::string str_Name)
     return false;
 }
 
-bool OTScriptable::AddBylaw(OTBylaw& theBylaw)
+auto OTScriptable::AddBylaw(OTBylaw& theBylaw) -> bool
 {
     const std::string str_name = theBylaw.GetName().Get();
 
@@ -2156,7 +2158,7 @@ bool OTScriptable::AddBylaw(OTBylaw& theBylaw)
  </party>
  */
 
-bool OTScriptable::Compare(OTScriptable& rhs) const
+auto OTScriptable::Compare(OTScriptable& rhs) const -> bool
 {
     //
     // UPDATE: ALL of the parties should be there, in terms of their
@@ -2243,7 +2245,7 @@ void OTScriptable::CalculateContractID(Identifier& newID) const
     newID.CalculateDigest(xmlUnsigned->Bytes());
 }
 
-std::string vectorToString(const std::vector<std::int64_t>& v)
+auto vectorToString(const std::vector<std::int64_t>& v) -> std::string
 {
     std::stringstream ss;
 
@@ -2254,7 +2256,7 @@ std::string vectorToString(const std::vector<std::int64_t>& v)
     return ss.str();
 }
 
-std::vector<std::int64_t> stringToVector(const std::string& s)
+auto stringToVector(const std::string& s) -> std::vector<std::int64_t>
 {
     std::stringstream stream(s);
 
@@ -2330,7 +2332,7 @@ void OTScriptable::UpdateContents(
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-std::int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
+auto OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml) -> std::int32_t
 {
     std::int32_t nReturnVal = 0;  // Unless/until I want to add
                                   // Contract::Compare(), then people would be
@@ -2451,7 +2453,7 @@ std::int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                             ": Expected openingTransNo in party.")
                             .Flush();
 
-                    OTParty* pParty = new OTParty(
+                    auto* pParty = new OTParty(
                         api_.Wallet(),
                         api_.DataFolder(),
                         strName->Exists() ? strName->Get() : "PARTY_ERROR_NAME",
@@ -2588,7 +2590,7 @@ std::int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                 // OTScriptable for ALL the agents on the
                                 // already-loaded parties.
 
-                                OTAgent* pAgent = new OTAgent(
+                                auto* pAgent = new OTAgent(
                                     api_.Wallet(),
                                     bRepsHimself,
                                     bIsIndividual,
@@ -2841,7 +2843,7 @@ std::int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                                // initiate, when it needs
                                                // answers.
 
-                    OTBylaw* pBylaw =
+                    auto* pBylaw =
                         new OTBylaw(strName->Get(), strLanguage->Get());
 
                     OT_ASSERT(nullptr != pBylaw);
@@ -3397,7 +3399,7 @@ std::int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 // Look up the first (and hopefully only) variable registered for a given name.
 // (Across all of my Bylaws)
 //
-OTVariable* OTScriptable::GetVariable(std::string str_VarName)
+auto OTScriptable::GetVariable(std::string str_VarName) -> OTVariable*
 {
     if (!OTScriptable::ValidateName(str_VarName))  // this logs, FYI.
     {
@@ -3421,7 +3423,7 @@ OTVariable* OTScriptable::GetVariable(std::string str_VarName)
 // Look up the first (and hopefully only) clause registered for a given
 // callback.
 //
-OTClause* OTScriptable::GetCallback(std::string str_CallbackName)
+auto OTScriptable::GetCallback(std::string str_CallbackName) -> OTClause*
 {
     if ((false == OTScriptable::ValidateName(str_CallbackName)) ||
         (str_CallbackName.compare(0, 9, "callback_") != 0))  // this logs, FYI.
@@ -3447,7 +3449,8 @@ OTClause* OTScriptable::GetCallback(std::string str_CallbackName)
 
 // Look up all clauses matching a specific hook.
 //
-bool OTScriptable::GetHooks(std::string str_HookName, mapOfClauses& theResults)
+auto OTScriptable::GetHooks(std::string str_HookName, mapOfClauses& theResults)
+    -> bool
 {
     if (false == OTScriptable::ValidateHookName(str_HookName))  // this logs,
                                                                 // FYI.
@@ -3470,8 +3473,11 @@ bool OTScriptable::GetHooks(std::string str_HookName, mapOfClauses& theResults)
     return bReturnVal;
 }
 
-bool OTScriptable::arePartiesSpecified() const { return m_bSpecifyParties; }
-bool OTScriptable::areAssetTypesSpecified() const
+auto OTScriptable::arePartiesSpecified() const -> bool
+{
+    return m_bSpecifyParties;
+}
+auto OTScriptable::areAssetTypesSpecified() const -> bool
 {
     return m_bSpecifyInstrumentDefinitionID;
 }

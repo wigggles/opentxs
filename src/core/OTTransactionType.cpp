@@ -94,7 +94,8 @@ OTTransactionType::OTTransactionType(
     // LOAD them or GENERATE them.
 }
 
-originType OTTransactionType::GetOriginTypeFromString(const String& strType)
+auto OTTransactionType::GetOriginTypeFromString(const String& strType)
+    -> originType
 {
     originType theType = originType::origin_error_state;
 
@@ -117,7 +118,10 @@ originType OTTransactionType::GetOriginTypeFromString(const String& strType)
 // -----------------------------------
 
 // Used in finalReceipt and paymentReceipt
-originType OTTransactionType::GetOriginType() const { return m_originType; }
+auto OTTransactionType::GetOriginType() const -> originType
+{
+    return m_originType;
+}
 
 // Used in finalReceipt and paymentReceipt
 void OTTransactionType::SetOriginType(originType theOriginType)
@@ -127,7 +131,7 @@ void OTTransactionType::SetOriginType(originType theOriginType)
 
 // -----------------------------------
 
-const char* OTTransactionType::GetOriginTypeString() const
+auto OTTransactionType::GetOriginTypeString() const -> const char*
 {
     return GetOriginTypeToString(static_cast<int>(m_originType));
 }
@@ -141,13 +145,13 @@ void OTTransactionType::GetNumList(NumList& theOutput)
 }
 
 // Allows you to string-search the raw contract.
-bool OTTransactionType::Contains(const String& strContains)
+auto OTTransactionType::Contains(const String& strContains) -> bool
 {
     return m_strRawFile->Contains(strContains);
 }
 
 // Allows you to string-search the raw contract.
-bool OTTransactionType::Contains(const char* szContains)
+auto OTTransactionType::Contains(const char* szContains) -> bool
 {
     return m_strRawFile->Contains(szContains);
 }
@@ -202,7 +206,8 @@ void OTTransactionType::Release()
 // whether one of the other components belongs to the same account, using
 // this method.
 //
-bool OTTransactionType::IsSameAccount(const OTTransactionType& rhs) const
+auto OTTransactionType::IsSameAccount(const OTTransactionType& rhs) const
+    -> bool
 {
     if ((GetNymID() != rhs.GetNymID()) ||
         (GetRealAccountID() != rhs.GetRealAccountID()) ||
@@ -229,7 +234,7 @@ void OTTransactionType::SetReferenceString(const String& theStr)
 // wish to verify its signature on this account, even though
 // the server may not be the actual owner.
 // So if you wish to VerifyOwner(), then call it.
-bool OTTransactionType::VerifyAccount(const identity::Nym& theNym)
+auto OTTransactionType::VerifyAccount(const identity::Nym& theNym) -> bool
 {
     // Make sure that the supposed AcctID matches the one read from the file.
     //
@@ -253,7 +258,7 @@ bool OTTransactionType::VerifyAccount(const identity::Nym& theNym)
     return true;
 }
 
-bool OTTransactionType::VerifyContractID() const
+auto OTTransactionType::VerifyContractID() const -> bool
 {
     // m_AcctID contains the number we read from the xml file
     // we can compare it to the existing and actual identifier.
@@ -283,7 +288,7 @@ bool OTTransactionType::VerifyContractID() const
 }
 
 // Need to know the transaction number of this transaction? Call this.
-std::int64_t OTTransactionType::GetTransactionNum() const
+auto OTTransactionType::GetTransactionNum() const -> std::int64_t
 {
     return m_lTransactionNum;
 }
@@ -301,7 +306,7 @@ void OTTransactionType::CalculateNumberOfOrigin()
 
 // Need to know the transaction number of the ORIGINAL transaction? Call this.
 // virtual
-std::int64_t OTTransactionType::GetNumberOfOrigin()
+auto OTTransactionType::GetNumberOfOrigin() -> std::int64_t
 {
     if (0 == m_lNumberOfOrigin) CalculateNumberOfOrigin();
 
@@ -309,7 +314,7 @@ std::int64_t OTTransactionType::GetNumberOfOrigin()
 }
 
 // Gets WITHOUT calculating.
-std::int64_t OTTransactionType::GetRawNumberOfOrigin() const
+auto OTTransactionType::GetRawNumberOfOrigin() const -> std::int64_t
 {
     return m_lNumberOfOrigin;
 }
@@ -340,7 +345,8 @@ void OTTransactionType::SetNumberOfOrigin(OTTransactionType& setFrom)
 // ALL OF THOSE transactions and receipts will have origin #100 attached to
 // them.
 //
-bool OTTransactionType::VerifyNumberOfOrigin(OTTransactionType& compareTo)
+auto OTTransactionType::VerifyNumberOfOrigin(OTTransactionType& compareTo)
+    -> bool
 {
     // Have to use the function here, NOT the internal variable.
     // (Because subclasses may override the function.)
@@ -349,7 +355,7 @@ bool OTTransactionType::VerifyNumberOfOrigin(OTTransactionType& compareTo)
 }
 
 // Need to know the transaction number that this is in reference to? Call this.
-std::int64_t OTTransactionType::GetReferenceToNum() const
+auto OTTransactionType::GetReferenceToNum() const -> std::int64_t
 {
     return m_lInReferenceToTransaction;
 }

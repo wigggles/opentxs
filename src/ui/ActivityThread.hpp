@@ -83,7 +83,7 @@ using STORAGEID = std::
 
 template <>
 struct less<STORAGEID> {
-    bool operator()(const STORAGEID& lhs, const STORAGEID& rhs) const
+    auto operator()(const STORAGEID& lhs, const STORAGEID& rhs) const -> bool
     {
         /* TODO: these lines will cause a segfault in the clang-5 ast parser.
                 const auto & [ lID, lBox, lAccount ] = lhs;
@@ -119,7 +119,7 @@ using DraftTask = std::pair<
 
 template <>
 struct make_blank<DraftTask> {
-    static DraftTask value(const api::Core& api)
+    static auto value(const api::Core& api) -> DraftTask
     {
         return {make_blank<ui::implementation::ActivityThreadRowID>::value(api),
                 make_blank<api::client::OTX::BackgroundTask>::value(api)};
@@ -143,26 +143,26 @@ class ActivityThread final : public ActivityThreadList,
                              public opentxs::internal::StateMachine
 {
 public:
-    std::string DisplayName() const noexcept final;
-    std::string GetDraft() const noexcept final;
-    std::string Participants() const noexcept final;
-    bool Pay(
+    auto DisplayName() const noexcept -> std::string final;
+    auto GetDraft() const noexcept -> std::string final;
+    auto Participants() const noexcept -> std::string final;
+    auto Pay(
         const std::string& amount,
         const Identifier& sourceAccount,
         const std::string& memo,
-        const PaymentType type) const noexcept final;
-    bool Pay(
+        const PaymentType type) const noexcept -> bool final;
+    auto Pay(
         const Amount amount,
         const Identifier& sourceAccount,
         const std::string& memo,
-        const PaymentType type) const noexcept final;
-    std::string PaymentCode(const proto::ContactItemType currency) const
-        noexcept final;
-    bool same(const ActivityThreadRowID& lhs, const ActivityThreadRowID& rhs)
-        const noexcept final;
-    bool SendDraft() const noexcept final;
-    bool SetDraft(const std::string& draft) const noexcept final;
-    std::string ThreadID() const noexcept final;
+        const PaymentType type) const noexcept -> bool final;
+    auto PaymentCode(const proto::ContactItemType currency) const noexcept
+        -> std::string final;
+    auto same(const ActivityThreadRowID& lhs, const ActivityThreadRowID& rhs)
+        const noexcept -> bool final;
+    auto SendDraft() const noexcept -> bool final;
+    auto SetDraft(const std::string& draft) const noexcept -> bool final;
+    auto ThreadID() const noexcept -> std::string final;
 
     ActivityThread(
         const api::client::internal::Manager& api,
@@ -189,31 +189,32 @@ private:
     std::shared_ptr<const opentxs::Contact> contact_;
     std::unique_ptr<std::thread> contact_thread_;
 
-    std::string comma(const std::set<std::string>& list) const noexcept;
+    auto comma(const std::set<std::string>& list) const noexcept -> std::string;
     void can_message() const noexcept;
-    void* construct_row(
+    auto construct_row(
         const ActivityThreadRowID& id,
         const ActivityThreadSortKey& index,
-        const CustomData& custom) const noexcept final;
-    bool send_cheque(
+        const CustomData& custom) const noexcept -> void* final;
+    auto send_cheque(
         const Amount amount,
         const Identifier& sourceAccount,
-        const std::string& memo) const noexcept;
-    bool validate_account(const Identifier& sourceAccount) const noexcept;
+        const std::string& memo) const noexcept -> bool;
+    auto validate_account(const Identifier& sourceAccount) const noexcept
+        -> bool;
 
     void init_contact() noexcept;
     void load_thread(const proto::StorageThread& thread) noexcept;
     void new_thread() noexcept;
-    ActivityThreadRowID process_item(
-        const proto::StorageThreadItem& item) noexcept;
-    bool process_drafts() noexcept;
+    auto process_item(const proto::StorageThreadItem& item) noexcept
+        -> ActivityThreadRowID;
+    auto process_drafts() noexcept -> bool;
     void process_thread(const network::zeromq::Message& message) noexcept;
     void startup() noexcept;
 
     ActivityThread() = delete;
     ActivityThread(const ActivityThread&) = delete;
     ActivityThread(ActivityThread&&) = delete;
-    ActivityThread& operator=(const ActivityThread&) = delete;
-    ActivityThread& operator=(ActivityThread&&) = delete;
+    auto operator=(const ActivityThread&) -> ActivityThread& = delete;
+    auto operator=(ActivityThread &&) -> ActivityThread& = delete;
 };
 }  // namespace opentxs::ui::implementation

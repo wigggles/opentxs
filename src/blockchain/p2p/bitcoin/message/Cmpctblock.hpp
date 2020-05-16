@@ -45,14 +45,14 @@ namespace opentxs::blockchain::p2p::bitcoin::message
 class Cmpctblock final : virtual public bitcoin::Message
 {
 public:
-    OTData getRawCmpctblock() const noexcept
+    auto getRawCmpctblock() const noexcept -> OTData
     {
         return Data::Factory(raw_cmpctblock_);
     }
 
     ~Cmpctblock() final = default;
 
-    OTData payload() const noexcept final;
+    auto payload() const noexcept -> OTData final;
 
 private:
     friend opentxs::Factory;
@@ -69,7 +69,7 @@ private:
         const Data& raw_cmpctblock) noexcept(false);
     Cmpctblock(const Cmpctblock&) = delete;
     Cmpctblock(Cmpctblock&&) = delete;
-    Cmpctblock& operator=(const Cmpctblock&) = delete;
-    Cmpctblock& operator=(Cmpctblock&&) = delete;
+    auto operator=(const Cmpctblock&) -> Cmpctblock& = delete;
+    auto operator=(Cmpctblock &&) -> Cmpctblock& = delete;
 };
 }  // namespace opentxs::blockchain::p2p::bitcoin::message

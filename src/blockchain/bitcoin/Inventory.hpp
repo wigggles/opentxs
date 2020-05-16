@@ -35,10 +35,13 @@ public:
     const Type type_;
     const pHash hash_;
 
-    static std::string DisplayType(const Type type) noexcept;
+    static auto DisplayType(const Type type) noexcept -> std::string;
 
-    std::string DisplayType() const noexcept { return DisplayType(type_); }
-    OTData Encode() const noexcept;
+    auto DisplayType() const noexcept -> std::string
+    {
+        return DisplayType(type_);
+    }
+    auto Encode() const noexcept -> OTData;
 
     Inventory(const Type type, const Hash& hash) noexcept;
     Inventory(const void* payload, const std::size_t size) noexcept;
@@ -60,19 +63,19 @@ private:
     static const Map map_;
     static const ReverseMap reverse_map_;
 
-    static OTData decode_hash(
+    static auto decode_hash(
         const void* payload,
-        const std::size_t size) noexcept(false);
-    static Type decode_type(
+        const std::size_t size) noexcept(false) -> OTData;
+    static auto decode_type(
         const void* payload,
-        const std::size_t size) noexcept(false);
-    static std::uint32_t encode_type(const Type type) noexcept(false);
-    static p2p::bitcoin::message::HashField encode_hash(
-        const Hash& hash) noexcept(false);
+        const std::size_t size) noexcept(false) -> Type;
+    static auto encode_type(const Type type) noexcept(false) -> std::uint32_t;
+    static auto encode_hash(const Hash& hash) noexcept(false)
+        -> p2p::bitcoin::message::HashField;
 
     Inventory() = delete;
     Inventory(const Inventory&) = delete;
-    Inventory& operator=(const Inventory&) = delete;
-    Inventory& operator=(Inventory&&) = delete;
+    auto operator=(const Inventory&) -> Inventory& = delete;
+    auto operator=(Inventory &&) -> Inventory& = delete;
 };
 }  // namespace opentxs::blockchain::bitcoin

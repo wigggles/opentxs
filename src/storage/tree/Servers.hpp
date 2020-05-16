@@ -37,8 +37,8 @@ private:
     friend class Tree;
 
     void init(const std::string& hash) final;
-    bool save(const std::unique_lock<std::mutex>& lock) const final;
-    proto::StorageServers serialize() const;
+    auto save(const std::unique_lock<std::mutex>& lock) const -> bool final;
+    auto serialize() const -> proto::StorageServers;
 
     Servers(
         const opentxs::api::storage::Driver& storage,
@@ -46,24 +46,24 @@ private:
     Servers() = delete;
     Servers(const Servers&) = delete;
     Servers(Servers&&) = delete;
-    Servers operator=(const Servers&) = delete;
-    Servers operator=(Servers&&) = delete;
+    auto operator=(const Servers&) -> Servers = delete;
+    auto operator=(Servers &&) -> Servers = delete;
 
 public:
-    std::string Alias(const std::string& id) const;
-    bool Load(
+    auto Alias(const std::string& id) const -> std::string;
+    auto Load(
         const std::string& id,
         std::shared_ptr<proto::ServerContract>& output,
         std::string& alias,
-        const bool checking) const;
+        const bool checking) const -> bool;
     void Map(ServerLambda lambda) const;
 
-    bool Delete(const std::string& id);
-    bool SetAlias(const std::string& id, const std::string& alias);
-    bool Store(
+    auto Delete(const std::string& id) -> bool;
+    auto SetAlias(const std::string& id, const std::string& alias) -> bool;
+    auto Store(
         const proto::ServerContract& data,
         const std::string& alias,
-        std::string& plaintext);
+        std::string& plaintext) -> bool;
 
     ~Servers() final = default;
 };

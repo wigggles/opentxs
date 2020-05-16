@@ -22,16 +22,17 @@ using tcp = ip::tcp;
 namespace opentxs::blockchain::p2p::internal
 {
 struct Address : virtual public p2p::Address {
-    virtual std::unique_ptr<Address> clone_internal() const noexcept = 0;
-    virtual Time PreviousLastConnected() const noexcept = 0;
-    virtual std::set<Service> PreviousServices() const noexcept = 0;
+    virtual auto clone_internal() const noexcept
+        -> std::unique_ptr<Address> = 0;
+    virtual auto PreviousLastConnected() const noexcept -> Time = 0;
+    virtual auto PreviousServices() const noexcept -> std::set<Service> = 0;
 
     ~Address() override = default;
 };
 
 struct Peer : virtual public p2p::Peer {
-    virtual OTIdentifier AddressID() const noexcept = 0;
-    virtual std::shared_future<void> Shutdown() noexcept = 0;
+    virtual auto AddressID() const noexcept -> OTIdentifier = 0;
+    virtual auto Shutdown() noexcept -> std::shared_future<void> = 0;
 
     virtual ~Peer() override = default;
 };

@@ -32,8 +32,8 @@ public:
         PUBLIC_NYM = 2
     };
 
-    typedef std::function<void(const std::string)> NotifyCB;
-    typedef std::map<Callback, NotifyCB> CallbackMap;
+    using NotifyCB = std::function<void(const std::string)>;
+    using CallbackMap = std::map<Callback, NotifyCB>;
 
     OPENTXS_EXPORT virtual void GetPublicNym(const std::string& key) const = 0;
     OPENTXS_EXPORT virtual void GetServerContract(

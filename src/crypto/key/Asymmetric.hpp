@@ -55,70 +55,76 @@ namespace opentxs::crypto::key::implementation
 class Asymmetric : virtual public key::Asymmetric
 {
 public:
-    OTData CalculateHash(
+    auto CalculateHash(
         const proto::HashType hashType,
-        const PasswordPrompt& password) const noexcept final;
-    bool CalculateTag(
+        const PasswordPrompt& password) const noexcept -> OTData final;
+    auto CalculateTag(
         const identity::Authority& nym,
         const proto::AsymmetricKeyType type,
         const PasswordPrompt& reason,
         std::uint32_t& tag,
-        OTPassword& password) const noexcept final;
-    bool CalculateTag(
+        OTPassword& password) const noexcept -> bool final;
+    auto CalculateTag(
         const key::Asymmetric& dhKey,
         const Identifier& credential,
         const PasswordPrompt& reason,
-        std::uint32_t& tag) const noexcept final;
-    bool CalculateSessionPassword(
+        std::uint32_t& tag) const noexcept -> bool final;
+    auto CalculateSessionPassword(
         const key::Asymmetric& dhKey,
         const PasswordPrompt& reason,
-        OTPassword& password) const noexcept final;
-    bool CalculateID(Identifier& theOutput) const noexcept final;
-    const crypto::AsymmetricProvider& engine() const noexcept final
+        OTPassword& password) const noexcept -> bool final;
+    auto CalculateID(Identifier& theOutput) const noexcept -> bool final;
+    auto engine() const noexcept -> const crypto::AsymmetricProvider& final
     {
         return provider_;
     }
-    const OTSignatureMetadata* GetMetadata() const noexcept final
+    auto GetMetadata() const noexcept -> const OTSignatureMetadata* final
     {
         return m_pMetadata;
     }
-    bool hasCapability(const NymCapability& capability) const noexcept override;
-    bool HasPrivate() const noexcept final { return has_private_; }
-    bool HasPublic() const noexcept final { return has_public_; }
-    proto::AsymmetricKeyType keyType() const noexcept final { return type_; }
-    proto::Signature NewSignature(
+    auto hasCapability(const NymCapability& capability) const noexcept
+        -> bool override;
+    auto HasPrivate() const noexcept -> bool final { return has_private_; }
+    auto HasPublic() const noexcept -> bool final { return has_public_; }
+    auto keyType() const noexcept -> proto::AsymmetricKeyType final
+    {
+        return type_;
+    }
+    auto NewSignature(
         const Identifier& credentialID,
         const proto::SignatureRole role,
-        const proto::HashType hash) const;
-    ReadView Params() const noexcept override { return {}; }
-    const std::string Path() const noexcept override;
-    bool Path(proto::HDPath& output) const noexcept override;
-    ReadView PrivateKey(const PasswordPrompt& reason) const noexcept final;
-    ReadView PublicKey() const noexcept final { return key_->Bytes(); }
-    proto::KeyRole Role() const noexcept final { return role_; }
-    std::shared_ptr<proto::AsymmetricKey> Serialize() const noexcept override;
-    proto::HashType SigHashType() const noexcept override
+        const proto::HashType hash) const -> proto::Signature;
+    auto Params() const noexcept -> ReadView override { return {}; }
+    auto Path() const noexcept -> const std::string override;
+    auto Path(proto::HDPath& output) const noexcept -> bool override;
+    auto PrivateKey(const PasswordPrompt& reason) const noexcept
+        -> ReadView final;
+    auto PublicKey() const noexcept -> ReadView final { return key_->Bytes(); }
+    auto Role() const noexcept -> proto::KeyRole final { return role_; }
+    auto Serialize() const noexcept
+        -> std::shared_ptr<proto::AsymmetricKey> override;
+    auto SigHashType() const noexcept -> proto::HashType override
     {
         return StandardHash;
     }
-    bool Sign(
+    auto Sign(
         const GetPreimage input,
         const proto::SignatureRole role,
         proto::Signature& signature,
         const Identifier& credential,
         const PasswordPrompt& reason,
         proto::KeyRole key,
-        const proto::HashType hash) const noexcept final;
-    bool TransportKey(
+        const proto::HashType hash) const noexcept -> bool final;
+    auto TransportKey(
         Data& publicKey,
         OTPassword& privateKey,
-        const PasswordPrompt& reason) const noexcept override;
-    bool Verify(const Data& plaintext, const proto::Signature& sig) const
-        noexcept final;
-    VersionNumber Version() const noexcept final { return version_; }
+        const PasswordPrompt& reason) const noexcept -> bool override;
+    auto Verify(const Data& plaintext, const proto::Signature& sig) const
+        noexcept -> bool final;
+    auto Version() const noexcept -> VersionNumber final { return version_; }
 
     operator bool() const noexcept override;
-    bool operator==(const proto::AsymmetricKey&) const noexcept final;
+    auto operator==(const proto::AsymmetricKey&) const noexcept -> bool final;
 
     ~Asymmetric() override;
 
@@ -151,16 +157,17 @@ protected:
         const AllocateOutput params,
         const PasswordPrompt& reason) noexcept(false)
         -> std::unique_ptr<proto::Ciphertext>;
-    static std::unique_ptr<proto::Ciphertext> encrypt_key(
+    static auto encrypt_key(
         key::Symmetric& sessionKey,
         const PasswordPrompt& reason,
         const bool attach,
-        const ReadView plaintext) noexcept;
-    static bool encrypt_key(
+        const ReadView plaintext) noexcept
+        -> std::unique_ptr<proto::Ciphertext>;
+    static auto encrypt_key(
         const api::internal::Core& api,
         const PasswordPrompt& reason,
         const ReadView plaintext,
-        proto::Ciphertext& ciphertext) noexcept;
+        proto::Ciphertext& ciphertext) noexcept -> bool;
     static auto encrypt_key(
         key::Symmetric& sessionKey,
         const PasswordPrompt& reason,
@@ -214,11 +221,11 @@ protected:
 private:
     static const std::map<proto::SignatureRole, VersionNumber> sig_version_;
 
-    OTData SerializeKeyToData(const proto::AsymmetricKey& rhs) const;
+    auto SerializeKeyToData(const proto::AsymmetricKey& rhs) const -> OTData;
 
     Asymmetric() = delete;
     Asymmetric(Asymmetric&&) = delete;
-    Asymmetric& operator=(const Asymmetric&) = delete;
-    Asymmetric& operator=(Asymmetric&&) = delete;
+    auto operator=(const Asymmetric&) -> Asymmetric& = delete;
+    auto operator=(Asymmetric &&) -> Asymmetric& = delete;
 };
 }  // namespace opentxs::crypto::key::implementation

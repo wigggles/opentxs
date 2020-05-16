@@ -32,18 +32,18 @@ template class opentxs::Pimpl<opentxs::network::zeromq::zap::Request>;
 
 namespace opentxs::network::zeromq::zap
 {
-OTZMQZAPRequest Request::Factory()
+auto Request::Factory() -> OTZMQZAPRequest
 {
     return OTZMQZAPRequest(new implementation::Request());
 }
 
-OTZMQZAPRequest Request::Factory(
+auto Request::Factory(
     const std::string& address,
     const std::string& domain,
     const zap::Mechanism mechanism,
     const Data& requestID,
     const Data& identity,
-    const std::string& version)
+    const std::string& version) -> OTZMQZAPRequest
 {
     return OTZMQZAPRequest(new implementation::Request(
         address, domain, mechanism, requestID, identity, version));
@@ -90,7 +90,7 @@ Request::Request(const Request& rhs)
 {
 }
 
-const FrameSection Request::Credentials() const
+auto Request::Credentials() const -> const FrameSection
 {
     const std::size_t position{body_position() + CREDENTIALS_START_POSITION};
     auto size = std::max(messages_.size() - position, std::size_t{0});
@@ -98,7 +98,7 @@ const FrameSection Request::Credentials() const
     return FrameSection(this, position, size);
 }
 
-std::string Request::Debug() const
+auto Request::Debug() const -> std::string
 {
     std::stringstream output{};
     const auto body = Body();
@@ -169,8 +169,8 @@ std::string Request::Debug() const
     return output.str();
 }
 
-Request::MechanismReverseMap Request::invert_mechanism_map(
-    const MechanismMap& input)
+auto Request::invert_mechanism_map(const MechanismMap& input)
+    -> Request::MechanismReverseMap
 {
     MechanismReverseMap output{};
 
@@ -179,7 +179,7 @@ Request::MechanismReverseMap Request::invert_mechanism_map(
     return output;
 }
 
-std::string Request::mechanism_to_string(const zap::Mechanism in)
+auto Request::mechanism_to_string(const zap::Mechanism in) -> std::string
 {
     try {
         return mechanism_map_.at(in);
@@ -189,7 +189,7 @@ std::string Request::mechanism_to_string(const zap::Mechanism in)
     }
 }
 
-zap::Mechanism Request::string_to_mechanism(const std::string& in)
+auto Request::string_to_mechanism(const std::string& in) -> zap::Mechanism
 {
     try {
         return mechanism_reverse_map_.at(in);
@@ -199,7 +199,7 @@ zap::Mechanism Request::string_to_mechanism(const std::string& in)
     }
 }
 
-std::pair<bool, std::string> Request::Validate() const
+auto Request::Validate() const -> std::pair<bool, std::string>
 {
     std::pair<bool, std::string> output{false, ""};
     auto& [success, error] = output;

@@ -135,11 +135,14 @@ namespace opentxs
 {
 template <>
 struct make_blank<blockchain::block::Height> {
-    static blockchain::block::Height value(const api::Core&) { return -1; }
+    static auto value(const api::Core&) -> blockchain::block::Height
+    {
+        return -1;
+    }
 };
 template <>
 struct make_blank<blockchain::block::Position> {
-    static blockchain::block::Position value(const api::Core& api)
+    static auto value(const api::Core& api) -> blockchain::block::Position
     {
         return {make_blank<blockchain::block::Height>::value(api),
                 make_blank<blockchain::block::pHash>::value(api)};
@@ -259,31 +262,35 @@ struct FilterOracle {
 };
 
 struct HeaderOracle : virtual public opentxs::blockchain::client::HeaderOracle {
+    virtual auto Init() noexcept -> void = 0;
+
     virtual ~HeaderOracle() = default;
 };
 
 struct HeaderDatabase {
-    virtual bool ApplyUpdate(const client::UpdateTransaction& update) const
-        noexcept = 0;
+    virtual auto ApplyUpdate(const client::UpdateTransaction& update) const
+        noexcept -> bool = 0;
     // Throws std::out_of_range if no block at that position
-    virtual block::pHash BestBlock(const block::Height position) const
-        noexcept(false) = 0;
-    virtual std::unique_ptr<block::Header> CurrentBest() const noexcept = 0;
-    virtual block::Position CurrentCheckpoint() const noexcept = 0;
-    virtual DisconnectedList DisconnectedHashes() const noexcept = 0;
-    virtual bool HasDisconnectedChildren(const block::Hash& hash) const
-        noexcept = 0;
-    virtual bool HaveCheckpoint() const noexcept = 0;
-    virtual bool HeaderExists(const block::Hash& hash) const noexcept = 0;
-    virtual bool IsSibling(const block::Hash& hash) const noexcept = 0;
+    virtual auto BestBlock(const block::Height position) const noexcept(false)
+        -> block::pHash = 0;
+    virtual auto CurrentBest() const noexcept
+        -> std::unique_ptr<block::Header> = 0;
+    virtual auto CurrentCheckpoint() const noexcept -> block::Position = 0;
+    virtual auto DisconnectedHashes() const noexcept -> DisconnectedList = 0;
+    virtual auto HasDisconnectedChildren(const block::Hash& hash) const noexcept
+        -> bool = 0;
+    virtual auto HaveCheckpoint() const noexcept -> bool = 0;
+    virtual auto HeaderExists(const block::Hash& hash) const noexcept
+        -> bool = 0;
+    virtual auto IsSibling(const block::Hash& hash) const noexcept -> bool = 0;
     // Throws std::out_of_range if the header does not exist
-    virtual std::unique_ptr<block::Header> LoadHeader(
-        const block::Hash& hash) const noexcept(false) = 0;
-    virtual std::vector<block::pHash> RecentHashes() const noexcept = 0;
-    virtual Hashes SiblingHashes() const noexcept = 0;
+    virtual auto LoadHeader(const block::Hash& hash) const noexcept(false)
+        -> std::unique_ptr<block::Header> = 0;
+    virtual auto RecentHashes() const noexcept -> std::vector<block::pHash> = 0;
+    virtual auto SiblingHashes() const noexcept -> Hashes = 0;
     // Returns null pointer if the header does not exist
-    virtual std::unique_ptr<block::Header> TryLoadHeader(
-        const block::Hash& hash) const noexcept = 0;
+    virtual auto TryLoadHeader(const block::Hash& hash) const noexcept
+        -> std::unique_ptr<block::Header> = 0;
 
     virtual ~HeaderDatabase() = default;
 };
@@ -329,8 +336,8 @@ private:
     IO() = delete;
     IO(const IO&) = delete;
     IO(IO&&) = delete;
-    IO& operator=(const IO&) = delete;
-    IO& operator=(IO&&) = delete;
+    auto operator=(const IO&) -> IO& = delete;
+    auto operator=(IO &&) -> IO& = delete;
 };
 
 struct Network : virtual public opentxs::blockchain::Network {
@@ -387,12 +394,12 @@ struct PeerDatabase {
     using Service = p2p::Service;
     using Type = p2p::Network;
 
-    virtual bool AddOrUpdate(Address address) const noexcept = 0;
-    virtual Address Get(
+    virtual auto AddOrUpdate(Address address) const noexcept -> bool = 0;
+    virtual auto Get(
         const Protocol protocol,
         const std::set<Type> onNetworks,
-        const std::set<Service> withServices) const noexcept = 0;
-    virtual bool Import(std::vector<Address> peers) const noexcept = 0;
+        const std::set<Service> withServices) const noexcept -> Address = 0;
+    virtual auto Import(std::vector<Address> peers) const noexcept -> bool = 0;
 
     virtual ~PeerDatabase() = default;
 };

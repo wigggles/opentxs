@@ -48,8 +48,8 @@ class Contact final : virtual public credential::internal::Contact,
                       public credential::implementation::Base
 {
 public:
-    bool GetContactData(
-        std::unique_ptr<proto::ContactData>& contactData) const final;
+    auto GetContactData(std::unique_ptr<proto::ContactData>& contactData) const
+        -> bool final;
 
     ~Contact() final = default;
 
@@ -58,10 +58,11 @@ private:
 
     const proto::ContactData data_;
 
-    std::shared_ptr<Base::SerializedType> serialize(
+    auto serialize(
         const Lock& lock,
         const SerializationModeFlag asPrivate,
-        const SerializationSignatureFlag asSigned) const final;
+        const SerializationSignatureFlag asSigned) const
+        -> std::shared_ptr<Base::SerializedType> final;
 
     Contact(
         const api::internal::Core& api,
@@ -80,7 +81,7 @@ private:
     Contact() = delete;
     Contact(const Contact&) = delete;
     Contact(Contact&&) = delete;
-    Contact& operator=(const Contact&) = delete;
-    Contact& operator=(Contact&&) = delete;
+    auto operator=(const Contact&) -> Contact& = delete;
+    auto operator=(Contact &&) -> Contact& = delete;
 };
 }  // namespace opentxs::identity::credential::implementation

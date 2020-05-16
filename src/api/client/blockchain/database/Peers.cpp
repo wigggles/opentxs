@@ -193,7 +193,7 @@ auto Peers::Find(
     }
 }
 
-bool Peers::Import(std::vector<Address_p> peers) noexcept
+auto Peers::Import(std::vector<Address_p> peers) noexcept -> bool
 {
     auto newPeers = std::vector<Address_p>{};
 

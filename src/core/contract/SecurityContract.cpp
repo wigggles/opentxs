@@ -112,7 +112,7 @@ Security::Security(const Security& rhs)
 {
 }
 
-proto::UnitDefinition Security::IDVersion(const Lock& lock) const
+auto Security::IDVersion(const Lock& lock) const -> proto::UnitDefinition
 {
     auto contract = Unit::IDVersion(lock);
     contract.set_type(Type());

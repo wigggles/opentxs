@@ -41,7 +41,8 @@ FrameIterator::FrameIterator(FrameIterator&& frameIterator)
     OT_ASSERT(nullptr != parent_);
 }
 
-FrameIterator& FrameIterator::operator=(const FrameIterator& frameIterator)
+auto FrameIterator::operator=(const FrameIterator& frameIterator)
+    -> FrameIterator&
 {
     position_ = frameIterator.position_.load();
     parent_ = frameIterator.parent_;
@@ -49,35 +50,35 @@ FrameIterator& FrameIterator::operator=(const FrameIterator& frameIterator)
     return *this;
 }
 
-const Frame& FrameIterator::operator*() const
+auto FrameIterator::operator*() const -> const Frame&
 {
     OT_ASSERT(nullptr != parent_);
 
     return parent_->at(position_);
 }
 
-Frame& FrameIterator::operator*()
+auto FrameIterator::operator*() -> Frame&
 {
     OT_ASSERT(nullptr != parent_);
 
     return const_cast<Message*>(parent_)->at(position_);
 }
 
-bool FrameIterator::operator==(const FrameIterator& rhs) const
+auto FrameIterator::operator==(const FrameIterator& rhs) const -> bool
 {
     OT_ASSERT(nullptr != parent_);
 
     return (parent_ == rhs.parent_) && (position_ == rhs.position_);
 }
 
-bool FrameIterator::operator!=(const FrameIterator& rhs) const
+auto FrameIterator::operator!=(const FrameIterator& rhs) const -> bool
 {
     OT_ASSERT(nullptr != parent_);
 
     return !(*this == rhs);
 }
 
-FrameIterator& FrameIterator::operator++()
+auto FrameIterator::operator++() -> FrameIterator&
 {
     OT_ASSERT(nullptr != parent_);
 
@@ -86,7 +87,7 @@ FrameIterator& FrameIterator::operator++()
     return *this;
 }
 
-FrameIterator FrameIterator::operator++(int)
+auto FrameIterator::operator++(int) -> FrameIterator
 {
     OT_ASSERT(nullptr != parent_);
 

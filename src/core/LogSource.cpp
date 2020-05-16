@@ -37,7 +37,7 @@ namespace zmq = opentxs::network::zeromq;
 
 namespace opentxs
 {
-std::string stack_trace() noexcept
+auto stack_trace() noexcept -> std::string
 {
     auto output = std::stringstream{};
     output << boost::stacktrace::stacktrace();
@@ -55,14 +55,17 @@ LogSource::LogSource(const int logLevel) noexcept
 {
 }
 
-const LogSource& LogSource::operator()() const noexcept { return *this; }
+auto LogSource::operator()() const noexcept -> const LogSource&
+{
+    return *this;
+}
 
-const LogSource& LogSource::operator()(char* in) const noexcept
+auto LogSource::operator()(char* in) const noexcept -> const LogSource&
 {
     return operator()(std::string(in));
 }
 
-const LogSource& LogSource::operator()(const char* in) const noexcept
+auto LogSource::operator()(const char* in) const noexcept -> const LogSource&
 {
     if (verbosity_.load() < level_) { return *this; }
 
@@ -73,84 +76,94 @@ const LogSource& LogSource::operator()(const char* in) const noexcept
     return *this;
 }
 
-const LogSource& LogSource::operator()(const std::string& in) const noexcept
+auto LogSource::operator()(const std::string& in) const noexcept
+    -> const LogSource&
 {
     return operator()(in.c_str());
 }
 
-const LogSource& LogSource::operator()(const OTString& in) const noexcept
+auto LogSource::operator()(const OTString& in) const noexcept
+    -> const LogSource&
 {
     return operator()(in.get());
 }
 
-const LogSource& LogSource::operator()(const OTStringXML& in) const noexcept
+auto LogSource::operator()(const OTStringXML& in) const noexcept
+    -> const LogSource&
 {
     return operator()(in.get());
 }
 
-const LogSource& LogSource::operator()(const OTArmored& in) const noexcept
+auto LogSource::operator()(const OTArmored& in) const noexcept
+    -> const LogSource&
 {
     return operator()(in.get());
 }
 
-const LogSource& LogSource::operator()(const String& in) const noexcept
+auto LogSource::operator()(const String& in) const noexcept -> const LogSource&
 {
     return operator()(in.Get());
 }
 
-const LogSource& LogSource::operator()(const StringXML& in) const noexcept
+auto LogSource::operator()(const StringXML& in) const noexcept
+    -> const LogSource&
 {
     return operator()(in.Get());
 }
 
-const LogSource& LogSource::operator()(const Armored& in) const noexcept
+auto LogSource::operator()(const Armored& in) const noexcept -> const LogSource&
 {
     return operator()(in.Get());
 }
 
-const LogSource& LogSource::operator()(const OTIdentifier& in) const noexcept
+auto LogSource::operator()(const OTIdentifier& in) const noexcept
+    -> const LogSource&
 {
     return operator()(in.get());
 }
 
-const LogSource& LogSource::operator()(const Identifier& in) const noexcept
+auto LogSource::operator()(const Identifier& in) const noexcept
+    -> const LogSource&
 {
     return operator()(in.str().c_str());
 }
 
-const LogSource& LogSource::operator()(const OTNymID& in) const noexcept
+auto LogSource::operator()(const OTNymID& in) const noexcept -> const LogSource&
 {
     return operator()(in.get());
 }
 
-const LogSource& LogSource::operator()(const identifier::Nym& in) const noexcept
+auto LogSource::operator()(const identifier::Nym& in) const noexcept
+    -> const LogSource&
 {
     return operator()(in.str().c_str());
 }
 
-const LogSource& LogSource::operator()(const OTServerID& in) const noexcept
+auto LogSource::operator()(const OTServerID& in) const noexcept
+    -> const LogSource&
 {
     return operator()(in.get());
 }
 
-const LogSource& LogSource::operator()(const identifier::Server& in) const
-    noexcept
+auto LogSource::operator()(const identifier::Server& in) const noexcept
+    -> const LogSource&
 {
     return operator()(in.str().c_str());
 }
 
-const LogSource& LogSource::operator()(const OTUnitID& in) const noexcept
+auto LogSource::operator()(const OTUnitID& in) const noexcept
+    -> const LogSource&
 {
     return operator()(in.get());
 }
 
-const LogSource& LogSource::operator()(
-    const identifier::UnitDefinition& in) const noexcept
+auto LogSource::operator()(const identifier::UnitDefinition& in) const noexcept
+    -> const LogSource&
 {
     return operator()(in.str().c_str());
 }
 
-const LogSource& LogSource::operator()(const Time in) const noexcept
+auto LogSource::operator()(const Time in) const noexcept -> const LogSource&
 {
     return operator()(formatTimestamp(in));
 }
@@ -179,7 +192,7 @@ void LogSource::Assert(
 
 void LogSource::Flush() const noexcept { send(false); }
 
-LogSource::Source& LogSource::get_buffer(std::string& out) noexcept
+auto LogSource::get_buffer(std::string& out) noexcept -> LogSource::Source&
 {
     const auto id = std::this_thread::get_id();
     std::stringstream convert{};
@@ -243,9 +256,9 @@ void LogSource::Shutdown() noexcept
     buffer_.clear();
 }
 
-const LogSource& LogSource::StartLog(
+auto LogSource::StartLog(
     const LogSource& source,
-    const std::string& function) noexcept
+    const std::string& function) noexcept -> const LogSource&
 {
     return source(function);
 }

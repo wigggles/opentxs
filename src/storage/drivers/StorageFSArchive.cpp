@@ -29,14 +29,14 @@
 
 namespace opentxs
 {
-opentxs::api::storage::Plugin* Factory::StorageFSArchive(
+auto Factory::StorageFSArchive(
     const api::storage::Storage& storage,
     const StorageConfig& config,
     const Digest& hash,
     const Random& random,
     const Flag& bucket,
     const std::string& folder,
-    crypto::key::Symmetric& key)
+    crypto::key::Symmetric& key) -> opentxs::api::storage::Plugin*
 {
     return new opentxs::storage::implementation::StorageFSArchive(
         storage, config, hash, random, bucket, folder, key);
@@ -60,10 +60,10 @@ StorageFSArchive::StorageFSArchive(
     Init_StorageFSArchive();
 }
 
-std::string StorageFSArchive::calculate_path(
+auto StorageFSArchive::calculate_path(
     const std::string& key,
     const bool,
-    std::string& directory) const
+    std::string& directory) const -> std::string
 {
     directory = folder_;
     auto& level1 = folder_;
@@ -111,7 +111,7 @@ void StorageFSArchive::Cleanup_StorageFSArchive()
     // future cleanup actions go here
 }
 
-bool StorageFSArchive::EmptyBucket(const bool) const { return true; }
+auto StorageFSArchive::EmptyBucket(const bool) const -> bool { return true; }
 
 void StorageFSArchive::Init_StorageFSArchive()
 {
@@ -122,7 +122,8 @@ void StorageFSArchive::Init_StorageFSArchive()
     if (boost::filesystem::create_directory(folder_, ec)) { ready_->On(); }
 }
 
-std::string StorageFSArchive::prepare_read(const std::string& input) const
+auto StorageFSArchive::prepare_read(const std::string& input) const
+    -> std::string
 {
     if (false == encrypted_) { return input; }
 
@@ -142,7 +143,8 @@ std::string StorageFSArchive::prepare_read(const std::string& input) const
     return output;
 }
 
-std::string StorageFSArchive::prepare_write(const std::string& plaintext) const
+auto StorageFSArchive::prepare_write(const std::string& plaintext) const
+    -> std::string
 {
     if (false == encrypted_) { return plaintext; }
 
@@ -162,7 +164,7 @@ std::string StorageFSArchive::prepare_write(const std::string& plaintext) const
     return proto::ToString(ciphertext);
 }
 
-std::string StorageFSArchive::root_filename() const
+auto StorageFSArchive::root_filename() const -> std::string
 {
     return folder_ + path_seperator_ + config_.fs_root_file_ +
            ROOT_FILE_EXTENSION;

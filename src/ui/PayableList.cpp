@@ -117,10 +117,10 @@ PayableList::PayableList(
     OT_ASSERT(startup_)
 }
 
-void* PayableList::construct_row(
+auto PayableList::construct_row(
     const PayableListRowID& id,
     const PayableListSortKey& index,
-    const CustomData& custom) const noexcept
+    const CustomData& custom) const noexcept -> void*
 {
     OT_ASSERT(1 == custom.size())
 
@@ -139,7 +139,7 @@ void* PayableList::construct_row(
     return it->second.get();
 }
 
-const Identifier& PayableList::ID() const { return owner_contact_id_; }
+auto PayableList::ID() const -> const Identifier& { return owner_contact_id_; }
 
 void PayableList::process_contact(
     const PayableListRowID& id,

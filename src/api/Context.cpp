@@ -43,11 +43,11 @@ extern "C" {
 
 namespace opentxs
 {
-api::internal::Context* Factory::Context(
+auto Factory::Context(
     Flag& running,
     const ArgList& args,
     const std::chrono::seconds gcInterval,
-    OTCaller* externalPasswordCallback)
+    OTCaller* externalPasswordCallback) -> api::internal::Context*
 {
     return new api::implementation::Context(
         running, args, gcInterval, externalPasswordCallback);
@@ -56,7 +56,7 @@ api::internal::Context* Factory::Context(
 
 namespace opentxs::api
 {
-std::string Context::SuggestFolder(const std::string& app) noexcept
+auto Context::SuggestFolder(const std::string& app) noexcept -> std::string
 {
     return Legacy::SuggestFolder(app);
 }
@@ -119,14 +119,15 @@ Context::Context(
     assert(rpc_);
 }
 
-int Context::client_instance(const int count)
+auto Context::client_instance(const int count) -> int
 {
     // NOTE: Instance numbers must not collide between clients and servers.
     // Clients use even numbers and servers use odd numbers.
     return (2 * count);
 }
 
-const api::client::internal::Manager& Context::Client(const int instance) const
+auto Context::Client(const int instance) const
+    -> const api::client::internal::Manager&
 {
     auto& output = client_.at(instance);
 
@@ -135,7 +136,7 @@ const api::client::internal::Manager& Context::Client(const int instance) const
     return *output;
 }
 
-const api::Settings& Context::Config(const std::string& path) const
+auto Context::Config(const std::string& path) const -> const api::Settings&
 {
     std::unique_lock<std::mutex> lock(config_lock_);
     auto& config = config_[path];
@@ -152,14 +153,15 @@ const api::Settings& Context::Config(const std::string& path) const
     return *config;
 }
 
-const api::Crypto& Context::Crypto() const
+auto Context::Crypto() const -> const api::Crypto&
 {
     OT_ASSERT(crypto_)
 
     return *crypto_;
 }
 
-std::string Context::get_arg(const ArgList& args, const std::string& argName)
+auto Context::get_arg(const ArgList& args, const std::string& argName)
+    -> std::string
 {
     auto argIt = args.find(argName);
 
@@ -175,7 +177,7 @@ std::string Context::get_arg(const ArgList& args, const std::string& argName)
     return {};
 }
 
-OTCaller& Context::GetPasswordCaller() const
+auto Context::GetPasswordCaller() const -> OTCaller&
 {
     OT_ASSERT(nullptr != external_password_callback_)
 
@@ -308,7 +310,7 @@ void Context::Init_Zap()
     OT_ASSERT(zap_);
 }
 
-const ArgList Context::merge_arglist(const ArgList& args) const
+auto Context::merge_arglist(const ArgList& args) const -> const ArgList
 {
     ArgList arguments{args_};
 
@@ -317,21 +319,21 @@ const ArgList Context::merge_arglist(const ArgList& args) const
     return arguments;
 }
 
-proto::RPCResponse Context::RPC(const proto::RPCCommand& command) const
+auto Context::RPC(const proto::RPCCommand& command) const -> proto::RPCResponse
 {
     OT_ASSERT(rpc_);
 
     return rpc_->Process(command);
 }
 
-int Context::server_instance(const int count)
+auto Context::server_instance(const int count) -> int
 {
     // NOTE: Instance numbers must not collide between clients and servers.
     // Clients use even numbers and servers use odd numbers.
     return (2 * count) + 1;
 }
 
-const api::server::Manager& Context::Server(const int instance) const
+auto Context::Server(const int instance) const -> const api::server::Manager&
 {
     auto& output = server_.at(instance);
 
@@ -399,9 +401,8 @@ void Context::start_client(const Lock& lock, const ArgList& args) const
         instance));
 }
 
-const api::client::internal::Manager& Context::StartClient(
-    const ArgList& args,
-    const int instance) const
+auto Context::StartClient(const ArgList& args, const int instance) const
+    -> const api::client::internal::Manager&
 {
     Lock lock(lock_);
 
@@ -421,11 +422,12 @@ const api::client::internal::Manager& Context::StartClient(
 }
 
 #if OT_CRYPTO_WITH_BIP32
-const api::client::internal::Manager& Context::StartClient(
+auto Context::StartClient(
     const ArgList& args,
     const int instance,
     const std::string& recoverWords,
     const std::string& recoverPassphrase) const
+    -> const api::client::internal::Manager&
 {
     const auto& client = StartClient(args, instance);
     auto reason = client.Factory().PasswordPrompt("Recovering a BIP-39 seed");
@@ -462,10 +464,10 @@ void Context::start_server(const Lock& lock, const ArgList& args) const
         instance));
 }
 
-const api::server::Manager& Context::StartServer(
+auto Context::StartServer(
     const ArgList& args,
     const int instance,
-    const bool inproc) const
+    const bool inproc) const -> const api::server::Manager&
 {
     Lock lock(lock_);
 
@@ -491,7 +493,7 @@ const api::server::Manager& Context::StartServer(
     return *output;
 }
 
-const api::network::ZAP& Context::ZAP() const
+auto Context::ZAP() const -> const api::network::ZAP&
 {
     OT_ASSERT(zap_);
 

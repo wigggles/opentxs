@@ -45,8 +45,8 @@ namespace opentxs
 class ContactSection
 {
 public:
-    typedef std::map<proto::ContactItemType, std::shared_ptr<ContactGroup>>
-        GroupMap;
+    using GroupMap =
+        std::map<proto::ContactItemType, std::shared_ptr<ContactGroup>>;
 
     OPENTXS_EXPORT ContactSection(
         const api::internal::Core& api,

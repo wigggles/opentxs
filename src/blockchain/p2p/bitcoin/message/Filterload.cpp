@@ -24,13 +24,13 @@
 
 namespace opentxs
 {
-blockchain::p2p::bitcoin::message::internal::Filterload* Factory::
-    BitcoinP2PFilterload(
-        const api::internal::Core& api,
-        std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
-        const blockchain::p2p::bitcoin::ProtocolVersion version,
-        const void* payload,
-        const std::size_t size)
+auto Factory::BitcoinP2PFilterload(
+    const api::internal::Core& api,
+    std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
+    const blockchain::p2p::bitcoin::ProtocolVersion version,
+    const void* payload,
+    const std::size_t size)
+    -> blockchain::p2p::bitcoin::message::internal::Filterload*
 {
     namespace bitcoin = blockchain::p2p::bitcoin;
     using ReturnType = bitcoin::message::implementation::Filterload;
@@ -55,11 +55,11 @@ blockchain::p2p::bitcoin::message::internal::Filterload* Factory::
     return new ReturnType(api, std::move(pHeader), *pFilter);
 }
 
-blockchain::p2p::bitcoin::message::internal::Filterload* Factory::
-    BitcoinP2PFilterload(
-        const api::internal::Core& api,
-        const blockchain::Type network,
-        const blockchain::BloomFilter& filter)
+auto Factory::BitcoinP2PFilterload(
+    const api::internal::Core& api,
+    const blockchain::Type network,
+    const blockchain::BloomFilter& filter)
+    -> blockchain::p2p::bitcoin::message::internal::Filterload*
 {
     namespace bitcoin = blockchain::p2p::bitcoin;
     using ReturnType = bitcoin::message::implementation::Filterload;

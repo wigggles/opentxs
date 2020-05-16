@@ -27,39 +27,50 @@ namespace opentxs::api::implementation
 class Legacy final : public api::Legacy
 {
 public:
-    static fs::path get_home_directory() noexcept;
-    static fs::path get_suffix(const char* application) noexcept;
+    static auto get_home_directory() noexcept -> fs::path;
+    static auto get_suffix(const char* application) noexcept -> fs::path;
 
-    const char* Account() const noexcept final { return account_; }
-    bool AppendFile(String& out, const String& base, const String& file) const
-        noexcept final;
-    bool AppendFolder(String& out, const String& base, const String& folder)
-        const noexcept final;
-    bool BuildFolderPath(const String& path) const noexcept final;
-    bool BuildFilePath(const String& path) const noexcept final;
-    std::string ClientConfigFilePath(const int instance) const noexcept final;
-    std::string ClientDataFolder(const int instance) const noexcept final;
-    const char* Common() const noexcept final { return common_; }
-    bool ConfirmCreateFolder(const String& path) const noexcept final;
-    const char* Contract() const noexcept final { return contract_; }
-    const char* Cron() const noexcept final { return cron_; }
-    std::string CryptoConfigFilePath() const noexcept final;
-    const char* ExpiredBox() const noexcept final { return expired_box_; }
-    bool FileExists(const String& path, std::size_t& size) const noexcept final;
-    const char* Inbox() const noexcept final { return inbox_; }
-    std::string LogConfigFilePath() const noexcept final;
-    const char* Market() const noexcept final { return market_; }
-    const char* Mint() const noexcept final { return mint_; }
-    const char* Nym() const noexcept final { return nym_; }
-    const char* Nymbox() const noexcept final { return nymbox_; }
-    const char* Outbox() const noexcept final { return outbox_; }
-    bool PathExists(const String& path) const noexcept final;
-    std::string PIDFilePath() const noexcept final;
-    const char* PaymentInbox() const noexcept final { return payment_inbox_; }
-    const char* Receipt() const noexcept final { return receipt_; }
-    const char* RecordBox() const noexcept final { return record_box_; }
-    std::string ServerConfigFilePath(const int instance) const noexcept final;
-    std::string ServerDataFolder(const int instance) const noexcept final;
+    auto Account() const noexcept -> const char* final { return account_; }
+    auto AppendFile(String& out, const String& base, const String& file) const
+        noexcept -> bool final;
+    auto AppendFolder(String& out, const String& base, const String& folder)
+        const noexcept -> bool final;
+    auto BuildFolderPath(const String& path) const noexcept -> bool final;
+    auto BuildFilePath(const String& path) const noexcept -> bool final;
+    auto ClientConfigFilePath(const int instance) const noexcept
+        -> std::string final;
+    auto ClientDataFolder(const int instance) const noexcept
+        -> std::string final;
+    auto Common() const noexcept -> const char* final { return common_; }
+    auto ConfirmCreateFolder(const String& path) const noexcept -> bool final;
+    auto Contract() const noexcept -> const char* final { return contract_; }
+    auto Cron() const noexcept -> const char* final { return cron_; }
+    auto CryptoConfigFilePath() const noexcept -> std::string final;
+    auto ExpiredBox() const noexcept -> const char* final
+    {
+        return expired_box_;
+    }
+    auto FileExists(const String& path, std::size_t& size) const noexcept
+        -> bool final;
+    auto Inbox() const noexcept -> const char* final { return inbox_; }
+    auto LogConfigFilePath() const noexcept -> std::string final;
+    auto Market() const noexcept -> const char* final { return market_; }
+    auto Mint() const noexcept -> const char* final { return mint_; }
+    auto Nym() const noexcept -> const char* final { return nym_; }
+    auto Nymbox() const noexcept -> const char* final { return nymbox_; }
+    auto Outbox() const noexcept -> const char* final { return outbox_; }
+    auto PathExists(const String& path) const noexcept -> bool final;
+    auto PIDFilePath() const noexcept -> std::string final;
+    auto PaymentInbox() const noexcept -> const char* final
+    {
+        return payment_inbox_;
+    }
+    auto Receipt() const noexcept -> const char* final { return receipt_; }
+    auto RecordBox() const noexcept -> const char* final { return record_box_; }
+    auto ServerConfigFilePath(const int instance) const noexcept
+        -> std::string final;
+    auto ServerDataFolder(const int instance) const noexcept
+        -> std::string final;
 
     ~Legacy() final = default;
 
@@ -91,19 +102,20 @@ private:
     const std::string server_config_file_;
     const std::string pid_file_;
 
-    static fs::path get_app_data_folder(const std::string& home) noexcept;
-    static fs::path get_suffix() noexcept;
+    static auto get_app_data_folder(const std::string& home) noexcept
+        -> fs::path;
+    static auto get_suffix() noexcept -> fs::path;
 
-    std::string get_path(const std::string& fragment, const int instance = 0)
-        const noexcept;
-    std::string get_file(const std::string& fragment, const int instance = 0)
-        const noexcept;
+    auto get_path(const std::string& fragment, const int instance = 0) const
+        noexcept -> std::string;
+    auto get_file(const std::string& fragment, const int instance = 0) const
+        noexcept -> std::string;
 
     Legacy(const std::string& home) noexcept;
     Legacy() = delete;
     Legacy(const Legacy&) = delete;
     Legacy(Legacy&&) = delete;
-    Legacy& operator=(const Legacy&) = delete;
-    Legacy& operator=(Legacy&&) = delete;
+    auto operator=(const Legacy&) -> Legacy& = delete;
+    auto operator=(Legacy &&) -> Legacy& = delete;
 };
 }  // namespace opentxs::api::implementation

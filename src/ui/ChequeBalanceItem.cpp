@@ -60,7 +60,7 @@ ChequeBalanceItem::ChequeBalanceItem(
     OT_ASSERT(startup_)
 }
 
-opentxs::Amount ChequeBalanceItem::effective_amount() const noexcept
+auto ChequeBalanceItem::effective_amount() const noexcept -> opentxs::Amount
 {
     sLock lock(shared_lock_);
     auto amount{0};
@@ -95,7 +95,7 @@ opentxs::Amount ChequeBalanceItem::effective_amount() const noexcept
     return amount * sign;
 }
 
-bool ChequeBalanceItem::get_contract() const noexcept
+auto ChequeBalanceItem::get_contract() const noexcept -> bool
 {
     if (0 < contract_->Version()) { return true; }
 
@@ -115,7 +115,7 @@ bool ChequeBalanceItem::get_contract() const noexcept
     return false;
 }
 
-std::string ChequeBalanceItem::Memo() const noexcept
+auto ChequeBalanceItem::Memo() const noexcept -> std::string
 {
     sLock lock(shared_lock_);
 
@@ -227,7 +227,7 @@ void ChequeBalanceItem::startup(const CustomData& custom) noexcept
     UpdateNotify();
 }
 
-std::string ChequeBalanceItem::UUID() const noexcept
+auto ChequeBalanceItem::UUID() const noexcept -> std::string
 {
     if (cheque_) {
 

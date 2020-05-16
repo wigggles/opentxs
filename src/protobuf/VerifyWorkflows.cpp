@@ -12,7 +12,7 @@
 
 namespace opentxs::proto
 {
-const EventTransportMap& PaymentEventAllowedTransportMethod() noexcept
+auto PaymentEventAllowedTransportMethod() noexcept -> const EventTransportMap&
 {
     static const auto output = EventTransportMap{
         {{1, PAYMENTEVENTTYPE_CREATE},
@@ -48,7 +48,7 @@ const EventTransportMap& PaymentEventAllowedTransportMethod() noexcept
 
     return output;
 }
-const WorkflowEventMap& PaymentWorkflowAllowedEventTypes() noexcept
+auto PaymentWorkflowAllowedEventTypes() noexcept -> const WorkflowEventMap&
 {
     static const auto output = WorkflowEventMap{
         {{1, PAYMENTWORKFLOWTYPE_OUTGOINGCHEQUE},
@@ -142,7 +142,7 @@ const WorkflowEventMap& PaymentWorkflowAllowedEventTypes() noexcept
 
     return output;
 }
-const VersionMap& PaymentWorkflowAllowedInstrumentRevision() noexcept
+auto PaymentWorkflowAllowedInstrumentRevision() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -152,7 +152,7 @@ const VersionMap& PaymentWorkflowAllowedInstrumentRevision() noexcept
 
     return output;
 }
-const VersionMap& PaymentWorkflowAllowedPaymentEvent() noexcept
+auto PaymentWorkflowAllowedPaymentEvent() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -162,7 +162,7 @@ const VersionMap& PaymentWorkflowAllowedPaymentEvent() noexcept
 
     return output;
 }
-const WorkflowStateMap& PaymentWorkflowAllowedState() noexcept
+auto PaymentWorkflowAllowedState() noexcept -> const WorkflowStateMap&
 {
     static const auto output = WorkflowStateMap{
         {{1, PAYMENTWORKFLOWTYPE_OUTGOINGCHEQUE},

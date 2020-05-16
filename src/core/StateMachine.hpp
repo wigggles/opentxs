@@ -38,7 +38,7 @@ public:
      * \returns true if the callback thread is executing, false if the state
      * machine is stopping, stopped or destructing
      */
-    OPENTXS_EXPORT bool Trigger() const noexcept;
+    OPENTXS_EXPORT auto Trigger() const noexcept -> bool;
 
     /** Terminate the state machine
      *
@@ -49,14 +49,14 @@ public:
      * \returns a future whose value will be set when the state machine is
      * in a stopped state
      */
-    OPENTXS_EXPORT StopFuture Stop() const noexcept;
+    OPENTXS_EXPORT auto Stop() const noexcept -> StopFuture;
 
     /** Detect a state machine idle condition
      *
      * \returns a future whose value will be set the next time the state machine
      * is not executing the callback function
      */
-    OPENTXS_EXPORT WaitFuture Wait() const noexcept;
+    OPENTXS_EXPORT auto Wait() const noexcept -> WaitFuture;
 
     OPENTXS_EXPORT virtual ~StateMachine()
     {
@@ -68,16 +68,17 @@ public:
 protected:
     mutable std::mutex decision_lock_;
 
-    OPENTXS_EXPORT const std::atomic<bool>& running() const noexcept
+    OPENTXS_EXPORT auto running() const noexcept -> const std::atomic<bool>&
     {
         return running_;
     }
-    OPENTXS_EXPORT const std::atomic<bool>& shutdown() const noexcept
+    OPENTXS_EXPORT auto shutdown() const noexcept -> const std::atomic<bool>&
     {
         return shutdown_;
     }
 
-    OPENTXS_EXPORT bool trigger(const Lock& decisionLock) const noexcept;
+    OPENTXS_EXPORT auto trigger(const Lock& decisionLock) const noexcept
+        -> bool;
 
     OPENTXS_EXPORT StateMachine(const Callback callback) noexcept;
 
@@ -94,14 +95,13 @@ private:
 
     void clean(const Lock& decisionLock) const noexcept;
     void execute() const noexcept;
-    WaitFuture make_wait_promise(
-        const Lock& decisionLock,
-        const bool set = false) const noexcept;
+    auto make_wait_promise(const Lock& decisionLock, const bool set = false)
+        const noexcept -> WaitFuture;
 
     StateMachine() = delete;
     StateMachine(const StateMachine&) = delete;
     StateMachine(StateMachine&&) = delete;
-    StateMachine& operator=(const StateMachine&) = delete;
-    StateMachine& operator=(StateMachine&&) = delete;
+    auto operator=(const StateMachine&) -> StateMachine& = delete;
+    auto operator=(StateMachine &&) -> StateMachine& = delete;
 };
 }  // namespace opentxs::internal

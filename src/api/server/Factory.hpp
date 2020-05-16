@@ -34,7 +34,7 @@ namespace opentxs::api::server::implementation
 class Factory final : public opentxs::api::implementation::Factory
 {
 public:
-    std::unique_ptr<OTCron> Cron() const final;
+    auto Cron() const -> std::unique_ptr<OTCron> final;
 
     ~Factory() final = default;
 
@@ -47,7 +47,7 @@ private:
     Factory() = delete;
     Factory(const Factory&) = delete;
     Factory(Factory&&) = delete;
-    Factory& operator=(const Factory&) = delete;
-    Factory& operator=(Factory&&) = delete;
+    auto operator=(const Factory&) -> Factory& = delete;
+    auto operator=(Factory &&) -> Factory& = delete;
 };
 }  // namespace opentxs::api::server::implementation

@@ -57,10 +57,10 @@ Threads::Threads(
     }
 }
 
-std::string Threads::create(
+auto Threads::create(
     const Lock& lock,
     const std::string& id,
-    const std::set<std::string>& participants)
+    const std::set<std::string>& participants) -> std::string
 {
     OT_ASSERT(verify_write_lock(lock));
 
@@ -90,23 +90,23 @@ std::string Threads::create(
     return id;
 }
 
-std::string Threads::Create(
+auto Threads::Create(
     const std::string& id,
-    const std::set<std::string>& participants)
+    const std::set<std::string>& participants) -> std::string
 {
     Lock lock(write_lock_);
 
     return create(lock, id, participants);
 }
 
-bool Threads::Exists(const std::string& id) const
+auto Threads::Exists(const std::string& id) const -> bool
 {
     std::unique_lock<std::mutex> lock(write_lock_);
 
     return item_map_.find(id) != item_map_.end();
 }
 
-bool Threads::FindAndDeleteItem(const std::string& itemID)
+auto Threads::FindAndDeleteItem(const std::string& itemID) -> bool
 {
     std::unique_lock<std::mutex> lock(write_lock_);
 
@@ -147,7 +147,7 @@ void Threads::init(const std::string& hash)
     }
 }
 
-ObjectList Threads::List(const bool unreadOnly) const
+auto Threads::List(const bool unreadOnly) const -> ObjectList
 {
     if (false == unreadOnly) { return ot_super::List(); }
 
@@ -167,7 +167,7 @@ ObjectList Threads::List(const bool unreadOnly) const
     return output;
 }
 
-bool Threads::Migrate(const opentxs::api::storage::Driver& to) const
+auto Threads::Migrate(const opentxs::api::storage::Driver& to) const -> bool
 {
     bool output{true};
 
@@ -182,7 +182,7 @@ bool Threads::Migrate(const opentxs::api::storage::Driver& to) const
     return output;
 }
 
-Editor<class Thread> Threads::mutable_Thread(const std::string& id)
+auto Threads::mutable_Thread(const std::string& id) -> Editor<class Thread>
 {
     std::function<void(class Thread*, std::unique_lock<std::mutex>&)> callback =
         [&](class Thread* in, std::unique_lock<std::mutex>& lock) -> void {
@@ -192,16 +192,16 @@ Editor<class Thread> Threads::mutable_Thread(const std::string& id)
     return Editor<class Thread>(write_lock_, thread(id), callback);
 }
 
-class Thread* Threads::thread(const std::string& id) const
+auto Threads::thread(const std::string& id) const -> class Thread*
 {
     std::unique_lock<std::mutex> lock(write_lock_);
 
     return thread(id, lock);
 }
 
-class Thread* Threads::thread(
+auto Threads::thread(
     const std::string& id,
-    const std::unique_lock<std::mutex>& lock) const
+    const std::unique_lock<std::mutex>& lock) const -> class Thread*
 {
     if (!verify_write_lock(lock)) {
         std::cerr << __FUNCTION__ << ": Lock failure." << std::endl;
@@ -227,12 +227,13 @@ class Thread* Threads::thread(
     return node.get();
 }
 
-const class Thread& Threads::Thread(const std::string& id) const
+auto Threads::Thread(const std::string& id) const -> const class Thread&
 {
     return *thread(id);
 }
 
-bool Threads::Rename(const std::string& existingID, const std::string& newID)
+auto Threads::Rename(const std::string& existingID, const std::string& newID)
+    -> bool
 {
     Lock lock(write_lock_);
 
@@ -278,7 +279,7 @@ bool Threads::Rename(const std::string& existingID, const std::string& newID)
     return save(lock);
 }
 
-bool Threads::save(const std::unique_lock<std::mutex>& lock) const
+auto Threads::save(const std::unique_lock<std::mutex>& lock) const -> bool
 {
     if (!verify_write_lock(lock)) {
         std::cerr << __FUNCTION__ << ": Lock failure." << std::endl;
@@ -319,7 +320,7 @@ void Threads::save(
     }
 }
 
-proto::StorageNymList Threads::serialize() const
+auto Threads::serialize() const -> proto::StorageNymList
 {
     proto::StorageNymList serialized;
     serialized.set_version(version_);

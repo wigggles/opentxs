@@ -37,9 +37,9 @@ extern "C" {
 
 namespace opentxs
 {
-crypto::Secp256k1* Factory::Secp256k1(
+auto Factory::Secp256k1(
     const api::Crypto& crypto,
-    const api::crypto::Util& util)
+    const api::crypto::Util& util) -> crypto::Secp256k1*
 {
     return new crypto::implementation::Secp256k1(crypto, util);
 }
@@ -57,12 +57,12 @@ Secp256k1::Secp256k1(const api::Crypto& crypto, const api::crypto::Util& ssl)
 {
 }
 
-bool Secp256k1::RandomKeypair(
+auto Secp256k1::RandomKeypair(
     const AllocateOutput privateKey,
     const AllocateOutput publicKey,
     const proto::KeyRole,
     const NymParameters&,
-    const AllocateOutput) const noexcept
+    const AllocateOutput) const noexcept -> bool
 {
     if (nullptr == context_) { return false; }
 
@@ -113,10 +113,10 @@ bool Secp256k1::RandomKeypair(
     return ScalarMultiplyBase({prv.as<const char>(), prv.size()}, publicKey);
 }
 
-bool Secp256k1::ScalarAdd(
+auto Secp256k1::ScalarAdd(
     const ReadView lhs,
     const ReadView rhs,
-    const AllocateOutput result) const noexcept
+    const AllocateOutput result) const noexcept -> bool
 {
     if (false == bool(result)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid output allocator")
@@ -254,14 +254,14 @@ auto Secp256k1::SharedSecret(
                     reinterpret_cast<const unsigned char*>(prv.data()));
 }
 
-bool Secp256k1::Sign(
+auto Secp256k1::Sign(
     const api::internal::Core& api,
     const Data& plaintext,
     const key::Asymmetric& key,
     const proto::HashType type,
     Data& signature,  // output
     const PasswordPrompt& reason,
-    const OTPassword* exportPassword) const
+    const OTPassword* exportPassword) const -> bool
 {
     if (proto::AKEYTYPE_SECP256K1 != key.keyType()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid key type").Flush();
@@ -320,11 +320,11 @@ bool Secp256k1::Sign(
     }
 }
 
-bool Secp256k1::Verify(
+auto Secp256k1::Verify(
     const Data& plaintext,
     const key::Asymmetric& key,
     const Data& signature,
-    const proto::HashType type) const
+    const proto::HashType type) const -> bool
 {
     if (proto::AKEYTYPE_SECP256K1 != key.keyType()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid key type").Flush();

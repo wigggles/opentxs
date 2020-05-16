@@ -24,12 +24,12 @@ namespace opentxs
 {
 using FeeRateField = be::little_uint64_buf_t;
 
-blockchain::p2p::bitcoin::message::Feefilter* Factory::BitcoinP2PFeefilter(
+auto Factory::BitcoinP2PFeefilter(
     const api::internal::Core& api,
     std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
     const blockchain::p2p::bitcoin::ProtocolVersion version,
     const void* payload,
-    const std::size_t size)
+    const std::size_t size) -> blockchain::p2p::bitcoin::message::Feefilter*
 {
     namespace be = boost::endian;
     namespace bitcoin = blockchain::p2p::bitcoin;
@@ -69,10 +69,11 @@ blockchain::p2p::bitcoin::message::Feefilter* Factory::BitcoinP2PFeefilter(
     }
 }
 
-blockchain::p2p::bitcoin::message::Feefilter* Factory::BitcoinP2PFeefilter(
+auto Factory::BitcoinP2PFeefilter(
     const api::internal::Core& api,
     const blockchain::Type network,
     const std::uint64_t fee_rate)
+    -> blockchain::p2p::bitcoin::message::Feefilter*
 {
     namespace bitcoin = blockchain::p2p::bitcoin;
     using ReturnType = bitcoin::message::Feefilter;
@@ -103,7 +104,7 @@ Feefilter::Feefilter(
     verify_checksum();
 }
 
-OTData Feefilter::payload() const noexcept
+auto Feefilter::payload() const noexcept -> OTData
 {
     FeeRateField fee_rate(fee_rate_);
     OTData output(Data::Factory(&fee_rate, sizeof(fee_rate)));

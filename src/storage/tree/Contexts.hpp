@@ -38,8 +38,8 @@ private:
     friend Nym;
 
     void init(const std::string& hash) final;
-    bool save(const std::unique_lock<std::mutex>& lock) const final;
-    proto::StorageNymList serialize() const;
+    auto save(const std::unique_lock<std::mutex>& lock) const -> bool final;
+    auto serialize() const -> proto::StorageNymList;
 
     Contexts(
         const opentxs::api::storage::Driver& storage,
@@ -47,18 +47,18 @@ private:
     Contexts() = delete;
     Contexts(const Contexts&) = delete;
     Contexts(Contexts&&) = delete;
-    Contexts operator=(const Contexts&) = delete;
-    Contexts operator=(Contexts&&) = delete;
+    auto operator=(const Contexts&) -> Contexts = delete;
+    auto operator=(Contexts &&) -> Contexts = delete;
 
 public:
-    bool Load(
+    auto Load(
         const std::string& id,
         std::shared_ptr<proto::Context>& output,
         std::string& alias,
-        const bool checking) const;
+        const bool checking) const -> bool;
 
-    bool Delete(const std::string& id);
-    bool Store(const proto::Context& data, const std::string& alias);
+    auto Delete(const std::string& id) -> bool;
+    auto Store(const proto::Context& data, const std::string& alias) -> bool;
 
     ~Contexts() final = default;
 };

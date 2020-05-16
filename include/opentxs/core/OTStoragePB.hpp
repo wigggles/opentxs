@@ -89,7 +89,7 @@ public:
 
 // Protocol Buffers packer.
 //
-typedef PackerSubclass<BufferPB> PackerPB;
+using PackerPB = PackerSubclass<BufferPB>;
 
 // Used for subclassing IStorablePB:
 //
@@ -146,8 +146,7 @@ public:
     {
         std::unique_ptr<OTPacker> pPacker(
             OTPacker::Create(PACK_PROTOCOL_BUFFERS));
-        const OTDB::Storable* pIntermediate =
-            dynamic_cast<const OTDB::Storable*>(this);
+        const auto* pIntermediate = dynamic_cast<const OTDB::Storable*>(this);
 
         if (!pPacker) { OT_FAIL; }
 
@@ -192,8 +191,8 @@ public:
     template <>                                                                \
     void ProtobufSubclass<theBaseType, theInternalType, theObjectType>::       \
         hookAfterUnpack();                                                     \
-    typedef ProtobufSubclass<theBaseType, theInternalType, theObjectType>      \
-        theNewType
+    using theNewType =                                                         \
+        ProtobufSubclass<theBaseType, theInternalType, theObjectType>
 
 // THE ACTUAL SUBCLASSES:
 
@@ -315,8 +314,8 @@ DECLARE_PROTOBUF_SUBCLASS(
     TradeListNymPB,
     STORED_OBJ_TRADE_LIST_NYM);
 
-typedef OfferDataMarket_InternalPB BidData_InternalPB;
-typedef OfferDataMarket_InternalPB AskData_InternalPB;
+using BidData_InternalPB = OfferDataMarket_InternalPB;
+using AskData_InternalPB = OfferDataMarket_InternalPB;
 
 // !! ALL OF THESE have to provide implementations for hookBeforePack() and
 // hookAfterUnpack().

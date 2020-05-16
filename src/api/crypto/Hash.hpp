@@ -52,48 +52,48 @@ namespace opentxs::api::crypto::implementation
 class Hash final : public api::crypto::Hash
 {
 public:
-    bool Digest(
+    auto Digest(
         const proto::HashType hashType,
         const ReadView data,
-        const AllocateOutput destination) const noexcept final;
-    bool Digest(
+        const AllocateOutput destination) const noexcept -> bool final;
+    auto Digest(
         const proto::HashType hashType,
         const opentxs::network::zeromq::Frame& data,
-        const AllocateOutput destination) const noexcept final;
-    bool Digest(
+        const AllocateOutput destination) const noexcept -> bool final;
+    auto Digest(
         const std::uint32_t type,
         const ReadView data,
-        const AllocateOutput destination) const noexcept final;
-    bool HMAC(
+        const AllocateOutput destination) const noexcept -> bool final;
+    auto HMAC(
         const proto::HashType hashType,
         const ReadView key,
         const ReadView& data,
-        const AllocateOutput digest) const noexcept final;
+        const AllocateOutput digest) const noexcept -> bool final;
     void MurmurHash3_32(
         const std::uint32_t& key,
         const Data& data,
         std::uint32_t& output) const noexcept final;
-    bool PKCS5_PBKDF2_HMAC(
+    auto PKCS5_PBKDF2_HMAC(
         const Data& input,
         const Data& salt,
         const std::size_t iterations,
         const proto::HashType hashType,
         const std::size_t bytes,
-        Data& output) const noexcept final;
-    bool PKCS5_PBKDF2_HMAC(
+        Data& output) const noexcept -> bool final;
+    auto PKCS5_PBKDF2_HMAC(
         const OTPassword& input,
         const Data& salt,
         const std::size_t iterations,
         const proto::HashType hashType,
         const std::size_t bytes,
-        Data& output) const noexcept final;
-    bool PKCS5_PBKDF2_HMAC(
+        Data& output) const noexcept -> bool final;
+    auto PKCS5_PBKDF2_HMAC(
         const std::string& input,
         const Data& salt,
         const std::size_t iterations,
         const proto::HashType hashType,
         const std::size_t bytes,
-        Data& output) const noexcept final;
+        Data& output) const noexcept -> bool final;
 
     Hash(
         const api::crypto::Encode& encode,
@@ -121,18 +121,18 @@ private:
         const void* input,
         const std::size_t size,
         void* output) const noexcept -> bool;
-    bool digest(
+    auto digest(
         const proto::HashType hashType,
         const void* input,
         const std::size_t size,
-        void* output) const noexcept;
-    bool HMAC(
+        void* output) const noexcept -> bool;
+    auto HMAC(
         const proto::HashType hashType,
         const std::uint8_t* input,
         const std::size_t inputSize,
         const std::uint8_t* key,
         const std::size_t keySize,
-        std::uint8_t* output) const noexcept;
+        std::uint8_t* output) const noexcept -> bool;
     auto sha_256_double(const void* input, const std::size_t size, void* output)
         const noexcept -> bool;
     auto sha_256_double_checksum(
@@ -142,7 +142,7 @@ private:
 
     Hash(const Hash&) = delete;
     Hash(Hash&&) = delete;
-    Hash& operator=(const Hash&) = delete;
-    Hash& operator=(Hash&&) = delete;
+    auto operator=(const Hash&) -> Hash& = delete;
+    auto operator=(Hash &&) -> Hash& = delete;
 };
 }  // namespace opentxs::api::crypto::implementation

@@ -132,10 +132,10 @@ private:
     static auto load_unit(const api::Core& api, const Identifier& account)
         -> OTUnitDefinition;
 
-    void* construct_row(
+    auto construct_row(
         const AccountActivityRowID& id,
         const AccountActivitySortKey& index,
-        const CustomData& custom) const noexcept final;
+        const CustomData& custom) const noexcept -> void* final;
 
     void process_balance(const network::zeromq::Message& message) noexcept;
     void process_workflow(
@@ -147,8 +147,9 @@ private:
     CustodialAccountActivity() = delete;
     CustodialAccountActivity(const CustodialAccountActivity&) = delete;
     CustodialAccountActivity(CustodialAccountActivity&&) = delete;
-    CustodialAccountActivity& operator=(const CustodialAccountActivity&) =
-        delete;
-    CustodialAccountActivity& operator=(CustodialAccountActivity&&) = delete;
+    auto operator=(const CustodialAccountActivity&)
+        -> CustodialAccountActivity& = delete;
+    auto operator=(CustodialAccountActivity &&)
+        -> CustodialAccountActivity& = delete;
 };
 }  // namespace opentxs::ui::implementation

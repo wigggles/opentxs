@@ -28,13 +28,18 @@ class NumericHash : virtual public blockchain::NumericHash
 public:
     using Type = mp::checked_cpp_int;
 
-    bool operator==(const blockchain::NumericHash& rhs) const noexcept final;
-    bool operator!=(const blockchain::NumericHash& rhs) const noexcept final;
-    bool operator<(const blockchain::NumericHash& rhs) const noexcept final;
-    bool operator<=(const blockchain::NumericHash& rhs) const noexcept final;
+    auto operator==(const blockchain::NumericHash& rhs) const noexcept
+        -> bool final;
+    auto operator!=(const blockchain::NumericHash& rhs) const noexcept
+        -> bool final;
+    auto operator<(const blockchain::NumericHash& rhs) const noexcept
+        -> bool final;
+    auto operator<=(const blockchain::NumericHash& rhs) const noexcept
+        -> bool final;
 
-    std::string asHex(const std::size_t minimumBytes) const noexcept final;
-    std::string Decimal() const noexcept final { return data_.str(); }
+    auto asHex(const std::size_t minimumBytes) const noexcept
+        -> std::string final;
+    auto Decimal() const noexcept -> std::string final { return data_.str(); }
 
     ~NumericHash() final = default;
 
@@ -43,13 +48,16 @@ private:
 
     Type data_;
 
-    NumericHash* clone() const noexcept final { return new NumericHash(*this); }
+    auto clone() const noexcept -> NumericHash* final
+    {
+        return new NumericHash(*this);
+    }
 
     NumericHash(const Type& data) noexcept;
     NumericHash() noexcept;
     NumericHash(const NumericHash& rhs) noexcept;
     NumericHash(NumericHash&& rhs) = delete;
-    NumericHash& operator=(const NumericHash& rhs) = delete;
-    NumericHash& operator=(NumericHash&& rhs) = delete;
+    auto operator=(const NumericHash& rhs) -> NumericHash& = delete;
+    auto operator=(NumericHash&& rhs) -> NumericHash& = delete;
 };
 }  // namespace opentxs::blockchain::implementation

@@ -14,7 +14,7 @@ namespace opentxs
 {
 namespace proto
 {
-bool CheckProto_1(const ServerContext& input, const bool silent)
+auto CheckProto_1(const ServerContext& input, const bool silent) -> bool
 {
     CHECK_IDENTIFIER(serverid);
     CHECK_EXCLUDED(revision);

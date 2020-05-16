@@ -49,8 +49,8 @@ private:
     ShutdownSender() = delete;
     ShutdownSender(const ShutdownSender&) = delete;
     ShutdownSender(ShutdownSender&&) = delete;
-    ShutdownSender& operator=(const ShutdownSender&) = delete;
-    ShutdownSender& operator=(ShutdownSender&&) = delete;
+    auto operator=(const ShutdownSender&) -> ShutdownSender& = delete;
+    auto operator=(ShutdownSender &&) -> ShutdownSender& = delete;
 };
 
 class ShutdownReceiver
@@ -80,7 +80,7 @@ private:
     ShutdownReceiver() = delete;
     ShutdownReceiver(const ShutdownReceiver&) = delete;
     ShutdownReceiver(ShutdownReceiver&&) = delete;
-    ShutdownReceiver& operator=(const ShutdownReceiver&) = delete;
-    ShutdownReceiver& operator=(ShutdownReceiver&&) = delete;
+    auto operator=(const ShutdownReceiver&) -> ShutdownReceiver& = delete;
+    auto operator=(ShutdownReceiver &&) -> ShutdownReceiver& = delete;
 };
 }  // namespace opentxs::internal

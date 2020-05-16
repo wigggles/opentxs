@@ -29,7 +29,8 @@ namespace be = boost::endian;
 
 namespace opentxs
 {
-blockchain::NumericHash* Factory::NumericHashNBits(const std::int32_t input)
+auto Factory::NumericHashNBits(const std::int32_t input)
+    -> blockchain::NumericHash*
 {
     using ReturnType = blockchain::implementation::NumericHash;
     using ArgumentType = ReturnType::Type;
@@ -60,8 +61,8 @@ blockchain::NumericHash* Factory::NumericHashNBits(const std::int32_t input)
     return new ReturnType(value);
 }
 
-blockchain::NumericHash* Factory::NumericHash(
-    const blockchain::block::Hash& hash)
+auto Factory::NumericHash(const blockchain::block::Hash& hash)
+    -> blockchain::NumericHash*
 {
     using ReturnType = blockchain::implementation::NumericHash;
     ReturnType::Type value{};
@@ -81,30 +82,30 @@ blockchain::NumericHash* Factory::NumericHash(
     return new ReturnType(value);
 }
 
-bool operator==(
+auto operator==(
     const OTNumericHash& lhs,
-    const blockchain::NumericHash& rhs) noexcept
+    const blockchain::NumericHash& rhs) noexcept -> bool
 {
     return lhs.get() == rhs;
 }
 
-bool operator!=(
+auto operator!=(
     const OTNumericHash& lhs,
-    const blockchain::NumericHash& rhs) noexcept
+    const blockchain::NumericHash& rhs) noexcept -> bool
 {
     return lhs.get() != rhs;
 }
 
-bool operator<(
+auto operator<(
     const OTNumericHash& lhs,
-    const blockchain::NumericHash& rhs) noexcept
+    const blockchain::NumericHash& rhs) noexcept -> bool
 {
     return lhs.get() < rhs;
 }
 
-bool operator<=(
+auto operator<=(
     const OTNumericHash& lhs,
-    const blockchain::NumericHash& rhs) noexcept
+    const blockchain::NumericHash& rhs) noexcept -> bool
 {
     return lhs.get() <= rhs;
 }
@@ -133,35 +134,40 @@ NumericHash::NumericHash(const NumericHash& rhs) noexcept
 {
 }
 
-bool NumericHash::operator==(const blockchain::NumericHash& rhs) const noexcept
+auto NumericHash::operator==(const blockchain::NumericHash& rhs) const noexcept
+    -> bool
 {
     const auto& input = dynamic_cast<const NumericHash&>(rhs);
 
     return data_ == input.data_;
 }
 
-bool NumericHash::operator!=(const blockchain::NumericHash& rhs) const noexcept
+auto NumericHash::operator!=(const blockchain::NumericHash& rhs) const noexcept
+    -> bool
 {
     const auto& input = dynamic_cast<const NumericHash&>(rhs);
 
     return data_ != input.data_;
 }
 
-bool NumericHash::operator<(const blockchain::NumericHash& rhs) const noexcept
+auto NumericHash::operator<(const blockchain::NumericHash& rhs) const noexcept
+    -> bool
 {
     const auto& input = dynamic_cast<const NumericHash&>(rhs);
 
     return data_ < input.data_;
 }
 
-bool NumericHash::operator<=(const blockchain::NumericHash& rhs) const noexcept
+auto NumericHash::operator<=(const blockchain::NumericHash& rhs) const noexcept
+    -> bool
 {
     const auto& input = dynamic_cast<const NumericHash&>(rhs);
 
     return data_ <= input.data_;
 }
 
-std::string NumericHash::asHex(const std::size_t minimumBytes) const noexcept
+auto NumericHash::asHex(const std::size_t minimumBytes) const noexcept
+    -> std::string
 {
     std::vector<unsigned char> bytes;
 

@@ -44,21 +44,27 @@ namespace opentxs::network::zeromq::zap::implementation
 class Reply final : virtual zap::Reply, zeromq::implementation::Message
 {
 public:
-    zap::Status Code() const override
+    auto Code() const -> zap::Status override
     {
         return string_to_code(Body_at(STATUS_CODE_POSITION));
     }
-    std::string Debug() const override;
-    OTData Metadata() const override;
-    OTData RequestID() const override;
-    std::string Status() const override
+    auto Debug() const -> std::string override;
+    auto Metadata() const -> OTData override;
+    auto RequestID() const -> OTData override;
+    auto Status() const -> std::string override
     {
         return Body_at(STATUS_TEXT_POSITION);
     }
-    std::string UserID() const override { return Body_at(USER_ID_POSITION); }
-    std::string Version() const override { return Body_at(VERSION_POSITION); }
+    auto UserID() const -> std::string override
+    {
+        return Body_at(USER_ID_POSITION);
+    }
+    auto Version() const -> std::string override
+    {
+        return Body_at(VERSION_POSITION);
+    }
 
-    bool SetCode(const zap::Status& code) override
+    auto SetCode(const zap::Status& code) -> bool override
     {
         const auto value = code_to_string(code);
 
@@ -66,19 +72,19 @@ public:
             STATUS_CODE_POSITION,
             OTZMQFrame{Factory::ZMQFrame(value.data(), value.size())});
     }
-    bool SetMetadata(const Data& metadata) override
+    auto SetMetadata(const Data& metadata) -> bool override
     {
         return set_field(
             METADATA_POSITION,
             OTZMQFrame{Factory::ZMQFrame(metadata.data(), metadata.size())});
     }
-    bool SetStatus(const std::string& status) override
+    auto SetStatus(const std::string& status) -> bool override
     {
         return set_field(
             STATUS_TEXT_POSITION,
             OTZMQFrame{Factory::ZMQFrame(status.data(), status.size())});
     }
-    bool SetUserID(const std::string& userID) override
+    auto SetUserID(const std::string& userID) -> bool override
     {
         return set_field(
             USER_ID_POSITION,
@@ -96,11 +102,11 @@ private:
     static const CodeMap code_map_;
     static const CodeReverseMap code_reverse_map_;
 
-    static std::string code_to_string(const zap::Status& code);
-    static CodeReverseMap invert_code_map(const CodeMap& input);
-    static zap::Status string_to_code(const std::string& string);
+    static auto code_to_string(const zap::Status& code) -> std::string;
+    static auto invert_code_map(const CodeMap& input) -> CodeReverseMap;
+    static auto string_to_code(const std::string& string) -> zap::Status;
 
-    Reply* clone() const override { return new Reply(*this); }
+    auto clone() const -> Reply* override { return new Reply(*this); }
 
     Reply(
         const Request& request,
@@ -112,7 +118,7 @@ private:
     Reply() = delete;
     Reply(const Reply&);
     Reply(Reply&&) = delete;
-    Reply& operator=(const Reply&) = delete;
-    Reply& operator=(Reply&&) = delete;
+    auto operator=(const Reply&) -> Reply& = delete;
+    auto operator=(Reply &&) -> Reply& = delete;
 };
 }  // namespace opentxs::network::zeromq::zap::implementation

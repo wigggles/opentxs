@@ -20,30 +20,30 @@ namespace opentxs::api::client::blockchain::implementation
 {
 template <>
 struct BalanceTree::Factory<internal::HD, proto::HDPath> {
-    static internal::HD* get(
+    static auto get(
         const BalanceTree& parent,
         const proto::HDPath& data,
-        Identifier& id) noexcept
+        Identifier& id) noexcept -> internal::HD*
     {
         return opentxs::Factory::BlockchainHDBalanceNode(parent, data, id);
     }
 };
 template <>
 struct BalanceTree::Factory<internal::HD, proto::HDAccount> {
-    static internal::HD* get(
+    static auto get(
         const BalanceTree& parent,
         const proto::HDAccount& data,
-        Identifier& id) noexcept
+        Identifier& id) noexcept -> internal::HD*
     {
         return opentxs::Factory::BlockchainHDBalanceNode(parent, data, id);
     }
 };
 
 template <typename InterfaceType, typename PayloadType>
-bool BalanceTree::NodeGroup<InterfaceType, PayloadType>::add(
+auto BalanceTree::NodeGroup<InterfaceType, PayloadType>::add(
     const Lock& lock,
     const Identifier& id,
-    std::unique_ptr<PayloadType> node) noexcept
+    std::unique_ptr<PayloadType> node) noexcept -> bool
 {
     if (false == bool(node)) {
         LogOutput("opentxs::api::client::blockchain::implementation::"

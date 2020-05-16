@@ -15,11 +15,11 @@ public:
     using RowParentType = ParentType;
     using RowIdentifierType = IdentifierType;
 
-    bool Last() const noexcept final { return parent_.last(row_id_); }
+    auto Last() const noexcept -> bool final { return parent_.last(row_id_); }
 #if OT_QT
     QModelIndex qt_parent() const noexcept final { return parent_.me(); }
 #endif  // OT_QT
-    bool Valid() const noexcept final { return valid_; }
+    auto Valid() const noexcept -> bool final { return valid_; }
 
 protected:
     const ParentType& parent_;
@@ -38,8 +38,8 @@ protected:
     RowType() = delete;
     RowType(const RowType&) = delete;
     RowType(RowType&&) = delete;
-    RowType& operator=(const RowType&) = delete;
-    RowType& operator=(RowType&&) = delete;
+    auto operator=(const RowType&) -> RowType& = delete;
+    auto operator=(RowType &&) -> RowType& = delete;
 
     ~RowType() override = default;
 };

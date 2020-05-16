@@ -43,7 +43,7 @@ public:
 private:
     friend opentxs::Factory;
 
-    Push* clone() const noexcept final
+    auto clone() const noexcept -> Push* final
     {
         return new Push(context_, direction_);
     }
@@ -54,7 +54,7 @@ private:
     Push() = delete;
     Push(const Push&) = delete;
     Push(Push&&) = delete;
-    Push& operator=(const Push&) = delete;
-    Push& operator=(Push&&) = delete;
+    auto operator=(const Push&) -> Push& = delete;
+    auto operator=(Push &&) -> Push& = delete;
 };
 }  // namespace opentxs::network::zeromq::socket::implementation

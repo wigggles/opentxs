@@ -28,12 +28,13 @@
 
 namespace opentxs
 {
-blockchain::p2p::bitcoin::message::internal::Addr* Factory::BitcoinP2PAddr(
+auto Factory::BitcoinP2PAddr(
     const api::internal::Core& api,
     std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
     const blockchain::p2p::bitcoin::ProtocolVersion version,
     const void* payload,
     const std::size_t size)
+    -> blockchain::p2p::bitcoin::message::internal::Addr*
 {
     namespace p2p = blockchain::p2p;
     namespace bitcoin = p2p::bitcoin;
@@ -133,12 +134,12 @@ blockchain::p2p::bitcoin::message::internal::Addr* Factory::BitcoinP2PAddr(
         api, std::move(pHeader), version, std::move(addresses));
 }
 
-blockchain::p2p::bitcoin::message::internal::Addr* Factory::BitcoinP2PAddr(
+auto Factory::BitcoinP2PAddr(
     const api::internal::Core& api,
     const blockchain::Type network,
     const blockchain::p2p::bitcoin::ProtocolVersion version,
     std::vector<std::unique_ptr<blockchain::p2p::internal::Address>>&&
-        addresses)
+        addresses) -> blockchain::p2p::bitcoin::message::internal::Addr*
 {
     namespace bitcoin = blockchain::p2p::bitcoin;
     using ReturnType = bitcoin::message::implementation::Addr;
@@ -188,8 +189,8 @@ Addr::BitcoinFormat_31402::BitcoinFormat_31402()
 {
 }
 
-std::pair<p2p::Network, OTData> Addr::ExtractAddress(
-    AddressByteField in) noexcept
+auto Addr::ExtractAddress(AddressByteField in) noexcept
+    -> std::pair<p2p::Network, OTData>
 {
     std::pair<p2p::Network, OTData> output{Network::ipv6,
                                            Data::Factory(in.data(), in.size())};
@@ -226,7 +227,7 @@ std::pair<p2p::Network, OTData> Addr::ExtractAddress(
     return output;
 }
 
-OTData Addr::payload() const noexcept
+auto Addr::payload() const noexcept -> OTData
 {
     auto output = Data::Factory(CompactSize(payload_.size()).Encode());
 
@@ -248,7 +249,7 @@ OTData Addr::payload() const noexcept
     return output;
 }
 
-bool Addr::SerializeTimestamp(const ProtocolVersion version) noexcept
+auto Addr::SerializeTimestamp(const ProtocolVersion version) noexcept -> bool
 {
     return version >= 31402;
 }

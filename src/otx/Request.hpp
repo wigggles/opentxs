@@ -40,13 +40,17 @@ class Request final : public otx::Request,
                       public opentxs::contract::implementation::Signable
 {
 public:
-    proto::ServerRequest Contract() const final;
-    const identifier::Nym& Initiator() const final { return initiator_; }
-    RequestNumber Number() const final;
-    const identifier::Server& Server() const final { return server_; }
-    proto::ServerRequestType Type() const final { return type_; }
+    auto Contract() const -> proto::ServerRequest final;
+    auto Initiator() const -> const identifier::Nym& final
+    {
+        return initiator_;
+    }
+    auto Number() const -> RequestNumber final;
+    auto Server() const -> const identifier::Server& final { return server_; }
+    auto Type() const -> proto::ServerRequestType final { return type_; }
 
-    bool SetIncludeNym(const bool include, const PasswordPrompt& reason) final;
+    auto SetIncludeNym(const bool include, const PasswordPrompt& reason)
+        -> bool final;
 
     ~Request() final = default;
 
@@ -59,21 +63,22 @@ private:
     const RequestNumber number_;
     OTFlag include_nym_;
 
-    static Nym_p extract_nym(
+    static auto extract_nym(
         const api::internal::Core& api,
-        const proto::ServerRequest serialized);
+        const proto::ServerRequest serialized) -> Nym_p;
 
-    Request* clone() const noexcept final { return new Request(*this); }
-    OTIdentifier GetID(const Lock& lock) const final;
-    proto::ServerRequest full_version(const Lock& lock) const;
-    proto::ServerRequest id_version(const Lock& lock) const;
-    std::string Name() const final { return {}; }
-    OTData Serialize() const final;
-    proto::ServerRequest signature_version(const Lock& lock) const;
-    bool update_signature(const Lock& lock, const PasswordPrompt& reason) final;
-    bool validate(const Lock& lock) const final;
-    bool verify_signature(const Lock& lock, const proto::Signature& signature)
-        const final;
+    auto clone() const noexcept -> Request* final { return new Request(*this); }
+    auto GetID(const Lock& lock) const -> OTIdentifier final;
+    auto full_version(const Lock& lock) const -> proto::ServerRequest;
+    auto id_version(const Lock& lock) const -> proto::ServerRequest;
+    auto Name() const -> std::string final { return {}; }
+    auto Serialize() const -> OTData final;
+    auto signature_version(const Lock& lock) const -> proto::ServerRequest;
+    auto update_signature(const Lock& lock, const PasswordPrompt& reason)
+        -> bool final;
+    auto validate(const Lock& lock) const -> bool final;
+    auto verify_signature(const Lock& lock, const proto::Signature& signature)
+        const -> bool final;
 
     Request(
         const api::internal::Core& api,
@@ -88,7 +93,7 @@ private:
     Request() = delete;
     Request(const Request& rhs);
     Request(Request&& rhs) = delete;
-    Request& operator=(const Request& rhs) = delete;
-    Request& operator=(Request&& rhs) = delete;
+    auto operator=(const Request& rhs) -> Request& = delete;
+    auto operator=(Request&& rhs) -> Request& = delete;
 };
 }  // namespace opentxs::otx::implementation

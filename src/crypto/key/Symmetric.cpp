@@ -42,18 +42,18 @@ template class opentxs::Pimpl<opentxs::crypto::key::Symmetric>;
 
 namespace opentxs
 {
-crypto::key::Symmetric* Factory::SymmetricKey()
+auto Factory::SymmetricKey() -> crypto::key::Symmetric*
 {
     return new crypto::key::implementation::SymmetricNull;
 }
 
 using ReturnType = crypto::key::implementation::Symmetric;
 
-crypto::key::Symmetric* Factory::SymmetricKey(
+auto Factory::SymmetricKey(
     const api::internal::Core& api,
     const crypto::SymmetricProvider& engine,
     const opentxs::PasswordPrompt& reason,
-    const proto::SymmetricMode mode)
+    const proto::SymmetricMode mode) -> crypto::key::Symmetric*
 {
     auto output = std::make_unique<ReturnType>(api, engine);
 
@@ -77,10 +77,10 @@ crypto::key::Symmetric* Factory::SymmetricKey(
     return output.release();
 }
 
-crypto::key::Symmetric* Factory::SymmetricKey(
+auto Factory::SymmetricKey(
     const api::internal::Core& api,
     const crypto::SymmetricProvider& engine,
-    const proto::SymmetricKey serialized)
+    const proto::SymmetricKey serialized) -> crypto::key::Symmetric*
 {
     std::unique_ptr<crypto::key::implementation::Symmetric> output;
     const bool valid = proto::Validate(serialized, VERBOSE);
@@ -93,14 +93,14 @@ crypto::key::Symmetric* Factory::SymmetricKey(
     return output.release();
 }
 
-crypto::key::Symmetric* Factory::SymmetricKey(
+auto Factory::SymmetricKey(
     const api::internal::Core& api,
     const crypto::SymmetricProvider& engine,
     const OTPassword& seed,
     const std::uint64_t operations,
     const std::uint64_t difficulty,
     const std::size_t size,
-    const proto::SymmetricKeyType type)
+    const proto::SymmetricKeyType type) -> crypto::key::Symmetric*
 {
     std::unique_ptr<crypto::key::implementation::Symmetric> output;
     std::string salt{};
@@ -118,11 +118,11 @@ crypto::key::Symmetric* Factory::SymmetricKey(
     return output.release();
 }
 
-crypto::key::Symmetric* Factory::SymmetricKey(
+auto Factory::SymmetricKey(
     const api::internal::Core& api,
     const crypto::SymmetricProvider& engine,
     const OTPassword& raw,
-    const opentxs::PasswordPrompt& reason)
+    const opentxs::PasswordPrompt& reason) -> crypto::key::Symmetric*
 {
     std::unique_ptr<crypto::key::implementation::Symmetric> output;
 
@@ -142,7 +142,7 @@ crypto::key::Symmetric* Factory::SymmetricKey(
 
 namespace opentxs::crypto::key
 {
-OTSymmetricKey Symmetric::Factory()
+auto Symmetric::Factory() -> OTSymmetricKey
 {
     return OTSymmetricKey{new implementation::SymmetricNull};
 }
@@ -282,14 +282,14 @@ Symmetric::Symmetric(const Symmetric& rhs)
     }
 }
 
-bool Symmetric::Allocate(const std::size_t size, Data& container)
+auto Symmetric::Allocate(const std::size_t size, Data& container) -> bool
 {
     container.SetSize(size);
 
     return (size == container.size());
 }
 
-bool Symmetric::Allocate(const std::size_t size, String& container)
+auto Symmetric::Allocate(const std::size_t size, String& container) -> bool
 {
     std::vector<char> blank{};
     blank.assign(size, 0x7f);
@@ -301,10 +301,10 @@ bool Symmetric::Allocate(const std::size_t size, String& container)
     return (size == container.GetLength());
 }
 
-bool Symmetric::Allocate(
+auto Symmetric::Allocate(
     const std::size_t size,
     std::string& container,
-    const bool random)
+    const bool random) -> bool
 {
     container.resize(size, 0x0);
 
@@ -317,11 +317,11 @@ bool Symmetric::Allocate(
     return (size == container.size());
 }
 
-bool Symmetric::allocate(
+auto Symmetric::allocate(
     const Lock& lock,
     const std::size_t size,
     OTPassword& container,
-    const bool text) const
+    const bool text) const -> bool
 {
     std::int32_t result;
 
@@ -336,9 +336,9 @@ bool Symmetric::allocate(
     return (size == static_cast<std::uint32_t>(result));
 }
 
-bool Symmetric::ChangePassword(
+auto Symmetric::ChangePassword(
     const opentxs::PasswordPrompt& reason,
-    const OTPassword& newPassword)
+    const OTPassword& newPassword) -> bool
 {
     Lock lock(lock_);
     auto& plain = get_plaintext(lock);
@@ -356,13 +356,13 @@ bool Symmetric::ChangePassword(
     return false;
 }
 
-Symmetric* Symmetric::clone() const { return new Symmetric(*this); }
+auto Symmetric::clone() const -> Symmetric* { return new Symmetric(*this); }
 
-bool Symmetric::decrypt(
+auto Symmetric::decrypt(
     const Lock& lock,
     const proto::Ciphertext& input,
     const opentxs::PasswordPrompt& reason,
-    std::uint8_t* plaintext) const
+    std::uint8_t* plaintext) const -> bool
 {
     auto& plain = get_plaintext(lock);
 
@@ -387,10 +387,10 @@ bool Symmetric::decrypt(
     return output;
 }
 
-bool Symmetric::Decrypt(
+auto Symmetric::Decrypt(
     const proto::Ciphertext& ciphertext,
     const opentxs::PasswordPrompt& reason,
-    const AllocateOutput plaintext) const
+    const AllocateOutput plaintext) const -> bool
 {
     Lock lock(lock_);
 
@@ -414,7 +414,7 @@ bool Symmetric::Decrypt(
     return decrypt(lock, ciphertext, reason, output.as<std::uint8_t>());
 }
 
-bool Symmetric::encrypt(
+auto Symmetric::encrypt(
     const Lock& lock,
     const std::uint8_t* input,
     const std::size_t inputSize,
@@ -423,7 +423,7 @@ bool Symmetric::encrypt(
     const proto::SymmetricMode mode,
     const opentxs::PasswordPrompt& reason,
     proto::Ciphertext& ciphertext,
-    const bool text) const
+    const bool text) const -> bool
 {
     if (nullptr == input) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Null input.").Flush();
@@ -470,13 +470,13 @@ bool Symmetric::encrypt(
         ciphertext);
 }
 
-bool Symmetric::Encrypt(
+auto Symmetric::Encrypt(
     const ReadView plaintext,
     const opentxs::PasswordPrompt& reason,
     proto::Ciphertext& ciphertext,
     const bool attachKey,
     const proto::SymmetricMode mode,
-    const ReadView iv) const
+    const ReadView iv) const -> bool
 {
     Lock lock(lock_);
     const bool success = encrypt(
@@ -495,11 +495,11 @@ bool Symmetric::Encrypt(
     return success;
 }
 
-bool Symmetric::encrypt_key(
+auto Symmetric::encrypt_key(
     const Lock& lock,
     const OTPassword& plaintextKey,
     const opentxs::PasswordPrompt& reason,
-    const proto::SymmetricKeyType type) const
+    const proto::SymmetricKeyType type) const -> bool
 {
     auto& encrypted = get_encrypted(lock);
     encrypted.reset(new proto::Ciphertext);
@@ -541,16 +541,16 @@ bool Symmetric::encrypt_key(
         *encrypted);
 }
 
-std::unique_ptr<proto::Ciphertext>& Symmetric::get_encrypted(
-    const Lock& lock) const
+auto Symmetric::get_encrypted(const Lock& lock) const
+    -> std::unique_ptr<proto::Ciphertext>&
 {
     return encrypted_key_;
 }
 
-bool Symmetric::get_password(
+auto Symmetric::get_password(
     const Lock& lock,
     const opentxs::PasswordPrompt& reason,
-    OTPassword& password) const
+    OTPassword& password) const -> bool
 {
     if (reason.Password()) {
         password = *reason.Password();
@@ -586,17 +586,19 @@ bool Symmetric::get_password(
     }
 }
 
-std::unique_ptr<OTPassword>& Symmetric::get_plaintext(const Lock& lock) const
+auto Symmetric::get_plaintext(const Lock& lock) const
+    -> std::unique_ptr<OTPassword>&
 {
     return plaintext_key_;
 }
 
-std::unique_ptr<std::string>& Symmetric::get_salt(const Lock& lock) const
+auto Symmetric::get_salt(const Lock& lock) const
+    -> std::unique_ptr<std::string>&
 {
     return salt_;
 }
 
-OTIdentifier Symmetric::ID(const opentxs::PasswordPrompt& reason) const
+auto Symmetric::ID(const opentxs::PasswordPrompt& reason) const -> OTIdentifier
 {
     Lock lock(lock_);
     auto& plain = get_plaintext(lock);
@@ -615,9 +617,9 @@ OTIdentifier Symmetric::ID(const opentxs::PasswordPrompt& reason) const
     return api_.Factory().Identifier(plain->Bytes());
 }
 
-bool Symmetric::RawKey(
+auto Symmetric::RawKey(
     const opentxs::PasswordPrompt& reason,
-    OTPassword& output) const
+    OTPassword& output) const -> bool
 {
     Lock lock(lock_);
     auto& plain = get_plaintext(lock);
@@ -642,7 +644,8 @@ bool Symmetric::RawKey(
     return true;
 }
 
-bool Symmetric::serialize(const Lock& lock, proto::SymmetricKey& output) const
+auto Symmetric::serialize(const Lock& lock, proto::SymmetricKey& output) const
+    -> bool
 {
     auto& encrypted = get_encrypted(lock);
     auto& salt = get_salt(lock);
@@ -662,15 +665,15 @@ bool Symmetric::serialize(const Lock& lock, proto::SymmetricKey& output) const
     return proto::Validate(output, VERBOSE);
 }
 
-bool Symmetric::Serialize(proto::SymmetricKey& output) const
+auto Symmetric::Serialize(proto::SymmetricKey& output) const -> bool
 {
     Lock lock(lock_);
 
     return serialize(lock, output);
 }
 
-bool Symmetric::unlock(const Lock& lock, const opentxs::PasswordPrompt& reason)
-    const
+auto Symmetric::unlock(const Lock& lock, const opentxs::PasswordPrompt& reason)
+    const -> bool
 {
     auto& encrypted = get_encrypted(lock);
     auto& plain = get_plaintext(lock);
@@ -735,7 +738,7 @@ bool Symmetric::unlock(const Lock& lock, const opentxs::PasswordPrompt& reason)
     return output;
 }
 
-bool Symmetric::Unlock(const opentxs::PasswordPrompt& reason) const
+auto Symmetric::Unlock(const opentxs::PasswordPrompt& reason) const -> bool
 {
     Lock lock(lock_);
 

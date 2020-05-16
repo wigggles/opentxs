@@ -51,8 +51,8 @@ private:
 
     const ListenCallback& callback_;
 
-    Pull* clone() const noexcept final;
-    bool have_callback() const noexcept final;
+    auto clone() const noexcept -> Pull* final;
+    auto have_callback() const noexcept -> bool final;
 
     void process_incoming(const Lock& lock, Message& message) noexcept final;
 
@@ -71,7 +71,7 @@ private:
     Pull() = delete;
     Pull(const Pull&) = delete;
     Pull(Pull&&) = delete;
-    Pull& operator=(const Pull&) = delete;
-    Pull& operator=(Pull&&) = delete;
+    auto operator=(const Pull&) -> Pull& = delete;
+    auto operator=(Pull &&) -> Pull& = delete;
 };
 }  // namespace opentxs::network::zeromq::socket::implementation

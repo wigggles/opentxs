@@ -45,11 +45,11 @@ namespace opentxs::blockchain::p2p::bitcoin::message
 class Tx final : virtual public bitcoin::Message
 {
 public:
-    OTData getRawTx() const noexcept { return Data::Factory(raw_tx_); }
+    auto getRawTx() const noexcept -> OTData { return Data::Factory(raw_tx_); }
 
     ~Tx() final = default;
 
-    OTData payload() const noexcept final;
+    auto payload() const noexcept -> OTData final;
 
 private:
     friend opentxs::Factory;
@@ -64,7 +64,7 @@ private:
        const Data& raw_tx) noexcept(false);
     Tx(const Tx&) = delete;
     Tx(Tx&&) = delete;
-    Tx& operator=(const Tx&) = delete;
-    Tx& operator=(Tx&&) = delete;
+    auto operator=(const Tx&) -> Tx& = delete;
+    auto operator=(Tx &&) -> Tx& = delete;
 };
 }  // namespace opentxs::blockchain::p2p::bitcoin::message

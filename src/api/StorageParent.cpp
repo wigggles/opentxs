@@ -109,9 +109,8 @@ void StorageParent::init(
     start();
 }
 
-OTString StorageParent::extract_arg(
-    const std::string& name,
-    const ArgList& args)
+auto StorageParent::extract_arg(const std::string& name, const ArgList& args)
+    -> OTString
 {
     const auto it = args.find(name);
 
@@ -120,17 +119,18 @@ OTString StorageParent::extract_arg(
     return String::Factory(*it->second.cbegin());
 }
 
-OTString StorageParent::extract_archive_directory(const ArgList& args)
+auto StorageParent::extract_archive_directory(const ArgList& args) -> OTString
 {
     return extract_arg(OPENTXS_ARG_BACKUP_DIRECTORY, args);
 }
 
-OTString StorageParent::extract_encrypted_directory(const ArgList& args)
+auto StorageParent::extract_encrypted_directory(const ArgList& args) -> OTString
 {
     return extract_arg(OPENTXS_ARG_ENCRYPTED_DIRECTORY, args);
 }
 
-OTString StorageParent::extract_primary_storage_plugin(const ArgList& args)
+auto StorageParent::extract_primary_storage_plugin(const ArgList& args)
+    -> OTString
 {
     return extract_arg(OPENTXS_ARG_STORAGE_PLUGIN, args);
 }
@@ -144,12 +144,12 @@ bool StorageParent::extract_qt(const ArgList& args)
 }
 #endif
 
-OTString StorageParent::get_primary_storage_plugin(
+auto StorageParent::get_primary_storage_plugin(
     const api::Settings& config,
     const StorageConfig& storageConfig,
     const ArgList args,
     bool& migrate,
-    String& previous)
+    String& previous) -> OTString
 {
     const auto hardcoded = String::Factory(storageConfig.primary_plugin_);
     const auto commandLine = extract_primary_storage_plugin(args);

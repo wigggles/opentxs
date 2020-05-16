@@ -37,31 +37,31 @@ private:
     friend class Tree;
 
     void init(const std::string& hash) final;
-    bool save(const std::unique_lock<std::mutex>& lock) const final;
-    proto::StorageUnits serialize() const;
+    auto save(const std::unique_lock<std::mutex>& lock) const -> bool final;
+    auto serialize() const -> proto::StorageUnits;
 
     Units(const opentxs::api::storage::Driver& storage, const std::string& key);
     Units() = delete;
     Units(const Units&) = delete;
     Units(Units&&) = delete;
-    Units operator=(const Units&) = delete;
-    Units operator=(Units&&) = delete;
+    auto operator=(const Units&) -> Units = delete;
+    auto operator=(Units &&) -> Units = delete;
 
 public:
-    std::string Alias(const std::string& id) const;
-    bool Load(
+    auto Alias(const std::string& id) const -> std::string;
+    auto Load(
         const std::string& id,
         std::shared_ptr<proto::UnitDefinition>& output,
         std::string& alias,
-        const bool checking) const;
+        const bool checking) const -> bool;
     void Map(UnitLambda lambda) const;
 
-    bool Delete(const std::string& id);
-    bool SetAlias(const std::string& id, const std::string& alias);
-    bool Store(
+    auto Delete(const std::string& id) -> bool;
+    auto SetAlias(const std::string& id, const std::string& alias) -> bool;
+    auto Store(
         const proto::UnitDefinition& data,
         const std::string& alias,
-        std::string& plaintext);
+        std::string& plaintext) -> bool;
 
     ~Units() final = default;
 };

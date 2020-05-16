@@ -62,19 +62,22 @@ public:
 
     static const VersionNumber local_data_version_;
 
-    std::unique_ptr<block::Header> clone() const noexcept final;
-    OTData Encode() const noexcept final;
-    const block::Hash& MerkleRoot() const noexcept final
+    auto clone() const noexcept -> std::unique_ptr<block::Header> final;
+    auto Encode() const noexcept -> OTData final;
+    auto MerkleRoot() const noexcept -> const block::Hash& final
     {
         return merkle_root_;
     }
-    std::uint32_t Nonce() const noexcept final { return nonce_; }
-    SerializedType Serialize() const noexcept final;
+    auto Nonce() const noexcept -> std::uint32_t final { return nonce_; }
+    auto Serialize() const noexcept -> SerializedType final;
     auto Serialize(const AllocateOutput destination) const noexcept
         -> bool final;
-    OTNumericHash Target() const noexcept final;
-    Time Timestamp() const noexcept final { return timestamp_; }
-    std::uint32_t Version() const noexcept final { return block_version_; }
+    auto Target() const noexcept -> OTNumericHash final;
+    auto Timestamp() const noexcept -> Time final { return timestamp_; }
+    auto Version() const noexcept -> std::uint32_t final
+    {
+        return block_version_;
+    }
 
     Header(
         const api::internal::Core& api,
@@ -112,19 +115,19 @@ private:
     const std::int32_t nbits_;
     const std::uint32_t nonce_;
 
-    static block::pHash calculate_hash(
+    static auto calculate_hash(
         const api::internal::Core& api,
         const blockchain::Type chain,
-        const ReadView serialized);
-    static block::pHash calculate_hash(
+        const ReadView serialized) -> block::pHash;
+    static auto calculate_hash(
         const api::internal::Core& api,
-        const SerializedType& serialized);
-    static OTWork calculate_work(const std::int32_t nbits);
+        const SerializedType& serialized) -> block::pHash;
+    static auto calculate_work(const std::int32_t nbits) -> OTWork;
 
     Header() = delete;
     Header(const Header& rhs) noexcept;
     Header(Header&&) = delete;
-    Header& operator=(const Header&) = delete;
-    Header& operator=(Header&&) = delete;
+    auto operator=(const Header&) -> Header& = delete;
+    auto operator=(Header &&) -> Header& = delete;
 };
 }  // namespace opentxs::blockchain::block::bitcoin::implementation

@@ -13,7 +13,7 @@ namespace opentxs
 {
 template <>
 struct make_blank<OTNymID> {
-    static OTNymID value(const api::Core&)
+    static auto value(const api::Core&) -> OTNymID
     {
         return identifier::Nym::Factory();
     }
@@ -21,7 +21,7 @@ struct make_blank<OTNymID> {
 
 template <>
 struct make_blank<OTServerID> {
-    static OTServerID value(const api::Core&)
+    static auto value(const api::Core&) -> OTServerID
     {
         return identifier::Server::Factory();
     }
@@ -29,7 +29,7 @@ struct make_blank<OTServerID> {
 
 template <>
 struct make_blank<OTUnitID> {
-    static OTUnitID value(const api::Core&)
+    static auto value(const api::Core&) -> OTUnitID
     {
         return identifier::UnitDefinition::Factory();
     }

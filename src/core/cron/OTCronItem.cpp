@@ -111,9 +111,9 @@ OTCronItem::OTCronItem(
     InitCronItem();
 }
 
-std::unique_ptr<OTCronItem> OTCronItem::LoadCronReceipt(
+auto OTCronItem::LoadCronReceipt(
     const api::internal::Core& core,
-    const TransactionNumber& lTransactionNum)
+    const TransactionNumber& lTransactionNum) -> std::unique_ptr<OTCronItem>
 {
     auto strFilename = String::Factory();
     strFilename->Format("%" PRId64 ".crn", lTransactionNum);
@@ -152,10 +152,11 @@ std::unique_ptr<OTCronItem> OTCronItem::LoadCronReceipt(
 }
 
 // static
-std::unique_ptr<OTCronItem> OTCronItem::LoadActiveCronReceipt(
+auto OTCronItem::LoadActiveCronReceipt(
     const api::internal::Core& core,
     const TransactionNumber& lTransactionNum,
-    const identifier::Server& notaryID)  // Client-side only.
+    const identifier::Server& notaryID)
+    -> std::unique_ptr<OTCronItem>  // Client-side only.
 {
     auto strFilename = String::Factory(),
          strNotaryID = String::Factory(notaryID);
@@ -205,12 +206,12 @@ std::unique_ptr<OTCronItem> OTCronItem::LoadActiveCronReceipt(
 
 // static
 // Client-side only.
-bool OTCronItem::GetActiveCronTransNums(
+auto OTCronItem::GetActiveCronTransNums(
     const api::internal::Core& api,
     NumList& output,
     const std::string& dataFolder,
     const identifier::Nym& nymID,
-    const identifier::Server& notaryID)
+    const identifier::Server& notaryID) -> bool
 {
     const char* szFoldername = api.Legacy().Cron();
 
@@ -260,12 +261,12 @@ bool OTCronItem::GetActiveCronTransNums(
 
 // static
 // Client-side only.
-bool OTCronItem::EraseActiveCronReceipt(
+auto OTCronItem::EraseActiveCronReceipt(
     const api::internal::Core& api,
     const std::string& dataFolder,
     const TransactionNumber& lTransactionNum,
     const identifier::Nym& nymID,
-    const identifier::Server& notaryID)
+    const identifier::Server& notaryID) -> bool
 {
     auto strFilename = String::Factory(),
          strNotaryID = String::Factory(notaryID);
@@ -404,9 +405,9 @@ bool OTCronItem::EraseActiveCronReceipt(
     return true;
 }
 
-bool OTCronItem::SaveActiveCronReceipt(
-    const identifier::Nym& theNymID)  // Client-side
-                                      // only.
+auto OTCronItem::SaveActiveCronReceipt(const identifier::Nym& theNymID)
+    -> bool  // Client-side
+             // only.
 {
     const std::int64_t lOpeningNum = GetOpeningNumber(theNymID);
 
@@ -555,7 +556,7 @@ bool OTCronItem::SaveActiveCronReceipt(
 // because
 // the server has the original copy on file and sends it with all receipts.
 
-bool OTCronItem::SaveCronReceipt()
+auto OTCronItem::SaveCronReceipt() -> bool
 {
     auto strFilename = String::Factory();
     strFilename->Format("%" PRId64 ".crn", GetTransactionNum());
@@ -604,7 +605,8 @@ bool OTCronItem::SaveCronReceipt()
     return bSaved;
 }
 
-bool OTCronItem::SetDateRange(const Time VALID_FROM, const Time VALID_TO)
+auto OTCronItem::SetDateRange(const Time VALID_FROM, const Time VALID_TO)
+    -> bool
 {
     const auto CURRENT_TIME = Clock::now();
     SetCreationDate(CURRENT_TIME);
@@ -655,12 +657,13 @@ bool OTCronItem::SetDateRange(const Time VALID_FROM, const Time VALID_TO)
 // The Cron Item stores a list of these closing transaction numbers,
 // used for closing a transaction.
 //
-std::int32_t OTCronItem::GetCountClosingNumbers() const
+auto OTCronItem::GetCountClosingNumbers() const -> std::int32_t
 {
     return static_cast<std::int32_t>(m_dequeClosingNumbers.size());
 }
 
-std::int64_t OTCronItem::GetClosingTransactionNoAt(std::uint32_t nIndex) const
+auto OTCronItem::GetClosingTransactionNoAt(std::uint32_t nIndex) const
+    -> std::int64_t
 {
     if (m_dequeClosingNumbers.size() <= nIndex) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -680,7 +683,7 @@ void OTCronItem::AddClosingTransactionNo(
 }
 
 /// See if theNym has rights to remove this item from Cron.
-bool OTCronItem::CanRemoveItemFromCron(const ClientContext& context)
+auto OTCronItem::CanRemoveItemFromCron(const ClientContext& context) -> bool
 {
     const auto strNotaryID = String::Factory(GetNotaryID());
 
@@ -750,7 +753,7 @@ bool OTCronItem::CanRemoveItemFromCron(const ClientContext& context)
 // Return False:    REMOVE this Cron Item from Cron.
 // Return True:        KEEP this Cron Item on Cron (for now.)
 //
-bool OTCronItem::ProcessCron(const PasswordPrompt& reason)
+auto OTCronItem::ProcessCron(const PasswordPrompt& reason) -> bool
 {
     OT_ASSERT(nullptr != m_pCron);
 
@@ -1074,7 +1077,7 @@ void OTCronItem::onFinalReceipt(
 // "Final Receipts" are used by Cron Items, as the last receipt for a given
 // transaction number.
 //
-bool OTCronItem::DropFinalReceiptToInbox(
+auto OTCronItem::DropFinalReceiptToInbox(
     const identifier::Nym& NYM_ID,
     const Identifier& ACCOUNT_ID,
     const std::int64_t& lNewTransactionNumber,
@@ -1083,7 +1086,7 @@ bool OTCronItem::DropFinalReceiptToInbox(
     const originType theOriginType,
     const PasswordPrompt& reason,
     OTString pstrNote,
-    OTString pstrAttachment)
+    OTString pstrAttachment) -> bool
 {
     OT_ASSERT(nullptr != serverNym_);
 
@@ -1254,14 +1257,14 @@ bool OTCronItem::DropFinalReceiptToInbox(
 // that you know to remove its "in ref to" number (the opening number) from
 // your issued list (so your balance agreements will work :P)
 //
-bool OTCronItem::DropFinalReceiptToNymbox(
+auto OTCronItem::DropFinalReceiptToNymbox(
     const identifier::Nym& NYM_ID,
     const TransactionNumber& lNewTransactionNumber,
     const String& strOrigCronItem,
     const originType theOriginType,
     const PasswordPrompt& reason,
     OTString pstrNote,
-    OTString pstrAttachment)
+    OTString pstrAttachment) -> bool
 {
     OT_ASSERT(nullptr != serverNym_);
 
@@ -1424,22 +1427,27 @@ bool OTCronItem::DropFinalReceiptToNymbox(
     return false;  // unreachable.
 }
 
-std::int64_t OTCronItem::GetOpeningNum() const { return GetTransactionNum(); }
+auto OTCronItem::GetOpeningNum() const -> std::int64_t
+{
+    return GetTransactionNum();
+}
 
-std::int64_t OTCronItem::GetClosingNum() const
+auto OTCronItem::GetClosingNum() const -> std::int64_t
 {
     return (GetCountClosingNumbers() > 0) ? GetClosingTransactionNoAt(0)
                                           : 0;  // todo stop hardcoding.
 }
 
-bool OTCronItem::IsValidOpeningNumber(const std::int64_t& lOpeningNum) const
+auto OTCronItem::IsValidOpeningNumber(const std::int64_t& lOpeningNum) const
+    -> bool
 {
     if (GetOpeningNum() == lOpeningNum) return true;
 
     return false;
 }
 
-std::int64_t OTCronItem::GetOpeningNumber(const identifier::Nym& theNymID) const
+auto OTCronItem::GetOpeningNumber(const identifier::Nym& theNymID) const
+    -> std::int64_t
 {
     const auto& theSenderNymID = GetSenderNymID();
 
@@ -1448,7 +1456,8 @@ std::int64_t OTCronItem::GetOpeningNumber(const identifier::Nym& theNymID) const
     return 0;
 }
 
-std::int64_t OTCronItem::GetClosingNumber(const Identifier& theAcctID) const
+auto OTCronItem::GetClosingNumber(const Identifier& theAcctID) const
+    -> std::int64_t
 {
     const auto& theSenderAcctID = GetSenderAcctID();
 
@@ -1505,7 +1514,7 @@ void OTCronItem::HarvestClosingNumbers(ServerContext& context)
     }
 }
 
-bool OTCronItem::GetCancelerID(identifier::Nym& theOutput) const
+auto OTCronItem::GetCancelerID(identifier::Nym& theOutput) const -> bool
 {
     if (!IsCanceled()) {
         theOutput.Release();
@@ -1518,9 +1527,9 @@ bool OTCronItem::GetCancelerID(identifier::Nym& theOutput) const
 
 // When canceling a cron item before it has been activated, use this.
 //
-bool OTCronItem::CancelBeforeActivation(
+auto OTCronItem::CancelBeforeActivation(
     const identity::Nym& theCancelerNym,
-    const PasswordPrompt& reason)
+    const PasswordPrompt& reason) -> bool
 {
     OT_ASSERT(!m_pCancelerNymID->empty());
 
@@ -1566,7 +1575,7 @@ void OTCronItem::Release()
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-std::int32_t OTCronItem::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
+auto OTCronItem::ProcessXMLNode(irr::io::IrrXMLReader*& xml) -> std::int32_t
 {
     std::int32_t nReturnVal = 0;
 

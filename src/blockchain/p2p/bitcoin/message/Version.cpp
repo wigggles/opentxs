@@ -26,13 +26,13 @@
 
 namespace opentxs
 {
-blockchain::p2p::bitcoin::message::internal::Version* Factory::
-    BitcoinP2PVersion(
-        const api::internal::Core& api,
-        std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
-        const blockchain::p2p::bitcoin::ProtocolVersion,
-        const void* payload,
-        const std::size_t size)
+auto Factory::BitcoinP2PVersion(
+    const api::internal::Core& api,
+    std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
+    const blockchain::p2p::bitcoin::ProtocolVersion,
+    const void* payload,
+    const std::size_t size)
+    -> blockchain::p2p::bitcoin::message::internal::Version*
 {
     namespace bitcoin = blockchain::p2p::bitcoin;
     using ReturnType = bitcoin::message::implementation::Version;
@@ -176,21 +176,20 @@ blockchain::p2p::bitcoin::message::internal::Version* Factory::
         timestamp);
 }
 
-blockchain::p2p::bitcoin::message::internal::Version* Factory::
-    BitcoinP2PVersion(
-        const api::internal::Core& api,
-        const blockchain::Type network,
-        const std::int32_t version,
-        const std::set<blockchain::p2p::Service>& localServices,
-        const std::string& localAddress,
-        const std::uint16_t localPort,
-        const std::set<blockchain::p2p::Service>& remoteServices,
-        const std::string& remoteAddress,
-        const std::uint16_t remotePort,
-        const std::uint64_t nonce,
-        const std::string& userAgent,
-        const blockchain::block::Height height,
-        const bool relay)
+auto Factory::BitcoinP2PVersion(
+    const api::internal::Core& api,
+    const blockchain::Type network,
+    const std::int32_t version,
+    const std::set<blockchain::p2p::Service>& localServices,
+    const std::string& localAddress,
+    const std::uint16_t localPort,
+    const std::set<blockchain::p2p::Service>& remoteServices,
+    const std::string& remoteAddress,
+    const std::uint16_t remotePort,
+    const std::uint64_t nonce,
+    const std::string& userAgent,
+    const blockchain::block::Height height,
+    const bool relay) -> blockchain::p2p::bitcoin::message::internal::Version*
 {
     namespace bitcoin = blockchain::p2p::bitcoin;
     using ReturnType = bitcoin::message::implementation::Version;
@@ -337,7 +336,7 @@ Version::BitcoinFormat_209::BitcoinFormat_209(
     static_assert(4 == sizeof(BitcoinFormat_209));
 }
 
-OTData Version::payload() const noexcept
+auto Version::payload() const noexcept -> OTData
 {
     BitcoinFormat_1 raw1(
         version_,

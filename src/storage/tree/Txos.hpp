@@ -42,15 +42,15 @@ public:
     using SerializedType = proto::StorageTxoIndex;
     using PayloadType = proto::StorageBlockchainTxo;
 
-    bool Load(
+    auto Load(
         const Coin& id,
         std::shared_ptr<PayloadType>& output,
-        const bool checking) const noexcept;
-    std::set<Coin> LookupElement(const Data& element) const noexcept;
-    std::set<Coin> LookupTxid(const std::string& txid) const noexcept;
+        const bool checking) const noexcept -> bool;
+    auto LookupElement(const Data& element) const noexcept -> std::set<Coin>;
+    auto LookupTxid(const std::string& txid) const noexcept -> std::set<Coin>;
 
-    bool Delete(const Coin& id) noexcept;
-    bool Store(const PayloadType& data) noexcept;
+    auto Delete(const Coin& id) noexcept -> bool;
+    auto Store(const PayloadType& data) noexcept -> bool;
 
     ~Txos() = default;
 
@@ -63,8 +63,8 @@ private:
     std::map<OTData, std::set<Coin>> element_index_;
     std::map<std::string, std::set<Coin>> txid_index_;
 
-    bool save(const Lock& lock) const final;
-    SerializedType serialize() const noexcept;
+    auto save(const Lock& lock) const -> bool final;
+    auto serialize() const noexcept -> SerializedType;
 
     void index(const Lock& lock, const PayloadType& item) noexcept;
     void init(const std::string& hash) final;
@@ -75,7 +75,7 @@ private:
     Txos() = delete;
     Txos(const Txos&) = delete;
     Txos(Txos&&) = delete;
-    Txos operator=(const Txos&) = delete;
-    Txos operator=(Txos&&) = delete;
+    auto operator=(const Txos&) -> Txos = delete;
+    auto operator=(Txos &&) -> Txos = delete;
 };
 }  // namespace opentxs::storage

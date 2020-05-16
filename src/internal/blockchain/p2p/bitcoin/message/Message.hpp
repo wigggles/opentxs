@@ -65,8 +65,8 @@ struct FilterPrefixBasic {
     ClientFilterTypeField type_;
     HashField hash_;
 
-    filter::pHash Hash() const noexcept;
-    filter::Type Type(const blockchain::Type chain) const noexcept;
+    auto Hash() const noexcept -> filter::pHash;
+    auto Type(const blockchain::Type chain) const noexcept -> filter::Type;
 
     FilterPrefixBasic(
         const blockchain::Type chain,
@@ -79,9 +79,9 @@ struct FilterPrefixChained {
     HashField hash_;
     HashField previous_;
 
-    filter::pHash Previous() const noexcept;
-    filter::pHash Stop() const noexcept;
-    filter::Type Type(const blockchain::Type chain) const noexcept;
+    auto Previous() const noexcept -> filter::pHash;
+    auto Stop() const noexcept -> filter::pHash;
+    auto Type(const blockchain::Type chain) const noexcept -> filter::Type;
 
     FilterPrefixChained(
         const blockchain::Type chain,
@@ -95,9 +95,9 @@ struct FilterRequest {
     HeightField start_;
     HashField stop_;
 
-    block::Height Start() const noexcept;
-    filter::pHash Stop() const noexcept;
-    filter::Type Type(const blockchain::Type chain) const noexcept;
+    auto Start() const noexcept -> block::Height;
+    auto Stop() const noexcept -> filter::pHash;
+    auto Type(const blockchain::Type chain) const noexcept -> filter::Type;
 
     FilterRequest(
         const blockchain::Type chain,
@@ -107,10 +107,10 @@ struct FilterRequest {
     FilterRequest() noexcept;
 };
 
-bool VerifyChecksum(
+auto VerifyChecksum(
     const api::internal::Core& api,
     const Header& header,
-    const network::zeromq::Frame& payload) noexcept;
+    const network::zeromq::Frame& payload) noexcept -> bool;
 }  // namespace opentxs::blockchain::p2p::bitcoin::message
 
 namespace opentxs::blockchain::p2p::bitcoin::message::internal
@@ -120,44 +120,44 @@ struct Addr : virtual public bitcoin::Message {
     using const_iterator =
         iterator::Bidirectional<const Addr, const value_type>;
 
-    virtual const value_type& at(const std::size_t position) const
-        noexcept(false) = 0;
-    virtual const_iterator begin() const noexcept = 0;
-    virtual const_iterator end() const noexcept = 0;
-    virtual std::size_t size() const noexcept = 0;
+    virtual auto at(const std::size_t position) const noexcept(false)
+        -> const value_type& = 0;
+    virtual auto begin() const noexcept -> const_iterator = 0;
+    virtual auto end() const noexcept -> const_iterator = 0;
+    virtual auto size() const noexcept -> std::size_t = 0;
 };
 struct Block : virtual public bitcoin::Message {
-    virtual OTData GetBlock() const noexcept = 0;
+    virtual auto GetBlock() const noexcept -> OTData = 0;
 };
 struct Blocktxn : virtual public bitcoin::Message {
-    virtual OTData BlockTransactions() const noexcept = 0;
+    virtual auto BlockTransactions() const noexcept -> OTData = 0;
 };
 struct Cfcheckpt : virtual public bitcoin::Message {
     using value_type = filter::Hash;
     using const_iterator =
         iterator::Bidirectional<const Cfcheckpt, const value_type>;
 
-    virtual const value_type& at(const std::size_t position) const
-        noexcept(false) = 0;
-    virtual const_iterator begin() const noexcept = 0;
-    virtual const_iterator end() const noexcept = 0;
-    virtual std::size_t size() const noexcept = 0;
-    virtual const value_type& Stop() const noexcept = 0;
-    virtual filter::Type Type() const noexcept = 0;
+    virtual auto at(const std::size_t position) const noexcept(false)
+        -> const value_type& = 0;
+    virtual auto begin() const noexcept -> const_iterator = 0;
+    virtual auto end() const noexcept -> const_iterator = 0;
+    virtual auto size() const noexcept -> std::size_t = 0;
+    virtual auto Stop() const noexcept -> const value_type& = 0;
+    virtual auto Type() const noexcept -> filter::Type = 0;
 };
 struct Cfheaders : virtual public bitcoin::Message {
     using value_type = filter::Hash;
     using const_iterator =
         iterator::Bidirectional<const Cfheaders, const value_type>;
 
-    virtual const value_type& at(const std::size_t position) const
-        noexcept(false) = 0;
-    virtual const_iterator begin() const noexcept = 0;
-    virtual const_iterator end() const noexcept = 0;
-    virtual const value_type& Previous() const noexcept = 0;
-    virtual std::size_t size() const noexcept = 0;
-    virtual const value_type& Stop() const noexcept = 0;
-    virtual filter::Type Type() const noexcept = 0;
+    virtual auto at(const std::size_t position) const noexcept(false)
+        -> const value_type& = 0;
+    virtual auto begin() const noexcept -> const_iterator = 0;
+    virtual auto end() const noexcept -> const_iterator = 0;
+    virtual auto Previous() const noexcept -> const value_type& = 0;
+    virtual auto size() const noexcept -> std::size_t = 0;
+    virtual auto Stop() const noexcept -> const value_type& = 0;
+    virtual auto Type() const noexcept -> filter::Type = 0;
 };
 struct Cfilter : virtual public bitcoin::Message {
     virtual auto Bits() const noexcept -> std::uint8_t = 0;
@@ -168,73 +168,73 @@ struct Cfilter : virtual public bitcoin::Message {
     virtual auto Type() const noexcept -> filter::Type = 0;
 };
 struct Filteradd : virtual public bitcoin::Message {
-    virtual OTData Element() const noexcept = 0;
+    virtual auto Element() const noexcept -> OTData = 0;
 };
 struct Filterclear : virtual public bitcoin::Message {
 };
 struct Filterload : virtual public bitcoin::Message {
-    virtual OTBloomFilter Filter() const noexcept = 0;
+    virtual auto Filter() const noexcept -> OTBloomFilter = 0;
 };
 struct Getaddr : virtual public bitcoin::Message {
 };
 struct Getcfcheckpt : virtual public bitcoin::Message {
-    virtual const filter::Hash& Stop() const noexcept = 0;
-    virtual filter::Type Type() const noexcept = 0;
+    virtual auto Stop() const noexcept -> const filter::Hash& = 0;
+    virtual auto Type() const noexcept -> filter::Type = 0;
 };
 struct Getcfheaders : virtual public bitcoin::Message {
-    virtual block::Height Start() const noexcept = 0;
-    virtual const filter::Hash& Stop() const noexcept = 0;
-    virtual filter::Type Type() const noexcept = 0;
+    virtual auto Start() const noexcept -> block::Height = 0;
+    virtual auto Stop() const noexcept -> const filter::Hash& = 0;
+    virtual auto Type() const noexcept -> filter::Type = 0;
 };
 struct Getcfilters : virtual public bitcoin::Message {
-    virtual block::Height Start() const noexcept = 0;
-    virtual const filter::Hash& Stop() const noexcept = 0;
-    virtual filter::Type Type() const noexcept = 0;
+    virtual auto Start() const noexcept -> block::Height = 0;
+    virtual auto Stop() const noexcept -> const filter::Hash& = 0;
+    virtual auto Type() const noexcept -> filter::Type = 0;
 };
 struct Getdata : virtual public bitcoin::Message {
     using value_type = blockchain::bitcoin::Inventory;
     using const_iterator =
         iterator::Bidirectional<const Getdata, const value_type>;
 
-    virtual const value_type& at(const std::size_t position) const
-        noexcept(false) = 0;
-    virtual const_iterator begin() const noexcept = 0;
-    virtual const_iterator end() const noexcept = 0;
-    virtual std::size_t size() const noexcept = 0;
+    virtual auto at(const std::size_t position) const noexcept(false)
+        -> const value_type& = 0;
+    virtual auto begin() const noexcept -> const_iterator = 0;
+    virtual auto end() const noexcept -> const_iterator = 0;
+    virtual auto size() const noexcept -> std::size_t = 0;
 };
 struct Getheaders : virtual public bitcoin::Message {
     using value_type = block::Hash;
     using const_iterator =
         iterator::Bidirectional<const Getheaders, const value_type>;
 
-    virtual const value_type& at(const std::size_t position) const
-        noexcept(false) = 0;
-    virtual const_iterator begin() const noexcept = 0;
-    virtual const_iterator end() const noexcept = 0;
-    virtual std::size_t size() const noexcept = 0;
-    virtual block::pHash StopHash() const noexcept = 0;
-    virtual ProtocolVersionUnsigned Version() const noexcept = 0;
+    virtual auto at(const std::size_t position) const noexcept(false)
+        -> const value_type& = 0;
+    virtual auto begin() const noexcept -> const_iterator = 0;
+    virtual auto end() const noexcept -> const_iterator = 0;
+    virtual auto size() const noexcept -> std::size_t = 0;
+    virtual auto StopHash() const noexcept -> block::pHash = 0;
+    virtual auto Version() const noexcept -> ProtocolVersionUnsigned = 0;
 };
 struct Headers : virtual public bitcoin::Message {
     using value_type = block::bitcoin::Header;
     using const_iterator =
         iterator::Bidirectional<const Headers, const value_type>;
 
-    virtual const value_type& at(const std::size_t position) const
-        noexcept(false) = 0;
-    virtual const_iterator begin() const noexcept = 0;
-    virtual const_iterator end() const noexcept = 0;
-    virtual std::size_t size() const noexcept = 0;
+    virtual auto at(const std::size_t position) const noexcept(false)
+        -> const value_type& = 0;
+    virtual auto begin() const noexcept -> const_iterator = 0;
+    virtual auto end() const noexcept -> const_iterator = 0;
+    virtual auto size() const noexcept -> std::size_t = 0;
 };
 struct Inv : virtual public bitcoin::Message {
     using value_type = blockchain::bitcoin::Inventory;
     using const_iterator = iterator::Bidirectional<const Inv, const value_type>;
 
-    virtual const value_type& at(const std::size_t position) const
-        noexcept(false) = 0;
-    virtual const_iterator begin() const noexcept = 0;
-    virtual const_iterator end() const noexcept = 0;
-    virtual std::size_t size() const noexcept = 0;
+    virtual auto at(const std::size_t position) const noexcept(false)
+        -> const value_type& = 0;
+    virtual auto begin() const noexcept -> const_iterator = 0;
+    virtual auto end() const noexcept -> const_iterator = 0;
+    virtual auto size() const noexcept -> std::size_t = 0;
 };
 struct Mempool : virtual public bitcoin::Message {
 };
@@ -243,33 +243,34 @@ struct Notfound : virtual public bitcoin::Message {
     using const_iterator =
         iterator::Bidirectional<const Notfound, const value_type>;
 
-    virtual const value_type& at(const std::size_t position) const
-        noexcept(false) = 0;
-    virtual const_iterator begin() const noexcept = 0;
-    virtual const_iterator end() const noexcept = 0;
-    virtual std::size_t size() const noexcept = 0;
+    virtual auto at(const std::size_t position) const noexcept(false)
+        -> const value_type& = 0;
+    virtual auto begin() const noexcept -> const_iterator = 0;
+    virtual auto end() const noexcept -> const_iterator = 0;
+    virtual auto size() const noexcept -> std::size_t = 0;
 };
 struct Ping : virtual public bitcoin::Message {
-    virtual bitcoin::Nonce Nonce() const noexcept = 0;
+    virtual auto Nonce() const noexcept -> bitcoin::Nonce = 0;
 };
 struct Pong : virtual public bitcoin::Message {
-    virtual bitcoin::Nonce Nonce() const noexcept = 0;
+    virtual auto Nonce() const noexcept -> bitcoin::Nonce = 0;
 };
 struct Sendheaders : virtual public bitcoin::Message {
 };
 struct Verack : virtual public bitcoin::Message {
 };
 struct Version : virtual public bitcoin::Message {
-    virtual block::Height Height() const noexcept = 0;
-    virtual tcp::endpoint LocalAddress() const noexcept = 0;
-    virtual std::set<blockchain::p2p::Service> LocalServices() const
-        noexcept = 0;
-    virtual api::client::blockchain::Nonce Nonce() const noexcept = 0;
-    virtual bitcoin::ProtocolVersion ProtocolVersion() const noexcept = 0;
-    virtual bool Relay() const noexcept = 0;
-    virtual tcp::endpoint RemoteAddress() const noexcept = 0;
-    virtual std::set<blockchain::p2p::Service> RemoteServices() const
-        noexcept = 0;
-    virtual const std::string& UserAgent() const noexcept = 0;
+    virtual auto Height() const noexcept -> block::Height = 0;
+    virtual auto LocalAddress() const noexcept -> tcp::endpoint = 0;
+    virtual auto LocalServices() const noexcept
+        -> std::set<blockchain::p2p::Service> = 0;
+    virtual auto Nonce() const noexcept -> api::client::blockchain::Nonce = 0;
+    virtual auto ProtocolVersion() const noexcept
+        -> bitcoin::ProtocolVersion = 0;
+    virtual auto Relay() const noexcept -> bool = 0;
+    virtual auto RemoteAddress() const noexcept -> tcp::endpoint = 0;
+    virtual auto RemoteServices() const noexcept
+        -> std::set<blockchain::p2p::Service> = 0;
+    virtual auto UserAgent() const noexcept -> const std::string& = 0;
 };
 }  // namespace opentxs::blockchain::p2p::bitcoin::message::internal

@@ -86,7 +86,7 @@ private:
     Endpoints() = delete;
     Endpoints(const Endpoints&) = delete;
     Endpoints(Endpoints&&) = delete;
-    Endpoints& operator=(const Endpoints&) = delete;
-    Endpoints& operator=(Endpoints&&) = delete;
+    auto operator=(const Endpoints&) -> Endpoints& = delete;
+    auto operator=(Endpoints &&) -> Endpoints& = delete;
 };
 }  // namespace opentxs::api::implementation

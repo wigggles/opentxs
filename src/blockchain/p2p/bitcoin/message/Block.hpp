@@ -43,8 +43,8 @@ namespace opentxs::blockchain::p2p::bitcoin::message::implementation
 class Block final : public internal::Block
 {
 public:
-    OTData GetBlock() const noexcept final { return payload_; }
-    OTData payload() const noexcept final { return payload_; }
+    auto GetBlock() const noexcept -> OTData final { return payload_; }
+    auto payload() const noexcept -> OTData final { return payload_; }
 
     ~Block() final = default;
 
@@ -63,7 +63,7 @@ private:
         const Data& block) noexcept;
     Block(const Block&) = delete;
     Block(Block&&) = delete;
-    Block& operator=(const Block&) = delete;
-    Block& operator=(Block&&) = delete;
+    auto operator=(const Block&) -> Block& = delete;
+    auto operator=(Block &&) -> Block& = delete;
 };
 }  // namespace opentxs::blockchain::p2p::bitcoin::message::implementation

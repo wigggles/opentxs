@@ -145,9 +145,9 @@ static const std::
              }},
         };
 
-ProfileSection::ItemTypeList ProfileSection::AllowedItems(
+auto ProfileSection::AllowedItems(
     const proto::ContactSectionName section,
-    const std::string& lang) noexcept
+    const std::string& lang) noexcept -> ProfileSection::ItemTypeList
 {
     ItemTypeList output{};
 
@@ -196,16 +196,16 @@ ProfileSection::ProfileSection(
     OT_ASSERT(startup_)
 }
 
-bool ProfileSection::AddClaim(
+auto ProfileSection::AddClaim(
     const proto::ContactItemType type,
     const std::string& value,
     const bool primary,
-    const bool active) const noexcept
+    const bool active) const noexcept -> bool
 {
     return parent_.AddClaim(row_id_, type, value, primary, active);
 }
 
-bool ProfileSection::check_type(const ProfileSectionRowID type) noexcept
+auto ProfileSection::check_type(const ProfileSectionRowID type) noexcept -> bool
 {
     try {
         return 1 == allowed_types_.at(type.first).count(type.second);
@@ -215,10 +215,10 @@ bool ProfileSection::check_type(const ProfileSectionRowID type) noexcept
     return false;
 }
 
-void* ProfileSection::construct_row(
+auto ProfileSection::construct_row(
     const ProfileSectionRowID& id,
     const ProfileSectionSortKey& index,
-    const CustomData& custom) const noexcept
+    const CustomData& custom) const noexcept -> void*
 {
     names_.emplace(id, index);
     const auto [it, added] = items_[index].emplace(
@@ -239,8 +239,8 @@ void* ProfileSection::construct_row(
     return it->second.get();
 }
 
-bool ProfileSection::Delete(const int type, const std::string& claimID) const
-    noexcept
+auto ProfileSection::Delete(const int type, const std::string& claimID) const
+    noexcept -> bool
 {
     Lock lock(lock_);
     const ProfileSectionRowID key{row_id_,
@@ -252,19 +252,20 @@ bool ProfileSection::Delete(const int type, const std::string& claimID) const
     return group.Delete(claimID);
 }
 
-ProfileSection::ItemTypeList ProfileSection::Items(
-    const std::string& lang) const noexcept
+auto ProfileSection::Items(const std::string& lang) const noexcept
+    -> ProfileSection::ItemTypeList
 {
     return AllowedItems(row_id_, lang);
 }
 
-std::string ProfileSection::Name(const std::string& lang) const noexcept
+auto ProfileSection::Name(const std::string& lang) const noexcept -> std::string
 {
     return proto::TranslateSectionName(row_id_, lang);
 }
 
-std::set<ProfileSectionRowID> ProfileSection::process_section(
+auto ProfileSection::process_section(
     const opentxs::ContactSection& section) noexcept
+    -> std::set<ProfileSectionRowID>
 {
     OT_ASSERT(row_id_ == section.Type())
 
@@ -293,10 +294,10 @@ void ProfileSection::reindex(
         process_section(extract_custom<opentxs::ContactSection>(custom)));
 }
 
-bool ProfileSection::SetActive(
+auto ProfileSection::SetActive(
     const int type,
     const std::string& claimID,
-    const bool active) const noexcept
+    const bool active) const noexcept -> bool
 {
     Lock lock(lock_);
     const ProfileSectionRowID key{row_id_,
@@ -308,10 +309,10 @@ bool ProfileSection::SetActive(
     return group.SetActive(claimID, active);
 }
 
-bool ProfileSection::SetPrimary(
+auto ProfileSection::SetPrimary(
     const int type,
     const std::string& claimID,
-    const bool primary) const noexcept
+    const bool primary) const noexcept -> bool
 {
     Lock lock(lock_);
     const ProfileSectionRowID key{row_id_,
@@ -323,10 +324,10 @@ bool ProfileSection::SetPrimary(
     return group.SetPrimary(claimID, primary);
 }
 
-bool ProfileSection::SetValue(
+auto ProfileSection::SetValue(
     const int type,
     const std::string& claimID,
-    const std::string& value) const noexcept
+    const std::string& value) const noexcept -> bool
 {
     Lock lock(lock_);
     const ProfileSectionRowID key{row_id_,
@@ -338,7 +339,7 @@ bool ProfileSection::SetValue(
     return group.SetValue(claimID, value);
 }
 
-int ProfileSection::sort_key(const ProfileSectionRowID type) noexcept
+auto ProfileSection::sort_key(const ProfileSectionRowID type) noexcept -> int
 {
     return sort_keys_.at(type.first).at(type.second);
 }

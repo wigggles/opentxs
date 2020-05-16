@@ -32,10 +32,10 @@ Plugin::Plugin(
 {
 }
 
-bool Plugin::Load(
+auto Plugin::Load(
     const std::string& key,
     const bool checking,
-    std::string& value) const
+    std::string& value) const -> bool
 {
     if (key.empty()) {
         if (!checking) {
@@ -73,9 +73,9 @@ bool Plugin::Load(
     return valid;
 }
 
-bool Plugin::Migrate(
+auto Plugin::Migrate(
     const std::string& key,
-    const opentxs::api::storage::Driver& to) const
+    const opentxs::api::storage::Driver& to) const -> bool
 {
     if (key.empty()) { return false; }
 
@@ -111,11 +111,11 @@ bool Plugin::Migrate(
     return true;
 }
 
-bool Plugin::Store(
+auto Plugin::Store(
     const bool isTransaction,
     const std::string& key,
     const std::string& value,
-    const bool bucket) const
+    const bool bucket) const -> bool
 {
     std::promise<bool> promise;
     auto future = promise.get_future();
@@ -136,10 +136,10 @@ void Plugin::Store(
     thread.detach();
 }
 
-bool Plugin::Store(
+auto Plugin::Store(
     const bool isTransaction,
     const std::string& value,
-    std::string& key) const
+    std::string& key) const -> bool
 {
     const bool bucket{current_bucket_};
 

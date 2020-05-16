@@ -63,7 +63,7 @@ TransferBalanceItem::TransferBalanceItem(
     OT_ASSERT(startup_)
 }
 
-opentxs::Amount TransferBalanceItem::effective_amount() const noexcept
+auto TransferBalanceItem::effective_amount() const noexcept -> opentxs::Amount
 {
     sLock lock(shared_lock_);
     auto amount{0};
@@ -110,7 +110,7 @@ opentxs::Amount TransferBalanceItem::effective_amount() const noexcept
     return amount * sign;
 }
 
-bool TransferBalanceItem::get_contract() const noexcept
+auto TransferBalanceItem::get_contract() const noexcept -> bool
 {
     if (0 < contract_->Version()) { return true; }
 
@@ -139,7 +139,7 @@ bool TransferBalanceItem::get_contract() const noexcept
     }
 }
 
-std::string TransferBalanceItem::Memo() const noexcept
+auto TransferBalanceItem::Memo() const noexcept -> std::string
 {
     sLock lock(shared_lock_);
 
@@ -279,7 +279,7 @@ void TransferBalanceItem::startup(const CustomData& custom) noexcept
     UpdateNotify();
 }
 
-std::string TransferBalanceItem::UUID() const noexcept
+auto TransferBalanceItem::UUID() const noexcept -> std::string
 {
     if (transfer_) {
 

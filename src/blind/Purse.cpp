@@ -46,13 +46,13 @@ namespace opentxs
 {
 using ReturnType = blind::implementation::Purse;
 
-blind::Purse* Factory::Purse(
+auto Factory::Purse(
     const api::internal::Core& api,
     const opentxs::ServerContext& context,
     const proto::CashType type,
     const blind::Mint& mint,
     const Amount totalValue,
-    const opentxs::PasswordPrompt& reason)
+    const opentxs::PasswordPrompt& reason) -> blind::Purse*
 {
     return Purse(
         api,
@@ -65,7 +65,7 @@ blind::Purse* Factory::Purse(
         reason);
 }
 
-blind::Purse* Factory::Purse(
+auto Factory::Purse(
     const api::internal::Core& api,
     const identity::Nym& nym,
     const identifier::Server& server,
@@ -73,7 +73,7 @@ blind::Purse* Factory::Purse(
     const proto::CashType type,
     const blind::Mint& mint,
     const Amount totalValue,
-    const opentxs::PasswordPrompt& reason)
+    const opentxs::PasswordPrompt& reason) -> blind::Purse*
 {
     auto pEnvelope = std::make_unique<OTEnvelope>(api.Factory().Envelope());
 
@@ -124,18 +124,18 @@ blind::Purse* Factory::Purse(
     return output.release();
 }
 
-blind::Purse* Factory::Purse(
+auto Factory::Purse(
     const api::internal::Core& api,
-    const proto::Purse& serialized)
+    const proto::Purse& serialized) -> blind::Purse*
 {
     return new blind::implementation::Purse(api, serialized);
 }
 
-blind::Purse* Factory::Purse(
+auto Factory::Purse(
     const api::internal::Core& api,
     const blind::Purse& request,
     const identity::Nym& requester,
-    const opentxs::PasswordPrompt& reason)
+    const opentxs::PasswordPrompt& reason) -> blind::Purse*
 {
     auto* output = new blind::implementation::Purse(
         api, dynamic_cast<const blind::implementation::Purse&>(request));
@@ -150,13 +150,13 @@ blind::Purse* Factory::Purse(
     return output;
 }
 
-blind::Purse* Factory::Purse(
+auto Factory::Purse(
     const api::internal::Core& api,
     const identity::Nym& owner,
     const identifier::Server& server,
     const identifier::UnitDefinition& unit,
     const proto::CashType type,
-    const opentxs::PasswordPrompt& reason)
+    const opentxs::PasswordPrompt& reason) -> blind::Purse*
 {
     auto* output = new blind::implementation::Purse(api, server, unit, type);
 
@@ -355,7 +355,8 @@ Purse::Purse(const api::internal::Core& api, const Purse& owner)
     OT_ASSERT(primary_);
 }
 
-bool Purse::AddNym(const identity::Nym& nym, const PasswordPrompt& reason)
+auto Purse::AddNym(const identity::Nym& nym, const PasswordPrompt& reason)
+    -> bool
 {
     if (false == unlocked_) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Purse is locked").Flush();
@@ -458,7 +459,7 @@ auto Purse::deserialize_secondary_password(
     return {};
 }
 
-OTSymmetricKey Purse::generate_key(OTPassword& password) const
+auto Purse::generate_key(OTPassword& password) const -> OTSymmetricKey
 {
     password.randomizeMemory(32);
     auto keyPassword = api_.Factory().PasswordPrompt("");
@@ -469,11 +470,11 @@ OTSymmetricKey Purse::generate_key(OTPassword& password) const
 
 // TODO replace this algorithm with one that will ensure all spends up to and
 // including the specified amount are possible
-bool Purse::GeneratePrototokens(
+auto Purse::GeneratePrototokens(
     const identity::Nym& owner,
     const Mint& mint,
     const Amount amount,
-    const opentxs::PasswordPrompt& reason)
+    const opentxs::PasswordPrompt& reason) -> bool
 {
     Amount workingAmount(amount);
     Amount tokenAmount{mint.GetLargestDenomination(workingAmount)};
@@ -505,7 +506,8 @@ bool Purse::GeneratePrototokens(
     return total_value_ == amount;
 }
 
-std::vector<proto::Envelope> Purse::get_passwords(const proto::Purse& in)
+auto Purse::get_passwords(const proto::Purse& in)
+    -> std::vector<proto::Envelope>
 {
     auto output = std::vector<proto::Envelope>{};
 
@@ -516,7 +518,7 @@ std::vector<proto::Envelope> Purse::get_passwords(const proto::Purse& in)
     return output;
 }
 
-crypto::key::Symmetric& Purse::PrimaryKey(PasswordPrompt& password)
+auto Purse::PrimaryKey(PasswordPrompt& password) -> crypto::key::Symmetric&
 {
     if (false == bool(primary_)) { throw std::out_of_range("No primary key"); }
 
@@ -531,7 +533,7 @@ crypto::key::Symmetric& Purse::PrimaryKey(PasswordPrompt& password)
     return primary_->get();
 }
 
-std::shared_ptr<Token> Purse::Pop()
+auto Purse::Pop() -> std::shared_ptr<Token>
 {
     if (0 == tokens_.size()) {
         LogTrace(OT_METHOD)(__FUNCTION__)(": Purse is empty").Flush();
@@ -557,10 +559,10 @@ std::shared_ptr<Token> Purse::Pop()
     return pToken;
 }
 
-bool Purse::Process(
+auto Purse::Process(
     const identity::Nym& owner,
     const Mint& mint,
-    const opentxs::PasswordPrompt& reason)
+    const opentxs::PasswordPrompt& reason) -> bool
 {
     if (proto::PURSETYPE_ISSUE != state_) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Incorrect purse state").Flush();
@@ -587,9 +589,9 @@ bool Purse::Process(
     return processed;
 }
 
-bool Purse::Push(
+auto Purse::Push(
     std::shared_ptr<Token> original,
-    const opentxs::PasswordPrompt& reason)
+    const opentxs::PasswordPrompt& reason) -> bool
 {
     if (false == bool(original)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid token").Flush();
@@ -679,7 +681,7 @@ auto Purse::SecondaryKey(
     return secondaryKey;
 }
 
-proto::Purse Purse::Serialize() const
+auto Purse::Serialize() const -> proto::Purse
 {
     proto::Purse output{};
     output.set_version(version_);
@@ -735,9 +737,9 @@ proto::Purse Purse::Serialize() const
     return output;
 }
 
-bool Purse::Unlock(
+auto Purse::Unlock(
     const identity::Nym& nym,
-    const opentxs::PasswordPrompt& reason) const
+    const opentxs::PasswordPrompt& reason) const -> bool
 {
     if (primary_passwords_.empty()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": No session keys found").Flush();
@@ -791,7 +793,7 @@ bool Purse::Unlock(
     return unlocked_;
 }
 
-bool Purse::Verify(const api::server::internal::Manager& server) const
+auto Purse::Verify(const api::server::internal::Manager& server) const -> bool
 {
     Amount total{0};
     auto validFrom{Time::min()};

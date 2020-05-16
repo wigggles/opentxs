@@ -44,8 +44,8 @@ namespace opentxs::network::zeromq::socket::implementation
 class Pair final : public Bidirectional<zeromq::socket::Pair>
 {
 public:
-    const std::string& Endpoint() const noexcept final;
-    bool Start(const std::string& endpoint) const noexcept final
+    auto Endpoint() const noexcept -> const std::string& final;
+    auto Start(const std::string& endpoint) const noexcept -> bool final
     {
         return false;
     }
@@ -59,8 +59,8 @@ private:
     const ListenCallback& callback_;
     const std::string endpoint_;
 
-    Pair* clone() const noexcept final;
-    bool have_callback() const noexcept final;
+    auto clone() const noexcept -> Pair* final;
+    auto have_callback() const noexcept -> bool final;
     void process_incoming(const Lock& lock, Message& message) noexcept final;
 
     void init() noexcept final;
@@ -86,7 +86,7 @@ private:
     Pair() = delete;
     Pair(const Pair&) = delete;
     Pair(Pair&&) = delete;
-    Pair& operator=(const Pair&) = delete;
-    Pair& operator=(Pair&&) = delete;
+    auto operator=(const Pair&) -> Pair& = delete;
+    auto operator=(Pair &&) -> Pair& = delete;
 };
 }  // namespace opentxs::network::zeromq::socket::implementation

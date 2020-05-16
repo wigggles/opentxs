@@ -54,7 +54,7 @@ public:
 
         operator MDB_txn*() noexcept { return ptr_; }
 
-        bool Finalize(const std::optional<bool> success = {}) noexcept;
+        auto Finalize(const std::optional<bool> success = {}) noexcept -> bool;
 
         Transaction(MDB_env* env, const bool rw) noexcept(false);
         ~Transaction();
@@ -64,64 +64,65 @@ public:
 
         Transaction(const Transaction&) = delete;
         Transaction(Transaction&&) noexcept;
-        Transaction& operator=(const Transaction&) = delete;
-        Transaction& operator=(Transaction&&) = delete;
+        auto operator=(const Transaction&) -> Transaction& = delete;
+        auto operator=(Transaction &&) -> Transaction& = delete;
     };
 
-    bool Commit() const noexcept;
-    bool Delete(const Table table, MDB_txn* parent = nullptr) const noexcept;
-    bool Delete(
+    auto Commit() const noexcept -> bool;
+    auto Delete(const Table table, MDB_txn* parent = nullptr) const noexcept
+        -> bool;
+    auto Delete(
         const Table table,
         const ReadView key,
-        MDB_txn* parent = nullptr) const noexcept;
-    bool Delete(
+        MDB_txn* parent = nullptr) const noexcept -> bool;
+    auto Delete(
         const Table table,
         const std::size_t key,
         const ReadView value,
-        MDB_txn* parent = nullptr) const noexcept;
-    bool Delete(
+        MDB_txn* parent = nullptr) const noexcept -> bool;
+    auto Delete(
         const Table table,
         const ReadView key,
         const ReadView value,
-        MDB_txn* parent = nullptr) const noexcept;
-    bool Exists(const Table table, const ReadView key) const noexcept;
-    bool Load(
+        MDB_txn* parent = nullptr) const noexcept -> bool;
+    auto Exists(const Table table, const ReadView key) const noexcept -> bool;
+    auto Load(
         const Table table,
         const ReadView key,
         const Callback cb,
-        const Mode mode = Mode::One) const noexcept;
-    bool Load(
+        const Mode mode = Mode::One) const noexcept -> bool;
+    auto Load(
         const Table table,
         const std::size_t key,
         const Callback cb,
-        const Mode mode = Mode::One) const noexcept;
-    bool Queue(
+        const Mode mode = Mode::One) const noexcept -> bool;
+    auto Queue(
         const Table table,
         const ReadView key,
         const ReadView value,
-        const Mode mode = Mode::One) const noexcept;
-    bool Read(const Table table, const ReadCallback cb, const Dir dir) const
-        noexcept;
-    Result Store(
+        const Mode mode = Mode::One) const noexcept -> bool;
+    auto Read(const Table table, const ReadCallback cb, const Dir dir) const
+        noexcept -> bool;
+    auto Store(
         const Table table,
         const ReadView key,
         const ReadView value,
         MDB_txn* parent = nullptr,
-        const Flags flags = 0) const noexcept;
-    Result Store(
+        const Flags flags = 0) const noexcept -> Result;
+    auto Store(
         const Table table,
         const std::size_t key,
         const ReadView value,
         MDB_txn* parent = nullptr,
-        const Flags flags = 0) const noexcept;
-    Result StoreOrUpdate(
+        const Flags flags = 0) const noexcept -> Result;
+    auto StoreOrUpdate(
         const Table table,
         const ReadView key,
         const UpdateCallback cb,
         MDB_txn* parent = nullptr,
-        const Flags flags = 0) const noexcept;
-    Transaction TransactionRO() const noexcept(false);
-    Transaction TransactionRW() const noexcept(false);
+        const Flags flags = 0) const noexcept -> Result;
+    auto TransactionRO() const noexcept(false) -> Transaction;
+    auto TransactionRW() const noexcept(false) -> Transaction;
 
     LMDB(
         const TableNames& names,
@@ -141,8 +142,9 @@ private:
     mutable Pending pending_;
     mutable std::mutex lock_;
 
-    MDB_dbi get_database(const Table table) const noexcept;
-    MDB_dbi init_db(const Table table, const std::size_t flags) noexcept;
+    auto get_database(const Table table) const noexcept -> MDB_dbi;
+    auto init_db(const Table table, const std::size_t flags) noexcept
+        -> MDB_dbi;
     void init_environment(
         const std::string& folder,
         const std::size_t tables,
@@ -152,8 +154,8 @@ private:
     LMDB() = delete;
     LMDB(const LMDB&) = delete;
     LMDB(LMDB&&) = delete;
-    LMDB& operator=(const LMDB&) = delete;
-    LMDB& operator=(LMDB&&) = delete;
+    auto operator=(const LMDB&) -> LMDB& = delete;
+    auto operator=(LMDB &&) -> LMDB& = delete;
 };
 }  // namespace opentxs::storage::lmdb
 #endif  // OT_STORAGE_LMDB

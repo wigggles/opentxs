@@ -42,7 +42,7 @@ class Handler final
       zeromq::curve::implementation::Server
 {
 public:
-    bool Start(const std::string& endpoint) const noexcept final
+    auto Start(const std::string& endpoint) const noexcept -> bool final
     {
         return false;
     }
@@ -54,11 +54,11 @@ private:
 
     const zap::Callback& callback_;
 
-    Handler* clone() const noexcept final
+    auto clone() const noexcept -> Handler* final
     {
         return new Handler(context_, callback_);
     }
-    bool have_callback() const noexcept final { return true; }
+    auto have_callback() const noexcept -> bool final { return true; }
 
     void init() noexcept final;
     void process_incoming(
@@ -71,7 +71,7 @@ private:
     Handler() = delete;
     Handler(const Handler&) = delete;
     Handler(Handler&&) = delete;
-    Handler& operator=(const Handler&) = delete;
-    Handler& operator=(Handler&&) = delete;
+    auto operator=(const Handler&) -> Handler& = delete;
+    auto operator=(Handler &&) -> Handler& = delete;
 };
 }  // namespace opentxs::network::zeromq::zap::implementation

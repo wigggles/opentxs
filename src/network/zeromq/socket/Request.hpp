@@ -37,22 +37,23 @@ class Request final : virtual public zeromq::socket::Request,
                       public zeromq::curve::implementation::Client
 {
 public:
-    bool SetSocksProxy(const std::string& proxy) const noexcept final;
+    auto SetSocksProxy(const std::string& proxy) const noexcept -> bool final;
 
     ~Request() final;
 
 private:
     friend opentxs::Factory;
 
-    Request* clone() const noexcept final;
-    SendResult send_request(zeromq::Message& message) const noexcept final;
-    bool wait(const Lock& lock) const noexcept;
+    auto clone() const noexcept -> Request* final;
+    auto send_request(zeromq::Message& message) const noexcept
+        -> SendResult final;
+    auto wait(const Lock& lock) const noexcept -> bool;
 
     Request(const zeromq::Context& context) noexcept;
     Request() = delete;
     Request(const Request&) = delete;
     Request(Request&&) = delete;
-    Request& operator=(const Request&) = delete;
-    Request& operator=(Request&&) = delete;
+    auto operator=(const Request&) -> Request& = delete;
+    auto operator=(Request &&) -> Request& = delete;
 };
 }  // namespace opentxs::network::zeromq::socket::implementation

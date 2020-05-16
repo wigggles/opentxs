@@ -44,8 +44,8 @@ private:
     api::client::OTX::Result result_;
     PaymentTasks& payment_tasks_;
 
-    bool deposit();
-    OTIdentifier get_account_id(const identifier::UnitDefinition& unit);
+    auto deposit() -> bool;
+    auto get_account_id(const identifier::UnitDefinition& unit) -> OTIdentifier;
 
     DepositPayment() = delete;
 };

@@ -23,10 +23,10 @@
 
 namespace opentxs
 {
-identity::wot::verification::internal::Set* Factory::VerificationSet(
+auto Factory::VerificationSet(
     const api::internal::Core& api,
     const identifier::Nym& nym,
-    const VersionNumber version)
+    const VersionNumber version) -> identity::wot::verification::internal::Set*
 {
     using ReturnType =
         opentxs::identity::wot::verification::implementation::Set;
@@ -43,10 +43,11 @@ identity::wot::verification::internal::Set* Factory::VerificationSet(
     }
 }
 
-identity::wot::verification::internal::Set* Factory::VerificationSet(
+auto Factory::VerificationSet(
     const api::internal::Core& api,
     const identifier::Nym& nym,
     const proto::VerificationSet& serialized)
+    -> identity::wot::verification::internal::Set*
 {
     using ReturnType =
         opentxs::identity::wot::verification::implementation::Set;

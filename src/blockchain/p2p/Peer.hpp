@@ -67,10 +67,19 @@ class Peer : virtual public internal::Peer, public Executor<Peer>
 public:
     using SendStatus = std::future<bool>;
 
-    OTIdentifier AddressID() const noexcept final { return address_.ID(); }
-    ConnectionStatus Connected() const noexcept final { return connected_; }
-    Handshake HandshakeComplete() const noexcept final { return handshake_; }
-    std::shared_future<void> Shutdown() noexcept final;
+    auto AddressID() const noexcept -> OTIdentifier final
+    {
+        return address_.ID();
+    }
+    auto Connected() const noexcept -> ConnectionStatus final
+    {
+        return connected_;
+    }
+    auto HandshakeComplete() const noexcept -> Handshake final
+    {
+        return handshake_;
+    }
+    auto Shutdown() noexcept -> std::shared_future<void> final;
 
     ~Peer() override;
 
@@ -83,16 +92,17 @@ protected:
     struct Address {
         using pointer = std::unique_ptr<internal::Address>;
 
-        OTData Bytes() const noexcept;
-        blockchain::Type Chain() const noexcept;
-        std::string Display() const noexcept;
-        OTIdentifier ID() const noexcept;
-        std::uint16_t Port() const noexcept;
-        std::set<Service> Services() const noexcept;
-        Network Type() const noexcept;
+        auto Bytes() const noexcept -> OTData;
+        auto Chain() const noexcept -> blockchain::Type;
+        auto Display() const noexcept -> std::string;
+        auto ID() const noexcept -> OTIdentifier;
+        auto Port() const noexcept -> std::uint16_t;
+        auto Services() const noexcept -> std::set<Service>;
+        auto Type() const noexcept -> Network;
 
-        pointer UpdateServices(const std::set<p2p::Service>& services) noexcept;
-        pointer UpdateTime(const Time& time) noexcept;
+        auto UpdateServices(const std::set<p2p::Service>& services) noexcept
+            -> pointer;
+        auto UpdateTime(const Time& time) noexcept -> pointer;
 
         Address(pointer address) noexcept;
 
@@ -102,7 +112,7 @@ protected:
     };
 
     struct DownloadPeers {
-        Time get() const noexcept;
+        auto get() const noexcept -> Time;
 
         void Bump() noexcept;
 
@@ -145,8 +155,8 @@ protected:
     virtual void request_addresses() noexcept = 0;
     virtual void request_block(zmq::Message& message) noexcept = 0;
     virtual void request_headers() noexcept = 0;
-    SendStatus send(OTData message) noexcept;
-    bool state_machine() noexcept;
+    auto send(OTData message) noexcept -> SendStatus;
+    auto state_machine() noexcept -> bool;
     void update_address_services(
         const std::set<p2p::Service>& services) noexcept;
 
@@ -171,7 +181,7 @@ private:
     };
 
     struct Activity {
-        Time get() const noexcept;
+        auto get() const noexcept -> Time;
 
         void Bump() noexcept;
 
@@ -184,7 +194,7 @@ private:
 
     struct SendPromises {
         void Break();
-        std::pair<std::future<bool>, int> NewPromise();
+        auto NewPromise() -> std::pair<std::future<bool>, int>;
         void SetPromise(const int promise, const bool value);
 
         SendPromises() noexcept;
@@ -213,15 +223,15 @@ private:
     OTZMQListenCallback cb_;
     OTZMQDealerSocket dealer_;
 
-    static OTData make_buffer(const std::size_t size) noexcept;
-    static tcp::endpoint make_endpoint(
+    static auto make_buffer(const std::size_t size) noexcept -> OTData;
+    static auto make_endpoint(
         const Network type,
         const Data& bytes,
-        const std::uint16_t port) noexcept;
+        const std::uint16_t port) noexcept -> tcp::endpoint;
 
-    Time get_activity() const noexcept;
-    virtual std::size_t get_body_size(const zmq::Frame& header) const
-        noexcept = 0;
+    auto get_activity() const noexcept -> Time;
+    virtual auto get_body_size(const zmq::Frame& header) const noexcept
+        -> std::size_t = 0;
 
     void break_promises() noexcept;
     void check_activity() noexcept;
@@ -245,7 +255,7 @@ private:
     Peer() = delete;
     Peer(const Peer&) = delete;
     Peer(Peer&&) = delete;
-    Peer& operator=(const Peer&) = delete;
-    Peer& operator=(Peer&&) = delete;
+    auto operator=(const Peer&) -> Peer& = delete;
+    auto operator=(Peer &&) -> Peer& = delete;
 };
 }  // namespace opentxs::blockchain::p2p::implementation

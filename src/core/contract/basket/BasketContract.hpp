@@ -37,10 +37,16 @@ namespace opentxs::contract::unit::implementation
 class Basket final : public unit::Basket, public contract::implementation::Unit
 {
 public:
-    OTIdentifier BasketID() const final;
-    const Subcontracts& Currencies() const final { return subcontracts_; }
-    proto::UnitType Type() const final { return proto::UNITTYPE_BASKET; }
-    std::uint64_t Weight() const final { return weight_; }
+    auto BasketID() const -> OTIdentifier final;
+    auto Currencies() const -> const Subcontracts& final
+    {
+        return subcontracts_;
+    }
+    auto Type() const -> proto::UnitType final
+    {
+        return proto::UNITTYPE_BASKET;
+    }
+    auto Weight() const -> std::uint64_t final { return weight_; }
 
     Basket(
         const api::internal::Core& api,
@@ -65,13 +71,13 @@ private:
     Subcontracts subcontracts_;
     std::uint64_t weight_;
 
-    proto::UnitDefinition BasketIDVersion(const Lock& lock) const;
-    Basket* clone() const noexcept final { return new Basket(*this); }
-    proto::UnitDefinition IDVersion(const Lock& lock) const final;
+    auto BasketIDVersion(const Lock& lock) const -> proto::UnitDefinition;
+    auto clone() const noexcept -> Basket* final { return new Basket(*this); }
+    auto IDVersion(const Lock& lock) const -> proto::UnitDefinition final;
 
     Basket(const Basket&);
     Basket(Basket&&) = delete;
-    Basket& operator=(const Basket&) = delete;
-    Basket& operator=(Basket&&) = delete;
+    auto operator=(const Basket&) -> Basket& = delete;
+    auto operator=(Basket &&) -> Basket& = delete;
 };
 }  // namespace opentxs::contract::unit::implementation

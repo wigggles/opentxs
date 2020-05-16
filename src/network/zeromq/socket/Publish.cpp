@@ -38,8 +38,8 @@ template class opentxs::Pimpl<opentxs::network::zeromq::socket::Publish>;
 
 namespace opentxs
 {
-network::zeromq::socket::Publish* Factory::PublishSocket(
-    const opentxs::network::zeromq::Context& context)
+auto Factory::PublishSocket(const opentxs::network::zeromq::Context& context)
+    -> network::zeromq::socket::Publish*
 {
     using ReturnType = network::zeromq::socket::implementation::Publish;
 

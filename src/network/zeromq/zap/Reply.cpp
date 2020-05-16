@@ -25,13 +25,13 @@ template class opentxs::Pimpl<opentxs::network::zeromq::zap::Reply>;
 
 namespace opentxs::network::zeromq::zap
 {
-OTZMQZAPReply Reply::Factory(
+auto Reply::Factory(
     const Request& request,
     const zap::Status& code,
     const std::string& status,
     const std::string& userID,
     const Data& metadata,
-    const std::string& version)
+    const std::string& version) -> OTZMQZAPReply
 {
     return OTZMQZAPReply(new implementation::Reply(
         request, code, status, userID, metadata, version));
@@ -81,7 +81,7 @@ Reply::Reply(const Reply& rhs)
     messages_ = rhs.messages_;
 }
 
-std::string Reply::code_to_string(const zap::Status& code)
+auto Reply::code_to_string(const zap::Status& code) -> std::string
 {
     try {
         return code_map_.at(code);
@@ -91,7 +91,7 @@ std::string Reply::code_to_string(const zap::Status& code)
     }
 }
 
-Reply::CodeReverseMap Reply::invert_code_map(const CodeMap& input)
+auto Reply::invert_code_map(const CodeMap& input) -> Reply::CodeReverseMap
 {
     CodeReverseMap output{};
 
@@ -100,7 +100,7 @@ Reply::CodeReverseMap Reply::invert_code_map(const CodeMap& input)
     return output;
 }
 
-std::string Reply::Debug() const
+auto Reply::Debug() const -> std::string
 {
     std::stringstream output{};
     const auto body = Body();
@@ -144,21 +144,21 @@ std::string Reply::Debug() const
     return output.str();
 }
 
-OTData Reply::Metadata() const
+auto Reply::Metadata() const -> OTData
 {
     const auto& frame = Body_at(METADATA_POSITION);
 
     return Data::Factory(frame.data(), frame.size());
 }
 
-OTData Reply::RequestID() const
+auto Reply::RequestID() const -> OTData
 {
     const auto& frame = Body_at(REQUEST_ID_POSITION);
 
     return Data::Factory(frame.data(), frame.size());
 }
 
-zap::Status Reply::string_to_code(const std::string& string)
+auto Reply::string_to_code(const std::string& string) -> zap::Status
 {
     try {
         return code_reverse_map_.at(string);

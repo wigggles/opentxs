@@ -64,7 +64,7 @@ void PaymentWorkflows::add_state_index(
     state_workflow_map_[key].emplace(workflowID);
 }
 
-bool PaymentWorkflows::Delete(const std::string& id)
+auto PaymentWorkflows::Delete(const std::string& id) -> bool
 {
     Lock lock(write_lock_);
     delete_by_value(id);
@@ -86,8 +86,8 @@ void PaymentWorkflows::delete_by_value(const std::string& value)
     }
 }
 
-PaymentWorkflows::State PaymentWorkflows::GetState(
-    const std::string& workflowID) const
+auto PaymentWorkflows::GetState(const std::string& workflowID) const
+    -> PaymentWorkflows::State
 {
     State output{proto::PAYMENTWORKFLOWTYPE_ERROR,
                  proto::PAYMENTWORKFLOWSTATE_ERROR};
@@ -149,8 +149,8 @@ void PaymentWorkflows::init(const std::string& hash)
     }
 }
 
-PaymentWorkflows::Workflows PaymentWorkflows::ListByAccount(
-    const std::string& accountID) const
+auto PaymentWorkflows::ListByAccount(const std::string& accountID) const
+    -> PaymentWorkflows::Workflows
 {
     Lock lock(write_lock_);
     const auto it = account_workflow_map_.find(accountID);
@@ -160,8 +160,8 @@ PaymentWorkflows::Workflows PaymentWorkflows::ListByAccount(
     return it->second;
 }
 
-PaymentWorkflows::Workflows PaymentWorkflows::ListByUnit(
-    const std::string& accountID) const
+auto PaymentWorkflows::ListByUnit(const std::string& accountID) const
+    -> PaymentWorkflows::Workflows
 {
     Lock lock(write_lock_);
     const auto it = unit_workflow_map_.find(accountID);
@@ -171,9 +171,9 @@ PaymentWorkflows::Workflows PaymentWorkflows::ListByUnit(
     return it->second;
 }
 
-PaymentWorkflows::Workflows PaymentWorkflows::ListByState(
+auto PaymentWorkflows::ListByState(
     proto::PaymentWorkflowType type,
-    proto::PaymentWorkflowState state) const
+    proto::PaymentWorkflowState state) const -> PaymentWorkflows::Workflows
 {
     Lock lock(write_lock_);
     const auto it = state_workflow_map_.find(State{type, state});
@@ -183,17 +183,18 @@ PaymentWorkflows::Workflows PaymentWorkflows::ListByState(
     return it->second;
 }
 
-bool PaymentWorkflows::Load(
+auto PaymentWorkflows::Load(
     const std::string& id,
     std::shared_ptr<proto::PaymentWorkflow>& output,
-    const bool checking) const
+    const bool checking) const -> bool
 {
     std::string alias;
 
     return load_proto<proto::PaymentWorkflow>(id, output, alias, checking);
 }
 
-std::string PaymentWorkflows::LookupBySource(const std::string& sourceID) const
+auto PaymentWorkflows::LookupBySource(const std::string& sourceID) const
+    -> std::string
 {
     Lock lock(write_lock_);
     const auto it = item_workflow_map_.find(sourceID);
@@ -228,7 +229,7 @@ void PaymentWorkflows::reindex(
     state_workflow_map_[newKey].emplace(workflowID);
 }
 
-bool PaymentWorkflows::save(const Lock& lock) const
+auto PaymentWorkflows::save(const Lock& lock) const -> bool
 {
     if (!verify_write_lock(lock)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Lock failure.").Flush();
@@ -242,7 +243,7 @@ bool PaymentWorkflows::save(const Lock& lock) const
     return driver_.StoreProto(serialized, root_);
 }
 
-proto::StoragePaymentWorkflows PaymentWorkflows::serialize() const
+auto PaymentWorkflows::serialize() const -> proto::StoragePaymentWorkflows
 {
     proto::StoragePaymentWorkflows serialized;
     serialized.set_version(version_);
@@ -318,9 +319,9 @@ proto::StoragePaymentWorkflows PaymentWorkflows::serialize() const
     return serialized;
 }
 
-bool PaymentWorkflows::Store(
+auto PaymentWorkflows::Store(
     const proto::PaymentWorkflow& data,
-    std::string& plaintext)
+    std::string& plaintext) -> bool
 {
     Lock lock(write_lock_);
     std::string alias;

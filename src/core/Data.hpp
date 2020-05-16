@@ -23,75 +23,86 @@ namespace opentxs::implementation
 class Data : virtual public opentxs::Data
 {
 public:
-    bool operator==(const opentxs::Data& rhs) const final;
-    bool operator!=(const opentxs::Data& rhs) const final;
-    bool operator<(const opentxs::Data& rhs) const final;
-    bool operator>(const opentxs::Data& rhs) const final;
-    bool operator<=(const opentxs::Data& rhs) const final;
-    bool operator>=(const opentxs::Data& rhs) const final;
-    Data& operator+=(const opentxs::Data& rhs) final;
-    Data& operator+=(const std::uint8_t rhs) final;
-    Data& operator+=(const std::uint16_t rhs) final;
-    Data& operator+=(const std::uint32_t rhs) final;
-    Data& operator+=(const std::uint64_t rhs) final;
+    auto operator==(const opentxs::Data& rhs) const -> bool final;
+    auto operator!=(const opentxs::Data& rhs) const -> bool final;
+    auto operator<(const opentxs::Data& rhs) const -> bool final;
+    auto operator>(const opentxs::Data& rhs) const -> bool final;
+    auto operator<=(const opentxs::Data& rhs) const -> bool final;
+    auto operator>=(const opentxs::Data& rhs) const -> bool final;
+    auto operator+=(const opentxs::Data& rhs) -> Data& final;
+    auto operator+=(const std::uint8_t rhs) -> Data& final;
+    auto operator+=(const std::uint16_t rhs) -> Data& final;
+    auto operator+=(const std::uint32_t rhs) -> Data& final;
+    auto operator+=(const std::uint64_t rhs) -> Data& final;
 
-    std::string asHex() const final;
-    const std::byte& at(const std::size_t position) const final
+    auto asHex() const -> std::string final;
+    auto at(const std::size_t position) const -> const std::byte& final
     {
         return reinterpret_cast<const std::byte&>(data_.at(position));
     }
-    const_iterator begin() const final { return const_iterator(this, 0); }
-    ReadView Bytes() const noexcept final
+    auto begin() const -> const_iterator final
+    {
+        return const_iterator(this, 0);
+    }
+    auto Bytes() const noexcept -> ReadView final
     {
         return ReadView{reinterpret_cast<const char*>(data_.data()),
                         data_.size()};
     }
-    const_iterator cbegin() const final { return const_iterator(this, 0); }
-    const_iterator cend() const final
+    auto cbegin() const -> const_iterator final
+    {
+        return const_iterator(this, 0);
+    }
+    auto cend() const -> const_iterator final
     {
         return const_iterator(this, data_.size());
     }
-    bool empty() const final { return data_.empty(); }
-    const void* data() const final { return data_.data(); }
-    const_iterator end() const final
+    auto empty() const -> bool final { return data_.empty(); }
+    auto data() const -> const void* final { return data_.data(); }
+    auto end() const -> const_iterator final
     {
         return const_iterator(this, data_.size());
     }
-    bool Extract(
+    auto Extract(
         const std::size_t amount,
         opentxs::Data& output,
-        const std::size_t pos) const final;
-    bool Extract(std::uint8_t& output, const std::size_t pos) const final;
-    bool Extract(std::uint16_t& output, const std::size_t pos) const final;
-    bool Extract(std::uint32_t& output, const std::size_t pos) const final;
-    bool Extract(std::uint64_t& output, const std::size_t pos) const final;
-    bool IsEmpty() const final { return empty(); }
-    bool IsNull() const final;
-    const void* GetPointer() const final { return data_.data(); }
-    std::size_t GetSize() const final { return size(); }
-    std::size_t size() const final { return data_.size(); }
+        const std::size_t pos) const -> bool final;
+    auto Extract(std::uint8_t& output, const std::size_t pos) const
+        -> bool final;
+    auto Extract(std::uint16_t& output, const std::size_t pos) const
+        -> bool final;
+    auto Extract(std::uint32_t& output, const std::size_t pos) const
+        -> bool final;
+    auto Extract(std::uint64_t& output, const std::size_t pos) const
+        -> bool final;
+    auto IsEmpty() const -> bool final { return empty(); }
+    auto IsNull() const -> bool final;
+    auto GetPointer() const -> const void* final { return data_.data(); }
+    auto GetSize() const -> std::size_t final { return size(); }
+    auto size() const -> std::size_t final { return data_.size(); }
 
     void Assign(const opentxs::Data& source) final;
     void Assign(ReadView source) final { Assign(source.data(), source.size()); }
     void Assign(const void* data, const std::size_t& size) final;
-    std::byte& at(const std::size_t position) final
+    auto at(const std::size_t position) -> std::byte& final
     {
         return reinterpret_cast<std::byte&>(data_.at(position));
     }
-    iterator begin() final { return iterator(this, 0); }
+    auto begin() -> iterator final { return iterator(this, 0); }
     void Concatenate(const void* data, const std::size_t& size) final;
-    void* data() final { return data_.data(); }
-    bool DecodeHex(const std::string& hex) final;
-    iterator end() final { return iterator(this, data_.size()); }
-    std::size_t OTfread(std::uint8_t* data, const std::size_t& size) final;
-    bool Randomize(const std::size_t& size) final;
+    auto data() -> void* final { return data_.data(); }
+    auto DecodeHex(const std::string& hex) -> bool final;
+    auto end() -> iterator final { return iterator(this, data_.size()); }
+    auto OTfread(std::uint8_t* data, const std::size_t& size)
+        -> std::size_t final;
+    auto Randomize(const std::size_t& size) -> bool final;
     void Release() final;
     void reset() final { position_ = 0; }
     void resize(const std::size_t size) final { data_.resize(size); }
     void SetSize(const std::size_t size) final;
-    std::string str() const override;
+    auto str() const -> std::string override;
     void swap(opentxs::Data&& rhs) final;
-    AllocateOutput WriteInto() noexcept final;
+    auto WriteInto() noexcept -> AllocateOutput final;
     void zeroMemory() final;
 
     ~Data() override = default;
@@ -114,17 +125,18 @@ protected:
 private:
     friend opentxs::Data;
 
-    Data* clone() const override
+    auto clone() const -> Data* override
     {
         return new Data(this->data_, this->position_);
     }
 
-    bool check_sub(const std::size_t pos, const std::size_t target) const;
+    auto check_sub(const std::size_t pos, const std::size_t target) const
+        -> bool;
     void concatenate(const Vector& data);
 
     Data(const Data& rhs) = delete;
     Data(Data&& rhs) = delete;
-    Data& operator=(const Data& rhs) = delete;
-    Data& operator=(Data&& rhs) = delete;
+    auto operator=(const Data& rhs) -> Data& = delete;
+    auto operator=(Data&& rhs) -> Data& = delete;
 };
 }  // namespace opentxs::implementation

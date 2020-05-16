@@ -23,13 +23,13 @@
 
 namespace opentxs
 {
-blockchain::p2p::bitcoin::message::internal::Blocktxn* Factory::
-    BitcoinP2PBlocktxn(
-        const api::internal::Core& api,
-        std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
-        const blockchain::p2p::bitcoin::ProtocolVersion version,
-        const void* payload,
-        const std::size_t size)
+auto Factory::BitcoinP2PBlocktxn(
+    const api::internal::Core& api,
+    std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
+    const blockchain::p2p::bitcoin::ProtocolVersion version,
+    const void* payload,
+    const std::size_t size)
+    -> blockchain::p2p::bitcoin::message::internal::Blocktxn*
 {
     namespace bitcoin = blockchain::p2p::bitcoin;
     using ReturnType = bitcoin::message::implementation::Blocktxn;
@@ -46,11 +46,11 @@ blockchain::p2p::bitcoin::message::internal::Blocktxn* Factory::
     return new ReturnType(api, std::move(pHeader), raw_Blocktxn);
 }
 
-blockchain::p2p::bitcoin::message::internal::Blocktxn* Factory::
-    BitcoinP2PBlocktxn(
-        const api::internal::Core& api,
-        const blockchain::Type network,
-        const Data& payload)
+auto Factory::BitcoinP2PBlocktxn(
+    const api::internal::Core& api,
+    const blockchain::Type network,
+    const Data& payload)
+    -> blockchain::p2p::bitcoin::message::internal::Blocktxn*
 {
     namespace bitcoin = blockchain::p2p::bitcoin;
     using ReturnType = bitcoin::message::implementation::Blocktxn;

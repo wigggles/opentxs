@@ -55,25 +55,27 @@ class EllipticCurve : virtual public key::EllipticCurve, public Asymmetric
 public:
     operator bool() const noexcept final { return Asymmetric::operator bool(); }
 
-    std::unique_ptr<key::Asymmetric> asPublic() const noexcept final
+    auto asPublic() const noexcept -> std::unique_ptr<key::Asymmetric> final
     {
         return asPublicEC();
     }
-    std::unique_ptr<key::EllipticCurve> asPublicEC() const noexcept final;
-    virtual NymParameterType CreateType() const = 0;
-    const std::string Path() const noexcept override { return {}; }
-    bool Path(proto::HDPath&) const noexcept override { return {}; }
+    auto asPublicEC() const noexcept
+        -> std::unique_ptr<key::EllipticCurve> final;
+    virtual auto CreateType() const -> NymParameterType = 0;
+    auto Path() const noexcept -> const std::string override { return {}; }
+    auto Path(proto::HDPath&) const noexcept -> bool override { return {}; }
 
     virtual ~EllipticCurve() override = default;
 
 protected:
     const crypto::EcdsaProvider& ecdsa_;
 
-    static std::shared_ptr<proto::AsymmetricKey> serialize_public(
-        EllipticCurve* copy);
+    static auto serialize_public(EllipticCurve* copy)
+        -> std::shared_ptr<proto::AsymmetricKey>;
 
-    virtual EllipticCurve* clone_ec() const = 0;
-    virtual std::shared_ptr<proto::AsymmetricKey> get_public() const = 0;
+    virtual auto clone_ec() const -> EllipticCurve* = 0;
+    virtual auto get_public() const
+        -> std::shared_ptr<proto::AsymmetricKey> = 0;
 
     EllipticCurve(
         const api::internal::Core& api,
@@ -111,7 +113,7 @@ private:
 
     EllipticCurve() = delete;
     EllipticCurve(EllipticCurve&&) = delete;
-    EllipticCurve& operator=(const EllipticCurve&) = delete;
-    EllipticCurve& operator=(EllipticCurve&&) = delete;
+    auto operator=(const EllipticCurve&) -> EllipticCurve& = delete;
+    auto operator=(EllipticCurve &&) -> EllipticCurve& = delete;
 };
 }  // namespace opentxs::crypto::key::implementation

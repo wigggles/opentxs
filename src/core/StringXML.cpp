@@ -14,12 +14,12 @@
 
 namespace opentxs
 {
-OTStringXML StringXML::Factory()
+auto StringXML::Factory() -> OTStringXML
 {
     return OTStringXML(new implementation::StringXML());
 }
 
-OTStringXML StringXML::Factory(const String& value)
+auto StringXML::Factory(const String& value) -> OTStringXML
 {
     return OTStringXML(new implementation::StringXML(value));
 }
@@ -37,18 +37,18 @@ public:
 
     StringXML* super;
 
-    int read(void* buffer, unsigned sizeToRead)
+    auto read(void* buffer, unsigned sizeToRead) -> int
     {
         return super->read(buffer, sizeToRead);
     }
 
-    int getSize() { return super->getSize(); }
+    auto getSize() -> int { return super->getSize(); }
 
 private:
     StringXMLPvt(const StringXMLPvt&) = delete;
     StringXMLPvt(StringXMLPvt&&) = delete;
-    StringXMLPvt& operator=(const StringXMLPvt&) = delete;
-    StringXMLPvt& operator=(StringXMLPvt&&) = delete;
+    auto operator=(const StringXMLPvt&) -> StringXMLPvt& = delete;
+    auto operator=(StringXMLPvt &&) -> StringXMLPvt& = delete;
 };
 
 StringXML::StringXML()
@@ -76,7 +76,7 @@ StringXML::StringXML(const StringXML& value)
     Set(value.Get());
 }
 
-StringXML& StringXML::operator=(const opentxs::String& rhs)
+auto StringXML::operator=(const opentxs::String& rhs) -> StringXML&
 {
     if ((&rhs) != (&(dynamic_cast<const opentxs::String&>(*this)))) {
         String::operator=(dynamic_cast<const String&>(rhs));
@@ -85,7 +85,7 @@ StringXML& StringXML::operator=(const opentxs::String& rhs)
     return *this;
 }
 
-StringXML& StringXML::operator=(const opentxs::StringXML& rhs)
+auto StringXML::operator=(const opentxs::StringXML& rhs) -> StringXML&
 {
     if ((&rhs) != this) { String::operator=(dynamic_cast<const String&>(rhs)); }
 
@@ -94,7 +94,7 @@ StringXML& StringXML::operator=(const opentxs::StringXML& rhs)
 
 StringXML::operator irr::io::IFileReadCallBack*() { return pvt_; }
 
-std::int32_t StringXML::read(void* buffer, std::uint32_t sizeToRead)
+auto StringXML::read(void* buffer, std::uint32_t sizeToRead) -> std::int32_t
 {
     if (buffer && sizeToRead && Exists()) {
         char* pBuf = static_cast<char*>(buffer);
@@ -109,7 +109,7 @@ std::int32_t StringXML::read(void* buffer, std::uint32_t sizeToRead)
     }
 }
 
-std::int32_t StringXML::getSize() { return GetLength(); }
+auto StringXML::getSize() -> std::int32_t { return GetLength(); }
 
 StringXML::~StringXML() { delete pvt_; }
 }  // namespace opentxs::implementation

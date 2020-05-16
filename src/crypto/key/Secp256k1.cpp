@@ -21,10 +21,10 @@
 
 namespace opentxs
 {
-crypto::key::Secp256k1* Factory::Secp256k1Key(
+auto Factory::Secp256k1Key(
     const api::internal::Core& api,
     const crypto::EcdsaProvider& ecdsa,
-    const proto::AsymmetricKey& input)
+    const proto::AsymmetricKey& input) -> crypto::key::Secp256k1*
 {
     try {
 
@@ -38,12 +38,12 @@ crypto::key::Secp256k1* Factory::Secp256k1Key(
     }
 }
 
-crypto::key::Secp256k1* Factory::Secp256k1Key(
+auto Factory::Secp256k1Key(
     const api::internal::Core& api,
     const crypto::EcdsaProvider& ecdsa,
     const proto::KeyRole input,
     const VersionNumber version,
-    const opentxs::PasswordPrompt& reason)
+    const opentxs::PasswordPrompt& reason) -> crypto::key::Secp256k1*
 {
     try {
 
@@ -59,7 +59,7 @@ crypto::key::Secp256k1* Factory::Secp256k1Key(
 }
 
 #if OT_CRYPTO_WITH_BIP32
-crypto::key::Secp256k1* Factory::Secp256k1Key(
+auto Factory::Secp256k1Key(
     const api::internal::Core& api,
     const crypto::EcdsaProvider& ecdsa,
     const OTPassword& privateKey,
@@ -69,7 +69,7 @@ crypto::key::Secp256k1* Factory::Secp256k1Key(
     const Bip32Fingerprint parent,
     const proto::KeyRole role,
     const VersionNumber version,
-    const opentxs::PasswordPrompt& reason)
+    const opentxs::PasswordPrompt& reason) -> crypto::key::Secp256k1*
 {
     auto sessionKey = api.Symmetric().Key(reason);
 

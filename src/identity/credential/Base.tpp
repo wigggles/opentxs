@@ -94,33 +94,34 @@ template identity::credential::internal::Verification* Factory::Credential(
 
 template <typename C>
 struct deserialize_credential {
-    static C* Get(
+    static auto Get(
         const api::internal::Core& api,
         identity::internal::Authority& parent,
         const identity::Source& source,
         const identity::credential::internal::Primary& master,
-        const proto::Credential& serialized);
+        const proto::Credential& serialized) -> C*;
 };
 template <typename C>
 struct make_credential {
-    static C* Get(
+    static auto Get(
         const api::internal::Core& api,
         identity::internal::Authority& parent,
         const identity::Source& source,
         const identity::credential::internal::Primary& master,
         const std::uint32_t version,
         const NymParameters& nymParameter,
-        const opentxs::PasswordPrompt& reason);
+        const opentxs::PasswordPrompt& reason) -> C*;
 };
 
 template <>
 struct deserialize_credential<identity::credential::internal::Contact> {
-    static identity::credential::internal::Contact* Get(
+    static auto Get(
         const api::internal::Core& api,
         identity::internal::Authority& parent,
         const identity::Source& source,
         const identity::credential::internal::Primary& master,
         const proto::Credential& serialized)
+        -> identity::credential::internal::Contact*
     {
         return opentxs::Factory::ContactCredential(
             api, parent, source, master, serialized);
@@ -128,12 +129,13 @@ struct deserialize_credential<identity::credential::internal::Contact> {
 };
 template <>
 struct deserialize_credential<identity::credential::internal::Secondary> {
-    static identity::credential::internal::Secondary* Get(
+    static auto Get(
         const api::internal::Core& api,
         identity::internal::Authority& parent,
         const identity::Source& source,
         const identity::credential::internal::Primary& master,
         const proto::Credential& serialized)
+        -> identity::credential::internal::Secondary*
     {
         return opentxs::Factory::SecondaryCredential(
             api, parent, source, master, serialized);
@@ -141,12 +143,13 @@ struct deserialize_credential<identity::credential::internal::Secondary> {
 };
 template <>
 struct deserialize_credential<identity::credential::internal::Verification> {
-    static identity::credential::internal::Verification* Get(
+    static auto Get(
         const api::internal::Core& api,
         identity::internal::Authority& parent,
         const identity::Source& source,
         const identity::credential::internal::Primary& master,
         const proto::Credential& serialized)
+        -> identity::credential::internal::Verification*
     {
         return opentxs::Factory::VerificationCredential(
             api, parent, source, master, serialized);
@@ -154,7 +157,7 @@ struct deserialize_credential<identity::credential::internal::Verification> {
 };
 template <>
 struct make_credential<identity::credential::internal::Contact> {
-    static identity::credential::internal::Contact* Get(
+    static auto Get(
         const api::internal::Core& api,
         identity::internal::Authority& parent,
         const identity::Source& source,
@@ -162,6 +165,7 @@ struct make_credential<identity::credential::internal::Contact> {
         const std::uint32_t version,
         const NymParameters& nymParameters,
         const opentxs::PasswordPrompt& reason)
+        -> identity::credential::internal::Contact*
     {
         return opentxs::Factory::ContactCredential(
             api, parent, source, master, nymParameters, version, reason);
@@ -169,7 +173,7 @@ struct make_credential<identity::credential::internal::Contact> {
 };
 template <>
 struct make_credential<identity::credential::internal::Secondary> {
-    static identity::credential::internal::Secondary* Get(
+    static auto Get(
         const api::internal::Core& api,
         identity::internal::Authority& parent,
         const identity::Source& source,
@@ -177,6 +181,7 @@ struct make_credential<identity::credential::internal::Secondary> {
         const std::uint32_t version,
         const NymParameters& nymParameters,
         const opentxs::PasswordPrompt& reason)
+        -> identity::credential::internal::Secondary*
     {
         return opentxs::Factory::SecondaryCredential(
             api, parent, source, master, nymParameters, version, reason);
@@ -184,7 +189,7 @@ struct make_credential<identity::credential::internal::Secondary> {
 };
 template <>
 struct make_credential<identity::credential::internal::Verification> {
-    static identity::credential::internal::Verification* Get(
+    static auto Get(
         const api::internal::Core& api,
         identity::internal::Authority& parent,
         const identity::Source& source,
@@ -192,6 +197,7 @@ struct make_credential<identity::credential::internal::Verification> {
         const std::uint32_t version,
         const NymParameters& nymParameters,
         const opentxs::PasswordPrompt& reason)
+        -> identity::credential::internal::Verification*
     {
         return opentxs::Factory::VerificationCredential(
             api, parent, source, master, nymParameters, version, reason);
@@ -199,7 +205,7 @@ struct make_credential<identity::credential::internal::Verification> {
 };
 
 template <class C>
-C* Factory::Credential(
+auto Factory::Credential(
     const api::internal::Core& api,
     identity::internal::Authority& parent,
     const identity::Source& source,
@@ -207,7 +213,7 @@ C* Factory::Credential(
     const std::uint32_t version,
     const NymParameters& nymParameters,
     const proto::CredentialRole role,
-    const opentxs::PasswordPrompt& reason)
+    const opentxs::PasswordPrompt& reason) -> C*
 {
     std::unique_ptr<C> output{make_credential<C>::Get(
         api, parent, source, master, version, nymParameters, reason)};
@@ -226,14 +232,14 @@ C* Factory::Credential(
 }
 
 template <class C>
-C* Factory::Credential(
+auto Factory::Credential(
     const api::internal::Core& api,
     identity::internal::Authority& parent,
     const identity::Source& source,
     const identity::credential::internal::Primary& master,
     const proto::Credential& serialized,
     const proto::KeyMode mode,
-    const proto::CredentialRole role)
+    const proto::CredentialRole role) -> C*
 {
     // This check allows all constructors to assume inputs are well-formed
     if (!proto::Validate(serialized, VERBOSE, mode, role)) {

@@ -65,19 +65,20 @@ public:
         const String& strMemo,
         std::int64_t lPayoutPerShare);
 
-    const identifier::Nym& GetNymID() { return nymId_; }
-    const identifier::UnitDefinition& GetPayoutUnitTypeId()
+    auto GetNymID() -> const identifier::Nym& { return nymId_; }
+    auto GetPayoutUnitTypeId() -> const identifier::UnitDefinition&
     {
         return payoutUnitTypeId_;
     }
-    const Identifier& GetVoucherAcctID() { return voucherAcctId_; }
-    OTString GetMemo() { return m_pstrMemo; }
-    server::Server& GetServer() { return server_; }
-    std::int64_t GetPayoutPerShare() { return m_lPayoutPerShare; }
-    std::int64_t GetAmountPaidOut() { return m_lAmountPaidOut; }
-    std::int64_t GetAmountReturned() { return m_lAmountReturned; }
+    auto GetVoucherAcctID() -> const Identifier& { return voucherAcctId_; }
+    auto GetMemo() -> OTString { return m_pstrMemo; }
+    auto GetServer() -> server::Server& { return server_; }
+    auto GetPayoutPerShare() -> std::int64_t { return m_lPayoutPerShare; }
+    auto GetAmountPaidOut() -> std::int64_t { return m_lAmountPaidOut; }
+    auto GetAmountReturned() -> std::int64_t { return m_lAmountReturned; }
 
-    bool Trigger(const Account& theAccount, const PasswordPrompt& reason) final;
+    auto Trigger(const Account& theAccount, const PasswordPrompt& reason)
+        -> bool final;
 
     ~PayDividendVisitor() final;
 };

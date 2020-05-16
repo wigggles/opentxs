@@ -60,9 +60,9 @@ Inventory::BitcoinFormat::BitcoinFormat(
 {
 }
 
-OTData Inventory::decode_hash(
+auto Inventory::decode_hash(
     const void* payload,
-    const std::size_t size) noexcept(false)
+    const std::size_t size) noexcept(false) -> OTData
 {
     if (EncodedSize != size) { throw std::runtime_error("Invalid payload"); }
 
@@ -72,9 +72,9 @@ OTData Inventory::decode_hash(
     return Data::Factory(it, sizeof(BitcoinFormat::hash_));
 }
 
-Inventory::Type Inventory::decode_type(
+auto Inventory::decode_type(
     const void* payload,
-    const std::size_t size) noexcept(false)
+    const std::size_t size) noexcept(false) -> Inventory::Type
 {
     p2p::bitcoin::message::InventoryTypeField type{};
 
@@ -85,7 +85,7 @@ Inventory::Type Inventory::decode_type(
     return reverse_map_.at(type.value());
 }
 
-std::string Inventory::DisplayType(const Type type) noexcept
+auto Inventory::DisplayType(const Type type) noexcept -> std::string
 {
     if (Type::None == type) {
 
@@ -117,7 +117,7 @@ std::string Inventory::DisplayType(const Type type) noexcept
     }
 }
 
-OTData Inventory::Encode() const noexcept
+auto Inventory::Encode() const noexcept -> OTData
 {
     try {
         BitcoinFormat output{type_, hash_};
@@ -131,8 +131,8 @@ OTData Inventory::Encode() const noexcept
     }
 }
 
-p2p::bitcoin::message::HashField Inventory::encode_hash(
-    const Hash& hash) noexcept(false)
+auto Inventory::encode_hash(const Hash& hash) noexcept(false)
+    -> p2p::bitcoin::message::HashField
 {
     p2p::bitcoin::message::HashField output{};
 
@@ -145,7 +145,7 @@ p2p::bitcoin::message::HashField Inventory::encode_hash(
     return output;
 }
 
-std::uint32_t Inventory::encode_type(const Type type) noexcept(false)
+auto Inventory::encode_type(const Type type) noexcept(false) -> std::uint32_t
 {
     return map_.at(type);
 }

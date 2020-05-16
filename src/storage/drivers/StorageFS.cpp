@@ -56,10 +56,10 @@ void StorageFS::Init_StorageFS()
     // future init actions go here
 }
 
-bool StorageFS::LoadFromBucket(
+auto StorageFS::LoadFromBucket(
     const std::string& key,
     std::string& value,
-    const bool bucket) const
+    const bool bucket) const -> bool
 {
     value.clear();
     std::string directory{};
@@ -75,7 +75,7 @@ bool StorageFS::LoadFromBucket(
     return false == value.empty();
 }
 
-std::string StorageFS::LoadRoot() const
+auto StorageFS::LoadRoot() const -> std::string
 {
     if (ready_.get() && false == folder_.empty()) {
 
@@ -85,17 +85,17 @@ std::string StorageFS::LoadRoot() const
     return "";
 }
 
-std::string StorageFS::prepare_read(const std::string& input) const
+auto StorageFS::prepare_read(const std::string& input) const -> std::string
 {
     return input;
 }
 
-std::string StorageFS::prepare_write(const std::string& input) const
+auto StorageFS::prepare_write(const std::string& input) const -> std::string
 {
     return input;
 }
 
-std::string StorageFS::read_file(const std::string& filename) const
+auto StorageFS::read_file(const std::string& filename) const -> std::string
 {
     boost::system::error_code ec{};
 
@@ -138,7 +138,7 @@ void StorageFS::store(
     }
 }
 
-bool StorageFS::StoreRoot(const bool, const std::string& hash) const
+auto StorageFS::StoreRoot(const bool, const std::string& hash) const -> bool
 {
     if (ready_.get() && false == folder_.empty()) {
 
@@ -148,7 +148,7 @@ bool StorageFS::StoreRoot(const bool, const std::string& hash) const
     return false;
 }
 
-bool StorageFS::sync(const std::string& path) const
+auto StorageFS::sync(const std::string& path) const -> bool
 {
     class FileDescriptor
     {
@@ -169,13 +169,13 @@ bool StorageFS::sync(const std::string& path) const
     private:
         int fd_{-1};
 
-        bool good() const { return (-1 != fd_); }
+        auto good() const -> bool { return (-1 != fd_); }
 
         FileDescriptor() = delete;
         FileDescriptor(const FileDescriptor&) = delete;
         FileDescriptor(FileDescriptor&&) = delete;
-        FileDescriptor& operator=(const FileDescriptor&) = delete;
-        FileDescriptor& operator=(FileDescriptor&&) = delete;
+        auto operator=(const FileDescriptor&) -> FileDescriptor& = delete;
+        auto operator=(FileDescriptor &&) -> FileDescriptor& = delete;
     };
 
     FileDescriptor fd(path);
@@ -190,9 +190,9 @@ bool StorageFS::sync(const std::string& path) const
     return sync(fd);
 }
 
-bool StorageFS::sync(File& file) const { return sync(file->handle()); }
+auto StorageFS::sync(File& file) const -> bool { return sync(file->handle()); }
 
-bool StorageFS::sync(int fd) const
+auto StorageFS::sync(int fd) const -> bool
 {
 #if defined(__APPLE__)
     // This is a Mac OS X system which does not implement
@@ -203,10 +203,10 @@ bool StorageFS::sync(int fd) const
 #endif
 }
 
-bool StorageFS::write_file(
+auto StorageFS::write_file(
     const std::string& directory,
     const std::string& filename,
-    const std::string& contents) const
+    const std::string& contents) const -> bool
 {
     if (false == filename.empty()) {
         boost::filesystem::path filePath(filename);

@@ -7,7 +7,7 @@
 
 namespace opentxs::proto
 {
-const VersionMap& BasketParamsAllowedBasketItem() noexcept
+auto BasketParamsAllowedBasketItem() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -15,7 +15,7 @@ const VersionMap& BasketParamsAllowedBasketItem() noexcept
 
     return output;
 }
-const VersionMap& IssuerAllowedPeerRequestHistory() noexcept
+auto IssuerAllowedPeerRequestHistory() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -23,7 +23,7 @@ const VersionMap& IssuerAllowedPeerRequestHistory() noexcept
 
     return output;
 }
-const VersionMap& IssuerAllowedUnitAccountMap() noexcept
+auto IssuerAllowedUnitAccountMap() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -31,7 +31,8 @@ const VersionMap& IssuerAllowedUnitAccountMap() noexcept
 
     return output;
 }
-const VersionMap& PeerRequestHistoryAllowedPeerRequestWorkflow() noexcept
+auto PeerRequestHistoryAllowedPeerRequestWorkflow() noexcept
+    -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -39,7 +40,7 @@ const VersionMap& PeerRequestHistoryAllowedPeerRequestWorkflow() noexcept
 
     return output;
 }
-const VersionMap& ServerContractAllowedListenAddress() noexcept
+auto ServerContractAllowedListenAddress() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -48,7 +49,7 @@ const VersionMap& ServerContractAllowedListenAddress() noexcept
 
     return output;
 }
-const VersionMap& ServerContractAllowedNym() noexcept
+auto ServerContractAllowedNym() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 5}},
@@ -57,7 +58,7 @@ const VersionMap& ServerContractAllowedNym() noexcept
 
     return output;
 }
-const VersionMap& ServerContractAllowedSignature() noexcept
+auto ServerContractAllowedSignature() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -66,7 +67,7 @@ const VersionMap& ServerContractAllowedSignature() noexcept
 
     return output;
 }
-const VersionMap& UnitDefinitionAllowedBasketParams() noexcept
+auto UnitDefinitionAllowedBasketParams() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -75,7 +76,7 @@ const VersionMap& UnitDefinitionAllowedBasketParams() noexcept
 
     return output;
 }
-const VersionMap& UnitDefinitionAllowedCurrencyParams() noexcept
+auto UnitDefinitionAllowedCurrencyParams() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -84,7 +85,7 @@ const VersionMap& UnitDefinitionAllowedCurrencyParams() noexcept
 
     return output;
 }
-const VersionMap& UnitDefinitionAllowedNym() noexcept
+auto UnitDefinitionAllowedNym() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 6}},
@@ -93,7 +94,7 @@ const VersionMap& UnitDefinitionAllowedNym() noexcept
 
     return output;
 }
-const VersionMap& UnitDefinitionAllowedSecurityParams() noexcept
+auto UnitDefinitionAllowedSecurityParams() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},
@@ -102,7 +103,7 @@ const VersionMap& UnitDefinitionAllowedSecurityParams() noexcept
 
     return output;
 }
-const VersionMap& UnitDefinitionAllowedSignature() noexcept
+auto UnitDefinitionAllowedSignature() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},

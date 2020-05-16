@@ -37,12 +37,12 @@ Servers::Servers(
     }
 }
 
-std::string Servers::Alias(const std::string& id) const
+auto Servers::Alias(const std::string& id) const -> std::string
 {
     return get_alias(id);
 }
 
-bool Servers::Delete(const std::string& id) { return delete_item(id); }
+auto Servers::Delete(const std::string& id) -> bool { return delete_item(id); }
 
 void Servers::init(const std::string& hash)
 {
@@ -63,11 +63,11 @@ void Servers::init(const std::string& hash)
     }
 }
 
-bool Servers::Load(
+auto Servers::Load(
     const std::string& id,
     std::shared_ptr<proto::ServerContract>& output,
     std::string& alias,
-    const bool checking) const
+    const bool checking) const -> bool
 {
     return load_proto<proto::ServerContract>(id, output, alias, checking);
 }
@@ -77,7 +77,7 @@ void Servers::Map(ServerLambda lambda) const
     map<proto::ServerContract>(lambda);
 }
 
-bool Servers::save(const std::unique_lock<std::mutex>& lock) const
+auto Servers::save(const std::unique_lock<std::mutex>& lock) const -> bool
 {
     if (!verify_write_lock(lock)) {
         std::cerr << __FUNCTION__ << ": Lock failure." << std::endl;
@@ -91,7 +91,7 @@ bool Servers::save(const std::unique_lock<std::mutex>& lock) const
     return driver_.StoreProto(serialized, root_);
 }
 
-proto::StorageServers Servers::serialize() const
+auto Servers::serialize() const -> proto::StorageServers
 {
     proto::StorageServers serialized;
     serialized.set_version(version_);
@@ -110,15 +110,15 @@ proto::StorageServers Servers::serialize() const
     return serialized;
 }
 
-bool Servers::SetAlias(const std::string& id, const std::string& alias)
+auto Servers::SetAlias(const std::string& id, const std::string& alias) -> bool
 {
     return set_alias(id, alias);
 }
 
-bool Servers::Store(
+auto Servers::Store(
     const proto::ServerContract& data,
     const std::string& alias,
-    std::string& plaintext)
+    std::string& plaintext) -> bool
 {
     return store_proto(data, data.id(), alias, plaintext);
 }

@@ -168,12 +168,15 @@ TransactionStatement::operator OTString() const
     return String::Factory(result.c_str());
 }
 
-const std::set<TransactionNumber>& TransactionStatement::Issued() const
+auto TransactionStatement::Issued() const -> const std::set<TransactionNumber>&
 {
     return issued_;
 }
 
-const std::string& TransactionStatement::Notary() const { return notary_; }
+auto TransactionStatement::Notary() const -> const std::string&
+{
+    return notary_;
+}
 
 void TransactionStatement::Remove(const TransactionNumber& number)
 {

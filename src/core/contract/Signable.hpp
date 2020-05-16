@@ -36,12 +36,12 @@ namespace opentxs::contract::implementation
 class Signable : virtual public opentxs::contract::Signable
 {
 public:
-    std::string Alias() const override;
-    OTIdentifier ID() const override;
-    Nym_p Nym() const override;
-    const std::string& Terms() const override;
-    bool Validate() const override;
-    VersionNumber Version() const override;
+    auto Alias() const -> std::string override;
+    auto ID() const -> OTIdentifier override;
+    auto Nym() const -> Nym_p override;
+    auto Terms() const -> const std::string& override;
+    auto Validate() const -> bool override;
+    auto Version() const -> VersionNumber override;
 
     void SetAlias(const std::string& alias) override;
 
@@ -59,22 +59,22 @@ protected:
     Signatures signatures_;
     std::string alias_;
 
-    bool CheckID(const Lock& lock) const;
-    virtual OTIdentifier id(const Lock& lock) const;
-    virtual bool validate(const Lock& lock) const = 0;
-    virtual bool verify_signature(
+    auto CheckID(const Lock& lock) const -> bool;
+    virtual auto id(const Lock& lock) const -> OTIdentifier;
+    virtual auto validate(const Lock& lock) const -> bool = 0;
+    virtual auto verify_signature(
         const Lock& lock,
-        const proto::Signature& signature) const;
-    bool verify_write_lock(const Lock& lock) const;
+        const proto::Signature& signature) const -> bool;
+    auto verify_write_lock(const Lock& lock) const -> bool;
 
     virtual void first_time_init(const Lock& lock) noexcept(false);
     virtual void init_serialized(const Lock& lock) noexcept(false);
-    virtual bool update_signature(
+    virtual auto update_signature(
         const Lock& lock,
-        const PasswordPrompt& reason);
+        const PasswordPrompt& reason) -> bool;
     void update_version(const VersionNumber version) noexcept;
 
-    virtual OTIdentifier GetID(const Lock& lock) const = 0;
+    virtual auto GetID(const Lock& lock) const -> OTIdentifier = 0;
 
     Signable(
         const api::internal::Core& api,
@@ -92,7 +92,7 @@ protected:
         Signatures&& signatures) noexcept;
     Signable(const Signable&) noexcept;
     Signable(Signable&&) = delete;
-    Signable& operator=(const Signable&) = delete;
-    Signable& operator=(Signable&&) = delete;
+    auto operator=(const Signable&) -> Signable& = delete;
+    auto operator=(Signable &&) -> Signable& = delete;
 };
 }  // namespace opentxs::contract::implementation

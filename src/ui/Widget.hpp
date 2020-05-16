@@ -50,7 +50,9 @@ class Publish;
 namespace opentxs::ui::implementation
 {
 template <typename T>
-T extract_custom(const CustomData& custom, const std::size_t index = 0) noexcept
+auto extract_custom(
+    const CustomData& custom,
+    const std::size_t index = 0) noexcept -> T
 {
     OT_ASSERT((index + 1) <= custom.size())
 
@@ -78,15 +80,15 @@ public:
     private:
         MessageFunctor(const MessageFunctor&) = delete;
         MessageFunctor(MessageFunctor&&) = delete;
-        MessageFunctor& operator=(const MessageFunctor&) = delete;
-        MessageFunctor& operator=(MessageFunctor&&) = delete;
+        auto operator=(const MessageFunctor&) -> MessageFunctor& = delete;
+        auto operator=(MessageFunctor &&) -> MessageFunctor& = delete;
     };
 
     template <typename T>
     class MessageProcessor : virtual public MessageFunctor
     {
     public:
-        typedef void (T::*Function)(const network::zeromq::Message&);
+        using Function = void (T::*)(const network::zeromq::Message&);
 
         void operator()(Widget* object, const network::zeromq::Message& message)
             const noexcept final
@@ -103,18 +105,18 @@ public:
         {
         }
         MessageProcessor(MessageProcessor&&) = default;
-        MessageProcessor& operator=(MessageProcessor&&) = default;
+        auto operator=(MessageProcessor &&) -> MessageProcessor& = default;
 
     private:
         Function callback_;
 
         MessageProcessor() = delete;
         MessageProcessor(const MessageProcessor&) = delete;
-        MessageProcessor& operator=(const MessageProcessor&) = delete;
+        auto operator=(const MessageProcessor&) -> MessageProcessor& = delete;
     };
 
     void SetCallback(ui::Widget::Callback cb) const noexcept final;
-    OTIdentifier WidgetID() const noexcept override;
+    auto WidgetID() const noexcept -> OTIdentifier override;
 
     ~Widget() override = default;
 
@@ -147,7 +149,7 @@ private:
     Widget() = delete;
     Widget(const Widget&) = delete;
     Widget(Widget&&) = delete;
-    Widget& operator=(const Widget&) = delete;
-    Widget& operator=(Widget&&) = delete;
+    auto operator=(const Widget&) -> Widget& = delete;
+    auto operator=(Widget &&) -> Widget& = delete;
 };  // namespace opentxs::ui::implementation
 }  // namespace opentxs::ui::implementation

@@ -41,22 +41,25 @@ class Bip47Channels final : public Node
 public:
     using ChannelList = std::set<OTIdentifier>;
 
-    OTIdentifier AddressToChannel(const std::string& address) const;
-    proto::ContactItemType Chain(const Identifier& channelID) const;
-    ChannelList ChannelsByContact(const Identifier& contactID) const;
-    ChannelList ChannelsByChain(const proto::ContactItemType chain) const;
-    ChannelList ChannelsByLocalPaymentCode(const std::string& code) const;
-    ChannelList ChannelsByRemotePaymentCode(const std::string& code) const;
-    OTIdentifier Contact(const Identifier& channelID) const;
-    bool Load(
+    auto AddressToChannel(const std::string& address) const -> OTIdentifier;
+    auto Chain(const Identifier& channelID) const -> proto::ContactItemType;
+    auto ChannelsByContact(const Identifier& contactID) const -> ChannelList;
+    auto ChannelsByChain(const proto::ContactItemType chain) const
+        -> ChannelList;
+    auto ChannelsByLocalPaymentCode(const std::string& code) const
+        -> ChannelList;
+    auto ChannelsByRemotePaymentCode(const std::string& code) const
+        -> ChannelList;
+    auto Contact(const Identifier& channelID) const -> OTIdentifier;
+    auto Load(
         const Identifier& id,
         std::shared_ptr<proto::Bip47Channel>& output,
-        const bool checking) const;
-    std::string LocalPaymentCode(const Identifier& channelID) const;
-    std::string RemotePaymentCode(const Identifier& channelID) const;
+        const bool checking) const -> bool;
+    auto LocalPaymentCode(const Identifier& channelID) const -> std::string;
+    auto RemotePaymentCode(const Identifier& channelID) const -> std::string;
 
-    bool Delete(const std::string& id);
-    bool Store(const proto::Bip47Channel& data, Identifier& channelID);
+    auto Delete(const std::string& id) -> bool;
+    auto Store(const proto::Bip47Channel& data, Identifier& channelID) -> bool;
 
     ~Bip47Channels() final = default;
 
@@ -90,21 +93,22 @@ private:
         std::set<std::string>& output);
 
     template <typename I, typename V>
-    typename V::mapped_type extract_set(const I& id, const V& index) const;
+    auto extract_set(const I& id, const V& index) const ->
+        typename V::mapped_type;
     template <typename L>
-    ChannelData& get_channel_data(const L& lock, const Identifier& id) const;
+    auto get_channel_data(const L& lock, const Identifier& id) const
+        -> ChannelData&;
     template <typename L>
-    ChannelData& _get_channel_data(const L& lock, OTIdentifier&& id) const;
+    auto _get_channel_data(const L& lock, OTIdentifier&& id) const
+        -> ChannelData&;
     void init(const std::string& hash) final;
-    bool save(const Lock& lock) const final;
-    proto::StorageBip47Contexts serialize() const;
+    auto save(const Lock& lock) const -> bool final;
+    auto serialize() const -> proto::StorageBip47Contexts;
 
-    std::set<std::string>& get_address_set(
-        const eLock& lock,
-        const Identifier& channelID);
-    std::set<std::string>& _get_address_set(
-        const eLock& lock,
-        OTIdentifier&& id);
+    auto get_address_set(const eLock& lock, const Identifier& channelID)
+        -> std::set<std::string>&;
+    auto _get_address_set(const eLock& lock, OTIdentifier&& id)
+        -> std::set<std::string>&;
     void index_addresses(
         const eLock& lock,
         const Identifier& channelID,
@@ -117,7 +121,7 @@ private:
     Bip47Channels() = delete;
     Bip47Channels(const Bip47Channels&) = delete;
     Bip47Channels(Bip47Channels&&) = delete;
-    Bip47Channels operator=(const Bip47Channels&) = delete;
-    Bip47Channels operator=(Bip47Channels&&) = delete;
+    auto operator=(const Bip47Channels&) -> Bip47Channels = delete;
+    auto operator=(Bip47Channels &&) -> Bip47Channels = delete;
 };
 }  // namespace opentxs::storage

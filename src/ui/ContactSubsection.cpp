@@ -90,10 +90,10 @@ ContactSubsection::ContactSubsection(
     OT_ASSERT(startup_)
 }
 
-void* ContactSubsection::construct_row(
+auto ContactSubsection::construct_row(
     const ContactSubsectionRowID& id,
     const ContactSubsectionSortKey& index,
-    const CustomData& custom) const noexcept
+    const CustomData& custom) const noexcept -> void*
 {
     OT_ASSERT(1 == custom.size())
 
@@ -105,13 +105,15 @@ void* ContactSubsection::construct_row(
     return it->second.get();
 }
 
-std::string ContactSubsection::Name(const std::string& lang) const noexcept
+auto ContactSubsection::Name(const std::string& lang) const noexcept
+    -> std::string
 {
     return proto::TranslateItemType(row_id_.second, lang);
 }
 
-std::set<ContactSubsectionRowID> ContactSubsection::process_group(
+auto ContactSubsection::process_group(
     const opentxs::ContactGroup& group) noexcept
+    -> std::set<ContactSubsectionRowID>
 {
     OT_ASSERT(row_id_.second == group.Type())
 
@@ -136,7 +138,8 @@ void ContactSubsection::reindex(
         process_group(extract_custom<opentxs::ContactGroup>(custom)));
 }
 
-int ContactSubsection::sort_key(const ContactSubsectionRowID) const noexcept
+auto ContactSubsection::sort_key(const ContactSubsectionRowID) const noexcept
+    -> int
 {
     return static_cast<int>(items_.size());
 }

@@ -37,37 +37,37 @@ class StorageConfig;
 class Plugin : virtual public opentxs::api::storage::Plugin
 {
 public:
-    bool EmptyBucket(const bool bucket) const override = 0;
+    auto EmptyBucket(const bool bucket) const -> bool override = 0;
 
-    bool Load(const std::string& key, const bool checking, std::string& value)
-        const override;
-    bool LoadFromBucket(
+    auto Load(const std::string& key, const bool checking, std::string& value)
+        const -> bool override;
+    auto LoadFromBucket(
         const std::string& key,
         std::string& value,
-        const bool bucket) const override = 0;
-    bool Store(
+        const bool bucket) const -> bool override = 0;
+    auto Store(
         const bool isTransaction,
         const std::string& key,
         const std::string& value,
-        const bool bucket) const override;
+        const bool bucket) const -> bool override;
     void Store(
         const bool isTransaction,
         const std::string& key,
         const std::string& value,
         const bool bucket,
         std::promise<bool>& promise) const override;
-    bool Store(
+    auto Store(
         const bool isTransaction,
         const std::string& value,
-        std::string& key) const override;
+        std::string& key) const -> bool override;
 
-    bool Migrate(
+    auto Migrate(
         const std::string& key,
-        const opentxs::api::storage::Driver& to) const override;
+        const opentxs::api::storage::Driver& to) const -> bool override;
 
-    std::string LoadRoot() const override = 0;
-    bool StoreRoot(const bool commit, const std::string& hash) const override =
-        0;
+    auto LoadRoot() const -> std::string override = 0;
+    auto StoreRoot(const bool commit, const std::string& hash) const
+        -> bool override = 0;
 
     virtual void Cleanup() = 0;
 
@@ -99,15 +99,15 @@ private:
 
     Plugin(const Plugin&) = delete;
     Plugin(Plugin&&) = delete;
-    Plugin& operator=(const Plugin&) = delete;
-    Plugin& operator=(Plugin&&) = delete;
+    auto operator=(const Plugin&) -> Plugin& = delete;
+    auto operator=(Plugin &&) -> Plugin& = delete;
 };
 
 template <class T>
-bool opentxs::api::storage::Driver::LoadProto(
+auto opentxs::api::storage::Driver::LoadProto(
     const std::string& hash,
     std::shared_ptr<T>& serialized,
-    const bool checking) const
+    const bool checking) const -> bool
 {
     std::string raw;
     const bool loaded = Load(hash, checking, raw);
@@ -140,10 +140,10 @@ bool opentxs::api::storage::Driver::LoadProto(
 }
 
 template <class T>
-bool opentxs::api::storage::Driver::StoreProto(
+auto opentxs::api::storage::Driver::StoreProto(
     const T& data,
     std::string& key,
-    std::string& plaintext) const
+    std::string& plaintext) const -> bool
 {
     if (!proto::Validate<T>(data, VERBOSE)) { return false; }
 
@@ -153,8 +153,8 @@ bool opentxs::api::storage::Driver::StoreProto(
 }
 
 template <class T>
-bool opentxs::api::storage::Driver::StoreProto(const T& data, std::string& key)
-    const
+auto opentxs::api::storage::Driver::StoreProto(const T& data, std::string& key)
+    const -> bool
 {
     std::string notUsed;
 
@@ -162,7 +162,7 @@ bool opentxs::api::storage::Driver::StoreProto(const T& data, std::string& key)
 }
 
 template <class T>
-bool opentxs::api::storage::Driver::StoreProto(const T& data) const
+auto opentxs::api::storage::Driver::StoreProto(const T& data) const -> bool
 {
     std::string notUsed;
 

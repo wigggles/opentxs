@@ -21,7 +21,7 @@ namespace opentxs::implementation
 class PIDFile final : virtual public opentxs::PIDFile
 {
 public:
-    bool isOpen() const final { return open_.load(); }
+    auto isOpen() const -> bool final { return open_.load(); }
 
     void Close() final;
     void Open() final;
@@ -34,13 +34,13 @@ private:
     const std::string path_{};
     std::atomic<bool> open_{false};
 
-    static bool can_recover(std::uint32_t pid);
+    static auto can_recover(std::uint32_t pid) -> bool;
 
     PIDFile(const std::string& path);
     PIDFile() = delete;
     PIDFile(const PIDFile&) = delete;
     PIDFile(PIDFile&&) = delete;
-    PIDFile& operator=(const PIDFile&) = delete;
-    PIDFile& operator=(PIDFile&&) = delete;
+    auto operator=(const PIDFile&) -> PIDFile& = delete;
+    auto operator=(PIDFile &&) -> PIDFile& = delete;
 };
 }  // namespace opentxs::implementation

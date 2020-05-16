@@ -13,11 +13,11 @@ namespace opentxs
 {
 template <>
 struct make_blank<OTData> {
-    static OTData value(const api::Core&) { return Data::Factory(); }
+    static auto value(const api::Core&) -> OTData { return Data::Factory(); }
 };
 template <>
 struct make_blank<OTIdentifier> {
-    static OTIdentifier value(const api::Core&)
+    static auto value(const api::Core&) -> OTIdentifier
     {
         return Identifier::Factory();
     }
@@ -27,7 +27,7 @@ struct make_blank<OTIdentifier> {
 namespace opentxs::internal
 {
 struct NymFile : virtual public opentxs::NymFile {
-    virtual bool LoadSignedNymFile(const PasswordPrompt& reason) = 0;
-    virtual bool SaveSignedNymFile(const PasswordPrompt& reason) = 0;
+    virtual auto LoadSignedNymFile(const PasswordPrompt& reason) -> bool = 0;
+    virtual auto SaveSignedNymFile(const PasswordPrompt& reason) -> bool = 0;
 };
 }  // namespace opentxs::internal

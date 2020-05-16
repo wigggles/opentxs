@@ -40,7 +40,8 @@
 
 namespace opentxs
 {
-api::crypto::Config* Factory::CryptoConfig(const api::Settings& settings)
+auto Factory::CryptoConfig(const api::Settings& settings)
+    -> api::crypto::Config*
 {
     return new api::crypto::implementation::Config(settings);
 }
@@ -54,7 +55,7 @@ Config::Config(const api::Settings& settings)
     GetSetAll();
 }
 
-bool Config::GetSetAll() const
+auto Config::GetSetAll() const -> bool
 {
     if (!GetSetValue(
             OT_KEY_ITERATION_COUNT,
@@ -100,10 +101,10 @@ bool Config::GetSetAll() const
     return config_.Save();
 }
 
-bool Config::GetSetValue(
+auto Config::GetSetValue(
     const std::string& strKeyName,
     const std::int32_t nDefaultValue,
-    std::int32_t& out_nValue) const
+    std::int32_t& out_nValue) const -> bool
 
 {
     OT_ASSERT(false == strKeyName.empty())
@@ -122,21 +123,36 @@ bool Config::GetSetValue(
     return true;
 }
 
-std::uint32_t Config::IterationCount() const { return sp_nIterationCount; }
-std::uint32_t Config::SymmetricSaltSize() const
+auto Config::IterationCount() const -> std::uint32_t
+{
+    return sp_nIterationCount;
+}
+auto Config::SymmetricSaltSize() const -> std::uint32_t
 {
     return sp_nSymmetricSaltSize;
 }
-std::uint32_t Config::SymmetricKeySize() const { return sp_nSymmetricKeySize; }
-std::uint32_t Config::SymmetricKeySizeMax() const
+auto Config::SymmetricKeySize() const -> std::uint32_t
+{
+    return sp_nSymmetricKeySize;
+}
+auto Config::SymmetricKeySizeMax() const -> std::uint32_t
 {
     return sp_nSymmetricKeySizeMax;
 }
-std::uint32_t Config::SymmetricIvSize() const { return sp_nSymmetricIvSize; }
-std::uint32_t Config::SymmetricBufferSize() const
+auto Config::SymmetricIvSize() const -> std::uint32_t
+{
+    return sp_nSymmetricIvSize;
+}
+auto Config::SymmetricBufferSize() const -> std::uint32_t
 {
     return sp_nSymmetricBufferSize;
 }
-std::uint32_t Config::PublicKeysize() const { return sp_nPublicKeysize; }
-std::uint32_t Config::PublicKeysizeMax() const { return sp_nPublicKeysizeMax; }
+auto Config::PublicKeysize() const -> std::uint32_t
+{
+    return sp_nPublicKeysize;
+}
+auto Config::PublicKeysizeMax() const -> std::uint32_t
+{
+    return sp_nPublicKeysizeMax;
+}
 }  // namespace opentxs::api::crypto::implementation

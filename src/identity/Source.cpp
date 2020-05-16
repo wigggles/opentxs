@@ -36,10 +36,10 @@
 
 namespace opentxs
 {
-identity::Source* Factory::NymIDSource(
+auto Factory::NymIDSource(
     const api::internal::Core& api,
     NymParameters& params,
-    const opentxs::PasswordPrompt& reason)
+    const opentxs::PasswordPrompt& reason) -> identity::Source*
 {
     using ReturnType = identity::implementation::Source;
 
@@ -119,9 +119,9 @@ identity::Source* Factory::NymIDSource(
     }
 }
 
-identity::Source* Factory::NymIDSource(
+auto Factory::NymIDSource(
     const api::internal::Core& api,
-    const proto::NymIDSource& serialized)
+    const proto::NymIDSource& serialized) -> identity::Source*
 {
     using ReturnType = identity::implementation::Source;
 
@@ -176,17 +176,17 @@ Source::Source(const Source& rhs) noexcept
 {
 }
 
-OTData Source::asData() const
+auto Source::asData() const -> OTData
 {
     std::shared_ptr<proto::NymIDSource> serialized = Serialize();
 
     return factory_.Data(*serialized);
 }
 
-OTPaymentCode Source::deserialize_paymentcode(
+auto Source::deserialize_paymentcode(
     const api::Factory& factory,
     const proto::SourceType type,
-    const proto::NymIDSource& serialized)
+    const proto::NymIDSource& serialized) -> OTPaymentCode
 {
     if (proto::SOURCETYPE_BIP47 == type) {
 
@@ -197,10 +197,10 @@ OTPaymentCode Source::deserialize_paymentcode(
     }
 }
 
-OTAsymmetricKey Source::deserialize_pubkey(
+auto Source::deserialize_pubkey(
     const api::Factory& factory,
     const proto::SourceType type,
-    const proto::NymIDSource& serialized)
+    const proto::NymIDSource& serialized) -> OTAsymmetricKey
 {
     if (proto::SOURCETYPE_PUBKEY == type) {
 
@@ -211,9 +211,9 @@ OTAsymmetricKey Source::deserialize_pubkey(
     }
 }
 
-std::unique_ptr<proto::AsymmetricKey> Source::extract_key(
+auto Source::extract_key(
     const proto::Credential& credential,
-    const proto::KeyRole role)
+    const proto::KeyRole role) -> std::unique_ptr<proto::AsymmetricKey>
 {
     std::unique_ptr<proto::AsymmetricKey> output;
 
@@ -236,7 +236,7 @@ std::unique_ptr<proto::AsymmetricKey> Source::extract_key(
     return output;
 }
 
-OTNymID Source::NymID() const noexcept
+auto Source::NymID() const noexcept -> OTNymID
 {
     auto nymID = factory_.NymID();
 
@@ -255,7 +255,7 @@ OTNymID Source::NymID() const noexcept
     return nymID;
 }
 
-std::shared_ptr<proto::NymIDSource> Source::Serialize() const noexcept
+auto Source::Serialize() const noexcept -> std::shared_ptr<proto::NymIDSource>
 {
     auto source = std::make_shared<proto::NymIDSource>();
     source->set_version(version_);
@@ -283,9 +283,10 @@ std::shared_ptr<proto::NymIDSource> Source::Serialize() const noexcept
 
 // This function assumes that all internal verification checks are complete
 // except for the source proof
-bool Source::Verify(
+auto Source::Verify(
     const proto::Credential& master,
     [[maybe_unused]] const proto::Signature& sourceSignature) const noexcept
+    -> bool
 {
     bool isSelfSigned, sameSource;
     std::unique_ptr<proto::AsymmetricKey> signingKey;
@@ -354,10 +355,10 @@ bool Source::Verify(
     return true;
 }  // namespace opentxs::identity::implementation
 
-bool Source::Sign(
+auto Source::Sign(
     [[maybe_unused]] const identity::credential::Primary& credential,
     [[maybe_unused]] proto::Signature& sig,
-    [[maybe_unused]] const PasswordPrompt& reason) const noexcept
+    [[maybe_unused]] const PasswordPrompt& reason) const noexcept -> bool
 {
     bool goodsig = false;
 
@@ -382,12 +383,12 @@ bool Source::Sign(
     return goodsig;
 }
 
-OTString Source::asString() const noexcept
+auto Source::asString() const noexcept -> OTString
 {
     return OTString(factory_.Armored(asData()));
 }
 
-OTString Source::Description() const noexcept
+auto Source::Description() const noexcept -> OTString
 {
     auto description = String::Factory();
     auto keyID = factory_.Identifier();

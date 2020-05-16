@@ -54,10 +54,10 @@ namespace opentxs::ui::implementation
 class PaymentItem final : public ActivityThreadItem
 {
 public:
-    opentxs::Amount Amount() const noexcept final;
-    bool Deposit() const noexcept final;
-    std::string DisplayAmount() const noexcept final;
-    std::string Memo() const noexcept final;
+    auto Amount() const noexcept -> opentxs::Amount final;
+    auto Deposit() const noexcept -> bool final;
+    auto DisplayAmount() const noexcept -> std::string final;
+    auto Memo() const noexcept -> std::string final;
 
     PaymentItem(
         const ActivityThreadInternalInterface& parent,
@@ -81,7 +81,7 @@ private:
     PaymentItem() = delete;
     PaymentItem(const PaymentItem&) = delete;
     PaymentItem(PaymentItem&&) = delete;
-    PaymentItem& operator=(const PaymentItem&) = delete;
-    PaymentItem& operator=(PaymentItem&&) = delete;
+    auto operator=(const PaymentItem&) -> PaymentItem& = delete;
+    auto operator=(PaymentItem &&) -> PaymentItem& = delete;
 };
 }  // namespace opentxs::ui::implementation

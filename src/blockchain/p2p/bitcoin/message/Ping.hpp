@@ -44,11 +44,11 @@ namespace opentxs::blockchain::p2p::bitcoin::message::implementation
 class Ping final : public internal::Ping
 {
 public:
-    bitcoin::Nonce Nonce() const noexcept final { return nonce_; }
+    auto Nonce() const noexcept -> bitcoin::Nonce final { return nonce_; }
 
     ~Ping() final = default;
 
-    OTData payload() const noexcept final;
+    auto payload() const noexcept -> OTData final;
 
 private:
     friend opentxs::Factory;
@@ -72,7 +72,7 @@ private:
         const bitcoin::Nonce nonce) noexcept;
     Ping(const Ping&) = delete;
     Ping(Ping&&) = delete;
-    Ping& operator=(const Ping&) = delete;
-    Ping& operator=(Ping&&) = delete;
+    auto operator=(const Ping&) -> Ping& = delete;
+    auto operator=(Ping &&) -> Ping& = delete;
 };
 }  // namespace opentxs::blockchain::p2p::bitcoin::message::implementation

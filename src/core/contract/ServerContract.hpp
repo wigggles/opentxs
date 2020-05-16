@@ -43,21 +43,20 @@ class Server final : public contract::Server,
                      public opentxs::contract::implementation::Signable
 {
 public:
-    bool ConnectInfo(
+    auto ConnectInfo(
         std::string& strHostname,
         std::uint32_t& nPort,
         proto::AddressType& actual,
-        const proto::AddressType& preferred) const final;
-    proto::ServerContract Contract() const final;
-    std::string EffectiveName() const final;
-    std::string Name() const final { return name_; }
-    proto::ServerContract PublicContract() const final;
-    bool Statistics(String& strContents) const final;
-    OTData Serialize() const final;
-    const Data& TransportKey() const final;
-    std::unique_ptr<OTPassword> TransportKey(
-        Data& pubkey,
-        const PasswordPrompt& reason) const final;
+        const proto::AddressType& preferred) const -> bool final;
+    auto Contract() const -> proto::ServerContract final;
+    auto EffectiveName() const -> std::string final;
+    auto Name() const -> std::string final { return name_; }
+    auto PublicContract() const -> proto::ServerContract final;
+    auto Statistics(String& strContents) const -> bool final;
+    auto Serialize() const -> OTData final;
+    auto TransportKey() const -> const Data& final;
+    auto TransportKey(Data& pubkey, const PasswordPrompt& reason) const
+        -> std::unique_ptr<OTPassword> final;
 
     void InitAlias(const std::string& alias) final
     {
@@ -89,24 +88,26 @@ private:
     const std::string name_;
     const OTData transport_key_;
 
-    static std::list<contract::Server::Endpoint> extract_endpoints(
-        const proto::ServerContract& serialized) noexcept;
+    static auto extract_endpoints(
+        const proto::ServerContract& serialized) noexcept
+        -> std::list<contract::Server::Endpoint>;
 
-    Server* clone() const noexcept final { return new Server(*this); }
-    proto::ServerContract contract(const Lock& lock) const;
-    OTIdentifier GetID(const Lock& lock) const final;
-    proto::ServerContract IDVersion(const Lock& lock) const;
-    proto::ServerContract SigVersion(const Lock& lock) const;
-    bool validate(const Lock& lock) const final;
-    bool verify_signature(const Lock& lock, const proto::Signature& signature)
-        const final;
+    auto clone() const noexcept -> Server* final { return new Server(*this); }
+    auto contract(const Lock& lock) const -> proto::ServerContract;
+    auto GetID(const Lock& lock) const -> OTIdentifier final;
+    auto IDVersion(const Lock& lock) const -> proto::ServerContract;
+    auto SigVersion(const Lock& lock) const -> proto::ServerContract;
+    auto validate(const Lock& lock) const -> bool final;
+    auto verify_signature(const Lock& lock, const proto::Signature& signature)
+        const -> bool final;
 
-    bool update_signature(const Lock& lock, const PasswordPrompt& reason) final;
+    auto update_signature(const Lock& lock, const PasswordPrompt& reason)
+        -> bool final;
 
     Server() = delete;
     Server(const Server&);
     Server(Server&&) = delete;
-    Server& operator=(const Server&) = delete;
-    Server& operator=(Server&&) = delete;
+    auto operator=(const Server&) -> Server& = delete;
+    auto operator=(Server &&) -> Server& = delete;
 };
 }  // namespace opentxs::contract::implementation

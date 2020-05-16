@@ -120,46 +120,49 @@ Tree::Tree(const Tree& rhs)
     master_key_ = rhs.master_key_;
 }
 
-storage::Accounts* Tree::accounts() const
+auto Tree::accounts() const -> storage::Accounts*
 {
     return get_child<storage::Accounts>(account_lock_, account_, account_root_);
 }
 
-storage::BlockchainTransactions* Tree::blockchain() const
+auto Tree::blockchain() const -> storage::BlockchainTransactions*
 {
     return get_child<storage::BlockchainTransactions>(
         blockchain_lock_, blockchain_, blockchain_root_);
 }
 
-const storage::Accounts& Tree::Accounts() const { return *accounts(); }
+auto Tree::Accounts() const -> const storage::Accounts& { return *accounts(); }
 
-const storage::BlockchainTransactions& Tree::Blockchain() const
+auto Tree::Blockchain() const -> const storage::BlockchainTransactions&
 {
     return *blockchain();
 }
 
-const storage::Contacts& Tree::Contacts() const { return *contacts(); }
+auto Tree::Contacts() const -> const storage::Contacts& { return *contacts(); }
 
-storage::Contacts* Tree::contacts() const
+auto Tree::contacts() const -> storage::Contacts*
 {
     return get_child<storage::Contacts>(
         contact_lock_, contacts_, contact_root_);
 }
 
-const storage::Credentials& Tree::Credentials() const { return *credentials(); }
+auto Tree::Credentials() const -> const storage::Credentials&
+{
+    return *credentials();
+}
 
-storage::Credentials* Tree::credentials() const
+auto Tree::credentials() const -> storage::Credentials*
 {
     return get_child<storage::Credentials>(
         credential_lock_, credentials_, credential_root_);
 }
 
 template <typename T, typename... Args>
-T* Tree::get_child(
+auto Tree::get_child(
     std::mutex& mutex,
     std::unique_ptr<T>& pointer,
     const std::string& hash,
-    Args&&... params) const
+    Args&&... params) const -> T*
 {
     Lock lock(mutex);
 
@@ -180,11 +183,11 @@ T* Tree::get_child(
 }
 
 template <typename T, typename... Args>
-Editor<T> Tree::get_editor(
+auto Tree::get_editor(
     std::mutex& mutex,
     std::unique_ptr<T>& pointer,
     std::string& hash,
-    Args&&... params) const
+    Args&&... params) const -> Editor<T>
 {
     std::function<void(T*, Lock&)> callback = [&](T* in, Lock& lock) -> void {
         save_child<T>(in, lock, mutex, hash);
@@ -224,8 +227,8 @@ void Tree::init(const std::string& hash)
     }
 }
 
-bool Tree::Load(std::shared_ptr<proto::Ciphertext>& output, const bool checking)
-    const
+auto Tree::Load(std::shared_ptr<proto::Ciphertext>& output, const bool checking)
+    const -> bool
 {
     Lock lock(master_key_lock_);
 
@@ -245,7 +248,7 @@ bool Tree::Load(std::shared_ptr<proto::Ciphertext>& output, const bool checking)
     return false;
 }
 
-bool Tree::Migrate(const opentxs::api::storage::Driver& to) const
+auto Tree::Migrate(const opentxs::api::storage::Driver& to) const -> bool
 {
     bool output{true};
     output &= accounts()->Migrate(to);
@@ -262,73 +265,73 @@ bool Tree::Migrate(const opentxs::api::storage::Driver& to) const
     return output;
 }
 
-Editor<storage::Accounts> Tree::mutable_Accounts()
+auto Tree::mutable_Accounts() -> Editor<storage::Accounts>
 {
     return get_editor<storage::Accounts>(
         account_lock_, account_, account_root_);
 }
 
-Editor<storage::BlockchainTransactions> Tree::mutable_Blockchain()
+auto Tree::mutable_Blockchain() -> Editor<storage::BlockchainTransactions>
 {
     return get_editor<storage::BlockchainTransactions>(
         blockchain_lock_, blockchain_, blockchain_root_);
 }
 
-Editor<storage::Contacts> Tree::mutable_Contacts()
+auto Tree::mutable_Contacts() -> Editor<storage::Contacts>
 {
     return get_editor<storage::Contacts>(
         contact_lock_, contacts_, contact_root_);
 }
 
-Editor<storage::Credentials> Tree::mutable_Credentials()
+auto Tree::mutable_Credentials() -> Editor<storage::Credentials>
 {
     return get_editor<storage::Credentials>(
         credential_lock_, credentials_, credential_root_);
 }
 
-Editor<storage::Notary> Tree::mutable_Notary(const std::string& id)
+auto Tree::mutable_Notary(const std::string& id) -> Editor<storage::Notary>
 {
     return get_editor<storage::Notary>(notary_lock_, notary_, notary_root_, id);
 }
 
-Editor<storage::Nyms> Tree::mutable_Nyms()
+auto Tree::mutable_Nyms() -> Editor<storage::Nyms>
 {
     return get_editor<storage::Nyms>(nym_lock_, nyms_, nym_root_);
 }
 
-Editor<storage::Seeds> Tree::mutable_Seeds()
+auto Tree::mutable_Seeds() -> Editor<storage::Seeds>
 {
     return get_editor<storage::Seeds>(seed_lock_, seeds_, seed_root_);
 }
 
-Editor<storage::Servers> Tree::mutable_Servers()
+auto Tree::mutable_Servers() -> Editor<storage::Servers>
 {
     return get_editor<storage::Servers>(server_lock_, servers_, server_root_);
 }
 
-Editor<storage::Units> Tree::mutable_Units()
+auto Tree::mutable_Units() -> Editor<storage::Units>
 {
     return get_editor<storage::Units>(unit_lock_, units_, unit_root_);
 }
 
-const storage::Notary& Tree::Notary(const std::string& id) const
+auto Tree::Notary(const std::string& id) const -> const storage::Notary&
 {
     return *notary(id);
 }
 
-const storage::Nyms& Tree::Nyms() const { return *nyms(); }
+auto Tree::Nyms() const -> const storage::Nyms& { return *nyms(); }
 
-storage::Notary* Tree::notary(const std::string& id) const
+auto Tree::notary(const std::string& id) const -> storage::Notary*
 {
     return get_child<storage::Notary>(notary_lock_, notary_, notary_root_, id);
 }
 
-storage::Nyms* Tree::nyms() const
+auto Tree::nyms() const -> storage::Nyms*
 {
     return get_child<storage::Nyms>(nym_lock_, nyms_, nym_root_);
 }
 
-bool Tree::save(const Lock& lock) const
+auto Tree::save(const Lock& lock) const -> bool
 {
     if (!verify_write_lock(lock)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Lock failure.").Flush();
@@ -369,14 +372,14 @@ void Tree::save_child(
     }
 }
 
-const storage::Seeds& Tree::Seeds() const { return *seeds(); }
+auto Tree::Seeds() const -> const storage::Seeds& { return *seeds(); }
 
-storage::Seeds* Tree::seeds() const
+auto Tree::seeds() const -> storage::Seeds*
 {
     return get_child<storage::Seeds>(seed_lock_, seeds_, seed_root_);
 }
 
-proto::StorageItems Tree::serialize() const
+auto Tree::serialize() const -> proto::StorageItems
 {
     proto::StorageItems serialized;
     serialized.set_version(version_);
@@ -426,14 +429,14 @@ proto::StorageItems Tree::serialize() const
     return serialized;
 }
 
-const storage::Servers& Tree::Servers() const { return *servers(); }
+auto Tree::Servers() const -> const storage::Servers& { return *servers(); }
 
-storage::Servers* Tree::servers() const
+auto Tree::servers() const -> storage::Servers*
 {
     return get_child<storage::Servers>(server_lock_, servers_, server_root_);
 }
 
-bool Tree::Store(const proto::Ciphertext& serialized)
+auto Tree::Store(const proto::Ciphertext& serialized) -> bool
 {
     Lock masterLock(master_key_lock_, std::defer_lock);
     Lock writeLock(write_lock_, std::defer_lock);
@@ -444,9 +447,9 @@ bool Tree::Store(const proto::Ciphertext& serialized)
     return save(writeLock);
 }
 
-const storage::Units& Tree::Units() const { return *units(); }
+auto Tree::Units() const -> const storage::Units& { return *units(); }
 
-storage::Units* Tree::units() const
+auto Tree::units() const -> storage::Units*
 {
     return get_child<storage::Units>(unit_lock_, units_, unit_root_);
 }

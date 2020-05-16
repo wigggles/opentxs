@@ -116,7 +116,7 @@ OTAgent::OTAgent(
     }
 }
 
-bool OTAgent::VerifySignature(const Contract& theContract) const
+auto OTAgent::VerifySignature(const Contract& theContract) const -> bool
 {
     // Only individual agents can sign for things, not groups (groups vote, they
     // don't sign.)
@@ -182,7 +182,7 @@ bool OTAgent::VerifySignature(const Contract& theContract) const
 // This call may always fail for a specific agent, if the agent isn't a Nym
 // (the agent could be a voting group.)
 //
-Nym_p OTAgent::LoadNym()
+auto OTAgent::LoadNym() -> Nym_p
 {
     auto theAgentNymID = identifier::Nym::Factory();
     bool bNymID = GetNymID(theAgentNymID);
@@ -242,13 +242,19 @@ void OTAgent::SetParty(OTParty& theOwnerParty)  // This happens when the agent
 // agent is a Nym acting in a role for an entity, or if agent is a voting group
 // acting for the entity to which it belongs, either way, this will be false.
 
-bool OTAgent::DoesRepresentHimself() const { return m_bNymRepresentsSelf; }
+auto OTAgent::DoesRepresentHimself() const -> bool
+{
+    return m_bNymRepresentsSelf;
+}
 
 // Whether the agent is a voting group acting for an entity, or is a Nym acting
 // in a Role for an entity, this will be true either way. (Otherwise, if agent
 // is a Nym acting for himself, then this will be false.)
 
-bool OTAgent::DoesRepresentAnEntity() const { return !m_bNymRepresentsSelf; }
+auto OTAgent::DoesRepresentAnEntity() const -> bool
+{
+    return !m_bNymRepresentsSelf;
+}
 
 // Only one of these can be true:
 //
@@ -260,13 +266,13 @@ bool OTAgent::DoesRepresentAnEntity() const { return !m_bNymRepresentsSelf; }
 // he's acting in a role for that entity.) If agent were a group, this would be
 // false.
 
-bool OTAgent::IsAnIndividual() const { return m_bIsAnIndividual; }
+auto OTAgent::IsAnIndividual() const -> bool { return m_bIsAnIndividual; }
 
 // OR: Agent is a voting group, which cannot take proactive or instant action,
 // but only passive and delayed. Entity-ONLY. (A voting group cannot decide on
 // behalf of individual, but only on behalf of the entity it belongs to.)
 
-bool OTAgent::IsAGroup() const { return !m_bIsAnIndividual; }
+auto OTAgent::IsAGroup() const -> bool { return !m_bIsAnIndividual; }
 
 // A Nym cannot act as "agent" for another Nym.
 // Nor can a Group act as "agent" for a Nym. Why not? Because:
@@ -337,7 +343,7 @@ bool OTAgent::IsAGroup() const { return !m_bIsAnIndividual; }
 // (whether he DoesRepresentHimself() or DoesRepresentAnEntity() -- either way).
 // Otherwise if IsGroup(), this returns false.
 //
-bool OTAgent::GetNymID(Identifier& theOutput) const
+auto OTAgent::GetNymID(Identifier& theOutput) const -> bool
 {
     if (IsAnIndividual()) {
         theOutput.SetString(m_strNymID);
@@ -352,7 +358,7 @@ bool OTAgent::GetNymID(Identifier& theOutput) const
 // that Entity. Otherwise, if IsGroup() or DoesRepresentHimself(), then this
 // returns false.
 
-bool OTAgent::GetRoleID(Identifier& theOutput) const
+auto OTAgent::GetRoleID(Identifier& theOutput) const -> bool
 {
     if (IsAnIndividual() && DoesRepresentAnEntity()) {
         theOutput.SetString(m_strRoleID);
@@ -378,7 +384,7 @@ bool OTAgent::GetRoleID(Identifier& theOutput) const
 // needing that,
 // as part of the script, would also therefore be impossible.
 //
-bool OTAgent::GetSignerID(Identifier& theOutput) const
+auto OTAgent::GetSignerID(Identifier& theOutput) const -> bool
 {
     // If IsIndividual() and DoesRepresentAnEntity() then this returns
     // GetRoleID().
@@ -400,7 +406,7 @@ bool OTAgent::GetSignerID(Identifier& theOutput) const
     return false;
 }
 
-bool OTAgent::IsValidSignerID(const Identifier& theNymID)
+auto OTAgent::IsValidSignerID(const Identifier& theNymID) -> bool
 {
     auto theAgentNymID = Identifier::Factory();
     bool bNymID = GetNymID(theAgentNymID);
@@ -416,7 +422,7 @@ bool OTAgent::IsValidSignerID(const Identifier& theNymID)
 
 // See if theNym is a valid signer for this agent.
 //
-bool OTAgent::IsValidSigner(const identity::Nym& theNym)
+auto OTAgent::IsValidSigner(const identity::Nym& theNym) -> bool
 {
     auto theAgentNymID = identifier::Nym::Factory();
     bool bNymID = GetNymID(theAgentNymID);
@@ -459,7 +465,7 @@ bool OTAgent::IsValidSigner(const identity::Nym& theNym)
 // I'm debating making this function private along with DoesRepresentHimself /
 // DoesRepresentAnEntity().
 //
-bool OTAgent::GetEntityID(Identifier& theOutput) const
+auto OTAgent::GetEntityID(Identifier& theOutput) const -> bool
 {
     // IF represents an entity, then this is its ID. Else fail.
     //
@@ -481,7 +487,7 @@ bool OTAgent::GetEntityID(Identifier& theOutput) const
 
 // Returns true/false whether THIS agent is the authorizing agent for his party.
 //
-bool OTAgent::IsAuthorizingAgentForParty()
+auto OTAgent::IsAuthorizingAgentForParty() -> bool
 {
     if (nullptr == m_pForParty) return false;
 
@@ -494,7 +500,7 @@ bool OTAgent::IsAuthorizingAgentForParty()
 // Returns the number of accounts, owned by this agent's party, that this agent
 // is the authorized agent FOR.
 //
-std::int32_t OTAgent::GetCountAuthorizedAccts()
+auto OTAgent::GetCountAuthorizedAccts() -> std::int32_t
 {
     if (nullptr == m_pForParty) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error: m_pForParty was "
@@ -509,7 +515,7 @@ std::int32_t OTAgent::GetCountAuthorizedAccts()
 // For when the agent is a voting group:
 // If !IsGroup() aka IsIndividual(), then this will return false.
 //
-bool OTAgent::GetGroupName(String& strGroupName)
+auto OTAgent::GetGroupName(String& strGroupName) -> bool
 {
     if (IsAGroup()) {
         strGroupName.Set(m_strGroupName);
@@ -522,14 +528,14 @@ bool OTAgent::GetGroupName(String& strGroupName)
 
 // PARTY is either a NYM or an ENTITY. This returns ID for that Nym or Entity.
 //
-bool OTAgent::GetPartyID(Identifier& theOutput) const
+auto OTAgent::GetPartyID(Identifier& theOutput) const -> bool
 {
     if (DoesRepresentHimself()) return GetNymID(theOutput);
 
     return GetEntityID(theOutput);
 }
 
-bool OTAgent::VerifyAgencyOfAccount(const Account& theAccount) const
+auto OTAgent::VerifyAgencyOfAccount(const Account& theAccount) const -> bool
 {
     auto theSignerID = identifier::Nym::Factory();
 
@@ -548,7 +554,7 @@ bool OTAgent::VerifyAgencyOfAccount(const Account& theAccount) const
                                                      // or a Role being passed?
 }
 
-bool OTAgent::DropFinalReceiptToInbox(
+auto OTAgent::DropFinalReceiptToInbox(
     const String& strNotaryID,
     OTSmartContract& theSmartContract,
     const Identifier& theAccountID,
@@ -557,7 +563,7 @@ bool OTAgent::DropFinalReceiptToInbox(
     const String& strOrigCronItem,
     const PasswordPrompt& reason,
     OTString pstrNote,
-    OTString pstrAttachment)
+    OTString pstrAttachment) -> bool
 {
     // TODO: When entites and ROLES are added, this function may change a bit to
     // accommodate them.
@@ -606,13 +612,13 @@ bool OTAgent::DropFinalReceiptToInbox(
     return false;
 }
 
-bool OTAgent::DropFinalReceiptToNymbox(
+auto OTAgent::DropFinalReceiptToNymbox(
     OTSmartContract& theSmartContract,
     const std::int64_t& lNewTransactionNumber,
     const String& strOrigCronItem,
     const PasswordPrompt& reason,
     OTString pstrNote,
-    OTString pstrAttachment)
+    OTString pstrAttachment) -> bool
 {
     auto theAgentNymID = identifier::Nym::Factory();
     bool bNymID = GetNymID(theAgentNymID);
@@ -636,7 +642,7 @@ bool OTAgent::DropFinalReceiptToNymbox(
     return false;
 }
 
-bool OTAgent::DropServerNoticeToNymbox(
+auto OTAgent::DropServerNoticeToNymbox(
     const api::internal::Core& api,
     bool bSuccessMsg,  // Added this so we can notify smart contract parties
                        // when
@@ -649,7 +655,7 @@ bool OTAgent::DropServerNoticeToNymbox(
     const PasswordPrompt& reason,
     OTString pstrNote,
     OTString pstrAttachment,
-    identity::Nym* pActualNym)
+    identity::Nym* pActualNym) -> bool
 {
     auto theAgentNymID = identifier::Nym::Factory();
     bool bNymID = GetNymID(theAgentNymID);
@@ -680,8 +686,8 @@ bool OTAgent::DropServerNoticeToNymbox(
     return false;
 }
 
-bool OTAgent::SignContract(Contract& theInput, const PasswordPrompt& reason)
-    const
+auto OTAgent::SignContract(Contract& theInput, const PasswordPrompt& reason)
+    const -> bool
 {
     if (!IsAnIndividual() || !DoesRepresentHimself()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Entities and roles are not yet "
@@ -701,9 +707,9 @@ bool OTAgent::SignContract(Contract& theInput, const PasswordPrompt& reason)
     return theInput.SignContract(*m_pNym, reason);
 }
 
-bool OTAgent::VerifyIssuedNumber(
+auto OTAgent::VerifyIssuedNumber(
     const TransactionNumber& lNumber,
-    const String& strNotaryID)
+    const String& strNotaryID) -> bool
 {
     // Todo: this function may change when entities / roles are added.
     if (!IsAnIndividual() || !DoesRepresentHimself()) {
@@ -730,9 +736,9 @@ bool OTAgent::VerifyIssuedNumber(
     return false;
 }
 
-bool OTAgent::VerifyTransactionNumber(
+auto OTAgent::VerifyTransactionNumber(
     const TransactionNumber& lNumber,
-    const String& strNotaryID)
+    const String& strNotaryID) -> bool
 {
     // Todo: this function may change when entities / roles are added.
     if (!IsAnIndividual() || !DoesRepresentHimself()) {
@@ -759,9 +765,9 @@ bool OTAgent::VerifyTransactionNumber(
     return false;
 }
 
-bool OTAgent::RecoverTransactionNumber(
+auto OTAgent::RecoverTransactionNumber(
     const TransactionNumber& lNumber,
-    Context& context)
+    Context& context) -> bool
 {
     // Todo: this function may change when entities / roles are added.
     if (!IsAnIndividual() || !DoesRepresentHimself()) {
@@ -803,10 +809,10 @@ bool OTAgent::RecoverTransactionNumber(
     return false;
 }
 
-bool OTAgent::RecoverTransactionNumber(
+auto OTAgent::RecoverTransactionNumber(
     const TransactionNumber& lNumber,
     const String& strNotaryID,
-    const PasswordPrompt& reason)
+    const PasswordPrompt& reason) -> bool
 {
     if (nullptr != m_pNym) {
         auto context = wallet_.mutable_Context(
@@ -825,10 +831,10 @@ bool OTAgent::RecoverTransactionNumber(
 // This means the transaction number has just been USED (and it now must stay
 // open/outstanding until CLOSED.) Therefore we also add it to the set of open
 // cron items, which the server keeps track of (for opening AND closing numbers)
-bool OTAgent::RemoveTransactionNumber(
+auto OTAgent::RemoveTransactionNumber(
     const TransactionNumber& lNumber,
     const String& strNotaryID,
-    const PasswordPrompt& reason)
+    const PasswordPrompt& reason) -> bool
 {
     // Todo: this function may change when entities / roles are added.
     if (!IsAnIndividual() || !DoesRepresentHimself()) {
@@ -867,10 +873,10 @@ bool OTAgent::RemoveTransactionNumber(
 // Therefore we remove it from the set of open cron items, which the server
 // keeps track of (for opening AND closing numbers.)
 //
-bool OTAgent::RemoveIssuedNumber(
+auto OTAgent::RemoveIssuedNumber(
     const TransactionNumber& lNumber,
     const String& strNotaryID,
-    const PasswordPrompt& reason)
+    const PasswordPrompt& reason) -> bool
 {
     // Todo: this function may change when entities / roles are added.
     if (!IsAnIndividual() || !DoesRepresentHimself()) {
@@ -907,9 +913,9 @@ bool OTAgent::RemoveIssuedNumber(
 }
 
 // Done
-bool OTAgent::ReserveClosingTransNum(
+auto OTAgent::ReserveClosingTransNum(
     ServerContext& context,
-    OTPartyAccount& thePartyAcct)
+    OTPartyAccount& thePartyAcct) -> bool
 {
     if (IsAnIndividual() && DoesRepresentHimself() && (nullptr != m_pNym)) {
         if (thePartyAcct.GetClosingTransNo() > 0) {
@@ -967,7 +973,7 @@ bool OTAgent::ReserveClosingTransNum(
 }
 
 // Done
-bool OTAgent::ReserveOpeningTransNum(ServerContext& context)
+auto OTAgent::ReserveOpeningTransNum(ServerContext& context) -> bool
 {
     if (IsAnIndividual() && DoesRepresentHimself() && (nullptr != m_pNym)) {
         if (nullptr == m_pForParty) {

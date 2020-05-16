@@ -59,10 +59,10 @@ namespace zmq = opentxs::network::zeromq;
 
 namespace opentxs
 {
-api::client::Workflow* Factory::Workflow(
+auto Factory::Workflow(
     const api::internal::Core& api,
     const api::client::Activity& activity,
-    const api::client::Contacts& contact)
+    const api::client::Contacts& contact) -> api::client::Workflow*
 {
     return new api::client::implementation::Workflow(api, activity, contact);
 }
@@ -71,7 +71,7 @@ api::client::Workflow* Factory::Workflow(
 namespace opentxs::api::client
 {
 #if OT_CASH
-bool Workflow::ContainsCash(const proto::PaymentWorkflow& workflow)
+auto Workflow::ContainsCash(const proto::PaymentWorkflow& workflow) -> bool
 {
     switch (workflow.type()) {
         case proto::PAYMENTWORKFLOWTYPE_OUTGOINGCASH:
@@ -94,7 +94,7 @@ bool Workflow::ContainsCash(const proto::PaymentWorkflow& workflow)
 }
 #endif
 
-bool Workflow::ContainsCheque(const proto::PaymentWorkflow& workflow)
+auto Workflow::ContainsCheque(const proto::PaymentWorkflow& workflow) -> bool
 {
     switch (workflow.type()) {
         case proto::PAYMENTWORKFLOWTYPE_OUTGOINGCHEQUE:
@@ -117,7 +117,7 @@ bool Workflow::ContainsCheque(const proto::PaymentWorkflow& workflow)
     return false;
 }
 
-bool Workflow::ContainsTransfer(const proto::PaymentWorkflow& workflow)
+auto Workflow::ContainsTransfer(const proto::PaymentWorkflow& workflow) -> bool
 {
     switch (workflow.type()) {
         case proto::PAYMENTWORKFLOWTYPE_OUTGOINGTRANSFER:
@@ -140,7 +140,8 @@ bool Workflow::ContainsTransfer(const proto::PaymentWorkflow& workflow)
     return false;
 }
 
-std::string Workflow::ExtractCheque(const proto::PaymentWorkflow& workflow)
+auto Workflow::ExtractCheque(const proto::PaymentWorkflow& workflow)
+    -> std::string
 {
     if (false == ContainsCheque(workflow)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Wrong workflow type").Flush();
@@ -158,8 +159,8 @@ std::string Workflow::ExtractCheque(const proto::PaymentWorkflow& workflow)
 }
 
 #if OT_CASH
-std::unique_ptr<proto::Purse> Workflow::ExtractPurse(
-    const proto::PaymentWorkflow& workflow)
+auto Workflow::ExtractPurse(const proto::PaymentWorkflow& workflow)
+    -> std::unique_ptr<proto::Purse>
 {
     if (false == ContainsCash(workflow)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Wrong workflow type").Flush();
@@ -184,7 +185,8 @@ std::unique_ptr<proto::Purse> Workflow::ExtractPurse(
 }
 #endif
 
-std::string Workflow::ExtractTransfer(const proto::PaymentWorkflow& workflow)
+auto Workflow::ExtractTransfer(const proto::PaymentWorkflow& workflow)
+    -> std::string
 {
     if (false == ContainsTransfer(workflow)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Wrong workflow type").Flush();
@@ -201,9 +203,9 @@ std::string Workflow::ExtractTransfer(const proto::PaymentWorkflow& workflow)
     return workflow.source(0).item();
 }
 
-Workflow::Cheque Workflow::InstantiateCheque(
+auto Workflow::InstantiateCheque(
     const api::internal::Core& core,
-    const proto::PaymentWorkflow& workflow)
+    const proto::PaymentWorkflow& workflow) -> Workflow::Cheque
 {
     Cheque output{proto::PAYMENTWORKFLOWSTATE_ERROR, nullptr};
     auto& [state, cheque] = output;
@@ -251,9 +253,9 @@ Workflow::Cheque Workflow::InstantiateCheque(
 }
 
 #if OT_CASH
-Workflow::Purse Workflow::InstantiatePurse(
+auto Workflow::InstantiatePurse(
     const api::internal::Core& core,
-    const proto::PaymentWorkflow& workflow)
+    const proto::PaymentWorkflow& workflow) -> Workflow::Purse
 {
     Purse output{proto::PAYMENTWORKFLOWSTATE_ERROR, nullptr};
     auto& [state, purse] = output;
@@ -296,9 +298,9 @@ Workflow::Purse Workflow::InstantiatePurse(
 }
 #endif
 
-Workflow::Transfer Workflow::InstantiateTransfer(
+auto Workflow::InstantiateTransfer(
     const api::internal::Core& core,
-    const proto::PaymentWorkflow& workflow)
+    const proto::PaymentWorkflow& workflow) -> Workflow::Transfer
 {
     Transfer output{proto::PAYMENTWORKFLOWSTATE_ERROR, nullptr};
     auto& [state, transfer] = output;
@@ -341,9 +343,9 @@ Workflow::Transfer Workflow::InstantiateTransfer(
     return output;
 }
 
-OTIdentifier Workflow::UUID(
+auto Workflow::UUID(
     const api::internal::Core& core,
-    const proto::PaymentWorkflow& workflow)
+    const proto::PaymentWorkflow& workflow) -> OTIdentifier
 {
     auto output = Identifier::Factory();
     auto notaryID = Identifier::Factory();
@@ -395,9 +397,8 @@ OTIdentifier Workflow::UUID(
     return UUID(notaryID, number);
 }
 
-OTIdentifier Workflow::UUID(
-    const Identifier& notary,
-    const TransactionNumber& number)
+auto Workflow::UUID(const Identifier& notary, const TransactionNumber& number)
+    -> OTIdentifier
 {
     LogTrace(OT_METHOD)(__FUNCTION__)(": UUID for notary ")(notary)(
         " and transaction number ")(number)(" is ");
@@ -447,10 +448,10 @@ Workflow::Workflow(
     OT_ASSERT(bound)
 }
 
-bool Workflow::AbortTransfer(
+auto Workflow::AbortTransfer(
     const identifier::Nym& nymID,
     const Item& transfer,
-    const Message& reply) const
+    const Message& reply) const -> bool
 {
     if (false == isTransfer(transfer)) { return false; }
 
@@ -491,11 +492,11 @@ bool Workflow::AbortTransfer(
 }
 
 // Works for Incoming and Internal transfer workflows.
-bool Workflow::AcceptTransfer(
+auto Workflow::AcceptTransfer(
     const identifier::Nym& nymID,
     const identifier::Server& notaryID,
     const OTTransaction& pending,
-    const Message& reply) const
+    const Message& reply) const -> bool
 {
     const auto transfer = extract_transfer_from_pending(pending);
 
@@ -550,10 +551,10 @@ bool Workflow::AcceptTransfer(
         true);
 }
 
-bool Workflow::AcknowledgeTransfer(
+auto Workflow::AcknowledgeTransfer(
     const identifier::Nym& nymID,
     const Item& transfer,
-    const Message& reply) const
+    const Message& reply) const -> bool
 {
     if (false == isTransfer(transfer)) { return false; }
 
@@ -604,9 +605,9 @@ bool Workflow::AcknowledgeTransfer(
 }
 
 #if OT_CASH
-OTIdentifier Workflow::AllocateCash(
+auto Workflow::AllocateCash(
     const identifier::Nym& id,
-    const blind::Purse& purse) const
+    const blind::Purse& purse) const -> OTIdentifier
 {
     Lock global(lock_);
     auto workflowID = Identifier::Random();
@@ -643,7 +644,7 @@ OTIdentifier Workflow::AllocateCash(
 }
 #endif
 
-bool Workflow::add_cheque_event(
+auto Workflow::add_cheque_event(
     const eLock& lock,
     const std::string& nymID,
     const std::string&,
@@ -653,7 +654,7 @@ bool Workflow::add_cheque_event(
     const VersionNumber version,
     const Message& request,
     const Message* reply,
-    const std::string& account) const
+    const std::string& account) const -> bool
 {
     const bool haveReply = (nullptr != reply);
     const bool success = cheque_deposit_success(reply);
@@ -706,7 +707,7 @@ bool Workflow::add_cheque_event(
 }
 
 // Only used for ClearCheque
-bool Workflow::add_cheque_event(
+auto Workflow::add_cheque_event(
     const eLock& lock,
     const std::string& nymID,
     const std::string& accountID,
@@ -716,7 +717,7 @@ bool Workflow::add_cheque_event(
     const VersionNumber version,
     const identifier::Nym& recipientNymID,
     const OTTransaction& receipt,
-    const std::chrono::time_point<std::chrono::system_clock> time) const
+    const std::chrono::time_point<std::chrono::system_clock> time) const -> bool
 {
     auto message = String::Factory();
     receipt.SaveContractRaw(message);
@@ -738,7 +739,7 @@ bool Workflow::add_cheque_event(
     return save_workflow(nymID, accountID, workflow);
 }
 
-bool Workflow::add_transfer_event(
+auto Workflow::add_transfer_event(
     const eLock& lock,
     const std::string& nymID,
     const std::string& eventNym,
@@ -748,7 +749,7 @@ bool Workflow::add_transfer_event(
     const VersionNumber version,
     const Message& message,
     const std::string& account,
-    const bool success) const
+    const bool success) const -> bool
 {
     if (success) { workflow.set_state(newState); }
 
@@ -785,7 +786,7 @@ bool Workflow::add_transfer_event(
     return save_workflow(nymID, account, workflow);
 }
 
-bool Workflow::add_transfer_event(
+auto Workflow::add_transfer_event(
     const eLock& lock,
     const std::string& nymID,
     const std::string& notaryID,
@@ -796,7 +797,7 @@ bool Workflow::add_transfer_event(
     const VersionNumber version,
     const OTTransaction& receipt,
     const std::string& account,
-    const bool success) const
+    const bool success) const -> bool
 {
     if (success) { workflow.set_state(newState); }
 
@@ -833,7 +834,8 @@ bool Workflow::add_transfer_event(
     return save_workflow(nymID, account, workflow);
 }
 
-bool Workflow::can_abort_transfer(const proto::PaymentWorkflow& workflow)
+auto Workflow::can_abort_transfer(const proto::PaymentWorkflow& workflow)
+    -> bool
 {
     bool correctState{false};
 
@@ -855,7 +857,7 @@ bool Workflow::can_abort_transfer(const proto::PaymentWorkflow& workflow)
     return true;
 }
 
-bool Workflow::can_accept_cheque(const proto::PaymentWorkflow& workflow)
+auto Workflow::can_accept_cheque(const proto::PaymentWorkflow& workflow) -> bool
 {
     bool correctState{false};
 
@@ -878,7 +880,8 @@ bool Workflow::can_accept_cheque(const proto::PaymentWorkflow& workflow)
     return true;
 }
 
-bool Workflow::can_accept_transfer(const proto::PaymentWorkflow& workflow)
+auto Workflow::can_accept_transfer(const proto::PaymentWorkflow& workflow)
+    -> bool
 {
     bool correctState{false};
 
@@ -900,7 +903,8 @@ bool Workflow::can_accept_transfer(const proto::PaymentWorkflow& workflow)
     return true;
 }
 
-bool Workflow::can_acknowledge_transfer(const proto::PaymentWorkflow& workflow)
+auto Workflow::can_acknowledge_transfer(const proto::PaymentWorkflow& workflow)
+    -> bool
 {
     bool correctState{false};
 
@@ -924,7 +928,7 @@ bool Workflow::can_acknowledge_transfer(const proto::PaymentWorkflow& workflow)
     return true;
 }
 
-bool Workflow::can_cancel_cheque(const proto::PaymentWorkflow& workflow)
+auto Workflow::can_cancel_cheque(const proto::PaymentWorkflow& workflow) -> bool
 {
     bool correctState{false};
 
@@ -947,7 +951,8 @@ bool Workflow::can_cancel_cheque(const proto::PaymentWorkflow& workflow)
     return true;
 }
 
-bool Workflow::can_clear_transfer(const proto::PaymentWorkflow& workflow)
+auto Workflow::can_clear_transfer(const proto::PaymentWorkflow& workflow)
+    -> bool
 {
     bool correctState{false};
 
@@ -974,7 +979,8 @@ bool Workflow::can_clear_transfer(const proto::PaymentWorkflow& workflow)
     return true;
 }
 
-bool Workflow::can_complete_transfer(const proto::PaymentWorkflow& workflow)
+auto Workflow::can_complete_transfer(const proto::PaymentWorkflow& workflow)
+    -> bool
 {
     if (proto::PAYMENTWORKFLOWSTATE_ACCEPTED != workflow.state()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Incorrect workflow state (")(
@@ -988,7 +994,7 @@ bool Workflow::can_complete_transfer(const proto::PaymentWorkflow& workflow)
 }
 
 #if OT_CASH
-bool Workflow::can_convey_cash(const proto::PaymentWorkflow& workflow)
+auto Workflow::can_convey_cash(const proto::PaymentWorkflow& workflow) -> bool
 {
     if (proto::PAYMENTWORKFLOWSTATE_EXPIRED == workflow.state()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Incorrect workflow state.")
@@ -1001,7 +1007,7 @@ bool Workflow::can_convey_cash(const proto::PaymentWorkflow& workflow)
 }
 #endif
 
-bool Workflow::can_convey_cheque(const proto::PaymentWorkflow& workflow)
+auto Workflow::can_convey_cheque(const proto::PaymentWorkflow& workflow) -> bool
 {
     if (proto::PAYMENTWORKFLOWSTATE_UNSENT != workflow.state()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Incorrect workflow state.")
@@ -1013,7 +1019,8 @@ bool Workflow::can_convey_cheque(const proto::PaymentWorkflow& workflow)
     return true;
 }
 
-bool Workflow::can_convey_transfer(const proto::PaymentWorkflow& workflow)
+auto Workflow::can_convey_transfer(const proto::PaymentWorkflow& workflow)
+    -> bool
 {
     switch (workflow.state()) {
         case proto::PAYMENTWORKFLOWSTATE_INITIATED:
@@ -1033,7 +1040,8 @@ bool Workflow::can_convey_transfer(const proto::PaymentWorkflow& workflow)
     return false;
 }
 
-bool Workflow::can_deposit_cheque(const proto::PaymentWorkflow& workflow)
+auto Workflow::can_deposit_cheque(const proto::PaymentWorkflow& workflow)
+    -> bool
 {
     if (proto::PAYMENTWORKFLOWSTATE_CONVEYED != workflow.state()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Incorrect workflow state.")
@@ -1045,9 +1053,9 @@ bool Workflow::can_deposit_cheque(const proto::PaymentWorkflow& workflow)
     return true;
 }
 
-bool Workflow::can_expire_cheque(
+auto Workflow::can_expire_cheque(
     const opentxs::Cheque& cheque,
-    const proto::PaymentWorkflow& workflow)
+    const proto::PaymentWorkflow& workflow) -> bool
 {
     bool correctState{false};
 
@@ -1093,7 +1101,7 @@ bool Workflow::can_expire_cheque(
     return true;
 }
 
-bool Workflow::can_finish_cheque(const proto::PaymentWorkflow& workflow)
+auto Workflow::can_finish_cheque(const proto::PaymentWorkflow& workflow) -> bool
 {
     if (proto::PAYMENTWORKFLOWSTATE_ACCEPTED != workflow.state()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Incorrect workflow state.")
@@ -1105,10 +1113,10 @@ bool Workflow::can_finish_cheque(const proto::PaymentWorkflow& workflow)
     return true;
 }
 
-bool Workflow::CancelCheque(
+auto Workflow::CancelCheque(
     const opentxs::Cheque& cheque,
     const Message& request,
-    const Message* reply) const
+    const Message* reply) const -> bool
 {
     if (false == isCheque(cheque)) { return false; }
 
@@ -1141,7 +1149,7 @@ bool Workflow::CancelCheque(
         reply);
 }
 
-bool Workflow::cheque_deposit_success(const Message* message)
+auto Workflow::cheque_deposit_success(const Message* message) -> bool
 {
     if (nullptr == message) { return false; }
 
@@ -1150,9 +1158,9 @@ bool Workflow::cheque_deposit_success(const Message* message)
     return message->m_bSuccess;
 }
 
-bool Workflow::ClearCheque(
+auto Workflow::ClearCheque(
     const identifier::Nym& recipientNymID,
-    const OTTransaction& receipt) const
+    const OTTransaction& receipt) const -> bool
 {
     if (recipientNymID.empty()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid cheque recipient")
@@ -1231,10 +1239,10 @@ bool Workflow::ClearCheque(
     return output;
 }
 
-bool Workflow::ClearTransfer(
+auto Workflow::ClearTransfer(
     const identifier::Nym& nymID,
     const identifier::Server& notaryID,
-    const OTTransaction& receipt) const
+    const OTTransaction& receipt) const -> bool
 {
     auto depositorNymID = identifier::Nym::Factory();
     const auto transfer =
@@ -1336,11 +1344,11 @@ bool Workflow::ClearTransfer(
 }
 
 // Works for outgoing and internal transfer workflows.
-bool Workflow::CompleteTransfer(
+auto Workflow::CompleteTransfer(
     const identifier::Nym& nymID,
     const identifier::Server& notaryID,
     const OTTransaction& receipt,
-    const Message& reply) const
+    const Message& reply) const -> bool
 {
     auto depositorNymID = Identifier::Factory();
     const auto transfer =
@@ -1414,13 +1422,13 @@ bool Workflow::CompleteTransfer(
 // (Whereas if this had been an INTERNAL transfer, then it would ALREADY
 // have been created, and thus we'd need to GET the existing workflow, and
 // then add the new event to it).
-OTIdentifier Workflow::convey_incoming_transfer(
+auto Workflow::convey_incoming_transfer(
     const identifier::Nym& nymID,
     const identifier::Server& notaryID,
     const OTTransaction& pending,
     const std::string& senderNymID,
     const std::string& recipientNymID,
-    const Item& transfer) const
+    const Item& transfer) const -> OTIdentifier
 {
     Lock global(lock_);
     const auto existing = get_workflow(
@@ -1484,12 +1492,12 @@ OTIdentifier Workflow::convey_incoming_transfer(
 // event to it.
 // Whereas if this is an INCOMING transfer, then we need to CREATE its
 // corresponding transfer workflow since it does not already exist.
-OTIdentifier Workflow::convey_internal_transfer(
+auto Workflow::convey_internal_transfer(
     const identifier::Nym& nymID,
     const identifier::Server& notaryID,
     const OTTransaction& pending,
     const std::string& senderNymID,
-    const Item& transfer) const
+    const Item& transfer) const -> OTIdentifier
 {
     Lock global(lock_);
     const auto workflow = get_workflow(
@@ -1534,10 +1542,10 @@ OTIdentifier Workflow::convey_internal_transfer(
     }
 }
 
-OTIdentifier Workflow::ConveyTransfer(
+auto Workflow::ConveyTransfer(
     const identifier::Nym& nymID,
     const identifier::Server& notaryID,
-    const OTTransaction& pending) const
+    const OTTransaction& pending) const -> OTIdentifier
 {
     const auto transfer = extract_transfer_from_pending(pending);
 
@@ -1571,7 +1579,7 @@ OTIdentifier Workflow::ConveyTransfer(
     }
 }
 
-std::pair<OTIdentifier, proto::PaymentWorkflow> Workflow::create_cheque(
+auto Workflow::create_cheque(
     const Lock& lock,
     const std::string& nymID,
     const opentxs::Cheque& cheque,
@@ -1583,6 +1591,7 @@ std::pair<OTIdentifier, proto::PaymentWorkflow> Workflow::create_cheque(
     const std::string& party,
     const std::string& account,
     const Message* message) const
+    -> std::pair<OTIdentifier, proto::PaymentWorkflow>
 {
     OT_ASSERT(verify_lock(lock))
 
@@ -1652,7 +1661,7 @@ std::pair<OTIdentifier, proto::PaymentWorkflow> Workflow::create_cheque(
     return save_workflow(std::move(output), nymID, account, workflow);
 }
 
-std::pair<OTIdentifier, proto::PaymentWorkflow> Workflow::create_transfer(
+auto Workflow::create_transfer(
     const Lock& global,
     const std::string& nymID,
     const Item& transfer,
@@ -1665,6 +1674,7 @@ std::pair<OTIdentifier, proto::PaymentWorkflow> Workflow::create_transfer(
     const std::string& account,
     const std::string& notaryID,
     const std::string& destinationAccountID) const
+    -> std::pair<OTIdentifier, proto::PaymentWorkflow>
 {
     OT_ASSERT(verify_lock(global))
     OT_ASSERT(false == nymID.empty());
@@ -1740,9 +1750,8 @@ std::pair<OTIdentifier, proto::PaymentWorkflow> Workflow::create_transfer(
 }
 
 // Creates outgoing and internal transfer workflows.
-OTIdentifier Workflow::CreateTransfer(
-    const Item& transfer,
-    const Message& request) const
+auto Workflow::CreateTransfer(const Item& transfer, const Message& request)
+    const -> OTIdentifier
 {
     if (false == isTransfer(transfer)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid item type on object")
@@ -1815,12 +1824,12 @@ OTIdentifier Workflow::CreateTransfer(
     return workflowID;
 }
 
-bool Workflow::DepositCheque(
+auto Workflow::DepositCheque(
     const identifier::Nym& receiver,
     const Identifier& accountID,
     const opentxs::Cheque& cheque,
     const Message& request,
-    const Message* reply) const
+    const Message* reply) const -> bool
 {
     if (false == isCheque(cheque)) { return false; }
 
@@ -1870,9 +1879,9 @@ bool Workflow::DepositCheque(
     return output;
 }
 
-bool Workflow::ExpireCheque(
+auto Workflow::ExpireCheque(
     const identifier::Nym& nym,
-    const opentxs::Cheque& cheque) const
+    const opentxs::Cheque& cheque) const -> bool
 {
     if (false == isCheque(cheque)) { return false; }
 
@@ -1902,7 +1911,7 @@ bool Workflow::ExpireCheque(
     return save_workflow(nymID, cheque.GetSenderAcctID().str(), *workflow);
 }
 
-bool Workflow::ExportCheque(const opentxs::Cheque& cheque) const
+auto Workflow::ExportCheque(const opentxs::Cheque& cheque) const -> bool
 {
     if (false == isCheque(cheque)) { return false; }
 
@@ -1934,8 +1943,8 @@ bool Workflow::ExportCheque(const opentxs::Cheque& cheque) const
     return save_workflow(nymID, cheque.GetSenderAcctID().str(), *workflow);
 }
 
-std::chrono::time_point<std::chrono::system_clock> Workflow::
-    extract_conveyed_time(const proto::PaymentWorkflow& workflow)
+auto Workflow::extract_conveyed_time(const proto::PaymentWorkflow& workflow)
+    -> std::chrono::time_point<std::chrono::system_clock>
 {
     for (const auto& event : workflow.event()) {
         if (proto::PAYMENTEVENTTYPE_CONVEY == event.type()) {
@@ -1949,8 +1958,8 @@ std::chrono::time_point<std::chrono::system_clock> Workflow::
     return {};
 }
 
-std::unique_ptr<Item> Workflow::extract_transfer_from_pending(
-    const OTTransaction& receipt) const
+auto Workflow::extract_transfer_from_pending(const OTTransaction& receipt) const
+    -> std::unique_ptr<Item>
 {
     if (transactionType::pending != receipt.GetType()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Incorrect receipt type: ")(
@@ -1990,9 +1999,9 @@ std::unique_ptr<Item> Workflow::extract_transfer_from_pending(
     return transfer;
 }
 
-std::unique_ptr<Item> Workflow::extract_transfer_from_receipt(
+auto Workflow::extract_transfer_from_receipt(
     const OTTransaction& receipt,
-    Identifier& depositorNymID) const
+    Identifier& depositorNymID) const -> std::unique_ptr<Item>
 {
     if (transactionType::transferReceipt != receipt.GetType()) {
         if (transactionType::pending == receipt.GetType()) {
@@ -2109,10 +2118,10 @@ std::unique_ptr<Item> Workflow::extract_transfer_from_receipt(
     return transfer;
 }
 
-bool Workflow::FinishCheque(
+auto Workflow::FinishCheque(
     const opentxs::Cheque& cheque,
     const Message& request,
-    const Message* reply) const
+    const Message* reply) const -> bool
 {
     if (false == isCheque(cheque)) { return false; }
 
@@ -2146,11 +2155,11 @@ bool Workflow::FinishCheque(
 }
 
 template <typename T>
-std::shared_ptr<proto::PaymentWorkflow> Workflow::get_workflow(
+auto Workflow::get_workflow(
     const Lock& global,
     const std::set<proto::PaymentWorkflowType>& types,
     const std::string& nymID,
-    const T& source) const
+    const T& source) const -> std::shared_ptr<proto::PaymentWorkflow>
 {
     OT_ASSERT(verify_lock(global));
 
@@ -2160,9 +2169,10 @@ std::shared_ptr<proto::PaymentWorkflow> Workflow::get_workflow(
     return get_workflow_by_source(types, nymID, itemID);
 }
 
-std::shared_ptr<proto::PaymentWorkflow> Workflow::get_workflow_by_id(
+auto Workflow::get_workflow_by_id(
     const std::string& nymID,
     const std::string& workflowID) const
+    -> std::shared_ptr<proto::PaymentWorkflow>
 {
     std::shared_ptr<proto::PaymentWorkflow> output{nullptr};
     const auto loaded = api_.Storage().Load(nymID, workflowID, output);
@@ -2178,10 +2188,11 @@ std::shared_ptr<proto::PaymentWorkflow> Workflow::get_workflow_by_id(
     return output;
 }
 
-std::shared_ptr<proto::PaymentWorkflow> Workflow::get_workflow_by_id(
+auto Workflow::get_workflow_by_id(
     const std::set<proto::PaymentWorkflowType>& types,
     const std::string& nymID,
     const std::string& workflowID) const
+    -> std::shared_ptr<proto::PaymentWorkflow>
 {
     auto output = get_workflow_by_id(nymID, workflowID);
 
@@ -2196,10 +2207,11 @@ std::shared_ptr<proto::PaymentWorkflow> Workflow::get_workflow_by_id(
     return output;
 }
 
-std::shared_ptr<proto::PaymentWorkflow> Workflow::get_workflow_by_source(
+auto Workflow::get_workflow_by_source(
     const std::set<proto::PaymentWorkflowType>& types,
     const std::string& nymID,
     const std::string& sourceID) const
+    -> std::shared_ptr<proto::PaymentWorkflow>
 {
     const auto workflowID =
         api_.Storage().PaymentWorkflowLookup(nymID, sourceID);
@@ -2209,7 +2221,8 @@ std::shared_ptr<proto::PaymentWorkflow> Workflow::get_workflow_by_source(
     return get_workflow_by_id(types, nymID, workflowID);
 }
 
-eLock Workflow::get_workflow_lock(Lock& global, const std::string& id) const
+auto Workflow::get_workflow_lock(Lock& global, const std::string& id) const
+    -> eLock
 {
     OT_ASSERT(verify_lock(global));
 
@@ -2219,9 +2232,9 @@ eLock Workflow::get_workflow_lock(Lock& global, const std::string& id) const
     return output;
 }
 
-OTIdentifier Workflow::ImportCheque(
+auto Workflow::ImportCheque(
     const identifier::Nym& nymID,
-    const opentxs::Cheque& cheque) const
+    const opentxs::Cheque& cheque) const -> OTIdentifier
 {
     if (false == isCheque(cheque)) { return Identifier::Factory(); }
 
@@ -2286,7 +2299,7 @@ OTIdentifier Workflow::ImportCheque(
     return workflowID;
 }
 
-bool Workflow::isCheque(const opentxs::Cheque& cheque)
+auto Workflow::isCheque(const opentxs::Cheque& cheque) -> bool
 {
     if (cheque.HasRemitter()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Provided instrument is a voucher")
@@ -2314,9 +2327,9 @@ bool Workflow::isCheque(const opentxs::Cheque& cheque)
     return true;
 }
 
-bool Workflow::isInternalTransfer(
+auto Workflow::isInternalTransfer(
     const Identifier& sourceAccount,
-    const Identifier& destinationAccount) const
+    const Identifier& destinationAccount) const -> bool
 {
     const auto ownerNymID = api_.Storage().AccountOwner(sourceAccount);
 
@@ -2329,15 +2342,15 @@ bool Workflow::isInternalTransfer(
     return ownerNymID == recipientNymID;
 }
 
-bool Workflow::isTransfer(const Item& item)
+auto Workflow::isTransfer(const Item& item) -> bool
 {
     return itemType::transfer == item.GetType();
 }
 
-std::set<OTIdentifier> Workflow::List(
+auto Workflow::List(
     const identifier::Nym& nymID,
     const proto::PaymentWorkflowType type,
-    const proto::PaymentWorkflowState state) const
+    const proto::PaymentWorkflowState state) const -> std::set<OTIdentifier>
 {
     const auto input =
         api_.Storage().PaymentWorkflowsByState(nymID.str(), type, state);
@@ -2353,9 +2366,9 @@ std::set<OTIdentifier> Workflow::List(
     return output;
 }
 
-Workflow::Cheque Workflow::LoadCheque(
+auto Workflow::LoadCheque(
     const identifier::Nym& nymID,
-    const Identifier& chequeID) const
+    const Identifier& chequeID) const -> Workflow::Cheque
 {
     auto workflow = get_workflow_by_source(
         {proto::PAYMENTWORKFLOWTYPE_OUTGOINGCHEQUE,
@@ -2374,9 +2387,9 @@ Workflow::Cheque Workflow::LoadCheque(
     return InstantiateCheque(api_, *workflow);
 }
 
-Workflow::Cheque Workflow::LoadChequeByWorkflow(
+auto Workflow::LoadChequeByWorkflow(
     const identifier::Nym& nymID,
-    const Identifier& workflowID) const
+    const Identifier& workflowID) const -> Workflow::Cheque
 {
     auto workflow = get_workflow_by_id(
         {proto::PAYMENTWORKFLOWTYPE_OUTGOINGCHEQUE,
@@ -2395,9 +2408,9 @@ Workflow::Cheque Workflow::LoadChequeByWorkflow(
     return InstantiateCheque(api_, *workflow);
 }
 
-Workflow::Transfer Workflow::LoadTransfer(
+auto Workflow::LoadTransfer(
     const identifier::Nym& nymID,
-    const Identifier& transferID) const
+    const Identifier& transferID) const -> Workflow::Transfer
 {
     auto workflow = get_workflow_by_source(
         {proto::PAYMENTWORKFLOWTYPE_OUTGOINGTRANSFER,
@@ -2417,9 +2430,9 @@ Workflow::Transfer Workflow::LoadTransfer(
     return InstantiateTransfer(api_, *workflow);
 }
 
-Workflow::Transfer Workflow::LoadTransferByWorkflow(
+auto Workflow::LoadTransferByWorkflow(
     const identifier::Nym& nymID,
-    const Identifier& workflowID) const
+    const Identifier& workflowID) const -> Workflow::Transfer
 {
     auto workflow = get_workflow_by_id(
         {proto::PAYMENTWORKFLOWTYPE_OUTGOINGTRANSFER,
@@ -2439,18 +2452,19 @@ Workflow::Transfer Workflow::LoadTransferByWorkflow(
     return InstantiateTransfer(api_, *workflow);
 }
 
-std::shared_ptr<proto::PaymentWorkflow> Workflow::LoadWorkflow(
+auto Workflow::LoadWorkflow(
     const identifier::Nym& nymID,
     const Identifier& workflowID) const
+    -> std::shared_ptr<proto::PaymentWorkflow>
 {
     return get_workflow_by_id(nymID.str(), workflowID.str());
 }
 
 #if OT_CASH
-OTIdentifier Workflow::ReceiveCash(
+auto Workflow::ReceiveCash(
     const identifier::Nym& receiver,
     const blind::Purse& purse,
-    const Message& message) const
+    const Message& message) const -> OTIdentifier
 {
     Lock global(lock_);
     const std::string serialized = String::Factory(message)->Get();
@@ -2493,10 +2507,10 @@ OTIdentifier Workflow::ReceiveCash(
 }
 #endif
 
-OTIdentifier Workflow::ReceiveCheque(
+auto Workflow::ReceiveCheque(
     const identifier::Nym& nymID,
     const opentxs::Cheque& cheque,
-    const Message& message) const
+    const Message& message) const -> OTIdentifier
 {
     if (false == isCheque(cheque)) { return Identifier::Factory(); }
 
@@ -2562,17 +2576,17 @@ OTIdentifier Workflow::ReceiveCheque(
     return workflowID;
 }
 
-bool Workflow::save_workflow(
+auto Workflow::save_workflow(
     const std::string& nymID,
-    const proto::PaymentWorkflow& workflow) const
+    const proto::PaymentWorkflow& workflow) const -> bool
 {
     return save_workflow(nymID, "", workflow);
 }
 
-bool Workflow::save_workflow(
+auto Workflow::save_workflow(
     const std::string& nymID,
     const std::string& accountID,
-    const proto::PaymentWorkflow& workflow) const
+    const proto::PaymentWorkflow& workflow) const -> bool
 {
     const bool valid = proto::Validate(workflow, VERBOSE);
 
@@ -2587,22 +2601,23 @@ bool Workflow::save_workflow(
     return valid && saved;
 }
 
-OTIdentifier Workflow::save_workflow(
+auto Workflow::save_workflow(
     OTIdentifier&& output,
     const std::string& nymID,
     const std::string& accountID,
-    const proto::PaymentWorkflow& workflow) const
+    const proto::PaymentWorkflow& workflow) const -> OTIdentifier
 {
     if (save_workflow(nymID, accountID, workflow)) { return std::move(output); }
 
     return Identifier::Factory();
 }
 
-std::pair<OTIdentifier, proto::PaymentWorkflow> Workflow::save_workflow(
+auto Workflow::save_workflow(
     std::pair<OTIdentifier, proto::PaymentWorkflow>&& output,
     const std::string& nymID,
     const std::string& accountID,
     const proto::PaymentWorkflow& workflow) const
+    -> std::pair<OTIdentifier, proto::PaymentWorkflow>
 {
     if (save_workflow(nymID, accountID, workflow)) { return std::move(output); }
 
@@ -2610,12 +2625,12 @@ std::pair<OTIdentifier, proto::PaymentWorkflow> Workflow::save_workflow(
 }
 
 #if OT_CASH
-bool Workflow::SendCash(
+auto Workflow::SendCash(
     const identifier::Nym& sender,
     const identifier::Nym& recipient,
     const Identifier& workflowID,
     const Message& request,
-    const Message* reply) const
+    const Message* reply) const -> bool
 {
     Lock global(lock_);
     const auto pWorkflow = get_workflow_by_id(sender.str(), workflowID.str());
@@ -2661,10 +2676,10 @@ bool Workflow::SendCash(
 }
 #endif
 
-bool Workflow::SendCheque(
+auto Workflow::SendCheque(
     const opentxs::Cheque& cheque,
     const Message& request,
-    const Message* reply) const
+    const Message* reply) const -> bool
 {
     if (false == isCheque(cheque)) { return false; }
 
@@ -2697,13 +2712,13 @@ bool Workflow::SendCheque(
         reply);
 }
 
-bool Workflow::update_activity(
+auto Workflow::update_activity(
     const identifier::Nym& localNymID,
     const identifier::Nym& remoteNymID,
     const Identifier& sourceID,
     const Identifier& workflowID,
     const StorageBox type,
-    std::chrono::time_point<std::chrono::system_clock> time) const
+    std::chrono::time_point<std::chrono::system_clock> time) const -> bool
 {
     const auto contactID = contact_.ContactID(remoteNymID);
 
@@ -2776,18 +2791,18 @@ void Workflow::update_rpc(
     rpc_publisher_->Send(message);
 }
 
-bool Workflow::validate_recipient(
+auto Workflow::validate_recipient(
     const identifier::Nym& nymID,
-    const opentxs::Cheque& cheque)
+    const opentxs::Cheque& cheque) -> bool
 {
     if (nymID.empty()) { return true; }
 
     return (nymID == cheque.GetRecipientNymID());
 }
 
-std::vector<OTIdentifier> Workflow::WorkflowsByAccount(
+auto Workflow::WorkflowsByAccount(
     const identifier::Nym& nymID,
-    const Identifier& accountID) const
+    const Identifier& accountID) const -> std::vector<OTIdentifier>
 {
     std::vector<OTIdentifier> output{};
     const auto workflows =
@@ -2803,7 +2818,7 @@ std::vector<OTIdentifier> Workflow::WorkflowsByAccount(
     return output;
 }
 
-OTIdentifier Workflow::WriteCheque(const opentxs::Cheque& cheque) const
+auto Workflow::WriteCheque(const opentxs::Cheque& cheque) const -> OTIdentifier
 {
     if (false == isCheque(cheque)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(

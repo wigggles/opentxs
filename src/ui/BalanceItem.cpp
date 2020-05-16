@@ -108,7 +108,7 @@ BalanceItem::BalanceItem(
 {
 }
 
-std::string BalanceItem::DisplayAmount() const noexcept
+auto BalanceItem::DisplayAmount() const noexcept -> std::string
 {
     sLock lock(shared_lock_);
 
@@ -126,9 +126,9 @@ std::string BalanceItem::DisplayAmount() const noexcept
     return std::to_string(0);
 }
 
-std::vector<std::string> BalanceItem::extract_contacts(
+auto BalanceItem::extract_contacts(
     const api::client::internal::Manager& api,
-    const proto::PaymentWorkflow& workflow) noexcept
+    const proto::PaymentWorkflow& workflow) noexcept -> std::vector<std::string>
 {
     std::vector<std::string> output{};
 
@@ -141,8 +141,8 @@ std::vector<std::string> BalanceItem::extract_contacts(
     return output;
 }
 
-StorageBox BalanceItem::extract_type(
-    const proto::PaymentWorkflow& workflow) noexcept
+auto BalanceItem::extract_type(const proto::PaymentWorkflow& workflow) noexcept
+    -> StorageBox
 {
     switch (workflow.type()) {
         case proto::PAYMENTWORKFLOWTYPE_OUTGOINGCHEQUE: {
@@ -175,8 +175,8 @@ StorageBox BalanceItem::extract_type(
     }
 }
 
-std::string BalanceItem::get_contact_name(const identifier::Nym& nymID) const
-    noexcept
+auto BalanceItem::get_contact_name(const identifier::Nym& nymID) const noexcept
+    -> std::string
 {
     if (nymID.empty()) { return {}; }
 
@@ -249,8 +249,8 @@ QVariant BalanceItem::qt_data(const int column, int role) const noexcept
 }
 #endif
 
-const proto::PaymentEvent& BalanceItem::recover_event(
-    const CustomData& custom) noexcept
+auto BalanceItem::recover_event(const CustomData& custom) noexcept
+    -> const proto::PaymentEvent&
 {
     OT_ASSERT(2 == custom.size())
 
@@ -261,8 +261,8 @@ const proto::PaymentEvent& BalanceItem::recover_event(
     return *static_cast<const proto::PaymentEvent*>(input);
 }
 
-const proto::PaymentWorkflow& BalanceItem::recover_workflow(
-    const CustomData& custom) noexcept
+auto BalanceItem::recover_workflow(const CustomData& custom) noexcept
+    -> const proto::PaymentWorkflow&
 {
     OT_ASSERT(2 == custom.size())
 
@@ -282,14 +282,15 @@ void BalanceItem::reindex(
     lock.unlock();
 }
 
-std::string BalanceItem::Text() const noexcept
+auto BalanceItem::Text() const noexcept -> std::string
 {
     sLock lock(shared_lock_);
 
     return text_;
 }
 
-std::chrono::system_clock::time_point BalanceItem::Timestamp() const noexcept
+auto BalanceItem::Timestamp() const noexcept
+    -> std::chrono::system_clock::time_point
 {
     sLock lock(shared_lock_);
 

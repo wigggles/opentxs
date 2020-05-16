@@ -20,12 +20,12 @@
 
 namespace opentxs::proto
 {
-bool CheckProto_1(
+auto CheckProto_1(
     const PaymentEvent& input,
     const bool silent,
     const std::uint32_t parentVersion,
     const PaymentWorkflowType parent,
-    std::map<PaymentEventType, std::size_t>& events)
+    std::map<PaymentEventType, std::size_t>& events) -> bool
 {
     try {
         const bool valid =

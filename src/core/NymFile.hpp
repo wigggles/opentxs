@@ -46,56 +46,63 @@ class PasswordPrompt;
 
 namespace opentxs::implementation
 {
-typedef std::deque<std::shared_ptr<Message>> dequeOfMail;
-typedef std::map<std::string, OTIdentifier> mapOfIdentifiers;
+using dequeOfMail = std::deque<std::shared_ptr<Message>>;
+using mapOfIdentifiers = std::map<std::string, OTIdentifier>;
 
 class NymFile final : public opentxs::internal::NymFile, Lockable
 {
 public:
-    bool CompareID(const identifier::Nym& rhs) const final;
+    auto CompareID(const identifier::Nym& rhs) const -> bool final;
     void DisplayStatistics(String& strOutput) const final;
-    bool GetInboxHash(
+    auto GetInboxHash(
         const std::string& acct_id,
-        Identifier& theOutput) const final;  // client-side
-    bool GetOutboxHash(
+        Identifier& theOutput) const -> bool final;  // client-side
+    auto GetOutboxHash(
         const std::string& acct_id,
-        Identifier& theOutput) const final;  // client-side
-    std::shared_ptr<Message> GetOutpaymentsByIndex(
-        const std::int32_t nIndex) const final;
-    std::shared_ptr<Message> GetOutpaymentsByTransNum(
+        Identifier& theOutput) const -> bool final;  // client-side
+    auto GetOutpaymentsByIndex(const std::int32_t nIndex) const
+        -> std::shared_ptr<Message> final;
+    auto GetOutpaymentsByTransNum(
         const std::int64_t lTransNum,
         const PasswordPrompt& reason,
         std::unique_ptr<OTPayment>* pReturnPayment = nullptr,
-        std::int32_t* pnReturnIndex = nullptr) const final;
-    std::int32_t GetOutpaymentsCount() const final;
-    const std::int64_t& GetUsageCredits() const final
+        std::int32_t* pnReturnIndex = nullptr) const
+        -> std::shared_ptr<Message> final;
+    auto GetOutpaymentsCount() const -> std::int32_t final;
+    auto GetUsageCredits() const -> const std::int64_t& final
     {
         sLock lock(shared_lock_);
 
         return m_lUsageCredits;
     }
-    const identifier::Nym& ID() const final { return target_nym_->ID(); }
-    std::string PaymentCode() const final { return target_nym_->PaymentCode(); }
-    bool SerializeNymFile(String& output) const final;
+    auto ID() const -> const identifier::Nym& final
+    {
+        return target_nym_->ID();
+    }
+    auto PaymentCode() const -> std::string final
+    {
+        return target_nym_->PaymentCode();
+    }
+    auto SerializeNymFile(String& output) const -> bool final;
 
     void AddOutpayments(std::shared_ptr<Message> theMessage) final;
-    std::set<std::string>& GetSetAssetAccounts() final
+    auto GetSetAssetAccounts() -> std::set<std::string>& final
     {
         sLock lock(shared_lock_);
 
         return m_setAccounts;
     }
-    bool RemoveOutpaymentsByIndex(const std::int32_t nIndex) final;
-    bool RemoveOutpaymentsByTransNum(
+    auto RemoveOutpaymentsByIndex(const std::int32_t nIndex) -> bool final;
+    auto RemoveOutpaymentsByTransNum(
         const std::int64_t lTransNum,
-        const PasswordPrompt& reason) final;
-    bool SaveSignedNymFile(const identity::Nym& SIGNER_NYM);
-    bool SetInboxHash(
+        const PasswordPrompt& reason) -> bool final;
+    auto SaveSignedNymFile(const identity::Nym& SIGNER_NYM) -> bool;
+    auto SetInboxHash(
         const std::string& acct_id,
-        const Identifier& theInput) final;  // client-side
-    bool SetOutboxHash(
+        const Identifier& theInput) -> bool final;  // client-side
+    auto SetOutboxHash(
         const std::string& acct_id,
-        const Identifier& theInput) final;  // client-side
+        const Identifier& theInput) -> bool final;  // client-side
     void SetUsageCredits(const std::int64_t& lUsage) final
     {
         eLock lock(shared_lock_);
@@ -133,44 +140,47 @@ private:
     // has multiple servers.)
     std::set<std::string> m_setAccounts;
 
-    bool GetHash(
+    auto GetHash(
         const mapOfIdentifiers& the_map,
         const std::string& str_id,
-        Identifier& theOutput) const;
+        Identifier& theOutput) const -> bool;
 
     void ClearAll();
-    bool DeserializeNymFile(
+    auto DeserializeNymFile(
         const String& strNym,
         bool& converted,
         String::Map* pMapCredentials = nullptr,
-        const OTPassword* pImportPassword = nullptr);
+        const OTPassword* pImportPassword = nullptr) -> bool;
     template <typename T>
-    bool deserialize_nymfile(
+    auto deserialize_nymfile(
         const T& lock,
         const String& strNym,
         bool& converted,
         String::Map* pMapCredentials,
-        const OTPassword* pImportPassword = nullptr);
-    bool LoadSignedNymFile(const PasswordPrompt& reason) final;
+        const OTPassword* pImportPassword = nullptr) -> bool;
+    auto LoadSignedNymFile(const PasswordPrompt& reason) -> bool final;
     template <typename T>
-    bool load_signed_nymfile(const T& lock, const PasswordPrompt& reason);
+    auto load_signed_nymfile(const T& lock, const PasswordPrompt& reason)
+        -> bool;
     void RemoveAllNumbers(const String& pstrNotaryID = String::Factory());
-    bool SaveSignedNymFile(const PasswordPrompt& reason) final;
+    auto SaveSignedNymFile(const PasswordPrompt& reason) -> bool final;
     template <typename T>
-    bool save_signed_nymfile(const T& lock, const PasswordPrompt& reason);
+    auto save_signed_nymfile(const T& lock, const PasswordPrompt& reason)
+        -> bool;
     template <typename T>
-    bool serialize_nymfile(const T& lock, String& strNym) const;
-    bool SerializeNymFile(const char* szFoldername, const char* szFilename);
-    bool SetHash(
+    auto serialize_nymfile(const T& lock, String& strNym) const -> bool;
+    auto SerializeNymFile(const char* szFoldername, const char* szFilename)
+        -> bool;
+    auto SetHash(
         mapOfIdentifiers& the_map,
         const std::string& str_id,
-        const Identifier& theInput);
+        const Identifier& theInput) -> bool;
 
     NymFile(const api::internal::Core& core, Nym_p targetNym, Nym_p signerNym);
     NymFile() = delete;
     NymFile(const NymFile&) = delete;
     NymFile(NymFile&&) = delete;
-    NymFile& operator=(const NymFile&) = delete;
-    NymFile& operator=(NymFile&&) = delete;
+    auto operator=(const NymFile&) -> NymFile& = delete;
+    auto operator=(NymFile &&) -> NymFile& = delete;
 };
 }  // namespace opentxs::implementation

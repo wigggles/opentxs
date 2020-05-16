@@ -49,12 +49,12 @@ namespace opentxs::blockchain::p2p::bitcoin::message
 class Sendcmpct final : virtual public bitcoin::Message
 {
 public:
-    bool announce() const noexcept { return announce_; }
-    std::uint64_t version() const noexcept { return version_; }
+    auto announce() const noexcept -> bool { return announce_; }
+    auto version() const noexcept -> std::uint64_t { return version_; }
 
     ~Sendcmpct() final = default;
 
-    OTData payload() const noexcept final;
+    auto payload() const noexcept -> OTData final;
 
 private:
     struct Raw {
@@ -82,7 +82,7 @@ private:
         const std::uint64_t version) noexcept(false);
     Sendcmpct(const Sendcmpct&) = delete;
     Sendcmpct(Sendcmpct&&) = delete;
-    Sendcmpct& operator=(const Sendcmpct&) = delete;
-    Sendcmpct& operator=(Sendcmpct&&) = delete;
+    auto operator=(const Sendcmpct&) -> Sendcmpct& = delete;
+    auto operator=(Sendcmpct &&) -> Sendcmpct& = delete;
 };
 }  // namespace opentxs::blockchain::p2p::bitcoin::message

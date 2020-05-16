@@ -43,9 +43,9 @@ template class opentxs::network::zeromq::socket::implementation::Receiver<
 
 namespace opentxs::network::zeromq::zap
 {
-OTZMQZAPHandler Handler::Factory(
+auto Handler::Factory(
     const zeromq::Context& context,
-    const zap::Callback& callback)
+    const zap::Callback& callback) -> OTZMQZAPHandler
 {
     return OTZMQZAPHandler(new implementation::Handler(context, callback));
 }

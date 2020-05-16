@@ -12,13 +12,12 @@
 namespace opentxs::internal
 {
 struct Context : virtual public opentxs::Context {
-    virtual proto::Context GetContract(const Lock& lock) const = 0;
-    virtual bool ValidateContext(const Lock& lock) const = 0;
+    virtual auto GetContract(const Lock& lock) const -> proto::Context = 0;
+    virtual auto ValidateContext(const Lock& lock) const -> bool = 0;
 
-    virtual std::mutex& GetLock() = 0;
-    virtual bool UpdateSignature(
-        const Lock& lock,
-        const PasswordPrompt& reason) = 0;
+    virtual auto GetLock() -> std::mutex& = 0;
+    virtual auto UpdateSignature(const Lock& lock, const PasswordPrompt& reason)
+        -> bool = 0;
 
 #ifdef _MSC_VER
     Context() {}

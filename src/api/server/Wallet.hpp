@@ -57,18 +57,20 @@ namespace opentxs::api::server::implementation
 class Wallet final : public api::implementation::Wallet
 {
 public:
-    std::shared_ptr<const opentxs::ClientContext> ClientContext(
-        const identifier::Nym& remoteNymID) const final;
-    std::shared_ptr<const opentxs::Context> Context(
+    auto ClientContext(const identifier::Nym& remoteNymID) const
+        -> std::shared_ptr<const opentxs::ClientContext> final;
+    auto Context(
         const identifier::Server& notaryID,
-        const identifier::Nym& clientNymID) const final;
-    Editor<opentxs::ClientContext> mutable_ClientContext(
+        const identifier::Nym& clientNymID) const
+        -> std::shared_ptr<const opentxs::Context> final;
+    auto mutable_ClientContext(
         const identifier::Nym& remoteNymID,
-        const PasswordPrompt& reason) const final;
-    Editor<opentxs::Context> mutable_Context(
+        const PasswordPrompt& reason) const
+        -> Editor<opentxs::ClientContext> final;
+    auto mutable_Context(
         const identifier::Server& notaryID,
         const identifier::Nym& clientNymID,
-        const PasswordPrompt& reason) const final;
+        const PasswordPrompt& reason) const -> Editor<opentxs::Context> final;
 
     ~Wallet() = default;
 
@@ -84,17 +86,17 @@ private:
         const Nym_p& localNym,
         const Nym_p& remoteNym,
         std::shared_ptr<opentxs::internal::Context>& output) const final;
-    bool load_legacy_account(
+    auto load_legacy_account(
         const Identifier& accountID,
         const eLock& lock,
-        AccountLock& row) const final;
-    Nym_p signer_nym(const identifier::Nym& id) const final;
+        AccountLock& row) const -> bool final;
+    auto signer_nym(const identifier::Nym& id) const -> Nym_p final;
 
     Wallet(const api::server::internal::Manager& server);
     Wallet() = delete;
     Wallet(const Wallet&) = delete;
     Wallet(Wallet&&) = delete;
-    Wallet& operator=(const Wallet&) = delete;
-    Wallet& operator=(Wallet&&) = delete;
+    auto operator=(const Wallet&) -> Wallet& = delete;
+    auto operator=(Wallet &&) -> Wallet& = delete;
 };
 }  // namespace opentxs::api::server::implementation

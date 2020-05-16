@@ -13,15 +13,16 @@
 namespace opentxs::identity::wot::verification::internal
 {
 struct Group : virtual public verification::Group {
-    virtual const api::internal::Core& API() const noexcept = 0;
-    virtual bool External() const noexcept = 0;
-    virtual const identifier::Nym& NymID() const noexcept = 0;
+    virtual auto API() const noexcept -> const api::internal::Core& = 0;
+    virtual auto External() const noexcept -> bool = 0;
+    virtual auto NymID() const noexcept -> const identifier::Nym& = 0;
 
     virtual void Register(
         const Identifier& id,
         const identifier::Nym& nym) noexcept = 0;
     virtual void Unregister(const Identifier& id) noexcept = 0;
-    virtual bool UpgradeNymVersion(const VersionNumber nymVersion) noexcept = 0;
+    virtual auto UpgradeNymVersion(const VersionNumber nymVersion) noexcept
+        -> bool = 0;
 
     ~Group() override = default;
 };
@@ -29,27 +30,27 @@ struct Item : virtual public verification::Item {
     ~Item() override = default;
 };
 struct Nym : virtual public verification::Nym {
-    virtual const api::internal::Core& API() const noexcept = 0;
-    virtual const identifier::Nym& NymID() const noexcept = 0;
+    virtual auto API() const noexcept -> const api::internal::Core& = 0;
+    virtual auto NymID() const noexcept -> const identifier::Nym& = 0;
 
     using verification::Nym::AddItem;
-    virtual bool AddItem(const Item::SerializedType item) noexcept = 0;
-    virtual bool UpgradeItemVersion(
+    virtual auto AddItem(const Item::SerializedType item) noexcept -> bool = 0;
+    virtual auto UpgradeItemVersion(
         const VersionNumber itemVersion,
-        VersionNumber& nymVersion) noexcept = 0;
+        VersionNumber& nymVersion) noexcept -> bool = 0;
 
     ~Nym() override = default;
 };
 struct Set : virtual public verification::Set {
-    virtual const api::internal::Core& API() const noexcept = 0;
-    virtual const identifier::Nym& NymID() const noexcept = 0;
+    virtual auto API() const noexcept -> const api::internal::Core& = 0;
+    virtual auto NymID() const noexcept -> const identifier::Nym& = 0;
 
     virtual void Register(
         const Identifier& id,
         const bool external) noexcept = 0;
     virtual void Unregister(const Identifier& id) noexcept = 0;
-    virtual bool UpgradeGroupVersion(
-        const VersionNumber groupVersion) noexcept = 0;
+    virtual auto UpgradeGroupVersion(const VersionNumber groupVersion) noexcept
+        -> bool = 0;
 
     ~Set() override = default;
 };

@@ -163,7 +163,7 @@ private:
     Wallet() = delete;
     Wallet(const Wallet&) = delete;
     Wallet(Wallet&&) = delete;
-    Wallet& operator=(const Wallet&) = delete;
-    Wallet& operator=(Wallet&&) = delete;
+    auto operator=(const Wallet&) -> Wallet& = delete;
+    auto operator=(Wallet &&) -> Wallet& = delete;
 };
 }  // namespace opentxs::blockchain::client::implementation

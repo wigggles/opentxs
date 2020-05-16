@@ -80,15 +80,15 @@ class ServerConnection final
       Lockable
 {
 public:
-    bool ChangeAddressType(const proto::AddressType type) final;
-    bool ClearProxy() final;
-    bool EnableProxy() final;
-    NetworkReplyMessage Send(
+    auto ChangeAddressType(const proto::AddressType type) -> bool final;
+    auto ClearProxy() -> bool final;
+    auto EnableProxy() -> bool final;
+    auto Send(
         const ServerContext& context,
         const Message& message,
         const PasswordPrompt& reason,
-        const Push push) final;
-    bool Status() const final;
+        const Push push) -> NetworkReplyMessage final;
+    auto Status() const -> bool final;
 
     ~ServerConnection() final;
 
@@ -113,27 +113,27 @@ private:
     mutable std::mutex registration_lock_;
     std::map<OTNymID, bool> registered_for_push_;
 
-    static std::pair<bool, proto::ServerReply> check_for_protobuf(
-        const zeromq::Frame& frame);
+    static auto check_for_protobuf(const zeromq::Frame& frame)
+        -> std::pair<bool, proto::ServerReply>;
 
-    OTZMQDealerSocket async_socket(const Lock& lock) const;
-    ServerConnection* clone() const final { return nullptr; }
-    std::string endpoint() const;
-    std::string form_endpoint(
+    auto async_socket(const Lock& lock) const -> OTZMQDealerSocket;
+    auto clone() const -> ServerConnection* final { return nullptr; }
+    auto endpoint() const -> std::string;
+    auto form_endpoint(
         proto::AddressType type,
         std::string hostname,
-        std::uint32_t port) const;
-    std::chrono::time_point<std::chrono::system_clock> get_timeout();
+        std::uint32_t port) const -> std::string;
+    auto get_timeout() -> std::chrono::time_point<std::chrono::system_clock>;
     void publish() const;
     void set_curve(const Lock& lock, zeromq::curve::Client& socket) const;
     void set_proxy(const Lock& lock, zeromq::socket::Dealer& socket) const;
     void set_timeouts(const Lock& lock, zeromq::socket::Socket& socket) const;
-    OTZMQRequestSocket sync_socket(const Lock& lock) const;
+    auto sync_socket(const Lock& lock) const -> OTZMQRequestSocket;
 
     void activity_timer();
     void disable_push(const identifier::Nym& nymID);
-    zeromq::socket::Dealer& get_async(const Lock& lock);
-    zeromq::socket::Request& get_sync(const Lock& lock);
+    auto get_async(const Lock& lock) -> zeromq::socket::Dealer&;
+    auto get_sync(const Lock& lock) -> zeromq::socket::Request&;
     void process_incoming(const zeromq::Message& in);
     void process_incoming(const proto::ServerReply& in);
     void register_for_push(
@@ -150,7 +150,7 @@ private:
     ServerConnection() = delete;
     ServerConnection(const ServerConnection&) = delete;
     ServerConnection(ServerConnection&&) = delete;
-    ServerConnection& operator=(const ServerConnection&) = delete;
-    ServerConnection& operator=(ServerConnection&&) = delete;
+    auto operator=(const ServerConnection&) -> ServerConnection& = delete;
+    auto operator=(ServerConnection &&) -> ServerConnection& = delete;
 };
 }  // namespace opentxs::network::implementation

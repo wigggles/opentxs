@@ -59,8 +59,8 @@ class ServerContext;
 // object with the ID in it and store it in our inbox. THEN if we want to send a
 // transaction, we use the blank to do so. If there is no blank available, we
 // message the server and request one.
-typedef std::map<TransactionNumber, std::shared_ptr<OTTransaction>>
-    mapOfTransactions;
+using mapOfTransactions =
+    std::map<TransactionNumber, std::shared_ptr<OTTransaction>>;
 
 // the "inbox" and "outbox" functionality is implemented in this class
 class Ledger : public OTTransactionType
@@ -261,7 +261,7 @@ protected:
 private:  // Private prevents erroneous use by other classes.
     friend api::implementation::Factory;
 
-    typedef OTTransactionType ot_super;
+    using ot_super = OTTransactionType;
 
     mapOfTransactions m_mapTransactions;  // a ledger contains a map of
                                           // transactions.

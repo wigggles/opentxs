@@ -60,42 +60,44 @@ namespace opentxs::api::implementation
 class Context final : api::internal::Context, Lockable, Periodic
 {
 public:
-    const api::client::internal::Manager& Client(
-        const int instance) const final;
-    std::size_t Clients() const final { return client_.size(); }
-    const api::Settings& Config(const std::string& path) const final;
-    const api::Crypto& Crypto() const final;
+    auto Client(const int instance) const
+        -> const api::client::internal::Manager& final;
+    auto Clients() const -> std::size_t final { return client_.size(); }
+    auto Config(const std::string& path) const -> const api::Settings& final;
+    auto Crypto() const -> const api::Crypto& final;
     void HandleSignals(ShutdownCallback* shutdown) const final;
-    const api::Legacy& Legacy() const noexcept final { return *legacy_; }
-    proto::RPCResponse RPC(const proto::RPCCommand& command) const final;
-    const api::server::Manager& Server(const int instance) const final;
-    std::size_t Servers() const final { return server_.size(); }
-    const api::client::internal::Manager& StartClient(
-        const ArgList& args,
-        const int instance) const final;
+    auto Legacy() const noexcept -> const api::Legacy& final
+    {
+        return *legacy_;
+    }
+    auto RPC(const proto::RPCCommand& command) const
+        -> proto::RPCResponse final;
+    auto Server(const int instance) const -> const api::server::Manager& final;
+    auto Servers() const -> std::size_t final { return server_.size(); }
+    auto StartClient(const ArgList& args, const int instance) const
+        -> const api::client::internal::Manager& final;
 #if OT_CRYPTO_WITH_BIP32
-    const api::client::internal::Manager& StartClient(
+    auto StartClient(
         const ArgList& args,
         const int instance,
         const std::string& recoverWords,
-        const std::string& recoverPassphrase) const final;
+        const std::string& recoverPassphrase) const
+        -> const api::client::internal::Manager& final;
 #endif  // OT_CRYPTO_WITH_BIP32
-    const api::server::Manager& StartServer(
-        const ArgList& args,
-        const int instance,
-        const bool inproc) const final;
-    const api::network::ZAP& ZAP() const final;
-    const opentxs::network::zeromq::Context& ZMQ() const final
+    auto StartServer(const ArgList& args, const int instance, const bool inproc)
+        const -> const api::server::Manager& final;
+    auto ZAP() const -> const api::network::ZAP& final;
+    auto ZMQ() const -> const opentxs::network::zeromq::Context& final
     {
         return zmq_context_.get();
     }
 
-    OTCaller& GetPasswordCaller() const final;
+    auto GetPasswordCaller() const -> OTCaller& final;
 
 private:
     friend opentxs::Factory;
 
-    typedef std::map<std::string, std::unique_ptr<api::Settings>> ConfigMap;
+    using ConfigMap = std::map<std::string, std::unique_ptr<api::Settings>>;
 
     const std::chrono::seconds gc_interval_;
     const std::string home_;
@@ -122,12 +124,13 @@ private:
         client_;
     std::unique_ptr<rpc::internal::RPC> rpc_;
 
-    static int client_instance(const int count);
-    static int server_instance(const int count);
-    static std::string get_arg(const ArgList& args, const std::string& argName);
+    static auto client_instance(const int count) -> int;
+    static auto server_instance(const int count) -> int;
+    static auto get_arg(const ArgList& args, const std::string& argName)
+        -> std::string;
 
     void init_pid(const Lock& lock) const;
-    const ArgList merge_arglist(const ArgList& args) const;
+    auto merge_arglist(const ArgList& args) const -> const ArgList;
     void start_client(const Lock& lock, const ArgList& args) const;
     void start_server(const Lock& lock, const ArgList& args) const;
 
@@ -149,8 +152,8 @@ private:
     Context() = delete;
     Context(const Context&) = delete;
     Context(Context&&) = delete;
-    Context& operator=(const Context&) = delete;
-    Context& operator=(Context&&) = delete;
+    auto operator=(const Context&) -> Context& = delete;
+    auto operator=(Context &&) -> Context& = delete;
 
     ~Context() final;
 };

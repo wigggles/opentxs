@@ -26,9 +26,9 @@ template class opentxs::Pimpl<opentxs::network::zeromq::zap::Callback>;
 
 namespace opentxs::network::zeromq::zap
 {
-OTZMQZAPCallback Callback::Factory(
+auto Callback::Factory(
     const std::string& domain,
-    const ReceiveCallback& callback)
+    const ReceiveCallback& callback) -> OTZMQZAPCallback
 {
     auto output = OTZMQZAPCallback(new implementation::Callback());
     output->SetDomain(domain, callback);
@@ -36,7 +36,7 @@ OTZMQZAPCallback Callback::Factory(
     return output;
 }
 
-OTZMQZAPCallback Callback::Factory()
+auto Callback::Factory() -> OTZMQZAPCallback
 {
     return OTZMQZAPCallback(new implementation::Callback());
 }
@@ -53,7 +53,7 @@ Callback::Callback()
 {
 }
 
-OTZMQZAPReply Callback::default_callback(const zap::Request& in) const
+auto Callback::default_callback(const zap::Request& in) const -> OTZMQZAPReply
 {
     auto output = Reply::Factory(in);
 
@@ -68,7 +68,8 @@ OTZMQZAPReply Callback::default_callback(const zap::Request& in) const
     return output;
 }
 
-const Callback::Lambda& Callback::get_domain(const std::string& domain) const
+auto Callback::get_domain(const std::string& domain) const
+    -> const Callback::Lambda&
 {
     Lock lock(domain_lock_);
 
@@ -81,7 +82,7 @@ const Callback::Lambda& Callback::get_domain(const std::string& domain) const
     }
 }
 
-OTZMQZAPReply Callback::Process(const zap::Request& request) const
+auto Callback::Process(const zap::Request& request) const -> OTZMQZAPReply
 {
     auto [valid, error] = request.Validate();
 
@@ -97,9 +98,9 @@ OTZMQZAPReply Callback::Process(const zap::Request& request) const
     return domain(request);
 }
 
-bool Callback::SetDomain(
+auto Callback::SetDomain(
     const std::string& domain,
-    const ReceiveCallback& callback) const
+    const ReceiveCallback& callback) const -> bool
 {
     Lock lock(domain_lock_);
 
@@ -120,7 +121,7 @@ bool Callback::SetDomain(
     return domains_.emplace(domain, callback).second;
 }
 
-bool Callback::SetPolicy(const Policy policy) const
+auto Callback::SetPolicy(const Policy policy) const -> bool
 {
     policy_.store(policy);
 

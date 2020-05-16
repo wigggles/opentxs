@@ -447,31 +447,34 @@ private:
     };
 
     struct Headers {
-        block::pHash BestBlock(const block::Height position) const
-            noexcept(false);
-        std::unique_ptr<block::Header> CurrentBest() const noexcept
+        auto BestBlock(const block::Height position) const noexcept(false)
+            -> block::pHash;
+        auto CurrentBest() const noexcept -> std::unique_ptr<block::Header>
         {
             return load_header(best().second);
         }
-        block::Position CurrentCheckpoint() const noexcept;
-        client::DisconnectedList DisconnectedHashes() const noexcept;
-        bool HasDisconnectedChildren(const block::Hash& hash) const noexcept;
-        bool HaveCheckpoint() const noexcept;
-        bool HeaderExists(const block::Hash& hash) const noexcept;
+        auto CurrentCheckpoint() const noexcept -> block::Position;
+        auto DisconnectedHashes() const noexcept -> client::DisconnectedList;
+        auto HasDisconnectedChildren(const block::Hash& hash) const noexcept
+            -> bool;
+        auto HaveCheckpoint() const noexcept -> bool;
+        auto HeaderExists(const block::Hash& hash) const noexcept -> bool;
         void import_genesis(const blockchain::Type type) const noexcept;
-        bool IsSibling(const block::Hash& hash) const noexcept;
+        auto IsSibling(const block::Hash& hash) const noexcept -> bool;
         // Throws std::out_of_range if the header does not exist
-        std::unique_ptr<block::Header> LoadHeader(const block::Hash& hash) const
+        auto LoadHeader(const block::Hash& hash) const
+            -> std::unique_ptr<block::Header>
         {
             return load_header(hash);
         }
-        std::vector<block::pHash> RecentHashes() const noexcept;
-        client::Hashes SiblingHashes() const noexcept;
+        auto RecentHashes() const noexcept -> std::vector<block::pHash>;
+        auto SiblingHashes() const noexcept -> client::Hashes;
         // Returns null pointer if the header does not exist
-        std::unique_ptr<block::Header> TryLoadHeader(
-            const block::Hash& hash) const noexcept;
+        auto TryLoadHeader(const block::Hash& hash) const noexcept
+            -> std::unique_ptr<block::Header>;
 
-        bool ApplyUpdate(const client::UpdateTransaction& update) noexcept;
+        auto ApplyUpdate(const client::UpdateTransaction& update) noexcept
+            -> bool;
 
         Headers(
             const api::internal::Core& api,
@@ -487,21 +490,22 @@ private:
         const opentxs::storage::lmdb::LMDB& lmdb_;
         mutable std::mutex lock_;
 
-        block::Position best() const noexcept;
-        block::Position best(const Lock& lock) const noexcept;
-        block::Position checkpoint(const Lock& lock) const noexcept;
-        bool header_exists(const Lock& lock, const block::Hash& hash) const
-            noexcept;
+        auto best() const noexcept -> block::Position;
+        auto best(const Lock& lock) const noexcept -> block::Position;
+        auto checkpoint(const Lock& lock) const noexcept -> block::Position;
+        auto header_exists(const Lock& lock, const block::Hash& hash) const
+            noexcept -> bool;
         // Throws std::out_of_range if the header does not exist
-        std::unique_ptr<block::Header> load_header(
-            const block::Hash& hash) const noexcept(false);
-        bool pop_best(const std::size_t i, MDB_txn* parent) const noexcept;
-        bool push_best(
+        auto load_header(const block::Hash& hash) const noexcept(false)
+            -> std::unique_ptr<block::Header>;
+        auto pop_best(const std::size_t i, MDB_txn* parent) const noexcept
+            -> bool;
+        auto push_best(
             const block::Position next,
             const bool setTip,
-            MDB_txn* parent) const noexcept;
-        std::vector<block::pHash> recent_hashes(const Lock& lock) const
-            noexcept;
+            MDB_txn* parent) const noexcept -> bool;
+        auto recent_hashes(const Lock& lock) const noexcept
+            -> std::vector<block::pHash>;
     };
 
     struct Wallet {
@@ -719,7 +723,7 @@ private:
     Database() = delete;
     Database(const Database&) = delete;
     Database(Database&&) = delete;
-    Database& operator=(const Database&) = delete;
-    Database& operator=(Database&&) = delete;
+    auto operator=(const Database&) -> Database& = delete;
+    auto operator=(Database &&) -> Database& = delete;
 };
 }  // namespace opentxs::blockchain::implementation

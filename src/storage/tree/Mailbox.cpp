@@ -38,7 +38,7 @@ Mailbox::Mailbox(
     }
 }
 
-bool Mailbox::Delete(const std::string& id) { return delete_item(id); }
+auto Mailbox::Delete(const std::string& id) -> bool { return delete_item(id); }
 
 void Mailbox::init(const std::string& hash)
 {
@@ -59,16 +59,16 @@ void Mailbox::init(const std::string& hash)
     }
 }
 
-bool Mailbox::Load(
+auto Mailbox::Load(
     const std::string& id,
     std::string& output,
     std::string& alias,
-    const bool checking) const
+    const bool checking) const -> bool
 {
     return load_raw(id, output, alias, checking);
 }
 
-bool Mailbox::save(const std::unique_lock<std::mutex>& lock) const
+auto Mailbox::save(const std::unique_lock<std::mutex>& lock) const -> bool
 {
     if (!verify_write_lock(lock)) {
         std::cerr << __FUNCTION__ << ": Lock failure." << std::endl;
@@ -82,7 +82,7 @@ bool Mailbox::save(const std::unique_lock<std::mutex>& lock) const
     return driver_.StoreProto(serialized, root_);
 }
 
-proto::StorageNymList Mailbox::serialize() const
+auto Mailbox::serialize() const -> proto::StorageNymList
 {
     proto::StorageNymList serialized;
     serialized.set_version(version_);
@@ -105,10 +105,10 @@ proto::StorageNymList Mailbox::serialize() const
     return serialized;
 }
 
-bool Mailbox::Store(
+auto Mailbox::Store(
     const std::string& id,
     const std::string& data,
-    const std::string& alias)
+    const std::string& alias) -> bool
 {
     return store_raw(data, id, alias);
 }

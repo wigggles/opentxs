@@ -189,7 +189,7 @@ Server::Server(const Server& rhs)
     , transport_key_(rhs.transport_key_)
 {
 }
-std::string Server::EffectiveName() const
+auto Server::EffectiveName() const -> std::string
 {
     OT_ASSERT(nym_)
 
@@ -222,16 +222,16 @@ auto Server::extract_endpoints(const proto::ServerContract& serialized) noexcept
     return output;
 }
 
-OTIdentifier Server::GetID(const Lock& lock) const
+auto Server::GetID(const Lock& lock) const -> OTIdentifier
 {
     return api_.Factory().Identifier(IDVersion(lock));
 }
 
-bool Server::ConnectInfo(
+auto Server::ConnectInfo(
     std::string& strHostname,
     std::uint32_t& nPort,
     proto::AddressType& actual,
-    const proto::AddressType& preferred) const
+    const proto::AddressType& preferred) const -> bool
 {
     if (0 < listen_params_.size()) {
         for (auto& endpoint : listen_params_) {
@@ -263,7 +263,7 @@ bool Server::ConnectInfo(
     return false;
 }
 
-proto::ServerContract Server::contract(const Lock& lock) const
+auto Server::contract(const Lock& lock) const -> proto::ServerContract
 {
     auto contract = SigVersion(lock);
     if (0 < signatures_.size()) {
@@ -273,14 +273,14 @@ proto::ServerContract Server::contract(const Lock& lock) const
     return contract;
 }
 
-proto::ServerContract Server::Contract() const
+auto Server::Contract() const -> proto::ServerContract
 {
     Lock lock(lock_);
 
     return contract(lock);
 }
 
-proto::ServerContract Server::IDVersion(const Lock& lock) const
+auto Server::IDVersion(const Lock& lock) const -> proto::ServerContract
 {
     OT_ASSERT(verify_write_lock(lock));
 
@@ -325,7 +325,7 @@ void Server::SetAlias(const std::string& alias)
         identifier::Server::Factory(id_->str()), alias);  // TODO conversion
 }
 
-proto::ServerContract Server::SigVersion(const Lock& lock) const
+auto Server::SigVersion(const Lock& lock) const -> proto::ServerContract
 {
     auto contract = IDVersion(lock);
     contract.set_id(String::Factory(id(lock))->Get());
@@ -333,7 +333,7 @@ proto::ServerContract Server::SigVersion(const Lock& lock) const
     return contract;
 }
 
-proto::ServerContract Server::PublicContract() const
+auto Server::PublicContract() const -> proto::ServerContract
 {
     Lock lock(lock_);
 
@@ -347,7 +347,7 @@ proto::ServerContract Server::PublicContract() const
     return serialized;
 }
 
-bool Server::Statistics(String& strContents) const
+auto Server::Statistics(String& strContents) const -> bool
 {
     const auto strID = String::Factory(id_);
 
@@ -361,25 +361,28 @@ bool Server::Statistics(String& strContents) const
     return true;
 }
 
-OTData Server::Serialize() const
+auto Server::Serialize() const -> OTData
 {
     Lock lock(lock_);
 
     return api_.Factory().Data(contract(lock));
 }
 
-const Data& Server::TransportKey() const { return transport_key_.get(); }
+auto Server::TransportKey() const -> const Data&
+{
+    return transport_key_.get();
+}
 
-std::unique_ptr<OTPassword> Server::TransportKey(
-    Data& pubkey,
-    const PasswordPrompt& reason) const
+auto Server::TransportKey(Data& pubkey, const PasswordPrompt& reason) const
+    -> std::unique_ptr<OTPassword>
 {
     OT_ASSERT(nym_);
 
     return nym_->TransportKey(pubkey, reason);
 }
 
-bool Server::update_signature(const Lock& lock, const PasswordPrompt& reason)
+auto Server::update_signature(const Lock& lock, const PasswordPrompt& reason)
+    -> bool
 {
     if (!Signable::update_signature(lock, reason)) { return false; }
 
@@ -400,7 +403,7 @@ bool Server::update_signature(const Lock& lock, const PasswordPrompt& reason)
     return success;
 }
 
-bool Server::validate(const Lock& lock) const
+auto Server::validate(const Lock& lock) const -> bool
 {
     bool validNym = false;
 
@@ -440,9 +443,9 @@ bool Server::validate(const Lock& lock) const
     return true;
 }
 
-bool Server::verify_signature(
+auto Server::verify_signature(
     const Lock& lock,
-    const proto::Signature& signature) const
+    const proto::Signature& signature) const -> bool
 {
     if (!Signable::verify_signature(lock, signature)) { return false; }
 

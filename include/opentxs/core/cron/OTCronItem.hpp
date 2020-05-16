@@ -255,7 +255,7 @@ protected:
     OTCronItem(const api::internal::Core& api);
 
 private:
-    typedef OTTrackable ot_super;
+    using ot_super = OTTrackable;
 
     OTCron* m_pCron;
     Nym_p serverNym_;

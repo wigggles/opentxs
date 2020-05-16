@@ -13,7 +13,7 @@ namespace opentxs::network::zeromq::implementation
 class ReplyCallback : virtual public zeromq::ReplyCallback
 {
 public:
-    OTZMQMessage Process(const zeromq::Message& message) const override;
+    auto Process(const zeromq::Message& message) const -> OTZMQMessage override;
 
     ~ReplyCallback() override;
 
@@ -22,13 +22,13 @@ private:
 
     const zeromq::ReplyCallback::ReceiveCallback callback_;
 
-    ReplyCallback* clone() const override;
+    auto clone() const -> ReplyCallback* override;
 
     ReplyCallback(zeromq::ReplyCallback::ReceiveCallback callback);
     ReplyCallback() = delete;
     ReplyCallback(const ReplyCallback&) = delete;
     ReplyCallback(ReplyCallback&&) = delete;
-    ReplyCallback& operator=(const ReplyCallback&) = delete;
-    ReplyCallback& operator=(ReplyCallback&&) = delete;
+    auto operator=(const ReplyCallback&) -> ReplyCallback& = delete;
+    auto operator=(ReplyCallback &&) -> ReplyCallback& = delete;
 };
 }  // namespace opentxs::network::zeromq::implementation

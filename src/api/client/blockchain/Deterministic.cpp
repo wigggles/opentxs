@@ -48,10 +48,8 @@ Deterministic::Deterministic(
 {
 }
 
-std::optional<Bip32Index> Deterministic::bump(
-    const Lock& lock,
-    const Subchain type,
-    IndexMap map) const noexcept
+auto Deterministic::bump(const Lock& lock, const Subchain type, IndexMap map)
+    const noexcept -> std::optional<Bip32Index>
 {
     try {
 
@@ -71,9 +69,9 @@ void Deterministic::check_lookahead(
     while (need_lookahead(lock, type)) { generate_next(lock, type, reason); }
 }
 
-std::optional<Bip32Index> Deterministic::GenerateNext(
+auto Deterministic::GenerateNext(
     const Subchain type,
-    const PasswordPrompt& reason) const noexcept
+    const PasswordPrompt& reason) const noexcept -> std::optional<Bip32Index>
 {
     Lock lock(lock_);
 
@@ -97,9 +95,9 @@ std::optional<Bip32Index> Deterministic::GenerateNext(
 #endif  // OT_CRYPTO_WITH_BIP32
 
 #if OT_CRYPTO_WITH_BIP32
-HDKey Deterministic::instantiate_key(
+auto Deterministic::instantiate_key(
     const api::internal::Core& api,
-    proto::HDPath& path)
+    proto::HDPath& path) -> HDKey
 {
     std::string fingerprint{path.root()};
     auto reason = api.Factory().PasswordPrompt("Loading account xpriv");
@@ -123,8 +121,8 @@ HDKey Deterministic::instantiate_key(
 }
 #endif  // OT_CRYPTO_WITH_BIP32
 
-std::optional<Bip32Index> Deterministic::LastGenerated(
-    const Subchain type) const noexcept
+auto Deterministic::LastGenerated(const Subchain type) const noexcept
+    -> std::optional<Bip32Index>
 {
     Lock lock(lock_);
 
@@ -138,8 +136,8 @@ std::optional<Bip32Index> Deterministic::LastGenerated(
     }
 }
 
-std::optional<Bip32Index> Deterministic::LastUsed(const Subchain type) const
-    noexcept
+auto Deterministic::LastUsed(const Subchain type) const noexcept
+    -> std::optional<Bip32Index>
 {
     Lock lock(lock_);
 
@@ -154,13 +152,14 @@ std::optional<Bip32Index> Deterministic::LastUsed(const Subchain type) const
 }
 
 #if OT_CRYPTO_WITH_BIP32
-bool Deterministic::need_lookahead(const Lock& lock, const Subchain type) const
-    noexcept
+auto Deterministic::need_lookahead(const Lock& lock, const Subchain type) const
+    noexcept -> bool
 {
     return Lookahead > (generated_.at(type) - used_.at(type));
 }
 
-HDKey Deterministic::RootNode(const PasswordPrompt& reason) const noexcept
+auto Deterministic::RootNode(const PasswordPrompt& reason) const noexcept
+    -> HDKey
 {
     auto fingerprint(path_.root());
     api::HDSeed::Path path{};
@@ -176,23 +175,23 @@ HDKey Deterministic::RootNode(const PasswordPrompt& reason) const noexcept
         opentxs::crypto::key::EllipticCurve::MaxVersion);
 }
 
-std::optional<Bip32Index> Deterministic::UseNext(
+auto Deterministic::UseNext(
     const Subchain type,
     const PasswordPrompt& reason,
     const Identifier& contact,
-    const std::string& label) const noexcept
+    const std::string& label) const noexcept -> std::optional<Bip32Index>
 {
     Lock lock(lock_);
 
     return use_next(lock, type, reason, contact, label);
 }
 
-std::optional<Bip32Index> Deterministic::use_next(
+auto Deterministic::use_next(
     const Lock& lock,
     const Subchain type,
     const PasswordPrompt& reason,
     const Identifier& contact,
-    const std::string& label) const noexcept
+    const std::string& label) const noexcept -> std::optional<Bip32Index>
 {
     try {
         auto& next = used_.at(type);

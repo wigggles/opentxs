@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <deque>
 #include <map>
 #include <memory>
 #include <mutex>
@@ -50,27 +51,30 @@ namespace opentxs::blockchain::client::implementation
 class HeaderOracle final : virtual public internal::HeaderOracle
 {
 public:
-    block::Position BestChain() const noexcept final;
-    block::pHash BestHash(const block::Height height) const noexcept final;
-    std::pair<block::Position, block::Position> CommonParent(
-        const block::Position& position) const noexcept final;
-    block::Position GetCheckpoint() const noexcept final;
-    bool IsInBestChain(const block::Hash& hash) const noexcept final;
-    std::unique_ptr<block::Header> LoadHeader(const block::Hash& hash) const
-        noexcept final;
-    std::vector<block::pHash> RecentHashes() const noexcept final
+    auto BestChain() const noexcept -> block::Position final;
+    auto BestHash(const block::Height height) const noexcept
+        -> block::pHash final;
+    auto CommonParent(const block::Position& position) const noexcept
+        -> std::pair<block::Position, block::Position> final;
+    auto GetCheckpoint() const noexcept -> block::Position final;
+    auto IsInBestChain(const block::Hash& hash) const noexcept -> bool final;
+    auto LoadHeader(const block::Hash& hash) const noexcept
+        -> std::unique_ptr<block::Header> final;
+    auto RecentHashes() const noexcept -> std::vector<block::pHash> final
     {
         return database_.RecentHashes();
     }
-    std::set<block::pHash> Siblings() const noexcept final;
+    auto Siblings() const noexcept -> std::set<block::pHash> final;
 
-    bool AddCheckpoint(
+    auto AddCheckpoint(
         const block::Height position,
-        const block::Hash& requiredHash) noexcept final;
-    bool AddHeader(std::unique_ptr<block::Header> header) noexcept final;
-    bool AddHeaders(
-        std::vector<std::unique_ptr<block::Header>>&) noexcept final;
-    bool DeleteCheckpoint() noexcept final;
+        const block::Hash& requiredHash) noexcept -> bool final;
+    auto AddHeader(std::unique_ptr<block::Header> header) noexcept
+        -> bool final;
+    auto AddHeaders(std::vector<std::unique_ptr<block::Header>>&) noexcept
+        -> bool final;
+    auto DeleteCheckpoint() noexcept -> bool final;
+    auto Init() noexcept -> void;
 
     HeaderOracle(
         const api::internal::Core& api,
@@ -81,11 +85,9 @@ public:
     ~HeaderOracle() final = default;
 
 private:
-    friend opentxs::Factory;
-
     struct Candidate {
         bool blacklisted_{false};
-        std::vector<block::Position> chain_{};
+        std::deque<block::Position> chain_{};
     };
 
     using Candidates = std::vector<Candidate>;
@@ -95,31 +97,31 @@ private:
             checkpoints_;
 
     const api::internal::Core& api_;
-    const internal::Network& network_;
     const internal::HeaderDatabase& database_;
     const blockchain::Type chain_;
     mutable std::mutex lock_;
 
-    static bool evaluate_candidate(
+    static auto evaluate_candidate(
         const block::Header& current,
-        const block::Header& candidate) noexcept;
+        const block::Header& candidate) noexcept -> bool;
 
-    block::Position best_chain(const Lock& lock) const noexcept;
-    bool is_in_best_chain(const Lock& lock, const block::Hash& hash) const
-        noexcept;
+    auto best_chain(const Lock& lock) const noexcept -> block::Position;
+    auto get_default_checkpoint() const noexcept -> block::Position;
+    auto is_in_best_chain(const Lock& lock, const block::Hash& hash) const
+        noexcept -> bool;
 
-    bool add_header(
+    auto add_header(
         const Lock& lock,
         UpdateTransaction& update,
-        std::unique_ptr<block::Header> header) noexcept;
-    bool apply_checkpoint(
+        std::unique_ptr<block::Header> header) noexcept -> bool;
+    auto apply_checkpoint(
         const Lock& lock,
         const block::Height height,
-        UpdateTransaction& update) noexcept;
-    std::pair<bool, bool> choose_candidate(
+        UpdateTransaction& update) noexcept -> bool;
+    auto choose_candidate(
         const block::Header& current,
         const Candidates& candidates,
-        UpdateTransaction& update) noexcept(false);
+        UpdateTransaction& update) noexcept(false) -> std::pair<bool, bool>;
     void connect_children(
         const Lock& lock,
         block::Header& parentHeader,
@@ -127,22 +129,23 @@ private:
         Candidate& candidate,
         UpdateTransaction& update);
     // Returns true if the child is checkpoint blacklisted
-    bool connect_to_parent(
+    auto connect_to_parent(
         const Lock& lock,
         const UpdateTransaction& update,
         const block::Header& parent,
-        block::Header& child) noexcept;
-    Candidate& initialize_candidate(
+        block::Header& child) noexcept -> bool;
+    auto initialize_candidate(
         const Lock& lock,
         const block::Header& best,
         const block::Header& parent,
         UpdateTransaction& update,
         Candidates& candidates,
         block::Header& child,
-        const block::Hash& stopHash = Data::Factory()) noexcept(false);
-    const block::Header* is_disconnected(
+        const block::Hash& stopHash = Data::Factory()) noexcept(false)
+        -> Candidate&;
+    auto is_disconnected(
         const block::Hash& parent,
-        UpdateTransaction& update) noexcept;
+        UpdateTransaction& update) noexcept -> const block::Header*;
     void stage_candidate(
         const Lock& lock,
         const block::Header& best,
@@ -153,7 +156,7 @@ private:
     HeaderOracle() = delete;
     HeaderOracle(const HeaderOracle&) = delete;
     HeaderOracle(HeaderOracle&&) = delete;
-    HeaderOracle& operator=(const HeaderOracle&) = delete;
-    HeaderOracle& operator=(HeaderOracle&&) = delete;
+    auto operator=(const HeaderOracle&) -> HeaderOracle& = delete;
+    auto operator=(HeaderOracle &&) -> HeaderOracle& = delete;
 };
 }  // namespace opentxs::blockchain::client::implementation

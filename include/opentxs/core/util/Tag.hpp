@@ -18,9 +18,9 @@ namespace opentxs
 {
 class Tag;
 
-typedef std::shared_ptr<Tag> TagPtr;
-typedef std::map<std::string, std::string> map_strings;
-typedef std::vector<TagPtr> vector_tags;
+using TagPtr = std::shared_ptr<Tag>;
+using map_strings = std::map<std::string, std::string>;
+using vector_tags = std::vector<TagPtr>;
 
 class Tag
 {

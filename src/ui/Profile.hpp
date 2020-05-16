@@ -74,20 +74,20 @@ using ProfileList = List<
 class Profile final : public ProfileList
 {
 public:
-    bool AddClaim(
+    auto AddClaim(
         const proto::ContactSectionName section,
         const proto::ContactItemType type,
         const std::string& value,
         const bool primary,
-        const bool active) const noexcept final;
-    ItemTypeList AllowedItems(
+        const bool active) const noexcept -> bool final;
+    auto AllowedItems(
         const proto::ContactSectionName section,
-        const std::string& lang) const noexcept final;
-    SectionTypeList AllowedSections(const std::string& lang) const
-        noexcept final;
-    bool Delete(const int section, const int type, const std::string& claimID)
-        const noexcept final;
-    std::string DisplayName() const noexcept final;
+        const std::string& lang) const noexcept -> ItemTypeList final;
+    auto AllowedSections(const std::string& lang) const noexcept
+        -> SectionTypeList final;
+    auto Delete(const int section, const int type, const std::string& claimID)
+        const noexcept -> bool final;
+    auto DisplayName() const noexcept -> std::string final;
 #if OT_QT
     int FindRow(const ProfileRowID& id, const ProfileSortKey& key) const
         noexcept final
@@ -95,24 +95,27 @@ public:
         return find_row(id, key);
     }
 #endif
-    const identifier::Nym& NymID() const noexcept final { return primary_id_; }
-    std::string ID() const noexcept final { return primary_id_->str(); }
-    std::string PaymentCode() const noexcept final;
-    bool SetActive(
+    auto NymID() const noexcept -> const identifier::Nym& final
+    {
+        return primary_id_;
+    }
+    auto ID() const noexcept -> std::string final { return primary_id_->str(); }
+    auto PaymentCode() const noexcept -> std::string final;
+    auto SetActive(
         const int section,
         const int type,
         const std::string& claimID,
-        const bool active) const noexcept final;
-    bool SetPrimary(
+        const bool active) const noexcept -> bool final;
+    auto SetPrimary(
         const int section,
         const int type,
         const std::string& claimID,
-        const bool primary) const noexcept final;
-    bool SetValue(
+        const bool primary) const noexcept -> bool final;
+    auto SetValue(
         const int section,
         const int type,
         const std::string& claimID,
-        const std::string& value) const noexcept final;
+        const std::string& value) const noexcept -> bool final;
 
     Profile(
         const api::client::internal::Manager& api,
@@ -133,18 +136,19 @@ private:
     static const std::set<proto::ContactSectionName> allowed_types_;
     static const std::map<proto::ContactSectionName, int> sort_keys_;
 
-    static int sort_key(const proto::ContactSectionName type) noexcept;
-    static bool check_type(const proto::ContactSectionName type) noexcept;
-    static std::string nym_name(
+    static auto sort_key(const proto::ContactSectionName type) noexcept -> int;
+    static auto check_type(const proto::ContactSectionName type) noexcept
+        -> bool;
+    static auto nym_name(
         const api::Wallet& wallet,
-        const identifier::Nym& nymID) noexcept;
+        const identifier::Nym& nymID) noexcept -> std::string;
 
-    void* construct_row(
+    auto construct_row(
         const ProfileRowID& id,
         const ProfileSortKey& index,
-        const CustomData& custom) const noexcept final;
+        const CustomData& custom) const noexcept -> void* final;
 
-    bool last(const ProfileRowID& id) const noexcept final
+    auto last(const ProfileRowID& id) const noexcept -> bool final
     {
         return ProfileList::last(id);
     }
@@ -156,7 +160,7 @@ private:
     Profile() = delete;
     Profile(const Profile&) = delete;
     Profile(Profile&&) = delete;
-    Profile& operator=(const Profile&) = delete;
-    Profile& operator=(Profile&&) = delete;
+    auto operator=(const Profile&) -> Profile& = delete;
+    auto operator=(Profile &&) -> Profile& = delete;
 };
 }  // namespace opentxs::ui::implementation

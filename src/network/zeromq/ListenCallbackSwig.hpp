@@ -37,13 +37,13 @@ private:
 
     opentxs::ListenCallbackSwig* callback_;
 
-    ListenCallbackSwig* clone() const final;
+    auto clone() const -> ListenCallbackSwig* final;
 
     ListenCallbackSwig(opentxs::ListenCallbackSwig* callback);
     ListenCallbackSwig() = delete;
     ListenCallbackSwig(const ListenCallbackSwig&) = delete;
     ListenCallbackSwig(ListenCallbackSwig&&) = delete;
-    ListenCallbackSwig& operator=(const ListenCallbackSwig&) = delete;
-    ListenCallbackSwig& operator=(ListenCallbackSwig&&) = delete;
+    auto operator=(const ListenCallbackSwig&) -> ListenCallbackSwig& = delete;
+    auto operator=(ListenCallbackSwig &&) -> ListenCallbackSwig& = delete;
 };
 }  // namespace opentxs::network::zeromq::implementation

@@ -61,29 +61,29 @@ namespace opentxs::api::implementation
 class Crypto final : virtual public opentxs::api::Crypto
 {
 public:
-    const crypto::Config& Config() const final;
+    auto Config() const -> const crypto::Config& final;
 
     // Encoding function interface
-    const crypto::Encode& Encode() const final;
+    auto Encode() const -> const crypto::Encode& final;
 
     // Hash function interface
-    const crypto::Hash& Hash() const final;
+    auto Hash() const -> const crypto::Hash& final;
 
     // Utility class for misc OpenSSL-provided functions
-    const crypto::Util& Util() const final;
+    auto Util() const -> const crypto::Util& final;
 
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
-    const opentxs::crypto::EcdsaProvider& ED25519() const final;
+    auto ED25519() const -> const opentxs::crypto::EcdsaProvider& final;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
-    const opentxs::crypto::AsymmetricProvider& RSA() const final;
+    auto RSA() const -> const opentxs::crypto::AsymmetricProvider& final;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-    const opentxs::crypto::EcdsaProvider& SECP256K1() const final;
+    auto SECP256K1() const -> const opentxs::crypto::EcdsaProvider& final;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-    const opentxs::crypto::SymmetricProvider& Sodium() const final;
-    const opentxs::crypto::Bip32& BIP32() const final;
-    const opentxs::crypto::Bip39& BIP39() const final;
+    auto Sodium() const -> const opentxs::crypto::SymmetricProvider& final;
+    auto BIP32() const -> const opentxs::crypto::Bip32& final;
+    auto BIP39() const -> const opentxs::crypto::Bip39& final;
 
     ~Crypto() final;
 
@@ -117,7 +117,7 @@ private:
     Crypto() = delete;
     Crypto(const Crypto&) = delete;
     Crypto(Crypto&&) = delete;
-    Crypto& operator=(const Crypto&) = delete;
-    Crypto& operator=(Crypto&&) = delete;
+    auto operator=(const Crypto&) -> Crypto& = delete;
+    auto operator=(Crypto &&) -> Crypto& = delete;
 };
 }  // namespace opentxs::api::implementation

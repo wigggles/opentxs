@@ -44,25 +44,25 @@ extern "C" {
 
 namespace opentxs
 {
-blind::Mint* Factory::MintLucre(const api::internal::Core& core)
+auto Factory::MintLucre(const api::internal::Core& core) -> blind::Mint*
 {
     return new blind::mint::implementation::Lucre(core);
 }
 
-blind::Mint* Factory::MintLucre(
+auto Factory::MintLucre(
     const api::internal::Core& core,
     const String& strNotaryID,
-    const String& strInstrumentDefinitionID)
+    const String& strInstrumentDefinitionID) -> blind::Mint*
 {
     return new blind::mint::implementation::Lucre(
         core, strNotaryID, strInstrumentDefinitionID);
 }
 
-blind::Mint* Factory::MintLucre(
+auto Factory::MintLucre(
     const api::internal::Core& core,
     const String& strNotaryID,
     const String& strServerNymID,
-    const String& strInstrumentDefinitionID)
+    const String& strInstrumentDefinitionID) -> blind::Mint*
 {
     return new blind::mint::implementation::Lucre(
         core, strNotaryID, strServerNymID, strInstrumentDefinitionID);
@@ -98,11 +98,11 @@ Lucre::Lucre(
 
 // The mint has a different key pair for each denomination.
 // Pass the actual denomination such as 5, 10, 20, 50, 100...
-bool Lucre::AddDenomination(
+auto Lucre::AddDenomination(
     const identity::Nym& theNotary,
     const std::int64_t denomination,
     const std::size_t keySize,
-    const PasswordPrompt& reason)
+    const PasswordPrompt& reason) -> bool
 {
     bool bReturnValue = false;
 
@@ -206,10 +206,10 @@ bool Lucre::AddDenomination(
 
 // Lucre step 3: the mint signs the token
 //
-bool Lucre::SignToken(
+auto Lucre::SignToken(
     const identity::Nym& notary,
     blind::Token& token,
-    const PasswordPrompt& reason)
+    const PasswordPrompt& reason) -> bool
 {
 #if OT_LUCRE_DEBUG
     LucreDumper setDumper;
@@ -316,10 +316,10 @@ bool Lucre::SignToken(
     return true;
 }
 
-bool Lucre::VerifyToken(
+auto Lucre::VerifyToken(
     const identity::Nym& notary,
     const blind::Token& token,
-    const PasswordPrompt& reason)
+    const PasswordPrompt& reason) -> bool
 {
 
     if (proto::CASHTYPE_LUCRE != token.Type()) {

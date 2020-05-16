@@ -13,7 +13,8 @@
 
 namespace opentxs::crypto
 {
-proto::HashType HashingProvider::StringToHashType(const String& inputString)
+auto HashingProvider::StringToHashType(const String& inputString)
+    -> proto::HashType
 {
     if (inputString.Compare("NULL")) {
         return proto::HASHTYPE_NONE;
@@ -31,7 +32,8 @@ proto::HashType HashingProvider::StringToHashType(const String& inputString)
 
     return proto::HASHTYPE_ERROR;
 }
-OTString HashingProvider::HashTypeToString(const proto::HashType hashType)
+auto HashingProvider::HashTypeToString(const proto::HashType hashType)
+    -> OTString
 
 {
     auto hashTypeString = String::Factory();
@@ -63,7 +65,7 @@ OTString HashingProvider::HashTypeToString(const proto::HashType hashType)
     return hashTypeString;
 }
 
-std::size_t HashingProvider::HashSize(const proto::HashType hashType)
+auto HashingProvider::HashSize(const proto::HashType hashType) -> std::size_t
 {
     switch (hashType) {
         case proto::HASHTYPE_SHA256: {

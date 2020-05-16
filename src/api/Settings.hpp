@@ -34,104 +34,104 @@ class Settings final : public api::Settings
 {
 public:
     void SetConfigFilePath(const String& strConfigFilePath) const final;
-    bool HasConfigFilePath() const final;
+    auto HasConfigFilePath() const -> bool final;
 
     // Core (Public Load and Save)
-    bool Load() const final;
-    bool Save() const final;
+    auto Load() const -> bool final;
+    auto Save() const -> bool final;
 
-    const Flag& IsLoaded() const final;
+    auto IsLoaded() const -> const Flag& final;
 
     // Configuration Helpers
     //
 
     // Core (Reset Config, and Check if Config is empty)
-    bool IsEmpty() const final;
+    auto IsEmpty() const -> bool final;
 
     // Check Only (get value of key from configuration, if the key exists, then
     // out_bKeyExist will be true.)
-    bool Check_str(
+    auto Check_str(
         const String& strSection,
         const String& strKey,
         String& out_strResult,
-        bool& out_bKeyExist) const final;
-    bool Check_long(
+        bool& out_bKeyExist) const -> bool final;
+    auto Check_long(
         const String& strSection,
         const String& strKey,
         std::int64_t& out_lResult,
-        bool& out_bKeyExist) const final;
-    bool Check_bool(
+        bool& out_bKeyExist) const -> bool final;
+    auto Check_bool(
         const String& strSection,
         const String& strKey,
         bool& out_bResult,
-        bool& out_bKeyExist) const final;
+        bool& out_bKeyExist) const -> bool final;
 
     // Set Only (set new or update value, out_bNewOrUpdate will be true if the
     // value changes.)
-    bool Set_str(
+    auto Set_str(
         const String& strSection,
         const String& strKey,
         const String& strValue,
         bool& out_bNewOrUpdate,
-        const String& strComment = String::Factory()) const final;
-    bool Set_long(
+        const String& strComment = String::Factory()) const -> bool final;
+    auto Set_long(
         const String& strSection,
         const String& strKey,
         const std::int64_t& lValue,
         bool& out_bNewOrUpdate,
-        const String& strComment = String::Factory()) const final;
-    bool Set_bool(
+        const String& strComment = String::Factory()) const -> bool final;
+    auto Set_bool(
         const String& strSection,
         const String& strKey,
         const bool& bValue,
         bool& out_bNewOrUpdate,
-        const String& strComment = String::Factory()) const final;
+        const String& strComment = String::Factory()) const -> bool final;
 
     // Check for a Section, if the section dosn't exist, it will be made and
     // out_bIsNewSection will be true.)
-    bool CheckSetSection(
+    auto CheckSetSection(
         const String& strSection,
         const String& strComment,
-        bool& out_bIsNewSection) const final;
+        bool& out_bIsNewSection) const -> bool final;
 
     // Check for Key, and returns if the key exists, otherwise will set the
     // default key. If the default key is set, then out_bIsNew will be true.)
-    bool CheckSet_str(
+    auto CheckSet_str(
         const String& strSection,
         const String& strKey,
         const String& strDefault,
         std::string& out_strResult,
         bool& out_bIsNew,
-        const String& strComment = String::Factory()) const final;
-    bool CheckSet_str(
+        const String& strComment = String::Factory()) const -> bool final;
+    auto CheckSet_str(
         const String& strSection,
         const String& strKey,
         const String& strDefault,
         String& out_strResult,
         bool& out_bIsNew,
-        const String& strComment = String::Factory()) const final;
-    bool CheckSet_long(
+        const String& strComment = String::Factory()) const -> bool final;
+    auto CheckSet_long(
         const String& strSection,
         const String& strKey,
         const std::int64_t& lDefault,
         std::int64_t& out_lResult,
         bool& out_bIsNew,
-        const String& strComment = String::Factory()) const final;
-    bool CheckSet_bool(
+        const String& strComment = String::Factory()) const -> bool final;
+    auto CheckSet_bool(
         const String& strSection,
         const String& strKey,
         const bool& bDefault,
         bool& out_bResult,
         bool& out_bIsNew,
-        const String& strComment = String::Factory()) const final;
+        const String& strComment = String::Factory()) const -> bool final;
 
     // Set Option helper function for setting bool's
-    bool SetOption_bool(
+    auto SetOption_bool(
         const String& strSection,
         const String& strKey,
-        bool& bVariableName) const final;
+        bool& bVariableName) const -> bool final;
 
-    bool Reset() final;
+    auto Reset() -> bool final;
 
     ~Settings() final;
 
@@ -147,21 +147,21 @@ private:
     mutable OTString m_strConfigurationFileExactPath;
 
     // Core (Load and Save)
-    bool Load(const String& strConfigurationFileExactPath) const;
-    bool Save(const String& strConfigurationFileExactPath) const;
+    auto Load(const String& strConfigurationFileExactPath) const -> bool;
+    auto Save(const String& strConfigurationFileExactPath) const -> bool;
 
     // Log (log to Output in a well-formated way).
-    bool LogChange_str(
+    auto LogChange_str(
         const String& strSection,
         const String& strKey,
-        const String& strValue) const;
+        const String& strValue) const -> bool;
 
-    bool Init();
+    auto Init() -> bool;
 
     explicit Settings(
         const api::Legacy& legacy,
         const String& strConfigFilePath);
     Settings(const Settings&) = delete;
-    Settings& operator=(const Settings&) = delete;
+    auto operator=(const Settings&) -> Settings& = delete;
 };
 }  // namespace opentxs::api::implementation

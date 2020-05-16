@@ -22,12 +22,12 @@
 
 namespace opentxs
 {
-opentxs::api::storage::Plugin* Factory::StorageFSGC(
+auto Factory::StorageFSGC(
     const api::storage::Storage& storage,
     const StorageConfig& config,
     const Digest& hash,
     const Random& random,
-    const Flag& bucket)
+    const Flag& bucket) -> opentxs::api::storage::Plugin*
 {
     return new opentxs::storage::implementation::StorageFSGC(
         storage, config, hash, random, bucket);
@@ -47,15 +47,15 @@ StorageFSGC::StorageFSGC(
     Init_StorageFSGC();
 }
 
-std::string StorageFSGC::bucket_name(const bool bucket) const
+auto StorageFSGC::bucket_name(const bool bucket) const -> std::string
 {
     return bucket ? config_.fs_secondary_bucket_ : config_.fs_primary_bucket_;
 }
 
-std::string StorageFSGC::calculate_path(
+auto StorageFSGC::calculate_path(
     const std::string& key,
     const bool bucket,
-    std::string& directory) const
+    std::string& directory) const -> std::string
 {
     directory = folder_ + path_seperator_ + bucket_name(bucket);
 
@@ -73,7 +73,7 @@ void StorageFSGC::Cleanup_StorageFSGC()
     // future cleanup actions go here
 }
 
-bool StorageFSGC::EmptyBucket(const bool bucket) const
+auto StorageFSGC::EmptyBucket(const bool bucket) const -> bool
 {
     assert(random_);
 
@@ -108,7 +108,7 @@ void StorageFSGC::purge(const std::string& path) const
     boost::filesystem::remove_all(path);
 }
 
-std::string StorageFSGC::root_filename() const
+auto StorageFSGC::root_filename() const -> std::string
 {
     OT_ASSERT(false == folder_.empty());
     OT_ASSERT(false == path_seperator_.empty());

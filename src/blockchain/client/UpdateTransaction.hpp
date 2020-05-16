@@ -34,31 +34,34 @@ namespace opentxs::blockchain::client
 class UpdateTransaction
 {
 public:
-    const BestHashes& BestChain() const { return best_; }
-    block::Position Checkpoint() const;
-    const Segments& Connected() const { return connect_; }
-    const Segments& Disconnected() const { return disconnected_; }
-    block::pHash EffectiveBestBlock(const block::Height height) const
-        noexcept(false);
-    bool EffectiveCheckpoint() const noexcept;
-    const DisconnectedList& EffectiveDisconnectedHashes() const noexcept
+    auto BestChain() const -> const BestHashes& { return best_; }
+    auto Checkpoint() const -> block::Position;
+    auto Connected() const -> const Segments& { return connect_; }
+    auto Disconnected() const -> const Segments& { return disconnected_; }
+    auto EffectiveBestBlock(const block::Height height) const noexcept(false)
+        -> block::pHash;
+    auto EffectiveCheckpoint() const noexcept -> bool;
+    auto EffectiveDisconnectedHashes() const noexcept -> const DisconnectedList&
     {
         return disconnected();
     }
-    bool EffectiveHasDisconnectedChildren(const block::Hash& hash) const
-        noexcept;
-    bool EffectiveHeaderExists(const block::Hash& hash) const noexcept;
-    bool EffectiveIsSibling(const block::Hash& hash) const noexcept
+    auto EffectiveHasDisconnectedChildren(const block::Hash& hash) const
+        noexcept -> bool;
+    auto EffectiveHeaderExists(const block::Hash& hash) const noexcept -> bool;
+    auto EffectiveIsSibling(const block::Hash& hash) const noexcept -> bool
     {
         return 0 < siblings().count(hash);
     }
-    const Hashes& EffectiveSiblingHashes() const noexcept { return siblings(); }
-    bool HaveCheckpoint() const { return have_checkpoint_; }
-    bool HaveReorg() const { return have_reorg_; }
-    const block::Position& ReorgParent() const { return reorg_from_; }
-    const Hashes& SiblingsToAdd() const { return add_sib_; }
-    const Hashes& SiblingsToDelete() const { return delete_sib_; }
-    const UpdatedHeader& UpdatedHeaders() const { return headers_; }
+    auto EffectiveSiblingHashes() const noexcept -> const Hashes&
+    {
+        return siblings();
+    }
+    auto HaveCheckpoint() const -> bool { return have_checkpoint_; }
+    auto HaveReorg() const -> bool { return have_reorg_; }
+    auto ReorgParent() const -> const block::Position& { return reorg_from_; }
+    auto SiblingsToAdd() const -> const Hashes& { return add_sib_; }
+    auto SiblingsToDelete() const -> const Hashes& { return delete_sib_; }
+    auto UpdatedHeaders() const -> const UpdatedHeader& { return headers_; }
 
     void AddSibling(const block::Position& position);
     void AddToBestChain(const block::Position& position);
@@ -66,18 +69,19 @@ public:
     void ConnectBlock(ChainSegment&& segment);
     void DisconnectBlock(const block::Header& header);
     // throws std::out_of_range if header does not exist
-    block::Header& Header(const block::Hash& hash) noexcept(false);
+    auto Header(const block::Hash& hash) noexcept(false) -> block::Header&;
     void RemoveSibling(const block::Hash& hash);
     void SetCheckpoint(block::Position&& checkpoint);
     void SetReorgParent(const block::Position& pos) noexcept;
     // Stages best block for possible metadata update
-    block::Header& Stage() noexcept;
+    auto Stage() noexcept -> block::Header&;
     // Stages a brand new header
-    block::Header& Stage(std::unique_ptr<block::Header> header) noexcept;
+    auto Stage(std::unique_ptr<block::Header> header) noexcept
+        -> block::Header&;
     // Stages an existing header for possible metadata update
-    block::Header& Stage(const block::Hash& hash) noexcept(false);
+    auto Stage(const block::Hash& hash) noexcept(false) -> block::Header&;
     // Stages an existing header for possible metadata update
-    block::Header& Stage(const block::Height& height) noexcept(false);
+    auto Stage(const block::Height& height) noexcept(false) -> block::Header&;
 
     UpdateTransaction(const api::Core& api, const internal::HeaderDatabase& db);
 
@@ -99,10 +103,10 @@ private:
     mutable std::optional<DisconnectedList> cached_disconnected_;
     mutable std::optional<Hashes> cached_siblings_;
 
-    DisconnectedList& disconnected() const noexcept;
-    Hashes& siblings() const noexcept;
-    block::Header& stage(
+    auto disconnected() const noexcept -> DisconnectedList&;
+    auto siblings() const noexcept -> Hashes&;
+    auto stage(
         const bool newHeader,
-        std::unique_ptr<block::Header> header) noexcept;
+        std::unique_ptr<block::Header> header) noexcept -> block::Header&;
 };
 }  // namespace opentxs::blockchain::client

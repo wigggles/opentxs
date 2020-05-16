@@ -44,9 +44,8 @@ template class opentxs::Pimpl<opentxs::network::ServerConnection>;
 
 namespace opentxs
 {
-api::network::ZMQ* Factory::ZMQ(
-    const api::internal::Core& api,
-    const Flag& running)
+auto Factory::ZMQ(const api::internal::Core& api, const Flag& running)
+    -> api::network::ZMQ*
 {
     return new api::network::implementation::ZMQ(api, running);
 }
@@ -74,12 +73,12 @@ ZMQ::ZMQ(const api::internal::Core& api, const Flag& running)
     init(lock);
 }
 
-const opentxs::network::zeromq::Context& ZMQ::Context() const
+auto ZMQ::Context() const -> const opentxs::network::zeromq::Context&
 {
     return api_.ZeroMQ();
 }
 
-proto::AddressType ZMQ::DefaultAddressType() const
+auto ZMQ::DefaultAddressType() const -> proto::AddressType
 {
     bool changed{false};
     const std::int64_t defaultType{
@@ -150,16 +149,19 @@ void ZMQ::init(const Lock& lock) const
     api_.Config().Save();
 }
 
-std::chrono::seconds ZMQ::KeepAlive() const { return keep_alive_.load(); }
+auto ZMQ::KeepAlive() const -> std::chrono::seconds
+{
+    return keep_alive_.load();
+}
 
 void ZMQ::KeepAlive(const std::chrono::seconds duration) const
 {
     keep_alive_.store(duration);
 }
 
-std::chrono::seconds ZMQ::Linger() const { return linger_.load(); }
+auto ZMQ::Linger() const -> std::chrono::seconds { return linger_.load(); }
 
-std::chrono::seconds ZMQ::ReceiveTimeout() const
+auto ZMQ::ReceiveTimeout() const -> std::chrono::seconds
 {
     return receive_timeout_.load();
 }
@@ -171,12 +173,15 @@ void ZMQ::RefreshConfig() const
     return init(lock);
 }
 
-const Flag& ZMQ::Running() const { return running_; }
+auto ZMQ::Running() const -> const Flag& { return running_; }
 
-std::chrono::seconds ZMQ::SendTimeout() const { return send_timeout_.load(); }
+auto ZMQ::SendTimeout() const -> std::chrono::seconds
+{
+    return send_timeout_.load();
+}
 
-opentxs::network::ServerConnection& ZMQ::Server(const std::string& id) const
-    noexcept(false)
+auto ZMQ::Server(const std::string& id) const noexcept(false)
+    -> opentxs::network::ServerConnection&
 {
     Lock lock(lock_);
     auto existing = server_connections_.find(id);
@@ -197,7 +202,7 @@ opentxs::network::ServerConnection& ZMQ::Server(const std::string& id) const
     return connection;
 }
 
-bool ZMQ::SetSocksProxy(const std::string& proxy) const
+auto ZMQ::SetSocksProxy(const std::string& proxy) const -> bool
 {
     bool notUsed{false};
     bool set = api_.Config().Set_str(
@@ -241,7 +246,7 @@ bool ZMQ::SetSocksProxy(const std::string& proxy) const
     return set;
 }
 
-bool ZMQ::SocksProxy(std::string& proxy) const
+auto ZMQ::SocksProxy(std::string& proxy) const -> bool
 {
     Lock lock(lock_);
     proxy = socks_proxy_;
@@ -249,7 +254,7 @@ bool ZMQ::SocksProxy(std::string& proxy) const
     return (!socks_proxy_.empty());
 }
 
-std::string ZMQ::SocksProxy() const
+auto ZMQ::SocksProxy() const -> std::string
 {
     std::string output{};
     SocksProxy(output);
@@ -257,7 +262,7 @@ std::string ZMQ::SocksProxy() const
     return output;
 }
 
-ConnectionState ZMQ::Status(const std::string& server) const
+auto ZMQ::Status(const std::string& server) const -> ConnectionState
 {
     Lock lock(lock_);
     const auto it = server_connections_.find(server);
@@ -277,7 +282,7 @@ ConnectionState ZMQ::Status(const std::string& server) const
     return ConnectionState::NOT_ESTABLISHED;
 }
 
-bool ZMQ::verify_lock(const Lock& lock) const
+auto ZMQ::verify_lock(const Lock& lock) const -> bool
 {
     if (lock.mutex() != &lock_) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Incorrect mutex.").Flush();

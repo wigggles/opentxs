@@ -66,9 +66,9 @@ class Tag;
 class OTParty
 {
 public:
-    typedef std::map<std::string, SharedAccount> mapOfAccounts;
-    typedef std::map<std::string, OTAgent*> mapOfAgents;
-    typedef std::map<std::string, OTPartyAccount*> mapOfPartyAccounts;
+    using mapOfAccounts = std::map<std::string, SharedAccount>;
+    using mapOfAgents = std::map<std::string, OTAgent*>;
+    using mapOfPartyAccounts = std::map<std::string, OTPartyAccount*>;
 
     void CleanupAgents();
     void CleanupAccounts();

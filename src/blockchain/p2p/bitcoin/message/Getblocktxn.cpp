@@ -24,12 +24,12 @@
 namespace opentxs
 {
 // We have a header and a raw payload. Parse it.
-blockchain::p2p::bitcoin::message::Getblocktxn* Factory::BitcoinP2PGetblocktxn(
+auto Factory::BitcoinP2PGetblocktxn(
     const api::internal::Core& api,
     std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
     const blockchain::p2p::bitcoin::ProtocolVersion version,
     const void* payload,
-    const std::size_t size)
+    const std::size_t size) -> blockchain::p2p::bitcoin::message::Getblocktxn*
 {
     namespace bitcoin = blockchain::p2p::bitcoin;
     using ReturnType = bitcoin::message::Getblocktxn;
@@ -118,11 +118,12 @@ blockchain::p2p::bitcoin::message::Getblocktxn* Factory::BitcoinP2PGetblocktxn(
 }
 
 // We have all the data members to create the message from scratch (for sending)
-blockchain::p2p::bitcoin::message::Getblocktxn* Factory::BitcoinP2PGetblocktxn(
+auto Factory::BitcoinP2PGetblocktxn(
     const api::internal::Core& api,
     const blockchain::Type network,
     const Data& block_hash,
     const std::vector<std::size_t>& txn_indices)
+    -> blockchain::p2p::bitcoin::message::Getblocktxn*
 {
     namespace bitcoin = blockchain::p2p::bitcoin;
     using ReturnType = bitcoin::message::Getblocktxn;
@@ -134,7 +135,7 @@ blockchain::p2p::bitcoin::message::Getblocktxn* Factory::BitcoinP2PGetblocktxn(
 namespace opentxs::blockchain::p2p::bitcoin::message
 {
 
-OTData Getblocktxn::payload() const noexcept
+auto Getblocktxn::payload() const noexcept -> OTData
 {
     try {
         auto output = Data::Factory(block_hash_);

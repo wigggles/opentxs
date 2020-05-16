@@ -46,44 +46,51 @@ namespace opentxs::api::client::blockchain::implementation
 class BalanceTree final : public internal::BalanceTree
 {
 public:
-    const api::internal::Core& API() const noexcept { return api_; }
-    bool AssociateTransaction(
+    auto API() const noexcept -> const api::internal::Core& { return api_; }
+    auto AssociateTransaction(
         const std::vector<Activity>& unspent,
         const std::vector<Activity>& spent,
         std::set<OTIdentifier>& contacts,
-        const PasswordPrompt& reason) const noexcept final;
-    opentxs::blockchain::Type Chain() const noexcept final { return chain_; }
+        const PasswordPrompt& reason) const noexcept -> bool final;
+    auto Chain() const noexcept -> opentxs::blockchain::Type final
+    {
+        return chain_;
+    }
     void ClaimAccountID(const std::string& id, internal::BalanceNode* node)
         const noexcept final;
-    std::string GetDepositAddress(const std::string& memo) const noexcept final;
-    std::string GetDepositAddress(
-        const Identifier& contact,
-        const std::string& memo) const noexcept final;
-    const HDAccounts& GetHD() const noexcept final { return hd_; }
-    const ImportedAccounts& GetImported() const noexcept final
+    auto GetDepositAddress(const std::string& memo) const noexcept
+        -> std::string final;
+    auto GetDepositAddress(const Identifier& contact, const std::string& memo)
+        const noexcept -> std::string final;
+    auto GetHD() const noexcept -> const HDAccounts& final { return hd_; }
+    auto GetImported() const noexcept -> const ImportedAccounts& final
     {
         return imported_;
     }
-    const PaymentCodeAccounts& GetPaymentCode() const noexcept final
+    auto GetPaymentCode() const noexcept -> const PaymentCodeAccounts& final
     {
         return payment_code_;
     }
-    const blockchain::internal::HD& HDChain(const Identifier& account) const
-        noexcept(false) final
+    auto HDChain(const Identifier& account) const noexcept(false)
+        -> const blockchain::internal::HD& final
     {
         return hd_.at(account);
     }
-    std::optional<std::pair<Key, Amount>> LookupUTXO(const Coin& coin) const
-        noexcept final;
-    internal::BalanceNode& Node(const Identifier& id) const
-        noexcept(false) final;
-    const identifier::Nym& NymID() const noexcept final { return nym_id_; }
-    const internal::BalanceList& Parent() const noexcept final
+    auto LookupUTXO(const Coin& coin) const noexcept
+        -> std::optional<std::pair<Key, Amount>> final;
+    auto Node(const Identifier& id) const noexcept(false)
+        -> internal::BalanceNode& final;
+    auto NymID() const noexcept -> const identifier::Nym& final
+    {
+        return nym_id_;
+    }
+    auto Parent() const noexcept -> const internal::BalanceList& final
     {
         return parent_;
     }
 
-    bool AddHDNode(const proto::HDPath& path, Identifier& id) noexcept final
+    auto AddHDNode(const proto::HDPath& path, Identifier& id) noexcept
+        -> bool final
     {
         return hd_.Construct(path, id);
     }
@@ -100,50 +107,54 @@ private:
         using const_iterator = typename InterfaceType::const_iterator;
         using value_type = typename InterfaceType::value_type;
 
-        const value_type& at(const std::size_t position) const final
+        auto at(const std::size_t position) const -> const value_type& final
         {
             Lock lock(lock_);
 
             return *nodes_.at(position);
         }
-        const PayloadType& at(const Identifier& id) const final
+        auto at(const Identifier& id) const -> const PayloadType& final
         {
             Lock lock(lock_);
 
             return *nodes_.at(index_.at(id));
         }
-        const_iterator begin() const noexcept final
+        auto begin() const noexcept -> const_iterator final
         {
             return const_iterator(this, 0);
         }
-        const_iterator cbegin() const noexcept final
+        auto cbegin() const noexcept -> const_iterator final
         {
             return const_iterator(this, 0);
         }
-        const_iterator cend() const noexcept final
+        auto cend() const noexcept -> const_iterator final
         {
             return const_iterator(this, nodes_.size());
         }
-        const_iterator end() const noexcept final
+        auto end() const noexcept -> const_iterator final
         {
             return const_iterator(this, nodes_.size());
         }
-        std::size_t size() const noexcept final { return nodes_.size(); }
+        auto size() const noexcept -> std::size_t final
+        {
+            return nodes_.size();
+        }
 
-        value_type& at(const std::size_t position)
+        auto at(const std::size_t position) -> value_type&
         {
             Lock lock(lock_);
 
             return *nodes_.at(position);
         }
-        PayloadType& at(const Identifier& id)
+        auto at(const Identifier& id) -> PayloadType&
         {
             Lock lock(lock_);
 
             return *nodes_.at(index_.at(id));
         }
         template <typename ArgumentType>
-        bool Construct(const ArgumentType& data, Identifier& id) noexcept
+        auto Construct(const ArgumentType& data, Identifier& id) noexcept
+            -> bool
         {
             Lock lock(lock_);
 
@@ -164,15 +175,15 @@ private:
         std::vector<std::unique_ptr<PayloadType>> nodes_;
         std::map<OTIdentifier, std::size_t> index_;
 
-        bool add(
+        auto add(
             const Lock& lock,
             const Identifier& id,
-            std::unique_ptr<PayloadType> node) noexcept;
+            std::unique_ptr<PayloadType> node) noexcept -> bool;
         template <typename ArgumentType>
-        bool construct(
+        auto construct(
             const Lock& lock,
             const ArgumentType& data,
-            Identifier& id) noexcept
+            Identifier& id) noexcept -> bool
         {
             std::unique_ptr<PayloadType> node{
                 Factory<PayloadType, ArgumentType>::get(parent_, data, id)};
@@ -191,14 +202,15 @@ private:
 
     template <typename ReturnType, typename ArgumentType>
     struct Factory {
-        static ReturnType* get(
+        static auto get(
             const BalanceTree& parent,
             const ArgumentType& data,
-            Identifier& id) noexcept;
+            Identifier& id) noexcept -> ReturnType*;
     };
 
     struct NodeIndex {
-        internal::BalanceNode* Find(const std::string& id) const noexcept;
+        auto Find(const std::string& id) const noexcept
+            -> internal::BalanceNode*;
 
         void Add(const std::string& id, internal::BalanceNode* node) noexcept;
 
@@ -242,7 +254,7 @@ private:
     BalanceTree() = delete;
     BalanceTree(const BalanceTree&) = delete;
     BalanceTree(BalanceTree&&) = delete;
-    BalanceTree& operator=(const BalanceTree&) = delete;
-    BalanceTree& operator=(BalanceTree&&) = delete;
+    auto operator=(const BalanceTree&) -> BalanceTree& = delete;
+    auto operator=(BalanceTree &&) -> BalanceTree& = delete;
 };
 }  // namespace opentxs::api::client::blockchain::implementation

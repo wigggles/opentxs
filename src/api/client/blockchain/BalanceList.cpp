@@ -22,9 +22,10 @@
 
 namespace opentxs
 {
-api::client::blockchain::internal::BalanceList* Factory::BlockchainBalanceList(
+auto Factory::BlockchainBalanceList(
     const api::client::internal::Blockchain& parent,
     const blockchain::Type chain)
+    -> api::client::blockchain::internal::BalanceList*
 {
     using ReturnType = api::client::blockchain::implementation::BalanceList;
 
@@ -47,10 +48,10 @@ BalanceList::BalanceList(
     init();
 }
 
-bool BalanceList::add(
+auto BalanceList::add(
     const Lock& lock,
     const identifier::Nym& id,
-    std::unique_ptr<internal::BalanceTree> tree) noexcept
+    std::unique_ptr<internal::BalanceTree> tree) noexcept -> bool
 {
     if (false == bool(tree)) { return false; }
 
@@ -63,41 +64,40 @@ bool BalanceList::add(
     return true;
 }
 
-bool BalanceList::AddHDNode(
+auto BalanceList::AddHDNode(
     const identifier::Nym& nym,
     const proto::HDPath& path,
-    Identifier& id) noexcept
+    Identifier& id) noexcept -> bool
 {
     Lock lock(lock_);
 
     return get_or_create(lock, nym).AddHDNode(path, id);
 }
 
-BalanceList::const_iterator::value_type& BalanceList::at(
-    const std::size_t position) const noexcept(false)
+auto BalanceList::at(const std::size_t position) const noexcept(false)
+    -> BalanceList::const_iterator::value_type&
 {
     Lock lock(lock_);
 
     return at(lock, position);
 }
 
-const internal::BalanceTree& BalanceList::at(
-    const Lock& lock,
-    const std::size_t index) const noexcept(false)
+auto BalanceList::at(const Lock& lock, const std::size_t index) const
+    noexcept(false) -> const internal::BalanceTree&
 {
     return *trees_.at(index);
 }
 
-internal::BalanceTree& BalanceList::at(
-    const Lock& lock,
-    const std::size_t index) noexcept(false)
+auto BalanceList::at(const Lock& lock, const std::size_t index) noexcept(false)
+    -> internal::BalanceTree&
 {
     return *trees_.at(index);
 }
 
-std::unique_ptr<internal::BalanceTree> BalanceList::factory(
+auto BalanceList::factory(
     const identifier::Nym& nym,
     const std::set<OTIdentifier>& accounts) const noexcept
+    -> std::unique_ptr<internal::BalanceTree>
 {
     std::unique_ptr<internal::BalanceTree> output{
         opentxs::Factory::BlockchainBalanceTree(*this, nym, accounts, {}, {})};
@@ -105,9 +105,9 @@ std::unique_ptr<internal::BalanceTree> BalanceList::factory(
     return output;
 }
 
-internal::BalanceTree& BalanceList::get_or_create(
+auto BalanceList::get_or_create(
     const Lock& lock,
-    const identifier::Nym& id) noexcept
+    const identifier::Nym& id) noexcept -> internal::BalanceTree&
 {
     if (0 == index_.count(id)) {
         auto pTree = factory(id, {});
@@ -144,7 +144,8 @@ void BalanceList::init() noexcept
     }
 }
 
-internal::BalanceTree& BalanceList::Nym(const identifier::Nym& id) noexcept
+auto BalanceList::Nym(const identifier::Nym& id) noexcept
+    -> internal::BalanceTree&
 {
     Lock lock(lock_);
 

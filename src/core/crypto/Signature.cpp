@@ -14,7 +14,7 @@
 
 namespace opentxs
 {
-OTSignature Signature::Factory(const api::internal::Core& api)
+auto Signature::Factory(const api::internal::Core& api) -> OTSignature
 {
     return OTSignature(new implementation::Signature(api));
 }

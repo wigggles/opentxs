@@ -38,7 +38,8 @@
 
 namespace opentxs
 {
-api::Wallet* Factory::Wallet(const api::server::internal::Manager& server)
+auto Factory::Wallet(const api::server::internal::Manager& server)
+    -> api::Wallet*
 {
     return new api::server::implementation::Wallet(server);
 }
@@ -52,8 +53,8 @@ Wallet::Wallet(const api::server::internal::Manager& server)
 {
 }
 
-std::shared_ptr<const opentxs::ClientContext> Wallet::ClientContext(
-    const identifier::Nym& remoteNymID) const
+auto Wallet::ClientContext(const identifier::Nym& remoteNymID) const
+    -> std::shared_ptr<const opentxs::ClientContext>
 {
     const auto& serverNymID = server_.NymID();
     auto base = context(serverNymID, remoteNymID);
@@ -62,9 +63,10 @@ std::shared_ptr<const opentxs::ClientContext> Wallet::ClientContext(
     return output;
 }
 
-std::shared_ptr<const opentxs::Context> Wallet::Context(
+auto Wallet::Context(
     [[maybe_unused]] const identifier::Server& notaryID,
     const identifier::Nym& clientNymID) const
+    -> std::shared_ptr<const opentxs::Context>
 {
     return context(server_.NymID(), clientNymID);
 }
@@ -79,10 +81,10 @@ void Wallet::instantiate_client_context(
         api_, serialized, localNym, remoteNym, server_.ID()));
 }
 
-bool Wallet::load_legacy_account(
+auto Wallet::load_legacy_account(
     const Identifier& accountID,
     const eLock& lock,
-    Wallet::AccountLock& row) const
+    Wallet::AccountLock& row) const -> bool
 {
     // WTF clang? This is perfectly valid c++17. Fix your shit.
     // auto& [rowMutex, pAccount] = row;
@@ -148,9 +150,9 @@ bool Wallet::load_legacy_account(
     return true;
 }
 
-Editor<opentxs::ClientContext> Wallet::mutable_ClientContext(
+auto Wallet::mutable_ClientContext(
     const identifier::Nym& remoteNymID,
-    const PasswordPrompt& reason) const
+    const PasswordPrompt& reason) const -> Editor<opentxs::ClientContext>
 {
     const auto& serverID = server_.ID();
     const auto& serverNymID = server_.NymID();
@@ -190,10 +192,10 @@ Editor<opentxs::ClientContext> Wallet::mutable_ClientContext(
     return Editor<opentxs::ClientContext>(child, callback);
 }
 
-Editor<opentxs::Context> Wallet::mutable_Context(
+auto Wallet::mutable_Context(
     const identifier::Server& notaryID,
     const identifier::Nym& clientNymID,
-    const PasswordPrompt& reason) const
+    const PasswordPrompt& reason) const -> Editor<opentxs::Context>
 {
     auto base = context(server_.NymID(), clientNymID);
     std::function<void(opentxs::Context*)> callback =
@@ -206,7 +208,7 @@ Editor<opentxs::Context> Wallet::mutable_Context(
     return Editor<opentxs::Context>(base.get(), callback);
 }
 
-Nym_p Wallet::signer_nym(const identifier::Nym&) const
+auto Wallet::signer_nym(const identifier::Nym&) const -> Nym_p
 {
     return Nym(server_.NymID());
 }

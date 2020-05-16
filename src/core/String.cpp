@@ -42,55 +42,58 @@ template class opentxs::Pimpl<opentxs::String>;
 
 namespace opentxs
 {
-std::ostream& operator<<(std::ostream& os, const String& obj)
+auto operator<<(std::ostream& os, const String& obj) -> std::ostream&
 {
     os << obj.Get();
     return os;
 }
 
-OTString String::Factory() { return OTString(new implementation::String()); }
+auto String::Factory() -> OTString
+{
+    return OTString(new implementation::String());
+}
 
-OTString String::Factory(const Armored& value)
+auto String::Factory(const Armored& value) -> OTString
 {
     return OTString(new implementation::String(value));
 }
 
-OTString String::Factory(const Signature& value)
+auto String::Factory(const Signature& value) -> OTString
 {
     return OTString(new implementation::String(value));
 }
 
-OTString String::Factory(const Contract& value)
+auto String::Factory(const Contract& value) -> OTString
 {
     return OTString(new implementation::String(value));
 }
 
-OTString String::Factory(const Identifier& value)
+auto String::Factory(const Identifier& value) -> OTString
 {
     return OTString(new implementation::String(value));
 }
 
-OTString String::Factory(const NymFile& value)
+auto String::Factory(const NymFile& value) -> OTString
 {
     return OTString(new implementation::String(value));
 }
 
-OTString String::Factory(const char* value)
+auto String::Factory(const char* value) -> OTString
 {
     return OTString(new implementation::String(value));
 }
 
-OTString String::Factory(const std::string& value)
+auto String::Factory(const std::string& value) -> OTString
 {
     return OTString(new implementation::String(value));
 }
 
-OTString String::Factory(const char* value, std::size_t size)
+auto String::Factory(const char* value, std::size_t size) -> OTString
 {
     return OTString(new implementation::String(value, size));
 }
 
-std::string String::LongToString(const std::int64_t& lNumber)
+auto String::LongToString(const std::int64_t& lNumber) -> std::string
 {
     std::string strNumber;
     std::stringstream strstream;
@@ -101,10 +104,10 @@ std::string String::LongToString(const std::int64_t& lNumber)
     return strNumber;
 }
 
-std::string String::replace_chars(
+auto String::replace_chars(
     const std::string& str,
     const std::string& charsFrom,
-    const char& charTo)
+    const char& charTo) -> std::string
 {
     std::string l_str(str);
     std::size_t found;
@@ -117,7 +120,7 @@ std::string String::replace_chars(
     return l_str;
 }
 
-std::size_t String::safe_strlen(const char* s, std::size_t max)
+auto String::safe_strlen(const char* s, std::size_t max) -> std::size_t
 {
     OT_ASSERT_MSG(
         max <= MAX_STRING_LENGTH,
@@ -128,7 +131,7 @@ std::size_t String::safe_strlen(const char* s, std::size_t max)
     return strnlen(s, max);
 }
 
-std::int32_t String::StringToInt(const std::string& strNumber)
+auto String::StringToInt(const std::string& strNumber) -> std::int32_t
 {
     if (strNumber.size() == 0) return 0;
 
@@ -146,7 +149,7 @@ std::int32_t String::StringToInt(const std::string& strNumber)
     return ((0 == v) ? 0 : ((sign == '-') ? -v : v));
 }
 
-std::int64_t String::StringToLong(const std::string& strNumber)
+auto String::StringToLong(const std::string& strNumber) -> std::int64_t
 {
     if (strNumber.size() == 0) return 0;
 
@@ -164,7 +167,7 @@ std::int64_t String::StringToLong(const std::string& strNumber)
     return ((0 == v) ? 0 : ((sign == '-') ? -v : v));
 }
 
-std::uint32_t String::StringToUint(const std::string& strNumber)
+auto String::StringToUint(const std::string& strNumber) -> std::uint32_t
 {
     if (strNumber.size() == 0) return 0;
 
@@ -178,7 +181,7 @@ std::uint32_t String::StringToUint(const std::string& strNumber)
     return ((0 == v) ? 0 : v);
 }
 
-std::uint64_t String::StringToUlong(const std::string& strNumber)
+auto String::StringToUlong(const std::string& strNumber) -> std::uint64_t
 {
     if (strNumber.size() == 0) return 0;
 
@@ -192,7 +195,7 @@ std::uint64_t String::StringToUlong(const std::string& strNumber)
     return ((0 == v) ? 0 : v);
 }
 
-std::string& String::trim(std::string& str)
+auto String::trim(std::string& str) -> std::string&
 {
     std::string whitespaces(" \t\f\v\n\r");
     std::size_t found = str.find_first_not_of(whitespaces);
@@ -206,7 +209,7 @@ std::string& String::trim(std::string& str)
     return str;
 }
 
-std::string String::UlongToString(const std::uint64_t& uNumber)
+auto String::UlongToString(const std::uint64_t& uNumber) -> std::string
 {
     std::string strNumber;
     std::stringstream strstream;
@@ -217,7 +220,8 @@ std::string String::UlongToString(const std::uint64_t& uNumber)
     return strNumber;
 }
 
-bool String::vformat(const char* fmt, va_list* pvl, std::string& str_Output)
+auto String::vformat(const char* fmt, va_list* pvl, std::string& str_Output)
+    -> bool
 {
     OT_ASSERT(nullptr != fmt);
     OT_ASSERT(nullptr != pvl);
@@ -370,7 +374,7 @@ String::String(const String& strValue)
     LowLevelSetStr(strValue);
 }
 
-String& String::operator=(const String& rhs)
+auto String::operator=(const String& rhs) -> String&
 {
     Release();
     LowLevelSetStr(rhs);
@@ -378,7 +382,7 @@ String& String::operator=(const String& rhs)
     return *this;
 }
 
-bool String::operator>(const opentxs::String& s2) const
+auto String::operator>(const opentxs::String& s2) const -> bool
 {
     auto& rhs = dynamic_cast<const String&>(s2);
 
@@ -388,7 +392,7 @@ bool String::operator>(const opentxs::String& s2) const
     return (true);
 }
 
-bool String::operator<(const opentxs::String& s2) const
+auto String::operator<(const opentxs::String& s2) const -> bool
 {
     auto& rhs = dynamic_cast<const String&>(s2);
 
@@ -398,7 +402,7 @@ bool String::operator<(const opentxs::String& s2) const
     return (true);
 }
 
-bool String::operator<=(const opentxs::String& s2) const
+auto String::operator<=(const opentxs::String& s2) const -> bool
 {
     auto& rhs = dynamic_cast<const String&>(s2);
 
@@ -408,7 +412,7 @@ bool String::operator<=(const opentxs::String& s2) const
     return (true);
 }
 
-bool String::operator>=(const opentxs::String& s2) const
+auto String::operator>=(const opentxs::String& s2) const -> bool
 {
     auto& rhs = dynamic_cast<const String&>(s2);
 
@@ -418,7 +422,7 @@ bool String::operator>=(const opentxs::String& s2) const
     return (true);
 }
 
-bool String::operator==(const opentxs::String& s2) const
+auto String::operator==(const opentxs::String& s2) const -> bool
 {
     auto& rhs = dynamic_cast<const String&>(s2);
 
@@ -439,7 +443,7 @@ bool String::operator==(const opentxs::String& s2) const
     return (false);
 }
 
-bool String::At(std::uint32_t lIndex, char& c) const
+auto String::At(std::uint32_t lIndex, char& c) const -> bool
 {
     if (lIndex < length_) {
         c = internal_.data()[lIndex];
@@ -448,10 +452,10 @@ bool String::At(std::uint32_t lIndex, char& c) const
         return false;
 }
 
-String* String::clone() const { return new String(*this); }
+auto String::clone() const -> String* { return new String(*this); }
 
 // Compare is simple.  True if they match, False if they don't match.
-bool String::Compare(const char* strCompare) const
+auto String::Compare(const char* strCompare) const -> bool
 {
     if (internal_.empty() || nullptr == strCompare) { return false; }
 
@@ -466,7 +470,7 @@ bool String::Compare(const char* strCompare) const
     return true;
 }
 
-bool String::Compare(const opentxs::String& strCompare) const
+auto String::Compare(const opentxs::String& strCompare) const -> bool
 {
     if (internal_.empty() || !strCompare.Exists()) { return false; }
 
@@ -514,7 +518,7 @@ void String::Concatenate(const opentxs::String& strBuf)
 // Contains is like compare.  True if the substring is there, false if not.
 // I was going to return the position but then I realized I never needed it.
 // Should be easy to modify if the need arises.
-bool String::Contains(const char* strCompare) const
+auto String::Contains(const char* strCompare) const -> bool
 {
     if (internal_.empty() || nullptr == strCompare) { return false; }
 
@@ -523,7 +527,7 @@ bool String::Contains(const char* strCompare) const
     return false;
 }
 
-bool String::Contains(const opentxs::String& strCompare) const
+auto String::Contains(const opentxs::String& strCompare) const -> bool
 {
     if (internal_.empty() || !strCompare.Exists()) { return false; }
 
@@ -551,7 +555,7 @@ void String::ConvertToUpperCase()
 //                         unarmored now.)
 //               false == There was some error or the string is empty.
 //
-bool String::DecodeIfArmored(bool bEscapedIsAllowed)
+auto String::DecodeIfArmored(bool bEscapedIsAllowed) -> bool
 {
     if (!Exists()) return false;
 
@@ -627,9 +631,12 @@ bool String::DecodeIfArmored(bool bEscapedIsAllowed)
     return Exists();
 }
 
-bool String::empty(void) const { return (internal_.empty()) ? true : false; }
+auto String::empty(void) const -> bool
+{
+    return (internal_.empty()) ? true : false;
+}
 
-bool String::Exists(void) const { return !empty(); }
+auto String::Exists(void) const -> bool { return !empty(); }
 
 void String::Format(const char* fmt, ...)
 {
@@ -645,7 +652,7 @@ void String::Format(const char* fmt, ...)
     if (bSuccess) Set(str_output.c_str());
 }
 
-const char* String::Get() const
+auto String::Get() const -> const char*
 {
     if (internal_.empty()) {
 
@@ -656,7 +663,7 @@ const char* String::Get() const
     }
 }
 
-std::uint32_t String::GetLength(void) const { return length_; }
+auto String::GetLength(void) const -> std::uint32_t { return length_; }
 
 void String::Initialize()
 {
@@ -731,7 +738,8 @@ void String::LowLevelSetStr(const String& strBuf)
     }
 }
 
-std::vector<char> String::make_string(const char* str, std::uint32_t length)
+auto String::make_string(const char* str, std::uint32_t length)
+    -> std::vector<char>
 {
     std::vector<char> output{};
 
@@ -761,8 +769,9 @@ std::vector<char> String::make_string(const char* str, std::uint32_t length)
 
 // The source is probably NOT null-terminated.
 // Size must be exact (not a max.)
-bool String::MemSet(const char* pMem, std::uint32_t theSize)  // if theSize is
-                                                              // 10...
+auto String::MemSet(const char* pMem, std::uint32_t theSize)
+    -> bool  // if theSize is
+             // 10...
 {
     Release();
 
@@ -824,7 +833,7 @@ void String::Set(const opentxs::String& strBuf)
 // true  == there are more lines to read.
 // false == this is the last line. Like EOF.
 //
-bool String::sgets(char* szBuffer, std::uint32_t nBufSize)
+auto String::sgets(char* szBuffer, std::uint32_t nBufSize) -> bool
 {
     if (nullptr == szBuffer) { return false; }
 
@@ -883,7 +892,7 @@ bool String::sgets(char* szBuffer, std::uint32_t nBufSize)
     return true;
 }
 
-char String::sgetc(void)
+auto String::sgetc(void) -> char
 {
     char answer;
 
@@ -903,15 +912,15 @@ void String::swap(opentxs::String& rhs)
     std::swap(internal_, in.internal_);
 }
 
-std::int32_t String::ToInt() const
+auto String::ToInt() const -> std::int32_t
 {
     const std::string str_number(Get());
 
     return StringToInt(str_number);
 }
 
-bool String::TokenizeIntoKeyValuePairs(
-    std::map<std::string, std::string>& mapOutput) const
+auto String::TokenizeIntoKeyValuePairs(
+    std::map<std::string, std::string>& mapOutput) const -> bool
 {
 #if !(                                                                         \
     defined(_WIN32) || (defined(TARGET_OS_IPHONE) && TARGET_OS_IPHONE) ||      \
@@ -1026,21 +1035,21 @@ bool String::TokenizeIntoKeyValuePairs(
 #endif
 }
 
-std::int64_t String::ToLong() const
+auto String::ToLong() const -> std::int64_t
 {
     const std::string str_number(Get());
 
     return StringToLong(str_number);
 }
 
-std::uint32_t String::ToUint() const
+auto String::ToUint() const -> std::uint32_t
 {
     const std::string str_number(Get());
 
     return StringToUint(str_number);
 }
 
-std::uint64_t String::ToUlong() const
+auto String::ToUlong() const -> std::uint64_t
 {
     const std::string str_number(Get());
 

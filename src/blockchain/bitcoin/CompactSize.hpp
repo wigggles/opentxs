@@ -21,20 +21,21 @@ public:
 
     // Returns the number of bytes SUBSEQUENT to first_byte
     // Possible output values are: 0, 2, 4, 8
-    OPENTXS_EXPORT static std::uint64_t CalculateSize(
-        const std::byte first) noexcept;
+    OPENTXS_EXPORT static auto CalculateSize(const std::byte first) noexcept
+        -> std::uint64_t;
 
-    OPENTXS_EXPORT Bytes Encode() const noexcept;
-    OPENTXS_EXPORT bool Encode(AllocateOutput destination) const noexcept;
+    OPENTXS_EXPORT auto Encode() const noexcept -> Bytes;
+    OPENTXS_EXPORT auto Encode(AllocateOutput destination) const noexcept
+        -> bool;
     // Number of bytes the CompactSize will occupy
-    OPENTXS_EXPORT std::size_t Size() const noexcept;
+    OPENTXS_EXPORT auto Size() const noexcept -> std::size_t;
     // Number of bytes the CompactSize and associated data will occupy
-    OPENTXS_EXPORT std::size_t Total() const noexcept;
-    OPENTXS_EXPORT std::uint64_t Value() const noexcept;
+    OPENTXS_EXPORT auto Total() const noexcept -> std::size_t;
+    OPENTXS_EXPORT auto Value() const noexcept -> std::uint64_t;
 
     // Initial marker byte should be omitted
     // Valid inputs are 0, 2, 4, or 8 bytes
-    OPENTXS_EXPORT bool Decode(const Bytes& bytes) noexcept;
+    OPENTXS_EXPORT auto Decode(const Bytes& bytes) noexcept -> bool;
 
     OPENTXS_EXPORT CompactSize() noexcept = default;
     OPENTXS_EXPORT explicit CompactSize(std::uint64_t value) noexcept;
@@ -44,10 +45,12 @@ public:
     OPENTXS_EXPORT CompactSize(const Bytes& bytes) noexcept(false);
     OPENTXS_EXPORT CompactSize(const CompactSize&) noexcept = default;
     OPENTXS_EXPORT CompactSize(CompactSize&&) noexcept = default;
-    OPENTXS_EXPORT CompactSize& operator=(const CompactSize&) noexcept =
-        default;
-    OPENTXS_EXPORT CompactSize& operator=(CompactSize&&) noexcept = default;
-    OPENTXS_EXPORT CompactSize& operator=(const std::uint64_t rhs) noexcept;
+    OPENTXS_EXPORT auto operator=(const CompactSize&) noexcept
+        -> CompactSize& = default;
+    OPENTXS_EXPORT auto operator=(CompactSize&&) noexcept
+        -> CompactSize& = default;
+    OPENTXS_EXPORT auto operator=(const std::uint64_t rhs) noexcept
+        -> CompactSize&;
 
     OPENTXS_EXPORT ~CompactSize() = default;
 

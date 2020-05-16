@@ -44,8 +44,8 @@ namespace opentxs::blockchain::client::bitcoin::implementation
 class Network final : public client::implementation::Network
 {
 public:
-    std::unique_ptr<block::Header> instantiate_header(
-        const ReadView payload) const noexcept final;
+    auto instantiate_header(const ReadView payload) const noexcept
+        -> std::unique_ptr<block::Header> final;
 
     Network(
         const api::internal::Core& api,
@@ -61,7 +61,7 @@ private:
     Network() = delete;
     Network(const Network&) = delete;
     Network(Network&&) = delete;
-    Network& operator=(const Network&) = delete;
-    Network& operator=(Network&&) = delete;
+    auto operator=(const Network&) -> Network& = delete;
+    auto operator=(Network &&) -> Network& = delete;
 };
 }  // namespace opentxs::blockchain::client::bitcoin::implementation

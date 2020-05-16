@@ -51,12 +51,12 @@
 
 namespace opentxs
 {
-identity::internal::Nym* Factory::Nym(
+auto Factory::Nym(
     const api::internal::Core& api,
     const NymParameters& params,
     const proto::ContactItemType type,
     const std::string name,
-    const opentxs::PasswordPrompt& reason)
+    const opentxs::PasswordPrompt& reason) -> identity::internal::Nym*
 {
     using ReturnType = identity::implementation::Nym;
 
@@ -105,10 +105,10 @@ identity::internal::Nym* Factory::Nym(
     }
 }
 
-identity::internal::Nym* Factory::Nym(
+auto Factory::Nym(
     const api::internal::Core& api,
     const proto::Nym& serialized,
-    const std::string& alias)
+    const std::string& alias) -> identity::internal::Nym*
 {
     try {
         return new identity::implementation::Nym(api, serialized, alias);
@@ -130,12 +130,12 @@ const VersionNumber Nym::MaxVersion{6};
 
 namespace opentxs::identity::implementation
 {
-bool session_key_from_iv(
+auto session_key_from_iv(
     const api::internal::Core& api,
     const crypto::key::Asymmetric& signingKey,
     const Data& iv,
     const proto::HashType hashType,
-    opentxs::PasswordPrompt& reason);
+    opentxs::PasswordPrompt& reason) -> bool;
 
 const VersionConversionMap Nym::akey_to_session_key_version_{
     {1, 1},
@@ -198,10 +198,10 @@ Nym::Nym(
     }
 }
 
-bool Nym::add_contact_credential(
+auto Nym::add_contact_credential(
     const eLock& lock,
     const proto::ContactData& data,
-    const opentxs::PasswordPrompt& reason)
+    const opentxs::PasswordPrompt& reason) -> bool
 {
     OT_ASSERT(verify_lock(lock));
 
@@ -220,10 +220,10 @@ bool Nym::add_contact_credential(
     return added;
 }
 
-bool Nym::add_verification_credential(
+auto Nym::add_verification_credential(
     const eLock& lock,
     const proto::VerificationSet& data,
-    const opentxs::PasswordPrompt& reason)
+    const opentxs::PasswordPrompt& reason) -> bool
 {
     OT_ASSERT(verify_lock(lock));
 
@@ -242,10 +242,10 @@ bool Nym::add_verification_credential(
     return added;
 }
 
-std::string Nym::AddChildKeyCredential(
+auto Nym::AddChildKeyCredential(
     const Identifier& masterID,
     const NymParameters& nymParameters,
-    const opentxs::PasswordPrompt& reason)
+    const opentxs::PasswordPrompt& reason) -> std::string
 {
     eLock lock(shared_lock_);
 
@@ -266,7 +266,8 @@ std::string Nym::AddChildKeyCredential(
     return output;
 }
 
-bool Nym::AddClaim(const Claim& claim, const opentxs::PasswordPrompt& reason)
+auto Nym::AddClaim(const Claim& claim, const opentxs::PasswordPrompt& reason)
+    -> bool
 {
     eLock lock(shared_lock_);
 
@@ -279,12 +280,12 @@ bool Nym::AddClaim(const Claim& claim, const opentxs::PasswordPrompt& reason)
     return set_contact_data(lock, contact_data_->Serialize(), reason);
 }
 
-bool Nym::AddContract(
+auto Nym::AddContract(
     const identifier::UnitDefinition& instrumentDefinitionID,
     const proto::ContactItemType currency,
     const opentxs::PasswordPrompt& reason,
     const bool primary,
-    const bool active)
+    const bool active) -> bool
 {
     const std::string id(instrumentDefinitionID.str());
 
@@ -302,11 +303,11 @@ bool Nym::AddContract(
     return set_contact_data(lock, contact_data_->Serialize(), reason);
 }
 
-bool Nym::AddEmail(
+auto Nym::AddEmail(
     const std::string& value,
     const opentxs::PasswordPrompt& reason,
     const bool primary,
-    const bool active)
+    const bool active) -> bool
 {
     if (value.empty()) { return false; }
 
@@ -322,12 +323,12 @@ bool Nym::AddEmail(
     return set_contact_data(lock, contact_data_->Serialize(), reason);
 }
 
-bool Nym::AddPaymentCode(
+auto Nym::AddPaymentCode(
     const opentxs::PaymentCode& code,
     const proto::ContactItemType currency,
     const opentxs::PasswordPrompt& reason,
     const bool primary,
-    const bool active)
+    const bool active) -> bool
 {
     const auto paymentCode = code.asBase58();
 
@@ -345,11 +346,11 @@ bool Nym::AddPaymentCode(
     return set_contact_data(lock, contact_data_->Serialize(), reason);
 }
 
-bool Nym::AddPhoneNumber(
+auto Nym::AddPhoneNumber(
     const std::string& value,
     const opentxs::PasswordPrompt& reason,
     const bool primary,
-    const bool active)
+    const bool active) -> bool
 {
     if (value.empty()) { return false; }
 
@@ -365,10 +366,10 @@ bool Nym::AddPhoneNumber(
     return set_contact_data(lock, contact_data_->Serialize(), reason);
 }
 
-bool Nym::AddPreferredOTServer(
+auto Nym::AddPreferredOTServer(
     const Identifier& id,
     const opentxs::PasswordPrompt& reason,
-    const bool primary)
+    const bool primary) -> bool
 {
     eLock lock(shared_lock_);
 
@@ -384,12 +385,12 @@ bool Nym::AddPreferredOTServer(
     return set_contact_data(lock, contact_data_->Serialize(), reason);
 }
 
-bool Nym::AddSocialMediaProfile(
+auto Nym::AddSocialMediaProfile(
     const std::string& value,
     const proto::ContactItemType type,
     const opentxs::PasswordPrompt& reason,
     const bool primary,
-    const bool active)
+    const bool active) -> bool
 {
     if (value.empty()) { return false; }
 
@@ -405,14 +406,15 @@ bool Nym::AddSocialMediaProfile(
     return set_contact_data(lock, contact_data_->Serialize(), reason);
 }
 
-std::string Nym::Alias() const { return alias_; }
+auto Nym::Alias() const -> std::string { return alias_; }
 
-const Nym::Serialized Nym::asPublicNym() const
+auto Nym::asPublicNym() const -> const Nym::Serialized
 {
     return SerializeCredentialIndex(Mode::Full);
 }
 
-const Nym::value_type& Nym::at(const std::size_t& index) const noexcept(false)
+auto Nym::at(const std::size_t& index) const noexcept(false)
+    -> const Nym::value_type&
 {
     for (auto i{active_.cbegin()}; i != active_.cend(); ++i) {
         if (static_cast<std::size_t>(std::distance(active_.cbegin(), i)) ==
@@ -424,7 +426,7 @@ const Nym::value_type& Nym::at(const std::size_t& index) const noexcept(false)
     throw std::out_of_range("Invalid authority index");
 }
 
-std::string Nym::BestEmail() const
+auto Nym::BestEmail() const -> std::string
 {
     eLock lock(shared_lock_);
 
@@ -435,7 +437,7 @@ std::string Nym::BestEmail() const
     return contact_data_->BestEmail();
 }
 
-std::string Nym::BestPhoneNumber() const
+auto Nym::BestPhoneNumber() const -> std::string
 {
     eLock lock(shared_lock_);
 
@@ -446,7 +448,8 @@ std::string Nym::BestPhoneNumber() const
     return contact_data_->BestPhoneNumber();
 }
 
-std::string Nym::BestSocialMediaProfile(const proto::ContactItemType type) const
+auto Nym::BestSocialMediaProfile(const proto::ContactItemType type) const
+    -> std::string
 {
     eLock lock(shared_lock_);
 
@@ -457,7 +460,7 @@ std::string Nym::BestSocialMediaProfile(const proto::ContactItemType type) const
     return contact_data_->BestSocialMediaProfile(type);
 }
 
-const opentxs::ContactData& Nym::Claims() const
+auto Nym::Claims() const -> const opentxs::ContactData&
 {
     eLock lock(shared_lock_);
 
@@ -468,21 +471,21 @@ const opentxs::ContactData& Nym::Claims() const
     return *contact_data_;
 }
 
-bool Nym::CompareID(const identity::Nym& rhs) const
+auto Nym::CompareID(const identity::Nym& rhs) const -> bool
 {
     sLock lock(shared_lock_);
 
     return rhs.CompareID(id_);
 }
 
-bool Nym::CompareID(const identifier::Nym& rhs) const
+auto Nym::CompareID(const identifier::Nym& rhs) const -> bool
 {
     sLock lock(shared_lock_);
 
     return id_ == rhs;
 }
 
-VersionNumber Nym::ContactCredentialVersion() const
+auto Nym::ContactCredentialVersion() const -> VersionNumber
 {
     // TODO support multiple authorities
     OT_ASSERT(0 < active_.size())
@@ -490,9 +493,9 @@ VersionNumber Nym::ContactCredentialVersion() const
     return active_.cbegin()->second->ContactCredentialVersion();
 }
 
-std::set<OTIdentifier> Nym::Contracts(
+auto Nym::Contracts(
     const proto::ContactItemType currency,
-    const bool onlyActive) const
+    const bool onlyActive) const -> std::set<OTIdentifier>
 {
     eLock lock(shared_lock_);
 
@@ -527,9 +530,9 @@ auto Nym::create_authority(
     return output;
 }
 
-bool Nym::DeleteClaim(
+auto Nym::DeleteClaim(
     const Identifier& id,
-    const opentxs::PasswordPrompt& reason)
+    const opentxs::PasswordPrompt& reason) -> bool
 {
     eLock lock(shared_lock_);
 
@@ -542,7 +545,7 @@ bool Nym::DeleteClaim(
     return set_contact_data(lock, contact_data_->Serialize(), reason);
 }
 
-std::string Nym::EmailAddresses(bool active) const
+auto Nym::EmailAddresses(bool active) const -> std::string
 {
     eLock lock(shared_lock_);
 
@@ -585,9 +588,8 @@ void Nym::GetIdentifier(String& theIdentifier) const
 }
 
 template <typename T>
-const crypto::key::Asymmetric& Nym::get_private_auth_key(
-    const T& lock,
-    proto::AsymmetricKeyType keytype) const
+auto Nym::get_private_auth_key(const T& lock, proto::AsymmetricKeyType keytype)
+    const -> const crypto::key::Asymmetric&
 {
     OT_ASSERT(!active_.empty());
 
@@ -612,16 +614,16 @@ const crypto::key::Asymmetric& Nym::get_private_auth_key(
         keytype, &m_listRevokedIDs);  // success
 }
 
-const crypto::key::Asymmetric& Nym::GetPrivateAuthKey(
-    proto::AsymmetricKeyType keytype) const
+auto Nym::GetPrivateAuthKey(proto::AsymmetricKeyType keytype) const
+    -> const crypto::key::Asymmetric&
 {
     sLock lock(shared_lock_);
 
     return get_private_auth_key(lock, keytype);
 }
 
-const crypto::key::Asymmetric& Nym::GetPrivateEncrKey(
-    proto::AsymmetricKeyType keytype) const
+auto Nym::GetPrivateEncrKey(proto::AsymmetricKeyType keytype) const
+    -> const crypto::key::Asymmetric&
 {
     sLock lock(shared_lock_);
 
@@ -648,8 +650,8 @@ const crypto::key::Asymmetric& Nym::GetPrivateEncrKey(
         &m_listRevokedIDs);  // success
 }
 
-const crypto::key::Asymmetric& Nym::GetPrivateSignKey(
-    proto::AsymmetricKeyType keytype) const
+auto Nym::GetPrivateSignKey(proto::AsymmetricKeyType keytype) const
+    -> const crypto::key::Asymmetric&
 {
     sLock lock(shared_lock_);
 
@@ -657,9 +659,8 @@ const crypto::key::Asymmetric& Nym::GetPrivateSignKey(
 }
 
 template <typename T>
-const crypto::key::Asymmetric& Nym::get_private_sign_key(
-    const T& lock,
-    proto::AsymmetricKeyType keytype) const
+auto Nym::get_private_sign_key(const T& lock, proto::AsymmetricKeyType keytype)
+    const -> const crypto::key::Asymmetric&
 {
     OT_ASSERT(!active_.empty());
 
@@ -687,9 +688,8 @@ const crypto::key::Asymmetric& Nym::get_private_sign_key(
 }
 
 template <typename T>
-const crypto::key::Asymmetric& Nym::get_public_sign_key(
-    const T& lock,
-    proto::AsymmetricKeyType keytype) const
+auto Nym::get_public_sign_key(const T& lock, proto::AsymmetricKeyType keytype)
+    const -> const crypto::key::Asymmetric&
 {
     OT_ASSERT(!active_.empty());
 
@@ -716,8 +716,8 @@ const crypto::key::Asymmetric& Nym::get_public_sign_key(
         &m_listRevokedIDs);  // success
 }
 
-const crypto::key::Asymmetric& Nym::GetPublicAuthKey(
-    proto::AsymmetricKeyType keytype) const
+auto Nym::GetPublicAuthKey(proto::AsymmetricKeyType keytype) const
+    -> const crypto::key::Asymmetric&
 {
     sLock lock(shared_lock_);
 
@@ -744,8 +744,8 @@ const crypto::key::Asymmetric& Nym::GetPublicAuthKey(
         &m_listRevokedIDs);  // success
 }
 
-const crypto::key::Asymmetric& Nym::GetPublicEncrKey(
-    proto::AsymmetricKeyType keytype) const
+auto Nym::GetPublicEncrKey(proto::AsymmetricKeyType keytype) const
+    -> const crypto::key::Asymmetric&
 {
     sLock lock(shared_lock_);
 
@@ -782,10 +782,10 @@ const crypto::key::Asymmetric& Nym::GetPublicEncrKey(
 // public key.
 // Return value is the count of public keys found that matched the metadata on
 // the signature.
-std::int32_t Nym::GetPublicKeysBySignature(
+auto Nym::GetPublicKeysBySignature(
     crypto::key::Keypair::Keys& listOutput,
     const Signature& theSignature,
-    char cKeyType) const
+    char cKeyType) const -> std::int32_t
 {
     // Unfortunately, theSignature can only narrow the search down (there may be
     // multiple results.)
@@ -805,16 +805,16 @@ std::int32_t Nym::GetPublicKeysBySignature(
     return nCount;
 }
 
-const crypto::key::Asymmetric& Nym::GetPublicSignKey(
-    proto::AsymmetricKeyType keytype) const
+auto Nym::GetPublicSignKey(proto::AsymmetricKeyType keytype) const
+    -> const crypto::key::Asymmetric&
 {
     sLock lock(shared_lock_);
 
     return get_public_sign_key(lock, keytype);
 }
 
-bool Nym::has_capability(const eLock& lock, const NymCapability& capability)
-    const
+auto Nym::has_capability(const eLock& lock, const NymCapability& capability)
+    const -> bool
 {
     OT_ASSERT(verify_lock(lock));
 
@@ -831,7 +831,7 @@ bool Nym::has_capability(const eLock& lock, const NymCapability& capability)
     return false;
 }
 
-bool Nym::HasCapability(const NymCapability& capability) const
+auto Nym::HasCapability(const NymCapability& capability) const -> bool
 {
     eLock lock(shared_lock_);
 
@@ -904,12 +904,12 @@ auto Nym::load_authorities(
     return output;
 }
 
-String::List Nym::load_revoked(
+auto Nym::load_revoked(
     const api::internal::Core& api,
     const identity::Nym& parent,
     const identity::Source& source,
     const Serialized& serialized,
-    CredentialMap& revoked) noexcept(false)
+    CredentialMap& revoked) noexcept(false) -> String::List
 {
     auto output = String::List{};
 
@@ -936,7 +936,7 @@ String::List Nym::load_revoked(
     return output;
 }
 
-std::string Nym::Name() const
+auto Nym::Name() const -> std::string
 {
     eLock lock(shared_lock_);
 
@@ -951,10 +951,10 @@ std::string Nym::Name() const
     return alias_;
 }
 
-NymParameters Nym::normalize(
+auto Nym::normalize(
     const api::internal::Core& api,
     const NymParameters& in,
-    const PasswordPrompt& reason) noexcept(false)
+    const PasswordPrompt& reason) noexcept(false) -> NymParameters
 {
     auto output{in};
 
@@ -991,7 +991,7 @@ NymParameters Nym::normalize(
     return output;
 }
 
-bool Nym::Path(proto::HDPath& output) const
+auto Nym::Path(proto::HDPath& output) const -> bool
 {
     sLock lock(shared_lock_);
 
@@ -1011,7 +1011,7 @@ bool Nym::Path(proto::HDPath& output) const
     return false;
 }
 
-std::string Nym::PaymentCode() const
+auto Nym::PaymentCode() const -> std::string
 {
     if (proto::SOURCETYPE_BIP47 != source_.Type()) { return ""; }
 
@@ -1024,7 +1024,7 @@ std::string Nym::PaymentCode() const
     return paymentCode->asBase58();
 }
 
-std::string Nym::PhoneNumbers(bool active) const
+auto Nym::PhoneNumbers(bool active) const -> std::string
 {
     eLock lock(shared_lock_);
 
@@ -1035,7 +1035,7 @@ std::string Nym::PhoneNumbers(bool active) const
     return contact_data_->PhoneNumbers(active);
 }
 
-std::uint64_t Nym::Revision() const { return revision_.load(); }
+auto Nym::Revision() const -> std::uint64_t { return revision_.load(); }
 
 void Nym::revoke_contact_credentials(const eLock& lock)
 {
@@ -1067,7 +1067,7 @@ void Nym::revoke_verification_credentials(const eLock& lock)
     for (auto& it : revokedIDs) { m_listRevokedIDs.push_back(it); }
 }
 
-Nym::Serialized Nym::SerializeCredentialIndex(const Mode mode) const
+auto Nym::SerializeCredentialIndex(const Mode mode) const -> Nym::Serialized
 {
     sLock lock(shared_lock_);
     Serialized index;
@@ -1125,10 +1125,10 @@ void Nym::SerializeNymIDSource(Tag& parent) const
     parent.add_tag(pTag);
 }
 
-bool Nym::set_contact_data(
+auto Nym::set_contact_data(
     const eLock& lock,
     const proto::ContactData& data,
-    const opentxs::PasswordPrompt& reason)
+    const opentxs::PasswordPrompt& reason) -> bool
 {
     OT_ASSERT(verify_lock(lock));
 
@@ -1173,9 +1173,9 @@ void Nym::SetAlias(const std::string& alias)
     revision_++;
 }
 
-bool Nym::SetCommonName(
+auto Nym::SetCommonName(
     const std::string& name,
-    const opentxs::PasswordPrompt& reason)
+    const opentxs::PasswordPrompt& reason) -> bool
 {
     eLock lock(shared_lock_);
 
@@ -1188,9 +1188,9 @@ bool Nym::SetCommonName(
     return set_contact_data(lock, contact_data_->Serialize(), reason);
 }
 
-bool Nym::SetContactData(
+auto Nym::SetContactData(
     const proto::ContactData& data,
-    const opentxs::PasswordPrompt& reason)
+    const opentxs::PasswordPrompt& reason) -> bool
 {
     eLock lock(shared_lock_);
     contact_data_.reset(
@@ -1199,11 +1199,11 @@ bool Nym::SetContactData(
     return set_contact_data(lock, data, reason);
 }
 
-bool Nym::SetScope(
+auto Nym::SetScope(
     const proto::ContactItemType type,
     const std::string& name,
     const opentxs::PasswordPrompt& reason,
-    const bool primary)
+    const bool primary) -> bool
 {
     eLock lock(shared_lock_);
 
@@ -1222,12 +1222,12 @@ bool Nym::SetScope(
     return set_contact_data(lock, contact_data_->Serialize(), reason);
 }
 
-bool Nym::Sign(
+auto Nym::Sign(
     const ProtobufType& input,
     const proto::SignatureRole role,
     proto::Signature& signature,
     const opentxs::PasswordPrompt& reason,
-    const proto::HashType hash) const
+    const proto::HashType hash) const -> bool
 {
     sLock lock(shared_lock_);
 
@@ -1260,9 +1260,8 @@ bool Nym::Sign(
     return haveSig;
 }
 
-std::string Nym::SocialMediaProfiles(
-    const proto::ContactItemType type,
-    bool active) const
+auto Nym::SocialMediaProfiles(const proto::ContactItemType type, bool active)
+    const -> std::string
 {
     eLock lock(shared_lock_);
 
@@ -1273,16 +1272,16 @@ std::string Nym::SocialMediaProfiles(
     return contact_data_->SocialMediaProfiles(type, active);
 }
 
-const std::set<proto::ContactItemType> Nym::SocialMediaProfileTypes() const
+auto Nym::SocialMediaProfileTypes() const
+    -> const std::set<proto::ContactItemType>
 {
     sLock lock(shared_lock_);
 
     return contact_data_->SocialMediaProfileTypes();
 }
 
-std::unique_ptr<OTPassword> Nym::TransportKey(
-    Data& pubkey,
-    const opentxs::PasswordPrompt& reason) const
+auto Nym::TransportKey(Data& pubkey, const opentxs::PasswordPrompt& reason)
+    const -> std::unique_ptr<OTPassword>
 {
     bool found{false};
     auto privateKey = api_.Factory().BinarySecret();
@@ -1325,10 +1324,10 @@ auto Nym::Unlock(
     return false;
 }
 
-bool Nym::update_nym(
+auto Nym::update_nym(
     const eLock& lock,
     const std::int32_t version,
-    const opentxs::PasswordPrompt& reason)
+    const opentxs::PasswordPrompt& reason) -> bool
 {
     OT_ASSERT(verify_lock(lock));
 
@@ -1344,7 +1343,8 @@ bool Nym::update_nym(
     return false;
 }
 
-bool Nym::Verify(const ProtobufType& input, proto::Signature& signature) const
+auto Nym::Verify(const ProtobufType& input, proto::Signature& signature) const
+    -> bool
 {
     const auto copy{signature};
     signature.clear_signature();
@@ -1359,7 +1359,7 @@ bool Nym::Verify(const ProtobufType& input, proto::Signature& signature) const
     return false;
 }
 
-bool Nym::verify_pseudonym(const eLock& lock) const
+auto Nym::verify_pseudonym(const eLock& lock) const -> bool
 {
     // If there are credentials, then we verify the Nym via his credentials.
     if (!active_.empty()) {
@@ -1384,14 +1384,14 @@ bool Nym::verify_pseudonym(const eLock& lock) const
     return false;
 }
 
-bool Nym::VerifyPseudonym() const
+auto Nym::VerifyPseudonym() const -> bool
 {
     eLock lock(shared_lock_);
 
     return verify_pseudonym(lock);
 }
 
-bool Nym::WriteCredentials() const
+auto Nym::WriteCredentials() const -> bool
 {
     sLock lock(shared_lock_);
 

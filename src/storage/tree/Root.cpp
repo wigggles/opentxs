@@ -140,7 +140,7 @@ void Root::init(const std::string& hash)
     tree_root_ = normalize_hash(serialized->items());
 }
 
-bool Root::Migrate(const opentxs::api::storage::Driver& to) const
+auto Root::Migrate(const opentxs::api::storage::Driver& to) const -> bool
 {
     if (0 == gc_interval_) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Garbage collection disabled.")
@@ -169,7 +169,7 @@ bool Root::Migrate(const opentxs::api::storage::Driver& to) const
     return false;
 }
 
-Editor<class Tree> Root::mutable_Tree()
+auto Root::mutable_Tree() -> Editor<class Tree>
 {
     std::function<void(class Tree*, Lock&)> callback =
         [&](class Tree* in, Lock& lock) -> void { this->save(in, lock); };
@@ -177,7 +177,8 @@ Editor<class Tree> Root::mutable_Tree()
     return Editor<class Tree>(write_lock_, tree(), callback);
 }
 
-bool Root::save(const Lock& lock, const opentxs::api::storage::Driver& to) const
+auto Root::save(const Lock& lock, const opentxs::api::storage::Driver& to) const
+    -> bool
 {
     OT_ASSERT(verify_write_lock(lock));
 
@@ -188,7 +189,7 @@ bool Root::save(const Lock& lock, const opentxs::api::storage::Driver& to) const
     return to.StoreProto(serialized, root_);
 }
 
-bool Root::save(const Lock& lock) const
+auto Root::save(const Lock& lock) const -> bool
 {
     OT_ASSERT(verify_write_lock(lock));
 
@@ -212,16 +213,16 @@ void Root::save(class Tree* tree, const Lock& lock)
     OT_ASSERT(saved);
 }
 
-bool Root::Save(const opentxs::api::storage::Driver& to) const
+auto Root::Save(const opentxs::api::storage::Driver& to) const -> bool
 {
     Lock lock(write_lock_);
 
     return save(lock, to);
 }
 
-std::uint64_t Root::Sequence() const { return sequence_.load(); }
+auto Root::Sequence() const -> std::uint64_t { return sequence_.load(); }
 
-proto::StorageRoot Root::serialize() const
+auto Root::serialize() const -> proto::StorageRoot
 {
     proto::StorageRoot output;
     output.set_version(version_);
@@ -235,7 +236,7 @@ proto::StorageRoot Root::serialize() const
     return output;
 }
 
-class Tree* Root::tree() const
+auto Root::tree() const -> class Tree*
 {
     Lock lock(tree_lock_);
 
@@ -248,6 +249,6 @@ class Tree* Root::tree() const
     return tree_.get();
 }
 
-const class Tree& Root::Tree() const { return *tree(); }
+auto Root::Tree() const -> const class Tree& { return *tree(); }
 }  // namespace storage
 }  // namespace opentxs

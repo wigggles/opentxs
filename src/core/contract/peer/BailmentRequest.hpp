@@ -64,13 +64,16 @@ private:
     const OTUnitID unit_;
     const OTServerID server_;
 
-    Bailment* clone() const noexcept final { return new Bailment(*this); }
-    SerializedType IDVersion(const Lock& lock) const final;
+    auto clone() const noexcept -> Bailment* final
+    {
+        return new Bailment(*this);
+    }
+    auto IDVersion(const Lock& lock) const -> SerializedType final;
 
     Bailment() = delete;
     Bailment(const Bailment&);
     Bailment(Bailment&&) = delete;
-    Bailment& operator=(const Bailment&) = delete;
-    Bailment& operator=(Bailment&&) = delete;
+    auto operator=(const Bailment&) -> Bailment& = delete;
+    auto operator=(Bailment &&) -> Bailment& = delete;
 };
 }  // namespace opentxs::contract::peer::request::implementation

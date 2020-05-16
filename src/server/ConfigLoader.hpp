@@ -23,9 +23,9 @@ class String;
 namespace opentxs::server
 {
 struct ConfigLoader {
-    static bool load(
+    static auto load(
         const api::internal::Core& api,
         const api::Settings& config,
-        String& walletFilename);
+        String& walletFilename) -> bool;
 };
 }  // namespace opentxs::server

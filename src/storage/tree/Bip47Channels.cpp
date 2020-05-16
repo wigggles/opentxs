@@ -52,7 +52,8 @@ Bip47Channels::Bip47Channels(
     }
 }
 
-OTIdentifier Bip47Channels::AddressToChannel(const std::string& address) const
+auto Bip47Channels::AddressToChannel(const std::string& address) const
+    -> OTIdentifier
 {
     sLock lock(index_lock_);
 
@@ -78,45 +79,49 @@ void Bip47Channels::calculate_id(
     channelID.CalculateDigest(preimage->Bytes());
 }
 
-proto::ContactItemType Bip47Channels::Chain(const Identifier& channelID) const
+auto Bip47Channels::Chain(const Identifier& channelID) const
+    -> proto::ContactItemType
 {
     sLock lock(index_lock_);
 
     return std::get<1>(get_channel_data(lock, channelID));
 }
 
-Bip47Channels::ChannelList Bip47Channels::ChannelsByContact(
-    const Identifier& contactID) const
+auto Bip47Channels::ChannelsByContact(const Identifier& contactID) const
+    -> Bip47Channels::ChannelList
 {
     return extract_set(contactID, contact_map_);
 }
 
-Bip47Channels::ChannelList Bip47Channels::ChannelsByChain(
-    const proto::ContactItemType chain) const
+auto Bip47Channels::ChannelsByChain(const proto::ContactItemType chain) const
+    -> Bip47Channels::ChannelList
 {
     return extract_set(chain, chain_map_);
 }
 
-Bip47Channels::ChannelList Bip47Channels::ChannelsByLocalPaymentCode(
-    const std::string& code) const
+auto Bip47Channels::ChannelsByLocalPaymentCode(const std::string& code) const
+    -> Bip47Channels::ChannelList
 {
     return extract_set(code, local_map_);
 }
 
-Bip47Channels::ChannelList Bip47Channels::ChannelsByRemotePaymentCode(
-    const std::string& code) const
+auto Bip47Channels::ChannelsByRemotePaymentCode(const std::string& code) const
+    -> Bip47Channels::ChannelList
 {
     return extract_set(code, remote_map_);
 }
 
-OTIdentifier Bip47Channels::Contact(const Identifier& channelID) const
+auto Bip47Channels::Contact(const Identifier& channelID) const -> OTIdentifier
 {
     sLock lock(index_lock_);
 
     return std::get<2>(get_channel_data(lock, channelID));
 }
 
-bool Bip47Channels::Delete(const std::string& id) { return delete_item(id); }
+auto Bip47Channels::Delete(const std::string& id) -> bool
+{
+    return delete_item(id);
+}
 
 void Bip47Channels::extract_addresses(
     const proto::Bip47Direction& input,
@@ -128,8 +133,8 @@ void Bip47Channels::extract_addresses(
 }
 
 template <typename I, typename V>
-typename V::mapped_type Bip47Channels::extract_set(const I& id, const V& index)
-    const
+auto Bip47Channels::extract_set(const I& id, const V& index) const ->
+    typename V::mapped_type
 {
     sLock lock(index_lock_);
 
@@ -142,16 +147,16 @@ typename V::mapped_type Bip47Channels::extract_set(const I& id, const V& index)
     }
 }
 
-std::set<std::string>& Bip47Channels::get_address_set(
+auto Bip47Channels::get_address_set(
     const eLock& lock,
-    const Identifier& channelID)
+    const Identifier& channelID) -> std::set<std::string>&
 {
     return _get_address_set(lock, Identifier::Factory(channelID));
 }
 
-std::set<std::string>& Bip47Channels::_get_address_set(
+auto Bip47Channels::_get_address_set(
     const eLock&,  // TODO switch Node to Lockable
-    OTIdentifier&& id)
+    OTIdentifier&& id) -> std::set<std::string>&
 {
     try {
         return address_index_.at(id);
@@ -161,17 +166,16 @@ std::set<std::string>& Bip47Channels::_get_address_set(
 }
 
 template <typename L>
-Bip47Channels::ChannelData& Bip47Channels::get_channel_data(
-    const L& lock,
-    const Identifier& channelID) const
+auto Bip47Channels::get_channel_data(const L& lock, const Identifier& channelID)
+    const -> Bip47Channels::ChannelData&
 {
     return _get_channel_data(lock, Identifier::Factory(channelID));
 }
 
 template <typename L>
-Bip47Channels::ChannelData& Bip47Channels::_get_channel_data(
+auto Bip47Channels::_get_channel_data(
     const L&,  // TODO switch Node to Lockable
-    OTIdentifier&& id) const
+    OTIdentifier&& id) const -> Bip47Channels::ChannelData&
 {
     try {
         return channel_data_.at(id);
@@ -238,24 +242,26 @@ void Bip47Channels::init(const std::string& hash)
     }
 }
 
-bool Bip47Channels::Load(
+auto Bip47Channels::Load(
     const Identifier& id,
     std::shared_ptr<proto::Bip47Channel>& output,
-    const bool checking) const
+    const bool checking) const -> bool
 {
     std::string alias{""};
 
     return load_proto<proto::Bip47Channel>(id.str(), output, alias, checking);
 }
 
-std::string Bip47Channels::LocalPaymentCode(const Identifier& channelID) const
+auto Bip47Channels::LocalPaymentCode(const Identifier& channelID) const
+    -> std::string
 {
     sLock lock(index_lock_);
 
     return std::get<0>(get_channel_data(lock, channelID));
 }
 
-std::string Bip47Channels::RemotePaymentCode(const Identifier& channelID) const
+auto Bip47Channels::RemotePaymentCode(const Identifier& channelID) const
+    -> std::string
 {
     sLock lock(index_lock_);
 
@@ -273,7 +279,7 @@ void Bip47Channels::reverse_index_addresses(const eLock& /* TODO Lockable*/)
     address_reverse_index_.swap(newMap);
 }
 
-bool Bip47Channels::save(const std::unique_lock<std::mutex>& lock) const
+auto Bip47Channels::save(const std::unique_lock<std::mutex>& lock) const -> bool
 {
     if (!verify_write_lock(lock)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Lock failure.").Flush();
@@ -287,7 +293,7 @@ bool Bip47Channels::save(const std::unique_lock<std::mutex>& lock) const
     return driver_.StoreProto(serialized, root_);
 }
 
-proto::StorageBip47Contexts Bip47Channels::serialize() const
+auto Bip47Channels::serialize() const -> proto::StorageBip47Contexts
 {
     proto::StorageBip47Contexts serialized{};
     serialized.set_version(version_);
@@ -334,9 +340,9 @@ proto::StorageBip47Contexts Bip47Channels::serialize() const
     return serialized;
 }
 
-bool Bip47Channels::Store(
+auto Bip47Channels::Store(
     const proto::Bip47Channel& data,
-    Identifier& channelID)
+    Identifier& channelID) -> bool
 {
     calculate_id(data, channelID);
     eLock lock(index_lock_);

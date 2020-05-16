@@ -48,8 +48,9 @@ class Verification final : virtual public credential::internal::Verification,
                            public credential::implementation::Base
 {
 public:
-    bool GetVerificationSet(
-        std::unique_ptr<proto::VerificationSet>& verificationSet) const final;
+    auto GetVerificationSet(
+        std::unique_ptr<proto::VerificationSet>& verificationSet) const
+        -> bool final;
 
     ~Verification() final = default;
 
@@ -58,11 +59,12 @@ private:
 
     const proto::VerificationSet data_;
 
-    std::shared_ptr<Base::SerializedType> serialize(
+    auto serialize(
         const Lock& lock,
         const SerializationModeFlag asPrivate,
-        const SerializationSignatureFlag asSigned) const final;
-    bool verify_internally(const Lock& lock) const final;
+        const SerializationSignatureFlag asSigned) const
+        -> std::shared_ptr<Base::SerializedType> final;
+    auto verify_internally(const Lock& lock) const -> bool final;
 
     Verification(
         const api::internal::Core& api,
@@ -81,7 +83,7 @@ private:
     Verification() = delete;
     Verification(const Verification&) = delete;
     Verification(Verification&&) = delete;
-    Verification& operator=(const Verification&) = delete;
-    Verification& operator=(Verification&&) = delete;
+    auto operator=(const Verification&) -> Verification& = delete;
+    auto operator=(Verification &&) -> Verification& = delete;
 };
 }  // namespace opentxs::identity::credential::implementation

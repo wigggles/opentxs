@@ -38,22 +38,22 @@ class Deterministic : virtual public internal::Deterministic, public BalanceNode
 {
 public:
 #if OT_CRYPTO_WITH_BIP32
-    std::optional<Bip32Index> GenerateNext(
-        const Subchain type,
-        const PasswordPrompt& reason) const noexcept final;
+    auto GenerateNext(const Subchain type, const PasswordPrompt& reason) const
+        noexcept -> std::optional<Bip32Index> final;
 #endif  // OT_CRYPTO_WITH_BIP32
-    std::optional<Bip32Index> LastGenerated(const Subchain type) const
-        noexcept final;
-    std::optional<Bip32Index> LastUsed(const Subchain type) const
-        noexcept final;
-    proto::HDPath Path() const noexcept final { return path_; }
+    auto LastGenerated(const Subchain type) const noexcept
+        -> std::optional<Bip32Index> final;
+    auto LastUsed(const Subchain type) const noexcept
+        -> std::optional<Bip32Index> final;
+    auto Path() const noexcept -> proto::HDPath final { return path_; }
 #if OT_CRYPTO_WITH_BIP32
-    HDKey RootNode(const PasswordPrompt& reason) const noexcept final;
-    std::optional<Bip32Index> UseNext(
+    auto RootNode(const PasswordPrompt& reason) const noexcept -> HDKey final;
+    auto UseNext(
         const Subchain type,
         const PasswordPrompt& reason,
         const Identifier& contact,
-        const std::string& label) const noexcept final;
+        const std::string& label) const noexcept
+        -> std::optional<Bip32Index> final;
 #endif  // OT_CRYPTO_WITH_BIP32
 
     ~Deterministic() override = default;
@@ -72,19 +72,18 @@ protected:
     mutable IndexMap used_;
 
 #if OT_CRYPTO_WITH_BIP32
-    static HDKey instantiate_key(
+    static auto instantiate_key(
         const api::internal::Core& api,
-        proto::HDPath& path);
+        proto::HDPath& path) -> HDKey;
 #endif  // OT_CRYPTO_WITH_BIP32
 
-    std::optional<Bip32Index> bump_generated(
-        const Lock& lock,
-        const Subchain type) const noexcept
+    auto bump_generated(const Lock& lock, const Subchain type) const noexcept
+        -> std::optional<Bip32Index>
     {
         return bump(lock, type, generated_);
     }
-    std::optional<Bip32Index> bump_used(const Lock& lock, const Subchain type)
-        const noexcept
+    auto bump_used(const Lock& lock, const Subchain type) const noexcept
+        -> std::optional<Bip32Index>
     {
         return bump(lock, type, used_);
     }
@@ -93,13 +92,14 @@ protected:
         const Lock& lock,
         const Subchain type,
         const PasswordPrompt& reason) const noexcept(false);
-    bool need_lookahead(const Lock& lock, const Subchain type) const noexcept;
-    std::optional<Bip32Index> use_next(
+    auto need_lookahead(const Lock& lock, const Subchain type) const noexcept
+        -> bool;
+    auto use_next(
         const Lock& lock,
         const Subchain type,
         const PasswordPrompt& reason,
         const Identifier& contact,
-        const std::string& label) const noexcept;
+        const std::string& label) const noexcept -> std::optional<Bip32Index>;
 #endif  // OT_CRYPTO_WITH_BIP32
 
     Deterministic(
@@ -113,15 +113,13 @@ protected:
         IndexMap used) noexcept;
 
 private:
-    std::optional<Bip32Index> bump(
-        const Lock& lock,
-        const Subchain type,
-        IndexMap map) const noexcept;
+    auto bump(const Lock& lock, const Subchain type, IndexMap map) const
+        noexcept -> std::optional<Bip32Index>;
 #if OT_CRYPTO_WITH_BIP32
-    virtual Bip32Index generate_next(
+    virtual auto generate_next(
         const Lock& lock,
         const Subchain type,
-        const PasswordPrompt& reason) const noexcept(false) = 0;
+        const PasswordPrompt& reason) const noexcept(false) -> Bip32Index = 0;
 #endif  // OT_CRYPTO_WITH_BIP32
     virtual void set_metadata(
         const Lock& lock,
@@ -133,7 +131,7 @@ private:
     Deterministic() = delete;
     Deterministic(const Deterministic&) = delete;
     Deterministic(Deterministic&&) = delete;
-    Deterministic& operator=(const Deterministic&) = delete;
-    Deterministic& operator=(Deterministic&&) = delete;
+    auto operator=(const Deterministic&) -> Deterministic& = delete;
+    auto operator=(Deterministic &&) -> Deterministic& = delete;
 };
 }  // namespace opentxs::api::client::blockchain::implementation

@@ -53,10 +53,11 @@ namespace opentxs::crypto::key::implementation
 class RSA final : public key::RSA, public Asymmetric
 {
 public:
-    std::unique_ptr<key::Asymmetric> asPublic() const noexcept final;
-    ReadView Params() const noexcept final { return params_->Bytes(); }
-    std::shared_ptr<proto::AsymmetricKey> Serialize() const noexcept final;
-    proto::HashType SigHashType() const noexcept final
+    auto asPublic() const noexcept -> std::unique_ptr<key::Asymmetric> final;
+    auto Params() const noexcept -> ReadView final { return params_->Bytes(); }
+    auto Serialize() const noexcept
+        -> std::shared_ptr<proto::AsymmetricKey> final;
+    auto SigHashType() const noexcept -> proto::HashType final
     {
         return proto::HASHTYPE_SHA256;
     }
@@ -87,11 +88,11 @@ private:
         OTPassword& privateKey) noexcept(false)
         -> std::unique_ptr<proto::Ciphertext>;
 
-    RSA* clone() const noexcept final { return new RSA{*this}; }
+    auto clone() const noexcept -> RSA* final { return new RSA{*this}; }
 
     RSA() = delete;
     RSA(RSA&&) = delete;
-    RSA& operator=(const RSA&) = delete;
-    RSA& operator=(RSA&&) = delete;
+    auto operator=(const RSA&) -> RSA& = delete;
+    auto operator=(RSA &&) -> RSA& = delete;
 };
 }  // namespace opentxs::crypto::key::implementation

@@ -95,8 +95,8 @@ protected:
 private:
     friend api::implementation::Factory;
 
-    typedef std::map<MessageType, std::string> TypeMap;
-    typedef std::map<std::string, MessageType> ReverseTypeMap;
+    using TypeMap = std::map<MessageType, std::string>;
+    using ReverseTypeMap = std::map<std::string, MessageType>;
 
     static const TypeMap message_names_;
     static const ReverseTypeMap message_types_;

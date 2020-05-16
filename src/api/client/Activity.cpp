@@ -48,9 +48,9 @@
 
 namespace opentxs
 {
-api::client::internal::Activity* Factory::Activity(
+auto Factory::Activity(
     const api::internal::Core& api,
-    const api::client::Contacts& contact)
+    const api::client::Contacts& contact) -> api::client::internal::Activity*
 {
     return new api::client::implementation::Activity(api, contact);
 }
@@ -85,11 +85,11 @@ void Activity::activity_preload_thread(
     }
 }
 
-bool Activity::AddBlockchainTransaction(
+auto Activity::AddBlockchainTransaction(
     const identifier::Nym& nymID,
     const Identifier& threadID,
     const std::string& txid,
-    const Time time) const
+    const Time time) const -> bool
 {
     eLock lock(shared_lock_);
     const std::string sNymID = nymID.str();
@@ -128,13 +128,13 @@ bool Activity::AddBlockchainTransaction(
     return saved;
 }
 
-bool Activity::AddPaymentEvent(
+auto Activity::AddPaymentEvent(
     const identifier::Nym& nymID,
     const Identifier& threadID,
     const StorageBox type,
     const Identifier& itemID,
     const Identifier& workflowID,
-    std::chrono::time_point<std::chrono::system_clock> time) const
+    std::chrono::time_point<std::chrono::system_clock> time) const -> bool
 {
     eLock lock(shared_lock_);
     const std::string sNymID = nymID.str();
@@ -170,10 +170,10 @@ bool Activity::AddPaymentEvent(
     return saved;
 }
 
-Activity::ChequeData Activity::Cheque(
+auto Activity::Cheque(
     const identifier::Nym& nym,
     [[maybe_unused]] const std::string& id,
-    const std::string& workflowID) const
+    const std::string& workflowID) const -> Activity::ChequeData
 {
     auto output = ChequeData{nullptr, api_.Factory().UnitDefinition()};
     auto& [cheque, contract] = output;
@@ -231,10 +231,10 @@ Activity::ChequeData Activity::Cheque(
     return output;
 }
 
-Activity::TransferData Activity::Transfer(
+auto Activity::Transfer(
     const identifier::Nym& nym,
     [[maybe_unused]] const std::string& id,
-    const std::string& workflowID) const
+    const std::string& workflowID) const -> Activity::TransferData
 {
     auto output = TransferData{nullptr, api_.Factory().UnitDefinition()};
     auto& [transfer, contract] = output;
@@ -307,17 +307,18 @@ Activity::TransferData Activity::Transfer(
     return output;
 }
 
-const opentxs::network::zeromq::socket::Publish& Activity::get_publisher(
-    const identifier::Nym& nymID) const
+auto Activity::get_publisher(const identifier::Nym& nymID) const
+    -> const opentxs::network::zeromq::socket::Publish&
 {
     std::string endpoint{};
 
     return get_publisher(nymID, endpoint);
 }
 
-const opentxs::network::zeromq::socket::Publish& Activity::get_publisher(
+auto Activity::get_publisher(
     const identifier::Nym& nymID,
     std::string& endpoint) const
+    -> const opentxs::network::zeromq::socket::Publish&
 {
     endpoint = api_.Endpoints().ThreadUpdate(nymID.str());
     Lock lock(publisher_lock_);
@@ -338,20 +339,20 @@ const opentxs::network::zeromq::socket::Publish& Activity::get_publisher(
     return output;
 }
 
-bool Activity::MoveIncomingBlockchainTransaction(
+auto Activity::MoveIncomingBlockchainTransaction(
     const identifier::Nym& nymID,
     const Identifier& fromThreadID,
     const Identifier& toThreadID,
-    const std::string& txid) const
+    const std::string& txid) const -> bool
 {
     return api_.Storage().MoveThreadItem(
         nymID.str(), fromThreadID.str(), toThreadID.str(), txid);
 }
 
-std::unique_ptr<Message> Activity::Mail(
+auto Activity::Mail(
     const identifier::Nym& nym,
     const Identifier& id,
-    const StorageBox& box) const
+    const StorageBox& box) const -> std::unique_ptr<Message>
 {
     std::string raw, alias;
     const bool loaded =
@@ -387,11 +388,11 @@ std::unique_ptr<Message> Activity::Mail(
     return output;
 }
 
-std::string Activity::Mail(
+auto Activity::Mail(
     const identifier::Nym& nym,
     const Message& mail,
     const StorageBox box,
-    const PasswordPrompt& reason) const
+    const PasswordPrompt& reason) const -> std::string
 {
     const std::string nymID = nym.str();
     auto id = Identifier::Factory();
@@ -459,16 +460,16 @@ std::string Activity::Mail(
     return "";
 }
 
-ObjectList Activity::Mail(const identifier::Nym& nym, const StorageBox box)
-    const
+auto Activity::Mail(const identifier::Nym& nym, const StorageBox box) const
+    -> ObjectList
 {
     return api_.Storage().NymBoxList(nym.str(), box);
 }
 
-bool Activity::MailRemove(
+auto Activity::MailRemove(
     const identifier::Nym& nym,
     const Identifier& id,
-    const StorageBox box) const
+    const StorageBox box) const -> bool
 {
     const std::string nymid = nym.str();
     const std::string mail = id.str();
@@ -476,11 +477,11 @@ bool Activity::MailRemove(
     return api_.Storage().RemoveNymBoxItem(nymid, box, mail);
 }
 
-std::shared_ptr<const std::string> Activity::MailText(
+auto Activity::MailText(
     const identifier::Nym& nymID,
     const Identifier& id,
     const StorageBox& box,
-    const PasswordPrompt& reason) const
+    const PasswordPrompt& reason) const -> std::shared_ptr<const std::string>
 {
     Lock lock(mail_cache_lock_);
     auto it = mail_cache_.find(id);
@@ -498,10 +499,10 @@ std::shared_ptr<const std::string> Activity::MailText(
     return it->second;
 }
 
-bool Activity::MarkRead(
+auto Activity::MarkRead(
     const identifier::Nym& nymId,
     const Identifier& threadId,
-    const Identifier& itemId) const
+    const Identifier& itemId) const -> bool
 {
     const std::string nym = nymId.str();
     const std::string thread = threadId.str();
@@ -510,10 +511,10 @@ bool Activity::MarkRead(
     return api_.Storage().SetReadState(nym, thread, item, false);
 }
 
-bool Activity::MarkUnread(
+auto Activity::MarkUnread(
     const identifier::Nym& nymId,
     const Identifier& threadId,
-    const Identifier& itemId) const
+    const Identifier& itemId) const -> bool
 {
     const std::string nym = nymId.str();
     const std::string thread = threadId.str();
@@ -576,8 +577,8 @@ void Activity::MigrateLegacyThreads() const
     }
 }
 
-std::shared_ptr<const Contact> Activity::nym_to_contact(
-    const std::string& id) const
+auto Activity::nym_to_contact(const std::string& id) const
+    -> std::shared_ptr<const Contact>
 {
     const auto nymID = identifier::Nym::Factory(id);
     const auto contactID = contact_.NymToContact(nymID);
@@ -585,10 +586,10 @@ std::shared_ptr<const Contact> Activity::nym_to_contact(
     return contact_.Contact(contactID);
 }
 
-std::shared_ptr<const std::string> Activity::PaymentText(
+auto Activity::PaymentText(
     const identifier::Nym& nym,
     const std::string& id,
-    const std::string& workflowID) const
+    const std::string& workflowID) const -> std::shared_ptr<const std::string>
 {
     std::shared_ptr<std::string> output;
     auto [type, state] =
@@ -782,9 +783,8 @@ void Activity::publish(
     publisher.Send(threadID);
 }
 
-std::shared_ptr<proto::StorageThread> Activity::Thread(
-    const identifier::Nym& nymID,
-    const Identifier& threadID) const
+auto Activity::Thread(const identifier::Nym& nymID, const Identifier& threadID)
+    const -> std::shared_ptr<proto::StorageThread>
 {
     sLock lock(shared_lock_);
     std::shared_ptr<proto::StorageThread> output;
@@ -848,7 +848,7 @@ void Activity::thread_preload_thread(
     }
 }
 
-std::string Activity::ThreadPublisher(const identifier::Nym& nym) const
+auto Activity::ThreadPublisher(const identifier::Nym& nym) const -> std::string
 {
     std::string endpoint{};
     get_publisher(nym, endpoint);
@@ -856,8 +856,8 @@ std::string Activity::ThreadPublisher(const identifier::Nym& nym) const
     return endpoint;
 }
 
-ObjectList Activity::Threads(const identifier::Nym& nym, const bool unreadOnly)
-    const
+auto Activity::Threads(const identifier::Nym& nym, const bool unreadOnly) const
+    -> ObjectList
 {
     const std::string nymID = nym.str();
     auto output = api_.Storage().ThreadList(nymID, unreadOnly);
@@ -883,15 +883,15 @@ ObjectList Activity::Threads(const identifier::Nym& nym, const bool unreadOnly)
     return output;
 }
 
-bool Activity::UnassignBlockchainTransaction(
+auto Activity::UnassignBlockchainTransaction(
     const identifier::Nym& nymID,
     const Identifier& fromThreadID,
-    const std::string& txid) const
+    const std::string& txid) const -> bool
 {
     return api_.Storage().RemoveThreadItem(nymID, fromThreadID, txid);
 }
 
-std::size_t Activity::UnreadCount(const identifier::Nym& nymId) const
+auto Activity::UnreadCount(const identifier::Nym& nymId) const -> std::size_t
 {
     const std::string nym = nymId.str();
     std::size_t output{0};

@@ -22,7 +22,7 @@
 namespace opentxs::api::client::blockchain::database::implementation
 {
 template <typename Input>
-ReadView tsv(const Input& in) noexcept
+auto tsv(const Input& in) noexcept -> ReadView
 {
     return {reinterpret_cast<const char*>(&in), sizeof(in)};
 }

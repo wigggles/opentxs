@@ -62,36 +62,42 @@ class Core : virtual public api::internal::Core,
              public api::implementation::StorageParent
 {
 public:
-    static const api::internal::Core& get_api(
-        const PasswordPrompt& reason) noexcept;
+    static auto get_api(const PasswordPrompt& reason) noexcept
+        -> const api::internal::Core&;
 
-    const crypto::Asymmetric& Asymmetric() const final { return asymmetric_; }
-    const api::Settings& Config() const final { return config_; }
-    const api::Crypto& Crypto() const final { return crypto_; }
-    const std::string& DataFolder() const final { return data_folder_; }
-    const api::network::Dht& DHT() const final;
-    const api::Endpoints& Endpoints() const final { return endpoints_; }
-    const api::Factory& Factory() const final { return factory_; }
+    auto Asymmetric() const -> const crypto::Asymmetric& final
+    {
+        return asymmetric_;
+    }
+    auto Config() const -> const api::Settings& final { return config_; }
+    auto Crypto() const -> const api::Crypto& final { return crypto_; }
+    auto DataFolder() const -> const std::string& final { return data_folder_; }
+    auto DHT() const -> const api::network::Dht& final;
+    auto Endpoints() const -> const api::Endpoints& final { return endpoints_; }
+    auto Factory() const -> const api::Factory& final { return factory_; }
     INTERNAL_PASSWORD_CALLBACK* GetInternalPasswordCallback() const final;
-    bool GetSecret(
+    auto GetSecret(
         const opentxs::Lock& lock,
         OTPassword& secret,
         const PasswordPrompt& reason,
-        const bool twice) const final;
-    int Instance() const final { return instance_; }
-    const api::Legacy& Legacy() const noexcept final
+        const bool twice) const -> bool final;
+    auto Instance() const -> int final { return instance_; }
+    auto Legacy() const noexcept -> const api::Legacy& final
     {
         return parent_.Legacy();
     }
-    std::mutex& Lock() const final { return master_key_lock_; }
-    const opentxs::crypto::key::Symmetric& MasterKey(
-        const opentxs::Lock& lock) const final;
-    const api::HDSeed& Seeds() const final;
+    auto Lock() const -> std::mutex& final { return master_key_lock_; }
+    auto MasterKey(const opentxs::Lock& lock) const
+        -> const opentxs::crypto::key::Symmetric& final;
+    auto Seeds() const -> const api::HDSeed& final;
     void SetMasterKeyTimeout(const std::chrono::seconds& timeout) const final;
-    const api::storage::Storage& Storage() const final;
-    const api::crypto::Symmetric& Symmetric() const final { return symmetric_; }
-    const api::Wallet& Wallet() const final;
-    const opentxs::network::zeromq::Context& ZeroMQ() const final
+    auto Storage() const -> const api::storage::Storage& final;
+    auto Symmetric() const -> const api::crypto::Symmetric& final
+    {
+        return symmetric_;
+    }
+    auto Wallet() const -> const api::Wallet& final;
+    auto ZeroMQ() const -> const opentxs::network::zeromq::Context& final
     {
         return zmq_context_;
     }
@@ -114,13 +120,13 @@ protected:
     mutable Time last_activity_;
     mutable std::atomic<bool> timeout_thread_running_;
 
-    static OTSymmetricKey make_master_key(
+    static auto make_master_key(
         const api::internal::Context& parent,
         const api::Factory& factory,
         const proto::Ciphertext& encrypted_secret_,
         std::unique_ptr<OTPassword>& master_secret_,
         const api::crypto::Symmetric& symmetric,
-        const api::storage::Storage& storage);
+        const api::storage::Storage& storage) -> OTSymmetricKey;
 
     void cleanup();
 
@@ -145,7 +151,7 @@ private:
     Core() = delete;
     Core(const Core&) = delete;
     Core(Core&&) = delete;
-    Core& operator=(const Core&) = delete;
-    Core& operator=(Core&&) = delete;
+    auto operator=(const Core&) -> Core& = delete;
+    auto operator=(Core &&) -> Core& = delete;
 };
 }  // namespace opentxs::api::implementation

@@ -25,7 +25,7 @@ class OTCaller;
 api::internal::Context* instance_pointer_{nullptr};
 OTFlag running_{Flag::Factory(true)};
 
-const api::Context& Context()
+auto Context() -> const api::Context&
 {
     if (nullptr == instance_pointer_) {
         std::runtime_error("Context is not initialized");
@@ -43,10 +43,10 @@ void Cleanup()
     }
 }
 
-const api::Context& InitContext(
+auto InitContext(
     const ArgList& args,
     const std::chrono::seconds gcInterval,
-    OTCaller* externalPasswordCallback)
+    OTCaller* externalPasswordCallback) -> const api::Context&
 {
     if (nullptr != instance_pointer_) {
         std::runtime_error("Context is not initialized");

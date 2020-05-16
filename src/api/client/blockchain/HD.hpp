@@ -52,9 +52,10 @@ class HD final : public internal::HD, public Deterministic
 public:
     using Element = implementation::BalanceNode::Element;
 
-    const Element& BalanceElement(const Subchain type, const Bip32Index index)
-        const noexcept(false) final;
-    ECKey Key(const Subchain type, const Bip32Index index) const noexcept final;
+    auto BalanceElement(const Subchain type, const Bip32Index index) const
+        noexcept(false) -> const Element& final;
+    auto Key(const Subchain type, const Bip32Index index) const noexcept
+        -> ECKey final;
 
     ~HD() final = default;
 
@@ -72,35 +73,38 @@ private:
     mutable AddressMap internal_addresses_;
     mutable AddressMap external_addresses_;
 
-    static AddressMap extract_external(
+    static auto extract_external(
         const internal::BalanceNode& parent,
         const client::internal::Blockchain& api,
         const opentxs::blockchain::Type chain,
-        const SerializedType& in) noexcept(false);
-    static std::vector<Activity> extract_incoming(const SerializedType& in);
-    static AddressMap extract_internal(
+        const SerializedType& in) noexcept(false) -> AddressMap;
+    static auto extract_incoming(const SerializedType& in)
+        -> std::vector<Activity>;
+    static auto extract_internal(
         const internal::BalanceNode& parent,
         const client::internal::Blockchain& api,
         const opentxs::blockchain::Type chain,
-        const SerializedType& in) noexcept(false);
-    static std::vector<Activity> extract_outgoing(const SerializedType& in);
+        const SerializedType& in) noexcept(false) -> AddressMap;
+    static auto extract_outgoing(const SerializedType& in)
+        -> std::vector<Activity>;
 
-    bool check_activity(
+    auto check_activity(
         const Lock& lock,
         const std::vector<Activity>& unspent,
         std::set<OTIdentifier>& contacts,
-        const PasswordPrompt& reason) const noexcept final;
+        const PasswordPrompt& reason) const noexcept -> bool final;
 #if OT_CRYPTO_WITH_BIP32
-    Bip32Index generate_next(
+    auto generate_next(
         const Lock& lock,
         const Subchain type,
-        const PasswordPrompt& reason) const noexcept(false) final;
+        const PasswordPrompt& reason) const noexcept(false) -> Bip32Index final;
 #endif  // OT_CRYPTO_WITH_BIP32
-    internal::BalanceElement& mutable_element(
+    auto mutable_element(
         const Lock& lock,
         const Subchain type,
-        const Bip32Index index) noexcept(false) final;
-    bool save(const Lock& lock) const noexcept final;
+        const Bip32Index index) noexcept(false)
+        -> internal::BalanceElement& final;
+    auto save(const Lock& lock) const noexcept -> bool final;
     void set_metadata(
         const Lock& lock,
         const Subchain subchain,
@@ -120,7 +124,7 @@ private:
     noexcept(false);
     HD(const HD&) = delete;
     HD(HD&&) = delete;
-    HD& operator=(const HD&) = delete;
-    HD& operator=(HD&&) = delete;
+    auto operator=(const HD&) -> HD& = delete;
+    auto operator=(HD &&) -> HD& = delete;
 };
 }  // namespace opentxs::api::client::blockchain::implementation

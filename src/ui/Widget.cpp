@@ -82,7 +82,7 @@ void Widget::UpdateNotify() const noexcept
     }
 }
 
-OTIdentifier Widget::WidgetID() const noexcept
+auto Widget::WidgetID() const noexcept -> OTIdentifier
 {
     return Identifier::Factory(widget_id_);
 }

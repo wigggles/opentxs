@@ -39,7 +39,7 @@ extern "C" {
 
 namespace opentxs
 {
-crypto::Sodium* Factory::Sodium(const api::Crypto& crypto)
+auto Factory::Sodium(const api::Crypto& crypto) -> crypto::Sodium*
 {
     return new crypto::implementation::Sodium(crypto);
 }
@@ -58,11 +58,11 @@ Sodium::Sodium(const api::Crypto& crypto)
     OT_ASSERT(-1 != result);
 }
 
-bool Sodium::Decrypt(
+auto Sodium::Decrypt(
     const proto::Ciphertext& ciphertext,
     const std::uint8_t* key,
     const std::size_t keySize,
-    std::uint8_t* plaintext) const
+    std::uint8_t* plaintext) const -> bool
 {
     const auto& message = ciphertext.data();
     const auto& nonce = ciphertext.iv();
@@ -105,7 +105,7 @@ bool Sodium::Decrypt(
     return false;
 }
 
-bool Sodium::Derive(
+auto Sodium::Derive(
     const std::uint8_t* input,
     const std::size_t inputSize,
     const std::uint8_t* salt,
@@ -114,7 +114,7 @@ bool Sodium::Derive(
     const std::uint64_t difficulty,
     const proto::SymmetricKeyType type,
     std::uint8_t* output,
-    std::size_t outputSize) const
+    std::size_t outputSize) const -> bool
 {
     const auto requiredSize = SaltSize(type);
 
@@ -143,11 +143,11 @@ bool Sodium::Derive(
     return success;
 }
 
-bool Sodium::Digest(
+auto Sodium::Digest(
     const proto::HashType hashType,
     const std::uint8_t* input,
     const size_t inputSize,
-    std::uint8_t* output) const
+    std::uint8_t* output) const -> bool
 {
     switch (hashType) {
         case (proto::HASHTYPE_BLAKE2B160):
@@ -177,12 +177,12 @@ bool Sodium::Digest(
     return false;
 }
 
-bool Sodium::Encrypt(
+auto Sodium::Encrypt(
     const std::uint8_t* input,
     const std::size_t inputSize,
     const std::uint8_t* key,
     const std::size_t keySize,
-    proto::Ciphertext& ciphertext) const
+    proto::Ciphertext& ciphertext) const -> bool
 {
     OT_ASSERT(nullptr != input);
     OT_ASSERT(nullptr != key);
@@ -244,13 +244,13 @@ bool Sodium::Encrypt(
     return result;
 }
 
-bool Sodium::HMAC(
+auto Sodium::HMAC(
     const proto::HashType hashType,
     const std::uint8_t* input,
     const size_t inputSize,
     const std::uint8_t* key,
     const size_t keySize,
-    std::uint8_t* output) const
+    std::uint8_t* output) const -> bool
 {
     switch (hashType) {
         case (proto::HASHTYPE_BLAKE2B160):
@@ -305,7 +305,7 @@ bool Sodium::HMAC(
     return false;
 }
 
-std::size_t Sodium::IvSize(const proto::SymmetricMode mode) const
+auto Sodium::IvSize(const proto::SymmetricMode mode) const -> std::size_t
 {
     switch (mode) {
         case (proto::SMODE_CHACHA20POLY1305): {
@@ -320,7 +320,7 @@ std::size_t Sodium::IvSize(const proto::SymmetricMode mode) const
     return 0;
 }
 
-std::size_t Sodium::KeySize(const proto::SymmetricMode mode) const
+auto Sodium::KeySize(const proto::SymmetricMode mode) const -> std::size_t
 {
     switch (mode) {
         case (proto::SMODE_CHACHA20POLY1305): {
@@ -336,12 +336,12 @@ std::size_t Sodium::KeySize(const proto::SymmetricMode mode) const
 }
 
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
-bool Sodium::RandomKeypair(
+auto Sodium::RandomKeypair(
     const AllocateOutput privateKey,
     const AllocateOutput publicKey,
     const proto::KeyRole,
     const NymParameters&,
-    const AllocateOutput) const noexcept
+    const AllocateOutput) const noexcept -> bool
 {
     auto seed = OTPassword{};
     seed.randomizeMemory(crypto_sign_SEEDBYTES);
@@ -350,14 +350,15 @@ bool Sodium::RandomKeypair(
 }
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 
-bool Sodium::RandomizeMemory(void* destination, const std::size_t size) const
+auto Sodium::RandomizeMemory(void* destination, const std::size_t size) const
+    -> bool
 {
     ::randombytes_buf(destination, size);
 
     return true;
 }
 
-std::size_t Sodium::SaltSize(const proto::SymmetricKeyType type) const
+auto Sodium::SaltSize(const proto::SymmetricKeyType type) const -> std::size_t
 {
     switch (type) {
         case (proto::SKEYTYPE_ARGON2): {
@@ -375,10 +376,10 @@ std::size_t Sodium::SaltSize(const proto::SymmetricKeyType type) const
 }
 
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
-bool Sodium::ScalarAdd(
+auto Sodium::ScalarAdd(
     const ReadView lhs,
     const ReadView rhs,
-    const AllocateOutput result) const noexcept
+    const AllocateOutput result) const noexcept -> bool
 {
     if (false == bool(result)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid output allocator")
@@ -532,14 +533,14 @@ auto Sodium::SharedSecret(
                     publicEd.data());
 }
 
-bool Sodium::Sign(
+auto Sodium::Sign(
     const api::internal::Core& api,
     const Data& plaintext,
     const key::Asymmetric& key,
     const proto::HashType type,
     Data& signature,
     const PasswordPrompt& reason,
-    const OTPassword* exportPassword) const
+    const OTPassword* exportPassword) const -> bool
 {
     if (proto::AKEYTYPE_ED25519 != key.keyType()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid key type").Flush();
@@ -617,7 +618,7 @@ bool Sodium::Sign(
 }
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 
-std::size_t Sodium::TagSize(const proto::SymmetricMode mode) const
+auto Sodium::TagSize(const proto::SymmetricMode mode) const -> std::size_t
 {
     switch (mode) {
         case (proto::SMODE_CHACHA20POLY1305): {
@@ -633,11 +634,11 @@ std::size_t Sodium::TagSize(const proto::SymmetricMode mode) const
 }
 
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
-bool Sodium::Verify(
+auto Sodium::Verify(
     const Data& plaintext,
     const key::Asymmetric& key,
     const Data& signature,
-    const proto::HashType type) const
+    const proto::HashType type) const -> bool
 {
     if (proto::AKEYTYPE_ED25519 != key.keyType()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid key type").Flush();

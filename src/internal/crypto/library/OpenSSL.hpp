@@ -31,7 +31,7 @@ protected:
 private:
     OpenSSL(const OpenSSL&) = delete;
     OpenSSL(OpenSSL&&) = delete;
-    OpenSSL& operator=(const OpenSSL&) = delete;
-    OpenSSL& operator=(OpenSSL&&) = delete;
+    auto operator=(const OpenSSL&) -> OpenSSL& = delete;
+    auto operator=(OpenSSL &&) -> OpenSSL& = delete;
 };
 }  // namespace opentxs::crypto

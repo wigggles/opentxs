@@ -45,19 +45,20 @@ namespace opentxs::blockchain::p2p::bitcoin::message::implementation
 class Headers final : virtual internal::Headers
 {
 public:
-    const value_type& at(const std::size_t position) const noexcept(false) final
+    auto at(const std::size_t position) const noexcept(false)
+        -> const value_type& final
     {
         return *payload_.at(position);
     }
-    const_iterator begin() const noexcept final
+    auto begin() const noexcept -> const_iterator final
     {
         return const_iterator(this, 0);
     }
-    const_iterator end() const noexcept final
+    auto end() const noexcept -> const_iterator final
     {
         return const_iterator(this, payload_.size());
     }
-    std::size_t size() const noexcept final { return payload_.size(); }
+    auto size() const noexcept -> std::size_t final { return payload_.size(); }
 
     ~Headers() final = default;
 
@@ -66,7 +67,7 @@ private:
 
     const std::vector<std::unique_ptr<value_type>> payload_;
 
-    OTData payload() const noexcept final;
+    auto payload() const noexcept -> OTData final;
 
     Headers(
         const api::internal::Core& api,
@@ -78,7 +79,7 @@ private:
         std::vector<std::unique_ptr<value_type>>&& headers) noexcept;
     Headers(const Headers&) = delete;
     Headers(Headers&&) = delete;
-    Headers& operator=(const Headers&) = delete;
-    Headers& operator=(Headers&&) = delete;
+    auto operator=(const Headers&) -> Headers& = delete;
+    auto operator=(Headers &&) -> Headers& = delete;
 };
 }  // namespace opentxs::blockchain::p2p::bitcoin::message::implementation

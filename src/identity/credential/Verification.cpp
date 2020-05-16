@@ -31,7 +31,7 @@ namespace opentxs
 {
 using ReturnType = identity::credential::implementation::Verification;
 
-identity::credential::internal::Verification* Factory::VerificationCredential(
+auto Factory::VerificationCredential(
     const api::internal::Core& api,
     identity::internal::Authority& parent,
     const identity::Source& source,
@@ -39,6 +39,7 @@ identity::credential::internal::Verification* Factory::VerificationCredential(
     const NymParameters& parameters,
     const VersionNumber version,
     const opentxs::PasswordPrompt& reason)
+    -> identity::credential::internal::Verification*
 {
     try {
 
@@ -53,12 +54,13 @@ identity::credential::internal::Verification* Factory::VerificationCredential(
     }
 }
 
-identity::credential::internal::Verification* Factory::VerificationCredential(
+auto Factory::VerificationCredential(
     const api::internal::Core& api,
     identity::internal::Authority& parent,
     const identity::Source& source,
     const identity::credential::internal::Primary& master,
     const proto::Credential& serialized)
+    -> identity::credential::internal::Verification*
 {
     try {
 
@@ -76,7 +78,8 @@ identity::credential::internal::Verification* Factory::VerificationCredential(
 namespace opentxs::identity::credential
 {
 // static
-proto::Verification Verification::SigningForm(const proto::Verification& item)
+auto Verification::SigningForm(const proto::Verification& item)
+    -> proto::Verification
 {
     proto::Verification signingForm(item);
     signingForm.clear_sig();
@@ -85,9 +88,9 @@ proto::Verification Verification::SigningForm(const proto::Verification& item)
 }
 
 // static
-std::string Verification::VerificationID(
+auto Verification::VerificationID(
     const api::internal::Core& api,
-    const proto::Verification& item)
+    const proto::Verification& item) -> std::string
 {
     return api.Factory().Identifier(item)->str();
 }
@@ -142,18 +145,19 @@ Verification::Verification(
     init_serialized(lock);
 }
 
-bool Verification::GetVerificationSet(
-    std::unique_ptr<proto::VerificationSet>& verificationSet) const
+auto Verification::GetVerificationSet(
+    std::unique_ptr<proto::VerificationSet>& verificationSet) const -> bool
 {
     verificationSet.reset(new proto::VerificationSet(data_));
 
     return bool(verificationSet);
 }
 
-std::shared_ptr<Base::SerializedType> Verification::serialize(
+auto Verification::serialize(
     const Lock& lock,
     const SerializationModeFlag asPrivate,
     const SerializationSignatureFlag asSigned) const
+    -> std::shared_ptr<Base::SerializedType>
 {
     auto serializedCredential = Base::serialize(lock, asPrivate, asSigned);
     serializedCredential->set_mode(proto::KEYMODE_NULL);
@@ -179,7 +183,7 @@ std::shared_ptr<Base::SerializedType> Verification::serialize(
     return serializedCredential;
 }
 
-bool Verification::verify_internally(const Lock& lock) const
+auto Verification::verify_internally(const Lock& lock) const -> bool
 {
     // Perform common Credential verifications
     if (!Base::verify_internally(lock)) { return false; }

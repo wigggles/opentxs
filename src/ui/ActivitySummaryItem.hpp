@@ -73,12 +73,13 @@ using ActivitySummaryItemRow =
 class ActivitySummaryItem final : public ActivitySummaryItemRow
 {
 public:
-    std::string DisplayName() const noexcept final;
-    std::string ImageURI() const noexcept final;
-    std::string Text() const noexcept final;
-    std::string ThreadID() const noexcept final;
-    std::chrono::system_clock::time_point Timestamp() const noexcept final;
-    StorageBox Type() const noexcept final;
+    auto DisplayName() const noexcept -> std::string final;
+    auto ImageURI() const noexcept -> std::string final;
+    auto Text() const noexcept -> std::string final;
+    auto ThreadID() const noexcept -> std::string final;
+    auto Timestamp() const noexcept
+        -> std::chrono::system_clock::time_point final;
+    auto Type() const noexcept -> StorageBox final;
 
     void reindex(
         const ActivitySummarySortKey& key,
@@ -117,9 +118,8 @@ private:
     std::atomic<int> next_task_id_;
     std::atomic<bool> break_;
 
-    std::string find_text(
-        const PasswordPrompt& reason,
-        const ItemLocator& locator) const noexcept;
+    auto find_text(const PasswordPrompt& reason, const ItemLocator& locator)
+        const noexcept -> std::string;
 
     void get_text() noexcept;
     void startup(
@@ -128,8 +128,8 @@ private:
 
     ActivitySummaryItem(const ActivitySummaryItem&) = delete;
     ActivitySummaryItem(ActivitySummaryItem&&) = delete;
-    ActivitySummaryItem& operator=(const ActivitySummaryItem&) = delete;
-    ActivitySummaryItem& operator=(ActivitySummaryItem&&) = delete;
+    auto operator=(const ActivitySummaryItem&) -> ActivitySummaryItem& = delete;
+    auto operator=(ActivitySummaryItem &&) -> ActivitySummaryItem& = delete;
 };
 }  // namespace opentxs::ui::implementation
 

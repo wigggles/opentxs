@@ -15,13 +15,13 @@ template class opentxs::Pimpl<opentxs::network::zeromq::ListenCallback>;
 
 namespace opentxs::network::zeromq
 {
-OTZMQListenCallback ListenCallback::Factory(
-    zeromq::ListenCallback::ReceiveCallback callback)
+auto ListenCallback::Factory(zeromq::ListenCallback::ReceiveCallback callback)
+    -> OTZMQListenCallback
 {
     return OTZMQListenCallback(new implementation::ListenCallback(callback));
 }
 
-OTZMQListenCallback ListenCallback::Factory()
+auto ListenCallback::Factory() -> OTZMQListenCallback
 {
     return OTZMQListenCallback(
         new implementation::ListenCallback([](const Message&) -> void {}));
@@ -35,7 +35,7 @@ ListenCallback::ListenCallback(zeromq::ListenCallback::ReceiveCallback callback)
 {
 }
 
-ListenCallback* ListenCallback::clone() const
+auto ListenCallback::clone() const -> ListenCallback*
 {
     return new ListenCallback(callback_);
 }

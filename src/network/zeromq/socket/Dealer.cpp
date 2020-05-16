@@ -41,10 +41,11 @@ template class opentxs::Pimpl<opentxs::network::zeromq::socket::Dealer>;
 
 namespace opentxs
 {
-network::zeromq::socket::Dealer* Factory::DealerSocket(
+auto Factory::DealerSocket(
     const network::zeromq::Context& context,
     const bool direction,
     const network::zeromq::ListenCallback& callback)
+    -> network::zeromq::socket::Dealer*
 {
     using ReturnType = network::zeromq::socket::implementation::Dealer;
 
@@ -69,7 +70,7 @@ Dealer::Dealer(
     init();
 }
 
-Dealer* Dealer::clone() const noexcept
+auto Dealer::clone() const noexcept -> Dealer*
 {
     return new Dealer(context_, direction_, callback_);
 }

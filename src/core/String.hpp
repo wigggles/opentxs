@@ -27,40 +27,40 @@ namespace opentxs::implementation
 class String : virtual public opentxs::String
 {
 public:
-    bool operator>(const opentxs::String& rhs) const override;
-    bool operator<(const opentxs::String& rhs) const override;
-    bool operator<=(const opentxs::String& rhs) const override;
-    bool operator>=(const opentxs::String& rhs) const override;
-    bool operator==(const opentxs::String& rhs) const override;
+    auto operator>(const opentxs::String& rhs) const -> bool override;
+    auto operator<(const opentxs::String& rhs) const -> bool override;
+    auto operator<=(const opentxs::String& rhs) const -> bool override;
+    auto operator>=(const opentxs::String& rhs) const -> bool override;
+    auto operator==(const opentxs::String& rhs) const -> bool override;
 
-    bool At(std::uint32_t index, char& c) const override;
-    ReadView Bytes() const noexcept final
+    auto At(std::uint32_t index, char& c) const -> bool override;
+    auto Bytes() const noexcept -> ReadView final
     {
         return ReadView{Get(), internal_.size()};
     }
-    bool Compare(const char* compare) const override;
-    bool Compare(const opentxs::String& compare) const override;
-    bool Contains(const char* compare) const override;
-    bool Contains(const opentxs::String& compare) const override;
-    bool empty() const override;
-    bool Exists() const override;
-    const char* Get() const override;
-    std::uint32_t GetLength() const override;
-    std::int32_t ToInt() const override;
-    bool TokenizeIntoKeyValuePairs(Map& map) const override;
-    std::int64_t ToLong() const override;
-    std::uint32_t ToUint() const override;
-    std::uint64_t ToUlong() const override;
+    auto Compare(const char* compare) const -> bool override;
+    auto Compare(const opentxs::String& compare) const -> bool override;
+    auto Contains(const char* compare) const -> bool override;
+    auto Contains(const opentxs::String& compare) const -> bool override;
+    auto empty() const -> bool override;
+    auto Exists() const -> bool override;
+    auto Get() const -> const char* override;
+    auto GetLength() const -> std::uint32_t override;
+    auto ToInt() const -> std::int32_t override;
+    auto TokenizeIntoKeyValuePairs(Map& map) const -> bool override;
+    auto ToLong() const -> std::int64_t override;
+    auto ToUint() const -> std::uint32_t override;
+    auto ToUlong() const -> std::uint64_t override;
     void WriteToFile(std::ostream& ofs) const override;
 
     void Concatenate(const char* arg, ...) override;
     void Concatenate(const opentxs::String& data) override;
     void ConvertToUpperCase() override;
-    bool DecodeIfArmored(bool escapedIsAllowed = true) override;
+    auto DecodeIfArmored(bool escapedIsAllowed = true) -> bool override;
     void Format(const char* fmt, ...) override;
     /** For a straight-across, exact-size copy of bytes. Source not expected to
      * be null-terminated. */
-    bool MemSet(const char* mem, std::uint32_t size) override;
+    auto MemSet(const char* mem, std::uint32_t size) -> bool override;
     void Release() override;
     /** new_string MUST be at least nEnforcedMaxLength in size if
     nEnforcedMaxLength is passed in at all.
@@ -71,11 +71,11 @@ public:
     void Set(const opentxs::String& data) override;
     /** true  == there are more lines to read.
     false == this is the last line. Like EOF. */
-    bool sgets(char* buffer, std::uint32_t size) override;
-    char sgetc() override;
+    auto sgets(char* buffer, std::uint32_t size) -> bool override;
+    auto sgetc() -> char override;
     void swap(opentxs::String& rhs) override;
     void reset() override;
-    AllocateOutput WriteInto() noexcept final;
+    auto WriteInto() noexcept -> AllocateOutput final;
 
     ~String() override;
 
@@ -90,7 +90,7 @@ protected:
     String(const char* value);
     explicit String(const std::string& value);
     String(const char* value, std::size_t size);
-    String& operator=(const String& rhs);
+    auto operator=(const String& rhs) -> String&;
     String();
     String(const String& rhs);
 
@@ -103,9 +103,10 @@ private:
     std::uint32_t position_{0};
     std::vector<char> internal_{};
 
-    static std::vector<char> make_string(const char* str, std::uint32_t length);
+    static auto make_string(const char* str, std::uint32_t length)
+        -> std::vector<char>;
 
-    String* clone() const override;
+    auto clone() const -> String* override;
     /** Only call this right after calling Initialize() or Release(). Also, this
      * function ASSUMES the new_string pointer is good. */
     void LowLevelSet(const char* data, std::uint32_t enforcedMaxLength);

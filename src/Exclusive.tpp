@@ -52,7 +52,7 @@ Exclusive<C>::Exclusive(Exclusive&& rhs) noexcept
 }
 
 template <class C>
-Exclusive<C>& Exclusive<C>::operator=(Exclusive&& rhs) noexcept
+auto Exclusive<C>::operator=(Exclusive&& rhs) noexcept -> Exclusive<C>&
 {
     p_ = rhs.p_;
     rhs.p_ = nullptr;
@@ -86,7 +86,7 @@ Exclusive<C>::operator C&()
 }
 
 template <class C>
-bool Exclusive<C>::Abort()
+auto Exclusive<C>::Abort() -> bool
 {
     if (false == bool(*this)) { return false; }
 
@@ -96,7 +96,7 @@ bool Exclusive<C>::Abort()
 }
 
 template <class C>
-const C& Exclusive<C>::get() const
+auto Exclusive<C>::get() const -> const C&
 {
     OT_ASSERT(*this)
 
@@ -104,7 +104,7 @@ const C& Exclusive<C>::get() const
 }
 
 template <class C>
-C& Exclusive<C>::get()
+auto Exclusive<C>::get() -> C&
 {
     OT_ASSERT(*this)
 
@@ -112,7 +112,7 @@ C& Exclusive<C>::get()
 }
 
 template <class C>
-bool Exclusive<C>::Release()
+auto Exclusive<C>::Release() -> bool
 {
     if (false == bool(*this)) { return false; }
 

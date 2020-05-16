@@ -131,7 +131,7 @@ void Basket::AddRequestSubContract(
     const Identifier& SUB_ACCOUNT_ID,
     const std::int64_t& lClosingTransactionNo)
 {
-    BasketItem* pItem = new BasketItem;
+    auto* pItem = new BasketItem;
 
     OT_ASSERT_MSG(
         nullptr != pItem,
@@ -159,7 +159,7 @@ void Basket::AddSubContract(
     const Identifier& SUB_CONTRACT_ID,
     std::int64_t lMinimumTransferAmount)
 {
-    BasketItem* pItem = new BasketItem;
+    auto* pItem = new BasketItem;
 
     OT_ASSERT_MSG(
         nullptr != pItem,
@@ -177,7 +177,7 @@ void Basket::AddSubContract(
 // nIndex.
 // (Each asset account gets its own basketReceipt when an exchange happens.)
 //
-std::int64_t Basket::GetClosingTransactionNoAt(std::uint32_t nIndex)
+auto Basket::GetClosingTransactionNoAt(std::uint32_t nIndex) -> std::int64_t
 {
     OT_ASSERT_MSG(
         (nIndex < m_dequeItems.size()),
@@ -193,20 +193,20 @@ std::int64_t Basket::GetClosingTransactionNoAt(std::uint32_t nIndex)
     return pItem->lClosingTransactionNo;
 }
 
-BasketItem* Basket::At(std::uint32_t nIndex)
+auto Basket::At(std::uint32_t nIndex) -> BasketItem*
 {
     if (nIndex < m_dequeItems.size()) return m_dequeItems.at(nIndex);
 
     return nullptr;
 }
 
-std::int32_t Basket::Count() const
+auto Basket::Count() const -> std::int32_t
 {
     return static_cast<std::int32_t>(m_dequeItems.size());
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-std::int32_t Basket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
+auto Basket::ProcessXMLNode(irr::io::IrrXMLReader*& xml) -> std::int32_t
 {
     const auto strNodeName = String::Factory(xml->getNodeName());
 
@@ -250,7 +250,7 @@ std::int32_t Basket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         return 1;
     } else if (strNodeName->Compare("basketItem")) {
-        BasketItem* pItem = new BasketItem;
+        auto* pItem = new BasketItem;
 
         OT_ASSERT_MSG(
             nullptr != pItem,

@@ -39,11 +39,11 @@ private:
     std::string default_seed_;
 
     void init(const std::string& hash) final;
-    bool save(const std::unique_lock<std::mutex>& lock) const final;
+    auto save(const std::unique_lock<std::mutex>& lock) const -> bool final;
     void set_default(
         const std::unique_lock<std::mutex>& lock,
         const std::string& id);
-    proto::StorageSeeds serialize() const;
+    auto serialize() const -> proto::StorageSeeds;
 
     Seeds(
         const opentxs::api::storage::Driver& storage,
@@ -51,22 +51,22 @@ private:
     Seeds() = delete;
     Seeds(const Seeds&) = delete;
     Seeds(Seeds&&) = delete;
-    Seeds operator=(const Seeds&) = delete;
-    Seeds operator=(Seeds&&) = delete;
+    auto operator=(const Seeds&) -> Seeds = delete;
+    auto operator=(Seeds &&) -> Seeds = delete;
 
 public:
-    std::string Alias(const std::string& id) const;
-    std::string Default() const;
-    bool Load(
+    auto Alias(const std::string& id) const -> std::string;
+    auto Default() const -> std::string;
+    auto Load(
         const std::string& id,
         std::shared_ptr<proto::Seed>& output,
         std::string& alias,
-        const bool checking) const;
+        const bool checking) const -> bool;
 
-    bool Delete(const std::string& id);
-    bool SetAlias(const std::string& id, const std::string& alias);
-    bool SetDefault(const std::string& id);
-    bool Store(const proto::Seed& data, const std::string& alias);
+    auto Delete(const std::string& id) -> bool;
+    auto SetAlias(const std::string& id, const std::string& alias) -> bool;
+    auto SetDefault(const std::string& id) -> bool;
+    auto Store(const proto::Seed& data, const std::string& alias) -> bool;
 
     ~Seeds() final = default;
 };

@@ -43,10 +43,10 @@
 
 namespace opentxs
 {
-internal::NymFile* Factory::NymFile(
+auto Factory::NymFile(
     const api::internal::Core& core,
     Nym_p targetNym,
-    Nym_p signerNym)
+    Nym_p signerNym) -> internal::NymFile*
 {
     return new implementation::NymFile(core, targetNym, signerNym);
 }
@@ -91,18 +91,18 @@ void NymFile::ClearAll()
     m_dequeOutpayments.clear();
 }
 
-bool NymFile::CompareID(const identifier::Nym& rhs) const
+auto NymFile::CompareID(const identifier::Nym& rhs) const -> bool
 {
     sLock lock(shared_lock_);
 
     return rhs == target_nym_->ID();
 }
 
-bool NymFile::DeserializeNymFile(
+auto NymFile::DeserializeNymFile(
     const String& strNym,
     bool& converted,
     String::Map* pMapCredentials,
-    const OTPassword* pImportPassword)
+    const OTPassword* pImportPassword) -> bool
 {
     sLock lock(shared_lock_);
 
@@ -111,12 +111,12 @@ bool NymFile::DeserializeNymFile(
 }
 
 template <typename T>
-bool NymFile::deserialize_nymfile(
+auto NymFile::deserialize_nymfile(
     const T& lock,
     const String& strNym,
     bool& converted,
     String::Map* pMapCredentials,
-    const OTPassword* pImportPassword)
+    const OTPassword* pImportPassword) -> bool
 {
     OT_ASSERT(verify_lock(lock));
 
@@ -331,10 +331,10 @@ void NymFile::DisplayStatistics(String& strOutput) const
     strOutput.Concatenate("Nym ID: %s\n", theStringID->Get());
 }
 
-bool NymFile::GetHash(
+auto NymFile::GetHash(
     const mapOfIdentifiers& the_map,
     const std::string& str_id,
-    Identifier& theOutput) const  // client-side
+    Identifier& theOutput) const -> bool  // client-side
 {
     sLock lock(shared_lock_);
 
@@ -365,24 +365,24 @@ bool NymFile::GetHash(
     return bRetVal;
 }
 
-bool NymFile::GetInboxHash(
+auto NymFile::GetInboxHash(
     const std::string& acct_id,
-    Identifier& theOutput) const  // client-side
+    Identifier& theOutput) const -> bool  // client-side
 {
     return GetHash(m_mapInboxHash, acct_id, theOutput);
 }
 
-bool NymFile::GetOutboxHash(
+auto NymFile::GetOutboxHash(
     const std::string& acct_id,
-    Identifier& theOutput) const  // client-side
+    Identifier& theOutput) const -> bool  // client-side
 {
     return GetHash(m_mapOutboxHash, acct_id, theOutput);
 }
 
 // Look up a transaction by transaction number and see if it is in the ledger.
 // If it is, return a pointer to it, otherwise return nullptr.
-std::shared_ptr<Message> NymFile::GetOutpaymentsByIndex(
-    std::int32_t nIndex) const
+auto NymFile::GetOutpaymentsByIndex(std::int32_t nIndex) const
+    -> std::shared_ptr<Message>
 {
     sLock lock(shared_lock_);
     const std::uint32_t uIndex = nIndex;
@@ -397,11 +397,11 @@ std::shared_ptr<Message> NymFile::GetOutpaymentsByIndex(
     return m_dequeOutpayments.at(nIndex);
 }
 
-std::shared_ptr<Message> NymFile::GetOutpaymentsByTransNum(
+auto NymFile::GetOutpaymentsByTransNum(
     const std::int64_t lTransNum,
     const PasswordPrompt& reason,
     std::unique_ptr<OTPayment>* pReturnPayment /*=nullptr*/,
-    std::int32_t* pnReturnIndex /*=nullptr*/) const
+    std::int32_t* pnReturnIndex /*=nullptr*/) const -> std::shared_ptr<Message>
 {
     if (nullptr != pnReturnIndex) { *pnReturnIndex = -1; }
 
@@ -442,12 +442,12 @@ std::shared_ptr<Message> NymFile::GetOutpaymentsByTransNum(
 }
 
 /// return the number of payments items available for this Nym.
-std::int32_t NymFile::GetOutpaymentsCount() const
+auto NymFile::GetOutpaymentsCount() const -> std::int32_t
 {
     return static_cast<std::int32_t>(m_dequeOutpayments.size());
 }
 
-bool NymFile::LoadSignedNymFile(const PasswordPrompt& reason)
+auto NymFile::LoadSignedNymFile(const PasswordPrompt& reason) -> bool
 {
     sLock lock(shared_lock_);
 
@@ -455,7 +455,8 @@ bool NymFile::LoadSignedNymFile(const PasswordPrompt& reason)
 }
 
 template <typename T>
-bool NymFile::load_signed_nymfile(const T& lock, const PasswordPrompt& reason)
+auto NymFile::load_signed_nymfile(const T& lock, const PasswordPrompt& reason)
+    -> bool
 {
     OT_ASSERT(verify_lock(lock));
 
@@ -558,7 +559,7 @@ void NymFile::RemoveAllNumbers(const String& pstrNotaryID)
 }
 
 // if this function returns false, outpayments index was bad.
-bool NymFile::RemoveOutpaymentsByIndex(const std::int32_t nIndex)
+auto NymFile::RemoveOutpaymentsByIndex(const std::int32_t nIndex) -> bool
 {
     const std::uint32_t uIndex = nIndex;
 
@@ -580,9 +581,9 @@ bool NymFile::RemoveOutpaymentsByIndex(const std::int32_t nIndex)
     return true;
 }
 
-bool NymFile::RemoveOutpaymentsByTransNum(
+auto NymFile::RemoveOutpaymentsByTransNum(
     const std::int64_t lTransNum,
-    const PasswordPrompt& reason)
+    const PasswordPrompt& reason) -> bool
 {
     std::int32_t nReturnIndex = -1;
 
@@ -599,7 +600,7 @@ bool NymFile::RemoveOutpaymentsByTransNum(
 }
 
 // Save the Pseudonym to a string...
-bool NymFile::SerializeNymFile(String& output) const
+auto NymFile::SerializeNymFile(String& output) const -> bool
 {
     sLock lock(shared_lock_);
 
@@ -607,7 +608,7 @@ bool NymFile::SerializeNymFile(String& output) const
 }
 
 template <typename T>
-bool NymFile::serialize_nymfile(const T& lock, String& strNym) const
+auto NymFile::serialize_nymfile(const T& lock, String& strNym) const -> bool
 {
     OT_ASSERT(verify_lock(lock));
 
@@ -700,7 +701,8 @@ bool NymFile::serialize_nymfile(const T& lock, String& strNym) const
     return true;
 }
 
-bool NymFile::SerializeNymFile(const char* szFoldername, const char* szFilename)
+auto NymFile::SerializeNymFile(const char* szFoldername, const char* szFilename)
+    -> bool
 {
     OT_ASSERT(nullptr != szFoldername);
     OT_ASSERT(nullptr != szFilename);
@@ -726,7 +728,7 @@ bool NymFile::SerializeNymFile(const char* szFoldername, const char* szFilename)
     return bSaved;
 }
 
-bool NymFile::SaveSignedNymFile(const PasswordPrompt& reason)
+auto NymFile::SaveSignedNymFile(const PasswordPrompt& reason) -> bool
 {
     eLock lock(shared_lock_);
 
@@ -734,7 +736,8 @@ bool NymFile::SaveSignedNymFile(const PasswordPrompt& reason)
 }
 
 template <typename T>
-bool NymFile::save_signed_nymfile(const T& lock, const PasswordPrompt& reason)
+auto NymFile::save_signed_nymfile(const T& lock, const PasswordPrompt& reason)
+    -> bool
 {
     OT_ASSERT(verify_lock(lock));
 
@@ -781,28 +784,28 @@ bool NymFile::save_signed_nymfile(const T& lock, const PasswordPrompt& reason)
     return false;
 }
 
-bool NymFile::SetHash(
+auto NymFile::SetHash(
     mapOfIdentifiers& the_map,
     const std::string& str_id,
-    const Identifier& theInput)  // client-side
+    const Identifier& theInput) -> bool  // client-side
 {
     the_map.emplace(str_id, theInput);
 
     return true;
 }
 
-bool NymFile::SetInboxHash(
+auto NymFile::SetInboxHash(
     const std::string& acct_id,
-    const Identifier& theInput)  // client-side
+    const Identifier& theInput) -> bool  // client-side
 {
     eLock lock(shared_lock_);
 
     return SetHash(m_mapInboxHash, acct_id, theInput);
 }
 
-bool NymFile::SetOutboxHash(
+auto NymFile::SetOutboxHash(
     const std::string& acct_id,
-    const Identifier& theInput)  // client-side
+    const Identifier& theInput) -> bool  // client-side
 {
     eLock lock(shared_lock_);
 

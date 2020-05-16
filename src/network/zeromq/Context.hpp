@@ -59,67 +59,73 @@ class Context final : virtual public zeromq::Context
 public:
     operator void*() const noexcept final;
 
-    std::string BuildEndpoint(
+    auto BuildEndpoint(
         const std::string& path,
         const int instance,
-        const int version) const noexcept final;
-    std::string BuildEndpoint(
+        const int version) const noexcept -> std::string final;
+    auto BuildEndpoint(
         const std::string& path,
         const int instance,
         const int version,
-        const std::string& suffix) const noexcept final;
-    OTZMQDealerSocket DealerSocket(
+        const std::string& suffix) const noexcept -> std::string final;
+    auto DealerSocket(
         const ListenCallback& callback,
-        const socket::Socket::Direction direction) const noexcept final;
-    OTZMQFrame Frame(const void* input, const std::size_t size) const
-        noexcept final;
-    OTZMQMessage Message() const noexcept final;
-    OTZMQMessage Message(const ProtobufType& input) const noexcept final;
-    OTZMQMessage Message(const network::zeromq::Message& input) const
-        noexcept final
+        const socket::Socket::Direction direction) const noexcept
+        -> OTZMQDealerSocket final;
+    auto Frame(const void* input, const std::size_t size) const noexcept
+        -> OTZMQFrame final;
+    auto Message() const noexcept -> OTZMQMessage final;
+    auto Message(const ProtobufType& input) const noexcept
+        -> OTZMQMessage final;
+    auto Message(const network::zeromq::Message& input) const noexcept
+        -> OTZMQMessage final
     {
         return OTZMQMessage(input);
     }
-    OTZMQMessage Message(const void* input, const std::size_t size) const
-        noexcept final;
-    OTZMQSubscribeSocket PairEventListener(
+    auto Message(const void* input, const std::size_t size) const noexcept
+        -> OTZMQMessage final;
+    auto PairEventListener(
         const PairEventCallback& callback,
-        const int instance) const noexcept final;
-    OTZMQPairSocket PairSocket(
-        const opentxs::network::zeromq::ListenCallback& callback) const
-        noexcept final;
-    OTZMQPairSocket PairSocket(
+        const int instance) const noexcept -> OTZMQSubscribeSocket final;
+    auto PairSocket(const opentxs::network::zeromq::ListenCallback& callback)
+        const noexcept -> OTZMQPairSocket final;
+    auto PairSocket(
         const opentxs::network::zeromq::ListenCallback& callback,
-        const opentxs::network::zeromq::socket::Pair& peer) const
-        noexcept final;
-    OTZMQPairSocket PairSocket(
+        const opentxs::network::zeromq::socket::Pair& peer) const noexcept
+        -> OTZMQPairSocket final;
+    auto PairSocket(
         const opentxs::network::zeromq::ListenCallback& callback,
-        const std::string& endpoint) const noexcept final;
-    OTZMQPipeline Pipeline(
+        const std::string& endpoint) const noexcept -> OTZMQPairSocket final;
+    auto Pipeline(
         const api::internal::Core& api,
-        std::function<void(zeromq::Message&)> callback) const noexcept final;
-    OTZMQProxy Proxy(
+        std::function<void(zeromq::Message&)> callback) const noexcept
+        -> OTZMQPipeline final;
+    auto Proxy(
         network::zeromq::socket::Socket& frontend,
-        network::zeromq::socket::Socket& backend) const noexcept final;
-    OTZMQPublishSocket PublishSocket() const noexcept final;
-    OTZMQPullSocket PullSocket(const socket::Socket::Direction direction) const
-        noexcept final;
-    OTZMQPullSocket PullSocket(
+        network::zeromq::socket::Socket& backend) const noexcept
+        -> OTZMQProxy final;
+    auto PublishSocket() const noexcept -> OTZMQPublishSocket final;
+    auto PullSocket(const socket::Socket::Direction direction) const noexcept
+        -> OTZMQPullSocket final;
+    auto PullSocket(
         const ListenCallback& callback,
-        const socket::Socket::Direction direction) const noexcept final;
-    OTZMQPushSocket PushSocket(const socket::Socket::Direction direction) const
-        noexcept final;
-    OTZMQMessage ReplyMessage(const zeromq::Message& request) const
-        noexcept final;
-    OTZMQReplySocket ReplySocket(
+        const socket::Socket::Direction direction) const noexcept
+        -> OTZMQPullSocket final;
+    auto PushSocket(const socket::Socket::Direction direction) const noexcept
+        -> OTZMQPushSocket final;
+    auto ReplyMessage(const zeromq::Message& request) const noexcept
+        -> OTZMQMessage final;
+    auto ReplySocket(
         const ReplyCallback& callback,
-        const socket::Socket::Direction direction) const noexcept final;
-    OTZMQRequestSocket RequestSocket() const noexcept final;
-    OTZMQRouterSocket RouterSocket(
+        const socket::Socket::Direction direction) const noexcept
+        -> OTZMQReplySocket final;
+    auto RequestSocket() const noexcept -> OTZMQRequestSocket final;
+    auto RouterSocket(
         const ListenCallback& callback,
-        const socket::Socket::Direction direction) const noexcept final;
-    OTZMQSubscribeSocket SubscribeSocket(const ListenCallback& callback) const
-        noexcept final;
+        const socket::Socket::Direction direction) const noexcept
+        -> OTZMQRouterSocket final;
+    auto SubscribeSocket(const ListenCallback& callback) const noexcept
+        -> OTZMQSubscribeSocket final;
 
     ~Context();
 
@@ -128,12 +134,12 @@ private:
 
     void* context_{nullptr};
 
-    Context* clone() const noexcept final { return new Context; }
+    auto clone() const noexcept -> Context* final { return new Context; }
 
     Context() noexcept;
     Context(const Context&) = delete;
     Context(Context&&) = delete;
-    Context& operator=(const Context&) = delete;
-    Context& operator=(Context&&) = delete;
+    auto operator=(const Context&) -> Context& = delete;
+    auto operator=(Context &&) -> Context& = delete;
 };
 }  // namespace opentxs::network::zeromq::implementation

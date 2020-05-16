@@ -197,7 +197,7 @@ private:
     Database() = delete;
     Database(const Database&) = delete;
     Database(Database&&) = delete;
-    Database& operator=(const Database&) = delete;
-    Database& operator=(Database&&) = delete;
+    auto operator=(const Database&) -> Database& = delete;
+    auto operator=(Database &&) -> Database& = delete;
 };
 }  // namespace opentxs::api::client::blockchain::database::implementation

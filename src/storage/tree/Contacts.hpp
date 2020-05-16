@@ -38,31 +38,31 @@ namespace opentxs::storage
 class Contacts final : public Node
 {
 public:
-    std::string Alias(const std::string& id) const;
-    std::string AddressOwner(proto::ContactItemType chain, std::string address)
-        const;
-    ObjectList List() const final;
-    bool Load(
+    auto Alias(const std::string& id) const -> std::string;
+    auto AddressOwner(proto::ContactItemType chain, std::string address) const
+        -> std::string;
+    auto List() const -> ObjectList final;
+    auto Load(
         const std::string& id,
         std::shared_ptr<proto::Contact>& output,
         std::string& alias,
-        const bool checking) const;
-    std::string NymOwner(std::string nym) const;
-    bool Save() const;
+        const bool checking) const -> bool;
+    auto NymOwner(std::string nym) const -> std::string;
+    auto Save() const -> bool;
 
-    bool Delete(const std::string& id);
-    bool SetAlias(const std::string& id, const std::string& alias);
-    bool Store(
+    auto Delete(const std::string& id) -> bool;
+    auto SetAlias(const std::string& id, const std::string& alias) -> bool;
+    auto Store(
         const proto::Contact& data,
         const std::string& alias,
-        std::map<OTData, OTIdentifier>& changed);
+        std::map<OTData, OTIdentifier>& changed) -> bool;
 
     ~Contacts() final = default;
 
 private:
     friend class Tree;
-    typedef Node ot_super;
-    typedef std::pair<proto::ContactItemType, std::string> Address;
+    using ot_super = Node;
+    using Address = std::pair<proto::ContactItemType, std::string>;
 
     static const VersionNumber CurrentVersion{2};
     static const VersionNumber AddressIndexVersion{1};
@@ -80,9 +80,9 @@ private:
         const proto::Contact& data,
         std::map<OTData, OTIdentifier>& changed) const;
     void extract_nyms(const Lock& lock, const proto::Contact& data) const;
-    const std::string& nomalize_id(const std::string& input) const;
-    bool save(const std::unique_lock<std::mutex>& lock) const final;
-    proto::StorageContacts serialize() const;
+    auto nomalize_id(const std::string& input) const -> const std::string&;
+    auto save(const std::unique_lock<std::mutex>& lock) const -> bool final;
+    auto serialize() const -> proto::StorageContacts;
 
     void init(const std::string& hash) final;
     void reconcile_maps(const Lock& lock, const proto::Contact& data);
@@ -94,7 +94,7 @@ private:
     Contacts() = delete;
     Contacts(const Contacts&) = delete;
     Contacts(Contacts&&) = delete;
-    Contacts operator=(const Contacts&) = delete;
-    Contacts operator=(Contacts&&) = delete;
+    auto operator=(const Contacts&) -> Contacts = delete;
+    auto operator=(Contacts &&) -> Contacts = delete;
 };
 }  // namespace opentxs::storage

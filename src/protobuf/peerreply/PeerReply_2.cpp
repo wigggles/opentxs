@@ -27,7 +27,7 @@ namespace opentxs
 {
 namespace proto
 {
-bool CheckProto_2(const PeerReply& input, const bool silent)
+auto CheckProto_2(const PeerReply& input, const bool silent) -> bool
 {
     if (!input.has_id()) { FAIL_1("missing id") }
 

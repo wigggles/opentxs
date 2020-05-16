@@ -51,10 +51,10 @@ Notary::Notary(
 }
 
 #if OT_CASH
-bool Notary::CheckSpent(
+auto Notary::CheckSpent(
     const identifier::UnitDefinition& unit,
     const MintSeries series,
-    const std::string& key) const
+    const std::string& key) const -> bool
 {
     if (key.empty()) { throw std::runtime_error("Invalid token key"); }
 
@@ -77,10 +77,10 @@ bool Notary::CheckSpent(
     return false;
 }
 
-std::string Notary::create_list(
+auto Notary::create_list(
     const std::string& unitID,
     const MintSeries series,
-    std::shared_ptr<proto::SpentTokenList>& output) const
+    std::shared_ptr<proto::SpentTokenList>& output) const -> std::string
 {
     std::string hash{};
     output.reset(new proto::SpentTokenList);
@@ -102,10 +102,10 @@ std::string Notary::create_list(
     return hash;
 }
 
-proto::SpentTokenList Notary::get_or_create_list(
+auto Notary::get_or_create_list(
     const Lock& lock,
     const std::string& unitID,
-    const MintSeries series) const
+    const MintSeries series) const -> proto::SpentTokenList
 {
     OT_ASSERT(verify_write_lock(lock));
 
@@ -154,10 +154,10 @@ void Notary::init(const std::string& hash)
 }
 
 #if OT_CASH
-bool Notary::MarkSpent(
+auto Notary::MarkSpent(
     const identifier::UnitDefinition& unit,
     const MintSeries series,
-    const std::string& key)
+    const std::string& key) -> bool
 {
     if (key.empty()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid key ").Flush();
@@ -179,7 +179,7 @@ bool Notary::MarkSpent(
 }
 #endif
 
-bool Notary::save(const Lock& lock) const
+auto Notary::save(const Lock& lock) const -> bool
 {
     if (false == verify_write_lock(lock)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Lock failure").Flush();
@@ -194,7 +194,7 @@ bool Notary::save(const Lock& lock) const
     return driver_.StoreProto(serialized, root_);
 }
 
-proto::StorageNotary Notary::serialize() const
+auto Notary::serialize() const -> proto::StorageNotary
 {
     proto::StorageNotary serialized;
     serialized.set_version(version_);

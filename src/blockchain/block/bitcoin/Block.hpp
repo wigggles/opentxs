@@ -93,7 +93,7 @@ private:
     Block() = delete;
     Block(const Block&) = delete;
     Block(Block&&) = delete;
-    Block& operator=(const Block&) = delete;
-    Block& operator=(Block&&) = delete;
+    auto operator=(const Block&) -> Block& = delete;
+    auto operator=(Block &&) -> Block& = delete;
 };
 }  // namespace opentxs::blockchain::block::bitcoin::implementation

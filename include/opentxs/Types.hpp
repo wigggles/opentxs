@@ -241,33 +241,33 @@ using VersionConversionMap = std::map<VersionNumber, VersionNumber>;
 using Clock = std::chrono::system_clock;
 using Time = Clock::time_point;
 
-typedef std::map<std::string, std::set<std::string>> ArgList;
+using ArgList = std::map<std::string, std::set<std::string>>;
 
-typedef bool CredentialIndexModeFlag;
+using CredentialIndexModeFlag = bool;
 static const CredentialIndexModeFlag CREDENTIAL_INDEX_MODE_ONLY_IDS = true;
 static const CredentialIndexModeFlag CREDENTIAL_INDEX_MODE_FULL_CREDS = false;
 
-typedef bool CredentialModeFlag;
+using CredentialModeFlag = bool;
 static const CredentialModeFlag PRIVATE_VERSION = true;
 static const CredentialModeFlag PUBLIC_VERSION = false;
 
-typedef bool SerializationModeFlag;
+using SerializationModeFlag = bool;
 static const SerializationModeFlag AS_PRIVATE = true;
 static const SerializationModeFlag AS_PUBLIC = false;
 
-typedef bool SerializationSignatureFlag;
+using SerializationSignatureFlag = bool;
 static const SerializationSignatureFlag WITH_SIGNATURES = true;
 static const SerializationSignatureFlag WITHOUT_SIGNATURES = false;
 
-typedef bool ProtoValidationVerbosity;
+using ProtoValidationVerbosity = bool;
 static const ProtoValidationVerbosity SILENT = true;
 static const ProtoValidationVerbosity VERBOSE = false;
 
-typedef bool BIP44Chain;
+using BIP44Chain = bool;
 static const BIP44Chain INTERNAL_CHAIN = true;
 static const BIP44Chain EXTERNAL_CHAIN = false;
 
-typedef bool BlockMode;
+using BlockMode = bool;
 static const BlockMode BLOCK_MODE = true;
 static const BlockMode NOBLOCK_MODE = false;
 
@@ -276,41 +276,40 @@ enum class StringStyle : bool { Hex = true, Raw = false };
 using GetPreimage = std::function<std::string()>;
 using SimpleCallback = std::function<void()>;
 
-typedef std::vector<std::shared_ptr<std::string>> DhtResults;
+using DhtResults = std::vector<std::shared_ptr<std::string>>;
 
-typedef std::function<void(bool)> DhtDoneCallback;
-typedef std::function<bool(const DhtResults&)> DhtResultsCallback;
+using DhtDoneCallback = std::function<void(bool)>;
+using DhtResultsCallback = std::function<bool(const DhtResults&)>;
 
-typedef std::function<std::string()> Random;
+using Random = std::function<std::string()>;
 
-typedef std::function<void()> PeriodicTask;
+using PeriodicTask = std::function<void()>;
 
 /** C++11 representation of a claim. This version is more useful than the
  *  protobuf version, since it contains the claim ID.
  */
-typedef std::tuple<
-    std::string,              // claim identifier
-    std::uint32_t,            // section
-    std::uint32_t,            // type
-    std::string,              // value
-    std::int64_t,             // start time
-    std::int64_t,             // end time
-    std::set<std::uint32_t>>  // attributes
-    Claim;
-typedef Claim ClaimTuple;
+using Claim = std::tuple<
+    std::string,               // claim identifier
+    std::uint32_t,             // section
+    std::uint32_t,             // type
+    std::string,               // value
+    std::int64_t,              // start time
+    std::int64_t,              // end time
+    std::set<std::uint32_t>>;  // attributes
+using ClaimTuple = Claim;
 
 /** C++11 representation of all contact data associated with a nym, aggregating
  *  each the nym's contact credentials in the event it has more than one.
  */
-typedef std::set<Claim> ClaimSet;
+using ClaimSet = std::set<Claim>;
 
 /** A list of object IDs and their associated aliases
  *  * string: id of the stored object
  *  * string: alias of the stored object
  */
-typedef std::list<std::pair<std::string, std::string>> ObjectList;
+using ObjectList = std::list<std::pair<std::string, std::string>>;
 
-typedef std::vector<unsigned char> RawData;
+using RawData = std::vector<unsigned char>;
 
 using Nym_p = std::shared_ptr<const identity::Nym>;
 
@@ -320,7 +319,7 @@ using ContextLockCallback =
     std::function<std::recursive_mutex&(const ContextID&)>;
 using SetID = std::function<void(const Identifier&)>;
 
-typedef std::int32_t NetworkOperationStatus;
+using NetworkOperationStatus = std::int32_t;
 
 using Lock = std::unique_lock<std::mutex>;
 using rLock = std::unique_lock<std::recursive_mutex>;
@@ -697,12 +696,12 @@ using Endpoint = std::tuple<
     std::string,    // hostname / address
     std::uint32_t,  // port
     VersionNumber>;
-typedef std::pair<SendResult, std::shared_ptr<std::string>> NetworkReplyRaw;
-typedef std::pair<SendResult, std::shared_ptr<String>> NetworkReplyString;
-typedef std::pair<SendResult, std::shared_ptr<Message>> NetworkReplyMessage;
+using NetworkReplyRaw = std::pair<SendResult, std::shared_ptr<std::string>>;
+using NetworkReplyString = std::pair<SendResult, std::shared_ptr<String>>;
+using NetworkReplyMessage = std::pair<SendResult, std::shared_ptr<Message>>;
 
-typedef std::tuple<RequestNumber, TransactionNumber, NetworkReplyMessage>
-    CommandResult;
+using CommandResult =
+    std::tuple<RequestNumber, TransactionNumber, NetworkReplyMessage>;
 
 enum class MessageType : std::uint8_t {
     badID = 0,

@@ -46,7 +46,7 @@ OTClient::OTClient(const api::internal::Core& core)
 /// processing.
 /// returns >0 for nearly everything else, containing the request number
 /// itself.
-std::int32_t OTClient::ProcessUserCommand(
+auto OTClient::ProcessUserCommand(
     const MessageType requestedCommand,
     ServerContext& context,
     Message& theMessage,
@@ -57,7 +57,7 @@ std::int32_t OTClient::ProcessUserCommand(
     const Account* pAccount,
     const contract::Unit* pMyUnitDefinition
 
-)
+    ) -> std::int32_t
 {
     // This is all preparatory work to get the various pieces of data
     // together
