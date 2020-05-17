@@ -31,11 +31,18 @@ class Driver;
 namespace storage
 {
 class Nym;
+class Tree;
+}  // namespace storage
+}  // namespace opentxs
 
+namespace opentxs
+{
+namespace storage
+{
 class Nyms final : public Node
 {
 private:
-    friend class Tree;
+    friend Tree;
 
     mutable std::map<std::string, std::unique_ptr<storage::Nym>> nyms_;
     std::set<std::string> local_nyms_{};

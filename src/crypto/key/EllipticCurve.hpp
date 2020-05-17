@@ -103,7 +103,7 @@ protected:
     EllipticCurve(const EllipticCurve&) noexcept;
 
 private:
-    friend class crypto::EcdsaProvider;
+    friend crypto::EcdsaProvider;
 
     static auto extract_key(
         const api::internal::Core& api,

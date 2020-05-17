@@ -407,7 +407,7 @@ auto Contact::AddNym(const identifier::Nym& nymID, const bool primary) -> bool
 }
 
 auto Contact::AddPaymentCode(
-    const class PaymentCode& code,
+    const opentxs::PaymentCode& code,
     const bool primary,
     const proto::ContactItemType currency,
     const bool active) -> bool

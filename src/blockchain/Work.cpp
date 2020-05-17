@@ -7,6 +7,7 @@
 #include "1_Internal.hpp"       // IWYU pragma: associated
 #include "blockchain/Work.hpp"  // IWYU pragma: associated
 
+#include <boost/exception/exception.hpp>
 #include <iterator>
 #include <utility>
 #include <vector>

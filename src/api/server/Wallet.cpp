@@ -15,12 +15,10 @@
 #include "api/Wallet.hpp"
 #include "internal/api/Api.hpp"
 #include "internal/api/server/Server.hpp"
-#include "internal/consensus/Consensus.hpp"
+#include "internal/otx/consensus/Consensus.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/SharedPimpl.hpp"
 #include "opentxs/api/storage/Storage.hpp"
-#include "opentxs/consensus/ClientContext.hpp"
-#include "opentxs/consensus/Context.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
@@ -32,6 +30,8 @@
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/identity/Nym.hpp"
+#include "opentxs/otx/consensus/Base.hpp"
+#include "opentxs/otx/consensus/Client.hpp"
 #include "opentxs/protobuf/ConsensusEnums.pb.h"
 
 #define OT_METHOD "opentxs::api::server::implementation::Wallet::"
@@ -54,11 +54,11 @@ Wallet::Wallet(const api::server::internal::Manager& server)
 }
 
 auto Wallet::ClientContext(const identifier::Nym& remoteNymID) const
-    -> std::shared_ptr<const opentxs::ClientContext>
+    -> std::shared_ptr<const otx::context::Client>
 {
     const auto& serverNymID = server_.NymID();
     auto base = context(serverNymID, remoteNymID);
-    auto output = std::dynamic_pointer_cast<const opentxs::ClientContext>(base);
+    auto output = std::dynamic_pointer_cast<const otx::context::Client>(base);
 
     return output;
 }
@@ -66,7 +66,7 @@ auto Wallet::ClientContext(const identifier::Nym& remoteNymID) const
 auto Wallet::Context(
     [[maybe_unused]] const identifier::Server& notaryID,
     const identifier::Nym& clientNymID) const
-    -> std::shared_ptr<const opentxs::Context>
+    -> std::shared_ptr<const otx::context::Base>
 {
     return context(server_.NymID(), clientNymID);
 }
@@ -75,9 +75,9 @@ void Wallet::instantiate_client_context(
     const proto::Context& serialized,
     const Nym_p& localNym,
     const Nym_p& remoteNym,
-    std::shared_ptr<opentxs::internal::Context>& output) const
+    std::shared_ptr<otx::context::internal::Base>& output) const
 {
-    output.reset(opentxs::Factory::ClientContext(
+    output.reset(factory::ClientContext(
         api_, serialized, localNym, remoteNym, server_.ID()));
 }
 
@@ -152,15 +152,15 @@ auto Wallet::load_legacy_account(
 
 auto Wallet::mutable_ClientContext(
     const identifier::Nym& remoteNymID,
-    const PasswordPrompt& reason) const -> Editor<opentxs::ClientContext>
+    const PasswordPrompt& reason) const -> Editor<otx::context::Client>
 {
     const auto& serverID = server_.ID();
     const auto& serverNymID = server_.NymID();
     Lock lock(context_map_lock_);
     auto base = context(serverNymID, remoteNymID);
-    std::function<void(opentxs::Context*)> callback =
-        [&](opentxs::Context* in) -> void {
-        this->save(reason, dynamic_cast<opentxs::internal::Context*>(in));
+    std::function<void(otx::context::Base*)> callback =
+        [&](otx::context::Base* in) -> void {
+        this->save(reason, dynamic_cast<otx::context::internal::Base*>(in));
     };
 
     if (base) {
@@ -178,34 +178,33 @@ auto Wallet::mutable_ClientContext(
         // Create a new Context
         const ContextID contextID = {serverNymID.str(), remoteNymID.str()};
         auto& entry = context_map_[contextID];
-        entry.reset(
-            opentxs::Factory::ClientContext(api_, local, remote, serverID));
+        entry.reset(factory::ClientContext(api_, local, remote, serverID));
         base = entry;
     }
 
     OT_ASSERT(base);
 
-    auto child = dynamic_cast<opentxs::ClientContext*>(base.get());
+    auto child = dynamic_cast<otx::context::Client*>(base.get());
 
     OT_ASSERT(nullptr != child);
 
-    return Editor<opentxs::ClientContext>(child, callback);
+    return Editor<otx::context::Client>(child, callback);
 }
 
 auto Wallet::mutable_Context(
     const identifier::Server& notaryID,
     const identifier::Nym& clientNymID,
-    const PasswordPrompt& reason) const -> Editor<opentxs::Context>
+    const PasswordPrompt& reason) const -> Editor<otx::context::Base>
 {
     auto base = context(server_.NymID(), clientNymID);
-    std::function<void(opentxs::Context*)> callback =
-        [&](opentxs::Context* in) -> void {
-        this->save(reason, dynamic_cast<opentxs::internal::Context*>(in));
+    std::function<void(otx::context::Base*)> callback =
+        [&](otx::context::Base* in) -> void {
+        this->save(reason, dynamic_cast<otx::context::internal::Base*>(in));
     };
 
     OT_ASSERT(base);
 
-    return Editor<opentxs::Context>(base.get(), callback);
+    return Editor<otx::context::Base>(base.get(), callback);
 }
 
 auto Wallet::signer_nym(const identifier::Nym&) const -> Nym_p

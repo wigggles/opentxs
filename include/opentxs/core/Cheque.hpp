@@ -8,13 +8,14 @@
 
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
+#include <irrxml/irrXML.hpp>
 #include <cstdint>
 
+#include "opentxs/Types.hpp"
 #include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/OTTrackable.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/Types.hpp"
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 
 namespace opentxs

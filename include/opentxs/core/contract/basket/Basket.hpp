@@ -8,12 +8,13 @@
 
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
+#include <irrxml/irrXML.hpp>
 #include <cstdint>
 
-#include "opentxs/core/contract/basket/BasketItem.hpp"
-#include "opentxs/core/Contract.hpp"
 #include "opentxs/Types.hpp"
+#include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/contract/basket/BasketItem.hpp"
 
 namespace opentxs
 {
@@ -35,10 +36,20 @@ namespace identifier
 class Server;
 }  // namespace identifier
 
-class PasswordPrompt;
-class ServerContext;
-class StringXML;
+namespace otx
+{
+namespace context
+{
+class Server;
+}  // namespace context
+}  // namespace otx
 
+class PasswordPrompt;
+class StringXML;
+}  // namespace opentxs
+
+namespace opentxs
+{
 /*
  I figured this one out, it's easy.
 
@@ -165,7 +176,7 @@ public:
     // Normally do this if your transaction failed so you can get most of your
     // numbers back
     OPENTXS_EXPORT void HarvestClosingNumbers(
-        ServerContext& context,
+        otx::context::Server& context,
         const identifier::Server& theNotaryID,
         bool bSave = true);
 

@@ -64,8 +64,8 @@ auto Threads::create(
 {
     OT_ASSERT(verify_write_lock(lock));
 
-    std::unique_ptr<class Thread> newThread(
-        new class Thread(driver_, id, participants, mail_inbox_, mail_outbox_));
+    std::unique_ptr<storage::Thread> newThread(new storage::Thread(
+        driver_, id, participants, mail_inbox_, mail_outbox_));
 
     if (!newThread) {
         std::cerr << __FUNCTION__ << ": Failed to instantiate thread."
@@ -182,17 +182,18 @@ auto Threads::Migrate(const opentxs::api::storage::Driver& to) const -> bool
     return output;
 }
 
-auto Threads::mutable_Thread(const std::string& id) -> Editor<class Thread>
+auto Threads::mutable_Thread(const std::string& id) -> Editor<storage::Thread>
 {
-    std::function<void(class Thread*, std::unique_lock<std::mutex>&)> callback =
-        [&](class Thread* in, std::unique_lock<std::mutex>& lock) -> void {
+    std::function<void(storage::Thread*, std::unique_lock<std::mutex>&)>
+        callback = [&](storage::Thread* in,
+                       std::unique_lock<std::mutex>& lock) -> void {
         this->save(in, lock, id);
     };
 
-    return Editor<class Thread>(write_lock_, thread(id), callback);
+    return Editor<storage::Thread>(write_lock_, thread(id), callback);
 }
 
-auto Threads::thread(const std::string& id) const -> class Thread*
+auto Threads::thread(const std::string& id) const -> storage::Thread*
 {
     std::unique_lock<std::mutex> lock(write_lock_);
 
@@ -201,7 +202,7 @@ auto Threads::thread(const std::string& id) const -> class Thread*
 
 auto Threads::thread(
     const std::string& id,
-    const std::unique_lock<std::mutex>& lock) const -> class Thread*
+    const std::unique_lock<std::mutex>& lock) const -> storage::Thread*
 {
     if (!verify_write_lock(lock)) {
         std::cerr << __FUNCTION__ << ": Lock failure." << std::endl;
@@ -214,7 +215,7 @@ auto Threads::thread(
     auto& node = threads_[id];
 
     if (!node) {
-        node.reset(new class Thread(
+        node.reset(new storage::Thread(
             driver_, id, hash, alias, mail_inbox_, mail_outbox_));
 
         if (!node) {
@@ -227,7 +228,7 @@ auto Threads::thread(
     return node.get();
 }
 
-auto Threads::Thread(const std::string& id) const -> const class Thread&
+auto Threads::Thread(const std::string& id) const -> const storage::Thread&
 {
     return *thread(id);
 }
@@ -259,7 +260,7 @@ auto Threads::Rename(const std::string& existingID, const std::string& newID)
 
     OT_ASSERT(oldThread);
 
-    std::unique_ptr<class Thread> newThread{nullptr};
+    std::unique_ptr<storage::Thread> newThread{nullptr};
 
     if (false == oldThread->Rename(newID)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to rename thread ")(
@@ -294,7 +295,7 @@ auto Threads::save(const std::unique_lock<std::mutex>& lock) const -> bool
 }
 
 void Threads::save(
-    class Thread* nym,
+    storage::Thread* nym,
     const std::unique_lock<std::mutex>& lock,
     const std::string& id)
 {

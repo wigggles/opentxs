@@ -21,12 +21,20 @@ namespace identifier
 class UnitDefinition;
 }  // namespace identifier
 
+namespace otx
+{
+namespace context
+{
+class Client;
+}  // namespace context
+}  // namespace otx
+
 namespace server
 {
+class MainFile;
 class Server;
 }  // namespace server
 
-class ClientContext;
 class Identifier;
 class PasswordPrompt;
 }  // namespace opentxs
@@ -35,8 +43,6 @@ namespace opentxs::server
 {
 class Transactor
 {
-    friend class MainFile;
-
 public:
     Transactor(Server& server, const PasswordPrompt& reason);
     ~Transactor() = default;
@@ -44,7 +50,7 @@ public:
     OPENTXS_EXPORT auto issueNextTransactionNumber(TransactionNumber& txNumber)
         -> bool;
     auto issueNextTransactionNumberToNym(
-        ClientContext& context,
+        otx::context::Client& context,
         TransactionNumber& txNumber) -> bool;
 
     auto transactionNumber() const -> TransactionNumber
@@ -86,6 +92,8 @@ public:
         -> ExclusiveAccount;
 
 private:
+    friend MainFile;
+
     using BasketsMap = std::map<std::string, std::string>;
 
     Server& server_;

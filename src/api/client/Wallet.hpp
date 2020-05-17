@@ -47,6 +47,23 @@ namespace internal
 struct Context;
 }  // namespace internal
 
+namespace otx
+{
+namespace context
+{
+namespace internal
+{
+struct Base;
+}  // namespace internal
+
+class Base;
+class Server;
+}  // namespace context
+
+class Base;
+class Server;
+}  // namespace otx
+
 namespace proto
 {
 class Context;
@@ -56,7 +73,6 @@ class Context;
 class Factory;
 class Identifier;
 class PasswordPrompt;
-class ServerContext;
 }  // namespace opentxs
 
 namespace opentxs::api::client::implementation
@@ -67,20 +83,20 @@ public:
     auto Context(
         const identifier::Server& notaryID,
         const identifier::Nym& clientNymID) const
-        -> std::shared_ptr<const opentxs::Context> final;
+        -> std::shared_ptr<const otx::context::Base> final;
     auto mutable_Context(
         const identifier::Server& notaryID,
         const identifier::Nym& clientNymID,
-        const PasswordPrompt& reason) const -> Editor<opentxs::Context> final;
+        const PasswordPrompt& reason) const -> Editor<otx::context::Base> final;
     auto mutable_ServerContext(
         const identifier::Nym& localNymID,
         const Identifier& remoteID,
         const PasswordPrompt& reason) const
-        -> Editor<opentxs::ServerContext> final;
+        -> Editor<otx::context::Server> final;
     auto ServerContext(
         const identifier::Nym& localNymID,
         const Identifier& remoteID) const
-        -> std::shared_ptr<const opentxs::ServerContext> final;
+        -> std::shared_ptr<const otx::context::Server> final;
 
     ~Wallet() = default;
 
@@ -97,7 +113,7 @@ private:
         const proto::Context& serialized,
         const Nym_p& localNym,
         const Nym_p& remoteNym,
-        std::shared_ptr<opentxs::internal::Context>& output) const final;
+        std::shared_ptr<otx::context::internal::Base>& output) const final;
     void nym_to_contact(const identity::Nym& nym, const std::string& name) const
         noexcept final;
     auto signer_nym(const identifier::Nym& id) const -> Nym_p final;

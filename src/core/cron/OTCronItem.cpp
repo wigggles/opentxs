@@ -7,7 +7,6 @@
 #include "1_Internal.hpp"                    // IWYU pragma: associated
 #include "opentxs/core/cron/OTCronItem.hpp"  // IWYU pragma: associated
 
-#include <irrxml/irrXML.hpp>
 #include <algorithm>
 #include <cinttypes>
 #include <cstdint>
@@ -22,8 +21,6 @@
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Wallet.hpp"
-#include "opentxs/consensus/ClientContext.hpp"
-#include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -37,6 +34,8 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/identity/Nym.hpp"
+#include "opentxs/otx/consensus/Client.hpp"
+#include "opentxs/otx/consensus/Server.hpp"
 
 // Base class for OTTrade and OTAgreement and OTPaymentPlan.
 // OTCron contains lists of these for regular processing.
@@ -683,7 +682,8 @@ void OTCronItem::AddClosingTransactionNo(
 }
 
 /// See if theNym has rights to remove this item from Cron.
-auto OTCronItem::CanRemoveItemFromCron(const ClientContext& context) -> bool
+auto OTCronItem::CanRemoveItemFromCron(const otx::context::Client& context)
+    -> bool
 {
     const auto strNotaryID = String::Factory(GetNotaryID());
 
@@ -1470,7 +1470,7 @@ auto OTCronItem::GetClosingNumber(const Identifier& theAcctID) const
 // the opening number is already burned and gone. But there might be cases
 // where it's not, and you want to retrieve it. So I added this function for
 // those cases. In most cases, you will prefer HarvestClosingNumbers().
-void OTCronItem::HarvestOpeningNumber(ServerContext& context)
+void OTCronItem::HarvestOpeningNumber(otx::context::Server& context)
 {
     // The Nym is the original sender. (If Compares true). IN CASES where
     // GetTransactionNum() isn't already burned, we can harvest it here.
@@ -1497,7 +1497,7 @@ void OTCronItem::HarvestOpeningNumber(ServerContext& context)
 
 // This is a good default implementation.
 // Also, some subclasses override this, but they STILL CALL IT.
-void OTCronItem::HarvestClosingNumbers(ServerContext& context)
+void OTCronItem::HarvestClosingNumbers(otx::context::Server& context)
 {
     // The Nym is the original sender. (If Compares true).
     // GetTransactionNum() is usually already burned, but we can harvest the

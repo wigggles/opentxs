@@ -64,6 +64,10 @@ target_link_libraries(
   opentxs-api-client
   PRIVATE Boost::headers opentxs::messages
 )
+target_include_directories(
+  opentxs-api-client SYSTEM
+  PRIVATE "${opentxs_SOURCE_DIR}/deps/"
+)
 set_property(TARGET opentxs-api-client PROPERTY POSITION_INDEPENDENT_CODE 1)
 
 install(

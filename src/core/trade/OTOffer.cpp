@@ -7,7 +7,6 @@
 #include "1_Internal.hpp"                  // IWYU pragma: associated
 #include "opentxs/core/trade/OTOffer.hpp"  // IWYU pragma: associated
 
-#include <irrxml/irrXML.hpp>
 #include <chrono>
 #include <cinttypes>
 #include <cstdint>

@@ -11,6 +11,7 @@
 
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
+#include <irrxml/irrXML.hpp>
 #include <chrono>
 #include <cstdint>
 #include <deque>
@@ -48,12 +49,22 @@ namespace identity
 class Nym;
 }  // namespace identity
 
-class ClientContext;
+namespace otx
+{
+namespace context
+{
+class Client;
+class Server;
+}  // namespace context
+}  // namespace otx
+
 class NumList;
 class OTCron;
 class PasswordPrompt;
-class ServerContext;
+}  // namespace opentxs
 
+namespace opentxs
+{
 class OTCronItem : public OTTrackable
 {
 public:
@@ -81,9 +92,9 @@ public:
         const PasswordPrompt& reason,
         OTString pstrNote = String::Factory(),
         OTString pstrAttachment = String::Factory());
-    virtual bool CanRemoveItemFromCron(const ClientContext& context);
-    virtual void HarvestOpeningNumber(ServerContext& context);
-    virtual void HarvestClosingNumbers(ServerContext& context);
+    virtual bool CanRemoveItemFromCron(const otx::context::Client& context);
+    virtual void HarvestOpeningNumber(otx::context::Server& context);
+    virtual void HarvestClosingNumbers(otx::context::Server& context);
     // pActivator and pRemover are both "SOMETIMES nullptr"
     // I don't default the parameter, because I want to force the programmer to
     // choose.

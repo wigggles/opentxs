@@ -3,44 +3,48 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/otx/consensus/Client.cpp"
+
 #pragma once
 
 #include "opentxs/Types.hpp"
-#include "opentxs/consensus/ManagedNumber.hpp"
 #include "opentxs/core/Flag.hpp"
+#include "opentxs/otx/consensus/ManagedNumber.hpp"
 
 namespace opentxs
 {
-class Factory;
-class ServerContext;
+namespace otx
+{
+namespace context
+{
+class Server;
+}  // namespace context
+}  // namespace otx
 }  // namespace opentxs
 
-namespace opentxs::implementation
+namespace opentxs::otx::context::implementation
 {
-class ManagedNumber final : virtual public opentxs::ManagedNumber
+class ManagedNumber final : virtual public otx::context::ManagedNumber
 {
 public:
     void SetSuccess(const bool value = true) const final;
     auto Valid() const -> bool final;
     auto Value() const -> TransactionNumber final;
 
+    ManagedNumber(const TransactionNumber number, otx::context::Server&);
     ~ManagedNumber() final;
 
 private:
-    friend opentxs::Factory;
-
-    opentxs::ServerContext& context_;
+    otx::context::Server& context_;
     const TransactionNumber number_;
     mutable OTFlag success_;
     bool managed_{true};
 
-    ManagedNumber(
-        const TransactionNumber number,
-        opentxs::ServerContext& context);
     ManagedNumber() = delete;
     ManagedNumber(const ManagedNumber&) = delete;
     ManagedNumber(ManagedNumber&& rhs) = delete;
     auto operator=(const ManagedNumber&) -> ManagedNumber& = delete;
     auto operator=(ManagedNumber &&) -> ManagedNumber& = delete;
 };
-}  // namespace opentxs::implementation
+}  // namespace opentxs::otx::context::implementation

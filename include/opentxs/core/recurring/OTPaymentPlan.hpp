@@ -8,12 +8,13 @@
 
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
-#include <cstdint>
+#include <irrxml/irrXML.hpp>
 #include <chrono>
+#include <cstdint>
 
-#include "opentxs/core/recurring/OTAgreement.hpp"
-#include "opentxs/core/Contract.hpp"
 #include "opentxs/Types.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/recurring/OTAgreement.hpp"
 
 namespace opentxs
 {
@@ -44,10 +45,20 @@ namespace identity
 class Nym;
 }  // namespace identity
 
-class ClientContext;
+namespace otx
+{
+namespace context
+{
+class Client;
+}  // namespace context
+}  // namespace otx
+
 class Identifier;
 class PasswordPrompt;
+}  // namespace opentxs
 
+namespace opentxs
+{
 /*
  OTPaymentPlan
 
@@ -157,8 +168,8 @@ public:
     // of the vital terms, values, clauses, etc are different between the two.
     //
     bool VerifyAgreement(
-        const ClientContext& recipient,
-        const ClientContext& sender) const override;
+        const otx::context::Client& recipient,
+        const otx::context::Client& sender) const override;
     bool CompareAgreement(const OTAgreement& rh) const override;
 
     bool VerifyMerchantSignature(const identity::Nym& RECIPIENT_NYM) const;

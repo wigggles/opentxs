@@ -7,7 +7,6 @@
 #include "1_Internal.hpp"                  // IWYU pragma: associated
 #include "opentxs/core/trade/OTTrade.hpp"  // IWYU pragma: associated
 
-#include <irrxml/irrXML.hpp>
 #include <chrono>
 #include <cstdlib>
 #include <cstring>
@@ -20,7 +19,6 @@
 #include "opentxs/api/Editor.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
-#include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Contract.hpp"
@@ -38,6 +36,7 @@
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/identity/Nym.hpp"
+#include "opentxs/otx/consensus/Client.hpp"
 
 #define OT_METHOD "opentxs::OTTrade::"
 
@@ -760,7 +759,7 @@ auto OTTrade::GetCurrencyAcctClosingNum() const -> std::int64_t
 }
 
 /// See if nym has rights to remove this item from Cron.
-auto OTTrade::CanRemoveItemFromCron(const ClientContext& context) -> bool
+auto OTTrade::CanRemoveItemFromCron(const otx::context::Client& context) -> bool
 {
     // I don't call the parent class' version of this function, in the case of
     // OTTrade, since it would just be redundant.

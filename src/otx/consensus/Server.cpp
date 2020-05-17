@@ -3,9 +3,9 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "0_stdafx.hpp"                 // IWYU pragma: associated
-#include "1_Internal.hpp"               // IWYU pragma: associated
-#include "consensus/ServerContext.hpp"  // IWYU pragma: associated
+#include "0_stdafx.hpp"              // IWYU pragma: associated
+#include "1_Internal.hpp"            // IWYU pragma: associated
+#include "otx/consensus/Server.hpp"  // IWYU pragma: associated
 
 #include <algorithm>
 #include <atomic>
@@ -17,8 +17,6 @@
 #include <stdexcept>
 #include <type_traits>
 
-#include "Factory.hpp"
-#include "consensus/Context.hpp"
 #include "core/StateMachine.hpp"
 #include "internal/api/Api.hpp"
 #include "internal/api/client/Client.hpp"
@@ -41,9 +39,6 @@
 #include "opentxs/blind/Purse.hpp"
 #include "opentxs/blind/Token.hpp"
 #endif  // OT_CASH
-#include "opentxs/consensus/ManagedNumber.hpp"
-#include "opentxs/consensus/ServerContext.hpp"
-#include "opentxs/consensus/TransactionStatement.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Cheque.hpp"
@@ -83,6 +78,9 @@
 #include "opentxs/network/zeromq/socket/Sender.tpp"
 #include "opentxs/network/zeromq/socket/Socket.hpp"
 #include "opentxs/otx/Reply.hpp"
+#include "opentxs/otx/consensus/ManagedNumber.hpp"
+#include "opentxs/otx/consensus/Server.hpp"
+#include "opentxs/otx/consensus/TransactionStatement.hpp"
 #include "opentxs/protobuf/Check.hpp"
 #include "opentxs/protobuf/ConsensusEnums.pb.h"
 #include "opentxs/protobuf/OTXEnums.pb.h"
@@ -90,6 +88,7 @@
 #include "opentxs/protobuf/PeerEnums.pb.h"
 #include "opentxs/protobuf/verify/Context.hpp"
 #include "opentxs/protobuf/verify/Purse.hpp"
+#include "otx/consensus/Base.hpp"
 
 #define START()                                                                \
     Lock lock(decision_lock_);                                                 \
@@ -108,47 +107,49 @@
 #define NYMBOX_BOX_TYPE 0
 #define FAILURE_COUNT_LIMIT 3
 
-#define OT_METHOD "opentxs::implementation::ServerContext::"
+#define OT_METHOD "opentxs::otx::context::implementation::ServerContext::"
 
-namespace opentxs
+namespace opentxs::factory
 {
-auto Factory::ServerContext(
+using ReturnType = opentxs::otx::context::implementation::Server;
+
+auto ServerContext(
     const api::client::internal::Manager& api,
     const network::zeromq::socket::Publish& requestSent,
     const network::zeromq::socket::Publish& replyReceived,
     const Nym_p& local,
     const Nym_p& remote,
     const identifier::Server& server,
-    network::ServerConnection& connection) -> internal::ServerContext*
+    network::ServerConnection& connection) -> otx::context::internal::Server*
 {
-    return new implementation::ServerContext(
+    return new ReturnType(
         api, requestSent, replyReceived, local, remote, server, connection);
 }
 
-auto Factory::ServerContext(
+auto ServerContext(
     const api::client::internal::Manager& api,
     const network::zeromq::socket::Publish& requestSent,
     const network::zeromq::socket::Publish& replyReceived,
     const proto::Context& serialized,
     const Nym_p& local,
     const Nym_p& remote,
-    network::ServerConnection& connection) -> internal::ServerContext*
+    network::ServerConnection& connection) -> otx::context::internal::Server*
 {
-    return new implementation::ServerContext(
+    return new ReturnType(
         api, requestSent, replyReceived, serialized, local, remote, connection);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
-namespace opentxs::implementation
+namespace opentxs::otx::context::implementation
 {
-const std::string ServerContext::default_node_name_{DEFAULT_NODE_NAME};
-const std::set<MessageType> ServerContext::do_not_need_request_number_{
+const std::string Server::default_node_name_{DEFAULT_NODE_NAME};
+const std::set<MessageType> Server::do_not_need_request_number_{
     MessageType::pingNotary,
     MessageType::registerNym,
     MessageType::getRequestNumber,
 };
 
-ServerContext::ServerContext(
+Server::Server(
     const api::client::internal::Manager& api,
     const network::zeromq::socket::Publish& requestSent,
     const network::zeromq::socket::Publish& replyReceived,
@@ -156,8 +157,8 @@ ServerContext::ServerContext(
     const Nym_p& remote,
     const identifier::Server& server,
     network::ServerConnection& connection)
-    : implementation::Context(api, CURRENT_VERSION, local, remote, server)
-    , StateMachine(std::bind(&ServerContext::state_machine, this))
+    : Base(api, CURRENT_VERSION, local, remote, server)
+    , StateMachine(std::bind(&Server::state_machine, this))
     , request_sent_(requestSent)
     , reply_received_(replyReceived)
     , client_(nullptr)
@@ -196,7 +197,7 @@ ServerContext::ServerContext(
     init_sockets();
 }
 
-ServerContext::ServerContext(
+Server::Server(
     const api::client::internal::Manager& api,
     const network::zeromq::socket::Publish& requestSent,
     const network::zeromq::socket::Publish& replyReceived,
@@ -204,14 +205,14 @@ ServerContext::ServerContext(
     const Nym_p& local,
     const Nym_p& remote,
     network::ServerConnection& connection)
-    : implementation::Context(
+    : Base(
           api,
           CURRENT_VERSION,
           serialized,
           local,
           remote,
           api.Factory().ServerID(serialized.servercontext().serverid()))
-    , StateMachine(std::bind(&ServerContext::state_machine, this))
+    , StateMachine(std::bind(&Server::state_machine, this))
     , request_sent_(requestSent)
     , reply_received_(replyReceived)
     , client_(nullptr)
@@ -264,7 +265,7 @@ ServerContext::ServerContext(
     init_sockets();
 }
 
-auto ServerContext::accept_entire_nymbox(
+auto Server::accept_entire_nymbox(
     const Lock& lock,
     const api::client::internal::Manager& client,
     Ledger& nymbox,
@@ -486,7 +487,7 @@ auto ServerContext::accept_entire_nymbox(
     return true;
 }
 
-void ServerContext::accept_numbers(
+void Server::accept_numbers(
     const Lock& lock,
     OTTransaction& transaction,
     OTTransaction& replyTransaction)
@@ -523,11 +524,11 @@ void ServerContext::accept_numbers(
         return;
     }
 
-    TransactionStatement statement(serialized);
+    otx::context::TransactionStatement statement(serialized);
     accept_issued_number(lock, statement);
 }
 
-auto ServerContext::accept_issued_number(
+auto Server::accept_issued_number(
     const Lock& lock,
     const TransactionNumber& number) -> bool
 {
@@ -541,16 +542,16 @@ auto ServerContext::accept_issued_number(
     return accepted;
 }
 
-auto ServerContext::AcceptIssuedNumber(const TransactionNumber& number) -> bool
+auto Server::AcceptIssuedNumber(const TransactionNumber& number) -> bool
 {
     Lock lock(lock_);
 
     return accept_issued_number(lock, number);
 }
 
-auto ServerContext::accept_issued_number(
+auto Server::accept_issued_number(
     const Lock& lock,
-    const TransactionStatement& statement) -> bool
+    const otx::context::TransactionStatement& statement) -> bool
 {
     OT_ASSERT(verify_write_lock(lock));
 
@@ -591,15 +592,15 @@ auto ServerContext::accept_issued_number(
     return (added == offered);
 }
 
-auto ServerContext::AcceptIssuedNumbers(const TransactionStatement& statement)
-    -> bool
+auto Server::AcceptIssuedNumbers(
+    const otx::context::TransactionStatement& statement) -> bool
 {
     Lock lock(lock_);
 
     return accept_issued_number(lock, statement);
 }
 
-auto ServerContext::Accounts() const -> std::vector<OTIdentifier>
+auto Server::Accounts() const -> std::vector<OTIdentifier>
 {
     std::vector<OTIdentifier> output{};
     const auto serverSet = api_.Storage().AccountsByServer(server_id_);
@@ -614,7 +615,7 @@ auto ServerContext::Accounts() const -> std::vector<OTIdentifier>
     return output;
 }
 
-auto ServerContext::add_item_to_payment_inbox(
+auto Server::add_item_to_payment_inbox(
     const TransactionNumber number,
     const std::string& payment,
     const PasswordPrompt& reason) const -> bool
@@ -650,7 +651,7 @@ auto ServerContext::add_item_to_payment_inbox(
     return true;
 }
 
-auto ServerContext::add_item_to_workflow(
+auto Server::add_item_to_workflow(
     const Lock& lock,
     const api::client::internal::Manager& client,
     const Message& transportItem,
@@ -737,7 +738,7 @@ auto ServerContext::add_item_to_workflow(
     return true;
 }
 
-auto ServerContext::add_tentative_number(
+auto Server::add_tentative_number(
     const Lock& lock,
     const TransactionNumber& number) -> bool
 {
@@ -750,7 +751,7 @@ auto ServerContext::add_tentative_number(
     return output.second;
 }
 
-auto ServerContext::add_transaction_to_ledger(
+auto Server::add_transaction_to_ledger(
     const TransactionNumber number,
     std::shared_ptr<OTTransaction> transaction,
     Ledger& ledger,
@@ -815,26 +816,23 @@ auto ServerContext::add_transaction_to_ledger(
     return true;
 }
 
-auto ServerContext::AddTentativeNumber(const TransactionNumber& number) -> bool
+auto Server::AddTentativeNumber(const TransactionNumber& number) -> bool
 {
     Lock lock(lock_);
 
     return add_tentative_number(lock, number);
 }
 
-auto ServerContext::AdminAttempted() const -> bool
-{
-    return admin_attempted_.get();
-}
+auto Server::AdminAttempted() const -> bool { return admin_attempted_.get(); }
 
-auto ServerContext::AdminPassword() const -> const std::string&
+auto Server::AdminPassword() const -> const std::string&
 {
     Lock lock(lock_);
 
     return admin_password_;
 }
 
-auto ServerContext::attempt_delivery(
+auto Server::attempt_delivery(
     const Lock& contextLock,
     const Lock& messageLock,
     const api::client::internal::Manager& client,
@@ -958,20 +956,16 @@ auto ServerContext::attempt_delivery(
     return output;
 }
 
-auto ServerContext::client_nym_id(const Lock& lock) const
-    -> const identifier::Nym&
+auto Server::client_nym_id(const Lock& lock) const -> const identifier::Nym&
 {
     OT_ASSERT(nym_);
 
     return nym_->ID();
 }
 
-auto ServerContext::Connection() -> network::ServerConnection&
-{
-    return connection_;
-}
+auto Server::Connection() -> network::ServerConnection& { return connection_; }
 
-auto ServerContext::create_instrument_notice_from_peer_object(
+auto Server::create_instrument_notice_from_peer_object(
     const Lock& lock,
     const api::client::internal::Manager& client,
     const Message& message,
@@ -1009,7 +1003,7 @@ auto ServerContext::create_instrument_notice_from_peer_object(
     }
 }
 
-auto ServerContext::extract_box_receipt(
+auto Server::extract_box_receipt(
     const String& serialized,
     const identity::Nym& signer,
     const identifier::Nym& owner,
@@ -1063,7 +1057,7 @@ auto ServerContext::extract_box_receipt(
     return receipt;
 }
 
-auto ServerContext::extract_ledger(
+auto Server::extract_ledger(
     const Armored& armored,
     const Identifier& accountID,
     const identity::Nym& signer) const -> std::unique_ptr<Ledger>
@@ -1103,7 +1097,7 @@ auto ServerContext::extract_ledger(
     return output;
 }
 
-auto ServerContext::extract_message(
+auto Server::extract_message(
     const Armored& armored,
     const identity::Nym& signer) const -> std::unique_ptr<Message>
 {
@@ -1138,8 +1132,7 @@ auto ServerContext::extract_message(
     return output;
 }
 
-auto ServerContext::extract_numbers(OTTransaction& input)
-    -> ServerContext::TransactionNumbers
+auto Server::extract_numbers(OTTransaction& input) -> Server::TransactionNumbers
 {
     TransactionNumbers output{};
     NumList list{};
@@ -1149,7 +1142,7 @@ auto ServerContext::extract_numbers(OTTransaction& input)
     return output;
 }
 
-auto ServerContext::extract_original_item(const Item& response) const
+auto Server::extract_original_item(const Item& response) const
     -> std::unique_ptr<Item>
 {
     auto serialized = String::Factory();
@@ -1186,7 +1179,7 @@ auto ServerContext::extract_original_item(const Item& response) const
     return output;
 }
 
-auto ServerContext::extract_payment_instrument_from_notice(
+auto Server::extract_payment_instrument_from_notice(
     const api::internal::Core& api,
     const identity::Nym& theNym,
     std::shared_ptr<OTTransaction> pTransaction,
@@ -1296,7 +1289,7 @@ auto ServerContext::extract_payment_instrument_from_notice(
     return nullptr;
 }
 
-auto ServerContext::extract_transfer(const OTTransaction& receipt) const
+auto Server::extract_transfer(const OTTransaction& receipt) const
     -> std::unique_ptr<Item>
 {
     if (transactionType::transferReceipt == receipt.GetType()) {
@@ -1314,7 +1307,7 @@ auto ServerContext::extract_transfer(const OTTransaction& receipt) const
     }
 }
 
-auto ServerContext::extract_transfer_pending(const OTTransaction& receipt) const
+auto Server::extract_transfer_pending(const OTTransaction& receipt) const
     -> std::unique_ptr<Item>
 {
     if (transactionType::pending != receipt.GetType()) {
@@ -1355,7 +1348,7 @@ auto ServerContext::extract_transfer_pending(const OTTransaction& receipt) const
     return transfer;
 }
 
-auto ServerContext::extract_transfer_receipt(const OTTransaction& receipt) const
+auto Server::extract_transfer_receipt(const OTTransaction& receipt) const
     -> std::unique_ptr<Item>
 {
     auto serializedAcceptPending = String::Factory();
@@ -1459,7 +1452,7 @@ auto ServerContext::extract_transfer_receipt(const OTTransaction& receipt) const
     return transfer;
 }
 
-auto ServerContext::finalize_server_command(
+auto Server::finalize_server_command(
     Message& command,
     const PasswordPrompt& reason) const -> bool
 {
@@ -1483,18 +1476,18 @@ auto ServerContext::finalize_server_command(
     return true;
 }
 
-auto ServerContext::FinalizeServerCommand(
+auto Server::FinalizeServerCommand(
     Message& command,
     const PasswordPrompt& reason) const -> bool
 {
     return finalize_server_command(command, reason);
 }
 
-auto ServerContext::generate_statement(
+auto Server::generate_statement(
     const Lock& lock,
     const TransactionNumbers& adding,
     const TransactionNumbers& without) const
-    -> std::unique_ptr<TransactionStatement>
+    -> std::unique_ptr<otx::context::TransactionStatement>
 {
     OT_ASSERT(verify_write_lock(lock));
 
@@ -1517,13 +1510,14 @@ auto ServerContext::generate_statement(
         available.insert(number);
     }
 
-    std::unique_ptr<TransactionStatement> output(new TransactionStatement(
-        String::Factory(server_id_)->Get(), issued, available));
+    std::unique_ptr<otx::context::TransactionStatement> output(
+        new otx::context::TransactionStatement(
+            String::Factory(server_id_)->Get(), issued, available));
 
     return output;
 }
 
-auto ServerContext::get_instrument(
+auto Server::get_instrument(
     const api::internal::Core& api,
     const identity::Nym& theNym,
     Ledger& ledger,
@@ -1598,7 +1592,7 @@ auto ServerContext::get_instrument(
         api, theNym, pTransaction, reason);
 }
 
-auto ServerContext::get_instrument_by_receipt_id(
+auto Server::get_instrument_by_receipt_id(
     const api::internal::Core& api,
     const identity::Nym& theNym,
     const TransactionNumber lReceiptId,
@@ -1618,8 +1612,8 @@ auto ServerContext::get_instrument_by_receipt_id(
     return get_instrument(api, theNym, ledger, pTransaction, reason);
 }
 
-auto ServerContext::get_item_type(OTTransaction& input, itemType& output)
-    -> ServerContext::Exit
+auto Server::get_item_type(OTTransaction& input, itemType& output)
+    -> Server::Exit
 {
     switch (input.GetType()) {
         case transactionType::atDeposit: {
@@ -1665,7 +1659,7 @@ auto ServerContext::get_item_type(OTTransaction& input, itemType& output)
     return Exit::Continue;
 }
 
-auto ServerContext::get_type(const std::int64_t depth) -> ServerContext::BoxType
+auto Server::get_type(const std::int64_t depth) -> Server::BoxType
 {
     switch (depth) {
         case 0: {
@@ -1686,7 +1680,7 @@ auto ServerContext::get_type(const std::int64_t depth) -> ServerContext::BoxType
     return BoxType::Invalid;
 }
 
-auto ServerContext::harvest_unused(
+auto Server::harvest_unused(
     const Lock& lock,
     const api::client::internal::Manager& client) -> bool
 {
@@ -1810,13 +1804,12 @@ auto ServerContext::harvest_unused(
     return output;
 }
 
-auto ServerContext::HaveAdminPassword() const -> bool
+auto Server::HaveAdminPassword() const -> bool
 {
     return false == admin_password_.empty();
 }
 
-auto ServerContext::HaveSufficientNumbers(const MessageType reason) const
-    -> bool
+auto Server::HaveSufficientNumbers(const MessageType reason) const -> bool
 {
     if (MessageType::processInbox == reason) {
         return 0 < available_transaction_numbers_.size();
@@ -1825,12 +1818,12 @@ auto ServerContext::HaveSufficientNumbers(const MessageType reason) const
     return 1 < available_transaction_numbers_.size();
 }
 
-auto ServerContext::Highest() const -> TransactionNumber
+auto Server::Highest() const -> TransactionNumber
 {
     return highest_transaction_number_.load();
 }
 
-auto ServerContext::init_new_account(
+auto Server::init_new_account(
     const Identifier& accountID,
     const PasswordPrompt& reason) -> bool
 {
@@ -1894,7 +1887,7 @@ auto ServerContext::init_new_account(
     return true;
 }
 
-void ServerContext::init_sockets()
+void Server::init_sockets()
 {
     const auto endpoint =
         std::string("inproc://") + Identifier::Random()->str();
@@ -1929,7 +1922,7 @@ void ServerContext::init_sockets()
     }
 }
 
-auto ServerContext::initialize_server_command(const MessageType type) const
+auto Server::initialize_server_command(const MessageType type) const
     -> std::unique_ptr<Message>
 {
     auto output = api_.Factory().Message();
@@ -1941,9 +1934,8 @@ auto ServerContext::initialize_server_command(const MessageType type) const
     return output;
 }
 
-void ServerContext::initialize_server_command(
-    const MessageType type,
-    Message& output) const
+void Server::initialize_server_command(const MessageType type, Message& output)
+    const
 {
     OT_ASSERT(nym_);
 
@@ -1953,7 +1945,7 @@ void ServerContext::initialize_server_command(
     output.m_strNotaryID = String::Factory(server_id_);
 }
 
-auto ServerContext::initialize_server_command(
+auto Server::initialize_server_command(
     const Lock& lock,
     const MessageType type,
     const RequestNumber provided,
@@ -1985,7 +1977,7 @@ auto ServerContext::initialize_server_command(
     return number;
 }
 
-auto ServerContext::initialize_server_command(
+auto Server::initialize_server_command(
     const Lock& lock,
     const MessageType type,
     const RequestNumber provided,
@@ -2007,7 +1999,7 @@ auto ServerContext::initialize_server_command(
     return output;
 }
 
-auto ServerContext::InitializeServerCommand(
+auto Server::InitializeServerCommand(
     const MessageType type,
     const Armored& payload,
     const Identifier& accountID,
@@ -2028,7 +2020,7 @@ auto ServerContext::InitializeServerCommand(
     return output;
 }
 
-auto ServerContext::InitializeServerCommand(
+auto Server::InitializeServerCommand(
     const MessageType type,
     const identifier::Nym& recipientNymID,
     const RequestNumber provided,
@@ -2045,7 +2037,7 @@ auto ServerContext::InitializeServerCommand(
     return output;
 }
 
-auto ServerContext::InitializeServerCommand(
+auto Server::InitializeServerCommand(
     const MessageType type,
     const RequestNumber provided,
     const bool withAcknowledgments,
@@ -2058,7 +2050,7 @@ auto ServerContext::InitializeServerCommand(
         lock, type, provided, withAcknowledgments, withNymboxHash);
 }
 
-auto ServerContext::instantiate_message(
+auto Server::instantiate_message(
     const api::internal::Core& api,
     const std::string& serialized) -> std::unique_ptr<opentxs::Message>
 {
@@ -2076,9 +2068,9 @@ auto ServerContext::instantiate_message(
     return output;
 }
 
-auto ServerContext::isAdmin() const -> bool { return admin_success_.get(); }
+auto Server::isAdmin() const -> bool { return admin_success_.get(); }
 
-auto ServerContext::is_internal_transfer(const Item& item) const -> bool
+auto Server::is_internal_transfer(const Item& item) const -> bool
 {
     if (itemType::transfer != item.GetType()) {
         throw std::runtime_error("Not a transfer item");
@@ -2101,9 +2093,9 @@ auto ServerContext::is_internal_transfer(const Item& item) const -> bool
     return sourceOwner == destinationOwner;
 }
 
-void ServerContext::Join() const { Wait().get(); }
+void Server::Join() const { Wait().get(); }
 
-auto ServerContext::make_accept_item(
+auto Server::make_accept_item(
     const PasswordPrompt& reason,
     const itemType type,
     const OTTransaction& input,
@@ -2128,7 +2120,7 @@ auto ServerContext::make_accept_item(
     return *acceptItem;
 }
 
-auto ServerContext::load_account_inbox(const Identifier& accountID) const
+auto Server::load_account_inbox(const Identifier& accountID) const
     -> std::unique_ptr<Ledger>
 {
     OT_ASSERT(nym_);
@@ -2160,7 +2152,7 @@ auto ServerContext::load_account_inbox(const Identifier& accountID) const
     return {};
 }
 
-auto ServerContext::load_or_create_account_recordbox(
+auto Server::load_or_create_account_recordbox(
     const Identifier& accountID,
     const PasswordPrompt& reason) const -> std::unique_ptr<Ledger>
 {
@@ -2210,8 +2202,8 @@ auto ServerContext::load_or_create_account_recordbox(
     return {};
 }
 
-auto ServerContext::load_or_create_payment_inbox(
-    const PasswordPrompt& reason) const -> std::unique_ptr<Ledger>
+auto Server::load_or_create_payment_inbox(const PasswordPrompt& reason) const
+    -> std::unique_ptr<Ledger>
 {
     OT_ASSERT(nym_);
 
@@ -2261,7 +2253,7 @@ auto ServerContext::load_or_create_payment_inbox(
 }
 
 #if OT_CASH
-auto ServerContext::mutable_Purse(
+auto Server::mutable_Purse(
     const identifier::UnitDefinition& id,
     const PasswordPrompt& reason) -> Editor<blind::Purse>
 {
@@ -2269,7 +2261,7 @@ auto ServerContext::mutable_Purse(
 }
 #endif
 
-void ServerContext::need_box_items(
+void Server::need_box_items(
     const api::client::internal::Manager& client,
     const PasswordPrompt& reason)
 {
@@ -2381,7 +2373,7 @@ void ServerContext::need_box_items(
     }
 }
 
-void ServerContext::need_nymbox(
+void Server::need_nymbox(
     const api::client::internal::Manager& client,
     const PasswordPrompt& reason)
 {
@@ -2432,7 +2424,7 @@ void ServerContext::need_nymbox(
     }
 }
 
-void ServerContext::need_process_nymbox(
+void Server::need_process_nymbox(
     const api::client::internal::Manager& client,
     const PasswordPrompt& reason)
 {
@@ -2601,14 +2593,13 @@ void ServerContext::need_process_nymbox(
     }
 }
 
-auto ServerContext::need_request_number(const MessageType type) -> bool
+auto Server::need_request_number(const MessageType type) -> bool
 {
     return 0 == do_not_need_request_number_.count(type);
 }
 
-auto ServerContext::next_transaction_number(
-    const Lock& lock,
-    const MessageType reason) -> OTManagedNumber
+auto Server::next_transaction_number(const Lock& lock, const MessageType reason)
+    -> OTManagedNumber
 {
     OT_ASSERT(verify_write_lock(lock));
 
@@ -2633,25 +2624,24 @@ auto ServerContext::next_transaction_number(
 
     if (reserve >= available_transaction_numbers_.size()) {
 
-        return OTManagedNumber(Factory::ManagedNumber(0, *this));
+        return OTManagedNumber(factory::ManagedNumber(0, *this));
     }
 
     auto first = available_transaction_numbers_.begin();
     const auto output = *first;
     available_transaction_numbers_.erase(first);
 
-    return OTManagedNumber(Factory::ManagedNumber(output, *this));
+    return OTManagedNumber(factory::ManagedNumber(output, *this));
 }
 
-auto ServerContext::NextTransactionNumber(const MessageType reason)
-    -> OTManagedNumber
+auto Server::NextTransactionNumber(const MessageType reason) -> OTManagedNumber
 {
     Lock lock(lock_);
 
     return next_transaction_number(lock, reason);
 }
 
-void ServerContext::pending_send(
+void Server::pending_send(
     const api::client::internal::Manager& client,
     const PasswordPrompt& reason)
 {
@@ -2706,8 +2696,7 @@ void ServerContext::pending_send(
     }
 }
 
-auto ServerContext::PingNotary(const PasswordPrompt& reason)
-    -> NetworkReplyMessage
+auto Server::PingNotary(const PasswordPrompt& reason) -> NetworkReplyMessage
 {
     Lock lock(message_lock_);
 
@@ -2765,7 +2754,7 @@ auto ServerContext::PingNotary(const PasswordPrompt& reason)
             enable_otx_push_.load()));
 }
 
-auto ServerContext::ProcessNotification(
+auto Server::ProcessNotification(
     const api::client::internal::Manager& client,
     const otx::Reply& notification,
     const PasswordPrompt& reason) -> bool
@@ -2801,7 +2790,7 @@ auto ServerContext::ProcessNotification(
     }
 }
 
-void ServerContext::process_accept_basket_receipt_reply(
+void Server::process_accept_basket_receipt_reply(
     const Lock& lock,
     const OTTransaction& inboxTransaction)
 {
@@ -2812,7 +2801,7 @@ void ServerContext::process_accept_basket_receipt_reply(
     consume_issued(lock, number);
 }
 
-void ServerContext::process_accept_cron_receipt_reply(
+void Server::process_accept_cron_receipt_reply(
     const Lock& lock,
     const Identifier& accountID,
     OTTransaction& inboxTransaction)
@@ -3017,7 +3006,7 @@ void ServerContext::process_accept_cron_receipt_reply(
     }
 }
 
-void ServerContext::process_accept_final_receipt_reply(
+void Server::process_accept_final_receipt_reply(
     const Lock& lock,
     const OTTransaction& inboxTransaction)
 {
@@ -3048,7 +3037,7 @@ void ServerContext::process_accept_final_receipt_reply(
         inboxTransaction.GetPurportedNotaryID());
 }
 
-void ServerContext::process_accept_item_receipt_reply(
+void Server::process_accept_item_receipt_reply(
     const Lock& lock,
     const api::client::internal::Manager& client,
     const Identifier& accountID,
@@ -3155,7 +3144,7 @@ void ServerContext::process_accept_item_receipt_reply(
     }
 }
 
-void ServerContext::process_accept_pending_reply(
+void Server::process_accept_pending_reply(
     const Lock& lock,
     const api::client::internal::Manager& client,
     const Identifier& accountID,
@@ -3219,7 +3208,7 @@ void ServerContext::process_accept_pending_reply(
     }
 }
 
-auto ServerContext::process_account_data(
+auto Server::process_account_data(
     const Lock& lock,
     const Identifier& accountID,
     const String& account,
@@ -3374,7 +3363,7 @@ auto ServerContext::process_account_data(
     return true;
 }
 
-auto ServerContext::process_account_push(
+auto Server::process_account_push(
     const Lock& lock,
     const api::client::internal::Manager& client,
     const proto::OTXPush& push,
@@ -3404,7 +3393,7 @@ auto ServerContext::process_account_push(
     return process_box_item(lock, client, accountID, push, reason);
 }
 
-auto ServerContext::process_box_item(
+auto Server::process_box_item(
     const Lock& lock,
     const api::client::internal::Manager& client,
     const Identifier& accountID,
@@ -3489,7 +3478,7 @@ auto ServerContext::process_box_item(
         reason);
 }
 
-auto ServerContext::process_get_nymbox_response(
+auto Server::process_get_nymbox_response(
     const Lock& lock,
     const Message& reply,
     const PasswordPrompt& reason) -> bool
@@ -3520,7 +3509,7 @@ auto ServerContext::process_get_nymbox_response(
     return true;
 }
 
-auto ServerContext::process_check_nym_response(
+auto Server::process_check_nym_response(
     const Lock& lock,
     const api::client::internal::Manager& client,
     const Message& reply) -> bool
@@ -3554,7 +3543,7 @@ auto ServerContext::process_check_nym_response(
     return false;
 }
 
-auto ServerContext::process_get_account_data(
+auto Server::process_get_account_data(
     const Lock& lock,
     const Message& reply,
     const PasswordPrompt& reason) -> bool
@@ -3602,7 +3591,7 @@ auto ServerContext::process_get_account_data(
         reason);
 }
 
-auto ServerContext::process_get_box_receipt_response(
+auto Server::process_get_box_receipt_response(
     const Lock& lock,
     const api::client::internal::Manager& client,
     const Message& reply,
@@ -3635,7 +3624,7 @@ auto ServerContext::process_get_box_receipt_response(
         reason);
 }
 
-auto ServerContext::process_get_box_receipt_response(
+auto Server::process_get_box_receipt_response(
     const Lock& lock,
     const api::client::internal::Manager& client,
     const Identifier& accountID,
@@ -3748,7 +3737,7 @@ auto ServerContext::process_get_box_receipt_response(
     return true;
 }
 
-auto ServerContext::process_get_market_list_response(
+auto Server::process_get_market_list_response(
     const Lock& lock,
     const Message& reply) -> bool
 {
@@ -3839,7 +3828,7 @@ auto ServerContext::process_get_market_list_response(
     return true;
 }
 
-auto ServerContext::process_get_market_offers_response(
+auto Server::process_get_market_offers_response(
     const Lock& lock,
     const Message& reply) -> bool
 {
@@ -3932,7 +3921,7 @@ auto ServerContext::process_get_market_offers_response(
     return true;
 }
 
-auto ServerContext::process_get_market_recent_trades_response(
+auto Server::process_get_market_recent_trades_response(
     const Lock& lock,
     const Message& reply) -> bool
 {
@@ -4031,9 +4020,8 @@ auto ServerContext::process_get_market_recent_trades_response(
 }
 
 #if OT_CASH
-auto ServerContext::process_get_mint_response(
-    const Lock& lock,
-    const Message& reply) -> bool
+auto Server::process_get_mint_response(const Lock& lock, const Message& reply)
+    -> bool
 {
     auto serialized = String::Factory(reply.m_ascPayload);
 
@@ -4055,7 +4043,7 @@ auto ServerContext::process_get_mint_response(
 }
 #endif
 
-auto ServerContext::process_get_nym_market_offers_response(
+auto Server::process_get_nym_market_offers_response(
     const Lock& lock,
     const Message& reply) -> bool
 {
@@ -4145,7 +4133,7 @@ auto ServerContext::process_get_nym_market_offers_response(
     return true;
 }
 
-void ServerContext::process_incoming_instrument(
+void Server::process_incoming_instrument(
     const std::shared_ptr<OTTransaction> receipt,
     const PasswordPrompt& reason) const
 {
@@ -4159,7 +4147,7 @@ void ServerContext::process_incoming_instrument(
         receipt->GetTransactionNum(), receipt, *paymentInbox, reason);
 }
 
-void ServerContext::process_incoming_message(
+void Server::process_incoming_message(
     const Lock& lock,
     const api::client::internal::Manager& client,
     const OTTransaction& receipt,
@@ -4251,7 +4239,7 @@ void ServerContext::process_incoming_message(
     }
 }
 
-auto ServerContext::process_get_unit_definition_response(
+auto Server::process_get_unit_definition_response(
     const Lock& lock,
     const Message& reply) -> bool
 {
@@ -4323,7 +4311,7 @@ auto ServerContext::process_get_unit_definition_response(
     return false;
 }
 
-auto ServerContext::process_issue_unit_definition_response(
+auto Server::process_issue_unit_definition_response(
     const Lock& lock,
     const Message& reply,
     const PasswordPrompt& reason) -> bool
@@ -4355,7 +4343,7 @@ auto ServerContext::process_issue_unit_definition_response(
     return false;
 }
 
-auto ServerContext::process_notarize_transaction_response(
+auto Server::process_notarize_transaction_response(
     const Lock& lock,
     const api::client::internal::Manager& client,
     const Message& reply,
@@ -4426,7 +4414,7 @@ auto ServerContext::process_notarize_transaction_response(
     return true;
 }
 
-auto ServerContext::process_process_box_response(
+auto Server::process_process_box_response(
     const Lock& lock,
     const api::client::internal::Manager& client,
     const Message& reply,
@@ -4545,7 +4533,7 @@ auto ServerContext::process_process_box_response(
     return true;
 }
 
-auto ServerContext::process_process_inbox_response(
+auto Server::process_process_inbox_response(
     const Lock& lock,
     const api::client::internal::Manager& client,
     const Message& reply,
@@ -4753,7 +4741,7 @@ auto ServerContext::process_process_inbox_response(
     return true;
 }
 
-auto ServerContext::process_process_nymbox_response(
+auto Server::process_process_nymbox_response(
     const Lock& lock,
     const Message& reply,
     Ledger& ledger,
@@ -4799,7 +4787,7 @@ auto ServerContext::process_process_nymbox_response(
     return true;
 }
 
-auto ServerContext::process_register_account_response(
+auto Server::process_register_account_response(
     const Lock& lock,
     const Message& reply,
     const PasswordPrompt& reason) -> bool
@@ -4831,7 +4819,7 @@ auto ServerContext::process_register_account_response(
     return false;
 }
 
-auto ServerContext::process_request_admin_response(
+auto Server::process_request_admin_response(
     const Lock& lock,
     const Message& reply) -> bool
 {
@@ -4853,7 +4841,7 @@ auto ServerContext::process_request_admin_response(
     return true;
 }
 
-auto ServerContext::process_register_nym_response(
+auto Server::process_register_nym_response(
     const Lock& lock,
     const api::client::internal::Manager& client,
     const Message& reply) -> bool
@@ -4874,7 +4862,7 @@ auto ServerContext::process_register_nym_response(
     return output;
 }
 
-auto ServerContext::process_reply(
+auto Server::process_reply(
     const Lock& lock,
     const api::client::internal::Manager& client,
     const std::set<OTManagedNumber>& managed,
@@ -5007,7 +4995,7 @@ auto ServerContext::process_reply(
     }
 }
 
-void ServerContext::process_response_transaction(
+void Server::process_response_transaction(
     const Lock& lock,
     const api::client::internal::Manager& client,
     const Message& reply,
@@ -5123,7 +5111,7 @@ void ServerContext::process_response_transaction(
     }
 }
 
-void ServerContext::process_response_transaction_cancel(
+void Server::process_response_transaction_cancel(
     const Lock& lock,
     const Message& reply,
     const itemType type,
@@ -5149,7 +5137,7 @@ void ServerContext::process_response_transaction_cancel(
 }
 
 #if OT_CASH
-void ServerContext::process_response_transaction_cash_deposit(
+void Server::process_response_transaction_cash_deposit(
     Item& replyItem,
     const PasswordPrompt& reason)
 {
@@ -5244,7 +5232,7 @@ void ServerContext::process_response_transaction_cash_deposit(
 }
 #endif
 
-void ServerContext::process_response_transaction_cheque_deposit(
+void Server::process_response_transaction_cheque_deposit(
     const api::client::internal::Manager& client,
     const Identifier& accountID,
     const Message* reply,
@@ -5383,7 +5371,7 @@ void ServerContext::process_response_transaction_cheque_deposit(
     }
 }
 
-void ServerContext::process_response_transaction_cron(
+void Server::process_response_transaction_cron(
     const Lock& lock,
     const Message& reply,
     const itemType type,
@@ -5885,7 +5873,7 @@ void ServerContext::process_response_transaction_cron(
                // (loading payment inbox and record box.)
 }
 
-void ServerContext::process_response_transaction_deposit(
+void Server::process_response_transaction_deposit(
     const Lock& lock,
     const api::client::internal::Manager& client,
     const Message& reply,
@@ -5932,7 +5920,7 @@ void ServerContext::process_response_transaction_deposit(
     consume_issued(lock, response.GetTransactionNum());
 }
 
-void ServerContext::process_response_transaction_exchange_basket(
+void Server::process_response_transaction_exchange_basket(
     const Lock& lock,
     const Message& reply,
     const itemType type,
@@ -5990,7 +5978,7 @@ void ServerContext::process_response_transaction_exchange_basket(
     }
 }
 
-void ServerContext::process_response_transaction_pay_dividend(
+void Server::process_response_transaction_pay_dividend(
     const Lock& lock,
     const Message& reply,
     const itemType type,
@@ -6025,7 +6013,7 @@ void ServerContext::process_response_transaction_pay_dividend(
     consume_issued(lock, response.GetTransactionNum());
 }
 
-void ServerContext::process_response_transaction_transfer(
+void Server::process_response_transaction_transfer(
     const Lock& lock,
     const api::client::internal::Manager& client,
     const Message& reply,
@@ -6097,7 +6085,7 @@ void ServerContext::process_response_transaction_transfer(
 }
 
 #if OT_CASH
-void ServerContext::process_response_transaction_withdrawal(
+void Server::process_response_transaction_withdrawal(
     const Lock& lock,
     const api::client::internal::Manager& client,
     const Message& reply,
@@ -6150,7 +6138,7 @@ void ServerContext::process_response_transaction_withdrawal(
     consume_issued(lock, response.GetTransactionNum());
 }
 
-auto ServerContext::process_incoming_cash(
+auto Server::process_incoming_cash(
     const Lock& lock,
     const api::client::internal::Manager& client,
     const TransactionNumber number,
@@ -6196,7 +6184,7 @@ auto ServerContext::process_incoming_cash(
     return true;
 }
 
-void ServerContext::process_incoming_cash_withdrawal(
+void Server::process_incoming_cash_withdrawal(
     const Item& item,
     const PasswordPrompt& reason) const
 {
@@ -6285,7 +6273,7 @@ void ServerContext::process_incoming_cash_withdrawal(
 }
 #endif
 
-auto ServerContext::process_unregister_account_response(
+auto Server::process_unregister_account_response(
     const Lock& lock,
     const Message& reply,
     const PasswordPrompt& reason) -> bool
@@ -6330,7 +6318,7 @@ auto ServerContext::process_unregister_account_response(
     return true;
 }
 
-auto ServerContext::process_unregister_nym_response(
+auto Server::process_unregister_nym_response(
     const Lock& lock,
     const Message& reply,
     const PasswordPrompt& reason) -> bool
@@ -6366,7 +6354,7 @@ auto ServerContext::process_unregister_nym_response(
     return true;
 }
 
-void ServerContext::process_unseen_reply(
+void Server::process_unseen_reply(
     const Lock& lock,
     const api::client::internal::Manager& client,
     const Item& input,
@@ -6416,32 +6404,32 @@ void ServerContext::process_unseen_reply(
 }
 
 #if OT_CASH
-auto ServerContext::Purse(const identifier::UnitDefinition& id) const
+auto Server::Purse(const identifier::UnitDefinition& id) const
     -> std::shared_ptr<const blind::Purse>
 {
     return api_.Wallet().Purse(nym_->ID(), server_id_, id);
 }
 #endif
 
-auto ServerContext::Queue(
+auto Server::Queue(
     const api::client::internal::Manager& client,
     std::shared_ptr<Message> message,
     const PasswordPrompt& reason,
-    const ExtraArgs& args) -> ServerContext::QueueResult
+    const ExtraArgs& args) -> Server::QueueResult
 {
     START();
 
     return start(lock, reason, client, message, args);
 }
 
-auto ServerContext::Queue(
+auto Server::Queue(
     const api::client::internal::Manager& client,
     std::shared_ptr<Message> message,
     std::shared_ptr<Ledger> inbox,
     std::shared_ptr<Ledger> outbox,
     std::set<OTManagedNumber>* numbers,
     const PasswordPrompt& reason,
-    const ExtraArgs& args) -> ServerContext::QueueResult
+    const ExtraArgs& args) -> Server::QueueResult
 {
     START();
 
@@ -6472,9 +6460,9 @@ auto ServerContext::Queue(
         numbers);
 }
 
-auto ServerContext::RefreshNymbox(
+auto Server::RefreshNymbox(
     const api::client::internal::Manager& client,
-    const PasswordPrompt& reason) -> ServerContext::QueueResult
+    const PasswordPrompt& reason) -> Server::QueueResult
 {
     START();
 
@@ -6488,9 +6476,8 @@ auto ServerContext::RefreshNymbox(
         ActionType::ProcessNymbox);
 }
 
-auto ServerContext::remove_acknowledged_number(
-    const Lock& lock,
-    const Message& reply) -> bool
+auto Server::remove_acknowledged_number(const Lock& lock, const Message& reply)
+    -> bool
 {
     OT_ASSERT(verify_write_lock(lock));
 
@@ -6501,7 +6488,7 @@ auto ServerContext::remove_acknowledged_number(
     return remove_acknowledged_number(lock, list);
 }
 
-auto ServerContext::remove_nymbox_item(
+auto Server::remove_nymbox_item(
     const Lock& lock,
     const Item& replyItem,
     Ledger& nymbox,
@@ -7017,7 +7004,7 @@ auto ServerContext::remove_nymbox_item(
     return true;
 }
 
-auto ServerContext::remove_tentative_number(
+auto Server::remove_tentative_number(
     const Lock& lock,
     const TransactionNumber& number) -> bool
 {
@@ -7028,17 +7015,16 @@ auto ServerContext::remove_tentative_number(
     return (0 < output);
 }
 
-auto ServerContext::RemoveTentativeNumber(const TransactionNumber& number)
-    -> bool
+auto Server::RemoveTentativeNumber(const TransactionNumber& number) -> bool
 {
     Lock lock(lock_);
 
     return remove_tentative_number(lock, number);
 }
 
-void ServerContext::ResetThread() { Join(); }
+void Server::ResetThread() { Join(); }
 
-void ServerContext::resolve_queue(
+void Server::resolve_queue(
     const Lock& contextLock,
     DeliveryResult&& result,
     const PasswordPrompt& reason,
@@ -7062,15 +7048,14 @@ void ServerContext::resolve_queue(
     OT_ASSERT(saved);
 }
 
-auto ServerContext::Resync(const proto::Context& serialized) -> bool
+auto Server::Resync(const proto::Context& serialized) -> bool
 {
     Lock lock(lock_);
 
     return resync(lock, serialized);
 }
 
-auto ServerContext::resync(const Lock& lock, const proto::Context& serialized)
-    -> bool
+auto Server::resync(const Lock& lock, const proto::Context& serialized) -> bool
 {
     OT_ASSERT(verify_write_lock(lock));
 
@@ -7107,12 +7092,9 @@ auto ServerContext::resync(const Lock& lock, const proto::Context& serialized)
     return true;
 }
 
-auto ServerContext::Revision() const -> std::uint64_t
-{
-    return revision_.load();
-}
+auto Server::Revision() const -> std::uint64_t { return revision_.load(); }
 
-void ServerContext::update_state(
+void Server::update_state(
     const Lock& contextLock,
     const proto::DeliveryState state,
     const PasswordPrompt& reason,
@@ -7129,7 +7111,7 @@ void ServerContext::update_state(
     OT_ASSERT(saved);
 }
 
-void ServerContext::scan_number_set(
+void Server::scan_number_set(
     const TransactionNumbers& input,
     TransactionNumber& highest,
     TransactionNumber& lowest)
@@ -7143,10 +7125,10 @@ void ServerContext::scan_number_set(
     }
 }
 
-auto ServerContext::SendMessage(
+auto Server::SendMessage(
     const api::client::internal::Manager& client,
     const std::set<OTManagedNumber>& pending,
-    opentxs::ServerContext& context,
+    otx::context::Server& context,
     const Message& message,
     const PasswordPrompt& reason,
     const std::string& label,
@@ -7165,7 +7147,7 @@ auto ServerContext::SendMessage(
     return result;
 }
 
-auto ServerContext::serialize(const Lock& lock) const -> proto::Context
+auto Server::serialize(const Lock& lock) const -> proto::Context
 {
     OT_ASSERT(verify_write_lock(lock));
 
@@ -7202,34 +7184,33 @@ auto ServerContext::serialize(const Lock& lock) const -> proto::Context
     return output;
 }
 
-auto ServerContext::server_nym_id(const Lock& lock) const
-    -> const identifier::Nym&
+auto Server::server_nym_id(const Lock& lock) const -> const identifier::Nym&
 {
     OT_ASSERT(remote_nym_);
 
     return remote_nym_->ID();
 }
 
-void ServerContext::SetAdminAttempted()
+void Server::SetAdminAttempted()
 {
     Lock lock(lock_);
     admin_attempted_->On();
 }
 
-void ServerContext::SetAdminPassword(const std::string& password)
+void Server::SetAdminPassword(const std::string& password)
 {
     Lock lock(lock_);
     admin_password_ = password;
 }
 
-void ServerContext::SetAdminSuccess()
+void Server::SetAdminSuccess()
 {
     Lock lock(lock_);
     admin_attempted_->On();
     admin_success_->On();
 }
 
-auto ServerContext::SetHighest(const TransactionNumber& highest) -> bool
+auto Server::SetHighest(const TransactionNumber& highest) -> bool
 {
     Lock lock(lock_);
 
@@ -7242,13 +7223,13 @@ auto ServerContext::SetHighest(const TransactionNumber& highest) -> bool
     return false;
 }
 
-void ServerContext::SetRevision(const std::uint64_t revision)
+void Server::SetRevision(const std::uint64_t revision)
 {
     Lock lock(lock_);
     revision_.store(revision);
 }
 
-auto ServerContext::StaleNym() const -> bool
+auto Server::StaleNym() const -> bool
 {
     Lock lock(lock_);
 
@@ -7257,16 +7238,15 @@ auto ServerContext::StaleNym() const -> bool
     return revision_.load() < nym_->Revision();
 }
 
-auto ServerContext::Statement(
-    const OTTransaction& owner,
-    const PasswordPrompt& reason) const -> std::unique_ptr<Item>
+auto Server::Statement(const OTTransaction& owner, const PasswordPrompt& reason)
+    const -> std::unique_ptr<Item>
 {
     const TransactionNumbers empty;
 
     return Statement(owner, empty, reason);
 }
 
-auto ServerContext::statement(
+auto Server::statement(
     const Lock& lock,
     const OTTransaction& transaction,
     const TransactionNumbers& adding,
@@ -7331,7 +7311,7 @@ auto ServerContext::statement(
     return output;
 }
 
-auto ServerContext::Statement(
+auto Server::Statement(
     const OTTransaction& transaction,
     const TransactionNumbers& adding,
     const PasswordPrompt& reason) const -> std::unique_ptr<Item>
@@ -7341,17 +7321,18 @@ auto ServerContext::Statement(
     return statement(lock, transaction, adding, reason);
 }
 
-auto ServerContext::Statement(
+auto Server::Statement(
     const TransactionNumbers& adding,
     const TransactionNumbers& without,
-    const PasswordPrompt& reason) const -> std::unique_ptr<TransactionStatement>
+    const PasswordPrompt& reason) const
+    -> std::unique_ptr<otx::context::TransactionStatement>
 {
     Lock lock(lock_);
 
     return generate_statement(lock, adding, without);
 }
 
-auto ServerContext::ShouldRename(const std::string& defaultName) const -> bool
+auto Server::ShouldRename(const std::string& defaultName) const -> bool
 {
     try {
         const auto contract = api_.Wallet().Server(server_id_);
@@ -7367,7 +7348,7 @@ auto ServerContext::ShouldRename(const std::string& defaultName) const -> bool
     }
 }
 
-auto ServerContext::start(
+auto Server::start(
     const Lock& decisionLock,
     const PasswordPrompt& reason,
     const api::client::internal::Manager& client,
@@ -7377,7 +7358,7 @@ auto ServerContext::start(
     const ActionType type,
     std::shared_ptr<Ledger> inbox,
     std::shared_ptr<Ledger> outbox,
-    std::set<OTManagedNumber>* numbers) -> ServerContext::QueueResult
+    std::set<OTManagedNumber>* numbers) -> Server::QueueResult
 {
     Lock contextLock(lock_);
     client_.store(&client);
@@ -7401,7 +7382,7 @@ auto ServerContext::start(
     return {};
 }
 
-auto ServerContext::state_machine() noexcept -> bool
+auto Server::state_machine() noexcept -> bool
 {
     const auto* pClient = client_.load();
 
@@ -7465,12 +7446,12 @@ auto ServerContext::state_machine() noexcept -> bool
     return false;
 }
 
-auto ServerContext::Type() const -> proto::ConsensusType
+auto Server::Type() const -> proto::ConsensusType
 {
     return proto::CONSENSUSTYPE_SERVER;
 }
 
-auto ServerContext::update_highest(
+auto Server::update_highest(
     const Lock& lock,
     const TransactionNumbers& numbers,
     TransactionNumbers& good,
@@ -7512,7 +7493,7 @@ auto ServerContext::update_highest(
     return output;
 }
 
-auto ServerContext::update_remote_hash(const Lock& lock, const Message& reply)
+auto Server::update_remote_hash(const Lock& lock, const Message& reply)
     -> OTIdentifier
 {
     OT_ASSERT(verify_write_lock(lock));
@@ -7528,7 +7509,7 @@ auto ServerContext::update_remote_hash(const Lock& lock, const Message& reply)
     return output;
 }
 
-auto ServerContext::update_nymbox_hash(
+auto Server::update_nymbox_hash(
     const Lock& lock,
     const Message& reply,
     const UpdateHash which) -> bool
@@ -7548,7 +7529,7 @@ auto ServerContext::update_nymbox_hash(
     return true;
 }
 
-auto ServerContext::update_request_number(
+auto Server::update_request_number(
     const PasswordPrompt& reason,
     const Lock& contextLock,
     [[maybe_unused]] const Lock& messageLock,
@@ -7616,7 +7597,7 @@ auto ServerContext::update_request_number(
     return newNumber;
 }
 
-auto ServerContext::update_request_number(
+auto Server::update_request_number(
     const PasswordPrompt& reason,
     const Lock& lock,
     Message& command) -> bool
@@ -7629,7 +7610,7 @@ auto ServerContext::update_request_number(
     return finalize_server_command(command, reason);
 }
 
-auto ServerContext::UpdateHighest(
+auto Server::UpdateHighest(
     const TransactionNumbers& numbers,
     TransactionNumbers& good,
     TransactionNumbers& bad) -> TransactionNumber
@@ -7639,16 +7620,15 @@ auto ServerContext::UpdateHighest(
     return update_highest(lock, numbers, good, bad);
 }
 
-auto ServerContext::UpdateRequestNumber(
-    Message& command,
-    const PasswordPrompt& reason) -> bool
+auto Server::UpdateRequestNumber(Message& command, const PasswordPrompt& reason)
+    -> bool
 {
     Lock lock(lock_);
 
     return update_request_number(reason, lock, command);
 }
 
-void ServerContext::validate_number_set(
+void Server::validate_number_set(
     const TransactionNumbers& input,
     const TransactionNumber limit,
     TransactionNumbers& good,
@@ -7672,7 +7652,7 @@ void ServerContext::validate_number_set(
     }
 }
 
-void ServerContext::verify_blank(
+void Server::verify_blank(
     const Lock& lock,
     OTTransaction& blank,
     TransactionNumbers& output) const
@@ -7703,7 +7683,7 @@ void ServerContext::verify_blank(
     }
 }
 
-void ServerContext::verify_success(
+void Server::verify_success(
     const Lock& lock,
     OTTransaction& blank,
     TransactionNumbers& output) const
@@ -7723,17 +7703,15 @@ void ServerContext::verify_success(
     }
 }
 
-auto ServerContext::UpdateRequestNumber(const PasswordPrompt& reason)
-    -> RequestNumber
+auto Server::UpdateRequestNumber(const PasswordPrompt& reason) -> RequestNumber
 {
     bool notUsed{false};
 
     return UpdateRequestNumber(notUsed, reason);
 }
 
-auto ServerContext::UpdateRequestNumber(
-    bool& sendStatus,
-    const PasswordPrompt& reason) -> RequestNumber
+auto Server::UpdateRequestNumber(bool& sendStatus, const PasswordPrompt& reason)
+    -> RequestNumber
 {
     Lock messageLock(message_lock_, std::defer_lock);
     Lock contextLock(lock_, std::defer_lock);
@@ -7755,7 +7733,8 @@ auto ServerContext::UpdateRequestNumber(
 // Conclusion: Loop through *this, which is newer, and make sure ALL numbers
 // appear on the statement. No need to check the reverse, and no need to match
 // the count.
-auto ServerContext::Verify(const TransactionStatement& statement) const -> bool
+auto Server::Verify(const otx::context::TransactionStatement& statement) const
+    -> bool
 {
     Lock lock(lock_);
 
@@ -7781,7 +7760,7 @@ auto ServerContext::Verify(const TransactionStatement& statement) const -> bool
     return true;
 }
 
-auto ServerContext::verify_tentative_number(
+auto Server::verify_tentative_number(
     const Lock& lock,
     const TransactionNumber& number) const -> bool
 {
@@ -7790,13 +7769,13 @@ auto ServerContext::verify_tentative_number(
     return (0 < tentative_transaction_numbers_.count(number));
 }
 
-auto ServerContext::VerifyTentativeNumber(const TransactionNumber& number) const
+auto Server::VerifyTentativeNumber(const TransactionNumber& number) const
     -> bool
 {
     return (0 < tentative_transaction_numbers_.count(number));
 }
 
-ServerContext::~ServerContext()
+Server::~Server()
 {
     auto reason = api_.Factory().PasswordPrompt("Shutting down server context");
     Stop().get();
@@ -7812,4 +7791,4 @@ ServerContext::~ServerContext()
             proto::DELIVERTYSTATE_IDLE);
     }
 }
-}  // namespace opentxs::implementation
+}  // namespace opentxs::otx::context::implementation

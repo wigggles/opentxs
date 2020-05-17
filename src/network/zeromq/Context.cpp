@@ -37,7 +37,7 @@ template class opentxs::Pimpl<opentxs::network::zeromq::Context>;
 
 #define INPROC_PREFIX "inproc://opentxs/"
 #define PATH_SEPERATOR "/"
-#define OT_METHOD "opentxs::Context::"
+#define OT_METHOD "opentxs::network::zeromq::Context::"
 
 namespace opentxs
 {

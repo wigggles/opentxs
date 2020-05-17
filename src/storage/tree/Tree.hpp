@@ -44,6 +44,7 @@ class Contacts;
 class Credentials;
 class Notary;
 class Nyms;
+class Root;
 class Seeds;
 class Servers;
 class Units;
@@ -85,8 +86,8 @@ public:
     ~Tree() final;
 
 private:
-    friend class api::implementation::Storage;
-    friend class Root;
+    friend api::implementation::Storage;
+    friend storage::Root;
 
     std::string account_root_{Node::BLANK_HASH};
     std::string blockchain_root_{Node::BLANK_HASH};

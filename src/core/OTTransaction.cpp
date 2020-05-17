@@ -7,7 +7,6 @@
 #include "1_Internal.hpp"                  // IWYU pragma: associated
 #include "opentxs/core/OTTransaction.hpp"  // IWYU pragma: associated
 
-#include <irrxml/irrXML.hpp>
 #include <chrono>
 #include <cstdint>
 #include <cstdlib>
@@ -24,8 +23,6 @@
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Wallet.hpp"
-#include "opentxs/consensus/ServerContext.hpp"
-#include "opentxs/consensus/TransactionStatement.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Cheque.hpp"
@@ -51,6 +48,8 @@
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/identity/Nym.hpp"
+#include "opentxs/otx/consensus/Server.hpp"
+#include "opentxs/otx/consensus/TransactionStatement.hpp"
 
 #define OT_METHOD "opentxs::OTTransaction::"
 
@@ -566,7 +565,7 @@ basketcurrency.
 // Returns true/false whether it actually harvested a number.
 //
 auto OTTransaction::HarvestOpeningNumber(
-    ServerContext& context,
+    otx::context::Server& context,
     bool bHarvestingForRetry,     // The message was sent, failed somehow, and
                                   // is now being re-tried.
     bool bReplyWasSuccess,        // false until positively asserted.
@@ -1166,7 +1165,7 @@ auto OTTransaction::HarvestOpeningNumber(
 // but any others are still salvageable.)
 //
 auto OTTransaction::HarvestClosingNumbers(
-    ServerContext& context,
+    otx::context::Server& context,
     bool bHarvestingForRetry,             // false until positively asserted.
     bool bReplyWasSuccess,                // false until positively asserted.
     bool bReplyWasFailure,                // false until positively asserted.
@@ -1553,7 +1552,7 @@ auto OTTransaction::HarvestClosingNumbers(
 // to invalid data!  Instead, I want a red flag to go up, and the receipt
 // automatically saved to a disputes folder, etc.
 auto OTTransaction::VerifyBalanceReceipt(
-    const ServerContext& context,
+    const otx::context::Server& context,
     const PasswordPrompt& reason) -> bool
 {
     // Compare the inbox I just downloaded with what my last signed receipt SAYS
@@ -1991,7 +1990,7 @@ auto OTTransaction::VerifyBalanceReceipt(
         return false;
     }
 
-    TransactionStatement statement(serialized);
+    otx::context::TransactionStatement statement(serialized);
 
     // Finally everything is loaded and verified!
     // I have the Nym and Server Nym

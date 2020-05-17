@@ -8,6 +8,7 @@
 
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
+#include <irrxml/irrXML.hpp>
 #include <cstdint>
 #include <list>
 #include <memory>
@@ -41,8 +42,15 @@ namespace identifier
 class Nym;
 }  // namespace identifier
 
+namespace otx
+{
+namespace context
+{
+class Client;
+}  // namespace context
+}  // namespace otx
+
 class Account;
-class ClientContext;
 class Data;
 class Item;
 class Ledger;
@@ -50,7 +58,10 @@ class NumList;
 class OTTransaction;
 class PasswordPrompt;
 class String;
+}  // namespace opentxs
 
+namespace opentxs
+{
 using listOfItems = std::list<std::shared_ptr<Item>>;
 
 // Item as in "Transaction Item"
@@ -148,7 +159,7 @@ public:
     // and return with acknowledgement.)
     OPENTXS_EXPORT bool VerifyBalanceStatement(
         std::int64_t lActualAdjustment,
-        const ClientContext& context,
+        const otx::context::Client& context,
         const Ledger& THE_INBOX,
         const Ledger& THE_OUTBOX,
         const Account& THE_ACCOUNT,
@@ -162,12 +173,12 @@ public:
                                                  // request.) Unused when 0.
                                                  // server-side
     OPENTXS_EXPORT bool VerifyTransactionStatement(
-        const ClientContext& THE_NYM,
+        const otx::context::Client& THE_NYM,
         const OTTransaction& TARGET_TRANSACTION,
         const std::set<TransactionNumber> newNumbers,
         const bool bIsRealTransaction = true) const;
     OPENTXS_EXPORT bool VerifyTransactionStatement(
-        const ClientContext& THE_NYM,
+        const otx::context::Client& THE_NYM,
         const OTTransaction& TARGET_TRANSACTION,
         const bool bIsRealTransaction = true) const;
     inline Item::itemStatus GetStatus() const { return m_Status; }

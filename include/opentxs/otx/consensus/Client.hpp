@@ -3,20 +3,35 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef OPENTXS_CONSENSUS_CLIENTCONTEXT_HPP
-#define OPENTXS_CONSENSUS_CLIENTCONTEXT_HPP
+#ifndef OPENTXS_OTX_CONSENSUS_CLIENT_HPP
+#define OPENTXS_OTX_CONSENSUS_CLIENT_HPP
 
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
-#include "opentxs/consensus/Context.hpp"
+#include "opentxs/otx/consensus/Base.hpp"
 
 namespace opentxs
 {
-class ClientContext : virtual public Context
+namespace otx
+{
+namespace context
+{
+class TransactionStatement;
+}  // namespace context
+}  // namespace otx
+}  // namespace opentxs
+
+namespace opentxs
+{
+namespace otx
+{
+namespace context
+{
+class Client : virtual public Base
 {
 public:
     OPENTXS_EXPORT virtual bool hasOpenTransactions() const = 0;
-    using Context::IssuedNumbers;
+    using Base::IssuedNumbers;
     OPENTXS_EXPORT virtual std::size_t IssuedNumbers(
         const TransactionNumbers& exclude) const = 0;
     OPENTXS_EXPORT virtual std::size_t OpenCronItems() const = 0;
@@ -26,7 +41,7 @@ public:
         const TransactionNumbers& included) const = 0;
     OPENTXS_EXPORT virtual bool VerifyCronItem(
         const TransactionNumber number) const = 0;
-    using Context::VerifyIssuedNumber;
+    using Base::VerifyIssuedNumber;
     OPENTXS_EXPORT virtual bool VerifyIssuedNumber(
         const TransactionNumber& number,
         const TransactionNumbers& exclude) const = 0;
@@ -38,16 +53,18 @@ public:
     OPENTXS_EXPORT virtual bool IssueNumber(
         const TransactionNumber& number) = 0;
 
-    OPENTXS_EXPORT ~ClientContext() override = default;
+    OPENTXS_EXPORT ~Client() override = default;
 
 protected:
-    ClientContext() = default;
+    Client() = default;
 
 private:
-    ClientContext(const ClientContext&) = delete;
-    ClientContext(ClientContext&&) = delete;
-    ClientContext& operator=(const ClientContext&) = delete;
-    ClientContext& operator=(ClientContext&&) = delete;
+    Client(const Client&) = delete;
+    Client(Client&&) = delete;
+    Client& operator=(const Client&) = delete;
+    Client& operator=(Client&&) = delete;
 };
+}  // namespace context
+}  // namespace otx
 }  // namespace opentxs
 #endif

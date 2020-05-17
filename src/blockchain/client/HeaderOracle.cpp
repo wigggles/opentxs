@@ -10,6 +10,8 @@
 #include <algorithm>
 #include <atomic>
 #include <functional>
+#include <iosfwd>
+#include <iterator>
 #include <map>
 #include <type_traits>
 
@@ -17,6 +19,7 @@
 #include "internal/api/Api.hpp"
 #include "internal/blockchain/Blockchain.hpp"
 #include "internal/core/Core.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/blockchain/Work.hpp"
 #include "opentxs/blockchain/block/Header.hpp"
 #include "opentxs/blockchain/client/HeaderOracle.hpp"

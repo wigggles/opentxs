@@ -1966,7 +1966,7 @@ auto Factory::Pipeline(
 
 #if OT_CASH
 auto Factory::Purse(
-    const ServerContext& context,
+    const otx::context::Server& context,
     const identifier::UnitDefinition& unit,
     const blind::Mint& mint,
     const Amount totalValue,

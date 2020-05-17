@@ -31,11 +31,18 @@ class Driver;
 namespace storage
 {
 class Mailbox;
+class Threads;
+}  // namespace storage
+}  // namespace opentxs
 
+namespace opentxs
+{
+namespace storage
+{
 class Thread final : public Node
 {
 private:
-    friend class Threads;
+    friend Threads;
     using SortKey = std::tuple<std::size_t, std::int64_t, std::string>;
     using SortedItems = std::map<SortKey, const proto::StorageThreadItem*>;
 

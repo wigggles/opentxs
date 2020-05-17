@@ -3,35 +3,40 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "0_stdafx.hpp"                 // IWYU pragma: associated
-#include "1_Internal.hpp"               // IWYU pragma: associated
-#include "consensus/ManagedNumber.hpp"  // IWYU pragma: associated
+#include "0_stdafx.hpp"                     // IWYU pragma: associated
+#include "1_Internal.hpp"                   // IWYU pragma: associated
+#include "otx/consensus/ManagedNumber.hpp"  // IWYU pragma: associated
 
-#include "Factory.hpp"
-#include "opentxs/consensus/ManagedNumber.hpp"
-#include "opentxs/consensus/ServerContext.hpp"
+#include "internal/otx/consensus/Consensus.hpp"
 #include "opentxs/core/Flag.hpp"
+#include "opentxs/otx/consensus/ManagedNumber.hpp"
+#include "opentxs/otx/consensus/Server.hpp"
 
 namespace opentxs
 {
-auto Factory::ManagedNumber(
-    const TransactionNumber number,
-    opentxs::ServerContext& context) -> opentxs::ManagedNumber*
-{
-    return new implementation::ManagedNumber(number, context);
-}
-
 auto operator<(const OTManagedNumber& lhs, const OTManagedNumber& rhs) -> bool
 {
     return lhs->Value() < rhs->Value();
 }
 }  // namespace opentxs
 
-namespace opentxs::implementation
+namespace opentxs::factory
+{
+auto ManagedNumber(
+    const TransactionNumber number,
+    otx::context::Server& context) -> otx::context::ManagedNumber*
+{
+    using ReturnType = otx::context::implementation::ManagedNumber;
+
+    return new ReturnType(number, context);
+}
+}  // namespace opentxs::factory
+
+namespace opentxs::otx::context::implementation
 {
 ManagedNumber::ManagedNumber(
     const TransactionNumber number,
-    opentxs::ServerContext& context)
+    otx::context::Server& context)
     : context_(context)
     , number_(number)
     , success_(Flag::Factory(false))
@@ -53,4 +58,4 @@ ManagedNumber::~ManagedNumber()
 
     context_.RecoverAvailableNumber(number_);
 }
-}  // namespace opentxs::implementation
+}  // namespace opentxs::otx::context::implementation

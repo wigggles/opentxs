@@ -53,6 +53,17 @@
 
 namespace opentxs
 {
+namespace otx
+{
+namespace context
+{
+class Server;
+}  // namespace context
+}  // namespace otx
+}  // namespace opentxs
+
+namespace opentxs
+{
 namespace api
 {
 class Factory
@@ -448,7 +459,7 @@ public:
         const = 0;
 #if OT_CASH
     OPENTXS_EXPORT virtual std::unique_ptr<blind::Purse> Purse(
-        const ServerContext& context,
+        const otx::context::Server& context,
         const identifier::UnitDefinition& unit,
         const blind::Mint& mint,
         const Amount totalValue,

@@ -8,6 +8,7 @@
 
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
+#include <irrxml/irrXML.hpp>
 #include <chrono>
 #include <cstdint>
 #include <list>

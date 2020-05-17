@@ -29,6 +29,19 @@
 
 namespace opentxs
 {
+namespace otx
+{
+namespace context
+{
+class Base;
+class Client;
+class Server;
+}  // namespace context
+}  // namespace otx
+}  // namespace opentxs
+
+namespace opentxs
+{
 /** AccountInfo: accountID, nymID, serverID, unitID*/
 using AccountInfo = std::tuple<OTIdentifier, OTNymID, OTServerID, OTUnitID>;
 
@@ -71,12 +84,12 @@ public:
         const AccountCallback callback = nullptr) const = 0;
     OPENTXS_EXPORT virtual bool UpdateAccount(
         const Identifier& accountID,
-        const opentxs::ServerContext& context,
+        const otx::context::Server&,
         const String& serialized,
         const PasswordPrompt& reason) const = 0;
     OPENTXS_EXPORT virtual bool UpdateAccount(
         const Identifier& accountID,
-        const opentxs::ServerContext& context,
+        const otx::context::Server&,
         const String& serialized,
         const std::string& label,
         const PasswordPrompt& reason) const = 0;
@@ -94,8 +107,7 @@ public:
      *    \returns A smart pointer to the object. The smart pointer will not be
      *             instantiated if the object does not exist or is invalid.
      */
-    OPENTXS_EXPORT virtual std::shared_ptr<const class opentxs::Context>
-    Context(
+    OPENTXS_EXPORT virtual std::shared_ptr<const otx::context::Base> Context(
         const identifier::Server& notaryID,
         const identifier::Nym& clientNymID) const = 0;
 
@@ -106,7 +118,7 @@ public:
      *    \returns A smart pointer to the object. The smart pointer will not be
      *             instantiated if the object does not exist or is invalid.
      */
-    OPENTXS_EXPORT virtual std::shared_ptr<const opentxs::ClientContext>
+    OPENTXS_EXPORT virtual std::shared_ptr<const otx::context::Client>
     ClientContext(const identifier::Nym& remoteNymID) const = 0;
 
     /**   Load a read-only copy of a ServerContext object
@@ -117,7 +129,7 @@ public:
      *    \returns A smart pointer to the object. The smart pointer will not be
      *             instantiated if the object does not exist or is invalid.
      */
-    OPENTXS_EXPORT virtual std::shared_ptr<const opentxs::ServerContext>
+    OPENTXS_EXPORT virtual std::shared_ptr<const otx::context::Server>
     ServerContext(const identifier::Nym& localNymID, const Identifier& remoteID)
         const = 0;
 
@@ -134,7 +146,7 @@ public:
      *    \param[in] clientNymID context identifier (usually the other party's
      *                           nym id)
      */
-    OPENTXS_EXPORT virtual Editor<class opentxs::Context> mutable_Context(
+    OPENTXS_EXPORT virtual Editor<otx::context::Base> mutable_Context(
         const identifier::Server& notaryID,
         const identifier::Nym& clientNymID,
         const PasswordPrompt& reason) const = 0;
@@ -144,7 +156,7 @@ public:
      *    \param[in] remoteNymID context identifier (usually the other party's
      *                           nym id)
      */
-    OPENTXS_EXPORT virtual Editor<opentxs::ClientContext> mutable_ClientContext(
+    OPENTXS_EXPORT virtual Editor<otx::context::Client> mutable_ClientContext(
         const identifier::Nym& remoteNymID,
         const PasswordPrompt& reason) const = 0;
 
@@ -154,7 +166,7 @@ public:
      *    \param[in] remoteID context identifier (usually the other party's nym
      *                        id)
      */
-    OPENTXS_EXPORT virtual Editor<opentxs::ServerContext> mutable_ServerContext(
+    OPENTXS_EXPORT virtual Editor<otx::context::Server> mutable_ServerContext(
         const identifier::Nym& localNymID,
         const Identifier& remoteID,
         const PasswordPrompt& reason) const = 0;

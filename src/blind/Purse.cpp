@@ -26,7 +26,6 @@
 #include "opentxs/blind/Mint.hpp"
 #include "opentxs/blind/Purse.hpp"
 #include "opentxs/blind/Token.hpp"
-#include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/core/PasswordPrompt.hpp"
@@ -35,6 +34,7 @@
 #include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/crypto/key/Symmetric.hpp"
 #include "opentxs/identity/Nym.hpp"
+#include "opentxs/otx/consensus/Server.hpp"
 #include "opentxs/protobuf/CashEnums.pb.h"
 #include "opentxs/protobuf/Enums.pb.h"
 
@@ -48,7 +48,7 @@ using ReturnType = blind::implementation::Purse;
 
 auto Factory::Purse(
     const api::internal::Core& api,
-    const opentxs::ServerContext& context,
+    const otx::context::Server& context,
     const proto::CashType type,
     const blind::Mint& mint,
     const Amount totalValue,
@@ -57,7 +57,7 @@ auto Factory::Purse(
     return Purse(
         api,
         *context.Nym(),
-        context.Server(),
+        context.Notary(),
         context.RemoteNym(),
         type,
         mint,

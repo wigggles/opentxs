@@ -4,7 +4,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 // IWYU pragma: private
-// IWYU pragma: friend ".*src/consensus/ClientContext.cpp"
+// IWYU pragma: friend ".*src/otx/consensus/Client.cpp"
 
 #pragma once
 
@@ -13,13 +13,14 @@
 #include <set>
 #include <string>
 
-#include "consensus/Context.hpp"
-#include "internal/consensus/Consensus.hpp"
+#include "internal/otx/consensus/Consensus.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
-#include "opentxs/consensus/TransactionStatement.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/otx/consensus/Client.hpp"
+#include "opentxs/otx/consensus/TransactionStatement.hpp"
 #include "opentxs/protobuf/ConsensusEnums.pb.h"
+#include "otx/consensus/Base.hpp"
 
 namespace opentxs
 {
@@ -37,14 +38,12 @@ class Nym;
 class Server;
 }  // namespace identifier
 
-class Factory;
 class PasswordPrompt;
 }  // namespace opentxs
 
-namespace opentxs::implementation
+namespace opentxs::otx::context::implementation
 {
-class ClientContext final : virtual public internal::ClientContext,
-                            public Context
+class ClientContext final : virtual public internal::Client, public Base
 {
 public:
     auto GetContract(const Lock& lock) const -> proto::Context final
@@ -52,7 +51,7 @@ public:
         return contract(lock);
     }
     auto hasOpenTransactions() const -> bool final;
-    using implementation::Context::IssuedNumbers;
+    using Base::IssuedNumbers;
     auto IssuedNumbers(const std::set<TransactionNumber>& exclude) const
         -> std::size_t final;
     auto OpenCronItems() const -> std::size_t final;
@@ -62,11 +61,11 @@ public:
         return validate(lock);
     }
     auto Verify(
-        const TransactionStatement& statement,
+        const otx::context::TransactionStatement& statement,
         const std::set<TransactionNumber>& excluded,
         const std::set<TransactionNumber>& included) const -> bool final;
     auto VerifyCronItem(const TransactionNumber number) const -> bool final;
-    using implementation::Context::VerifyIssuedNumber;
+    using Base::VerifyIssuedNumber;
     auto VerifyIssuedNumber(
         const TransactionNumber& number,
         const std::set<TransactionNumber>& exclude) const -> bool final;
@@ -84,19 +83,6 @@ public:
         return update_signature(lock, reason);
     }
 
-    ~ClientContext() final = default;
-
-private:
-    friend opentxs::Factory;
-
-    std::set<TransactionNumber> open_cron_items_{};
-
-    auto client_nym_id(const Lock& lock) const -> const identifier::Nym& final;
-    using implementation::Context::serialize;
-    auto serialize(const Lock& lock) const -> proto::Context final;
-    auto server_nym_id(const Lock& lock) const -> const identifier::Nym& final;
-    auto type() const -> std::string final { return "client"; }
-
     ClientContext(
         const api::internal::Core& api,
         const Nym_p& local,
@@ -108,10 +94,22 @@ private:
         const Nym_p& local,
         const Nym_p& remote,
         const identifier::Server& server);
+    ~ClientContext() final = default;
+
+private:
+    std::set<TransactionNumber> open_cron_items_{};
+
+    auto client_nym_id(const Lock& lock) const -> const identifier::Nym& final;
+    using Base::serialize;
+    auto serialize(const Lock& lock) const -> proto::Context final;
+    auto server_nym_id(const Lock& lock) const -> const identifier::Nym& final;
+    auto type() const -> std::string final { return "client"; }
+
     ClientContext() = delete;
-    ClientContext(const ClientContext&) = delete;
-    ClientContext(ClientContext&&) = delete;
-    auto operator=(const ClientContext&) -> ClientContext& = delete;
-    auto operator=(ClientContext &&) -> ClientContext& = delete;
+    ClientContext(const otx::context::Client&) = delete;
+    ClientContext(otx::context::Client&&) = delete;
+    auto operator=(const otx::context::Client&)
+        -> otx::context::Client& = delete;
+    auto operator=(ClientContext &&) -> otx::context::Client& = delete;
 };
-}  // namespace opentxs::implementation
+}  // namespace opentxs::otx::context::implementation

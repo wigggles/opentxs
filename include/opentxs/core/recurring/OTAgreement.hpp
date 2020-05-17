@@ -10,6 +10,7 @@
 
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
+#include <irrxml/irrXML.hpp>
 #include <cstdint>
 #include <deque>
 
@@ -43,11 +44,21 @@ namespace identity
 class Nym;
 }  // namespace identity
 
-class ClientContext;
+namespace otx
+{
+namespace context
+{
+class Client;
+class Server;
+}  // namespace context
+}  // namespace otx
+
 class NumList;
 class PasswordPrompt;
-class ServerContext;
+}  // namespace opentxs
 
+namespace opentxs
+{
 // An Agreement occurs between TWO PEOPLE, and is for a CONSIDERATION.
 // Thus, we add the RECIPIENT (already have SENDER from OTTrackable.)
 //
@@ -131,7 +142,7 @@ public:
     // VALID_TO=0);
 
     OPENTXS_EXPORT bool SetProposal(
-        ServerContext& context,
+        otx::context::Server& context,
         const Account& MERCHANT_ACCT,
         const String& strConsideration,
         const Time VALID_FROM = {},
@@ -140,7 +151,7 @@ public:
     // Merchant Nym is passed here so we can verify the signature before
     // confirming.
     OPENTXS_EXPORT bool Confirm(
-        ServerContext& context,
+        otx::context::Server& context,
         const Account& PAYER_ACCT,
         const identifier::Nym& p_id_MERCHANT_NYM,
         const identity::Nym* pMERCHANT_NYM = nullptr);
@@ -259,8 +270,8 @@ public:
     // the vital terms, values, clauses, etc are different between the two.
     //
     virtual bool VerifyAgreement(
-        const ClientContext& recipient,
-        const ClientContext& sender) const = 0;
+        const otx::context::Client& recipient,
+        const otx::context::Client& sender) const = 0;
 
     virtual bool CompareAgreement(const OTAgreement& rhs) const;
 
@@ -316,10 +327,12 @@ public:
 
      void    AddClosingTransactionNo(const std::int64_t& lClosingTransactionNo);
      */
-    bool CanRemoveItemFromCron(const ClientContext& context) override;
+    bool CanRemoveItemFromCron(const otx::context::Client& context) override;
 
-    OPENTXS_EXPORT void HarvestOpeningNumber(ServerContext& context) override;
-    OPENTXS_EXPORT void HarvestClosingNumbers(ServerContext& context) override;
+    OPENTXS_EXPORT void HarvestOpeningNumber(
+        otx::context::Server& context) override;
+    OPENTXS_EXPORT void HarvestClosingNumbers(
+        otx::context::Server& context) override;
 
     // Return True if should stay on OTCron's list for more processing.
     // Return False if expired or otherwise should be removed.

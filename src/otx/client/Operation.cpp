@@ -39,9 +39,6 @@
 #include "opentxs/blind/Purse.hpp"
 #endif  // OT_CASH
 #include "opentxs/client/OT_API.hpp"
-#include "opentxs/consensus/Context.hpp"
-#include "opentxs/consensus/ManagedNumber.hpp"
-#include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Cheque.hpp"
 #include "opentxs/core/Data.hpp"
@@ -67,6 +64,9 @@
 #include "opentxs/crypto/Envelope.hpp"
 #include "opentxs/ext/OTPayment.hpp"
 #include "opentxs/identity/Nym.hpp"
+#include "opentxs/otx/consensus/Base.hpp"
+#include "opentxs/otx/consensus/ManagedNumber.hpp"
+#include "opentxs/otx/consensus/Server.hpp"
 #include "opentxs/protobuf/Check.hpp"
 #include "opentxs/protobuf/ConsensusEnums.pb.h"
 #include "opentxs/protobuf/ContactEnums.pb.h"
@@ -98,7 +98,7 @@
     auto& context = contextEditor.get();                                       \
     [[maybe_unused]] auto& nym = *context.Nym();                               \
     [[maybe_unused]] auto& nymID = nym.ID();                                   \
-    [[maybe_unused]] auto& serverID = context.Server();                        \
+    [[maybe_unused]] auto& serverID = context.Notary();                        \
     [[maybe_unused]] auto& serverNym = context.RemoteNym();                    \
     context.SetPush(enable_otx_push_.load());
 
@@ -393,7 +393,7 @@ Operation::Operation(
 
 void Operation::account_pre()
 {
-    ServerContext::DeliveryResult lastResult{};
+    otx::context::Server::DeliveryResult lastResult{};
 
     switch (category_.at(type_)) {
         case Category::Transaction: {
@@ -407,7 +407,7 @@ void Operation::account_pre()
 
 void Operation::account_post()
 {
-    ServerContext::DeliveryResult lastResult{};
+    otx::context::Server::DeliveryResult lastResult{};
 
     if (download_accounts(State::NymboxPost, State::NymboxPre, lastResult)) {
         if (false == result_set_.load()) { set_result(std::move(lastResult)); }
@@ -435,7 +435,7 @@ auto Operation::AddClaim(
     return start(lock, Type::AddClaim, {});
 }
 
-auto Operation::check_future(ServerContext::SendFuture& future) -> bool
+auto Operation::check_future(otx::context::Server::SendFuture& future) -> bool
 {
     return std::future_status::ready !=
            future.wait_for(
@@ -922,7 +922,7 @@ auto Operation::construct_publish_unit() -> std::shared_ptr<Message>
 auto Operation::construct_process_inbox(
     const Identifier& accountID,
     const Ledger& payload,
-    ServerContext& context) -> std::shared_ptr<Message>
+    otx::context::Server& context) -> std::shared_ptr<Message>
 {
     CREATE_MESSAGE(
         processInbox,
@@ -973,7 +973,7 @@ auto Operation::construct_request_admin() -> std::shared_ptr<Message>
 auto Operation::construct_send_nym_object(
     const PeerObject& object,
     const Nym_p recipient,
-    ServerContext& context,
+    otx::context::Server& context,
     const RequestNumber number) -> std::shared_ptr<Message>
 {
     auto envelope = api_.Factory().Armored();
@@ -985,7 +985,7 @@ auto Operation::construct_send_nym_object(
 auto Operation::construct_send_nym_object(
     const PeerObject& object,
     const Nym_p recipient,
-    ServerContext& context,
+    otx::context::Server& context,
     Armored& senderCopy,
     const RequestNumber number) -> std::shared_ptr<Message>
 {
@@ -1359,7 +1359,7 @@ auto Operation::construct_withdraw_cash() -> std::shared_ptr<Message>
 }
 #endif
 
-auto Operation::context() const -> Editor<ServerContext>
+auto Operation::context() const -> Editor<otx::context::Server>
 {
     return api_.Wallet().mutable_ServerContext(nym_id_, server_id_, reason_);
 }
@@ -1439,7 +1439,7 @@ auto Operation::DepositCheque(
 auto Operation::download_accounts(
     const State successState,
     const State failState,
-    ServerContext::DeliveryResult& lastResult) -> bool
+    otx::context::Server::DeliveryResult& lastResult) -> bool
 {
     if (affected_accounts_.empty()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Warning: no accounts to update")
@@ -1474,7 +1474,7 @@ auto Operation::download_accounts(
 
 auto Operation::download_account(
     const Identifier& accountID,
-    ServerContext::DeliveryResult& lastResult) -> std::size_t
+    otx::context::Server::DeliveryResult& lastResult) -> std::size_t
 {
     std::shared_ptr<Ledger> inbox{api_.Factory().Ledger(
         nym_id_, accountID, server_id_, ledgerType::inbox)};
@@ -1592,7 +1592,7 @@ auto Operation::DownloadContract(const Identifier& ID, const ContractType type)
 }
 
 void Operation::evaluate_transaction_reply(
-    ServerContext::DeliveryResult&& result)
+    otx::context::Server::DeliveryResult&& result)
 {
     auto& pMessage = result.second;
 
@@ -1732,7 +1732,7 @@ void Operation::execute()
 
     PREPARE_CONTEXT();
 
-    ServerContext::QueueResult result{};
+    otx::context::Server::QueueResult result{};
 
     if (Category::Transaction == category) {
         result = context.Queue(
@@ -1801,7 +1801,7 @@ auto Operation::get_account_data(
     const Identifier& accountID,
     std::shared_ptr<Ledger> inbox,
     std::shared_ptr<Ledger> outbox,
-    ServerContext::DeliveryResult& lastResult) -> bool
+    otx::context::Server::DeliveryResult& lastResult) -> bool
 {
     auto message = construct_get_account_data(accountID);
 
@@ -1921,7 +1921,7 @@ auto Operation::GetFuture() -> Operation::Future
 
 auto Operation::IssueUnitDefinition(
     const std::shared_ptr<const proto::UnitDefinition> unitDefinition,
-    const ServerContext::ExtraArgs& args) -> bool
+    const otx::context::Server::ExtraArgs& args) -> bool
 {
     if (false == bool(unitDefinition)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Missing unit definition").Flush();
@@ -2056,14 +2056,14 @@ auto Operation::process_inbox(
     const Identifier& accountID,
     std::shared_ptr<Ledger> inbox,
     std::shared_ptr<Ledger> outbox,
-    ServerContext::DeliveryResult& lastResult) -> bool
+    otx::context::Server::DeliveryResult& lastResult) -> bool
 {
     class Cleanup
     {
     public:
         void SetSuccess() { recover_ = false; }
 
-        Cleanup(const TransactionNumber number, ServerContext& context)
+        Cleanup(const TransactionNumber number, otx::context::Server& context)
             : context_(context)
             , number_(number)
         {
@@ -2084,7 +2084,7 @@ auto Operation::process_inbox(
         }
 
     private:
-        ServerContext& context_;
+        otx::context::Server& context_;
         const TransactionNumber number_{0};
         bool recover_{true};
     };
@@ -2450,7 +2450,7 @@ auto Operation::SendTransfer(
 
 void Operation::set_consensus_hash(
     OTTransaction& transaction,
-    const Context& context,
+    const otx::context::Base& context,
     const Account& account,
     const opentxs::PasswordPrompt& reason)
 {
@@ -2468,7 +2468,7 @@ void Operation::set_consensus_hash(
     transaction.SetOutboxHash(outboxHash);
 }
 
-void Operation::set_result(ServerContext::DeliveryResult&& result)
+void Operation::set_result(otx::context::Server::DeliveryResult&& result)
 {
     result_set_.store(true);
     result_.set_value(std::move(result));
@@ -2476,8 +2476,9 @@ void Operation::set_result(ServerContext::DeliveryResult&& result)
 
 void Operation::Shutdown() { Stop(); }
 
-auto Operation::Start(const Type type, const ServerContext::ExtraArgs& args)
-    -> bool
+auto Operation::Start(
+    const Type type,
+    const otx::context::Server::ExtraArgs& args) -> bool
 {
     START()
 
@@ -2499,7 +2500,7 @@ auto Operation::Start(const Type type, const ServerContext::ExtraArgs& args)
 auto Operation::Start(
     const Type type,
     const identifier::UnitDefinition& targetUnitID,
-    const ServerContext::ExtraArgs& args) -> bool
+    const otx::context::Server::ExtraArgs& args) -> bool
 {
     START()
 
@@ -2523,7 +2524,7 @@ auto Operation::Start(
 auto Operation::Start(
     const Type type,
     const identifier::Nym& targetNymID,
-    const ServerContext::ExtraArgs& args) -> bool
+    const otx::context::Server::ExtraArgs& args) -> bool
 {
     START()
 
@@ -2546,7 +2547,7 @@ auto Operation::Start(
 auto Operation::start(
     const Lock& decisionLock,
     const Type type,
-    const ServerContext::ExtraArgs& args) -> bool
+    const otx::context::Server::ExtraArgs& args) -> bool
 {
     type_.store(type);
     args_ = args;
@@ -2667,7 +2668,7 @@ void Operation::transaction_numbers()
 
 void Operation::update_workflow(
     const Message& request,
-    const ServerContext::DeliveryResult& result) const
+    const otx::context::Server::DeliveryResult& result) const
 {
     switch (type_.load()) {
         case Type::ConveyPayment: {
@@ -2685,7 +2686,7 @@ void Operation::update_workflow(
 
 void Operation::update_workflow_convey_payment(
     const Message& request,
-    const ServerContext::DeliveryResult& result) const
+    const otx::context::Server::DeliveryResult& result) const
 {
     const auto& [status, reply] = result;
 
@@ -2731,7 +2732,7 @@ void Operation::update_workflow_convey_payment(
 #if OT_CASH
 void Operation::update_workflow_send_cash(
     const Message& request,
-    const ServerContext::DeliveryResult& result) const
+    const otx::context::Server::DeliveryResult& result) const
 {
     api_.Workflow().SendCash(
         nym_id_, target_nym_id_, generic_id_, request, result.second.get());

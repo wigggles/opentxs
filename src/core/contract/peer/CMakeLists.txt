@@ -52,6 +52,10 @@ set(
 
 add_library(opentxs-core-contract-peer OBJECT ${cxx-sources} ${cxx-headers})
 target_link_libraries(opentxs-core-contract-peer PRIVATE opentxs::messages)
+target_include_directories(
+  opentxs-core-contract-peer SYSTEM
+  PRIVATE "${opentxs_SOURCE_DIR}/deps/"
+)
 set_property(
   TARGET opentxs-core-contract-peer
   PROPERTY POSITION_INDEPENDENT_CODE 1

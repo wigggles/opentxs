@@ -8,6 +8,7 @@
 
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
+#include <irrxml/irrXML.hpp>
 #include <cstdint>
 
 #include "opentxs/Types.hpp"
@@ -47,11 +48,21 @@ namespace identity
 class Nym;
 }  // namespace identity
 
-class ClientContext;
+namespace otx
+{
+namespace context
+{
+class Client;
+}  // namespace context
+}  // namespace otx
+
 class OTMarket;
 class OTOffer;
 class PasswordPrompt;
+}  // namespace opentxs
 
+namespace opentxs
+{
 // An OTTrade is derived from OTCronItem. OTCron has a list of items,
 // which may be trades or agreements or who knows what next.
 
@@ -169,7 +180,7 @@ public:
                                                               // which is my
                                                               // chance to
                                                               // expire, etc.
-    bool CanRemoveItemFromCron(const ClientContext& context) override;
+    bool CanRemoveItemFromCron(const otx::context::Client& context) override;
 
     // From OTScriptable, we override this function. OTScriptable now does fancy
     // stuff like checking to see

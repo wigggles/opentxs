@@ -43,6 +43,10 @@ target_link_libraries(
   opentxs-blockchain-client
   PRIVATE Boost::headers opentxs::messages
 )
+target_include_directories(
+  opentxs-blockchain-client SYSTEM
+  PRIVATE "${opentxs_SOURCE_DIR}/deps/"
+)
 set_property(
   TARGET opentxs-blockchain-client
   PROPERTY POSITION_INDEPENDENT_CODE 1

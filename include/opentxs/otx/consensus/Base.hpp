@@ -3,8 +3,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef OPENTXS_CONSENSUS_CONTEXT_HPP
-#define OPENTXS_CONSENSUS_CONTEXT_HPP
+#ifndef OPENTXS_OTX_CONSENSUS_BASE_HPP
+#define OPENTXS_OTX_CONSENSUS_BASE_HPP
 
 // IWYU pragma: no_include "opentxs/Proto.hpp"
 
@@ -20,15 +20,19 @@
 
 namespace opentxs
 {
-namespace api
+namespace proto
 {
-namespace internal
-{
-struct Core;
-}  // namespace internal
-}  // namespace api
+class Context;
+}  // namespace proto
+}  // namespace opentxs
 
-class Context : virtual public opentxs::contract::Signable
+namespace opentxs
+{
+namespace otx
+{
+namespace context
+{
+class Base : virtual public opentxs::contract::Signable
 {
 public:
     using TransactionNumbers = std::set<TransactionNumber>;
@@ -41,6 +45,7 @@ public:
     OPENTXS_EXPORT virtual TransactionNumbers IssuedNumbers() const = 0;
     OPENTXS_EXPORT virtual std::string LegacyDataFolder() const = 0;
     OPENTXS_EXPORT virtual OTIdentifier LocalNymboxHash() const = 0;
+    OPENTXS_EXPORT virtual const identifier::Server& Notary() const = 0;
     OPENTXS_EXPORT virtual bool NymboxHashMatch() const = 0;
     OPENTXS_EXPORT virtual std::unique_ptr<const opentxs::NymFile> Nymfile(
         const PasswordPrompt& reason) const = 0;
@@ -48,7 +53,6 @@ public:
     OPENTXS_EXPORT virtual OTIdentifier RemoteNymboxHash() const = 0;
     OPENTXS_EXPORT virtual RequestNumber Request() const = 0;
     OPENTXS_EXPORT virtual proto::Context Serialized() const = 0;
-    OPENTXS_EXPORT virtual const identifier::Server& Server() const = 0;
     OPENTXS_EXPORT virtual proto::ConsensusType Type() const = 0;
     OPENTXS_EXPORT virtual bool VerifyAcknowledgedNumber(
         const RequestNumber& req) const = 0;
@@ -81,16 +85,18 @@ public:
     OPENTXS_EXPORT virtual void SetRemoteNymboxHash(const Identifier& hash) = 0;
     OPENTXS_EXPORT virtual void SetRequest(const RequestNumber req) = 0;
 
-    OPENTXS_EXPORT ~Context() override = default;
+    OPENTXS_EXPORT ~Base() override = default;
 
 protected:
-    Context() = default;
+    Base() = default;
 
 private:
-    Context(const Context&) = delete;
-    Context(Context&&) = delete;
-    Context& operator=(const Context&) = delete;
-    Context& operator=(Context&&) = delete;
+    Base(const Base&) = delete;
+    Base(Base&&) = delete;
+    Base& operator=(const Base&) = delete;
+    Base& operator=(Base&&) = delete;
 };
+}  // namespace context
+}  // namespace otx
 }  // namespace opentxs
 #endif

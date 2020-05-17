@@ -18,6 +18,10 @@
 
 namespace opentxs
 {
+namespace otx
+{
+namespace context
+{
 class TransactionStatement
 {
 private:
@@ -49,6 +53,7 @@ public:
 
     ~TransactionStatement() = default;
 };
+}  // namespace context
+}  // namespace otx
 }  // namespace opentxs
-
 #endif

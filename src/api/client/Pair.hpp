@@ -107,7 +107,7 @@ public:
 
     ~Pair() { cleanup().get(); }
 
-    friend class opentxs::api::client::Pair;
+    friend opentxs::api::client::Pair;
 
 private:
     friend opentxs::Factory;

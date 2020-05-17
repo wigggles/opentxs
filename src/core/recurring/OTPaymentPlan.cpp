@@ -7,7 +7,6 @@
 #include "1_Internal.hpp"                            // IWYU pragma: associated
 #include "opentxs/core/recurring/OTPaymentPlan.hpp"  // IWYU pragma: associated
 
-#include <irrxml/irrXML.hpp>
 #include <cstdlib>
 #include <cstring>
 #include <memory>
@@ -19,7 +18,6 @@
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
-#include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -39,6 +37,7 @@
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/identity/Nym.hpp"
+#include "opentxs/otx/consensus/Client.hpp"
 
 #define OT_METHOD "opentxs::OTPaymentPlan"
 
@@ -462,8 +461,8 @@ auto OTPaymentPlan::VerifyCustomerSignature(
 // transaction numbers, and that the merchant's copy is attached within. The
 // function tries to verify they are the same, and properly signed.
 auto OTPaymentPlan::VerifyAgreement(
-    const ClientContext& recipient,
-    const ClientContext& sender) const -> bool
+    const otx::context::Client& recipient,
+    const otx::context::Client& sender) const -> bool
 {
     if (!VerifyMerchantSignature(recipient.RemoteNym())) {
         LogOutput(OT_METHOD)(__FUNCTION__)(

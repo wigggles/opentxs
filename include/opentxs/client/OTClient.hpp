@@ -15,7 +15,7 @@
 #include <vector>
 
 #include "opentxs/Types.hpp"
-#include "opentxs/consensus/ServerContext.hpp"
+#include "opentxs/otx/consensus/Server.hpp"
 
 namespace opentxs
 {
@@ -32,18 +32,28 @@ namespace contract
 class Unit;
 }  // namespace contract
 
+namespace otx
+{
+namespace context
+{
+class Server;
+}  // namespace context
+}  // namespace otx
+
 class Account;
 class Identifier;
 class Message;
 class PasswordPrompt;
-class ServerContext;
+}  // namespace opentxs
 
+namespace opentxs
+{
 class OTClient
 {
 public:
     std::int32_t ProcessUserCommand(
         const MessageType requestedCommand,
-        ServerContext& context,
+        otx::context::Server& context,
         Message& theMessage,
         const Identifier& pHisNymID,
         const Identifier& pHisAcctID,

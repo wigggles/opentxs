@@ -7,14 +7,12 @@
 #include "1_Internal.hpp"                           // IWYU pragma: associated
 #include "opentxs/core/contract/basket/Basket.hpp"  // IWYU pragma: associated
 
-#include <irrxml/irrXML.hpp>
 #include <cstdint>
 #include <cstdlib>
 #include <memory>
 #include <string>
 
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
@@ -23,6 +21,7 @@
 #include "opentxs/core/contract/basket/BasketItem.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/util/Tag.hpp"
+#include "opentxs/otx/consensus/Server.hpp"
 
 #define OT_METHOD "opentxs::Basket"
 
@@ -92,7 +91,7 @@ Basket::Basket(const api::internal::Core& core)
 }
 
 void Basket::HarvestClosingNumbers(
-    ServerContext& context,
+    otx::context::Server& context,
     const identifier::Server& theNotaryID,
     bool bSave)
 {

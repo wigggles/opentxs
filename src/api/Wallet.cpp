@@ -17,9 +17,9 @@
 #include "Exclusive.tpp"
 #include "Factory.hpp"
 #include "internal/api/Api.hpp"
-#include "internal/consensus/Consensus.hpp"
 #include "internal/core/Core.hpp"
 #include "internal/identity/Identity.hpp"
+#include "internal/otx/consensus/Consensus.hpp"
 #include "opentxs/Exclusive.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Proto.hpp"
@@ -33,7 +33,6 @@
 #include "opentxs/blind/Purse.hpp"
 #endif
 #include "opentxs/client/NymData.hpp"
-#include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Data.hpp"
@@ -56,6 +55,7 @@
 #include "opentxs/network/zeromq/socket/Request.tpp"
 #include "opentxs/network/zeromq/socket/Sender.tpp"
 #include "opentxs/network/zeromq/socket/Socket.hpp"
+#include "opentxs/otx/consensus/Server.hpp"
 #include "opentxs/protobuf/CashEnums.pb.h"
 #include "opentxs/protobuf/Check.hpp"
 #include "opentxs/protobuf/ConsensusEnums.pb.h"
@@ -551,7 +551,7 @@ auto Wallet::mutable_Account(
 
 auto Wallet::UpdateAccount(
     const Identifier& accountID,
-    const opentxs::ServerContext& context,
+    const otx::context::Server& context,
     const String& serialized,
     const PasswordPrompt& reason) const -> bool
 {
@@ -560,7 +560,7 @@ auto Wallet::UpdateAccount(
 
 auto Wallet::UpdateAccount(
     const Identifier& accountID,
-    const opentxs::ServerContext& context,
+    const otx::context::Server& context,
     const String& serialized,
     const std::string& label,
     const PasswordPrompt& reason) const -> bool
@@ -576,7 +576,7 @@ auto Wallet::UpdateAccount(
     const auto& localNym = *context.Nym();
     std::unique_ptr<opentxs::Account> newAccount{nullptr};
     newAccount.reset(
-        new opentxs::Account(api_, localNym.ID(), accountID, context.Server()));
+        new opentxs::Account(api_, localNym.ID(), accountID, context.Notary()));
 
     if (false == bool(newAccount)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to construct account.")
@@ -605,7 +605,7 @@ auto Wallet::UpdateAccount(
         return false;
     }
 
-    if (context.Server() != newAccount->GetRealNotaryID()) {
+    if (context.Notary() != newAccount->GetRealNotaryID()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Wrong server on account.")
             .Flush();
 
@@ -654,7 +654,7 @@ auto Wallet::UpdateAccount(
             localNym.ID(),
             localNym.ID(),
             contract->Nym()->ID(),
-            context.Server(),
+            context.Notary(),
             unitID,
             extract_unit(contract));
 
@@ -736,7 +736,7 @@ auto Wallet::get_purse_lock(
 auto Wallet::context(
     const identifier::Nym& localNymID,
     const identifier::Nym& remoteNymID) const
-    -> std::shared_ptr<opentxs::Context>
+    -> std::shared_ptr<otx::context::Base>
 {
     const std::string local = localNymID.str();
     const std::string remote = remoteNymID.str();
@@ -816,7 +816,7 @@ auto Wallet::context(
 }
 
 auto Wallet::ClientContext(const identifier::Nym& remoteNymID) const
-    -> std::shared_ptr<const opentxs::ClientContext>
+    -> std::shared_ptr<const otx::context::Client>
 {
     // Overridden in appropriate child class.
     OT_FAIL;
@@ -825,7 +825,7 @@ auto Wallet::ClientContext(const identifier::Nym& remoteNymID) const
 auto Wallet::ServerContext(
     const identifier::Nym& localNymID,
     const Identifier& remoteID) const
-    -> std::shared_ptr<const opentxs::ServerContext>
+    -> std::shared_ptr<const otx::context::Server>
 {
     // Overridden in appropriate child class.
     OT_FAIL;
@@ -833,7 +833,7 @@ auto Wallet::ServerContext(
 
 auto Wallet::mutable_ClientContext(
     const identifier::Nym& remoteNymID,
-    const PasswordPrompt& reason) const -> Editor<opentxs::ClientContext>
+    const PasswordPrompt& reason) const -> Editor<otx::context::Client>
 {
     // Overridden in appropriate child class.
     OT_FAIL;
@@ -842,7 +842,7 @@ auto Wallet::mutable_ClientContext(
 auto Wallet::mutable_ServerContext(
     const identifier::Nym& localNymID,
     const Identifier& remoteID,
-    const PasswordPrompt& reason) const -> Editor<opentxs::ServerContext>
+    const PasswordPrompt& reason) const -> Editor<otx::context::Server>
 {
     // Overridden in appropriate child class.
     OT_FAIL;
@@ -2017,7 +2017,7 @@ void Wallet::save(
 
 void Wallet::save(
     const PasswordPrompt& reason,
-    opentxs::internal::Context* context) const
+    otx::context::internal::Base* context) const
 {
     if (nullptr == context) { return; }
 

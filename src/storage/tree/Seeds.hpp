@@ -31,10 +31,18 @@ class Seed;
 
 namespace storage
 {
+class Tree;
+}  // namespace storage
+}  // namespace opentxs
+
+namespace opentxs
+{
+namespace storage
+{
 class Seeds final : public Node
 {
 private:
-    friend class Tree;
+    friend Tree;
 
     std::string default_seed_;
 

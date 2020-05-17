@@ -19,8 +19,8 @@
 #include <tuple>
 #include <utility>
 
-#include "internal/consensus/Consensus.hpp"
 #include "internal/identity/Identity.hpp"
+#include "internal/otx/consensus/Consensus.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/Version.hpp"
@@ -90,14 +90,27 @@ class ServerContract;
 class UnitDefinition;
 }  // namespace proto
 
-class ClientContext;
+namespace otx
+{
+namespace context
+{
+namespace internal
+{
+struct Base;
+}  // namespace internal
+
+class Base;
+class Client;
+class Server;
+}  // namespace context
+}  // namespace otx
+
 class Context;
 class Factory;
 class NymFile;
 class NymParameters;
 class PasswordPrompt;
 class PeerObject;
-class ServerContext;
 class String;
 }  // namespace opentxs
 
@@ -126,32 +139,32 @@ public:
         const AccountCallback callback) const -> ExclusiveAccount final;
     auto UpdateAccount(
         const Identifier& accountID,
-        const opentxs::ServerContext& context,
+        const otx::context::Server&,
         const String& serialized,
         const PasswordPrompt& reason) const -> bool final;
     auto UpdateAccount(
         const Identifier& accountID,
-        const opentxs::ServerContext& context,
+        const otx::context::Server&,
         const String& serialized,
         const std::string& label,
         const PasswordPrompt& reason) const -> bool final;
     auto ImportAccount(std::unique_ptr<opentxs::Account>& imported) const
         -> bool final;
     auto ClientContext(const identifier::Nym& remoteNymID) const
-        -> std::shared_ptr<const opentxs::ClientContext> override;
+        -> std::shared_ptr<const otx::context::Client> override;
     auto ServerContext(
         const identifier::Nym& localNymID,
         const Identifier& remoteID) const
-        -> std::shared_ptr<const opentxs::ServerContext> override;
+        -> std::shared_ptr<const otx::context::Server> override;
     auto mutable_ClientContext(
         const identifier::Nym& remoteNymID,
         const PasswordPrompt& reason) const
-        -> Editor<opentxs::ClientContext> override;
+        -> Editor<otx::context::Client> override;
     auto mutable_ServerContext(
         const identifier::Nym& localNymID,
         const Identifier& remoteID,
         const PasswordPrompt& reason) const
-        -> Editor<opentxs::ServerContext> override;
+        -> Editor<otx::context::Server> override;
     auto IssuerList(const identifier::Nym& nymID) const
         -> std::set<OTNymID> final;
     auto Issuer(const identifier::Nym& nymID, const identifier::Nym& issuerID)
@@ -328,7 +341,7 @@ protected:
         std::pair<std::shared_mutex, std::unique_ptr<opentxs::Account>>;
     using ContextID = std::pair<std::string, std::string>;
     using ContextMap =
-        std::map<ContextID, std::shared_ptr<opentxs::internal::Context>>;
+        std::map<ContextID, std::shared_ptr<otx::context::internal::Base>>;
 
     const api::internal::Core& api_;
     mutable ContextMap context_map_;
@@ -337,13 +350,14 @@ protected:
     auto context(
         const identifier::Nym& localNymID,
         const identifier::Nym& remoteNymID) const
-        -> std::shared_ptr<opentxs::Context>;
+        -> std::shared_ptr<otx::context::Base>;
     auto extract_unit(const identifier::UnitDefinition& contractID) const
         -> proto::ContactItemType;
     auto extract_unit(const contract::Unit& contract) const
         -> proto::ContactItemType;
-    void save(const PasswordPrompt& reason, opentxs::internal::Context* context)
-        const;
+    void save(
+        const PasswordPrompt& reason,
+        otx::context::internal::Base* context) const;
     auto server_to_nym(Identifier& nymOrNotaryID) const -> OTNymID;
 
     Wallet(const api::internal::Core& core);
@@ -416,14 +430,14 @@ private:
         const proto::Context& serialized,
         const Nym_p& localNym,
         const Nym_p& remoteNym,
-        std::shared_ptr<opentxs::internal::Context>& output) const
+        std::shared_ptr<otx::context::internal::Base>& output) const
     {
     }
     virtual void instantiate_server_context(
         const proto::Context& serialized,
         const Nym_p& localNym,
         const Nym_p& remoteNym,
-        std::shared_ptr<opentxs::internal::Context>& output) const
+        std::shared_ptr<otx::context::internal::Base>& output) const
     {
     }
     virtual auto load_legacy_account(

@@ -8,18 +8,19 @@
 
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
+#include <irrxml/irrXML.hpp>
 #include <cstdint>
 #include <map>
-#include <set>
 #include <memory>
+#include <set>
 #include <string>
 #include <tuple>
 
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Types.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/OTTransactionType.hpp"
-#include "opentxs/Pimpl.hpp"
-#include "opentxs/Types.hpp"
 #include "opentxs/core/String.hpp"
 
 namespace opentxs
@@ -48,12 +49,22 @@ namespace identity
 class Nym;
 }  // namespace identity
 
+namespace otx
+{
+namespace context
+{
+class Server;
+}  // namespace context
+}  // namespace otx
+
 class Account;
 class Identifier;
 class Item;
 class PasswordPrompt;
-class ServerContext;
+}  // namespace opentxs
 
+namespace opentxs
+{
 // transaction ID is a std::int64_t, assigned by the server. Each transaction
 // has one. FIRST the server issues the ID. THEN we create the blank transaction
 // object with the ID in it and store it in our inbox. THEN if we want to send a
@@ -87,14 +98,14 @@ public:
     OPENTXS_EXPORT std::unique_ptr<Item> GenerateBalanceStatement(
         std::int64_t lAdjustment,
         const OTTransaction& theOwner,
-        const ServerContext& context,
+        const otx::context::Server& context,
         const Account& theAccount,
         Ledger& theOutbox,
         const PasswordPrompt& reason) const;
     OPENTXS_EXPORT std::unique_ptr<Item> GenerateBalanceStatement(
         std::int64_t lAdjustment,
         const OTTransaction& theOwner,
-        const ServerContext& context,
+        const otx::context::Server& context,
         const Account& theAccount,
         Ledger& theOutbox,
         const std::set<TransactionNumber>& without,

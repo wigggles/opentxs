@@ -20,7 +20,6 @@
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/api/Wallet.hpp"
-#include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Item.hpp"
 #include "opentxs/core/Lockable.hpp"
@@ -29,6 +28,7 @@
 #include "opentxs/core/contract/peer/PeerObject.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/network/zeromq/socket/Publish.hpp"
+#include "opentxs/otx/consensus/Server.hpp"
 
 namespace opentxs
 {
@@ -74,6 +74,15 @@ namespace identity
 class Nym;
 }  // namespace identity
 
+namespace otx
+{
+namespace context
+{
+class Base;
+class Server;
+}  // namespace context
+}  // namespace otx
+
 namespace proto
 {
 class UnitDefinition;
@@ -82,15 +91,16 @@ class UnitDefinition;
 class Armored;
 class Basket;
 class Cheque;
-class Context;
 class Identifier;
 class Ledger;
 class Message;
 class OTClient;
 class OTPaymentPlan;
 class PasswordPrompt;
-class ServerContext;
+}  // namespace opentxs
 
+namespace opentxs
+{
 // The C++ high-level interface to the Open Transactions client-side.
 class OT_API : Lockable
 {
@@ -197,19 +207,19 @@ public:
 
     OPENTXS_EXPORT ProcessInboxOnly CreateProcessInbox(
         const Identifier& accountID,
-        ServerContext& context,
+        otx::context::Server& context,
         Ledger& inbox) const;
 
     OPENTXS_EXPORT bool IncludeResponse(
         const Identifier& accountID,
         const bool accept,
-        ServerContext& context,
+        otx::context::Server& context,
         OTTransaction& source,
         Ledger& processInbox) const;
 
     OPENTXS_EXPORT bool FinalizeProcessInbox(
         const Identifier& accountID,
-        ServerContext& context,
+        otx::context::Server& context,
         Ledger& processInbox,
         Ledger& inbox,
         Ledger& outbox,
@@ -217,19 +227,20 @@ public:
 
     // These commands below send messages to the server:
 
-    OPENTXS_EXPORT CommandResult unregisterNym(ServerContext& context) const;
+    OPENTXS_EXPORT CommandResult
+    unregisterNym(otx::context::Server& context) const;
 
     OPENTXS_EXPORT CommandResult usageCredits(
-        ServerContext& context,
+        otx::context::Server& context,
         const identifier::Nym& NYM_ID_CHECK,
         std::int64_t lAdjustment = 0) const;
 
     OPENTXS_EXPORT CommandResult queryInstrumentDefinitions(
-        ServerContext& context,
+        otx::context::Server& context,
         const Armored& ENCODED_MAP) const;
 
     OPENTXS_EXPORT CommandResult deleteAssetAccount(
-        ServerContext& context,
+        otx::context::Server& context,
         const Identifier& ACCOUNT_ID) const;
 
     OPENTXS_EXPORT bool AddBasketCreationItem(
@@ -238,7 +249,7 @@ public:
         const std::uint64_t weight) const;
 
     OPENTXS_EXPORT CommandResult issueBasket(
-        ServerContext& context,
+        otx::context::Server& context,
         const proto::UnitDefinition& basket,
         const std::string& label) const;
 
@@ -258,23 +269,23 @@ public:
         const Identifier& ASSET_ACCT_ID) const;
 
     OPENTXS_EXPORT CommandResult exchangeBasket(
-        ServerContext& context,
+        otx::context::Server& context,
         const identifier::UnitDefinition& BASKET_INSTRUMENT_DEFINITION_ID,
         const String& BASKET_INFO,
         bool bExchangeInOrOut) const;
 
     OPENTXS_EXPORT std::unique_ptr<Message> getTransactionNumbers(
-        ServerContext& context) const;
+        otx::context::Server& context) const;
 
     OPENTXS_EXPORT CommandResult withdrawVoucher(
-        ServerContext& context,
+        otx::context::Server& context,
         const Identifier& ACCT_ID,
         const identifier::Nym& RECIPIENT_NYM_ID,
         const String& CHEQUE_MEMO,
         const Amount amount) const;
 
     OPENTXS_EXPORT CommandResult payDividend(
-        ServerContext& context,
+        otx::context::Server& context,
         const Identifier& DIVIDEND_FROM_ACCT_ID,  // if dollars paid for pepsi
                                                   // shares, then this is the
                                                   // issuer's dollars account.
@@ -293,7 +304,7 @@ public:
     // number of shares issued.)
 
     OPENTXS_EXPORT CommandResult triggerClause(
-        ServerContext& context,
+        otx::context::Server& context,
         const TransactionNumber& lTransactionNum,
         const String& strClauseName,
         const String& pStrParam = String::Factory()) const;
@@ -557,14 +568,14 @@ public:
                                    // that
                                    // party. (For now, until I code entities)
     OPENTXS_EXPORT CommandResult activateSmartContract(
-        ServerContext& context,
+        otx::context::Server& context,
         const String& THE_SMART_CONTRACT) const;
 
     OPENTXS_EXPORT CommandResult depositPaymentPlan(
-        ServerContext& context,
+        otx::context::Server& context,
         const String& THE_PAYMENT_PLAN) const;
     OPENTXS_EXPORT CommandResult issueMarketOffer(
-        ServerContext& context,
+        otx::context::Server& context,
         const Identifier& ASSET_ACCT_ID,
         const Identifier& CURRENCY_ACCT_ID,
         const std::int64_t& MARKET_SCALE,  // Defaults to minimum of 1. Market
@@ -583,28 +594,29 @@ public:
         const char STOP_SIGN = 0,  // For stop orders, set to '<' or '>'
         const Amount ACTIVATION_PRICE = 0) const;  // For stop orders, set the
                                                    // threshold price here.
-    OPENTXS_EXPORT CommandResult getMarketList(ServerContext& context) const;
+    OPENTXS_EXPORT CommandResult
+    getMarketList(otx::context::Server& context) const;
     OPENTXS_EXPORT CommandResult getMarketOffers(
-        ServerContext& context,
+        otx::context::Server& context,
         const Identifier& MARKET_ID,
         const std::int64_t& lDepth) const;
     OPENTXS_EXPORT CommandResult getMarketRecentTrades(
-        ServerContext& context,
+        otx::context::Server& context,
         const Identifier& MARKET_ID) const;
 
     OPENTXS_EXPORT CommandResult
-    getNymMarketOffers(ServerContext& context) const;
+    getNymMarketOffers(otx::context::Server& context) const;
 
     // For cancelling market offers and payment plans.
     OPENTXS_EXPORT CommandResult cancelCronItem(
-        ServerContext& context,
+        otx::context::Server& context,
         const Identifier& ASSET_ACCT_ID,
         const TransactionNumber& lTransactionNum) const;
 
     OPENTXS_EXPORT ~OT_API();  // calls Cleanup();
 
 private:
-    friend class api::client::implementation::Manager;
+    friend api::client::implementation::Manager;
 
     const api::internal::Core& api_;
     const api::client::Activity& activity_;
@@ -620,12 +632,12 @@ private:
 
     void AddHashesToTransaction(
         OTTransaction& transaction,
-        const class Context& context,
+        const otx::context::Base& context,
         const Account& account,
         const PasswordPrompt& reason) const;
     void AddHashesToTransaction(
         OTTransaction& transaction,
-        const class Context& context,
+        const otx::context::Base& context,
         const Identifier& accountid,
         const PasswordPrompt& reason) const;
 
@@ -639,7 +651,7 @@ private:
         const String& inRefTo,
         OTTransaction& processInbox) const;
     bool find_cron(
-        const ServerContext& context,
+        const otx::context::Server& context,
         const Item& item,
         OTTransaction& processInbox,
         OTTransaction& serverTransaction,
@@ -647,7 +659,7 @@ private:
         Amount& amount,
         std::set<TransactionNumber>& closing) const;
     bool find_standard(
-        const ServerContext& context,
+        const otx::context::Server& context,
         const Item& item,
         const TransactionNumber number,
         OTTransaction& serverTransaction,
@@ -656,7 +668,7 @@ private:
         std::set<TransactionNumber>& closing) const;
     OTTransaction* get_or_create_process_inbox(
         const Identifier& accountID,
-        ServerContext& context,
+        otx::context::Server& context,
         Ledger& response) const;
     TransactionNumber get_origin(
         const identifier::Server& notaryID,

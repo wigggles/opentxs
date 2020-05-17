@@ -14,9 +14,11 @@ extern "C" {
 }
 
 #include <boost/filesystem.hpp>
+#include <boost/iostreams/device/file_descriptor.hpp>
 #include <boost/system/error_code.hpp>
 #include <cstdint>
 #include <fstream>
+#include <ios>
 #include <memory>
 #include <vector>
 

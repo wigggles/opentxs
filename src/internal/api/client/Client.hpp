@@ -18,12 +18,12 @@
 #include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/client/OTX.hpp"
 #include "opentxs/api/client/Pair.hpp"
-#include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/UniqueQueue.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
+#include "opentxs/otx/consensus/Server.hpp"
 
 namespace opentxs::api::client::internal
 {

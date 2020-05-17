@@ -74,7 +74,6 @@ class Storage;
 }  // namespace storage
 
 class Context;
-class Context;
 class Core;
 class Crypto;
 class Endpoints;
@@ -339,13 +338,11 @@ class Armored;
 class Basket;
 class BasketItem;
 class Cheque;
-class ClientContext;
 class Contact;
 class ContactData;
 class ContactGroup;
 class ContactItem;
 class ContactSection;
-class Context;
 class Contract;
 class Data;
 class Factory;
@@ -355,7 +352,6 @@ class Item;
 class Ledger;
 class Letter;
 class ListenCallbackSwig;
-class ManagedNumber;
 class Message;
 class NumList;
 class NymData;
@@ -399,7 +395,6 @@ class PasswordPrompt;
 class PayDividendVisitor;
 class PaymentCode;
 class PeerObject;
-class ServerContext;
 class Signals;
 class Signature;
 class StorageDriver;
@@ -407,7 +402,6 @@ class StoragePlugin;
 class String;
 class StringXML;
 class Tag;
-class TransactionStatement;
 class UserCommandProcessor;
 }  // namespace opentxs
 #endif

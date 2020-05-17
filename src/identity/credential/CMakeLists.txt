@@ -35,6 +35,10 @@ set(
 
 add_library(opentxs-identity-credential OBJECT ${cxx-sources} ${cxx-headers})
 target_link_libraries(opentxs-identity-credential PRIVATE opentxs::messages)
+target_include_directories(
+  opentxs-identity-credential SYSTEM
+  PRIVATE "${opentxs_SOURCE_DIR}/deps/"
+)
 set_property(
   TARGET opentxs-identity-credential
   PROPERTY POSITION_INDEPENDENT_CODE 1

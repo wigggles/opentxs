@@ -37,7 +37,6 @@
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/client/NymData.hpp"
 #include "opentxs/client/OT_API.hpp"
-#include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/contact/Contact.hpp"
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/contact/ContactGroup.hpp"  // IWYU pragma: keep
@@ -78,6 +77,7 @@
 #include "opentxs/network/zeromq/socket/Socket.hpp"
 #include "opentxs/network/zeromq/socket/Subscribe.hpp"
 #include "opentxs/otx/Reply.hpp"
+#include "opentxs/otx/consensus/Server.hpp"
 #include "opentxs/protobuf/ConsensusEnums.pb.h"
 #include "opentxs/protobuf/ContactEnums.pb.h"
 #include "opentxs/protobuf/OTXEnums.pb.h"

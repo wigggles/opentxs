@@ -15,6 +15,7 @@
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
+#include "opentxs/core/contract/ServerContract.hpp"
 
 namespace opentxs
 {
@@ -30,6 +31,14 @@ namespace network
 {
 class ServerConnection;
 }  // namespace network
+
+namespace otx
+{
+namespace context
+{
+class Server;
+}  // namespace context
+}  // namespace otx
 
 using OTServerConnection = Pimpl<network::ServerConnection>;
 }  // namespace opentxs
@@ -57,7 +66,7 @@ public:
     OPENTXS_EXPORT virtual bool ClearProxy() = 0;
     OPENTXS_EXPORT virtual bool EnableProxy() = 0;
     OPENTXS_EXPORT virtual NetworkReplyMessage Send(
-        const ServerContext& context,
+        const otx::context::Server& context,
         const Message& message,
         const PasswordPrompt& reason,
         const Push push = Push::Enable) = 0;

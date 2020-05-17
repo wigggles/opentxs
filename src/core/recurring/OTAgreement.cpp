@@ -7,7 +7,6 @@
 #include "1_Internal.hpp"                          // IWYU pragma: associated
 #include "opentxs/core/recurring/OTAgreement.hpp"  // IWYU pragma: associated
 
-#include <irrxml/irrXML.hpp>
 #include <algorithm>
 #include <chrono>
 #include <cstdint>
@@ -21,9 +20,6 @@
 #include "opentxs/api/Editor.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
-#include "opentxs/consensus/ClientContext.hpp"
-#include "opentxs/consensus/ManagedNumber.hpp"
-#include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -40,6 +36,9 @@
 #include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/identity/Nym.hpp"
+#include "opentxs/otx/consensus/Client.hpp"
+#include "opentxs/otx/consensus/ManagedNumber.hpp"
+#include "opentxs/otx/consensus/Server.hpp"
 
 #define OT_METHOD "opentxs::OTAgreement::"
 
@@ -584,7 +583,7 @@ void OTAgreement::onRemovalFromCron(const PasswordPrompt& reason)
 // want to retrieve it.
 // So I added this function.
 //
-void OTAgreement::HarvestOpeningNumber(ServerContext& context)
+void OTAgreement::HarvestOpeningNumber(otx::context::Server& context)
 {
     // Since we overrode the parent, we give it a chance to harvest also.
     // IF theNym is the original sender, the opening number will be harvested
@@ -616,7 +615,7 @@ void OTAgreement::HarvestOpeningNumber(ServerContext& context)
 
 // Used for adding transaction numbers back to a Nym, after deciding not to use
 // this agreement or failing in trying to use it. Client side.
-void OTAgreement::HarvestClosingNumbers(ServerContext& context)
+void OTAgreement::HarvestClosingNumbers(otx::context::Server& context)
 {
     // Since we overrode the parent, we give it a chance to harvest also.
     // If theNym is the sender, then his closing numbers will be harvested
@@ -730,7 +729,8 @@ auto OTAgreement::ProcessCron(const PasswordPrompt& reason) -> bool
 
 /// See if theNym has rights to remove this item from Cron.
 ///
-auto OTAgreement::CanRemoveItemFromCron(const ClientContext& context) -> bool
+auto OTAgreement::CanRemoveItemFromCron(const otx::context::Client& context)
+    -> bool
 {
     // You don't just go willy-nilly and remove a cron item from a market unless
     // you check first and make sure the Nym who requested it actually has said
@@ -835,7 +835,7 @@ auto OTAgreement::CompareAgreement(const OTAgreement& rhs) const -> bool
 // (lMerchantTransactionNumber, lMerchantClosingNumber are set internally in
 // this call, from MERCHANT_NYM.)
 auto OTAgreement::SetProposal(
-    ServerContext& context,
+    otx::context::Server& context,
     const Account& MERCHANT_ACCT,
     const String& strConsideration,
     const Time VALID_FROM,
@@ -976,7 +976,7 @@ auto OTAgreement::SetProposal(
 //
 // (Transaction number and closing number are retrieved from Nym at this time.)
 auto OTAgreement::Confirm(
-    ServerContext& context,
+    otx::context::Server& context,
     const Account& PAYER_ACCT,
     const identifier::Nym& p_id_MERCHANT_NYM,
     const identity::Nym* pMERCHANT_NYM) -> bool

@@ -342,10 +342,7 @@ struct Set;
 
 namespace internal
 {
-struct ClientContext;
-struct Context;
 struct NymFile;
-struct ServerContext;
 }  // namespace internal
 
 namespace network

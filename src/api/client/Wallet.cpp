@@ -13,15 +13,13 @@
 #include "api/Wallet.hpp"
 #include "internal/api/Api.hpp"
 #include "internal/api/client/Client.hpp"
-#include "internal/consensus/Consensus.hpp"
+#include "internal/otx/consensus/Consensus.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/api/network/ZMQ.hpp"
-#include "opentxs/consensus/Context.hpp"
-#include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
@@ -29,6 +27,8 @@
 #include "opentxs/identity/Nym.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/socket/Publish.hpp"
+#include "opentxs/otx/consensus/Base.hpp"
+#include "opentxs/otx/consensus/Server.hpp"
 #include "opentxs/protobuf/ConsensusEnums.pb.h"
 
 //#define OT_METHOD "opentxs::api::client::implementation::Wallet::"
@@ -59,7 +59,7 @@ Wallet::Wallet(const api::client::internal::Manager& client)
 auto Wallet::Context(
     const identifier::Server& notaryID,
     const identifier::Nym& clientNymID) const
-    -> std::shared_ptr<const opentxs::Context>
+    -> std::shared_ptr<const otx::context::Base>
 {
     auto serverID = Identifier::Factory(notaryID);
 
@@ -70,12 +70,12 @@ void Wallet::instantiate_server_context(
     const proto::Context& serialized,
     const Nym_p& localNym,
     const Nym_p& remoteNym,
-    std::shared_ptr<opentxs::internal::Context>& output) const
+    std::shared_ptr<otx::context::internal::Base>& output) const
 {
     auto& zmq = client_.ZMQ();
     const auto& server = serialized.servercontext().serverid();
     auto& connection = zmq.Server(server);
-    output.reset(opentxs::Factory::ServerContext(
+    output.reset(factory::ServerContext(
         client_,
         request_sent_,
         reply_received_,
@@ -88,24 +88,24 @@ void Wallet::instantiate_server_context(
 auto Wallet::mutable_Context(
     const identifier::Server& notaryID,
     const identifier::Nym& clientNymID,
-    const PasswordPrompt& reason) const -> Editor<opentxs::Context>
+    const PasswordPrompt& reason) const -> Editor<otx::context::Base>
 {
     auto serverID = Identifier::Factory(notaryID);
     auto base = context(clientNymID, server_to_nym(serverID));
-    std::function<void(opentxs::Context*)> callback =
-        [&](opentxs::Context* in) -> void {
-        this->save(reason, dynamic_cast<opentxs::internal::Context*>(in));
+    std::function<void(otx::context::Base*)> callback =
+        [&](otx::context::Base* in) -> void {
+        this->save(reason, dynamic_cast<otx::context::internal::Base*>(in));
     };
 
     OT_ASSERT(base);
 
-    return Editor<opentxs::Context>(base.get(), callback);
+    return Editor<otx::context::Base>(base.get(), callback);
 }
 
 auto Wallet::mutable_ServerContext(
     const identifier::Nym& localNymID,
     const Identifier& remoteID,
-    const PasswordPrompt& reason) const -> Editor<opentxs::ServerContext>
+    const PasswordPrompt& reason) const -> Editor<otx::context::Server>
 {
     Lock lock(context_map_lock_);
 
@@ -114,9 +114,9 @@ auto Wallet::mutable_ServerContext(
 
     auto base = context(localNymID, remoteNymID);
 
-    std::function<void(opentxs::Context*)> callback =
-        [&](opentxs::Context* in) -> void {
-        this->save(reason, dynamic_cast<opentxs::internal::Context*>(in));
+    std::function<void(otx::context::Base*)> callback =
+        [&](otx::context::Base* in) -> void {
+        this->save(reason, dynamic_cast<otx::context::internal::Base*>(in));
     };
 
     if (base) {
@@ -136,7 +136,7 @@ auto Wallet::mutable_ServerContext(
         auto& entry = context_map_[contextID];
         auto& zmq = client_.ZMQ();
         auto& connection = zmq.Server(serverID->str());
-        entry.reset(opentxs::Factory::ServerContext(
+        entry.reset(factory::ServerContext(
             client_,
             request_sent_,
             reply_received_,
@@ -149,11 +149,11 @@ auto Wallet::mutable_ServerContext(
 
     OT_ASSERT(base);
 
-    auto child = dynamic_cast<opentxs::ServerContext*>(base.get());
+    auto child = dynamic_cast<otx::context::Server*>(base.get());
 
     OT_ASSERT(nullptr != child);
 
-    return Editor<opentxs::ServerContext>(child, callback);
+    return Editor<otx::context::Server>(child, callback);
 }
 
 void Wallet::nym_to_contact(const identity::Nym& nym, const std::string& name)
@@ -166,13 +166,13 @@ void Wallet::nym_to_contact(const identity::Nym& nym, const std::string& name)
 auto Wallet::ServerContext(
     const identifier::Nym& localNymID,
     const Identifier& remoteID) const
-    -> std::shared_ptr<const opentxs::ServerContext>
+    -> std::shared_ptr<const otx::context::Server>
 {
     auto serverID = Identifier::Factory(remoteID);
     auto remoteNymID = server_to_nym(serverID);
     auto base = context(localNymID, remoteNymID);
 
-    auto output = std::dynamic_pointer_cast<const opentxs::ServerContext>(base);
+    auto output = std::dynamic_pointer_cast<const otx::context::Server>(base);
 
     return output;
 }

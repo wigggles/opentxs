@@ -27,6 +27,10 @@ if(DHT_EXPORT)
 endif()
 
 target_link_libraries(opentxs-network PRIVATE opentxs::messages)
+target_include_directories(
+  opentxs-network SYSTEM
+  PRIVATE "${opentxs_SOURCE_DIR}/deps/"
+)
 set_property(TARGET opentxs-network PROPERTY POSITION_INDEPENDENT_CODE 1)
 
 install(

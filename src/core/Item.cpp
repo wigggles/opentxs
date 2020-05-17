@@ -7,7 +7,6 @@
 #include "1_Internal.hpp"         // IWYU pragma: associated
 #include "opentxs/core/Item.hpp"  // IWYU pragma: associated
 
-#include <irrxml/irrXML.hpp>
 #include <cstdint>
 #include <cstring>
 #include <memory>
@@ -17,9 +16,6 @@
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/api/Factory.hpp"
-#include "opentxs/consensus/ClientContext.hpp"
-#include "opentxs/consensus/Context.hpp"
-#include "opentxs/consensus/TransactionStatement.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Cheque.hpp"
@@ -36,6 +32,9 @@
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/util/Tag.hpp"
+#include "opentxs/otx/consensus/Base.hpp"
+#include "opentxs/otx/consensus/Client.hpp"
+#include "opentxs/otx/consensus/TransactionStatement.hpp"
 
 #define OT_METHOD "opentxs::Item::"
 
@@ -169,7 +168,7 @@ Item::Item(
 // before sending his request.  Such notifications are dropped into the Nymbox
 // AND related asset account inboxes.
 auto Item::VerifyTransactionStatement(
-    const ClientContext& context,
+    const otx::context::Client& context,
     const OTTransaction& transaction,
     const bool real) const -> bool
 {
@@ -179,7 +178,7 @@ auto Item::VerifyTransactionStatement(
 }
 
 auto Item::VerifyTransactionStatement(
-    const ClientContext& context,
+    const otx::context::Client& context,
     const OTTransaction& TARGET_TRANSACTION,
     const std::set<TransactionNumber> newNumbers,
     const bool bIsRealTransaction) const -> bool
@@ -258,7 +257,7 @@ auto Item::VerifyTransactionStatement(
 
     if (3 > serialized->GetLength()) { return false; }
 
-    const TransactionStatement statement(serialized);
+    const otx::context::TransactionStatement statement(serialized);
 
     return context.Verify(statement, excluded, newNumbers);
 }
@@ -279,7 +278,7 @@ auto Item::VerifyTransactionStatement(
 //    being processed, are all still there.
 auto Item::VerifyBalanceStatement(
     std::int64_t lActualAdjustment,
-    const ClientContext& context,
+    const otx::context::Client& context,
     const Ledger& THE_INBOX,
     const Ledger& THE_OUTBOX,
     const Account& THE_ACCOUNT,
@@ -708,7 +707,7 @@ auto Item::VerifyBalanceStatement(
         return false;
     }
 
-    TransactionStatement statement(serialized);
+    otx::context::TransactionStatement statement(serialized);
     std::set<TransactionNumber> added;
 
     return context.Verify(statement, removed, added);

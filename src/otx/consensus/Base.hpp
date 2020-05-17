@@ -14,7 +14,7 @@
 
 #include "core/contract/Signable.hpp"
 #include "internal/api/Api.hpp"
-#include "internal/consensus/Consensus.hpp"
+#include "internal/otx/consensus/Consensus.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/api/Editor.hpp"
@@ -46,10 +46,10 @@ class NymFile;
 class PasswordPrompt;
 }  // namespace opentxs
 
-namespace opentxs::implementation
+namespace opentxs::otx::context::implementation
 {
-class Context : virtual public internal::Context,
-                public opentxs::contract::implementation::Signable
+class Base : virtual public internal::Base,
+             public opentxs::contract::implementation::Signable
 {
 public:
     auto AcknowledgedNumbers() const -> std::set<RequestNumber> final;
@@ -61,6 +61,10 @@ public:
     auto NymboxHashMatch() const -> bool final;
     auto LegacyDataFolder() const -> std::string final;
     auto LocalNymboxHash() const -> OTIdentifier final;
+    auto Notary() const -> const identifier::Server& final
+    {
+        return server_id_;
+    }
     auto Nymfile(const PasswordPrompt& reason) const
         -> std::unique_ptr<const opentxs::NymFile> final;
     auto RemoteNym() const -> const identity::Nym& final;
@@ -68,10 +72,6 @@ public:
     auto Request() const -> RequestNumber final;
     auto Serialize() const -> OTData final;
     auto Serialized() const -> proto::Context final;
-    auto Server() const -> const identifier::Server& final
-    {
-        return server_id_;
-    }
     auto VerifyAcknowledgedNumber(const RequestNumber& req) const -> bool final;
     auto VerifyAvailableNumber(const TransactionNumber& number) const
         -> bool final;
@@ -102,7 +102,7 @@ public:
     void SetRemoteNymboxHash(const Identifier& hash) final;
     void SetRequest(const RequestNumber req) final;
 
-    ~Context() override = default;
+    ~Base() override = default;
 
 protected:
     const OTServerID server_id_;
@@ -151,13 +151,13 @@ protected:
     auto verify_issued_number(const Lock& lock, const TransactionNumber& number)
         const -> bool;
 
-    Context(
+    Base(
         const api::internal::Core& api,
         const VersionNumber targetVersion,
         const Nym_p& local,
         const Nym_p& remote,
         const identifier::Server& server);
-    Context(
+    Base(
         const api::internal::Core& api,
         const VersionNumber targetVersion,
         const proto::Context& serialized,
@@ -177,7 +177,7 @@ private:
 
     virtual auto client_nym_id(const Lock& lock) const
         -> const identifier::Nym& = 0;
-    auto clone() const noexcept -> Context* final { return nullptr; }
+    auto clone() const noexcept -> Base* final { return nullptr; }
     auto IDVersion(const Lock& lock) const -> proto::Context;
     virtual auto server_nym_id(const Lock& lock) const
         -> const identifier::Nym& = 0;
@@ -190,10 +190,10 @@ private:
     // Transition method used for converting from Nym class
     auto insert_issued_number(const TransactionNumber& number) -> bool;
 
-    Context() = delete;
-    Context(const Context&) = delete;
-    Context(Context&&) = delete;
-    auto operator=(const Context&) -> Context& = delete;
-    auto operator=(Context &&) -> Context& = delete;
+    Base() = delete;
+    Base(const Base&) = delete;
+    Base(Base&&) = delete;
+    auto operator=(const Base&) -> Base& = delete;
+    auto operator=(Base &&) -> Base& = delete;
 };
-}  // namespace opentxs::implementation
+}  // namespace opentxs::otx::context::implementation
