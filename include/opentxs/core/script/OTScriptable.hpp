@@ -8,14 +8,15 @@
 
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
+#include <irrxml/irrXML.hpp>
 #include <cstdint>
 #include <map>
 #include <string>
 #include <vector>
 
+#include "opentxs/core/Account.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/core/Account.hpp"
 
 namespace opentxs
 {
@@ -38,6 +39,14 @@ namespace identity
 class Nym;
 }  // namespace identity
 
+namespace otx
+{
+namespace context
+{
+class Server;
+}  // namespace context
+}  // namespace otx
+
 class Identifier;
 class OTAgent;
 class OTBylaw;
@@ -47,9 +56,11 @@ class OTPartyAccount;
 class OTScript;
 class OTVariable;
 class PasswordPrompt;
-class ServerContext;
 class Tag;
+}  // namespace opentxs
 
+namespace opentxs
+{
 using mapOfBylaws = std::map<std::string, OTBylaw*>;
 using mapOfClauses = std::map<std::string, OTClause*>;
 using mapOfParties = std::map<std::string, OTParty*>;
@@ -88,7 +99,7 @@ public:
                                                               // ownership.
     OPENTXS_EXPORT virtual bool ConfirmParty(
         OTParty& theParty,  // Takes ownership.
-        ServerContext& context,
+        otx::context::Server& context,
         const PasswordPrompt& reason);
     OPENTXS_EXPORT bool RemoveParty(std::string str_Name);
     OPENTXS_EXPORT bool RemoveBylaw(std::string str_Name);

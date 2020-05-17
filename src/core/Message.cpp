@@ -17,7 +17,6 @@
 #include "internal/api/Api.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/api/Factory.hpp"
-#include "opentxs/consensus/Context.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -32,6 +31,7 @@
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/Tag.hpp"
+#include "opentxs/otx/consensus/Base.hpp"
 
 #define OT_METHOD "opentxs::Message"
 
@@ -306,7 +306,7 @@ auto Message::ReplyCommand(const MessageType type) -> std::string
 }
 
 auto Message::HarvestTransactionNumbers(
-    ServerContext& context,
+    otx::context::Server& context,
     bool bHarvestingForRetry,     // false until positively asserted.
     bool bReplyWasSuccess,        // false until positively asserted.
     bool bReplyWasFailure,        // false until positively asserted.
@@ -412,7 +412,7 @@ auto Message::HarvestTransactionNumbers(
 // So the message can get the list of numbers from the Nym, before sending,
 // that should be listed as acknowledged that the server reply has already been
 // seen for those request numbers.
-void Message::SetAcknowledgments(const Context& context)
+void Message::SetAcknowledgments(const otx::context::Base& context)
 {
     SetAcknowledgments(context.AcknowledgedNumbers());
 }

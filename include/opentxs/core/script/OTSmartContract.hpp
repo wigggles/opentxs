@@ -8,6 +8,7 @@
 
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
+#include <irrxml/irrXML.hpp>
 #include <cstdint>
 #include <map>
 #include <set>
@@ -48,15 +49,25 @@ namespace identity
 class Nym;
 }  // namespace identity
 
-class ClientContext;
+namespace otx
+{
+namespace context
+{
+class Client;
+class Server;
+}  // namespace context
+}  // namespace otx
+
 class Identifier;
 class NumList;
 class OTParty;
 class OTScript;
 class OTStash;
 class PasswordPrompt;
-class ServerContext;
+}  // namespace opentxs
 
+namespace opentxs
+{
 class OTSmartContract : public OTCronItem
 {
 private:  // Private prevents erroneous use by other classes.
@@ -121,10 +132,10 @@ public:
     //
     bool Compare(OTScriptable& rhs) const override;
     // From OTCronItem (parent class of this)
-    bool CanRemoveItemFromCron(const ClientContext& context) override;
+    bool CanRemoveItemFromCron(const otx::context::Client& context) override;
 
-    void HarvestOpeningNumber(ServerContext& context) override;
-    void HarvestClosingNumbers(ServerContext& context) override;
+    void HarvestOpeningNumber(otx::context::Server& context) override;
+    void HarvestClosingNumbers(otx::context::Server& context) override;
 
     // Server-side. Similar to below:
     void CloseoutOpeningNumbers(const PasswordPrompt& reason);
@@ -157,7 +168,7 @@ public:
     bool AddParty(OTParty& theParty) override;  // Takes ownership.
     bool ConfirmParty(
         OTParty& theParty,
-        ServerContext& context,
+        otx::context::Server& context,
         const PasswordPrompt& reason) override;  // Takes ownership.
     // Returns true if it was empty (and thus successfully set).
     OPENTXS_EXPORT bool SetNotaryIDIfEmpty(const identifier::Server& theID);

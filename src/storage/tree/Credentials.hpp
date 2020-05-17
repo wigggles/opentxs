@@ -30,10 +30,18 @@ class Credential;
 
 namespace storage
 {
+class Tree;
+}  // namespace storage
+}  // namespace opentxs
+
+namespace opentxs
+{
+namespace storage
+{
 class Credentials final : public Node
 {
 private:
-    friend class Tree;
+    friend Tree;
 
     auto check_existing(const bool incoming, Metadata& metadata) const -> bool;
     void init(const std::string& hash) final;

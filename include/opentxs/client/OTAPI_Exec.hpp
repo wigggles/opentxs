@@ -806,7 +806,7 @@ public:
     OPENTXS_EXPORT ~OTAPI_Exec() = default;
 
 private:
-    friend class api::client::implementation::Manager;
+    friend api::client::implementation::Manager;
 
     const api::internal::Core& api_;
     const api::client::Activity& activity_;

@@ -30,7 +30,6 @@
 #include "opentxs/blind/Mint.hpp"  // IWYU pragma: keep
 #endif                             // OT_CASH
 #include "opentxs/client/NymData.hpp"
-#include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Data.hpp"
@@ -58,6 +57,7 @@
 #include "opentxs/core/trade/OTMarket.hpp"
 #include "opentxs/crypto/key/Asymmetric.hpp"
 #include "opentxs/identity/Nym.hpp"
+#include "opentxs/otx/consensus/Client.hpp"
 #include "opentxs/protobuf/Check.hpp"
 #include "opentxs/protobuf/ContactEnums.pb.h"
 #include "opentxs/protobuf/ContractEnums.pb.h"
@@ -268,7 +268,7 @@ void UserCommandProcessor::check_acknowledgements(ReplyMessage& reply) const
     // list, we will want to save (at the end.)
     auto numlist_ack_reply = reply.Acknowledged();
     const auto& nymID = context.RemoteNym().ID();
-    auto nymbox{manager_.Factory().Ledger(nymID, nymID, context.Server())};
+    auto nymbox{manager_.Factory().Ledger(nymID, nymID, context.Notary())};
 
     OT_ASSERT(nymbox);
 
@@ -670,7 +670,7 @@ auto UserCommandProcessor::cmd_delete_user(ReplyMessage& reply) const -> bool
     OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_del_user_acct);
 
     const auto& nymID = context.RemoteNym().ID();
-    const auto& server = context.Server();
+    const auto& server = context.Notary();
     const auto& serverNym = *context.Nym();
     auto nymbox = load_nymbox(nymID, server, serverNym, true);
 
@@ -742,7 +742,7 @@ auto UserCommandProcessor::cmd_get_account_data(ReplyMessage& reply) const
 
     const auto& context = reply.Context();
     const auto& nymID = context.RemoteNym().ID();
-    const auto& serverID = context.Server();
+    const auto& serverID = context.Notary();
     const auto& serverNym = *context.Nym();
     const auto accountID = Identifier::Factory(msgIn.m_strAcctID);
     auto account = server_.API().Wallet().mutable_Account(accountID, reason_);
@@ -836,7 +836,7 @@ auto UserCommandProcessor::cmd_get_box_receipt(ReplyMessage& reply) const
 
     const auto& context = reply.Context();
     const auto& nymID = context.RemoteNym().ID();
-    const auto& serverID = context.Server();
+    const auto& serverID = context.Notary();
     const auto& serverNym = *context.Nym();
     const auto accountID = Identifier::Factory(msgIn.m_strAcctID);
     std::unique_ptr<Ledger> box{};
@@ -1118,7 +1118,7 @@ auto UserCommandProcessor::cmd_get_nymbox(ReplyMessage& reply) const -> bool
 
     auto& context = reply.Context();
     const auto& nymID = context.RemoteNym().ID();
-    const auto& serverID = context.Server();
+    const auto& serverID = context.Notary();
     const auto& serverNym = *context.Nym();
     auto newNymboxHash = Identifier::Factory();
     auto nymbox = load_nymbox(nymID, serverID, serverNym, false);
@@ -1221,7 +1221,7 @@ auto UserCommandProcessor::cmd_get_transaction_numbers(
     auto NYMBOX_HASH = Identifier::Factory();
     bool bSuccess = true;
     bool bSavedNymbox = false;
-    const auto& serverID = context.Server();
+    const auto& serverID = context.Notary();
     auto theLedger{manager_.Factory().Ledger(nymID, nymID, serverID)};
 
     OT_ASSERT(theLedger);
@@ -1345,7 +1345,7 @@ auto UserCommandProcessor::cmd_issue_basket(ReplyMessage& reply) const -> bool
     }
 
     const auto& context = reply.Context();
-    const auto& serverID = context.Server();
+    const auto& serverID = context.Notary();
     const auto& serverNym = context.Nym();
     const auto& serverNymID = context.Nym()->ID();
 
@@ -1469,7 +1469,7 @@ auto UserCommandProcessor::cmd_notarize_transaction(ReplyMessage& reply) const
 
     auto& context = reply.Context();
     const auto& nymID = context.RemoteNym().ID();
-    const auto& serverID = context.Server();
+    const auto& serverID = context.Notary();
     const auto& serverNym = *context.Nym();
     const auto& serverNymID = serverNym.ID();
     const auto accountID = Identifier::Factory(msgIn.m_strAcctID);
@@ -1572,7 +1572,7 @@ auto UserCommandProcessor::cmd_process_inbox(ReplyMessage& reply) const -> bool
     auto& context = reply.Context();
     const auto& clientNym = context.RemoteNym();
     const auto& nymID = clientNym.ID();
-    const auto& serverID = context.Server();
+    const auto& serverID = context.Notary();
     const auto& serverNym = *context.Nym();
     const auto& serverNymID = serverNym.ID();
     const auto& nym = reply.Context().RemoteNym();
@@ -1745,7 +1745,7 @@ auto UserCommandProcessor::cmd_process_nymbox(ReplyMessage& reply) const -> bool
 
     auto& context = reply.Context();
     const auto& nymID = context.RemoteNym().ID();
-    const auto& serverID = context.Server();
+    const auto& serverID = context.Notary();
     const auto& serverNym = *context.Nym();
     const auto& serverNymID = serverNym.ID();
     auto nymboxHash = Identifier::Factory();
@@ -1886,7 +1886,7 @@ auto UserCommandProcessor::cmd_register_account(ReplyMessage& reply) const
 
     const auto& context = reply.Context();
     const auto& nymID = context.RemoteNym().ID();
-    const auto& serverID = context.Server();
+    const auto& serverID = context.Notary();
     const auto& serverNym = *context.Nym();
     const auto contractID =
         identifier::UnitDefinition::Factory(msgIn.m_strInstrumentDefinitionID);
@@ -2100,7 +2100,7 @@ auto UserCommandProcessor::cmd_register_instrument_definition(
     // negative)
     const auto& context = reply.Context();
     const auto& nymID = context.RemoteNym().ID();
-    const auto& serverID = context.Server();
+    const auto& serverID = context.Notary();
     const auto& serverNym = *context.Nym();
     auto account = server_.API().Wallet().CreateAccount(
         nymID, serverID, contractID, serverNym, Account::issuer, 0, reason_);
@@ -2271,7 +2271,7 @@ auto UserCommandProcessor::cmd_send_nym_message(ReplyMessage& reply) const
 {
     auto& context = reply.Context();
     const auto& sender = context.RemoteNym().ID();
-    const auto& server = context.Server();
+    const auto& server = context.Notary();
     const auto& msgIn = reply.Original();
     const auto& targetNym = msgIn.m_strNymID2;
     const auto recipient = identifier::Nym::Factory(targetNym);
@@ -2419,7 +2419,7 @@ auto UserCommandProcessor::cmd_usage_credits(ReplyMessage& reply) const -> bool
     OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_usage_credits);
 
     const auto& adminContext = reply.Context();
-    const auto& serverID = adminContext.Server();
+    const auto& serverID = adminContext.Notary();
     const auto& adminNym = adminContext.RemoteNym();
     const auto& adminNymID = adminNym.ID();
     const auto& serverNym = *adminContext.Nym();
@@ -2523,11 +2523,11 @@ void UserCommandProcessor::drop_reply_notice_to_nymbox(
     const Message& message,
     const std::int64_t& lRequestNum,
     const bool bReplyTransSuccess,
-    ClientContext& context,
+    otx::context::Client& context,
     Server& server) const
 {
     const auto& nymID = context.RemoteNym().ID();
-    const auto& serverID = context.Server();
+    const auto& serverID = context.Notary();
     const auto& serverNym = *context.Nym();
     auto theNymbox{server.API().Factory().Ledger(nymID, nymID, serverID)};
 
@@ -2612,7 +2612,7 @@ void UserCommandProcessor::drop_reply_notice_to_nymbox(
 }
 
 auto UserCommandProcessor::hash_check(
-    const ClientContext& context,
+    const otx::context::Client& context,
     Identifier& nymboxHash) const -> bool
 {
     if (context.HaveLocalNymboxHash()) {
@@ -2637,7 +2637,7 @@ auto UserCommandProcessor::hash_check(
 }
 
 auto UserCommandProcessor::initialize_request_number(
-    ClientContext& context) const -> RequestNumber
+    otx::context::Client& context) const -> RequestNumber
 {
     auto requestNumber = context.Request();
 
@@ -2998,7 +2998,7 @@ auto UserCommandProcessor::reregister_nym(ReplyMessage& reply) const -> bool
         .Flush();
     const auto& nym = reply.Context().RemoteNym();
     const auto& serverNym = *context.Nym();
-    const auto& serverID = context.Server();
+    const auto& serverID = context.Notary();
     const auto& targetNymID = nym.ID();
     auto nymbox = load_nymbox(targetNymID, serverID, serverNym, false);
 

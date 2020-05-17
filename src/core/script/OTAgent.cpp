@@ -15,10 +15,6 @@
 #include "opentxs/Types.hpp"
 #include "opentxs/api/Editor.hpp"
 #include "opentxs/api/Wallet.hpp"
-#include "opentxs/consensus/ClientContext.hpp"
-#include "opentxs/consensus/Context.hpp"
-#include "opentxs/consensus/ManagedNumber.hpp"
-#include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -34,6 +30,10 @@
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/identity/Nym.hpp"
+#include "opentxs/otx/consensus/Client.hpp"
+#include "opentxs/otx/consensus/Base.hpp"
+#include "opentxs/otx/consensus/ManagedNumber.hpp"
+#include "opentxs/otx/consensus/Server.hpp"
 
 #define OT_METHOD "opentxs::OTAgent::"
 
@@ -767,7 +767,7 @@ auto OTAgent::VerifyTransactionNumber(
 
 auto OTAgent::RecoverTransactionNumber(
     const TransactionNumber& lNumber,
-    Context& context) -> bool
+    otx::context::Base& context) -> bool
 {
     // Todo: this function may change when entities / roles are added.
     if (!IsAnIndividual() || !DoesRepresentHimself()) {
@@ -914,7 +914,7 @@ auto OTAgent::RemoveIssuedNumber(
 
 // Done
 auto OTAgent::ReserveClosingTransNum(
-    ServerContext& context,
+    otx::context::Server& context,
     OTPartyAccount& thePartyAcct) -> bool
 {
     if (IsAnIndividual() && DoesRepresentHimself() && (nullptr != m_pNym)) {
@@ -973,7 +973,7 @@ auto OTAgent::ReserveClosingTransNum(
 }
 
 // Done
-auto OTAgent::ReserveOpeningTransNum(ServerContext& context) -> bool
+auto OTAgent::ReserveOpeningTransNum(otx::context::Server& context) -> bool
 {
     if (IsAnIndividual() && DoesRepresentHimself() && (nullptr != m_pNym)) {
         if (nullptr == m_pForParty) {

@@ -11,7 +11,6 @@
 
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/api/Wallet.hpp"
-#include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
@@ -22,6 +21,7 @@
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/identity/Nym.hpp"
+#include "opentxs/otx/consensus/Client.hpp"
 #include "server/UserCommandProcessor.hpp"
 
 #define OT_METHOD "opentxs::ReplyMessage::"
@@ -161,7 +161,7 @@ void ReplyMessage::clear_request()
 
 void ReplyMessage::ClearRequest() { message_.m_ascInReferenceTo->Release(); }
 
-auto ReplyMessage::Context() -> ClientContext&
+auto ReplyMessage::Context() -> otx::context::Client&
 {
     OT_ASSERT(context_);
 
@@ -221,7 +221,7 @@ auto ReplyMessage::LoadContext(const PasswordPrompt& reason) -> bool
         return false;
     }
 
-    context_.reset(new Editor<ClientContext>(
+    context_.reset(new Editor<otx::context::Client>(
         wallet_.mutable_ClientContext(sender_nym_->ID(), reason)));
 
     return bool(context_);
@@ -243,7 +243,7 @@ void ReplyMessage::SetAccount(const String& accountID)
 
 void ReplyMessage::SetBool(const bool value) { message_.m_bBool = value; }
 
-void ReplyMessage::SetAcknowledgments(const ClientContext& context)
+void ReplyMessage::SetAcknowledgments(const otx::context::Client& context)
 {
     message_.SetAcknowledgments(context);
 }

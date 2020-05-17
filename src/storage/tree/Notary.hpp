@@ -31,6 +31,11 @@ namespace identifier
 {
 class UnitDefinition;
 }  // namespace identifier
+
+namespace storage
+{
+class Tree;
+}  // namespace storage
 }  // namespace opentxs
 
 namespace opentxs::storage
@@ -55,7 +60,7 @@ public:
     ~Notary() final = default;
 
 private:
-    friend class Tree;
+    friend Tree;
     using SeriesMap = std::map<MintSeries, std::string>;
     using UnitMap = std::map<std::string, SeriesMap>;
 

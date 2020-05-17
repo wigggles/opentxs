@@ -3,9 +3,9 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "0_stdafx.hpp"           // IWYU pragma: associated
-#include "1_Internal.hpp"         // IWYU pragma: associated
-#include "consensus/Context.hpp"  // IWYU pragma: associated
+#include "0_stdafx.hpp"            // IWYU pragma: associated
+#include "1_Internal.hpp"          // IWYU pragma: associated
+#include "otx/consensus/Base.hpp"  // IWYU pragma: associated
 
 #include <stdexcept>
 #include <utility>
@@ -31,11 +31,11 @@
 #define OT_MAX_ACK_NUMS 100
 #endif
 
-#define OT_METHOD "opentxs::implementation::Context::"
+#define OT_METHOD "opentxs::otx::context::implementation::Context::"
 
-namespace opentxs::implementation
+namespace opentxs::otx::context::implementation
 {
-Context::Context(
+Base::Base(
     const api::internal::Core& api,
     const VersionNumber targetVersion,
     const Nym_p& local,
@@ -61,7 +61,7 @@ Context::Context(
 {
 }
 
-Context::Context(
+Base::Base(
     const api::internal::Core& api,
     const VersionNumber targetVersion,
     const proto::Context& serialized,
@@ -102,14 +102,14 @@ Context::Context(
     }
 }
 
-auto Context::AcknowledgedNumbers() const -> std::set<RequestNumber>
+auto Base::AcknowledgedNumbers() const -> std::set<RequestNumber>
 {
     Lock lock(lock_);
 
     return acknowledged_request_numbers_;
 }
 
-auto Context::add_acknowledged_number(const Lock& lock, const RequestNumber req)
+auto Base::add_acknowledged_number(const Lock& lock, const RequestNumber req)
     -> bool
 {
     OT_ASSERT(verify_write_lock(lock));
@@ -124,19 +124,19 @@ auto Context::add_acknowledged_number(const Lock& lock, const RequestNumber req)
     return output.second;
 }
 
-auto Context::AddAcknowledgedNumber(const RequestNumber req) -> bool
+auto Base::AddAcknowledgedNumber(const RequestNumber req) -> bool
 {
     Lock lock(lock_);
 
     return add_acknowledged_number(lock, req);
 }
 
-auto Context::AvailableNumbers() const -> std::size_t
+auto Base::AvailableNumbers() const -> std::size_t
 {
     return available_transaction_numbers_.size();
 }
 
-auto Context::calculate_id(
+auto Base::calculate_id(
     const api::Core& api,
     const Nym_p& client,
     const Nym_p& server) noexcept(false) -> OTIdentifier
@@ -152,9 +152,8 @@ auto Context::calculate_id(
     return api.Factory().Identifier(preimage->Bytes());
 }
 
-auto Context::consume_available(
-    const Lock& lock,
-    const TransactionNumber& number) -> bool
+auto Base::consume_available(const Lock& lock, const TransactionNumber& number)
+    -> bool
 {
     OT_ASSERT(verify_write_lock(lock));
 
@@ -165,7 +164,7 @@ auto Context::consume_available(
     return 1 == available_transaction_numbers_.erase(number);
 }
 
-auto Context::consume_issued(const Lock& lock, const TransactionNumber& number)
+auto Base::consume_issued(const Lock& lock, const TransactionNumber& number)
     -> bool
 {
     OT_ASSERT(verify_write_lock(lock));
@@ -185,21 +184,21 @@ auto Context::consume_issued(const Lock& lock, const TransactionNumber& number)
     return 1 == issued_transaction_numbers_.erase(number);
 }
 
-auto Context::ConsumeAvailable(const TransactionNumber& number) -> bool
+auto Base::ConsumeAvailable(const TransactionNumber& number) -> bool
 {
     Lock lock(lock_);
 
     return consume_available(lock, number);
 }
 
-auto Context::ConsumeIssued(const TransactionNumber& number) -> bool
+auto Base::ConsumeIssued(const TransactionNumber& number) -> bool
 {
     Lock lock(lock_);
 
     return consume_issued(lock, number);
 }
 
-auto Context::contract(const Lock& lock) const -> proto::Context
+auto Base::contract(const Lock& lock) const -> proto::Context
 {
     OT_ASSERT(verify_write_lock(lock));
 
@@ -215,7 +214,7 @@ auto Context::contract(const Lock& lock) const -> proto::Context
 
 // This method will remove entries from acknowledged_request_numbers_ if they
 // are not on the provided set
-void Context::finish_acknowledgements(
+void Base::finish_acknowledgements(
     const Lock& lock,
     const std::set<RequestNumber>& req)
 {
@@ -230,7 +229,7 @@ void Context::finish_acknowledgements(
     for (const auto& it : toErase) { acknowledged_request_numbers_.erase(it); }
 }
 
-auto Context::GetID(const Lock& lock) const -> OTIdentifier
+auto Base::GetID(const Lock& lock) const -> OTIdentifier
 {
     OT_ASSERT(verify_write_lock(lock));
 
@@ -241,17 +240,17 @@ auto Context::GetID(const Lock& lock) const -> OTIdentifier
     }
 }
 
-auto Context::HaveLocalNymboxHash() const -> bool
+auto Base::HaveLocalNymboxHash() const -> bool
 {
     return String::Factory(local_nymbox_hash_)->Exists();
 }
 
-auto Context::HaveRemoteNymboxHash() const -> bool
+auto Base::HaveRemoteNymboxHash() const -> bool
 {
     return String::Factory(remote_nymbox_hash_)->Exists();
 }
 
-auto Context::IDVersion(const Lock& lock) const -> proto::Context
+auto Base::IDVersion(const Lock& lock) const -> proto::Context
 {
     OT_ASSERT(verify_write_lock(lock));
 
@@ -297,14 +296,14 @@ auto Context::IDVersion(const Lock& lock) const -> proto::Context
     return output;
 }
 
-auto Context::IncrementRequest() -> RequestNumber
+auto Base::IncrementRequest() -> RequestNumber
 {
     Lock lock(lock_);
 
     return ++request_number_;
 }
 
-auto Context::InitializeNymbox(const PasswordPrompt& reason) -> bool
+auto Base::InitializeNymbox(const PasswordPrompt& reason) -> bool
 {
     Lock lock(lock_);
     const auto& ownerNymID = client_nym_id(lock);
@@ -361,21 +360,21 @@ auto Context::InitializeNymbox(const PasswordPrompt& reason) -> bool
     return true;
 }
 
-auto Context::insert_available_number(const TransactionNumber& number) -> bool
+auto Base::insert_available_number(const TransactionNumber& number) -> bool
 {
     Lock lock(lock_);
 
     return available_transaction_numbers_.insert(number).second;
 }
 
-auto Context::insert_issued_number(const TransactionNumber& number) -> bool
+auto Base::insert_issued_number(const TransactionNumber& number) -> bool
 {
     Lock lock(lock_);
 
     return issued_transaction_numbers_.insert(number).second;
 }
 
-auto Context::issue_number(const Lock& lock, const TransactionNumber& number)
+auto Base::issue_number(const Lock& lock, const TransactionNumber& number)
     -> bool
 {
     OT_ASSERT(verify_write_lock(lock));
@@ -397,26 +396,23 @@ auto Context::issue_number(const Lock& lock, const TransactionNumber& number)
     return output;
 }
 
-auto Context::IssuedNumbers() const -> std::set<TransactionNumber>
+auto Base::IssuedNumbers() const -> std::set<TransactionNumber>
 {
     Lock lock(lock_);
 
     return issued_transaction_numbers_;
 }
 
-auto Context::LegacyDataFolder() const -> std::string
-{
-    return api_.DataFolder();
-}
+auto Base::LegacyDataFolder() const -> std::string { return api_.DataFolder(); }
 
-auto Context::LocalNymboxHash() const -> OTIdentifier
+auto Base::LocalNymboxHash() const -> OTIdentifier
 {
     Lock lock(lock_);
 
     return local_nymbox_hash_;
 }
 
-auto Context::mutable_Nymfile(const PasswordPrompt& reason)
+auto Base::mutable_Nymfile(const PasswordPrompt& reason)
     -> Editor<opentxs::NymFile>
 {
     OT_ASSERT(nym_)
@@ -424,14 +420,14 @@ auto Context::mutable_Nymfile(const PasswordPrompt& reason)
     return api_.Wallet().mutable_Nymfile(nym_->ID(), reason);
 }
 
-auto Context::Name() const -> std::string
+auto Base::Name() const -> std::string
 {
     Lock lock(lock_);
 
     return String::Factory(id(lock))->Get();
 }
 
-auto Context::NymboxHashMatch() const -> bool
+auto Base::NymboxHashMatch() const -> bool
 {
     Lock lock(lock_);
 
@@ -442,7 +438,7 @@ auto Context::NymboxHashMatch() const -> bool
     return (local_nymbox_hash_ == remote_nymbox_hash_);
 }
 
-auto Context::Nymfile(const PasswordPrompt& reason) const
+auto Base::Nymfile(const PasswordPrompt& reason) const
     -> std::unique_ptr<const opentxs::NymFile>
 {
     OT_ASSERT(nym_);
@@ -450,7 +446,7 @@ auto Context::Nymfile(const PasswordPrompt& reason) const
     return api_.Wallet().Nymfile(nym_->ID(), reason);
 }
 
-auto Context::recover_available_number(
+auto Base::recover_available_number(
     const Lock& lock,
     const TransactionNumber& number) -> bool
 {
@@ -465,14 +461,14 @@ auto Context::recover_available_number(
     return available_transaction_numbers_.insert(number).second;
 }
 
-auto Context::RecoverAvailableNumber(const TransactionNumber& number) -> bool
+auto Base::RecoverAvailableNumber(const TransactionNumber& number) -> bool
 {
     Lock lock(lock_);
 
     return recover_available_number(lock, number);
 }
 
-auto Context::Refresh(const PasswordPrompt& reason) -> proto::Context
+auto Base::Refresh(const PasswordPrompt& reason) -> proto::Context
 {
     Lock lock(lock_);
     update_signature(lock, reason);
@@ -480,21 +476,21 @@ auto Context::Refresh(const PasswordPrompt& reason) -> proto::Context
     return contract(lock);
 }
 
-auto Context::RemoteNym() const -> const identity::Nym&
+auto Base::RemoteNym() const -> const identity::Nym&
 {
     OT_ASSERT(remote_nym_);
 
     return *remote_nym_;
 }
 
-auto Context::RemoteNymboxHash() const -> OTIdentifier
+auto Base::RemoteNymboxHash() const -> OTIdentifier
 {
     Lock lock(lock_);
 
     return remote_nymbox_hash_;
 }
 
-auto Context::remove_acknowledged_number(
+auto Base::remove_acknowledged_number(
     const Lock& lock,
     const std::set<RequestNumber>& req) -> bool
 {
@@ -509,20 +505,16 @@ auto Context::remove_acknowledged_number(
     return (0 < removed);
 }
 
-auto Context::RemoveAcknowledgedNumber(const std::set<RequestNumber>& req)
-    -> bool
+auto Base::RemoveAcknowledgedNumber(const std::set<RequestNumber>& req) -> bool
 {
     Lock lock(lock_);
 
     return remove_acknowledged_number(lock, req);
 }
 
-auto Context::Request() const -> RequestNumber
-{
-    return request_number_.load();
-}
+auto Base::Request() const -> RequestNumber { return request_number_.load(); }
 
-void Context::Reset()
+void Base::Reset()
 {
     Lock lock(lock_);
     available_transaction_numbers_.clear();
@@ -530,7 +522,7 @@ void Context::Reset()
     request_number_.store(0);
 }
 
-auto Context::save(const Lock& lock, const PasswordPrompt& reason) -> bool
+auto Base::save(const Lock& lock, const PasswordPrompt& reason) -> bool
 {
     OT_ASSERT(verify_write_lock(lock));
 
@@ -540,7 +532,7 @@ auto Context::save(const Lock& lock, const PasswordPrompt& reason) -> bool
     return api_.Storage().Store(GetContract(lock));
 }
 
-auto Context::serialize(const Lock& lock, const proto::ConsensusType type) const
+auto Base::serialize(const Lock& lock, const proto::ConsensusType type) const
     -> proto::Context
 {
     OT_ASSERT(verify_write_lock(lock));
@@ -572,19 +564,19 @@ auto Context::serialize(const Lock& lock, const proto::ConsensusType type) const
     return output;
 }
 
-auto Context::Serialize() const -> OTData
+auto Base::Serialize() const -> OTData
 {
     return api_.Factory().Data(Serialized());
 }
 
-auto Context::Serialized() const -> proto::Context
+auto Base::Serialized() const -> proto::Context
 {
     Lock lock(lock_);
 
     return contract(lock);
 }
 
-void Context::set_local_nymbox_hash(const Lock& lock, const Identifier& hash)
+void Base::set_local_nymbox_hash(const Lock& lock, const Identifier& hash)
 {
     OT_ASSERT(verify_write_lock(lock));
 
@@ -594,7 +586,7 @@ void Context::set_local_nymbox_hash(const Lock& lock, const Identifier& hash)
         .Flush();
 }
 
-void Context::set_remote_nymbox_hash(const Lock& lock, const Identifier& hash)
+void Base::set_remote_nymbox_hash(const Lock& lock, const Identifier& hash)
 {
     OT_ASSERT(verify_write_lock(lock));
 
@@ -604,26 +596,26 @@ void Context::set_remote_nymbox_hash(const Lock& lock, const Identifier& hash)
         .Flush();
 }
 
-void Context::SetLocalNymboxHash(const Identifier& hash)
+void Base::SetLocalNymboxHash(const Identifier& hash)
 {
     Lock lock(lock_);
     set_local_nymbox_hash(lock, hash);
 }
 
-void Context::SetRemoteNymboxHash(const Identifier& hash)
+void Base::SetRemoteNymboxHash(const Identifier& hash)
 {
     Lock lock(lock_);
     set_remote_nymbox_hash(lock, hash);
 }
 
-void Context::SetRequest(const RequestNumber req)
+void Base::SetRequest(const RequestNumber req)
 {
     Lock lock(lock_);
 
     request_number_.store(req);
 }
 
-auto Context::SigVersion(const Lock& lock) const -> proto::Context
+auto Base::SigVersion(const Lock& lock) const -> proto::Context
 {
     OT_ASSERT(verify_write_lock(lock));
 
@@ -633,7 +625,7 @@ auto Context::SigVersion(const Lock& lock) const -> proto::Context
     return output;
 }
 
-auto Context::update_signature(const Lock& lock, const PasswordPrompt& reason)
+auto Base::update_signature(const Lock& lock, const PasswordPrompt& reason)
     -> bool
 {
     OT_ASSERT(verify_write_lock(lock));
@@ -657,7 +649,7 @@ auto Context::update_signature(const Lock& lock, const PasswordPrompt& reason)
     return success;
 }
 
-auto Context::validate(const Lock& lock) const -> bool
+auto Base::validate(const Lock& lock) const -> bool
 {
     OT_ASSERT(verify_write_lock(lock));
 
@@ -672,7 +664,7 @@ auto Context::validate(const Lock& lock) const -> bool
     return verify_signature(lock, *signatures_.front());
 }
 
-auto Context::verify_acknowledged_number(
+auto Base::verify_acknowledged_number(
     const Lock& lock,
     const RequestNumber& req) const -> bool
 {
@@ -681,7 +673,7 @@ auto Context::verify_acknowledged_number(
     return (0 < acknowledged_request_numbers_.count(req));
 }
 
-auto Context::verify_available_number(
+auto Base::verify_available_number(
     const Lock& lock,
     const TransactionNumber& number) const -> bool
 {
@@ -690,7 +682,7 @@ auto Context::verify_available_number(
     return (0 < available_transaction_numbers_.count(number));
 }
 
-auto Context::verify_issued_number(
+auto Base::verify_issued_number(
     const Lock& lock,
     const TransactionNumber& number) const -> bool
 {
@@ -699,9 +691,8 @@ auto Context::verify_issued_number(
     return (0 < issued_transaction_numbers_.count(number));
 }
 
-auto Context::verify_signature(
-    const Lock& lock,
-    const proto::Signature& signature) const -> bool
+auto Base::verify_signature(const Lock& lock, const proto::Signature& signature)
+    const -> bool
 {
     OT_ASSERT(verify_write_lock(lock));
 
@@ -720,25 +711,24 @@ auto Context::verify_signature(
     return nym_->Verify(serialized, sigProto);
 }
 
-auto Context::VerifyAcknowledgedNumber(const RequestNumber& req) const -> bool
+auto Base::VerifyAcknowledgedNumber(const RequestNumber& req) const -> bool
 {
     Lock lock(lock_);
 
     return verify_acknowledged_number(lock, req);
 }
 
-auto Context::VerifyAvailableNumber(const TransactionNumber& number) const
-    -> bool
+auto Base::VerifyAvailableNumber(const TransactionNumber& number) const -> bool
 {
     Lock lock(lock_);
 
     return verify_available_number(lock, number);
 }
 
-auto Context::VerifyIssuedNumber(const TransactionNumber& number) const -> bool
+auto Base::VerifyIssuedNumber(const TransactionNumber& number) const -> bool
 {
     Lock lock(lock_);
 
     return verify_issued_number(lock, number);
 }
-}  // namespace opentxs::implementation
+}  // namespace opentxs::otx::context::implementation

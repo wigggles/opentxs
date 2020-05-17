@@ -14,7 +14,6 @@
 
 #include "opentxs/Exclusive.hpp"
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/AccountList.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -23,6 +22,7 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/identity/Nym.hpp"
+#include "opentxs/otx/consensus/Client.hpp"
 #include "server/MainFile.hpp"
 #include "server/Server.hpp"
 
@@ -72,7 +72,7 @@ auto Transactor::issueNextTransactionNumber(
 }
 
 auto Transactor::issueNextTransactionNumberToNym(
-    ClientContext& context,
+    otx::context::Client& context,
     TransactionNumber& lTransactionNumber) -> bool
 {
     if (!issueNextTransactionNumber(lTransactionNumber)) { return false; }

@@ -64,13 +64,20 @@ class Message;
 }  // namespace zeromq
 }  // namespace network
 
+namespace otx
+{
+namespace context
+{
+class Server;
+}  // namespace context
+}  // namespace otx
+
 namespace proto
 {
 class ServerReply;
 }  // namespace proto
 
 class PasswordPrompt;
-class ServerContext;
 }  // namespace opentxs
 
 namespace opentxs::network::implementation
@@ -84,7 +91,7 @@ public:
     auto ClearProxy() -> bool final;
     auto EnableProxy() -> bool final;
     auto Send(
-        const ServerContext& context,
+        const otx::context::Server& context,
         const Message& message,
         const PasswordPrompt& reason,
         const Push push) -> NetworkReplyMessage final;
@@ -137,7 +144,7 @@ private:
     void process_incoming(const zeromq::Message& in);
     void process_incoming(const proto::ServerReply& in);
     void register_for_push(
-        const ServerContext& context,
+        const otx::context::Server& context,
         const PasswordPrompt& reason);
     void reset_socket(const Lock& lock);
     void reset_timer();

@@ -4,7 +4,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 // IWYU pragma: private
-// IWYU pragma: friend ".*src/consensus/ServerContext.cpp"
+// IWYU pragma: friend ".*src/otx/consensus/Server.cpp"
 
 #pragma once
 
@@ -19,18 +19,13 @@
 #include <utility>
 #include <vector>
 
-#include "consensus/Context.hpp"
 #include "core/StateMachine.hpp"
-#include "internal/consensus/Consensus.hpp"
+#include "internal/otx/consensus/Consensus.hpp"
 #include "opentxs/Forward.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/Version.hpp"
 #include "opentxs/api/Editor.hpp"
-#include "opentxs/consensus/Context.hpp"
-#include "opentxs/consensus/ManagedNumber.hpp"
-#include "opentxs/consensus/ServerContext.hpp"
-#include "opentxs/consensus/TransactionStatement.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Item.hpp"
@@ -39,7 +34,12 @@
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/network/ServerConnection.hpp"
 #include "opentxs/network/zeromq/socket/Push.hpp"
+#include "opentxs/otx/consensus/Base.hpp"
+#include "opentxs/otx/consensus/ManagedNumber.hpp"
+#include "opentxs/otx/consensus/Server.hpp"
+#include "opentxs/otx/consensus/TransactionStatement.hpp"
 #include "opentxs/protobuf/ConsensusEnums.pb.h"
+#include "otx/consensus/Base.hpp"
 
 namespace opentxs
 {
@@ -93,7 +93,6 @@ class Reply;
 }  // namespace otx
 
 class Armored;
-class Factory;
 class Ledger;
 class OTPayment;
 class PasswordPrompt;
@@ -103,11 +102,11 @@ class String;
 
 namespace zmq = opentxs::network::zeromq;
 
-namespace opentxs::implementation
+namespace opentxs::otx::context::implementation
 {
-class ServerContext final : virtual public internal::ServerContext,
-                            public Context,
-                            public opentxs::internal::StateMachine
+class Server final : virtual public internal::Server,
+                     public Base,
+                     public opentxs::internal::StateMachine
 {
 public:
     auto Accounts() const -> std::vector<OTIdentifier> final;
@@ -140,19 +139,20 @@ public:
         const TransactionNumbers& adding,
         const TransactionNumbers& without,
         const PasswordPrompt& reason) const
-        -> std::unique_ptr<TransactionStatement> final;
+        -> std::unique_ptr<otx::context::TransactionStatement> final;
     auto Type() const -> proto::ConsensusType final;
     auto ValidateContext(const Lock& lock) const -> bool final
     {
         return validate(lock);
     }
-    auto Verify(const TransactionStatement& statement) const -> bool final;
+    auto Verify(const otx::context::TransactionStatement& statement) const
+        -> bool final;
     auto VerifyTentativeNumber(const TransactionNumber& number) const
         -> bool final;
 
     auto AcceptIssuedNumber(const TransactionNumber& number) -> bool final;
-    auto AcceptIssuedNumbers(const TransactionStatement& statement)
-        -> bool final;
+    auto AcceptIssuedNumbers(
+        const otx::context::TransactionStatement& statement) -> bool final;
     auto AddTentativeNumber(const TransactionNumber& number) -> bool final;
     auto Connection() -> network::ServerConnection& final;
     auto GetLock() -> std::mutex& final { return lock_; }
@@ -212,7 +212,7 @@ public:
     auto SendMessage(
         const api::client::internal::Manager& client,
         const std::set<OTManagedNumber>& pending,
-        opentxs::ServerContext& context,
+        otx::context::Server&,
         const Message& message,
         const PasswordPrompt& reason,
         const std::string& label,
@@ -239,12 +239,27 @@ public:
         return update_signature(lock, reason);
     }
 
-    ~ServerContext() final;
+    Server(
+        const api::client::internal::Manager& api,
+        const network::zeromq::socket::Publish& requestSent,
+        const network::zeromq::socket::Publish& replyReceived,
+        const Nym_p& local,
+        const Nym_p& remote,
+        const identifier::Server& server,
+        network::ServerConnection& connection);
+    Server(
+        const api::client::internal::Manager& api,
+        const network::zeromq::socket::Publish& requestSent,
+        const network::zeromq::socket::Publish& replyReceived,
+        const proto::Context& serialized,
+        const Nym_p& local,
+        const Nym_p& remote,
+        network::ServerConnection& connection);
+
+    ~Server() final;
 
 private:
-    friend opentxs::Factory;
-    using ReplyNoticeOutcome =
-        std::pair<RequestNumber, ServerContext::DeliveryResult>;
+    using ReplyNoticeOutcome = std::pair<RequestNumber, Server::DeliveryResult>;
     using ReplyNoticeOutcomes = std::vector<ReplyNoticeOutcome>;
 
     enum class Exit : bool { Yes = true, Continue = false };
@@ -365,7 +380,7 @@ private:
         const Lock& lock,
         const TransactionNumbers& adding,
         const TransactionNumbers& without) const
-        -> std::unique_ptr<TransactionStatement>;
+        -> std::unique_ptr<otx::context::TransactionStatement>;
     auto get_instrument(
         const api::internal::Core& api,
         const identity::Nym& theNym,
@@ -440,7 +455,7 @@ private:
         -> bool;
     auto accept_issued_number(
         const Lock& lock,
-        const TransactionStatement& statement) -> bool;
+        const otx::context::TransactionStatement& statement) -> bool;
     void accept_numbers(
         const Lock& lock,
         OTTransaction& transaction,
@@ -694,7 +709,7 @@ private:
         const Item& input,
         ReplyNoticeOutcomes& notices,
         const PasswordPrompt& reason);
-    using implementation::Context::remove_acknowledged_number;
+    using Base::remove_acknowledged_number;
     auto remove_acknowledged_number(const Lock& lock, const Message& reply)
         -> bool;
     auto remove_nymbox_item(
@@ -712,7 +727,7 @@ private:
         const PasswordPrompt& reason,
         const proto::DeliveryState state = proto::DELIVERTYSTATE_ERROR);
     auto resync(const Lock& lock, const proto::Context& serialized) -> bool;
-    using implementation::Context::serialize;
+    using Base::serialize;
     auto serialize(const Lock& lock) const -> proto::Context final;
     auto server_nym_id(const Lock& lock) const -> const identifier::Nym& final;
     auto start(
@@ -761,26 +776,10 @@ private:
         const Lock& lock,
         const TransactionNumber& number) const -> bool;
 
-    ServerContext(
-        const api::client::internal::Manager& api,
-        const network::zeromq::socket::Publish& requestSent,
-        const network::zeromq::socket::Publish& replyReceived,
-        const Nym_p& local,
-        const Nym_p& remote,
-        const identifier::Server& server,
-        network::ServerConnection& connection);
-    ServerContext(
-        const api::client::internal::Manager& api,
-        const network::zeromq::socket::Publish& requestSent,
-        const network::zeromq::socket::Publish& replyReceived,
-        const proto::Context& serialized,
-        const Nym_p& local,
-        const Nym_p& remote,
-        network::ServerConnection& connection);
-    ServerContext() = delete;
-    ServerContext(const ServerContext&) = delete;
-    ServerContext(ServerContext&&) = delete;
-    auto operator=(const ServerContext&) -> ServerContext& = delete;
-    auto operator=(ServerContext &&) -> ServerContext& = delete;
+    Server() = delete;
+    Server(const Server&) = delete;
+    Server(Server&&) = delete;
+    auto operator=(const Server&) -> Server& = delete;
+    auto operator=(Server &&) -> Server& = delete;
 };
-}  // namespace opentxs::implementation
+}  // namespace opentxs::otx::context::implementation

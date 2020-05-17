@@ -11,6 +11,17 @@
 
 namespace opentxs
 {
+namespace otx
+{
+namespace context
+{
+class Server;
+}  // namespace context
+}  // namespace otx
+}  // namespace opentxs
+
+namespace opentxs
+{
 class Factory
 {
 public:
@@ -645,17 +656,6 @@ public:
         const api::internal::Core& api,
         const Data& serialized) -> blockchain::BloomFilter*;
 #endif  // OT_BLOCKCHAIN
-    static auto ClientContext(
-        const api::internal::Core& api,
-        const Nym_p& local,
-        const Nym_p& remote,
-        const identifier::Server& server) -> internal::ClientContext*;
-    static auto ClientContext(
-        const api::internal::Core& api,
-        const proto::Context& serialized,
-        const Nym_p& local,
-        const Nym_p& remote,
-        const identifier::Server& server) -> internal::ClientContext*;
     static auto ClientManager(
         const api::internal::Context& parent,
         Flag& running,
@@ -872,9 +872,6 @@ public:
     static auto Log(
         const network::zeromq::Context& zmq,
         const std::string& endpoint) -> api::internal::Log*;
-    static auto ManagedNumber(
-        const TransactionNumber number,
-        opentxs::ServerContext& context) -> opentxs::ManagedNumber*;
 #if OT_CASH
     static auto MintLucre(const api::internal::Core& core) -> blind::Mint*;
     static auto MintLucre(
@@ -1078,7 +1075,7 @@ public:
         const proto::Purse& serialized) -> blind::Purse*;
     OPENTXS_EXPORT static auto Purse(
         const api::internal::Core& api,
-        const opentxs::ServerContext& context,
+        const otx::context::Server&,
         const proto::CashType type,
         const blind::Mint& mint,
         const Amount totalValue,
@@ -1211,22 +1208,6 @@ public:
     static auto ServerAction(
         const api::client::internal::Manager& api,
         const ContextLockCallback& lockCallback) -> api::client::ServerAction*;
-    static auto ServerContext(
-        const api::client::internal::Manager& api,
-        const network::zeromq::socket::Publish& requestSent,
-        const network::zeromq::socket::Publish& replyReceived,
-        const Nym_p& local,
-        const Nym_p& remote,
-        const identifier::Server& server,
-        network::ServerConnection& connection) -> internal::ServerContext*;
-    static auto ServerContext(
-        const api::client::internal::Manager& api,
-        const network::zeromq::socket::Publish& requestSent,
-        const network::zeromq::socket::Publish& replyReceived,
-        const proto::Context& serialized,
-        const Nym_p& local,
-        const Nym_p& remote,
-        network::ServerConnection& connection) -> internal::ServerContext*;
     static auto ServerContract(const api::Core& api) noexcept
         -> std::unique_ptr<contract::Server>;
     static auto ServerContract(

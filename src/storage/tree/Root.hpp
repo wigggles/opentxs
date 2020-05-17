@@ -46,8 +46,8 @@ class Root final : public Node
 {
 private:
     using ot_super = Node;
-    friend class opentxs::storage::implementation::StorageMultiplex;
-    friend class api::storage::implementation::Storage;
+    friend opentxs::storage::implementation::StorageMultiplex;
+    friend api::storage::implementation::Storage;
 
     const std::uint64_t gc_interval_{std::numeric_limits<std::int64_t>::max()};
     mutable std::string gc_root_;

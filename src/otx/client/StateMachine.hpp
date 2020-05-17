@@ -40,9 +40,16 @@
 
 namespace opentxs
 {
+namespace otx
+{
+namespace context
+{
+class Server;
+}  // namespace context
+}  // namespace otx
+
 class Flag;
 class OTPassword;
-class ServerContext;
 }  // namespace opentxs
 
 namespace std
@@ -306,19 +313,19 @@ private:
         return parent_.associate_message_id(messageID, taskID);
     }
     auto bump_task(const bool bump) const -> bool;
-    auto check_admin(const ServerContext& context) const -> bool;
+    auto check_admin(const otx::context::Server& context) const -> bool;
     template <typename T, typename C, typename M, typename U>
     auto check_missing_contract(M& missing, U& unknown, bool skip = true) const
         -> bool;
-    void check_nym_revision(const ServerContext& context) const;
+    void check_nym_revision(const otx::context::Server& context) const;
     auto check_registration(
         const identifier::Nym& nymID,
         const identifier::Server& serverID) const -> bool;
     auto check_server_contract(const identifier::Server& serverID) const
         -> bool;
-    auto check_server_name(const ServerContext& context) const -> bool;
-    void check_server_nym(const ServerContext& context) const;
-    void check_transaction_numbers(const ServerContext& context) const;
+    auto check_server_name(const otx::context::Server& context) const -> bool;
+    void check_server_nym(const otx::context::Server& context) const;
+    void check_transaction_numbers(const otx::context::Server& context) const;
     auto counter() const -> int { return counter_.load(); }
     auto deposit_cheque(const TaskID taskID, const DepositPaymentTask& task)
         const -> bool;
@@ -424,7 +431,8 @@ private:
     auto get_param() -> T&;
     void increment_counter(const bool run);
     auto main_loop() noexcept -> bool;
-    auto queue_contracts(const ServerContext& context, int& next) -> bool;
+    auto queue_contracts(const otx::context::Server& context, int& next)
+        -> bool;
     auto queue_nyms() -> bool;
     template <typename T>
     auto run_task(bool (StateMachine::*func)(const TaskID) const) -> bool;

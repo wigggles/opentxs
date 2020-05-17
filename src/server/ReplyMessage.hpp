@@ -27,6 +27,14 @@ namespace identity
 class Nym;
 }  // namespace identity
 
+namespace otx
+{
+namespace context
+{
+class Client;
+}  // namespace context
+}  // namespace otx
+
 namespace server
 {
 class Server;
@@ -34,7 +42,6 @@ class UserCommandProcessor;
 }  // namespace server
 
 class Armored;
-class ClientContext;
 class Data;
 class Identifier;
 class PasswordPrompt;
@@ -63,13 +70,13 @@ public:
     auto Original() const -> const Message&;
     auto Success() const -> const bool&;
 
-    auto Context() -> ClientContext&;
+    auto Context() -> otx::context::Client&;
     void ClearRequest();
     void DropToNymbox(const bool success);
     auto LoadContext(const PasswordPrompt& reason) -> bool;
     void OverrideType(const String& accountID);
     void SetAccount(const String& accountID);
-    void SetAcknowledgments(const ClientContext& context);
+    void SetAcknowledgments(const otx::context::Client& context);
     void SetBool(const bool value);
     void SetDepth(const std::int64_t depth);
     void SetEnum(const std::uint8_t value);
@@ -102,7 +109,7 @@ private:
     bool drop_{false};
     bool drop_status_{false};
     Nym_p sender_nym_{nullptr};
-    std::unique_ptr<Editor<ClientContext>> context_{nullptr};
+    std::unique_ptr<Editor<otx::context::Client>> context_{nullptr};
 
     void attach_request();
     void clear_request();

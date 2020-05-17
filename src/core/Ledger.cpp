@@ -22,8 +22,6 @@
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Wallet.hpp"
-#include "opentxs/consensus/ServerContext.hpp"
-#include "opentxs/consensus/TransactionStatement.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Cheque.hpp"
@@ -42,6 +40,8 @@
 #include "opentxs/core/transaction/Helpers.hpp"
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/identity/Nym.hpp"
+#include "opentxs/otx/consensus/Server.hpp"
+#include "opentxs/otx/consensus/TransactionStatement.hpp"
 
 #define OT_METHOD "opentxs::Ledger::"
 
@@ -1376,7 +1376,7 @@ auto Ledger::GetFinalReceipt(std::int64_t lReferenceNum)
 auto Ledger::GenerateBalanceStatement(
     std::int64_t lAdjustment,
     const OTTransaction& theOwner,
-    const ServerContext& context,
+    const otx::context::Server& context,
     const Account& theAccount,
     Ledger& theOutbox,
     const PasswordPrompt& reason) const -> std::unique_ptr<Item>
@@ -1394,7 +1394,7 @@ auto Ledger::GenerateBalanceStatement(
 auto Ledger::GenerateBalanceStatement(
     std::int64_t lAdjustment,
     const OTTransaction& theOwner,
-    const ServerContext& context,
+    const otx::context::Server& context,
     const Account& theAccount,
     Ledger& theOutbox,
     const std::set<TransactionNumber>& without,

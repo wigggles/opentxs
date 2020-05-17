@@ -21,7 +21,6 @@
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/AccountList.hpp"
 #include "opentxs/core/Armored.hpp"
-#include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/core/OTStorage.hpp"

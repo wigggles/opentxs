@@ -8,6 +8,7 @@
 
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
+#include <irrxml/irrXML.hpp>
 #include <cstdint>
 #include <map>
 #include <memory>
@@ -42,12 +43,22 @@ namespace identity
 class Nym;
 }  // namespace identity
 
-class Context;
+namespace otx
+{
+namespace context
+{
+class Base;
+class Server;
+}  // namespace context
+}  // namespace otx
+
 class Message;
 class PasswordPrompt;
-class ServerContext;
 class Tag;
+}  // namespace opentxs
 
+namespace opentxs
+{
 class OTMessageStrategy
 {
 public:
@@ -135,7 +146,7 @@ public:
         const identity::Nym& theNym) const final;
 
     OPENTXS_EXPORT bool HarvestTransactionNumbers(
-        ServerContext& context,
+        otx::context::Server& context,
         bool bHarvestingForRetry,            // false until positively asserted.
         bool bReplyWasSuccess,               // false until positively asserted.
         bool bReplyWasFailure,               // false until positively asserted.
@@ -146,7 +157,7 @@ public:
     // So the message can get the list of numbers from the Nym, before sending,
     // that should be listed as acknowledged that the server reply has already
     // been seen for those request numbers.
-    OPENTXS_EXPORT void SetAcknowledgments(const class Context& context);
+    OPENTXS_EXPORT void SetAcknowledgments(const otx::context::Base& context);
     OPENTXS_EXPORT void SetAcknowledgments(
         const std::set<RequestNumber>& numbers);
 

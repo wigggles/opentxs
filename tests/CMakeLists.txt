@@ -63,6 +63,10 @@ function(add_opentx_test_target target_name cxx-sources)
     target_link_libraries(${target_name} ${LIBSECP256K1_LIBRARY})
   endif()
 
+  target_include_directories(
+    ${target_name} SYSTEM
+    PRIVATE "${opentxs_SOURCE_DIR}/deps/"
+  )
   set_target_properties(
     ${target_name}
     PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/tests

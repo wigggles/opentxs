@@ -3,16 +3,16 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef OPENTXS_CONSENSUS_SERVERCONTEXT_HPP
-#define OPENTXS_CONSENSUS_SERVERCONTEXT_HPP
+#ifndef OPENTXS_OTX_CONSENSUS_SERVER_HPP
+#define OPENTXS_OTX_CONSENSUS_SERVER_HPP
 
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <future>
 #include <tuple>
 
-#include "opentxs/consensus/Context.hpp"
-#include "opentxs/consensus/ManagedNumber.hpp"
+#include "opentxs/otx/consensus/Base.hpp"
+#include "opentxs/otx/consensus/ManagedNumber.hpp"
 
 namespace opentxs
 {
@@ -27,7 +27,22 @@ struct Manager;
 }  // namespace client
 }  // namespace api
 
-class ServerContext : virtual public Context
+namespace otx
+{
+namespace context
+{
+class TransactionStatement;
+}  // namespace context
+}  // namespace otx
+}  // namespace opentxs
+
+namespace opentxs
+{
+namespace otx
+{
+namespace context
+{
+class Server : virtual public Base
 {
 public:
     using DeliveryResult =
@@ -137,7 +152,7 @@ public:
     [[deprecated]] OPENTXS_EXPORT virtual NetworkReplyMessage SendMessage(
         const api::client::internal::Manager& client,
         const std::set<OTManagedNumber>& pending,
-        ServerContext& context,
+        Server& context,
         const Message& message,
         const PasswordPrompt& reason,
         const std::string& label = "",
@@ -163,16 +178,18 @@ public:
         Message& command,
         const PasswordPrompt& reason) = 0;
 
-    OPENTXS_EXPORT ~ServerContext() override = default;
+    OPENTXS_EXPORT ~Server() override = default;
 
 protected:
-    ServerContext() = default;
+    Server() = default;
 
 private:
-    ServerContext(const ServerContext&) = delete;
-    ServerContext(ServerContext&&) = delete;
-    ServerContext& operator=(const ServerContext&) = delete;
-    ServerContext& operator=(ServerContext&&) = delete;
+    Server(const Server&) = delete;
+    Server(Server&&) = delete;
+    Server& operator=(const Server&) = delete;
+    Server& operator=(Server&&) = delete;
 };
+}  // namespace context
+}  // namespace otx
 }  // namespace opentxs
 #endif

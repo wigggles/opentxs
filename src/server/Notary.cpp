@@ -38,7 +38,6 @@
 #include "opentxs/blind/Purse.hpp"
 #include "opentxs/blind/Token.hpp"
 #endif  // OT_CASH
-#include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Cheque.hpp"
 #include "opentxs/core/Data.hpp"
@@ -68,6 +67,7 @@
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/socket/Push.hpp"
 #include "opentxs/network/zeromq/socket/Socket.hpp"
+#include "opentxs/otx/consensus/Client.hpp"
 #include "opentxs/protobuf/Check.hpp"
 #include "opentxs/protobuf/ContractEnums.pb.h"
 #include "opentxs/protobuf/OTXEnums.pb.h"
@@ -148,7 +148,7 @@ void Notary::cancel_cheque(
     const Item& depositItem,
     const String& serializedDepositItem,
     const Item& balanceItem,
-    ClientContext& context,
+    otx::context::Client& context,
     Account& account,
     Ledger& inbox,
     const Ledger& outbox,
@@ -261,7 +261,7 @@ void Notary::deposit_cheque(
     const String& serializedDepositItem,
     const Item& balanceItem,
     const Cheque& cheque,
-    ClientContext& depositorContext,
+    otx::context::Client& depositorContext,
     ExclusiveAccount& depositorAccount,
     Ledger& depositorInbox,
     const Ledger& depositorOutbox,
@@ -332,7 +332,7 @@ void Notary::deposit_cheque(
                     .Ledger(
                         (isVoucher ? remitterNymID : senderNymID),
                         (isVoucher ? remitterAccountID : sourceAccountID),
-                        depositorContext.Server())
+                        depositorContext.Notary())
                     .release());
 
             OT_ASSERT(senderInbox);
@@ -362,7 +362,7 @@ void Notary::deposit_cheque(
                     .Ledger(
                         (isVoucher ? remitterNymID : senderNymID),
                         (isVoucher ? remitterAccountID : sourceAccountID),
-                        depositorContext.Server())
+                        depositorContext.Notary())
                     .release());
 
             OT_ASSERT(senderOutbox);
@@ -459,12 +459,12 @@ void Notary::deposit_cheque(
     const bool isVoucher,
     const bool cancelling,
     const identifier::Nym& senderNymID,
-    ClientContext& senderContext,
+    otx::context::Client& senderContext,
     Account& senderAccount,
     Ledger& senderInbox,
     std::shared_ptr<OTTransaction>& inboxItem,
     Account& sourceAccount,
-    const ClientContext& depositorContext,
+    const otx::context::Client& depositorContext,
     Account& depositorAccount,
     const Ledger& depositorInbox,
     const Ledger& depositorOutbox,
@@ -662,7 +662,7 @@ auto Notary::extract_cheque(
 }
 
 void Notary::NotarizeTransfer(
-    ClientContext& context,
+    otx::context::Client& context,
     ExclusiveAccount& theFromAccount,
     OTTransaction& tranIn,
     OTTransaction& tranOut,
@@ -688,7 +688,7 @@ void Notary::NotarizeTransfer(
     // Grab the actual server ID from this object, and use it as the server ID
     // here.
     const auto& NYM_ID = context.RemoteNym().ID();
-    const auto& NOTARY_ID = context.Server();
+    const auto& NOTARY_ID = context.Notary();
     const auto ACCOUNT_ID =
         server_.API().Factory().Identifier(theFromAccount.get());
     auto strNymID = String::Factory(NYM_ID),
@@ -1224,7 +1224,7 @@ void Notary::NotarizeTransfer(
 /// untraceable, blinded tokens. Funds are transferred to the bank, who
 /// blind-signs the tokens.
 void Notary::NotarizeWithdrawal(
-    ClientContext& context,
+    otx::context::Client& context,
     ExclusiveAccount& theAccount,
     OTTransaction& tranIn,
     OTTransaction& tranOut,
@@ -1251,7 +1251,7 @@ void Notary::NotarizeWithdrawal(
 
     // Grab the actual server ID from this object, and use it as the server ID
     // here.
-    const auto& NOTARY_ID = context.Server();
+    const auto& NOTARY_ID = context.Notary();
     const auto& NYM_ID = context.RemoteNym().ID();
     const auto& NOTARY_NYM_ID = context.Nym()->ID();
     const auto ACCOUNT_ID =
@@ -1731,7 +1731,7 @@ void Notary::NotarizeWithdrawal(
 /// Phase 2: voting groups, hierarchical entities with agents, oversight,
 /// corporate asset accounts, etc.
 void Notary::NotarizePayDividend(
-    ClientContext& context,
+    otx::context::Client& context,
     ExclusiveAccount& theSourceAccount,
     OTTransaction& tranIn,
     OTTransaction& tranOut,
@@ -1759,7 +1759,7 @@ void Notary::NotarizePayDividend(
     auto strBalanceItem = String::Factory();
     // Grab the actual server ID from this object, and use it as the server ID
     // here.
-    const auto& NOTARY_ID = context.Server();
+    const auto& NOTARY_ID = context.Notary();
     const auto& NYM_ID = context.RemoteNym().ID();
     const auto SOURCE_ACCT_ID =
         server_.API().Factory().Identifier(theSourceAccount.get());
@@ -2529,7 +2529,7 @@ void Notary::NotarizePayDividend(
 
 /// for depositing a cheque or cash.
 void Notary::NotarizeDeposit(
-    ClientContext& context,
+    otx::context::Client& context,
     ExclusiveAccount& theAccount,
     OTTransaction& input,
     OTTransaction& output,
@@ -2666,7 +2666,7 @@ void Notary::NotarizeDeposit(
 /// 3) Then the Customer must activate the payment plan. (Using a transaction
 /// with the same number as the plan.)
 void Notary::NotarizePaymentPlan(
-    ClientContext& context,
+    otx::context::Client& context,
     ExclusiveAccount& theDepositorAccount,
     OTTransaction& tranIn,
     OTTransaction& tranOut,
@@ -2689,7 +2689,7 @@ void Notary::NotarizePaymentPlan(
 
     // Grab the actual server ID from this object, and use it as the server ID
     // here.
-    const auto& NOTARY_ID = context.Server();
+    const auto& NOTARY_ID = context.Notary();
     const auto& NYM_ID = context.RemoteNym().ID();
     const auto& DEPOSITOR_NYM_ID = NYM_ID;
     const auto DEPOSITOR_ACCT_ID =
@@ -3309,7 +3309,7 @@ void Notary::NotarizePaymentPlan(
 }
 
 void Notary::NotarizeSmartContract(
-    ClientContext& context,
+    otx::context::Client& context,
     ExclusiveAccount& theActivatingAccount,
     OTTransaction& tranIn,
     OTTransaction& tranOut,
@@ -3332,7 +3332,7 @@ void Notary::NotarizeSmartContract(
 
     // Grab the actual server ID from this object, and use it as the server ID
     // here.
-    const auto& NOTARY_ID = context.Server();
+    const auto& NOTARY_ID = context.Notary();
     const auto& NYM_ID = context.RemoteNym().ID();
     const auto& NOTARY_NYM_ID = context.Nym()->ID();
     const auto& ACTIVATOR_NYM_ID = NYM_ID;
@@ -4079,7 +4079,7 @@ void Notary::NotarizeSmartContract(
 // use the SAME closing numbers.
 //
 void Notary::NotarizeCancelCronItem(
-    ClientContext& context,
+    otx::context::Client& context,
     ExclusiveAccount& theAssetAccount,
     OTTransaction& tranIn,
     OTTransaction& tranOut,
@@ -4285,7 +4285,7 @@ void Notary::NotarizeCancelCronItem(
 /// a user is exchanging in or out of a basket.  (Ex. He's trading 2 gold
 /// and 3 silver for 10 baskets, or vice-versa.)
 void Notary::NotarizeExchangeBasket(
-    ClientContext& context,
+    otx::context::Client& context,
     ExclusiveAccount& theAccount,
     OTTransaction& tranIn,
     OTTransaction& tranOut,
@@ -5222,7 +5222,7 @@ void Notary::NotarizeExchangeBasket(
 // for use later in cron!
 
 void Notary::NotarizeMarketOffer(
-    ClientContext& context,
+    otx::context::Client& context,
     ExclusiveAccount& theAssetAccount,
     OTTransaction& tranIn,
     OTTransaction& tranOut,
@@ -5246,7 +5246,7 @@ void Notary::NotarizeMarketOffer(
     // Grab the actual server ID from this object, and use it as the server
     // ID here.
     const auto& NYM_ID = context.RemoteNym().ID();
-    const auto& NOTARY_ID = context.Server();
+    const auto& NOTARY_ID = context.Notary();
     const auto strNymID = String::Factory(NYM_ID);
 
     pItem = tranIn.GetItem(itemType::marketOffer);
@@ -5648,7 +5648,7 @@ void Notary::NotarizeMarketOffer(
 /// TODO think about error reporting here and sending a message back to
 /// user.
 void Notary::NotarizeTransaction(
-    ClientContext& context,
+    otx::context::Client& context,
     OTTransaction& tranIn,
     OTTransaction& tranOut,
     bool& bOutSuccess)
@@ -6105,7 +6105,7 @@ void Notary::NotarizeTransaction(
 // on your processNymbox transaction can only accept things (notices, new
 // transaction numbers,
 auto Notary::NotarizeProcessNymbox(
-    ClientContext& context,
+    otx::context::Client& context,
     OTTransaction& tranIn,
     OTTransaction& tranOut,
     bool& bOutSuccess) -> bool
@@ -6122,7 +6122,7 @@ auto Notary::NotarizeProcessNymbox(
     // Grab the actual server ID from this object, and use it as the server
     // ID here.
     const auto& NYM_ID = context.RemoteNym().ID();
-    const auto& NOTARY_ID = context.Server();
+    const auto& NOTARY_ID = context.Notary();
     std::set<TransactionNumber> newNumbers;
     auto theNymbox{manager_.Factory().Ledger(NYM_ID, NYM_ID, NOTARY_ID)};
 
@@ -6756,7 +6756,7 @@ auto Notary::NotarizeProcessNymbox(
 /// server acknowledges and notarizes those transactions accordingly. (And
 /// each of those transactions must be accepted or rejected in whole.)
 void Notary::NotarizeProcessInbox(
-    ClientContext& context,
+    otx::context::Client& context,
     ExclusiveAccount& theAccount,
     OTTransaction& processInbox,
     OTTransaction& processInboxResponse,
@@ -6783,7 +6783,7 @@ void Notary::NotarizeProcessInbox(
     // Grab the actual server ID from this object, and use it as the server
     // ID here.
     const auto& NYM_ID = context.RemoteNym().ID();
-    const auto& NOTARY_ID = context.Server();
+    const auto& NOTARY_ID = context.Notary();
     const auto ACCOUNT_ID =
         server_.API().Factory().Identifier(theAccount.get());
     const std::string strNymID(String::Factory(NYM_ID)->Get());
@@ -8104,7 +8104,7 @@ void Notary::process_cash_deposit(
     const OTTransaction& input,
     const Item& depositItem,
     const Item& balanceItem,
-    ClientContext& context,
+    otx::context::Client& context,
     ExclusiveAccount& depositorAccount,
     OTTransaction& output,
     Ledger& inbox,
@@ -8119,7 +8119,7 @@ void Notary::process_cash_deposit(
     // let's grab it as a string.
     auto strInReferenceTo = String::Factory();
     auto strBalanceItem = String::Factory();
-    const auto& NOTARY_ID = context.Server();
+    const auto& NOTARY_ID = context.Notary();
     const auto& NYM_ID = context.RemoteNym().ID();
     const auto ACCOUNT_ID =
         server_.API().Factory().Identifier(depositorAccount.get());
@@ -8284,7 +8284,7 @@ void Notary::process_cash_withdrawal(
     const OTTransaction& requestTransaction,
     const Item& requestItem,
     const Item& balanceItem,
-    ClientContext& context,
+    otx::context::Client& context,
     ExclusiveAccount& account,
     Identifier& accountHash,
     Ledger& inbox,
@@ -8434,7 +8434,7 @@ void Notary::process_cheque_deposit(
     const OTTransaction& input,
     const Item& depositItem,
     const Item& balanceItem,
-    ClientContext& context,
+    otx::context::Client& context,
     ExclusiveAccount& depositorAccount,
     OTTransaction& output,
     Ledger& inbox,
@@ -8443,7 +8443,7 @@ void Notary::process_cheque_deposit(
     Item& responseItem,
     Item& responseBalanceItem)
 {
-    const auto& serverID = context.Server();
+    const auto& serverID = context.Notary();
     const auto accountID =
         server_.API().Factory().Identifier(depositorAccount.get());
     const auto& unitID = depositorAccount.get().GetInstrumentDefinitionID();
@@ -8646,7 +8646,7 @@ auto Notary::process_token_deposit(
 
 auto Notary::process_token_withdrawal(
     const identifier::UnitDefinition& unit,
-    ClientContext& context,
+    otx::context::Client& context,
     ExclusiveAccount& reserveAccount,
     Account& account,
     blind::Purse& replyPurse,

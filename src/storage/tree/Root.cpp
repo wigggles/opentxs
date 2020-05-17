@@ -96,7 +96,7 @@ void Root::collect_garbage(const opentxs::api::storage::Driver* to) const
     bool success{false};
 
     if (Node::check_hash(gc_root_)) {
-        const class Tree tree(driver_, gc_root_);
+        const storage::Tree tree(driver_, gc_root_);
         success = tree.Migrate(*to);
     }
 
@@ -169,12 +169,12 @@ auto Root::Migrate(const opentxs::api::storage::Driver& to) const -> bool
     return false;
 }
 
-auto Root::mutable_Tree() -> Editor<class Tree>
+auto Root::mutable_Tree() -> Editor<storage::Tree>
 {
-    std::function<void(class Tree*, Lock&)> callback =
-        [&](class Tree* in, Lock& lock) -> void { this->save(in, lock); };
+    std::function<void(storage::Tree*, Lock&)> callback =
+        [&](storage::Tree* in, Lock& lock) -> void { this->save(in, lock); };
 
-    return Editor<class Tree>(write_lock_, tree(), callback);
+    return Editor<storage::Tree>(write_lock_, tree(), callback);
 }
 
 auto Root::save(const Lock& lock, const opentxs::api::storage::Driver& to) const
@@ -198,7 +198,7 @@ auto Root::save(const Lock& lock) const -> bool
     return save(lock, driver_);
 }
 
-void Root::save(class Tree* tree, const Lock& lock)
+void Root::save(storage::Tree* tree, const Lock& lock)
 {
     OT_ASSERT(verify_write_lock(lock));
 
@@ -236,11 +236,11 @@ auto Root::serialize() const -> proto::StorageRoot
     return output;
 }
 
-auto Root::tree() const -> class Tree*
+auto Root::tree() const -> storage::Tree*
 {
     Lock lock(tree_lock_);
 
-    if (!tree_) { tree_.reset(new class Tree(driver_, tree_root_)); }
+    if (!tree_) { tree_.reset(new storage::Tree(driver_, tree_root_)); }
 
     OT_ASSERT(tree_);
 
@@ -249,6 +249,6 @@ auto Root::tree() const -> class Tree*
     return tree_.get();
 }
 
-auto Root::Tree() const -> const class Tree& { return *tree(); }
+auto Root::Tree() const -> const storage::Tree& { return *tree(); }
 }  // namespace storage
 }  // namespace opentxs

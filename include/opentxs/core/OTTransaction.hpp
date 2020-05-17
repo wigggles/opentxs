@@ -8,15 +8,16 @@
 
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
+#include <irrxml/irrXML.hpp>
 #include <cstdint>
 #include <memory>
 
-#include "opentxs/core/OTTransactionType.hpp"
-#include "opentxs/core/Item.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Item.hpp"
+#include "opentxs/core/OTTransactionType.hpp"
 
 namespace opentxs
 {
@@ -44,13 +45,23 @@ namespace identity
 class Nym;
 }  // namespace identity
 
+namespace otx
+{
+namespace context
+{
+class Server;
+}  // namespace context
+}  // namespace otx
+
 class Ledger;
 class NumList;
 class PasswordPrompt;
-class ServerContext;
 class String;
 class Tag;
+}  // namespace opentxs
 
+namespace opentxs
+{
 /*
 WHEN THE server receives a transaction request, it receives a MESSAGE containing
 an ascii-armored LEDGER.
@@ -475,7 +486,7 @@ public:
     bool VerifyBoxReceipt(OTTransaction& theFullVersion);
 
     OPENTXS_EXPORT bool VerifyBalanceReceipt(
-        const ServerContext& context,
+        const otx::context::Server& context,
         const PasswordPrompt& reason);
 
     // First VerifyContractID() is performed already on all the items when
@@ -546,7 +557,7 @@ public:
     // you are accurate
     // when you tell it the circumstances (bools!)
     bool HarvestOpeningNumber(
-        ServerContext& context,
+        otx::context::Server& context,
         bool bHarvestingForRetry,      // exchangeBasket, on retry, needs to
                                        // clawback the opening # because it
                                        // will be using another opening # the
@@ -564,7 +575,7 @@ public:
     // of your transaction numbers back. (The opening number is already gone,
     // but any others are still salvageable.)
     bool HarvestClosingNumbers(
-        ServerContext& context,
+        otx::context::Server& context,
         bool bHarvestingForRetry,      // exchangeBasket, on retry, needs to
                                        // clawback the opening # because it
                                        // will be using another opening # the

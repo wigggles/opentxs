@@ -26,7 +26,6 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/core/StringXML.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/core/util/Tag.hpp"
 

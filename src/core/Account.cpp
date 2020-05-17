@@ -7,7 +7,6 @@
 #include "1_Internal.hpp"            // IWYU pragma: associated
 #include "opentxs/core/Account.hpp"  // IWYU pragma: associated
 
-#include <irrxml/irrXML.hpp>
 #include <cinttypes>
 #include <cstdint>
 #include <memory>
@@ -18,7 +17,6 @@
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Legacy.hpp"
-#include "opentxs/consensus/Context.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Data.hpp"
@@ -36,6 +34,7 @@
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/identity/Nym.hpp"
+#include "opentxs/otx/consensus/Base.hpp"
 
 using namespace irr;
 using namespace io;
@@ -144,7 +143,7 @@ auto Account::_GetTypeString(AccountType accountType) -> char const*
 auto Account::Alias() const -> std::string { return alias_; }
 
 auto Account::ConsensusHash(
-    const Context& context,
+    const otx::context::Base& context,
     Identifier& theOutput,
     const PasswordPrompt& reason) const -> bool
 {
@@ -157,7 +156,7 @@ auto Account::ConsensusHash(
         LogOutput(OT_METHOD)(__FUNCTION__)(": Missing nym id.").Flush();
     }
 
-    auto& serverid = context.Server();
+    auto& serverid = context.Notary();
     if (false == serverid.empty()) {
         preimage->Concatenate(serverid.data(), serverid.size());
     } else {

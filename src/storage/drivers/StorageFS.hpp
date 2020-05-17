@@ -18,6 +18,14 @@
 #include "opentxs/core/Flag.hpp"
 #include "storage/Plugin.hpp"
 
+namespace boost
+{
+namespace iostreams
+{
+class file_descriptor_sink;
+}  // namespace iostreams
+}  // namespace boost
+
 namespace opentxs
 {
 namespace api

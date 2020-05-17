@@ -1922,7 +1922,7 @@ auto OTScriptable::VerifyThisAgainstAllPartiesSignedCopies() -> bool
 //
 auto OTScriptable::ConfirmParty(
     OTParty& theParty,
-    ServerContext&,
+    otx::context::Server&,
     const PasswordPrompt& reason) -> bool
 {
     const std::string str_party_name = theParty.GetPartyName();

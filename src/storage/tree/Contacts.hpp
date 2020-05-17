@@ -31,6 +31,11 @@ namespace storage
 class Driver;
 }  // namespace storage
 }  // namespace api
+
+namespace storage
+{
+class Tree;
+}  // namespace storage
 }  // namespace opentxs
 
 namespace opentxs::storage
@@ -60,7 +65,7 @@ public:
     ~Contacts() final = default;
 
 private:
-    friend class Tree;
+    friend Tree;
     using ot_super = Node;
     using Address = std::pair<proto::ContactItemType, std::string>;
 

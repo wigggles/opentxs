@@ -53,7 +53,7 @@ public:
     ~OpenDHT() final;
 
 private:
-    friend class api::network::implementation::Dht;
+    friend api::network::implementation::Dht;
 
     std::unique_ptr<const DhtConfig> config_;
     std::unique_ptr<dht::DhtRunner> node_;

@@ -16,7 +16,6 @@
 
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Shared.hpp"
-#include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Log.hpp"
@@ -31,6 +30,7 @@
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/identity/Nym.hpp"
+#include "opentxs/otx/consensus/Server.hpp"
 
 #define OT_METHOD "opentxs::OTParty"
 
@@ -1292,8 +1292,9 @@ void OTParty::HarvestClosingNumbers(
 // Done
 // Calls OTAgent::HarvestTransactionNumber
 //
-void OTParty::recover_closing_numbers(OTAgent& theAgent, ServerContext& context)
-    const
+void OTParty::recover_closing_numbers(
+    OTAgent& theAgent,
+    otx::context::Server& context) const
 {
     for (auto& it : m_mapPartyAccounts) {
         OTPartyAccount* pAcct = it.second;
@@ -1323,7 +1324,7 @@ void OTParty::recover_closing_numbers(OTAgent& theAgent, ServerContext& context)
 // Done.
 // IF theNym is one of my agents, then grab his numbers back for him.
 // If he is NOT one of my agents, then do nothing.
-void OTParty::HarvestClosingNumbers(ServerContext& context)
+void OTParty::HarvestClosingNumbers(otx::context::Server& context)
 {
     OTAgent* pAgent = nullptr;
 
@@ -1339,7 +1340,7 @@ void OTParty::HarvestClosingNumbers(ServerContext& context)
 // Done
 // IF theNym is one of my agents, then grab his opening number back for him.
 // If he is NOT one of my agents, then do nothing.
-void OTParty::HarvestOpeningNumber(ServerContext& context)
+void OTParty::HarvestOpeningNumber(otx::context::Server& context)
 {
     OTAgent* pAgent = nullptr;
 
@@ -1350,8 +1351,9 @@ void OTParty::HarvestOpeningNumber(ServerContext& context)
     // else no error, since many nyms could get passed in here (in a loop)
 }  // The function above me, calls the one below.
 
-void OTParty::recover_opening_number(OTAgent& theAgent, ServerContext& context)
-    const
+void OTParty::recover_opening_number(
+    OTAgent& theAgent,
+    otx::context::Server& context) const
 {
     if (!(GetAuthorizingAgentName().compare(theAgent.GetName().Get()) == 0)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -1368,7 +1370,7 @@ void OTParty::recover_opening_number(OTAgent& theAgent, ServerContext& context)
     }
 }
 
-void OTParty::HarvestAllTransactionNumbers(ServerContext& context)
+void OTParty::HarvestAllTransactionNumbers(otx::context::Server& context)
 {
     HarvestOpeningNumber(context);
     HarvestClosingNumbers(context);
@@ -1415,7 +1417,7 @@ void OTParty::CloseoutOpeningNumber(
 // to reserve
 // those. Client-side.
 //
-auto OTParty::ReserveTransNumsForConfirm(ServerContext& context) -> bool
+auto OTParty::ReserveTransNumsForConfirm(otx::context::Server& context) -> bool
 {
     // RESERVE THE OPENING TRANSACTION NUMBER, LOCATED ON THE AUTHORIZING AGENT
     // FOR THIS PARTY.

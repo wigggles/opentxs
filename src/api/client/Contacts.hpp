@@ -64,7 +64,7 @@ public:
     auto Merge(const Identifier& parent, const Identifier& child) const
         -> std::shared_ptr<const opentxs::Contact> final;
     auto mutable_Contact(const Identifier& id) const
-        -> std::unique_ptr<Editor<class Contact>> final;
+        -> std::unique_ptr<Editor<opentxs::Contact>> final;
     auto NewContact(const std::string& label) const
         -> std::shared_ptr<const opentxs::Contact> final;
     auto NewContact(
@@ -86,7 +86,8 @@ public:
 private:
     friend opentxs::Factory;
 
-    using ContactLock = std::pair<std::mutex, std::shared_ptr<class Contact>>;
+    using ContactLock =
+        std::pair<std::mutex, std::shared_ptr<opentxs::Contact>>;
     using Address = std::pair<proto::ContactItemType, std::string>;
     using ContactMap = std::map<OTIdentifier, ContactLock>;
     using ContactNameMap = std::map<OTIdentifier, std::string>;
@@ -109,7 +110,7 @@ private:
     auto verify_write_lock(const rLock& lock) const -> bool;
 
     // takes ownership
-    auto add_contact(const rLock& lock, class Contact* contact) const
+    auto add_contact(const rLock& lock, opentxs::Contact* contact) const
         -> ContactMap::iterator;
     auto address_to_contact(
         const rLock& lock,
@@ -124,7 +125,7 @@ private:
     auto load_contact(const rLock& lock, const Identifier& id) const
         -> ContactMap::iterator;
     auto mutable_contact(const rLock& lock, const Identifier& id) const
-        -> std::unique_ptr<Editor<class Contact>>;
+        -> std::unique_ptr<Editor<opentxs::Contact>>;
     auto obtain_contact(const rLock& lock, const Identifier& id) const
         -> ContactMap::iterator;
     auto new_contact(
@@ -133,8 +134,8 @@ private:
         const identifier::Nym& nymID,
         const PaymentCode& paymentCode) const
         -> std::shared_ptr<const opentxs::Contact>;
-    void refresh_indices(const rLock& lock, class Contact& contact) const;
-    void save(class Contact* contact) const;
+    void refresh_indices(const rLock& lock, opentxs::Contact& contact) const;
+    void save(opentxs::Contact* contact) const;
     void start() final;
     auto update_existing_contact(
         const rLock& lock,
@@ -145,7 +146,7 @@ private:
     void update_nym_map(
         const rLock& lock,
         const identifier::Nym& nymID,
-        class Contact& contact,
+        opentxs::Contact& contact,
         const bool replace = false) const;
 
     Contacts(const api::client::internal::Manager& api);

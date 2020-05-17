@@ -28,9 +28,6 @@
 #include "opentxs/api/client/Workflow.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/client/OTClient.hpp"
-#include "opentxs/consensus/Context.hpp"
-#include "opentxs/consensus/ManagedNumber.hpp"
-#include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Cheque.hpp"
@@ -61,6 +58,9 @@
 #include "opentxs/core/trade/OTTrade.hpp"
 #include "opentxs/core/transaction/Helpers.hpp"
 #include "opentxs/identity/Nym.hpp"
+#include "opentxs/otx/consensus/Base.hpp"
+#include "opentxs/otx/consensus/ManagedNumber.hpp"
+#include "opentxs/otx/consensus/Server.hpp"
 #include "opentxs/protobuf/ContractEnums.pb.h"
 
 #define CLIENT_MASTER_KEY_TIMEOUT_DEFAULT 300
@@ -74,7 +74,7 @@ namespace
 {
 auto VerifyBalanceReceipt(
     const api::internal::Core& api,
-    const ServerContext& context,
+    const otx::context::Server& context,
     const identifier::Server& NOTARY_ID,
     const Identifier& accountID,
     const PasswordPrompt& reason) -> bool
@@ -219,7 +219,7 @@ OT_API::OT_API(
 
 void OT_API::AddHashesToTransaction(
     OTTransaction& transaction,
-    const Context& context,
+    const otx::context::Base& context,
     const Account& account,
     const PasswordPrompt& reason) const
 {
@@ -243,7 +243,7 @@ void OT_API::AddHashesToTransaction(
 
 void OT_API::AddHashesToTransaction(
     OTTransaction& transaction,
-    const Context& context,
+    const otx::context::Base& context,
     const Identifier& accountid,
     const PasswordPrompt& reason) const
 {
@@ -2501,12 +2501,12 @@ auto OT_API::AddBasketCreationItem(
 // reserves the right to exchange out to the various users and close the
 // basket.
 auto OT_API::issueBasket(
-    ServerContext& context,
+    otx::context::Server& context,
     const proto::UnitDefinition& basket,
     const std::string& label) const -> CommandResult
 {
     rLock lock(
-        lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
+        lock_callback_({context.Nym()->ID().str(), context.Notary().str()}));
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     CommandResult output{};
     auto& [requestNum, transactionNum, result] = output;
@@ -2833,14 +2833,14 @@ auto OT_API::AddBasketExchangeItem(
 
 // EXCHANGE (into or out of) BASKET (request to server.)
 auto OT_API::exchangeBasket(
-    ServerContext& context,
+    otx::context::Server& context,
     const identifier::UnitDefinition& BASKET_INSTRUMENT_DEFINITION_ID,
     const String& BASKET_INFO,
     bool bExchangeInOrOut  // exchanging in == true, out == false.
 ) const -> CommandResult
 {
     rLock lock(
-        lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
+        lock_callback_({context.Nym()->ID().str(), context.Notary().str()}));
     auto reason = api_.Factory().PasswordPrompt("Exchanging a basket currency");
     CommandResult output{};
     auto& [requestNum, transactionNum, result] = output;
@@ -2851,7 +2851,7 @@ auto OT_API::exchangeBasket(
     reply.reset();
     const auto& nym = *context.Nym();
     const auto& nymID = nym.ID();
-    const auto& serverID = context.Server();
+    const auto& serverID = context.Notary();
 
     try {
         api_.Wallet().BasketContract(BASKET_INSTRUMENT_DEFINITION_ID);
@@ -3017,7 +3017,7 @@ auto OT_API::exchangeBasket(
     return output;
 }
 
-auto OT_API::getTransactionNumbers(ServerContext& context) const
+auto OT_API::getTransactionNumbers(otx::context::Server& context) const
     -> std::unique_ptr<Message>
 {
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
@@ -3048,7 +3048,7 @@ auto OT_API::getTransactionNumbers(ServerContext& context) const
 // to be the Pepsi instrument definition ID. (NOT the dollar instrument
 // definition ID...)
 auto OT_API::payDividend(
-    ServerContext& context,
+    otx::context::Server& context,
     const Identifier& DIVIDEND_FROM_accountID,  // if dollars paid for pepsi
                                                 // shares, then this is the
                                                 // issuer's dollars account.
@@ -3066,7 +3066,7 @@ auto OT_API::payDividend(
                       // number of shares issued.)
 {
     rLock lock(
-        lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
+        lock_callback_({context.Nym()->ID().str(), context.Notary().str()}));
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     CommandResult output{};
     auto& [requestNum, transactionNum, result] = output;
@@ -3077,7 +3077,7 @@ auto OT_API::payDividend(
     reply.reset();
     const auto& nym = *context.Nym();
     const auto& nymID = nym.ID();
-    const auto& serverID = context.Server();
+    const auto& serverID = context.Notary();
     auto dividendAccount = api_.Wallet().Account(DIVIDEND_FROM_accountID);
 
     if (false == bool(dividendAccount)) {
@@ -3344,14 +3344,14 @@ auto OT_API::payDividend(
 // Request the server to withdraw from an asset account and issue a voucher
 // (cashier's cheque)
 auto OT_API::withdrawVoucher(
-    ServerContext& context,
+    otx::context::Server& context,
     const Identifier& accountID,
     const identifier::Nym& RECIPIENT_NYM_ID,
     const String& CHEQUE_MEMO,
     const Amount amount) const -> CommandResult
 {
     rLock lock(
-        lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
+        lock_callback_({context.Nym()->ID().str(), context.Notary().str()}));
     auto reason = api_.Factory().PasswordPrompt("Withdrawing a voucher");
     CommandResult output{};
     auto& [requestNum, transactionNum, result] = output;
@@ -3362,7 +3362,7 @@ auto OT_API::withdrawVoucher(
     reply.reset();
     const auto& nym = *context.Nym();
     const auto& nymID = nym.ID();
-    const auto& serverID = context.Server();
+    const auto& serverID = context.Notary();
     auto account = api_.Wallet().Account(accountID);
 
     if (false == bool(account)) {
@@ -3516,12 +3516,12 @@ auto OT_API::withdrawVoucher(
 // contract is now being deposited by the customer (who is also
 // the sender), in a message to the server.
 auto OT_API::depositPaymentPlan(
-    ServerContext& context,
+    otx::context::Server& context,
     const String& THE_PAYMENT_PLAN) const -> CommandResult
 {
     auto reason = api_.Factory().PasswordPrompt("Depositing a payment plan");
     rLock lock(
-        lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
+        lock_callback_({context.Nym()->ID().str(), context.Notary().str()}));
     CommandResult output{};
     auto& [requestNum, transactionNum, result] = output;
     auto& [status, reply] = result;
@@ -3531,7 +3531,7 @@ auto OT_API::depositPaymentPlan(
     reply.reset();
     const auto& nym = *context.Nym();
     const auto& nymID = nym.ID();
-    const auto& serverID = context.Server();
+    const auto& serverID = context.Notary();
 
     auto plan{api_.Factory().PaymentPlan()};
 
@@ -3658,13 +3658,13 @@ auto OT_API::depositPaymentPlan(
 // he can trigger clauses. All he needs is the transaction ID for the smart
 // contract, and the name of the clause.
 auto OT_API::triggerClause(
-    ServerContext& context,
+    otx::context::Server& context,
     const TransactionNumber& transactionNumber,
     const String& strClauseName,
     const String& pStrParam) const -> CommandResult
 {
     rLock lock(
-        lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
+        lock_callback_({context.Nym()->ID().str(), context.Notary().str()}));
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     CommandResult output{};
     auto& [requestNum, transactionNum, result] = output;
@@ -3707,11 +3707,11 @@ auto OT_API::triggerClause(
 }
 
 auto OT_API::activateSmartContract(
-    ServerContext& context,
+    otx::context::Server& context,
     const String& THE_SMART_CONTRACT) const -> CommandResult
 {
     rLock lock(
-        lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
+        lock_callback_({context.Nym()->ID().str(), context.Notary().str()}));
     auto reason = api_.Factory().PasswordPrompt("Activating a smart contract");
     CommandResult output{};
     auto& [requestNum, transactionNum, result] = output;
@@ -3722,7 +3722,7 @@ auto OT_API::activateSmartContract(
     reply.reset();
     const auto& nym = *context.Nym();
     const auto& nymID = nym.ID();
-    const auto& serverID = context.Server();
+    const auto& serverID = context.Notary();
     std::unique_ptr<OTSmartContract> contract =
         api_.Factory().SmartContract(serverID);
 
@@ -4067,12 +4067,12 @@ auto OT_API::activateSmartContract(
 /// CANCEL A SPECIFIC OFFER (THAT SAME NYM PLACED PREVIOUSLY ON SAME
 /// SERVER.) By transaction number as key.
 auto OT_API::cancelCronItem(
-    ServerContext& context,
+    otx::context::Server& context,
     const Identifier& ASSET_ACCOUNT_ID,
     const TransactionNumber& lTransactionNum) const -> CommandResult
 {
     rLock lock(
-        lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
+        lock_callback_({context.Nym()->ID().str(), context.Notary().str()}));
     auto reason =
         api_.Factory().PasswordPrompt("Cancelling a recurring transaction");
     CommandResult output{};
@@ -4084,7 +4084,7 @@ auto OT_API::cancelCronItem(
     reply.reset();
     const auto& nym = *context.Nym();
     const auto& nymID = nym.ID();
-    const auto& serverID = context.Server();
+    const auto& serverID = context.Notary();
 
     if (context.AvailableNumbers() < 1) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -4184,7 +4184,7 @@ auto OT_API::cancelCronItem(
 // object. (The Trade provides the payment authorization for the Offer, as
 // well as the rules for processing and expiring it.)
 auto OT_API::issueMarketOffer(
-    ServerContext& context,
+    otx::context::Server& context,
     const Identifier& ASSET_ACCOUNT_ID,
     const Identifier& CURRENCY_ACCOUNT_ID,
     const std::int64_t& MARKET_SCALE,       // Defaults to minimum of 1. Market
@@ -4204,7 +4204,7 @@ auto OT_API::issueMarketOffer(
                       // threshhold price.
 {
     rLock lock(
-        lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
+        lock_callback_({context.Nym()->ID().str(), context.Notary().str()}));
     auto reason = api_.Factory().PasswordPrompt("Issuing a market offer");
     CommandResult output{};
     auto& [requestNum, transactionNum, result] = output;
@@ -4215,7 +4215,7 @@ auto OT_API::issueMarketOffer(
     reply.reset();
     const auto& nym = *context.Nym();
     const auto& nymID = nym.ID();
-    const auto& serverID = context.Server();
+    const auto& serverID = context.Notary();
     auto assetAccount = api_.Wallet().Account(ASSET_ACCOUNT_ID);
 
     if (false == bool(assetAccount)) {
@@ -4549,10 +4549,10 @@ auto OT_API::issueMarketOffer(
 /// data directly out of the reply message, or you can load it from
 /// storage (OT will probably auto-store the reply to storage, for your
 /// convenience.)
-auto OT_API::getMarketList(ServerContext& context) const -> CommandResult
+auto OT_API::getMarketList(otx::context::Server& context) const -> CommandResult
 {
     rLock lock(
-        lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
+        lock_callback_({context.Nym()->ID().str(), context.Notary().str()}));
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     CommandResult output{};
     auto& [requestNum, transactionNum, result] = output;
@@ -4588,12 +4588,12 @@ auto OT_API::getMarketList(ServerContext& context) const -> CommandResult
 /// on a specific Market ID-- the bid/ask, and prices/amounts,
 /// basically--(up to lDepth or server Max)
 auto OT_API::getMarketOffers(
-    ServerContext& context,
+    otx::context::Server& context,
     const Identifier& MARKET_ID,
     const std::int64_t& lDepth) const -> CommandResult
 {
     rLock lock(
-        lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
+        lock_callback_({context.Nym()->ID().str(), context.Notary().str()}));
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     CommandResult output{};
     auto& [requestNum, transactionNum, result] = output;
@@ -4637,11 +4637,11 @@ auto OT_API::getMarketOffers(
 ///
 /// (So this function is not here to usurp that purpose.)
 auto OT_API::getMarketRecentTrades(
-    ServerContext& context,
+    otx::context::Server& context,
     const Identifier& MARKET_ID) const -> CommandResult
 {
     rLock lock(
-        lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
+        lock_callback_({context.Nym()->ID().str(), context.Notary().str()}));
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     CommandResult output{};
     auto& [requestNum, transactionNum, result] = output;
@@ -4679,10 +4679,11 @@ auto OT_API::getMarketRecentTrades(
 /// check the server reply for success or fail. Hmm for size reasons,
 /// this really will have to return a list of transaction #s, and then I
 /// request them one-by-one after that...
-auto OT_API::getNymMarketOffers(ServerContext& context) const -> CommandResult
+auto OT_API::getNymMarketOffers(otx::context::Server& context) const
+    -> CommandResult
 {
     rLock lock(
-        lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
+        lock_callback_({context.Nym()->ID().str(), context.Notary().str()}));
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     CommandResult output{};
     auto& [requestNum, transactionNum, result] = output;
@@ -4722,11 +4723,11 @@ auto OT_API::getNymMarketOffers(ServerContext& context) const -> CommandResult
 // Map input: key is instrument definition ID, and value is blank
 // (server reply puts issuer's receipts in that spot.)
 auto OT_API::queryInstrumentDefinitions(
-    ServerContext& context,
+    otx::context::Server& context,
     const Armored& ENCODED_MAP) const -> CommandResult
 {
     rLock lock(
-        lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
+        lock_callback_({context.Nym()->ID().str(), context.Notary().str()}));
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     CommandResult output{};
     auto& [requestNum, transactionNum, result] = output;
@@ -4759,11 +4760,11 @@ auto OT_API::queryInstrumentDefinitions(
 }
 
 auto OT_API::deleteAssetAccount(
-    ServerContext& context,
+    otx::context::Server& context,
     const Identifier& ACCOUNT_ID) const -> CommandResult
 {
     rLock lock(
-        lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
+        lock_callback_({context.Nym()->ID().str(), context.Notary().str()}));
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     CommandResult output{};
     auto& [requestNum, transactionNum, result] = output;
@@ -4803,12 +4804,12 @@ auto OT_API::deleteAssetAccount(
 }
 
 auto OT_API::usageCredits(
-    ServerContext& context,
+    otx::context::Server& context,
     const identifier::Nym& NYM_ID_CHECK,
     std::int64_t lAdjustment) const -> CommandResult
 {
     rLock lock(
-        lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
+        lock_callback_({context.Nym()->ID().str(), context.Notary().str()}));
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     CommandResult output{};
     auto& [requestNum, transactionNum, result] = output;
@@ -4840,10 +4841,10 @@ auto OT_API::usageCredits(
     return output;
 }
 
-auto OT_API::unregisterNym(ServerContext& context) const -> CommandResult
+auto OT_API::unregisterNym(otx::context::Server& context) const -> CommandResult
 {
     rLock lock(
-        lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
+        lock_callback_({context.Nym()->ID().str(), context.Notary().str()}));
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     CommandResult output{};
     auto& [requestNum, transactionNum, result] = output;
@@ -4879,11 +4880,11 @@ auto OT_API::unregisterNym(ServerContext& context) const -> CommandResult
 
 auto OT_API::CreateProcessInbox(
     const Identifier& accountID,
-    ServerContext& context,
+    otx::context::Server& context,
     [[maybe_unused]] Ledger& inbox) const -> OT_API::ProcessInboxOnly
 {
     const std::string account = accountID.str();
-    const auto& serverID = context.Server();
+    const auto& serverID = context.Notary();
     const auto& nym = *context.Nym();
     const auto& nymID = nym.ID();
     OT_API::ProcessInboxOnly output{};
@@ -4921,14 +4922,14 @@ auto OT_API::CreateProcessInbox(
 auto OT_API::IncludeResponse(
     const Identifier& accountID,
     const bool accept,
-    ServerContext& context,
+    otx::context::Server& context,
     OTTransaction& source,
     Ledger& response) const -> bool
 {
     rLock lock(
-        lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
+        lock_callback_({context.Nym()->ID().str(), context.Notary().str()}));
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
-    const auto& serverID = context.Server();
+    const auto& serverID = context.Notary();
     const auto type = source.GetType();
     const auto inRefTo = String::Factory(source);
 
@@ -5000,7 +5001,7 @@ auto OT_API::IncludeResponse(
 
 auto OT_API::FinalizeProcessInbox(
     const Identifier& accountID,
-    ServerContext& context,
+    otx::context::Server& context,
     Ledger& response,
     Ledger& inbox,
     Ledger& outbox,
@@ -5012,7 +5013,7 @@ auto OT_API::FinalizeProcessInbox(
     class Cleanup
     {
     public:
-        Cleanup(OTTransaction& processInbox, ServerContext& context)
+        Cleanup(OTTransaction& processInbox, otx::context::Server& context)
             : context_(context)
             , success_(false)
             , number_(processInbox.GetTransactionNum())
@@ -5030,7 +5031,7 @@ auto OT_API::FinalizeProcessInbox(
         }
 
     private:
-        ServerContext& context_;
+        otx::context::Server& context_;
         bool success_{false};
         TransactionNumber number_{0};
     };
@@ -5186,7 +5187,7 @@ auto OT_API::FinalizeProcessInbox(
 }
 
 auto OT_API::find_cron(
-    const ServerContext& context,
+    const otx::context::Server& context,
     const Item& item,
     OTTransaction& processInbox,
     OTTransaction& serverTransaction,
@@ -5259,7 +5260,7 @@ auto OT_API::find_cron(
 }
 
 auto OT_API::find_standard(
-    const ServerContext& context,
+    const otx::context::Server& context,
     const Item& item,
     const TransactionNumber number,
     OTTransaction& serverTransaction,
@@ -5268,7 +5269,7 @@ auto OT_API::find_standard(
     std::set<TransactionNumber>& closing) const -> bool
 {
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
-    const auto& notaryID = context.Server();
+    const auto& notaryID = context.Notary();
     const auto referenceNum = item.GetReferenceToNum();
     const auto type = item.GetType();
 
@@ -5397,11 +5398,11 @@ auto OT_API::add_accept_item(
 
 auto OT_API::get_or_create_process_inbox(
     const Identifier& accountID,
-    ServerContext& context,
+    otx::context::Server& context,
     Ledger& response) const -> OTTransaction*
 {
     const auto& nymID = context.Nym()->ID();
-    const auto& serverID = context.Server();
+    const auto& serverID = context.Notary();
     auto processInbox = response.GetTransaction(transactionType::processInbox);
 
     if (nullptr == processInbox) {

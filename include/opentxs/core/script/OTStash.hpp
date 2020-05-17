@@ -8,17 +8,19 @@
 
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
+#include <irrxml/irrXML.hpp>
+#include <cstdint>
 #include <map>
 #include <string>
-#include <cstdint>
 
 namespace irr
 {
 namespace io
 {
+class IXMLBase;
 template <class char_type, class super_class>
 class IIrrXMLReader;
-class IXMLBase;
+
 using IrrXMLReader = IIrrXMLReader<char, IXMLBase>;
 }  // namespace io
 }  // namespace irr

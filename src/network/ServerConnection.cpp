@@ -23,7 +23,6 @@
 #include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/network/ZMQ.hpp"
-#include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Flag.hpp"
@@ -51,6 +50,7 @@
 #include "opentxs/network/zeromq/socket/Socket.hpp"
 #include "opentxs/otx/Reply.hpp"
 #include "opentxs/otx/Request.hpp"
+#include "opentxs/otx/consensus/Server.hpp"
 #include "opentxs/protobuf/Check.hpp"
 #include "opentxs/protobuf/ContractEnums.pb.h"
 #include "opentxs/protobuf/OTXEnums.pb.h"
@@ -335,7 +335,7 @@ void ServerConnection::publish() const
 }
 
 void ServerConnection::register_for_push(
-    const ServerContext& context,
+    const otx::context::Server& context,
     const PasswordPrompt& reason)
 {
     if (2 > context.Request()) {
@@ -354,7 +354,7 @@ void ServerConnection::register_for_push(
     auto request = otx::Request::Factory(
         api_,
         context.Nym(),
-        context.Server(),
+        context.Notary(),
         proto::SERVERREQUEST_ACTIVATE,
         0,
         reason);
@@ -380,7 +380,7 @@ void ServerConnection::reset_timer()
 }
 
 auto ServerConnection::Send(
-    const ServerContext& context,
+    const otx::context::Server& context,
     const Message& message,
     const PasswordPrompt& reason,
     const Push push) -> NetworkReplyMessage

@@ -109,6 +109,14 @@ class Message;
 }  // namespace zeromq
 }  // namespace network
 
+namespace otx
+{
+namespace context
+{
+class Server;
+}  // namespace context
+}  // namespace otx
+
 class Basket;
 class Cheque;
 class Contract;
@@ -129,7 +137,6 @@ class OTSmartContract;
 class OTTrade;
 class OTTransactionType;
 class PeerObject;
-class ServerContext;
 }  // namespace opentxs
 
 namespace opentxs::api::implementation
@@ -532,7 +539,7 @@ public:
         -> OTZMQPipeline final;
 #if OT_CASH
     auto Purse(
-        const ServerContext& context,
+        const otx::context::Server& context,
         const identifier::UnitDefinition& unit,
         const blind::Mint& mint,
         const Amount totalValue,

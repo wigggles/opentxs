@@ -28,6 +28,11 @@ namespace storage
 class Driver;
 }  // namespace storage
 }  // namespace api
+
+namespace storage
+{
+class Tree;
+}  // namespace storage
 }  // namespace opentxs
 
 namespace opentxs::storage
@@ -75,7 +80,7 @@ public:
     ~Accounts() final = default;
 
 private:
-    friend class Tree;
+    friend Tree;
 
     using NymIndex = std::map<OTNymID, std::set<OTIdentifier>>;
     using ServerIndex = std::map<OTServerID, std::set<OTIdentifier>>;

@@ -48,7 +48,13 @@ namespace opentxs
 namespace storage
 {
 class Root;
+}  // namespace storage
+}  // namespace opentxs
 
+namespace opentxs
+{
+namespace storage
+{
 using keyFunction = std::function<bool(const std::string&)>;
 /** A set of metadata associated with a stored object
  *  * string: hash
@@ -191,7 +197,7 @@ private:
     auto operator=(Node &&) -> Node& = delete;
 
 protected:
-    friend class Root;
+    friend storage::Root;
 
     static const std::string BLANK_HASH;
 

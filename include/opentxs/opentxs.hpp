@@ -77,10 +77,6 @@
 #include <opentxs/client/OTAPI_Exec.hpp>
 #include <opentxs/client/OT_API.hpp>
 #include <opentxs/client/ServerAction.hpp>
-#include <opentxs/consensus/ClientContext.hpp>
-#include <opentxs/consensus/Context.hpp>
-#include <opentxs/consensus/ManagedNumber.hpp>
-#include <opentxs/consensus/ServerContext.hpp>
 #include <opentxs/contact/Contact.hpp>
 #include <opentxs/contact/ContactData.hpp>
 #include <opentxs/contact/ContactGroup.hpp>
@@ -199,6 +195,10 @@
 #include <opentxs/network/zeromq/zap/ZAP.hpp>
 #include <opentxs/otx/Reply.hpp>
 #include <opentxs/otx/Request.hpp>
+#include <opentxs/otx/consensus/Client.hpp>
+#include <opentxs/otx/consensus/Base.hpp>
+#include <opentxs/otx/consensus/ManagedNumber.hpp>
+#include <opentxs/otx/consensus/Server.hpp>
 #include <opentxs/ui/AccountActivity.hpp>
 #include <opentxs/ui/AccountList.hpp>
 #include <opentxs/ui/AccountListItem.hpp>

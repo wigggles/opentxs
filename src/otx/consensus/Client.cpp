@@ -3,56 +3,56 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "0_stdafx.hpp"                 // IWYU pragma: associated
-#include "1_Internal.hpp"               // IWYU pragma: associated
-#include "consensus/ClientContext.hpp"  // IWYU pragma: associated
+#include "0_stdafx.hpp"              // IWYU pragma: associated
+#include "1_Internal.hpp"            // IWYU pragma: associated
+#include "otx/consensus/Client.hpp"  // IWYU pragma: associated
 
 #include <memory>
 #include <utility>
 
-#include "Factory.hpp"
-#include "consensus/Context.hpp"
-#include "opentxs/consensus/TransactionStatement.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/identity/Nym.hpp"
+#include "opentxs/otx/consensus/TransactionStatement.hpp"
 #include "opentxs/protobuf/ConsensusEnums.pb.h"
+#include "otx/consensus/Base.hpp"
 
 #define CURRENT_VERSION 1
 
-#define OT_METHOD "opentxs::implementation::ClientContext::"
+#define OT_METHOD "opentxs::otx::context::implementation::ClientContext::"
 
-namespace opentxs
+namespace opentxs::factory
 {
-auto Factory::ClientContext(
+using ReturnType = otx::context::implementation::ClientContext;
+
+auto ClientContext(
     const api::internal::Core& api,
     const Nym_p& local,
     const Nym_p& remote,
-    const identifier::Server& server) -> internal::ClientContext*
+    const identifier::Server& server) -> otx::context::internal::Client*
 {
-    return new implementation::ClientContext(api, local, remote, server);
+    return new ReturnType(api, local, remote, server);
 }
 
-auto Factory::ClientContext(
+auto ClientContext(
     const api::internal::Core& api,
     const proto::Context& serialized,
     const Nym_p& local,
     const Nym_p& remote,
-    const identifier::Server& server) -> internal::ClientContext*
+    const identifier::Server& server) -> otx::context::internal::Client*
 {
-    return new implementation::ClientContext(
-        api, serialized, local, remote, server);
+    return new ReturnType(api, serialized, local, remote, server);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
-namespace opentxs::implementation
+namespace opentxs::otx::context::implementation
 {
 ClientContext::ClientContext(
     const api::internal::Core& api,
     const Nym_p& local,
     const Nym_p& remote,
     const identifier::Server& server)
-    : implementation::Context(api, CURRENT_VERSION, local, remote, server)
+    : Base(api, CURRENT_VERSION, local, remote, server)
 {
     {
         Lock lock(lock_);
@@ -66,13 +66,7 @@ ClientContext::ClientContext(
     const Nym_p& local,
     const Nym_p& remote,
     const identifier::Server& server)
-    : implementation::Context(
-          api,
-          CURRENT_VERSION,
-          serialized,
-          local,
-          remote,
-          server)
+    : Base(api, CURRENT_VERSION, serialized, local, remote, server)
 {
     if (serialized.has_clientcontext()) {
         for (const auto& it : serialized.clientcontext().opencronitems()) {
@@ -302,4 +296,4 @@ auto ClientContext::VerifyIssuedNumber(
 
     return VerifyIssuedNumber(number);
 }
-}  // namespace opentxs::implementation
+}  // namespace opentxs::otx::context::implementation

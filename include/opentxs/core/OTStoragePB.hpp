@@ -65,8 +65,8 @@ public:
 
 class BufferPB : public PackedBuffer
 {
-    friend class PackerSubclass<BufferPB>;
-    friend class IStorablePB;
+    friend PackerSubclass<BufferPB>;
+    friend IStorablePB;
     std::string m_buffer;
 
 public:

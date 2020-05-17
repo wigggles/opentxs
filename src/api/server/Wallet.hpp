@@ -40,13 +40,28 @@ namespace internal
 struct Context;
 }  // namespace internal
 
+namespace otx
+{
+namespace context
+{
+namespace internal
+{
+struct Base;
+}  // namespace internal
+
+class Base;
+class Client;
+}  // namespace context
+
+class Base;
+class Client;
+}  // namespace otx
+
 namespace proto
 {
 class Context;
 }  // namespace proto
 
-class ClientContext;
-class Context;
 class Factory;
 class Identifier;
 class PasswordPrompt;
@@ -58,19 +73,19 @@ class Wallet final : public api::implementation::Wallet
 {
 public:
     auto ClientContext(const identifier::Nym& remoteNymID) const
-        -> std::shared_ptr<const opentxs::ClientContext> final;
+        -> std::shared_ptr<const otx::context::Client> final;
     auto Context(
         const identifier::Server& notaryID,
         const identifier::Nym& clientNymID) const
-        -> std::shared_ptr<const opentxs::Context> final;
+        -> std::shared_ptr<const otx::context::Base> final;
     auto mutable_ClientContext(
         const identifier::Nym& remoteNymID,
         const PasswordPrompt& reason) const
-        -> Editor<opentxs::ClientContext> final;
+        -> Editor<otx::context::Client> final;
     auto mutable_Context(
         const identifier::Server& notaryID,
         const identifier::Nym& clientNymID,
-        const PasswordPrompt& reason) const -> Editor<opentxs::Context> final;
+        const PasswordPrompt& reason) const -> Editor<otx::context::Base> final;
 
     ~Wallet() = default;
 
@@ -85,7 +100,7 @@ private:
         const proto::Context& serialized,
         const Nym_p& localNym,
         const Nym_p& remoteNym,
-        std::shared_ptr<opentxs::internal::Context>& output) const final;
+        std::shared_ptr<otx::context::internal::Base>& output) const final;
     auto load_legacy_account(
         const Identifier& accountID,
         const eLock& lock,

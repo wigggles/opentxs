@@ -7,7 +7,6 @@
 #include "1_Internal.hpp"                        // IWYU pragma: associated
 #include "opentxs/core/crypto/OTSignedFile.hpp"  // IWYU pragma: associated
 
-#include <irrxml/irrXML.hpp>
 #include <cstdint>
 #include <cstring>
 #include <memory>

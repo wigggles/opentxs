@@ -19,7 +19,6 @@
 #endif
 #pragma GCC diagnostic pop
 #endif
-#include <irrxml/irrXML.hpp>
 #include <chrono>
 #include <cinttypes>
 #include <memory>
@@ -34,7 +33,6 @@
 #include "opentxs/api/Editor.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
-#include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/AccountList.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -69,6 +67,7 @@
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/identity/Nym.hpp"
+#include "opentxs/otx/consensus/Client.hpp"
 
 #ifndef SMART_CONTRACT_PROCESS_INTERVAL
 #define SMART_CONTRACT_PROCESS_INTERVAL                                        \
@@ -3960,7 +3959,7 @@ auto OTSmartContract::CanCancelContract(std::string str_party_name) -> bool
 
 /// See if theNym has rights to remove this item from Cron.
 ///
-auto OTSmartContract::CanRemoveItemFromCron(const ClientContext& context)
+auto OTSmartContract::CanRemoveItemFromCron(const otx::context::Client& context)
     -> bool
 {
     // You don't just go willy-nilly and remove a cron item from a market unless
@@ -4840,7 +4839,7 @@ void OTSmartContract::HarvestClosingNumbers(
 
 // Used for adding transaction numbers back to a Nym, after deciding not to use
 // this smart contract, or failing in trying to use it.
-void OTSmartContract::HarvestClosingNumbers(ServerContext& context)
+void OTSmartContract::HarvestClosingNumbers(otx::context::Server& context)
 {
     // We do NOT call the parent version.
     // OTCronItem::HarvestClosingNumbers(theNym);
@@ -4865,7 +4864,7 @@ void OTSmartContract::HarvestClosingNumbers(ServerContext& context)
 // opening number is already burned and gone. But there might be cases where
 // it's not, and you want to retrieve it. So I added this function for those
 // cases. (In most cases, you will prefer HarvestClosingNumbers().)
-void OTSmartContract::HarvestOpeningNumber(ServerContext& context)
+void OTSmartContract::HarvestOpeningNumber(otx::context::Server& context)
 {
     // We do NOT call the parent version.
     // OTCronItem::HarvestOpeningNumber(theNym);
@@ -4945,7 +4944,7 @@ auto OTSmartContract::AddParty(OTParty& theParty) -> bool
 //
 auto OTSmartContract::ConfirmParty(
     OTParty& theParty,
-    ServerContext& context,
+    otx::context::Server& context,
     const PasswordPrompt& reason) -> bool
 {
     if (!theParty.HasActiveAgent()) {

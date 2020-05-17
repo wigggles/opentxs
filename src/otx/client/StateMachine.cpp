@@ -31,7 +31,6 @@
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/client/NymData.hpp"
 #include "opentxs/client/OT_API.hpp"
-#include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/core/Cheque.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
@@ -48,6 +47,7 @@
 #include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/ext/OTPayment.hpp"
 #include "opentxs/identity/Nym.hpp"
+#include "opentxs/otx/consensus/Server.hpp"
 #include "opentxs/protobuf/ConsensusEnums.pb.h"
 #include "opentxs/protobuf/ContactEnums.pb.h"
 #include "opentxs/protobuf/UnitDefinition.pb.h"
@@ -224,7 +224,8 @@ auto StateMachine::bump_task(const bool bump) const -> bool
 
 // If this server was added by a pairing operation that included a server
 // password then request admin permissions on the server
-auto StateMachine::check_admin(const ServerContext& context) const -> bool
+auto StateMachine::check_admin(const otx::context::Server& context) const
+    -> bool
 {
     bool needAdmin{false};
     const auto haveAdmin = context.isAdmin();
@@ -262,13 +263,13 @@ auto StateMachine::check_missing_contract(M& missing, U& unknown, bool skip)
 
 // Queue registerNym if the local nym has updated since the last registernym
 // operation
-void StateMachine::check_nym_revision(const ServerContext& context) const
+void StateMachine::check_nym_revision(const otx::context::Server& context) const
 {
     if (context.StaleNym()) {
         const auto& nymID = context.Nym()->ID();
         LogDetail(OT_METHOD)(__FUNCTION__)(": Nym ")(nymID)(
             " has is newer than version last registered version on server ")(
-            context.Server())(".")
+            context.Notary())(".")
             .Flush();
         bump_task(get_task<RegisterNymTask>().Push(next_task_id(), true));
     }
@@ -348,7 +349,8 @@ auto StateMachine::check_server_contract(
     return true;
 }
 
-auto StateMachine::check_server_name(const ServerContext& context) const -> bool
+auto StateMachine::check_server_name(const otx::context::Server& context) const
+    -> bool
 {
     try {
         const auto server = client_.Wallet().Server(op_.ServerID());
@@ -377,7 +379,7 @@ auto StateMachine::check_server_name(const ServerContext& context) const -> bool
 }
 
 // Periodically download server nym in case it has been renamed
-void StateMachine::check_server_nym(const ServerContext& context) const
+void StateMachine::check_server_nym(const otx::context::Server& context) const
 {
     if (0 == counter() % 100) {
         // download server nym in case it has been renamed
@@ -387,7 +389,8 @@ void StateMachine::check_server_nym(const ServerContext& context) const
 }
 
 // Queue getTransactionNumbers if necessary
-void StateMachine::check_transaction_numbers(const ServerContext& context) const
+void StateMachine::check_transaction_numbers(
+    const otx::context::Server& context) const
 {
     if (0 == context.Accounts().size()) { return; }
 
@@ -470,7 +473,7 @@ auto StateMachine::download_nym(const TaskID taskID, const CheckNymTask& id)
 {
     OT_ASSERT(false == id->empty())
 
-    ServerContext::ExtraArgs args{};
+    otx::context::Server::ExtraArgs args{};
 
     DO_OPERATION(Start, client::internal::Operation::Type::CheckNym, id, args);
 
@@ -589,7 +592,7 @@ auto StateMachine::get_admin(const TaskID taskID, const OTPassword& password)
 
 auto StateMachine::get_transaction_numbers(const TaskID taskID) const -> bool
 {
-    ServerContext::ExtraArgs args{};
+    otx::context::Server::ExtraArgs args{};
 
     DO_OPERATION(
         Start, client::internal::Operation::Type::GetTransactionNumbers, args);
@@ -651,7 +654,7 @@ auto StateMachine::issue_unit_definition(
         OT_ASSERT(serialized);
 
         *serialized = unitDefinition->PublicContract();
-        ServerContext::ExtraArgs args{label, false};
+        otx::context::Server::ExtraArgs args{label, false};
 
         DO_OPERATION(IssueUnitDefinition, serialized, args);
 
@@ -841,8 +844,9 @@ auto StateMachine::publish_server_contract(
     return finish_task(taskID, success, std::move(result));
 }
 
-auto StateMachine::queue_contracts(const ServerContext& context, int& next)
-    -> bool
+auto StateMachine::queue_contracts(
+    const otx::context::Server& context,
+    int& next) -> bool
 {
     check_server_nym(context);
     check_missing_contract<CheckNymTask, identity::Nym>(
@@ -904,7 +908,7 @@ auto StateMachine::register_account(
         }
     }
 
-    ServerContext::ExtraArgs args{label, false};
+    otx::context::Server::ExtraArgs args{label, false};
 
     DO_OPERATION(
         Start,
@@ -934,7 +938,7 @@ auto StateMachine::register_nym(
     const TaskID taskID,
     const RegisterNymTask& resync) const -> bool
 {
-    ServerContext::ExtraArgs args{};
+    otx::context::Server::ExtraArgs args{};
 
     if (resync) { std::get<1>(args) = true; }
 

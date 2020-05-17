@@ -13,9 +13,15 @@
 
 namespace opentxs
 {
+namespace otx
+{
+namespace context
+{
 class ManagedNumber;
+}  // namespace context
+}  // namespace otx
 
-using OTManagedNumber = Pimpl<ManagedNumber>;
+using OTManagedNumber = Pimpl<otx::context::ManagedNumber>;
 
 OPENTXS_EXPORT bool operator<(
     const OTManagedNumber& lhs,
@@ -23,6 +29,10 @@ OPENTXS_EXPORT bool operator<(
 }  // namespace opentxs
 
 namespace opentxs
+{
+namespace otx
+{
+namespace context
 {
 class ManagedNumber
 {
@@ -42,6 +52,7 @@ private:
     ManagedNumber& operator=(const ManagedNumber&) = delete;
     ManagedNumber& operator=(ManagedNumber&&) = delete;
 };
+}  // namespace context
+}  // namespace otx
 }  // namespace opentxs
-
 #endif

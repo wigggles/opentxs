@@ -18,8 +18,6 @@
 #include "opentxs/Types.hpp"
 #include "opentxs/Version.hpp"
 #include "opentxs/api/Editor.hpp"
-#include "opentxs/consensus/ManagedNumber.hpp"
-#include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Ledger.hpp"
@@ -31,6 +29,8 @@
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
+#include "opentxs/otx/consensus/ManagedNumber.hpp"
+#include "opentxs/otx/consensus/Server.hpp"
 #include "opentxs/protobuf/ContactEnums.pb.h"
 
 namespace opentxs
@@ -50,6 +50,14 @@ namespace blind
 {
 class Purse;
 }  // namespace blind
+
+namespace otx
+{
+namespace context
+{
+class Base;
+}  // namespace context
+}  // namespace otx
 
 namespace proto
 {
@@ -98,7 +106,7 @@ public:
     auto GetFuture() -> Future override;
     auto IssueUnitDefinition(
         const std::shared_ptr<const proto::UnitDefinition> unitDefinition,
-        const ServerContext::ExtraArgs& args) -> bool override;
+        const otx::context::Server::ExtraArgs& args) -> bool override;
     void join() override;
     auto PublishContract(const identifier::Nym& id) -> bool override;
     auto PublishContract(const identifier::Server& id) -> bool override;
@@ -127,16 +135,16 @@ public:
         const String& memo) -> bool override;
     void SetPush(const bool on) override { enable_otx_push_.store(on); }
     void Shutdown() override;
-    auto Start(const Type type, const ServerContext::ExtraArgs& args)
+    auto Start(const Type type, const otx::context::Server::ExtraArgs& args)
         -> bool override;
     auto Start(
         const Type type,
         const identifier::UnitDefinition& targetUnitID,
-        const ServerContext::ExtraArgs& args) -> bool override;
+        const otx::context::Server::ExtraArgs& args) -> bool override;
     auto Start(
         const Type type,
         const identifier::Nym& targetNymID,
-        const ServerContext::ExtraArgs& args) -> bool override;
+        const otx::context::Server::ExtraArgs& args) -> bool override;
     auto UpdateAccount(const Identifier& accountID) -> bool override;
 #if OT_CASH
     auto WithdrawCash(const Identifier& accountID, const Amount amount)
@@ -184,7 +192,7 @@ private:
     std::atomic<Type> type_;
     std::atomic<State> state_;
     std::atomic<bool> refresh_account_;
-    ServerContext::ExtraArgs args_;
+    otx::context::Server::ExtraArgs args_;
     std::shared_ptr<Message> message_;
     std::shared_ptr<Message> outmail_message_;
     std::atomic<bool> result_set_;
@@ -217,27 +225,27 @@ private:
     OTPeerRequest peer_request_;
     SetID set_id_;
 
-    static auto check_future(ServerContext::SendFuture& future) -> bool;
+    static auto check_future(otx::context::Server::SendFuture& future) -> bool;
     static void set_consensus_hash(
         OTTransaction& transaction,
-        const Context& context,
+        const otx::context::Base& context,
         const Account& account,
         const PasswordPrompt& reason);
 
-    auto context() const -> Editor<ServerContext>;
+    auto context() const -> Editor<otx::context::Server>;
     auto evaluate_transaction_reply(
         const Identifier& accountID,
         const Message& reply) const -> bool;
     auto hasContext() const -> bool;
     void update_workflow(
         const Message& request,
-        const ServerContext::DeliveryResult& result) const;
+        const otx::context::Server::DeliveryResult& result) const;
     void update_workflow_convey_payment(
         const Message& request,
-        const ServerContext::DeliveryResult& result) const;
+        const otx::context::Server::DeliveryResult& result) const;
     void update_workflow_send_cash(
         const Message& request,
-        const ServerContext::DeliveryResult& result) const;
+        const otx::context::Server::DeliveryResult& result) const;
 
     void account_pre();
     void account_post();
@@ -260,7 +268,7 @@ private:
     auto construct_process_inbox(
         const Identifier& accountID,
         const Ledger& payload,
-        ServerContext& context) -> std::shared_ptr<Message>;
+        otx::context::Server& context) -> std::shared_ptr<Message>;
     auto construct_publish_nym() -> std::shared_ptr<Message>;
     auto construct_publish_server() -> std::shared_ptr<Message>;
     auto construct_publish_unit() -> std::shared_ptr<Message>;
@@ -270,12 +278,12 @@ private:
     auto construct_send_nym_object(
         const PeerObject& object,
         const Nym_p recipient,
-        ServerContext& context,
+        otx::context::Server& context,
         const RequestNumber number = -1) -> std::shared_ptr<Message>;
     auto construct_send_nym_object(
         const PeerObject& object,
         const Nym_p recipient,
-        ServerContext& context,
+        otx::context::Server& context,
         Armored& envelope,
         const RequestNumber number = -1) -> std::shared_ptr<Message>;
     auto construct_send_peer_reply() -> std::shared_ptr<Message>;
@@ -290,22 +298,23 @@ private:
 #endif
     auto download_account(
         const Identifier& accountID,
-        ServerContext::DeliveryResult& lastResult) -> std::size_t;
+        otx::context::Server::DeliveryResult& lastResult) -> std::size_t;
     auto download_accounts(
         const State successState,
         const State failState,
-        ServerContext::DeliveryResult& lastResult) -> bool;
+        otx::context::Server::DeliveryResult& lastResult) -> bool;
     auto download_box_receipt(
         const Identifier& accountID,
         const BoxType box,
         const TransactionNumber number) -> bool;
-    void evaluate_transaction_reply(ServerContext::DeliveryResult&& result);
+    void evaluate_transaction_reply(
+        otx::context::Server::DeliveryResult&& result);
     void execute();
     auto get_account_data(
         const Identifier& accountID,
         std::shared_ptr<Ledger> inbox,
         std::shared_ptr<Ledger> outbox,
-        ServerContext::DeliveryResult& lastResult) -> bool;
+        otx::context::Server::DeliveryResult& lastResult) -> bool;
     auto get_receipts(
         const Identifier& accountID,
         std::shared_ptr<Ledger> inbox,
@@ -320,14 +329,14 @@ private:
         const Identifier& accountID,
         std::shared_ptr<Ledger> inbox,
         std::shared_ptr<Ledger> outbox,
-        ServerContext::DeliveryResult& lastResult) -> bool;
+        otx::context::Server::DeliveryResult& lastResult) -> bool;
     void refresh();
     void reset();
-    void set_result(ServerContext::DeliveryResult&& result);
+    void set_result(otx::context::Server::DeliveryResult&& result);
     auto start(
         const Lock& decisionLock,
         const Type type,
-        const ServerContext::ExtraArgs& args) -> bool;
+        const otx::context::Server::ExtraArgs& args) -> bool;
     auto state_machine() -> bool;
     void transaction_numbers();
 

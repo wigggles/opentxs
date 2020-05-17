@@ -31,22 +31,29 @@ namespace storage
 {
 class Mailbox;
 class Nym;
+class Thread;
+}  // namespace storage
+}  // namespace opentxs
 
+namespace opentxs
+{
+namespace storage
+{
 class Threads final : public Node
 {
 private:
     using ot_super = Node;
     friend Nym;
 
-    mutable std::map<std::string, std::unique_ptr<class Thread>> threads_;
+    mutable std::map<std::string, std::unique_ptr<storage::Thread>> threads_;
     Mailbox& mail_inbox_;
     Mailbox& mail_outbox_;
 
     auto save(const std::unique_lock<std::mutex>& lock) const -> bool final;
     auto serialize() const -> proto::StorageNymList;
-    auto thread(const std::string& id) const -> class Thread*;
+    auto thread(const std::string& id) const -> storage::Thread*;
     auto thread(const std::string& id, const std::unique_lock<std::mutex>& lock)
-        const -> class Thread*;
+        const -> storage::Thread*;
 
     auto create(
         const Lock& lock,
@@ -54,7 +61,7 @@ private:
         const std::set<std::string>& participants) -> std::string;
     void init(const std::string& hash) final;
     void save(
-        class Thread* thread,
+        storage::Thread* thread,
         const std::unique_lock<std::mutex>& lock,
         const std::string& id);
 
@@ -74,13 +81,13 @@ public:
     using ot_super::List;
     auto List(const bool unreadOnly) const -> ObjectList;
     auto Migrate(const opentxs::api::storage::Driver& to) const -> bool final;
-    auto Thread(const std::string& id) const -> const class Thread&;
+    auto Thread(const std::string& id) const -> const storage::Thread&;
 
     auto Create(
         const std::string& id,
         const std::set<std::string>& participants) -> std::string;
     auto FindAndDeleteItem(const std::string& itemID) -> bool;
-    auto mutable_Thread(const std::string& id) -> Editor<class Thread>;
+    auto mutable_Thread(const std::string& id) -> Editor<storage::Thread>;
     auto Rename(const std::string& existingID, const std::string& newID)
         -> bool;
 

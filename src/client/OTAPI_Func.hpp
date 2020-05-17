@@ -48,6 +48,14 @@ class Server;
 class UnitDefinition;
 }  // namespace identifier
 
+namespace otx
+{
+namespace context
+{
+class Server;
+}  // namespace context
+}  // namespace otx
+
 class Cheque;
 class Ledger;
 class Message;
@@ -55,7 +63,6 @@ class OTPayment;
 class OTPaymentPlan;
 class OTSmartContract;
 class PasswordPrompt;
-class ServerContext;
 }  // namespace opentxs
 
 auto VerifyStringVal(const std::string&) -> bool;
@@ -278,8 +285,8 @@ private:
     std::int32_t nRequestNum_{-1};
     std::int32_t nTransNumsNeeded_{0};
     const api::client::internal::Manager& api_;
-    Editor<ServerContext> context_editor_;
-    ServerContext& context_;
+    Editor<otx::context::Server> context_editor_;
+    otx::context::Server& context_;
     CommandResult last_attempt_;
     const bool is_transaction_{false};
     Amount activationPrice_{0};

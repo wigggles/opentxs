@@ -8,6 +8,7 @@
 
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
+#include <irrxml/irrXML.hpp>
 #include <cstdint>
 #include <memory>
 #include <string>
@@ -56,8 +57,15 @@ namespace identity
 class Nym;
 }  // namespace identity
 
+namespace otx
+{
+namespace context
+{
+class Base;
+}  // namespace context
+}  // namespace otx
+
 class Account;
-class Context;
 class Ledger;
 class OTWallet;
 class PasswordPrompt;
@@ -93,7 +101,7 @@ public:
 
     OPENTXS_EXPORT std::string Alias() const;
     OPENTXS_EXPORT bool ConsensusHash(
-        const class Context& context,
+        const otx::context::Base& context,
         Identifier& theOutput,
         const PasswordPrompt& reason) const;
     OPENTXS_EXPORT bool DisplayStatistics(String& contents) const override;

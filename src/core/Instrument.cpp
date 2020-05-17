@@ -12,7 +12,6 @@
 
 #include "internal/api/Api.hpp"
 #include "opentxs/api/Factory.hpp"
-#include "opentxs/core/Contract.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/script/OTScriptable.hpp"
 

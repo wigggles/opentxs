@@ -38,16 +38,26 @@ namespace identity
 class Nym;
 }  // namespace identity
 
-class Context;
+namespace otx
+{
+namespace context
+{
+class Base;
+class Server;
+}  // namespace context
+}  // namespace otx
+
 class Contract;
 class Identifier;
 class OTParty;
 class OTPartyAccount;
 class OTSmartContract;
 class PasswordPrompt;
-class ServerContext;
 class Tag;
+}  // namespace opentxs
 
+namespace opentxs
+{
 // Agent is always either the Owner Nym acting in his own interests,
 // or is an employee Nym acting actively in a role on behalf of an Entity formed
 // by contract
@@ -155,14 +165,14 @@ public:
         const PasswordPrompt& reason);
     bool RecoverTransactionNumber(
         const TransactionNumber& lNumber,
-        Context& context);
+        otx::context::Base& context);
     bool RecoverTransactionNumber(
         const TransactionNumber& lNumber,
         const String& strNotaryID,
         const PasswordPrompt& reason);
-    bool ReserveOpeningTransNum(ServerContext& context);
+    bool ReserveOpeningTransNum(otx::context::Server& context);
     bool ReserveClosingTransNum(
-        ServerContext& context,
+        otx::context::Server& context,
         OTPartyAccount& thePartyAcct);
     OPENTXS_EXPORT bool SignContract(
         Contract& theInput,

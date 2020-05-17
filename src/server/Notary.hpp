@@ -47,12 +47,19 @@ namespace identity
 class Nym;
 }  // namespace identity
 
+namespace otx
+{
+namespace context
+{
+class Client;
+}  // namespace context
+}  // namespace otx
+
 namespace server
 {
 class Server;
 }  // namespace server
 
-class ClientContext;
 class Identifier;
 class PasswordPrompt;
 class String;
@@ -64,7 +71,7 @@ class Notary
 {
 public:
     void NotarizeProcessInbox(
-        ClientContext& context,
+        otx::context::Client& context,
         ExclusiveAccount& account,
         OTTransaction& tranIn,
         OTTransaction& tranOut,
@@ -72,18 +79,18 @@ public:
         Ledger& outbox,
         bool& outSuccess);
     auto NotarizeProcessNymbox(
-        ClientContext& context,
+        otx::context::Client& context,
         OTTransaction& tranIn,
         OTTransaction& tranOut,
         bool& outSuccess) -> bool;
     void NotarizeTransaction(
-        ClientContext& context,
+        otx::context::Client& context,
         OTTransaction& tranIn,
         OTTransaction& tranOut,
         bool& outSuccess);
 
 private:
-    friend class Server;
+    friend Server;
 
     class Finalize
     {
@@ -130,7 +137,7 @@ private:
         const Item& depositItem,
         const String& serializedDepositItem,
         const Item& balanceItem,
-        ClientContext& context,
+        otx::context::Client& context,
         Account& account,
         Ledger& inbox,
         const Ledger& outbox,
@@ -144,7 +151,7 @@ private:
         const String& serializedDepositItem,
         const Item& balanceItem,
         const Cheque& cheque,
-        ClientContext& depositorContext,
+        otx::context::Client& depositorContext,
         ExclusiveAccount& depositorAccount,
         Ledger& depositorInbox,
         const Ledger& depositorOutbox,
@@ -161,12 +168,12 @@ private:
         const bool isVoucher,
         const bool cancelling,
         const identifier::Nym& senderNymID,
-        ClientContext& senderContext,
+        otx::context::Client& senderContext,
         Account& senderAccount,
         Ledger& senderInbox,
         std::shared_ptr<OTTransaction>& inboxItem,
         Account& sourceAccount,
-        const ClientContext& depositorContext,
+        const otx::context::Client& depositorContext,
         Account& depositorAccount,
         const Ledger& depositorInbox,
         const Ledger& depositorOutbox,
@@ -174,13 +181,13 @@ private:
         Item& responseItem,
         Item& responseBalanceItem);
     void NotarizeCancelCronItem(
-        ClientContext& context,
+        otx::context::Client& context,
         ExclusiveAccount& assetAccount,
         OTTransaction& tranIn,
         OTTransaction& tranOut,
         bool& outSuccess);
     void NotarizeDeposit(
-        ClientContext& context,
+        otx::context::Client& context,
         ExclusiveAccount& account,
         OTTransaction& tranIn,
         OTTransaction& tranOut,
@@ -188,7 +195,7 @@ private:
         Ledger& outbox,
         bool& outSuccess);
     void NotarizeExchangeBasket(
-        ClientContext& context,
+        otx::context::Client& context,
         ExclusiveAccount& sourceAccount,
         OTTransaction& tranIn,
         OTTransaction& tranOut,
@@ -196,13 +203,13 @@ private:
         Ledger& outbox,
         bool& outSuccess);
     void NotarizeMarketOffer(
-        ClientContext& context,
+        otx::context::Client& context,
         ExclusiveAccount& assetAccount,
         OTTransaction& tranIn,
         OTTransaction& tranOut,
         bool& outSuccess);
     void NotarizePayDividend(
-        ClientContext& context,
+        otx::context::Client& context,
         ExclusiveAccount& account,
         OTTransaction& tranIn,
         OTTransaction& tranOut,
@@ -210,19 +217,19 @@ private:
         Ledger& outbox,
         bool& outSuccess);
     void NotarizePaymentPlan(
-        ClientContext& context,
+        otx::context::Client& context,
         ExclusiveAccount& depositorAccount,
         OTTransaction& tranIn,
         OTTransaction& tranOut,
         bool& outSuccess);
     void NotarizeSmartContract(
-        ClientContext& context,
+        otx::context::Client& context,
         ExclusiveAccount& activatingAccount,
         OTTransaction& tranIn,
         OTTransaction& tranOut,
         bool& outSuccess);
     void NotarizeTransfer(
-        ClientContext& context,
+        otx::context::Client& context,
         ExclusiveAccount& fromAccount,
         OTTransaction& tranIn,
         OTTransaction& tranOut,
@@ -230,7 +237,7 @@ private:
         Ledger& outbox,
         bool& outSuccess);
     void NotarizeWithdrawal(
-        ClientContext& context,
+        otx::context::Client& context,
         ExclusiveAccount& account,
         OTTransaction& tranIn,
         OTTransaction& tranOut,
@@ -241,7 +248,7 @@ private:
         const OTTransaction& input,
         const Item& depositItem,
         const Item& balanceItem,
-        ClientContext& context,
+        otx::context::Client& context,
         ExclusiveAccount& depositorAccount,
         OTTransaction& output,
         Ledger& inbox,
@@ -254,7 +261,7 @@ private:
         const OTTransaction& requestTransaction,
         const Item& requestItem,
         const Item& balanceItem,
-        ClientContext& context,
+        otx::context::Client& context,
         ExclusiveAccount& account,
         Identifier& accountHash,
         Ledger& inbox,
@@ -267,7 +274,7 @@ private:
         const OTTransaction& input,
         const Item& depositItem,
         const Item& balanceItem,
-        ClientContext& context,
+        otx::context::Client& context,
         ExclusiveAccount& depositorAccount,
         OTTransaction& output,
         Ledger& inbox,
@@ -282,7 +289,7 @@ private:
         blind::Token& token) -> bool;
     auto process_token_withdrawal(
         const identifier::UnitDefinition& unit,
-        ClientContext& context,
+        otx::context::Client& context,
         ExclusiveAccount& reserveAccount,
         Account& account,
         blind::Purse& replyPurse,

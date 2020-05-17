@@ -13,7 +13,6 @@
 
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Types.hpp"
-#include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
@@ -23,6 +22,7 @@
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/identity/Nym.hpp"
+#include "opentxs/otx/consensus/Server.hpp"
 
 #define OT_METHOD "opentxs::OTClient::"
 
@@ -48,7 +48,7 @@ OTClient::OTClient(const api::internal::Core& core)
 /// itself.
 auto OTClient::ProcessUserCommand(
     const MessageType requestedCommand,
-    ServerContext& context,
+    otx::context::Server& context,
     Message& theMessage,
     const Identifier& pHisNymID,
     const Identifier& pHisAcctID,
@@ -66,7 +66,7 @@ auto OTClient::ProcessUserCommand(
     const auto& nym = *context.Nym();
 
     if (nullptr != pAccount) {
-        if (pAccount->GetPurportedNotaryID() != context.Server()) {
+        if (pAccount->GetPurportedNotaryID() != context.Notary()) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
                 ": pAccount->GetPurportedNotaryID() doesn't match "
                 "NOTARY_ID. (Try adding: --server NOTARY_ID).")
@@ -79,7 +79,7 @@ auto OTClient::ProcessUserCommand(
     }
 
     theMessage.m_strNymID = String::Factory(nym.ID());
-    theMessage.m_strNotaryID = String::Factory(context.Server());
+    theMessage.m_strNotaryID = String::Factory(context.Notary());
     std::int64_t lReturnValue = 0;
 
     switch (requestedCommand) {
@@ -144,7 +144,7 @@ auto OTClient::ProcessUserCommand(
             if (!String::Factory(NYMBOX_HASH)->Exists()) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(
                     ": Failed getting NymboxHash from Nym for server: ")(
-                    context.Server())(".")
+                    context.Notary())(".")
                     .Flush();
             }
 
@@ -178,7 +178,7 @@ auto OTClient::ProcessUserCommand(
             if (NYMBOX_HASH->IsEmpty()) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(
                     ": Failed getting NymboxHash from Nym for server: ")(
-                    context.Server())(".")
+                    context.Notary())(".")
                     .Flush();
             }
 

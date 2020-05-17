@@ -12,9 +12,9 @@
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/client/OTX.hpp"
-#include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/core/contract/peer/PeerReply.hpp"
 #include "opentxs/core/contract/peer/PeerRequest.hpp"
+#include "opentxs/otx/consensus/Server.hpp"
 
 namespace opentxs
 {
@@ -213,7 +213,7 @@ struct make_blank<otx::client::WithdrawCashTask> {
 namespace opentxs::otx::client::internal
 {
 struct Operation {
-    using Result = ServerContext::DeliveryResult;
+    using Result = otx::context::Server::DeliveryResult;
     using Future = std::future<Result>;
 
     enum class Type {
@@ -267,7 +267,7 @@ struct Operation {
     virtual auto GetFuture() -> Future = 0;
     virtual auto IssueUnitDefinition(
         const std::shared_ptr<const proto::UnitDefinition> unitDefinition,
-        const ServerContext::ExtraArgs& args = {}) -> bool = 0;
+        const otx::context::Server::ExtraArgs& args = {}) -> bool = 0;
     virtual void join() = 0;
     virtual auto PublishContract(const identifier::Nym& id) -> bool = 0;
     virtual auto PublishContract(const identifier::Server& id) -> bool = 0;
@@ -299,15 +299,15 @@ struct Operation {
     virtual void Shutdown() = 0;
     virtual auto Start(
         const Type type,
-        const ServerContext::ExtraArgs& args = {}) -> bool = 0;
+        const otx::context::Server::ExtraArgs& args = {}) -> bool = 0;
     virtual auto Start(
         const Type type,
         const identifier::UnitDefinition& targetUnitID,
-        const ServerContext::ExtraArgs& args = {}) -> bool = 0;
+        const otx::context::Server::ExtraArgs& args = {}) -> bool = 0;
     virtual auto Start(
         const Type type,
         const identifier::Nym& targetNymID,
-        const ServerContext::ExtraArgs& args = {}) -> bool = 0;
+        const otx::context::Server::ExtraArgs& args = {}) -> bool = 0;
     virtual auto UpdateAccount(const Identifier& accountID) -> bool = 0;
 #if OT_CASH
     virtual auto WithdrawCash(const Identifier& accountID, const Amount amount)

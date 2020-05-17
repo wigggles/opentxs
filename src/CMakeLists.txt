@@ -13,7 +13,6 @@ else()
 endif()
 
 add_subdirectory(client)
-add_subdirectory(consensus)
 add_subdirectory(contact)
 add_subdirectory(core)
 add_subdirectory(crypto)
@@ -75,7 +74,6 @@ list(
     $<TARGET_OBJECTS:opentxs-api-storage>
     $<TARGET_OBJECTS:opentxs-api>
     $<TARGET_OBJECTS:opentxs-client>
-    $<TARGET_OBJECTS:opentxs-consensus>
     $<TARGET_OBJECTS:opentxs-contact>
     $<TARGET_OBJECTS:opentxs-core-contract-basket>
     $<TARGET_OBJECTS:opentxs-core-contract-peer>
@@ -99,6 +97,7 @@ list(
     $<TARGET_OBJECTS:opentxs-network-zeromq>
     $<TARGET_OBJECTS:opentxs-network>
     $<TARGET_OBJECTS:opentxs-otx-client>
+    $<TARGET_OBJECTS:opentxs-otx-consensus>
     $<TARGET_OBJECTS:opentxs-otx>
     $<TARGET_OBJECTS:opentxs-recurring>
     $<TARGET_OBJECTS:opentxs-rpc>

@@ -5,7 +5,7 @@
 
 #include "0_stdafx.hpp"    // IWYU pragma: associated
 #include "1_Internal.hpp"  // IWYU pragma: associated
-#include "opentxs/consensus/TransactionStatement.hpp"  // IWYU pragma: associated
+#include "opentxs/otx/consensus/TransactionStatement.hpp"  // IWYU pragma: associated
 
 #include <irrxml/irrXML.hpp>
 #include <memory>
@@ -22,6 +22,10 @@
 #define OT_METHOD "opentxs::TransactionStatement::"
 
 namespace opentxs
+{
+namespace otx
+{
+namespace context
 {
 TransactionStatement::TransactionStatement(
     const std::string& notary,
@@ -183,4 +187,6 @@ void TransactionStatement::Remove(const TransactionNumber& number)
     available_.erase(number);
     issued_.erase(number);
 }
+}  // namespace context
+}  // namespace otx
 }  // namespace opentxs

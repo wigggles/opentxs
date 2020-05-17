@@ -38,6 +38,14 @@ namespace identity
 class Nym;
 }  // namespace identity
 
+namespace otx
+{
+namespace context
+{
+class Server;
+}  // namespace context
+}  // namespace otx
+
 class Contract;
 class Identifier;
 class NumList;
@@ -46,9 +54,11 @@ class OTPartyAccount;
 class OTScript;
 class OTScriptable;
 class PasswordPrompt;
-class ServerContext;
 class Tag;
+}  // namespace opentxs
 
+namespace opentxs
+{
 // Party is always either an Owner Nym, or an Owner Entity formed by Contract.
 //
 // Either way, the agents are there to represent the interests of the parties.
@@ -92,17 +102,17 @@ public:
     // Set aside all the necessary transaction #s from the various Nyms.
     // (Assumes those Nym pointers are available inside their various agents.)
     //
-    bool ReserveTransNumsForConfirm(ServerContext& context);
-    void HarvestAllTransactionNumbers(ServerContext& context);
+    bool ReserveTransNumsForConfirm(otx::context::Server& context);
+    void HarvestAllTransactionNumbers(otx::context::Server& context);
     void HarvestOpeningNumber(const String& strNotaryID);
-    void HarvestOpeningNumber(ServerContext& context);
+    void HarvestOpeningNumber(otx::context::Server& context);
     void CloseoutOpeningNumber(
         const String& strNotaryID,
         const PasswordPrompt& reason);
     void HarvestClosingNumbers(
         const String& strNotaryID,
         const PasswordPrompt& reason);
-    void HarvestClosingNumbers(ServerContext& context);
+    void HarvestClosingNumbers(otx::context::Server& context);
     // Iterates through the agents.
     //
     bool DropFinalReceiptToNymboxes(
@@ -354,10 +364,12 @@ private:
     // pointer
     OTScriptable* m_pOwnerAgreement{nullptr};
 
-    void recover_closing_numbers(OTAgent& theAgent, ServerContext& context)
-        const;
-    void recover_opening_number(OTAgent& theAgent, ServerContext& context)
-        const;
+    void recover_closing_numbers(
+        OTAgent& theAgent,
+        otx::context::Server& context) const;
+    void recover_opening_number(
+        OTAgent& theAgent,
+        otx::context::Server& context) const;
 
     OTParty() = delete;
     OTParty(const OTParty&) = delete;

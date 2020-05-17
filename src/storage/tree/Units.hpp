@@ -31,10 +31,18 @@ class UnitDefinition;
 
 namespace storage
 {
+class Tree;
+}  // namespace storage
+}  // namespace opentxs
+
+namespace opentxs
+{
+namespace storage
+{
 class Units final : public Node
 {
 private:
-    friend class Tree;
+    friend Tree;
 
     void init(const std::string& hash) final;
     auto save(const std::unique_lock<std::mutex>& lock) const -> bool final;

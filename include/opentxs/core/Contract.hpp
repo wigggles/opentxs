@@ -10,6 +10,7 @@
 
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
+#include <irrxml/irrXML.hpp>
 #include <cstdint>
 #include <iosfwd>
 #include <list>
@@ -33,6 +34,7 @@ class IFileReadCallBack;
 class IXMLBase;
 template <class char_type, class super_class>
 class IIrrXMLReader;
+
 using IrrXMLReader = IIrrXMLReader<char, IXMLBase>;
 }  // namespace io
 }  // namespace irr

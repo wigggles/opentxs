@@ -45,13 +45,20 @@ namespace identity
 class Nym;
 }  // namespace identity
 
+namespace otx
+{
+namespace context
+{
+class Client;
+}  // namespace context
+}  // namespace otx
+
 namespace server
 {
 class ReplyMessage;
 class Server;
 }  // namespace server
 
-class ClientContext;
 class Identifier;
 class Ledger;
 class NumList;
@@ -79,13 +86,13 @@ public:
         const Message& message,
         const std::int64_t& requestNum,
         const bool replyTransSuccess,
-        ClientContext& context,
+        otx::context::Client& context,
         Server& server) const;
 
     auto ProcessUserCommand(const Message& msgIn, Message& msgOut) -> bool;
 
 private:
-    friend class Server;
+    friend Server;
 
     class FinalizeResponse
     {
@@ -170,9 +177,9 @@ private:
         const identifier::Nym& nymID,
         const identifier::Server& serverID,
         const identity::Nym& serverNym) const -> std::unique_ptr<Ledger>;
-    auto hash_check(const ClientContext& context, Identifier& nymboxHash) const
-        -> bool;
-    auto initialize_request_number(ClientContext& context) const
+    auto hash_check(const otx::context::Client& context, Identifier& nymboxHash)
+        const -> bool;
+    auto initialize_request_number(otx::context::Client& context) const
         -> RequestNumber;
     auto load_inbox(
         const identifier::Nym& nymID,

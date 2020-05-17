@@ -101,7 +101,7 @@ public:
     const ot::identifier::Server& server_1_id_;
     const ot::identifier::Server& server_2_id_;
     const OTServerContract server_contract_;
-    const ot::ServerContext::ExtraArgs extra_args_;
+    const ot::otx::context::Server::ExtraArgs extra_args_;
 
     Test_Basic()
         : client_1_(dynamic_cast<const ot::api::client::internal::Manager&>(
@@ -732,8 +732,8 @@ public:
     }
 
     void verify_state_pre(
-        const ClientContext& clientContext,
-        const ServerContext& serverContext,
+        const otx::context::Client& clientContext,
+        const otx::context::Server& serverContext,
         const RequestNumber initialRequestNumber)
     {
         EXPECT_EQ(serverContext.Request(), initialRequestNumber);
@@ -742,8 +742,8 @@ public:
 
     void verify_state_post(
         const ot::api::client::Manager& client,
-        const ClientContext& clientContext,
-        const ServerContext& serverContext,
+        const otx::context::Client& clientContext,
+        const otx::context::Server& serverContext,
         const RequestNumber initialRequestNumber,
         const RequestNumber finalRequestNumber,
         const RequestNumber messageRequestNumber,
@@ -850,7 +850,7 @@ TEST_F(Test_Basic, registerNym_first_time)
     EXPECT_EQ(serverContext.get().Request(), sequence);
     EXPECT_FALSE(clientContext);
 
-    ServerContext::DeliveryResult finished{};
+    ot::otx::context::Server::DeliveryResult finished{};
     auto& stateMachine = *alice_state_machine_;
     auto started = stateMachine.Start(
         otx::client::internal::Operation::Type::RegisterNym, extra_args_);
@@ -898,7 +898,7 @@ TEST_F(Test_Basic, getTransactionNumbers_Alice)
     EXPECT_EQ(clientContext->IssuedNumbers().size(), 0);
 
     verify_state_pre(*clientContext, context, sequence);
-    ServerContext::DeliveryResult finished{};
+    ot::otx::context::Server::DeliveryResult finished{};
     auto& stateMachine = *alice_state_machine_;
     auto started = stateMachine.Start(
         otx::client::internal::Operation::Type::GetTransactionNumbers,
@@ -951,7 +951,7 @@ TEST_F(Test_Basic, Reregister)
     ASSERT_TRUE(clientContext);
 
     verify_state_pre(*clientContext, serverContext.get(), sequence);
-    ServerContext::DeliveryResult finished{};
+    ot::otx::context::Server::DeliveryResult finished{};
     auto& stateMachine = *alice_state_machine_;
     auto started = stateMachine.Start(
         otx::client::internal::Operation::Type::RegisterNym, extra_args_);
@@ -998,7 +998,7 @@ TEST_F(Test_Basic, issueAsset)
 
     create_unit_definition_1();
     verify_state_pre(*clientContext, context, sequence);
-    ServerContext::DeliveryResult finished{};
+    ot::otx::context::Server::DeliveryResult finished{};
     auto& stateMachine = *alice_state_machine_;
     auto serialized = std::make_shared<proto::UnitDefinition>();
 
@@ -1065,7 +1065,7 @@ TEST_F(Test_Basic, checkNym_missing)
 
     verify_state_pre(*clientContext, serverContext.get(), sequence);
 
-    ServerContext::DeliveryResult finished{};
+    ot::otx::context::Server::DeliveryResult finished{};
     auto& stateMachine = *alice_state_machine_;
     auto started = stateMachine.Start(
         otx::client::internal::Operation::Type::CheckNym,
@@ -1116,7 +1116,7 @@ TEST_F(Test_Basic, publishNym)
 
     verify_state_pre(*clientContext, serverContext.get(), sequence);
 
-    ServerContext::DeliveryResult finished{};
+    ot::otx::context::Server::DeliveryResult finished{};
     auto& stateMachine = *alice_state_machine_;
     auto nym = client_2_.Wallet().Nym(bob_nym_id_);
 
@@ -1166,7 +1166,7 @@ TEST_F(Test_Basic, checkNym)
 
     verify_state_pre(*clientContext, serverContext.get(), sequence);
 
-    ServerContext::DeliveryResult finished{};
+    ot::otx::context::Server::DeliveryResult finished{};
     auto& stateMachine = *alice_state_machine_;
     auto started = stateMachine.Start(
         otx::client::internal::Operation::Type::CheckNym,
@@ -1217,7 +1217,7 @@ TEST_F(Test_Basic, downloadServerContract_missing)
 
     verify_state_pre(*clientContext, serverContext.get(), sequence);
 
-    ServerContext::DeliveryResult finished{};
+    ot::otx::context::Server::DeliveryResult finished{};
     auto& stateMachine = *alice_state_machine_;
     auto started =
         stateMachine.DownloadContract(server_2_id_, ContractType::server);
@@ -1266,7 +1266,7 @@ TEST_F(Test_Basic, publishServer)
 
     verify_state_pre(*clientContext, serverContext.get(), sequence);
 
-    ServerContext::DeliveryResult finished{};
+    ot::otx::context::Server::DeliveryResult finished{};
     auto& stateMachine = *alice_state_machine_;
     auto server = server_2_.Wallet().Server(server_2_id_);
     client_1_.Wallet().Server(server->PublicContract());
@@ -1313,7 +1313,7 @@ TEST_F(Test_Basic, downloadServerContract)
 
     verify_state_pre(*clientContext, serverContext.get(), sequence);
 
-    ServerContext::DeliveryResult finished{};
+    ot::otx::context::Server::DeliveryResult finished{};
     auto& stateMachine = *alice_state_machine_;
     auto started =
         stateMachine.DownloadContract(server_2_id_, ContractType::server);
@@ -1361,7 +1361,7 @@ TEST_F(Test_Basic, registerNym_Bob)
     EXPECT_EQ(serverContext.get().Request(), sequence);
     EXPECT_FALSE(clientContext);
 
-    ServerContext::DeliveryResult finished{};
+    ot::otx::context::Server::DeliveryResult finished{};
     auto& stateMachine = *bob_state_machine_;
     auto started = stateMachine.Start(
         otx::client::internal::Operation::Type::RegisterNym, extra_args_);
@@ -1408,7 +1408,7 @@ TEST_F(Test_Basic, getInstrumentDefinition_missing)
 
     create_unit_definition_2();
     verify_state_pre(*clientContext, context, sequence);
-    ServerContext::DeliveryResult finished{};
+    ot::otx::context::Server::DeliveryResult finished{};
     auto& stateMachine = *bob_state_machine_;
     auto started = stateMachine.DownloadContract(
         find_unit_definition_id_2(), ContractType::unit);
@@ -1457,7 +1457,7 @@ TEST_F(Test_Basic, publishUnitDefinition)
 
     verify_state_pre(*clientContext, serverContext.get(), sequence);
 
-    ServerContext::DeliveryResult finished{};
+    ot::otx::context::Server::DeliveryResult finished{};
     auto& stateMachine = *bob_state_machine_;
     auto started = stateMachine.PublishContract(find_unit_definition_id_2());
 
@@ -1501,7 +1501,7 @@ TEST_F(Test_Basic, getInstrumentDefinition_Alice)
     ASSERT_TRUE(clientContext);
 
     verify_state_pre(*clientContext, context, sequence);
-    ServerContext::DeliveryResult finished{};
+    ot::otx::context::Server::DeliveryResult finished{};
     auto& stateMachine = *alice_state_machine_;
     auto started = stateMachine.DownloadContract(
         find_unit_definition_id_2(), ContractType::unit);
@@ -1549,7 +1549,7 @@ TEST_F(Test_Basic, getInstrumentDefinition_Bob)
     ASSERT_TRUE(clientContext);
 
     verify_state_pre(*clientContext, context, sequence);
-    ServerContext::DeliveryResult finished{};
+    ot::otx::context::Server::DeliveryResult finished{};
     auto& stateMachine = *bob_state_machine_;
     auto started = stateMachine.DownloadContract(
         find_unit_definition_id_1(), ContractType::unit);
@@ -1597,7 +1597,7 @@ TEST_F(Test_Basic, registerAccount)
     ASSERT_TRUE(clientContext);
 
     verify_state_pre(*clientContext, context, sequence);
-    ServerContext::DeliveryResult finished{};
+    ot::otx::context::Server::DeliveryResult finished{};
     auto& stateMachine = *bob_state_machine_;
     auto started = stateMachine.Start(
         otx::client::internal::Operation::Type::RegisterAccount,
@@ -1682,7 +1682,7 @@ TEST_F(Test_Basic, send_cheque)
     ASSERT_TRUE(clientContext);
 
     verify_state_pre(*clientContext, serverContext.get(), sequence);
-    ServerContext::DeliveryResult finished{};
+    ot::otx::context::Server::DeliveryResult finished{};
     auto& stateMachine = *alice_state_machine_;
     auto started = stateMachine.ConveyPayment(bob_nym_id_, payment);
 
@@ -1851,7 +1851,7 @@ TEST_F(Test_Basic, depositCheque)
     ASSERT_TRUE(clientContext);
 
     verify_state_pre(*clientContext, serverContext.get(), sequence);
-    ServerContext::DeliveryResult finished{};
+    ot::otx::context::Server::DeliveryResult finished{};
     auto& stateMachine = *bob_state_machine_;
     auto started = stateMachine.DepositCheque(accountID, cheque);
 
@@ -1917,7 +1917,7 @@ TEST_F(Test_Basic, getAccountData_after_cheque_deposited)
     ASSERT_FALSE(accountID->empty());
 
     verify_state_pre(*clientContext, serverContext.get(), sequence);
-    ServerContext::DeliveryResult finished{};
+    ot::otx::context::Server::DeliveryResult finished{};
     auto& stateMachine = *alice_state_machine_;
     auto started = stateMachine.UpdateAccount(accountID);
 
@@ -1986,7 +1986,7 @@ TEST_F(Test_Basic, resync)
     ASSERT_TRUE(clientContext);
 
     verify_state_pre(*clientContext, serverContext.get(), sequence);
-    ServerContext::DeliveryResult finished{};
+    ot::otx::context::Server::DeliveryResult finished{};
     auto& stateMachine = *alice_state_machine_;
     auto started = stateMachine.Start(
         otx::client::internal::Operation::Type::RegisterNym, {"", true});
@@ -2040,7 +2040,7 @@ TEST_F(Test_Basic, sendTransfer)
     ASSERT_FALSE(recipientAccountID->empty());
 
     verify_state_pre(*clientContext, context, sequence);
-    ServerContext::DeliveryResult finished{};
+    ot::otx::context::Server::DeliveryResult finished{};
     auto& stateMachine = *alice_state_machine_;
     auto started = stateMachine.SendTransfer(
         senderAccountID,
@@ -2124,7 +2124,7 @@ TEST_F(Test_Basic, getAccountData_after_incomingTransfer)
     ASSERT_FALSE(accountID->empty());
 
     verify_state_pre(*clientContext, serverContext.get(), sequence);
-    ServerContext::DeliveryResult finished{};
+    ot::otx::context::Server::DeliveryResult finished{};
     auto& stateMachine = *bob_state_machine_;
     auto started = stateMachine.UpdateAccount(accountID);
 
@@ -2214,7 +2214,7 @@ TEST_F(Test_Basic, getAccountData_after_transfer_accepted)
     ASSERT_FALSE(accountID->empty());
 
     verify_state_pre(*clientContext, serverContext.get(), sequence);
-    ServerContext::DeliveryResult finished{};
+    ot::otx::context::Server::DeliveryResult finished{};
     auto& stateMachine = *alice_state_machine_;
     auto started = stateMachine.UpdateAccount(accountID);
 
@@ -2286,7 +2286,7 @@ TEST_F(Test_Basic, register_second_account)
     ASSERT_TRUE(clientContext);
 
     verify_state_pre(*clientContext, context, sequence);
-    ServerContext::DeliveryResult finished{};
+    ot::otx::context::Server::DeliveryResult finished{};
     auto& stateMachine = *bob_state_machine_;
     auto started = stateMachine.Start(
         otx::client::internal::Operation::Type::RegisterAccount,
@@ -2357,7 +2357,7 @@ TEST_F(Test_Basic, send_internal_transfer)
     ASSERT_FALSE(recipientAccountID->empty());
 
     verify_state_pre(*clientContext, serverContext.get(), sequence);
-    ServerContext::DeliveryResult finished{};
+    ot::otx::context::Server::DeliveryResult finished{};
     auto& stateMachine = *bob_state_machine_;
     auto started = stateMachine.SendTransfer(
         senderAccountID,
@@ -2453,7 +2453,7 @@ TEST_F(Test_Basic, getAccountData_after_incoming_internal_Transfer)
     ASSERT_FALSE(accountID->empty());
 
     verify_state_pre(*clientContext, serverContext.get(), sequence);
-    ServerContext::DeliveryResult finished{};
+    ot::otx::context::Server::DeliveryResult finished{};
     auto& stateMachine = *bob_state_machine_;
     auto started = stateMachine.UpdateAccount(accountID);
 
@@ -2525,7 +2525,7 @@ TEST_F(Test_Basic, getAccountData_after_internal_transfer_accepted)
     ASSERT_FALSE(accountID->empty());
 
     verify_state_pre(*clientContext, serverContext.get(), sequence);
-    ServerContext::DeliveryResult finished{};
+    ot::otx::context::Server::DeliveryResult finished{};
     auto& stateMachine = *bob_state_machine_;
     auto started = stateMachine.UpdateAccount(accountID);
 
@@ -2937,7 +2937,7 @@ TEST_F(Test_Basic, renameServer)
 
     verify_state_pre(*clientContext, serverContext.get(), sequence);
 
-    ServerContext::DeliveryResult finished{};
+    ot::otx::context::Server::DeliveryResult finished{};
     auto& stateMachine = *alice_state_machine_;
     auto started = stateMachine.Start(
         otx::client::internal::Operation::Type::CheckNym,
@@ -3355,7 +3355,7 @@ TEST_F(Test_Basic, withdrawCash)
     ASSERT_TRUE(clientContext);
 
     verify_state_pre(*clientContext, serverContext.get(), sequence);
-    ServerContext::DeliveryResult finished{};
+    ot::otx::context::Server::DeliveryResult finished{};
     auto& stateMachine = *bob_state_machine_;
     const auto accountID = find_user_account();
     auto started = stateMachine.WithdrawCash(accountID, CASH_AMOUNT);
@@ -3459,7 +3459,7 @@ TEST_F(Test_Basic, send_cash)
     EXPECT_FALSE(workflowID->empty());
 
     verify_state_pre(*clientContext, serverContext.get(), sequence);
-    ServerContext::DeliveryResult finished{};
+    ot::otx::context::Server::DeliveryResult finished{};
     auto& stateMachine = *bob_state_machine_;
     auto started = stateMachine.SendCash(alice_nym_id_, workflowID);
 
@@ -3626,7 +3626,7 @@ TEST_F(Test_Basic, depositCash)
     EXPECT_EQ(walletPurse.Value(), CASH_AMOUNT);
 
     verify_state_pre(*clientContext, serverContext.get(), sequence);
-    ServerContext::DeliveryResult finished{};
+    ot::otx::context::Server::DeliveryResult finished{};
     auto& stateMachine = *alice_state_machine_;
     auto started = stateMachine.DepositCash(accountID, pSendPurse);
 
