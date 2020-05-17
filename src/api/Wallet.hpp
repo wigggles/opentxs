@@ -106,7 +106,6 @@ class Server;
 }  // namespace otx
 
 class Context;
-class Factory;
 class NymFile;
 class NymParameters;
 class PasswordPrompt;
@@ -376,8 +375,6 @@ private:
     using PurseID = std::tuple<OTNymID, OTServerID, OTUnitID>;
     using UnitNameMap = std::map<std::string, proto::ContactItemType>;
     using UnitNameReverse = std::map<proto::ContactItemType, std::string>;
-
-    friend opentxs::Factory;
 
     static const UnitNameMap unit_of_account_;
     static const UnitNameReverse unit_lookup_;

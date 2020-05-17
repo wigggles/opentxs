@@ -19,6 +19,7 @@
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
+#include "opentxs/core/Secret.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
@@ -140,7 +141,7 @@ public:
         -> const std::set<proto::ContactItemType> final;
     auto Source() const -> const identity::Source& final { return source_; }
     auto TransportKey(Data& pubkey, const PasswordPrompt& reason) const
-        -> std::unique_ptr<OTPassword> final;
+        -> OTSecret final;
     auto Unlock(
         const crypto::key::Asymmetric& dhKey,
         const std::uint32_t tag,

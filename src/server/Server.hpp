@@ -20,6 +20,7 @@
 #include "opentxs/Types.hpp"
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/OTTransaction.hpp"
+#include "opentxs/core/Secret.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
 #include "opentxs/core/identifier/Server.hpp"
@@ -78,7 +79,7 @@ public:
         std::uint32_t& port) const -> bool;
     auto GetServerID() const -> const identifier::Server&;
     auto GetServerNym() const -> const identity::Nym&;
-    auto TransportKey(Data& pubkey) const -> std::unique_ptr<OTPassword>;
+    auto TransportKey(Data& pubkey) const -> OTSecret;
     auto IsFlaggedForShutdown() const -> bool;
 
     void ActivateCron();

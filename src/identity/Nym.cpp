@@ -30,9 +30,9 @@
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/Secret.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/PaymentCode.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
@@ -964,9 +964,6 @@ auto Nym::normalize(
         Bip32Index nymIndex = 0;
         std::string fingerprint = in.Seed();
         auto seed = api.Seeds().Seed(fingerprint, nymIndex, reason);
-
-        OT_ASSERT(seed);
-
         const bool defaultIndex = in.UseAutoIndex();
 
         if (false == defaultIndex) {
@@ -979,7 +976,7 @@ auto Nym::normalize(
 
         const std::int32_t newIndex = nymIndex + 1;
         api.Seeds().UpdateIndex(fingerprint, newIndex, reason);
-        output.SetEntropy(*seed);
+        output.SetEntropy(seed);
         output.SetSeed(fingerprint);
         output.SetNym(nymIndex);
 #else
@@ -1281,13 +1278,10 @@ auto Nym::SocialMediaProfileTypes() const
 }
 
 auto Nym::TransportKey(Data& pubkey, const opentxs::PasswordPrompt& reason)
-    const -> std::unique_ptr<OTPassword>
+    const -> OTSecret
 {
     bool found{false};
-    auto privateKey = api_.Factory().BinarySecret();
-
-    OT_ASSERT(privateKey);
-
+    auto privateKey = api_.Factory().Secret(0);
     sLock lock(shared_lock_);
 
     for (auto& it : active_) {
@@ -1295,7 +1289,7 @@ auto Nym::TransportKey(Data& pubkey, const opentxs::PasswordPrompt& reason)
 
         if (nullptr != it.second) {
             const identity::Authority& credSet = *it.second;
-            found = credSet.TransportKey(pubkey, *privateKey, reason);
+            found = credSet.TransportKey(pubkey, privateKey, reason);
 
             if (found) { break; }
         }

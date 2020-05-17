@@ -43,6 +43,7 @@ class HDPath;
 class Data;
 class OTPassword;
 class PasswordPrompt;
+class Secret;
 }  // namespace opentxs
 
 namespace opentxs::crypto::key::implementation
@@ -69,8 +70,8 @@ public:
     Secp256k1(
         const api::internal::Core& api,
         const crypto::EcdsaProvider& ecdsa,
-        const OTPassword& privateKey,
-        const OTPassword& chainCode,
+        const Secret& privateKey,
+        const Secret& chainCode,
         const Data& publicKey,
         const proto::HDPath& path,
         const Bip32Fingerprint parent,

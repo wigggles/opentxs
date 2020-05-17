@@ -12,7 +12,7 @@ class SymmetricNull final : virtual public key::Symmetric
 public:
     auto api() const -> const api::internal::Core& final { throw; }
 
-    auto ChangePassword(const PasswordPrompt&, const OTPassword&) -> bool final
+    auto ChangePassword(const PasswordPrompt&, const Secret&) -> bool final
     {
         return false;
     }
@@ -37,7 +37,7 @@ public:
     {
         return Identifier::Factory();
     }
-    auto RawKey(const PasswordPrompt&, OTPassword&) const -> bool final
+    auto RawKey(const PasswordPrompt&, Secret&) const -> bool final
     {
         return false;
     }

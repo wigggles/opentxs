@@ -7,8 +7,12 @@
 #include "1_Internal.hpp"                   // IWYU pragma: associated
 #include "opentxs/core/PasswordPrompt.hpp"  // IWYU pragma: associated
 
+#include <memory>
+
 #include "Factory.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
+#include "internal/api/Api.hpp"
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/core/Secret.hpp"
 
 namespace opentxs
 {
@@ -24,20 +28,20 @@ PasswordPrompt::PasswordPrompt(
     const std::string& display) noexcept
     : api_(api)
     , display_(display)
-    , password_(nullptr)
+    , password_(api.Factory().Secret(0))
 {
 }
 
 PasswordPrompt::PasswordPrompt(const PasswordPrompt& rhs) noexcept
     : api_(rhs.api_)
     , display_(rhs.GetDisplayString())
-    , password_(rhs.password_ ? new OTPassword(*rhs.password_) : nullptr)
+    , password_(rhs.password_)
 {
 }
 
 auto PasswordPrompt::ClearPassword() -> bool
 {
-    password_.reset();
+    password_->clear();
 
     return true;
 }
@@ -47,18 +51,14 @@ auto PasswordPrompt::GetDisplayString() const -> const char*
     return display_.c_str();
 }
 
-auto PasswordPrompt::SetPassword(const OTPassword& password) -> bool
+auto PasswordPrompt::SetPassword(const Secret& password) -> bool
 {
-    password_.reset(new OTPassword(password));
+    password_ = password;
 
     return true;
 }
 
-auto PasswordPrompt::Password() const
-    -> const std::unique_ptr<const OTPassword>&
-{
-    return password_;
-}
+auto PasswordPrompt::Password() const -> const Secret& { return password_; }
 
 PasswordPrompt::~PasswordPrompt() = default;
 }  // namespace opentxs

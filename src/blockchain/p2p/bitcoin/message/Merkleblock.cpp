@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <cstring>
 #include <utility>
 
 #include "Factory.hpp"
@@ -17,7 +18,6 @@
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
 
 //#define OT_METHOD " opentxs::blockchain::p2p::bitcoin::message::Merkleblock::"
 
@@ -41,7 +41,7 @@ auto Factory::BitcoinP2PMerkleblock(
         return nullptr;
     }
 
-    ReturnType::Raw raw_item;
+    auto raw_item = ReturnType::Raw{};
 
     auto expectedSize = sizeof(raw_item);
 
@@ -54,7 +54,7 @@ auto Factory::BitcoinP2PMerkleblock(
     }
     auto* it{static_cast<const std::byte*>(payload)};
     // --------------------------------------------------------
-    OTPassword::safe_memcpy(&raw_item, sizeof(raw_item), it, sizeof(raw_item));
+    std::memcpy(static_cast<void*>(&raw_item), it, sizeof(raw_item));
     it += sizeof(raw_item);
 
     const auto block_header = Data::Factory(
@@ -95,13 +95,9 @@ auto Factory::BitcoinP2PMerkleblock(
                 return nullptr;
             }
 
-            bitcoin::BlockHeaderHashField tempHash;
-            OTPassword::safe_memcpy(
-                tempHash.data(), sizeof(tempHash), it, sizeof(tempHash));
-            it += sizeof(tempHash);
-
-            auto dataHash = Data::Factory(tempHash.data(), sizeof(tempHash));
-            hashes.push_back(dataHash);
+            hashes.push_back(
+                Data::Factory(it, sizeof(bitcoin::BlockHeaderHashField)));
+            it += sizeof(bitcoin::BlockHeaderHashField);
         }
     }
     // --------------------------------------------------------
@@ -140,11 +136,7 @@ auto Factory::BitcoinP2PMerkleblock(
         }
 
         std::vector<std::byte> temp_flags(flagByteCount);
-        OTPassword::safe_memcpy(
-            static_cast<std::byte*>(temp_flags.data()),
-            flagByteCount,
-            it,
-            flagByteCount);
+        std::memcpy(temp_flags.data(), it, flagByteCount);
         it += flagByteCount;
         flags = temp_flags;
     }
@@ -204,11 +196,9 @@ Merkleblock::Raw::Raw(
     : block_header_()
     , txn_count_(txn_count)
 {
-    OTPassword::safe_memcpy(
-        block_header_.data(),
-        sizeof(block_header_),
-        block_header.data(),
-        block_header.size());
+    OT_ASSERT(sizeof(block_header_) == block_header.size());
+
+    std::memcpy(block_header_.data(), block_header.data(), block_header.size());
 }
 
 Merkleblock::Raw::Raw() noexcept

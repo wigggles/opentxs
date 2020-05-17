@@ -21,6 +21,7 @@ class Crypto;
 }  // namespace api
 
 class OTPassword;
+class Secret;
 }  // namespace opentxs
 
 namespace opentxs::crypto::implementation
@@ -28,12 +29,12 @@ namespace opentxs::crypto::implementation
 class Bip39 final : public opentxs::crypto::Bip39
 {
 public:
-    auto SeedToWords(const OTPassword& seed, OTPassword& words) const noexcept
+    auto SeedToWords(const Secret& seed, Secret& words) const noexcept
         -> bool final;
     void WordsToSeed(
-        const OTPassword& words,
-        OTPassword& seed,
-        const OTPassword& passphrase) const noexcept final;
+        const Secret& words,
+        Secret& seed,
+        const Secret& passphrase) const noexcept final;
 
     Bip39(const api::Crypto& crypto) noexcept;
     ~Bip39() final = default;
@@ -57,12 +58,12 @@ private:
 
     static auto bitShift(std::size_t theBit) noexcept -> std::byte;
 
-    auto entropy_to_words(const OTPassword& entropy, OTPassword& words) const
-        noexcept -> bool;
+    auto entropy_to_words(const Secret& entropy, Secret& words) const noexcept
+        -> bool;
     void words_to_root(
-        const OTPassword& words,
-        OTPassword& bip32RootNode,
-        const OTPassword& passphrase) const noexcept;
+        const Secret& words,
+        Secret& bip32RootNode,
+        const Secret& passphrase) const noexcept;
 
     Bip39() = delete;
     Bip39(const Bip39&) = delete;

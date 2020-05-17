@@ -13,6 +13,9 @@
 #include <memory>
 
 #include "Factory.hpp"
+#include "opentxs/OT.hpp"
+#include "opentxs/api/Context.hpp"
+#include "opentxs/api/Primitives.hpp"
 #include "opentxs/protobuf/Enums.pb.h"
 
 namespace opentxs
@@ -50,15 +53,14 @@ NymParameters::NymParameters(
     , contact_data_(nullptr)
     , verification_set_(nullptr)
 #if OT_CRYPTO_WITH_BIP32
-    , entropy_(nullptr)
+    , entropy_(Context().Factory().Secret(0))
     , seed_("")
     , nym_(0)
     , credset_(0)
     , cred_index_(0)
     , default_(true)
     , use_auto_index_(true)
-#else  // OT_CRYPTO_WITH_BIP32
-#endif
+#endif  // OT_CRYPTO_WITH_BIP32
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
     , nBits_(1024)
     , params_()
@@ -100,9 +102,7 @@ NymParameters::NymParameters(const NymParameters& rhs) noexcept
     contact_data_ = rhs.contact_data_;
     verification_set_ = rhs.verification_set_;
 #if OT_CRYPTO_WITH_BIP32
-
-    if (rhs.entropy_) { entropy_.reset(new OTPassword(*rhs.entropy_)); }
-
+    entropy_ = rhs.entropy_;
     seed_ = rhs.seed_;
     nym_ = rhs.nym_;
     credset_ = rhs.credset_;
@@ -162,10 +162,7 @@ auto NymParameters::Default() const -> bool { return default_; }
 auto NymParameters::DHParams() const -> ReadView { return reader(params_); }
 #endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
 #if OT_CRYPTO_WITH_BIP32
-auto NymParameters::Entropy() const -> const std::unique_ptr<OTPassword>&
-{
-    return entropy_;
-}
+auto NymParameters::Entropy() const -> const Secret& { return entropy_; }
 #endif  // OT_CRYPTO_WITH_BIP32
 
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
@@ -229,9 +226,9 @@ auto NymParameters::SetDHParams(const ReadView bytes) -> void
 #endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
 
 #if OT_CRYPTO_WITH_BIP32
-auto NymParameters::SetEntropy(const OTPassword& entropy) -> void
+auto NymParameters::SetEntropy(const Secret& entropy) -> void
 {
-    entropy_.reset(new OTPassword(entropy));
+    entropy_ = entropy;
 }
 #endif  // OT_CRYPTO_WITH_BIP32
 

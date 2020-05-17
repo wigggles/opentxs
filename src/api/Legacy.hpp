@@ -16,7 +16,6 @@
 
 namespace opentxs
 {
-class Factory;
 class String;
 }  // namespace opentxs
 
@@ -72,12 +71,11 @@ public:
     auto ServerDataFolder(const int instance) const noexcept
         -> std::string final;
 
+    Legacy(const std::string& home) noexcept;
+
     ~Legacy() final = default;
 
 private:
-    friend opentxs::Factory;
-    friend api::Legacy;
-
     static const char* account_;
     static const char* common_;
     static const char* contract_;
@@ -111,7 +109,6 @@ private:
     auto get_file(const std::string& fragment, const int instance = 0) const
         noexcept -> std::string;
 
-    Legacy(const std::string& home) noexcept;
     Legacy() = delete;
     Legacy(const Legacy&) = delete;
     Legacy(Legacy&&) = delete;

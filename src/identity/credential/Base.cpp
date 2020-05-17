@@ -379,7 +379,7 @@ auto Base::SourceSignature() const -> Base::Signature
 }
 
 /** Override this method for credentials capable of deriving transport keys */
-auto Base::TransportKey(Data&, OTPassword&, const PasswordPrompt&) const -> bool
+auto Base::TransportKey(Data&, Secret&, const PasswordPrompt&) const -> bool
 {
     OT_ASSERT_MSG(false, "This method was called on the wrong credential.");
 

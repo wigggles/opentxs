@@ -15,6 +15,7 @@
 
 #include "opentxs/Bytes.hpp"
 #include "opentxs/Proto.hpp"
+#include "opentxs/api/Primitives.hpp"
 #if OT_BLOCKCHAIN
 #include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/blockchain/p2p/Address.hpp"
@@ -60,13 +61,15 @@ namespace context
 class Server;
 }  // namespace context
 }  // namespace otx
+
+class Secret;
 }  // namespace opentxs
 
 namespace opentxs
 {
 namespace api
 {
-class Factory
+class Factory : virtual public Primitives
 {
 public:
     OPENTXS_EXPORT virtual OTArmored Armored() const = 0;
@@ -138,7 +141,6 @@ public:
     OPENTXS_EXPORT virtual OTBasketContract BasketContract(
         const Nym_p& nym,
         const proto::UnitDefinition serialized) const noexcept(false) = 0;
-    OPENTXS_EXPORT virtual std::unique_ptr<OTPassword> BinarySecret() const = 0;
 #if OT_BLOCKCHAIN
     OPENTXS_EXPORT virtual auto BitcoinBlock(
         const blockchain::Type chain,
@@ -567,12 +569,12 @@ public:
      */
     OPENTXS_EXPORT virtual OTSymmetricKey SymmetricKey(
         const opentxs::crypto::SymmetricProvider& engine,
-        const OTPassword& seed,
+        const opentxs::Secret& seed,
         const std::uint64_t operations,
         const std::uint64_t difficulty,
         const std::size_t size,
         const proto::SymmetricKeyType type) const = 0;
-    /** Construct a symmetric key from an existing OTPassword
+    /** Construct a symmetric key from an existing Secret
      *
      *  \param[in] engine A reference to the crypto library to be bound to the
      *                    instance
@@ -580,7 +582,7 @@ public:
      */
     OPENTXS_EXPORT virtual OTSymmetricKey SymmetricKey(
         const opentxs::crypto::SymmetricProvider& engine,
-        const OTPassword& raw,
+        const opentxs::Secret& raw,
         const opentxs::PasswordPrompt& reason) const = 0;
     OPENTXS_EXPORT virtual std::unique_ptr<OTTrade> Trade() const = 0;
     OPENTXS_EXPORT virtual std::unique_ptr<OTTrade> Trade(

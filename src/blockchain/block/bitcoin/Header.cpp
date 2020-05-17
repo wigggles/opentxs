@@ -25,7 +25,6 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
 
 #define OT_BITCOIN_BLOCK_HEADER_SIZE 80
 
@@ -62,9 +61,12 @@ auto Factory::BitcoinBlockHeader(
     static_assert(
         OT_BITCOIN_BLOCK_HEADER_SIZE == sizeof(ReturnType::BitcoinFormat));
 
-    ReturnType::BitcoinFormat serialized{};
-    const auto result = OTPassword::safe_memcpy(
-        &serialized, sizeof(serialized), raw.data(), raw.size());
+    auto serialized = ReturnType::BitcoinFormat{};
+
+    OT_ASSERT(sizeof(serialized) == raw.size());
+
+    const auto result =
+        std::memcpy(static_cast<void*>(&serialized), raw.data(), raw.size());
 
     if (nullptr == result) {
         LogOutput("opentxs::Factory::")(__FUNCTION__)(

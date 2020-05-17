@@ -224,7 +224,7 @@ void LogSource::send(const bool terminate) const noexcept
         auto& [socket, buffer] = get_buffer(id);
         auto message = zmq::Message::Factory();
         message->PrependEmptyFrame();
-        message->AddFrame(std::to_string(level_));
+        message->AddFrame(level_);
         message->AddFrame(buffer.str());
         message->AddFrame(id);
         auto promise = std::promise<void>{};

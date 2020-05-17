@@ -8,9 +8,9 @@
 
 #include "opentxs/Version.hpp"  // IWYU pragma: associated
 
-#include "opentxs/protobuf/verify/VerifyContacts.hpp"
-
 #include <map>
+
+#include "opentxs/protobuf/verify/VerifyContacts.hpp"
 
 namespace opentxs
 {

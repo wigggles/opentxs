@@ -3,11 +3,9 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "OTTestEnvironment.hpp"
-
 #include <boost/bind.hpp>
 #include <boost/asio.hpp>
-
+#include <gtest/gtest.h>
 #include <functional>
 #include <vector>
 #include <thread>
@@ -21,7 +19,7 @@
 #include <mutex>
 #include <chrono>
 
-#include <gtest/gtest.h>
+#include "OTTestEnvironment.hpp"
 
 namespace b = ot::blockchain;
 namespace bb = b::bitcoin;

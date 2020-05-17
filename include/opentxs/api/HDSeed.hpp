@@ -25,6 +25,11 @@
 
 namespace opentxs
 {
+class Secret;
+}  // namespace opentxs
+
+namespace opentxs
+{
 namespace api
 {
 class HDSeed
@@ -65,18 +70,18 @@ public:
         const PasswordPrompt& reason) const = 0;
 #endif  // OT_CRYPTO_WITH_BIP32
     OPENTXS_EXPORT virtual std::string ImportRaw(
-        const OTPassword& entropy,
+        const Secret& entropy,
         const PasswordPrompt& reason) const = 0;
     OPENTXS_EXPORT virtual std::string ImportSeed(
-        const OTPassword& words,
-        const OTPassword& passphrase,
+        const Secret& words,
+        const Secret& passphrase,
         const PasswordPrompt& reason) const = 0;
     OPENTXS_EXPORT virtual std::string NewSeed(
         const PasswordPrompt& reason) const = 0;
     OPENTXS_EXPORT virtual std::string Passphrase(
         const PasswordPrompt& reason,
         const std::string& fingerprint = "") const = 0;
-    OPENTXS_EXPORT virtual std::shared_ptr<OTPassword> Seed(
+    OPENTXS_EXPORT virtual OTSecret Seed(
         std::string& fingerprint,
         Bip32Index& index,
         const PasswordPrompt& reason) const = 0;

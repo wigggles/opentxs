@@ -9,6 +9,7 @@
 #include <iosfwd>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <string>
 
 #include "internal/api/Api.hpp"
@@ -17,7 +18,7 @@
 #include "opentxs/Types.hpp"
 #include "opentxs/api/Core.hpp"
 #include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/Secret.hpp"
 #include "opentxs/crypto/key/Symmetric.hpp"
 #include "opentxs/protobuf/Enums.pb.h"
 
@@ -55,14 +56,13 @@ public:
         const proto::SymmetricMode mode = proto::SMODE_ERROR,
         const ReadView iv = {}) const -> bool final;
     auto ID(const PasswordPrompt& reason) const -> OTIdentifier final;
-    auto RawKey(const PasswordPrompt& reason, OTPassword& output) const
+    auto RawKey(const PasswordPrompt& reason, Secret& output) const
         -> bool final;
     auto Serialize(proto::SymmetricKey& output) const -> bool final;
     auto Unlock(const PasswordPrompt& reason) const -> bool final;
 
-    auto ChangePassword(
-        const PasswordPrompt& reason,
-        const OTPassword& newPassword) -> bool final;
+    auto ChangePassword(const PasswordPrompt& reason, const Secret& newPassword)
+        -> bool final;
 
     Symmetric(
         const api::internal::Core& api,
@@ -86,7 +86,7 @@ private:
     mutable std::unique_ptr<std::string> salt_;
     /// The unencrypted, fully-derived version of the key which is provided to
     /// encryption functions.
-    mutable std::unique_ptr<OTPassword> plaintext_key_;
+    mutable std::optional<OTSecret> plaintext_key_;
     /// The encrypted form of the plaintext key
     mutable std::unique_ptr<proto::Ciphertext> encrypted_key_;
     mutable std::mutex lock_;
@@ -96,15 +96,13 @@ private:
     static auto Allocate(const std::size_t size, String& container) -> bool;
     static auto Allocate(const std::size_t size, Data& container) -> bool;
     static auto Allocate(
+        const api::Core& api,
         const std::size_t size,
         std::string& container,
         const bool random) -> bool;
 
-    auto allocate(
-        const Lock& lock,
-        const std::size_t size,
-        OTPassword& container,
-        const bool text = false) const -> bool;
+    auto allocate(const Lock& lock, const std::size_t size, Secret& container)
+        const -> bool;
     auto decrypt(
         const Lock& lock,
         const proto::Ciphertext& input,
@@ -122,7 +120,7 @@ private:
         const bool text = false) const -> bool;
     auto encrypt_key(
         const Lock& lock,
-        const OTPassword& plaintextKey,
+        const Secret& plaintextKey,
         const PasswordPrompt& reason,
         const proto::SymmetricKeyType type = proto::SKEYTYPE_ARGON2) const
         -> bool;
@@ -131,8 +129,8 @@ private:
     auto get_password(
         const Lock& lock,
         const PasswordPrompt& keyPassword,
-        OTPassword& password) const -> bool;
-    auto get_plaintext(const Lock& lock) const -> std::unique_ptr<OTPassword>&;
+        Secret& password) const -> bool;
+    auto get_plaintext(const Lock& lock) const -> std::optional<OTSecret>&;
     auto get_salt(const Lock& lock) const -> std::unique_ptr<std::string>&;
     auto serialize(const Lock& lock, proto::SymmetricKey& output) const -> bool;
     auto unlock(const Lock& lock, const PasswordPrompt& reason) const -> bool;
@@ -144,7 +142,7 @@ private:
     Symmetric(
         const api::internal::Core& api,
         const crypto::SymmetricProvider& engine,
-        const OTPassword& seed,
+        const Secret& seed,
         const std::string& salt,
         const std::size_t size,
         const std::uint64_t operations,
@@ -159,7 +157,7 @@ private:
         std::string* salt,
         const std::uint64_t operations,
         const std::uint64_t difficulty,
-        OTPassword* plaintextKey,
+        std::optional<OTSecret> plaintextKey,
         proto::Ciphertext* encryptedKey);
     Symmetric() = delete;
     Symmetric(const Symmetric&);

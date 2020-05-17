@@ -26,6 +26,7 @@ class Crypto;
 
 class Factory;
 class OTPassword;
+class Secret;
 }  // namespace opentxs
 
 namespace opentxs::api::crypto::implementation
@@ -64,7 +65,9 @@ private:
         const std::size_t& inputSize) const -> std::string;
     auto Base64Decode(const std::string&& input, RawData& output) const -> bool;
     auto BreakLines(const std::string& input) const -> std::string;
-    auto IdentifierEncode(const OTPassword& input) const -> std::string;
+    auto IdentifierEncode(const Secret& input) const -> std::string;
+    auto IdentifierEncode(const void* data, const std::size_t size) const
+        -> std::string;
 
     Encode(const api::Crypto& crypto);
     Encode() = delete;

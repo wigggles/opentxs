@@ -158,18 +158,15 @@ public:
     OPENTXS_EXPORT virtual void* data() = 0;
     OPENTXS_EXPORT virtual bool DecodeHex(const std::string& hex) = 0;
 #endif
+    OPENTXS_EXPORT virtual void Concatenate(const ReadView data) = 0;
+#ifndef SWIG
     OPENTXS_EXPORT virtual void Concatenate(
         const void* data,
-        const std::size_t& size) = 0;
-#ifndef SWIG
-    [[deprecated]] OPENTXS_EXPORT virtual std::size_t OTfread(
-        std::uint8_t* data,
         const std::size_t& size) = 0;
 #endif
     OPENTXS_EXPORT virtual iterator end() = 0;
     OPENTXS_EXPORT virtual bool Randomize(const std::size_t& size) = 0;
     OPENTXS_EXPORT virtual void Release() = 0;
-    OPENTXS_EXPORT virtual void reset() = 0;
     OPENTXS_EXPORT virtual void resize(const std::size_t size) = 0;
     OPENTXS_EXPORT virtual void SetSize(const std::size_t size) = 0;
     OPENTXS_EXPORT virtual void swap(Data&& rhs) = 0;

@@ -10,12 +10,12 @@
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Secret.hpp"
 #include "opentxs/core/contract/ServerContract.hpp"
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/contract/peer/PeerReply.hpp"
 #include "opentxs/core/contract/peer/PeerRequest.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 
 namespace opentxs::contract::blank
@@ -33,7 +33,8 @@ struct Signable : virtual public opentxs::contract::Signable {
     void SetAlias(const std::string&) final {}
 
     Signable(const api::Core& api)
-        : id_(api.Factory().Identifier())
+        : api_(api)
+        , id_(api.Factory().Identifier())
         , terms_()
     {
     }
@@ -41,11 +42,13 @@ struct Signable : virtual public opentxs::contract::Signable {
     ~Signable() override = default;
 
 protected:
+    const api::Core& api_;
     const OTIdentifier id_;
     const std::string terms_;
 
     Signable(const Signable& rhs)
-        : id_(rhs.id_)
+        : api_(rhs.api_)
+        , id_(rhs.id_)
         , terms_(rhs.terms_)
     {
     }
@@ -140,10 +143,9 @@ struct Server final : virtual public opentxs::contract::Server,
     auto PublicContract() const -> proto::ServerContract final { return {}; }
     auto Statistics(String&) const -> bool final { return {}; }
     auto TransportKey() const -> const Data& final { return id_; }
-    auto TransportKey(Data&, const PasswordPrompt&) const
-        -> std::unique_ptr<OTPassword> final
+    auto TransportKey(Data&, const PasswordPrompt&) const -> OTSecret final
     {
-        return {};
+        return api_.Factory().Secret(0);
     }
 
     void InitAlias(const std::string&) final {}

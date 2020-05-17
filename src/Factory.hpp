@@ -18,6 +18,8 @@ namespace context
 class Server;
 }  // namespace context
 }  // namespace otx
+
+class Secret;
 }  // namespace opentxs
 
 namespace opentxs
@@ -714,12 +716,6 @@ public:
         -> identity::credential::internal::Contact*;
     static auto ContactAPI(const api::client::internal::Manager& api)
         -> api::client::internal::Contacts*;
-    static auto Context(
-        Flag& running,
-        const ArgList& args,
-        const std::chrono::seconds gcInterval,
-        OTCaller* externalPasswordCallback = nullptr)
-        -> api::internal::Context*;
     template <class C>
     static auto Credential(
         const api::internal::Core& api,
@@ -790,8 +786,8 @@ public:
     static auto Ed25519Key(
         const api::internal::Core& api,
         const crypto::EcdsaProvider& ecdsa,
-        const OTPassword& privateKey,
-        const OTPassword& chainCode,
+        const Secret& privateKey,
+        const Secret& chainCode,
         const Data& publicKey,
         const proto::HDPath& path,
         const Bip32Fingerprint parent,
@@ -801,9 +797,6 @@ public:
 #endif  // OT_CRYPTO_WITH_BIP32
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
     static auto Encode(const api::Crypto& crypto) -> api::crypto::Encode*;
-    static auto Endpoints(
-        const network::zeromq::Context& zmq,
-        const int instance) -> api::Endpoints*;
     static auto Envelope(const api::internal::Core& api) noexcept
         -> std::unique_ptr<crypto::Envelope>;
     static auto Envelope(
@@ -846,13 +839,6 @@ public:
         const crypto::Pbkdf2& pbkdf2,
         const crypto::Ripemd160& ripe) noexcept
         -> std::unique_ptr<api::crypto::Hash>;
-    static auto HDSeed(
-        const api::Factory& factory,
-        const api::crypto::Asymmetric& asymmetric,
-        const api::crypto::Symmetric& symmetric,
-        const api::storage::Storage& storage,
-        const crypto::Bip32& bip32,
-        const crypto::Bip39& bip39) -> api::HDSeed*;
     static auto Issuer(
         const api::Wallet& wallet,
         const identifier::Nym& nymID,
@@ -868,10 +854,6 @@ public:
         std::unique_ptr<crypto::key::Asymmetric> publicKey,
         std::unique_ptr<crypto::key::Asymmetric> privateKey) noexcept(false)
         -> std::unique_ptr<crypto::key::Keypair>;
-    static auto Legacy(const std::string& home) -> api::Legacy*;
-    static auto Log(
-        const network::zeromq::Context& zmq,
-        const std::string& endpoint) -> api::internal::Log*;
 #if OT_CASH
     static auto MintLucre(const api::internal::Core& core) -> blind::Mint*;
     static auto MintLucre(
@@ -1179,8 +1161,8 @@ public:
     static auto Secp256k1Key(
         const api::internal::Core& api,
         const crypto::EcdsaProvider& ecdsa,
-        const OTPassword& privateKey,
-        const OTPassword& chainCode,
+        const Secret& privateKey,
+        const Secret& chainCode,
         const Data& publicKey,
         const proto::HDPath& path,
         const Bip32Fingerprint parent,
@@ -1233,8 +1215,6 @@ public:
         const network::zeromq::Context& context,
         const std::string& dataFolder,
         const int instance) -> api::server::Manager*;
-    static auto Settings(const api::Legacy& legacy, const String& path)
-        -> api::Settings*;
     static auto Sodium(const api::Crypto& crypto) -> crypto::Sodium*;
     static auto Storage(
         const Flag& running,
@@ -1328,7 +1308,7 @@ public:
     static auto SymmetricKey(
         const api::internal::Core& api,
         const crypto::SymmetricProvider& engine,
-        const OTPassword& seed,
+        const Secret& seed,
         const std::uint64_t operations,
         const std::uint64_t difficulty,
         const std::size_t size,
@@ -1336,7 +1316,7 @@ public:
     static auto SymmetricKey(
         const api::internal::Core& api,
         const crypto::SymmetricProvider& engine,
-        const OTPassword& raw,
+        const Secret& raw,
         const opentxs::PasswordPrompt& reason) -> crypto::key::Symmetric*;
 #if OT_CASH
     static auto Token(const blind::Token& token, blind::Purse& purse) noexcept

@@ -39,6 +39,7 @@ class SymmetricKey;
 class Factory;
 class OTPassword;
 class PasswordPrompt;
+class Secret;
 }  // namespace opentxs
 
 namespace opentxs::api::crypto::implementation
@@ -56,7 +57,7 @@ public:
         const proto::SymmetricKey& serialized,
         const proto::SymmetricMode mode) const -> OTSymmetricKey final;
     auto Key(
-        const OTPassword& seed,
+        const Secret& seed,
         const std::uint64_t operations = 0,
         const std::uint64_t difficulty = 0,
         const proto::SymmetricMode mode = proto::SMODE_CHACHA20POLY1305,

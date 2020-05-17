@@ -88,7 +88,7 @@ auto Symmetric::Key(
 }
 
 auto Symmetric::Key(
-    const OTPassword& seed,
+    const Secret& seed,
     const std::uint64_t operations,
     const std::uint64_t difficulty,
     const proto::SymmetricMode mode,

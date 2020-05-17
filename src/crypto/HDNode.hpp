@@ -7,7 +7,7 @@
 
 #include "opentxs/Bytes.hpp"
 #include "opentxs/Types.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/Secret.hpp"
 
 namespace opentxs
 {
@@ -21,8 +21,8 @@ namespace opentxs::crypto::implementation
 {
 class HDNode
 {
-    OTPassword data_space_;
-    OTPassword hash_space_;
+    OTSecret data_space_;
+    OTSecret hash_space_;
 
 public:
     WritableView data_;
@@ -48,12 +48,12 @@ public:
 private:
     const api::Crypto& crypto_;
     int switch_;
-    OTPassword a_;
-    OTPassword b_;
+    OTSecret a_;
+    OTSecret b_;
 
-    auto parent() const noexcept -> const OTPassword&;
+    auto parent() const noexcept -> const Secret&;
 
-    auto child() noexcept -> OTPassword&;
-    auto parent() noexcept -> OTPassword&;
+    auto child() noexcept -> Secret&;
+    auto parent() noexcept -> Secret&;
 };
 }  // namespace opentxs::crypto::implementation

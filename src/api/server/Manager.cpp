@@ -43,8 +43,8 @@
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/PasswordPrompt.hpp"
+#include "opentxs/core/Secret.hpp"  // IWYU pragma: keep
 #include "opentxs/core/String.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"  // IWYU pragma: keep
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
@@ -572,11 +572,8 @@ void Manager::Start()
 
     auto pubkey = Data::Factory();
     auto privateKey = server_.TransportKey(pubkey);
-
-    OT_ASSERT(privateKey);
-
     message_processor_.init(
-        (proto::ADDRESSTYPE_INPROC == type), port, *privateKey);
+        (proto::ADDRESSTYPE_INPROC == type), port, privateKey);
     message_processor_.Start();
 #if OT_CASH
     ScanMints();

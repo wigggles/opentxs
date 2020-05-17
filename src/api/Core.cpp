@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <cstdint>
 #include <cstring>
+#include <limits>
 #include <utility>
 
 #include "api/Scheduler.hpp"
@@ -29,10 +30,11 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/core/PasswordPrompt.hpp"
+#include "opentxs/core/Secret.hpp"
 #include "opentxs/core/crypto/OTCaller.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/crypto/key/Symmetric.hpp"
 #include "opentxs/protobuf/Enums.pb.h"
+#include "util/ScopeGuard.hpp"
 
 //#define OT_METHOD "opentxs::api::implementation::Core::"
 
@@ -53,7 +55,7 @@ extern "C" auto internal_password_cb(
     const auto& reason = *static_cast<opentxs::PasswordPrompt*>(userdata);
     const auto& api = opentxs::api::implementation::Core::get_api(reason);
     opentxs::Lock lock(api.Lock());
-    opentxs::OTPassword secret{};
+    auto secret = api.Factory().Secret(0);
 
     if (false == api.GetSecret(lock, secret, reason, askTwice)) {
         opentxs::LogOutput(__FUNCTION__)(": Callback error").Flush();
@@ -61,10 +63,14 @@ extern "C" auto internal_password_cb(
         return 0;
     }
 
-    std::int32_t len{};
-    len = (secret.isPassword()) ? secret.getPasswordSize()
-                                : secret.getMemorySize();
-    len = std::min(len, size);
+    if (static_cast<std::uint64_t>(secret->size()) >
+        static_cast<std::uint64_t>(std::numeric_limits<std::int32_t>::max())) {
+        opentxs::LogOutput(__FUNCTION__)(": Secret too big").Flush();
+
+        return 0;
+    }
+
+    const auto len = std::min(static_cast<std::int32_t>(secret->size()), size);
 
     if (len <= 0) {
         opentxs::LogOutput(__FUNCTION__)(": Callback error").Flush();
@@ -72,10 +78,7 @@ extern "C" auto internal_password_cb(
         return 0;
     }
 
-    std::memcpy(
-        output,
-        (secret.isPassword()) ? secret.getPassword() : secret.getMemory(),
-        len);
+    std::memcpy(output, secret->data(), len);
 
     return len;
 }
@@ -101,7 +104,7 @@ Core::Core(
     , factory_(*factory_p_)
     , asymmetric_(factory_.Asymmetric())
     , symmetric_(factory_.Symmetric())
-    , seeds_(opentxs::Factory::HDSeed(
+    , seeds_(factory::HDSeed(
           factory_,
           asymmetric_,
           symmetric_,
@@ -184,24 +187,29 @@ INTERNAL_PASSWORD_CALLBACK* Core::GetInternalPasswordCallback() const
 
 auto Core::GetSecret(
     const opentxs::Lock& lock,
-    OTPassword& secret,
+    Secret& secret,
     const PasswordPrompt& reason,
     const bool twice) const -> bool
 {
     bump_password_timer(lock);
 
-    if (master_secret_) {
-        secret = *master_secret_;
+    if (master_secret_.has_value()) {
+        secret.Assign(master_secret_.value());
 
         return true;
     }
 
-    master_secret_ = std::make_unique<OTPassword>();
+    auto success{false};
+    auto postcondition = ScopeGuard{[this, &success] {
+        if (false == success) { master_secret_ = {}; }
+    }};
 
-    OT_ASSERT(master_secret_);
+    master_secret_ = factory_.Secret(0);
+
+    OT_ASSERT(master_secret_.has_value());
 
     auto& callback = *external_password_callback_;
-    OTPassword masterPassword{};
+    auto masterPassword = factory_.Secret(256);
     OTPasswordPrompt prompt{reason};
 
     if (twice) {
@@ -216,31 +224,32 @@ auto Core::GetSecret(
         opentxs::LogOutput(__FUNCTION__)(": Failed to unlock master key")
             .Flush();
 
-        return false;
+        return success;
     }
 
     const auto decrypted = master_key_->Decrypt(
         encrypted_secret_,
         prompt,
-        master_secret_->WriteInto(OTPassword::Mode::Mem));
+        master_secret_.value()->WriteInto(Secret::Mode::Mem));
 
     if (false == decrypted) {
         opentxs::LogOutput(__FUNCTION__)(": Failed to decrypt master secret")
             .Flush();
 
-        return false;
+        return success;
     }
 
-    secret = *master_secret_;
+    secret.Assign(master_secret_.value());
+    success = true;
 
-    return true;
+    return success;
 }
 
 auto Core::make_master_key(
     const api::internal::Context& parent,
     const api::Factory& factory,
     const proto::Ciphertext& encrypted_secret,
-    std::unique_ptr<OTPassword>& master_secret,
+    std::optional<OTSecret>& master_secret,
     const api::crypto::Symmetric& symmetric,
     const api::storage::Storage& storage) -> OTSymmetricKey
 {
@@ -259,19 +268,19 @@ auto Core::make_master_key(
         return symmetric.Key(existing->key(), proto::SMODE_CHACHA20POLY1305);
     }
 
-    master_secret = std::make_unique<OTPassword>();
+    master_secret = factory.Secret(0);
 
-    OT_ASSERT(master_secret);
+    OT_ASSERT(master_secret.has_value());
 
-    master_secret->randomizeMemory(32);
+    master_secret.value()->Randomize(32);
 
     auto reason = factory.PasswordPrompt("Choose a master password");
-    OTPassword masterPassword{};
+    auto masterPassword = factory.Secret(0);
     caller.AskTwice(reason, masterPassword);
     reason->SetPassword(masterPassword);
     auto output = symmetric.Key(reason, proto::SMODE_CHACHA20POLY1305);
     auto saved = output->Encrypt(
-        master_secret->Bytes(),
+        master_secret.value()->Bytes(),
         reason,
         encrypted,
         true,

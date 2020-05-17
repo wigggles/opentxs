@@ -38,11 +38,11 @@
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/OTTransaction.hpp"
+#include "opentxs/core/Secret.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/contract/ServerContract.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/crypto/Envelope.hpp"
 #include "opentxs/ext/OTPayment.hpp"
@@ -185,10 +185,8 @@ void Server::CreateMainFile(bool& mainFileExists)
         LogOutput(OT_METHOD)(__FUNCTION__)(": Seed backup found. Restoring.")
             .Flush();
         auto parsed = parse_seed_backup(backup);
-        OTPassword phrase;
-        OTPassword words;
-        phrase.setPassword(parsed.first);
-        words.setPassword(parsed.second);
+        auto phrase = manager_.Factory().SecretFromText(parsed.first);
+        auto words = manager_.Factory().SecretFromText(parsed.second);
         seed = manager_.Seeds().ImportSeed(words, phrase, reason_);
 
         if (seed.empty()) {
@@ -947,7 +945,7 @@ auto Server::nymbox_push(
     return output;
 }
 
-auto Server::TransportKey(Data& pubkey) const -> std::unique_ptr<OTPassword>
+auto Server::TransportKey(Data& pubkey) const -> OTSecret
 {
     return manager_.Wallet().Server(m_notaryID)->TransportKey(pubkey, reason_);
 }

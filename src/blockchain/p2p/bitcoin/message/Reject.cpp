@@ -10,6 +10,7 @@
 #include <boost/endian/buffers.hpp>
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
 #include <utility>
 
 #include "Factory.hpp"
@@ -18,7 +19,6 @@
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
 
 //#define OT_METHOD " opentxs::blockchain::p2p::bitcoin::message::Reject::"
 
@@ -87,13 +87,11 @@ auto Factory::BitcoinP2PReject(
 
         return nullptr;
     }
-    be::little_uint8_buf_t raw_code{};
 
-    OTPassword::safe_memcpy(&raw_code, sizeof(raw_code), it, sizeof(raw_code));
+    auto raw_code = be::little_uint8_buf_t{};
+    std::memcpy(static_cast<void*>(&raw_code), it, sizeof(raw_code));
     it += sizeof(raw_code);
-
     const std::uint8_t code = raw_code.value();
-    // -----------------------------------------------
     expectedSize += sizeof(std::byte);
 
     if (expectedSize > size) {

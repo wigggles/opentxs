@@ -373,7 +373,6 @@ class OTNym_or_SymmetricKey;
 class OTOffer;
 class OTParty;
 class OTPartyAccount;
-class OTPassword;
 class OTPayment;
 class OTPaymentPlan;
 class OTScript;

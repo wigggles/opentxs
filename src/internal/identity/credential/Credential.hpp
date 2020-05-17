@@ -5,6 +5,9 @@
 
 #pragma once
 
+#include <optional>
+
+#include "opentxs/core/Secret.hpp"  // IWYU pragma: keep
 #include "opentxs/identity/credential/Base.hpp"
 #include "opentxs/identity/credential/Contact.hpp"
 #include "opentxs/identity/credential/Key.hpp"
@@ -33,7 +36,7 @@ struct Contact : virtual public Base,
 struct Key : virtual public Base, virtual public identity::credential::Key {
     virtual auto SelfSign(
         const PasswordPrompt& reason,
-        const OTPassword* exportPassword = nullptr,
+        const std::optional<OTSecret> exportPassword = {},
         const bool onlyPrivate = false) -> bool = 0;
 
 #ifdef _MSC_VER

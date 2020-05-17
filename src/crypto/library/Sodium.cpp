@@ -21,11 +21,15 @@ extern "C" {
 #include "crypto/library/AsymmetricProvider.hpp"
 #include "crypto/library/EcdsaProvider.hpp"
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
+#include "opentxs/OT.hpp"
+#include "opentxs/Pimpl.hpp"
 #include "opentxs/Proto.hpp"
+#include "opentxs/api/Context.hpp"
+#include "opentxs/api/Primitives.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/Secret.hpp"
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
 #include "opentxs/crypto/key/Asymmetric.hpp"
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
@@ -343,10 +347,10 @@ auto Sodium::RandomKeypair(
     const NymParameters&,
     const AllocateOutput) const noexcept -> bool
 {
-    auto seed = OTPassword{};
-    seed.randomizeMemory(crypto_sign_SEEDBYTES);
+    auto seed = Context().Factory().Secret(0);
+    seed->Randomize(crypto_sign_SEEDBYTES);
 
-    return sodium::ExpandSeed(seed.Bytes(), privateKey, publicKey);
+    return sodium::ExpandSeed(seed->Bytes(), privateKey, publicKey);
 }
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 
@@ -454,7 +458,7 @@ auto Sodium::SharedSecret(
     const key::Asymmetric& publicKey,
     const key::Asymmetric& privateKey,
     const PasswordPrompt& reason,
-    OTPassword& secret) const noexcept -> bool
+    Secret& secret) const noexcept -> bool
 {
     if (publicKey.keyType() != proto::AKEYTYPE_ED25519) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Public key is wrong type")
@@ -493,14 +497,16 @@ auto Sodium::SharedSecret(
         return false;
     }
 
-    static const auto blank =
+    auto privateEd = Context().Factory().Secret(0);
+    auto privateBytes = privateEd->WriteInto(Secret::Mode::Mem)(
+        crypto_scalarmult_curve25519_BYTES);
+    auto secretBytes =
+        secret.WriteInto(Secret::Mode::Mem)(crypto_scalarmult_curve25519_BYTES);
+    auto publicEd =
         std::array<unsigned char, crypto_scalarmult_curve25519_BYTES>{};
-    auto privateEd = OTPassword{};
-    privateEd.setMemory(blank.data(), blank.size());
-    secret.setMemory(blank.data(), blank.size());
-    auto publicEd{blank};
 
-    OT_ASSERT(crypto_scalarmult_curve25519_BYTES == privateEd.getMemorySize());
+    OT_ASSERT(privateBytes.valid(crypto_scalarmult_curve25519_BYTES));
+    OT_ASSERT(secretBytes.valid(crypto_scalarmult_curve25519_BYTES));
 
     if (0 != ::crypto_sign_ed25519_pk_to_curve25519(
                  publicEd.data(),
@@ -512,10 +518,9 @@ auto Sodium::SharedSecret(
         return false;
     }
 
-    if (0 !=
-        ::crypto_sign_ed25519_sk_to_curve25519(
-            reinterpret_cast<unsigned char*>(privateEd.getMemoryWritable()),
-            reinterpret_cast<const unsigned char*>(prv.data()))) {
+    if (0 != ::crypto_sign_ed25519_sk_to_curve25519(
+                 reinterpret_cast<unsigned char*>(privateBytes.data()),
+                 reinterpret_cast<const unsigned char*>(prv.data()))) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": crypto_sign_ed25519_sk_to_curve25519 error")
             .Flush();
@@ -523,13 +528,13 @@ auto Sodium::SharedSecret(
         return false;
     }
 
-    OT_ASSERT(crypto_scalarmult_SCALARBYTES == privateEd.getMemorySize());
+    OT_ASSERT(crypto_scalarmult_SCALARBYTES == privateEd->size());
     OT_ASSERT(crypto_scalarmult_BYTES == publicEd.size());
-    OT_ASSERT(crypto_scalarmult_BYTES == secret.getMemorySize());
+    OT_ASSERT(crypto_scalarmult_BYTES == secret.size());
 
     return 0 == ::crypto_scalarmult(
-                    static_cast<unsigned char*>(secret.getMemoryWritable()),
-                    static_cast<const unsigned char*>(privateEd.getMemory()),
+                    static_cast<unsigned char*>(secretBytes.data()),
+                    static_cast<const unsigned char*>(privateBytes.data()),
                     publicEd.data());
 }
 
@@ -540,7 +545,7 @@ auto Sodium::Sign(
     const proto::HashType type,
     Data& signature,
     const PasswordPrompt& reason,
-    const OTPassword* exportPassword) const -> bool
+    const std::optional<OTSecret>) const -> bool
 {
     if (proto::AKEYTYPE_ED25519 != key.keyType()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid key type").Flush();

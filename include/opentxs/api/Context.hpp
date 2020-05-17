@@ -22,6 +22,14 @@ namespace opentxs
 {
 namespace api
 {
+class Primitives;
+}  // namespace api
+}  // namespace opentxs
+
+namespace opentxs
+{
+namespace api
+{
 class Context : virtual public Periodic
 {
 public:
@@ -36,6 +44,7 @@ public:
     OPENTXS_EXPORT virtual const api::Settings& Config(
         const std::string& path) const = 0;
     OPENTXS_EXPORT virtual const api::Crypto& Crypto() const = 0;
+    OPENTXS_EXPORT virtual const api::Primitives& Factory() const = 0;
     OPENTXS_EXPORT virtual void HandleSignals(
         ShutdownCallback* callback = nullptr) const = 0;
     OPENTXS_EXPORT virtual proto::RPCResponse RPC(

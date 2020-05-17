@@ -3,19 +3,19 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "0_stdafx.hpp"      // IWYU pragma: associated
-#include "1_Internal.hpp"    // IWYU pragma: associated
-#include "util/Cleanup.hpp"  // IWYU pragma: associated
+#pragma once
+
+#include "opentxs/Types.hpp"
 
 namespace opentxs
 {
-Cleanup::Cleanup(SimpleCallback cb) noexcept
-    : cb_(cb)
+class ScopeGuard
 {
-}
+public:
+    ScopeGuard(SimpleCallback cb) noexcept;
+    ~ScopeGuard();
 
-Cleanup::~Cleanup()
-{
-    if (cb_) { cb_(); }
-}
+private:
+    const SimpleCallback cb_;
+};
 }  // namespace opentxs

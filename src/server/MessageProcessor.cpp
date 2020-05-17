@@ -172,7 +172,7 @@ auto MessageProcessor::get_connection(const network::zeromq::Message& incoming)
 void MessageProcessor::init(
     const bool inproc,
     const int port,
-    const OTPassword& privkey)
+    const Secret& privkey)
 {
     if (port == 0) { OT_FAIL; }
 

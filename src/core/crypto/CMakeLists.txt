@@ -9,7 +9,6 @@ set(
   NymParameters.cpp
   OTCallback.cpp
   OTCaller.cpp
-  OTPassword.cpp
   OTSignatureMetadata.cpp
   OTSignedFile.cpp
   PaymentCode.cpp
@@ -20,7 +19,6 @@ set(
   "${opentxs_SOURCE_DIR}/include/opentxs/core/crypto/NymParameters.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/core/crypto/OTCallback.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/core/crypto/OTCaller.hpp"
-  "${opentxs_SOURCE_DIR}/include/opentxs/core/crypto/OTPassword.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/core/crypto/OTSignatureMetadata.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/core/crypto/OTSignedFile.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/core/crypto/PaymentCode.hpp"

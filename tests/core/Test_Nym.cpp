@@ -18,7 +18,7 @@ struct Test_Symmetric : public ::testing::Test {
     static ot::OTNymID bob_nym_id_;
     static ot::OTSymmetricKey key_;
     static ot::OTSymmetricKey second_key_;
-    static ot::OTPassword key_password_;
+    static std::optional<ot::OTSecret> key_password_;
     static ot::proto::Ciphertext ciphertext_;
     static ot::proto::Ciphertext second_ciphertext_;
     static ot::proto::Ciphertext encrypted_password_;
@@ -53,7 +53,7 @@ struct Test_Symmetric : public ::testing::Test {
             "");
         alice_nym_id_ = api_.Wallet().Nym(reason_, "Alice", {seedA, 0})->ID();
         bob_nym_id_ = api_.Wallet().Nym(reason_, "Bob", {seedB, 0})->ID();
-        key_password_.setPassword(TEST_MASTER_PASSWORD);
+        key_password_ = api_.Factory().SecretFromText(TEST_MASTER_PASSWORD);
         init_ = true;
     }
 };
@@ -65,7 +65,7 @@ ot::OTNymID Test_Symmetric::bob_nym_id_{ot::identifier::Nym::Factory()};
 ot::OTSymmetricKey Test_Symmetric::key_{ot::crypto::key::Symmetric::Factory()};
 ot::OTSymmetricKey Test_Symmetric::second_key_{
     ot::crypto::key::Symmetric::Factory()};
-ot::OTPassword Test_Symmetric::key_password_{};
+std::optional<ot::OTSecret> Test_Symmetric::key_password_{};
 ot::proto::Ciphertext Test_Symmetric::ciphertext_{};
 ot::proto::Ciphertext Test_Symmetric::second_ciphertext_{};
 ot::proto::Ciphertext Test_Symmetric::encrypted_password_{};
@@ -78,7 +78,7 @@ TEST_F(Test_Symmetric, create_key)
 
     auto password = api_.Factory().PasswordPrompt("");
 
-    ASSERT_TRUE(password->SetPassword(key_password_));
+    ASSERT_TRUE(password->SetPassword(key_password_.value()));
 
     key_ = api_.Symmetric().Key(password, mode_);
 
@@ -89,7 +89,7 @@ TEST_F(Test_Symmetric, key_functionality)
 {
     auto password = api_.Factory().PasswordPrompt("");
 
-    ASSERT_TRUE(password->SetPassword(key_password_));
+    ASSERT_TRUE(password->SetPassword(key_password_.value()));
 
     const auto encrypted =
         key_->Encrypt(TEST_PLAINTEXT, password, ciphertext_, true, mode_);
@@ -111,8 +111,7 @@ TEST_F(Test_Symmetric, key_functionality)
     ASSERT_TRUE(decrypted);
     EXPECT_STREQ(TEST_PLAINTEXT, plaintext.c_str());
 
-    ot::OTPassword wrongPassword{};
-    wrongPassword.setPassword("not the password");
+    auto wrongPassword = api_.Factory().SecretFromText("not the password");
 
     ASSERT_TRUE(password->SetPassword(wrongPassword));
 
@@ -137,7 +136,7 @@ TEST_F(Test_Symmetric, create_second_key)
 
     auto password = api_.Factory().PasswordPrompt("");
 
-    ASSERT_TRUE(password->SetPassword(key_password_));
+    ASSERT_TRUE(password->SetPassword(key_password_.value()));
 
     second_key_ = api_.Symmetric().Key(password, mode_);
 

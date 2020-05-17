@@ -29,6 +29,7 @@ class Socket;
 }  // namespace network
 
 class OTPassword;
+class Secret;
 }  // namespace opentxs
 
 namespace opentxs::network::zeromq::curve::implementation
@@ -37,7 +38,7 @@ class Server : virtual public zeromq::curve::Server
 {
 public:
     auto SetDomain(const std::string& domain) const noexcept -> bool final;
-    auto SetPrivateKey(const OTPassword& key) const noexcept -> bool final;
+    auto SetPrivateKey(const Secret& key) const noexcept -> bool final;
     auto SetPrivateKey(const std::string& z85) const noexcept -> bool final;
 
 protected:

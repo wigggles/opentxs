@@ -11,6 +11,7 @@
 #include <memory>
 #include <set>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "internal/api/Api.hpp"
@@ -19,6 +20,7 @@
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/Version.hpp"
+#include "opentxs/api/Primitives.hpp"
 #include "opentxs/api/crypto/Symmetric.hpp"
 #if OT_BLOCKCHAIN
 #include "opentxs/blockchain/Blockchain.hpp"
@@ -31,6 +33,7 @@
 #include "opentxs/core/Ledger.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/PasswordPrompt.hpp"
+#include "opentxs/core/Secret.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/contract/CurrencyContract.hpp"
 #include "opentxs/core/contract/SecurityContract.hpp"
@@ -120,7 +123,6 @@ class Server;
 class Basket;
 class Cheque;
 class Contract;
-class Factory;
 class Message;
 class NumList;
 class NymParameters;
@@ -212,7 +214,6 @@ public:
         const Nym_p& nym,
         const proto::UnitDefinition serialized) const noexcept(false)
         -> OTBasketContract final;
-    auto BinarySecret() const -> std::unique_ptr<OTPassword> final;
 #if OT_BLOCKCHAIN
     auto BitcoinBlock(const blockchain::Type chain, const ReadView bytes) const
         noexcept
@@ -571,6 +572,18 @@ public:
         -> OTReplyAcknowledgement final;
     auto Scriptable(const String& strCronItem) const
         -> std::unique_ptr<OTScriptable> final;
+    auto Secret(const std::size_t bytes) const noexcept -> OTSecret final
+    {
+        return primitives_.Secret(bytes);
+    }
+    auto SecretFromBytes(const ReadView bytes) const noexcept -> OTSecret final
+    {
+        return primitives_.SecretFromBytes(bytes);
+    }
+    auto SecretFromText(std::string_view text) const noexcept -> OTSecret final
+    {
+        return primitives_.SecretFromText(text);
+    }
     auto SecurityContract(
         const Nym_p& nym,
         const std::string& shortname,
@@ -624,14 +637,14 @@ public:
         const proto::SymmetricKey serialized) const -> OTSymmetricKey final;
     auto SymmetricKey(
         const opentxs::crypto::SymmetricProvider& engine,
-        const OTPassword& seed,
+        const opentxs::Secret& seed,
         const std::uint64_t operations,
         const std::uint64_t difficulty,
         const std::size_t size,
         const proto::SymmetricKeyType type) const -> OTSymmetricKey final;
     auto SymmetricKey(
         const opentxs::crypto::SymmetricProvider& engine,
-        const OTPassword& raw,
+        const opentxs::Secret& raw,
         const opentxs::PasswordPrompt& reason) const -> OTSymmetricKey final;
     auto Trade() const -> std::unique_ptr<OTTrade> final;
     auto Trade(
@@ -705,6 +718,7 @@ public:
 
 protected:
     const api::internal::Core& api_;
+    const api::Primitives& primitives_;
     std::unique_ptr<const api::crypto::internal::Asymmetric> pAsymmetric_;
     const api::crypto::internal::Asymmetric& asymmetric_;
     std::unique_ptr<const api::crypto::Symmetric> pSymmetric_;
@@ -713,8 +727,6 @@ protected:
     Factory(const api::internal::Core& api);
 
 private:
-    friend opentxs::Factory;
-
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
     auto instantiate_secp256k1(const ReadView key) const noexcept
         -> std::unique_ptr<opentxs::crypto::key::Secp256k1>;

@@ -62,8 +62,8 @@ auto Factory::Secp256k1Key(
 auto Factory::Secp256k1Key(
     const api::internal::Core& api,
     const crypto::EcdsaProvider& ecdsa,
-    const OTPassword& privateKey,
-    const OTPassword& chainCode,
+    const Secret& privateKey,
+    const Secret& chainCode,
     const Data& publicKey,
     const proto::HDPath& path,
     const Bip32Fingerprint parent,
@@ -113,8 +113,8 @@ Secp256k1::Secp256k1(
 Secp256k1::Secp256k1(
     const api::internal::Core& api,
     const crypto::EcdsaProvider& ecdsa,
-    const OTPassword& privateKey,
-    const OTPassword& chainCode,
+    const Secret& privateKey,
+    const Secret& chainCode,
     const Data& publicKey,
     const proto::HDPath& path,
     const Bip32Fingerprint parent,

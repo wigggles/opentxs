@@ -19,6 +19,7 @@ extern "C" {
 #include <cstdint>
 #include <functional>
 #include <memory>
+#include <optional>
 
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
 #include "crypto/library/AsymmetricProvider.hpp"
@@ -27,6 +28,7 @@ extern "C" {
 #include "opentxs/Bytes.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Version.hpp"
+#include "opentxs/core/Secret.hpp"
 #include "opentxs/protobuf/Enums.pb.h"
 
 namespace opentxs
@@ -120,7 +122,7 @@ public:
         const key::Asymmetric& publicKey,
         const key::Asymmetric& privateKey,
         const PasswordPrompt& reason,
-        OTPassword& secret) const noexcept -> bool final;
+        Secret& secret) const noexcept -> bool final;
     auto Sign(
         const api::internal::Core& api,
         const Data& plaintext,
@@ -128,7 +130,7 @@ public:
         const proto::HashType hashType,
         Data& signature,  // output
         const PasswordPrompt& reason,
-        const OTPassword* exportPassword = nullptr) const -> bool final;
+        const std::optional<OTSecret> = {}) const -> bool final;
     auto Verify(
         const Data& plaintext,
         const key::Asymmetric& theKey,

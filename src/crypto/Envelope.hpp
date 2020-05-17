@@ -122,7 +122,9 @@ private:
         const api::Core& api,
         const SerializedType& rhs) noexcept -> SessionKeys;
     static auto read_ct(const SerializedType& rhs) noexcept -> Ciphertext;
-    static auto set_default_password(PasswordPrompt& password) noexcept -> bool;
+    static auto set_default_password(
+        const api::Core& api,
+        PasswordPrompt& password) noexcept -> bool;
     static auto test_solution(
         const SupportedKeys& solution,
         const Requirements& requirements,

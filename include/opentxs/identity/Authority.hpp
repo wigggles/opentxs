@@ -21,6 +21,11 @@
 
 namespace opentxs
 {
+class Secret;
+}  // namespace opentxs
+
+namespace opentxs
+{
 namespace identity
 {
 class Authority
@@ -86,7 +91,7 @@ public:
     OPENTXS_EXPORT virtual const identity::Source& Source() const = 0;
     OPENTXS_EXPORT virtual bool TransportKey(
         Data& publicKey,
-        OTPassword& privateKey,
+        Secret& privateKey,
         const PasswordPrompt& reason) const = 0;
     OPENTXS_EXPORT virtual bool Unlock(
         const crypto::key::Asymmetric& dhKey,

@@ -18,6 +18,7 @@
 #include "opentxs/Types.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Secret.hpp"
 #include "opentxs/core/contract/ServerContract.hpp"
 #include "opentxs/protobuf/ContractEnums.pb.h"
 
@@ -56,7 +57,7 @@ public:
     auto Serialize() const -> OTData final;
     auto TransportKey() const -> const Data& final;
     auto TransportKey(Data& pubkey, const PasswordPrompt& reason) const
-        -> std::unique_ptr<OTPassword> final;
+        -> OTSecret final;
 
     void InitAlias(const std::string& alias) final
     {

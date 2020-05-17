@@ -5,8 +5,8 @@
 #ifndef __FAST_A_TO_F_HPP_INCLUDED__
 #define __FAST_A_TO_F_HPP_INCLUDED__
 
-#include <cstdlib>
 #include <math.h>
+#include <cstdlib>
 
 namespace irr
 {

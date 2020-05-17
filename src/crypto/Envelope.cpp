@@ -31,8 +31,8 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/core/PasswordPrompt.hpp"
+#include "opentxs/core/Secret.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/crypto/Envelope.hpp"
 #include "opentxs/crypto/key/Asymmetric.hpp"
 #include "opentxs/crypto/key/Symmetric.hpp"
@@ -134,7 +134,7 @@ auto Envelope::attach_session_keys(
     for (const auto& authority : nym) {
         const auto type = solution.at(nym.ID()).at(authority.GetMasterCredID());
         auto tag = Tag{};
-        auto password = OTPassword();
+        auto password = api_.Factory().Secret(0);
         auto& dhKey = get_dh_key(type, authority, reason);
         const auto haveTag =
             dhKey.CalculateTag(authority, type, reason, tag, password);
@@ -455,7 +455,7 @@ auto Envelope::seal(
     }
 
     auto password = OTPasswordPrompt{reason};
-    set_default_password(password);
+    set_default_password(api_, password);
     auto masterKey = api_.Symmetric().Key(password);
     ciphertext_ = std::make_unique<proto::Ciphertext>();
 
@@ -483,12 +483,11 @@ auto Envelope::seal(
     return cleanup.success_;
 }
 
-auto Envelope::set_default_password(PasswordPrompt& password) noexcept -> bool
+auto Envelope::set_default_password(
+    const api::Core& api,
+    PasswordPrompt& password) noexcept -> bool
 {
-    OTPassword defaultPassword{};
-    defaultPassword.setPassword("opentxs");
-
-    return password.SetPassword(defaultPassword);
+    return password.SetPassword(api.Factory().SecretFromText("opentxs"));
 }
 
 auto Envelope::Serialize() const noexcept -> SerializedType

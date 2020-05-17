@@ -11,21 +11,25 @@
 #include <memory>
 #include <regex>
 #include <sstream>
+#include <string_view>
 #include <vector>
 
 #include "Factory.hpp"
 #include "base58/base58.h"
 #include "base64/base64.h"
 #include "opentxs/Bytes.hpp"
+#include "opentxs/OT.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Types.hpp"
+#include "opentxs/api/Context.hpp"
+#include "opentxs/api/Primitives.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/Secret.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/protobuf/Enums.pb.h"
 
@@ -124,14 +128,15 @@ auto Encode::DataDecode(const std::string& input) const -> std::string
     return "";
 }
 
-auto Encode::IdentifierEncode(const Data& input) const -> std::string
+auto Encode::IdentifierEncode(const void* data, const std::size_t size) const
+    -> std::string
 {
-    if (input.empty()) { return {}; }
+    if (0 == size) { return {}; }
 
-    auto preimage = OTData{input};
+    auto preimage = Data::Factory(data, size);
     auto checksum = Data::Factory();
     auto hash = crypto_.Hash().Digest(
-        proto::HASHTYPE_SHA256DC, input.Bytes(), checksum->WriteInto());
+        proto::HASHTYPE_SHA256DC, preimage->Bytes(), checksum->WriteInto());
 
     OT_ASSERT(4 == checksum->size())
     OT_ASSERT(hash)
@@ -143,19 +148,31 @@ auto Encode::IdentifierEncode(const Data& input) const -> std::string
         static_cast<const unsigned char*>(preimage->data()) + preimage->size());
 }
 
-auto Encode::IdentifierEncode(const OTPassword& input) const -> std::string
+auto Encode::IdentifierEncode(const Data& input) const -> std::string
 {
-    if (input.isMemory()) {
+    return IdentifierEncode(input.data(), input.size());
+}
 
-        return IdentifierEncode(Data::Factory(
-            static_cast<const std::uint8_t*>(input.getMemory()),
-            input.getMemorySize()));
-    } else {
+auto Encode::IdentifierEncode(const Secret& input) const -> std::string
+{
+    const auto bytes = input.Bytes();
 
-        return IdentifierEncode(Data::Factory(
-            reinterpret_cast<const std::uint8_t*>(input.getPassword()),
-            input.getPasswordSize()));
-    }
+    if (0 == bytes.size()) { return {}; }
+
+    auto preimage =
+        Data::Factory(bytes.data(), bytes.size());  // TODO should be secret
+    auto checksum = Data::Factory();
+    auto hash = crypto_.Hash().Digest(
+        proto::HASHTYPE_SHA256DC, preimage->Bytes(), checksum->WriteInto());
+
+    OT_ASSERT(4 == checksum->size())
+    OT_ASSERT(hash)
+
+    preimage += checksum;
+
+    return bitcoin_base58::EncodeBase58(
+        static_cast<const unsigned char*>(preimage->data()),
+        static_cast<const unsigned char*>(preimage->data()) + preimage->size());
 }
 
 auto Encode::IdentifierDecode(const std::string& input) const -> std::string
@@ -205,10 +222,10 @@ auto Encode::Nonce(const std::uint32_t size, Data& rawOutput) const -> OTString
 {
     rawOutput.zeroMemory();
     rawOutput.SetSize(size);
-    OTPassword source;
-    source.randomizeMemory(size);
+    auto source = opentxs::Context().Factory().Secret(0);
+    source->Randomize(size);
     auto nonce = String::Factory(IdentifierEncode(source));
-    rawOutput.Assign(source.getMemory(), source.getMemorySize());
+    rawOutput.Assign(source->Bytes());
 
     return nonce;
 }

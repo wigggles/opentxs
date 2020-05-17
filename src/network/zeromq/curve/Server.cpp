@@ -16,7 +16,7 @@
 #include "opentxs/Types.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/Secret.hpp"
 
 #define OT_METHOD "opentxs::network::zeromq::curve::implementation::Server::"
 
@@ -41,15 +41,15 @@ auto Server::SetDomain(const std::string& domain) const noexcept -> bool
     return true;
 }
 
-auto Server::SetPrivateKey(const OTPassword& key) const noexcept -> bool
+auto Server::SetPrivateKey(const Secret& key) const noexcept -> bool
 {
-    if (CURVE_KEY_BYTES != key.getMemorySize()) {
+    if (CURVE_KEY_BYTES != key.size()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid private key.").Flush();
 
         return false;
     }
 
-    return set_private_key(key.getMemory(), key.getMemorySize());
+    return set_private_key(key.data(), key.size());
 }
 
 auto Server::SetPrivateKey(const std::string& z85) const noexcept -> bool

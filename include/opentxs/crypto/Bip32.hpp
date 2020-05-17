@@ -16,10 +16,11 @@
 #include <tuple>
 #include <vector>
 
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/Bytes.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Secret.hpp"
 
 namespace opentxs
 {
@@ -31,13 +32,12 @@ class Bip32
 {
 public:
     using Path = std::vector<Bip32Index>;
-    using Key =
-        std::tuple<OTPassword, OTPassword, OTData, Path, Bip32Fingerprint>;
+    using Key = std::tuple<OTSecret, OTSecret, OTData, Path, Bip32Fingerprint>;
 
 #if OT_CRYPTO_WITH_BIP32
     OPENTXS_EXPORT virtual Key DeriveKey(
         const EcdsaCurve& curve,
-        const OTPassword& seed,
+        const Secret& seed,
         const Path& path) const = 0;
 #endif  // OT_CRYPTO_WITH_BIP32
     OPENTXS_EXPORT virtual bool DeserializePrivate(
@@ -47,7 +47,7 @@ public:
         Bip32Fingerprint& parent,
         Bip32Index& index,
         Data& chainCode,
-        OTPassword& key) const = 0;
+        Secret& key) const = 0;
     OPENTXS_EXPORT virtual bool DeserializePublic(
         const std::string& serialized,
         Bip32Network& network,
@@ -64,7 +64,7 @@ public:
         const Bip32Fingerprint parent,
         const Bip32Index index,
         const Data& chainCode,
-        const OTPassword& key) const = 0;
+        const Secret& key) const = 0;
     OPENTXS_EXPORT virtual std::string SerializePublic(
         const Bip32Network network,
         const Bip32Depth depth,

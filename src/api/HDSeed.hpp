@@ -15,6 +15,7 @@
 #include "opentxs/Types.hpp"
 #include "opentxs/Version.hpp"
 #include "opentxs/api/HDSeed.hpp"
+#include "opentxs/core/Secret.hpp"
 #include "opentxs/crypto/key/EllipticCurve.hpp"
 #include "opentxs/crypto/key/Symmetric.hpp"
 #include "opentxs/protobuf/Enums.pb.h"
@@ -55,8 +56,6 @@ class HDPath;
 class Seed;
 }  // namespace proto
 
-class Factory;
-class OTPassword;
 class PasswordPrompt;
 }  // namespace opentxs
 
@@ -97,11 +96,11 @@ public:
     auto GetStorageKey(std::string& seed, const PasswordPrompt& reason) const
         -> OTSymmetricKey final;
 #endif  // OT_CRYPTO_WITH_BIP32
-    auto ImportRaw(const OTPassword& entropy, const PasswordPrompt& reason)
-        const -> std::string final;
+    auto ImportRaw(const Secret& entropy, const PasswordPrompt& reason) const
+        -> std::string final;
     auto ImportSeed(
-        const OTPassword& words,
-        const OTPassword& passphrase,
+        const Secret& words,
+        const Secret& passphrase,
         const PasswordPrompt& reason) const -> std::string final;
     auto NewSeed(const PasswordPrompt& reason) const -> std::string final;
     auto Passphrase(
@@ -110,8 +109,7 @@ public:
     auto Seed(
         std::string& fingerprint,
         Bip32Index& index,
-        const PasswordPrompt& reason) const
-        -> std::shared_ptr<OTPassword> final;
+        const PasswordPrompt& reason) const -> OTSecret final;
     auto UpdateIndex(
         std::string& seed,
         const Bip32Index index,
@@ -120,45 +118,6 @@ public:
         const PasswordPrompt& reason,
         const std::string& fingerprint = "") const -> std::string final;
 
-    virtual ~HDSeed() = default;
-
-private:
-    friend opentxs::Factory;
-
-    static const std::string DEFAULT_PASSPHRASE;
-    static const proto::SymmetricMode DEFAULT_ENCRYPTION_MODE;
-    static const VersionNumber DefaultVersion{3};
-    static const OTPassword binary_secret_;
-    static const OTPassword text_secret_;
-
-    const api::Factory& factory_;
-    const api::crypto::Asymmetric& asymmetric_;
-    const api::crypto::Symmetric& symmetric_;
-    const api::storage::Storage& storage_;
-    const opentxs::crypto::Bip32& bip32_;
-    const opentxs::crypto::Bip39& bip39_;
-
-    auto decrypt_seed(
-        const proto::Seed& seed,
-        OTPassword& words,
-        OTPassword& phrase,
-        OTPassword& raw,
-        const PasswordPrompt& reason) const -> bool;
-    auto save_seed(
-        const OTPassword& words,
-        const OTPassword& passphrase,
-        const OTPassword& raw,
-        const PasswordPrompt& reason) const -> std::string;
-    auto seed_to_data(
-        const OTPassword& words,
-        const OTPassword& passphrase,
-        const OTPassword& raw,
-        OTPassword& output) const -> bool;
-    auto serialized_seed(
-        std::string& fingerprint,
-        Bip32Index& index,
-        const PasswordPrompt& reason) const -> std::shared_ptr<proto::Seed>;
-
     HDSeed(
         const api::Factory& factory,
         const api::crypto::Asymmetric& asymmetric,
@@ -166,6 +125,45 @@ private:
         const api::storage::Storage& storage,
         const opentxs::crypto::Bip32& bip32,
         const opentxs::crypto::Bip39& bip39);
+
+    virtual ~HDSeed() = default;
+
+private:
+    static const std::string DEFAULT_PASSPHRASE;
+    static const proto::SymmetricMode DEFAULT_ENCRYPTION_MODE;
+    static const VersionNumber DefaultVersion{3};
+
+    const api::crypto::Symmetric& symmetric_;
+#if OT_CRYPTO_WITH_BIP32
+    const api::crypto::Asymmetric& asymmetric_;
+#endif  // OT_CRYPTO_WITH_BIP32
+    const api::storage::Storage& storage_;
+    const opentxs::crypto::Bip32& bip32_;
+    const opentxs::crypto::Bip39& bip39_;
+    const OTSecret binary_secret_;
+    const OTSecret text_secret_;
+
+    auto decrypt_seed(
+        const proto::Seed& seed,
+        Secret& words,
+        Secret& phrase,
+        Secret& raw,
+        const PasswordPrompt& reason) const -> bool;
+    auto save_seed(
+        const Secret& words,
+        const Secret& passphrase,
+        const Secret& raw,
+        const PasswordPrompt& reason) const -> std::string;
+    auto seed_to_data(
+        const Secret& words,
+        const Secret& passphrase,
+        const Secret& raw,
+        Secret& output) const -> bool;
+    auto serialized_seed(
+        std::string& fingerprint,
+        Bip32Index& index,
+        const PasswordPrompt& reason) const -> std::shared_ptr<proto::Seed>;
+
     HDSeed() = delete;
     HDSeed(const HDSeed&) = delete;
     HDSeed(HDSeed&&) = delete;

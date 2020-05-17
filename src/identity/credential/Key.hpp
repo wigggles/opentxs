@@ -7,6 +7,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <optional>
 #include <string>
 
 #include "identity/credential/Base.hpp"
@@ -14,6 +15,7 @@
 #include "opentxs/Bytes.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
+#include "opentxs/core/Secret.hpp"
 #include "opentxs/crypto/key/Keypair.hpp"
 #include "opentxs/protobuf/Enums.pb.h"
 
@@ -84,12 +86,12 @@ public:
         const proto::HashType hash) const -> bool final;
     auto TransportKey(
         Data& publicKey,
-        OTPassword& privateKey,
+        Secret& privateKey,
         const PasswordPrompt& reason) const -> bool final;
 
     auto SelfSign(
         const PasswordPrompt& reason,
-        const OTPassword* exportPassword = nullptr,
+        const std::optional<OTSecret> exportPassword = {},
         const bool onlyPrivate = false) -> bool final;
 
     ~Key() override = default;

@@ -16,7 +16,7 @@
 #include <memory>
 #include <ostream>
 
-#include "Factory.hpp"
+#include "internal/api/Api.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/core/Log.hpp"
@@ -48,14 +48,16 @@ auto StringFill(
     return true;
 }
 
-namespace opentxs
+namespace opentxs::factory
 {
-auto Factory::Settings(const api::Legacy& legacy, const String& path)
-    -> api::Settings*
+auto Settings(const api::Legacy& legacy, const String& path) noexcept
+    -> std::unique_ptr<api::Settings>
 {
-    return new api::implementation::Settings(legacy, path);
+    using ReturnType = api::implementation::Settings;
+
+    return std::make_unique<ReturnType>(legacy, path);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::api::implementation
 {

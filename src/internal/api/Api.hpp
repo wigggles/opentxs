@@ -9,6 +9,19 @@
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
 
+namespace opentxs
+{
+namespace api
+{
+class Crypto;
+class Endpoints;
+class HDSeed;
+class Legacy;
+class Primitives;
+class Settings;
+}  // namespace api
+}  // namespace opentxs
+
 namespace
 {
 /** Callbacks in this form allow OpenSSL to query opentxs to get key encryption
@@ -18,10 +31,6 @@ using INTERNAL_PASSWORD_CALLBACK =
     std::int32_t(char*, std::int32_t, std::int32_t, void*);
 }
 }  // namespace
-
-namespace opentxs::internal
-{
-}  // namespace opentxs::internal
 
 namespace opentxs::api::internal
 {
@@ -41,7 +50,7 @@ struct Core : virtual public api::Core {
         -> INTERNAL_PASSWORD_CALLBACK* = 0;
     virtual auto GetSecret(
         const opentxs::Lock& lock,
-        OTPassword& secret,
+        Secret& secret,
         const PasswordPrompt& reason,
         const bool twice) const -> bool = 0;
     virtual auto Legacy() const noexcept -> const api::Legacy& = 0;
@@ -64,3 +73,31 @@ struct Log {
     virtual ~Log() = default;
 };
 }  // namespace opentxs::api::internal
+
+namespace opentxs::factory
+{
+auto Context(
+    Flag& running,
+    const ArgList& args,
+    const std::chrono::seconds gcInterval,
+    OTCaller* externalPasswordCallback = nullptr) noexcept
+    -> std::unique_ptr<api::internal::Context>;
+auto Endpoints(const network::zeromq::Context& zmq, const int instance) noexcept
+    -> std::unique_ptr<api::Endpoints>;
+auto HDSeed(
+    const api::Factory& factory,
+    const api::crypto::Asymmetric& asymmetric,
+    const api::crypto::Symmetric& symmetric,
+    const api::storage::Storage& storage,
+    const crypto::Bip32& bip32,
+    const crypto::Bip39& bip39) noexcept -> std::unique_ptr<api::HDSeed>;
+auto Legacy(const std::string& home) noexcept -> std::unique_ptr<api::Legacy>;
+auto Log(
+    const network::zeromq::Context& zmq,
+    const std::string& endpoint) noexcept
+    -> std::unique_ptr<api::internal::Log>;
+auto Primitives(const api::Crypto& crypto) noexcept
+    -> std::unique_ptr<api::Primitives>;
+auto Settings(const api::Legacy& legacy, const String& path) noexcept
+    -> std::unique_ptr<api::Settings>;
+}  // namespace opentxs::factory

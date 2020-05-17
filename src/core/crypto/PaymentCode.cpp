@@ -28,7 +28,7 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/Secret.hpp"
 #include "opentxs/core/crypto/PaymentCode.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/crypto/key/Asymmetric.hpp"
@@ -107,7 +107,7 @@ PaymentCode::PaymentCode(
     , version_(version)
     , hasBitmessage_(hasBitmessage)
     , pubkey_(api.Factory().Data(pubkey))
-    , chain_code_(OTPassword::Mode::Mem, chaincode)
+    , chain_code_(api.Factory().SecretFromBytes(chaincode))
     , bitmessage_version_(bitmessageVersion)
     , bitmessage_stream_(bitmessageStream)
     , id_(calculate_id(api, pubkey, chaincode))
@@ -120,7 +120,6 @@ PaymentCode::PaymentCode(
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
     OT_ASSERT(key_);
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-    OT_ASSERT(chain_code_.isMemory());
 }
 
 PaymentCode::PaymentCode(const PaymentCode& rhs)
@@ -179,7 +178,7 @@ auto PaymentCode::AddPrivateKeys(
         return false;
     }
 
-    if (0 != chain_code_.Bytes().compare(candidate.Chaincode(reason))) {
+    if (0 != chain_code_->Bytes().compare(candidate.Chaincode(reason))) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Derived chain code does not match this payment code")
             .Flush();
@@ -198,7 +197,7 @@ auto PaymentCode::AddPrivateKeys(
 auto PaymentCode::asBase58() const noexcept -> std::string
 {
     const auto key = pubkey_->Bytes();
-    const auto code = chain_code_.Bytes();
+    const auto code = chain_code_->Bytes();
     auto raw = SerializedForBase58{
         version_, hasBitmessage_, bitmessage_version_, bitmessage_stream_};
 
@@ -248,7 +247,7 @@ auto PaymentCode::calculate_id(
 auto PaymentCode::Serialize() const noexcept -> Serialized
 {
     const auto key = pubkey_->Bytes();
-    const auto code = chain_code_.Bytes();
+    const auto code = chain_code_->Bytes();
     auto output = Serialized{};
     output.set_version(version_);
     output.set_key(key.data(), key.size());
@@ -297,7 +296,7 @@ auto PaymentCode::Valid() const noexcept -> bool
 
     if (pubkey_size_ != pubkey_->size()) { return false; }
 
-    if (chain_code_size_ != chain_code_.getMemorySize()) { return false; }
+    if (chain_code_size_ != chain_code_->size()) { return false; }
 
     return proto::Validate<proto::PaymentCode>(Serialize(), SILENT);
 }

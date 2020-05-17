@@ -19,6 +19,7 @@ set(
   Legacy.cpp
   Log.cpp
   Periodic.cpp
+  Primitives.cpp
   Scheduler.cpp
   Settings.cpp
   StorageParent.cpp
@@ -34,6 +35,7 @@ set(
   "${opentxs_SOURCE_DIR}/include/opentxs/api/Factory.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/api/HDSeed.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/api/Periodic.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/api/Primitives.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/api/Settings.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/api/Wallet.hpp"
 )
@@ -50,6 +52,7 @@ set(
   Legacy.hpp
   Log.hpp
   Periodic.hpp
+  Primitives.hpp
   Scheduler.hpp
   Settings.hpp
   StorageParent.hpp

@@ -8,10 +8,10 @@
 
 #include "opentxs/Version.hpp"  // IWYU pragma: associated
 
-#include "opentxs/protobuf/Basic.hpp"
-
 #include <map>
 #include <set>
+
+#include "opentxs/protobuf/Basic.hpp"
 
 namespace opentxs
 {

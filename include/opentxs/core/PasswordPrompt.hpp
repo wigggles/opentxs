@@ -8,10 +8,11 @@
 
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
-#include <string>
 #include <memory>
+#include <string>
 
 #include "opentxs/Pimpl.hpp"
+#include "opentxs/core/Secret.hpp"
 
 #ifdef SWIG
 // clang-format off
@@ -36,7 +37,6 @@ struct Core;
 }  // namespace api
 
 class Factory;
-class OTPassword;
 class PasswordPrompt;
 
 using OTPasswordPrompt = Pimpl<PasswordPrompt>;
@@ -68,10 +68,10 @@ class PasswordPrompt
 {
 public:
     OPENTXS_EXPORT const char* GetDisplayString() const;
-    OPENTXS_EXPORT const std::unique_ptr<const OTPassword>& Password() const;
+    OPENTXS_EXPORT const Secret& Password() const;
 
     OPENTXS_EXPORT bool ClearPassword();
-    OPENTXS_EXPORT bool SetPassword(const OTPassword& password);
+    OPENTXS_EXPORT bool SetPassword(const Secret& password);
 
     OPENTXS_EXPORT ~PasswordPrompt();
 
@@ -84,7 +84,7 @@ private:
 
     const api::internal::Core& api_;
     std::string display_;
-    std::unique_ptr<const OTPassword> password_;
+    OTSecret password_;
 
     PasswordPrompt(
         const api::internal::Core& api,

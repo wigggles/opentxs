@@ -7,6 +7,7 @@
 #include "1_Internal.hpp"  // IWYU pragma: associated
 #include "opentxs/OT.hpp"  // IWYU pragma: associated
 
+#include <memory>
 #include <stdexcept>
 
 #include "internal/api/Api.hpp"
@@ -53,7 +54,8 @@ auto InitContext(
     }
 
     instance_pointer_ =
-        Factory::Context(running_, args, gcInterval, externalPasswordCallback);
+        factory::Context(running_, args, gcInterval, externalPasswordCallback)
+            .release();
 
     OT_ASSERT(nullptr != instance_pointer_);
 

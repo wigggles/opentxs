@@ -763,10 +763,9 @@ TEST_F(Test_BlockchainAPI, TestChainDiff)
 TEST_F(Test_BlockchainAPI, TestBip32_standard_1)
 {
     const std::string empty{};
-    auto bytes = ot::Data::Factory(
-        "0x000102030405060708090a0b0c0d0e0f", ot::Data::Mode::Hex);
-    ot::OTPassword seed{};
-    seed.setMemory(bytes->data(), bytes->size());
+    auto bytes = api_.Factory().Data(
+        "0x000102030405060708090a0b0c0d0e0f", ot::StringStyle::Hex);
+    auto seed = api_.Factory().SecretFromBytes(bytes->Bytes());
     const auto fingerprint = api_.Seeds().ImportRaw(seed, reason_);
 
     ASSERT_FALSE(fingerprint.empty());
@@ -808,12 +807,11 @@ TEST_F(Test_BlockchainAPI, TestBip32_standard_1)
 TEST_F(Test_BlockchainAPI, TestBip32_standard_3)
 {
     const std::string empty{};
-    auto bytes = ot::Data::Factory(
+    auto bytes = api_.Factory().Data(
         "0x4b381541583be4423346c643850da4b320e46a87ae3d2a4e6da11eba819cd4acba45"
         "d239319ac14f863b8d5ab5a0d0c64d2e8a1e7d1457df2e5a3c51c73235be",
-        ot::Data::Mode::Hex);
-    ot::OTPassword seed{};
-    seed.setMemory(bytes->data(), bytes->size());
+        ot::StringStyle::Hex);
+    auto seed = api_.Factory().SecretFromBytes(bytes->Bytes());
     const auto fingerprint = api_.Seeds().ImportRaw(seed, reason_);
 
     ASSERT_FALSE(fingerprint.empty());

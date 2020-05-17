@@ -32,7 +32,7 @@ public:
         const key::Asymmetric&,
         const key::Asymmetric&,
         const PasswordPrompt&,
-        OTPassword&) const noexcept -> bool final
+        Secret&) const noexcept -> bool final
     {
         return false;
     }
@@ -43,7 +43,7 @@ public:
         const proto::HashType,
         Data&,
         const PasswordPrompt&,
-        const OTPassword* = nullptr) const -> bool final
+        const std::optional<OTSecret> exportPassword) const -> bool final
     {
         return false;
     }

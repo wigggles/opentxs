@@ -34,6 +34,7 @@
 #include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/HDSeed.hpp"
+#include "opentxs/api/Primitives.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/api/client/Manager.hpp"
@@ -47,14 +48,12 @@
 #include "opentxs/contact/Contact.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Cheque.hpp"
-#include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/core/contract/ServerContract.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/PaymentCode.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
@@ -1283,10 +1282,8 @@ auto RPC::import_seed(const proto::RPCCommand& command) const
 
 #if OT_CRYPTO_WITH_BIP32
     auto& seed = command.hdseed();
-    OTPassword words;
-    words.setPassword(seed.words());
-    OTPassword passphrase;
-    passphrase.setPassword(seed.passphrase());
+    auto words = ot_.Factory().SecretFromText(seed.words());
+    auto passphrase = ot_.Factory().SecretFromText(seed.passphrase());
     const auto identifier =
         session.Seeds().ImportSeed(words, passphrase, reason);
 
@@ -2035,23 +2032,15 @@ void RPC::task_handler(const zmq::Message& in)
     lock.lock();
     queued_tasks_.erase(it);
     lock.unlock();
-    const auto raw = Data::Factory(in.Body_at(1));
-    bool success{false};
-    OTPassword::safe_memcpy(
-        &success,
-        sizeof(success),
-        raw->data(),
-        static_cast<std::uint32_t>(raw->size()));
+    const auto success = in.Body_at(1).as<bool>();
     message.set_version(RPCPUSH_VERSION);
     message.set_type(proto::RPCPUSH_TASK);
-
     task.set_version(TASKCOMPLETE_VERSION);
     const auto taskIDStr = String::Factory(taskID);
     auto taskIDCompat = Identifier::Factory();
     taskIDCompat->CalculateDigest(taskIDStr->Bytes());
     task.set_id(taskIDCompat->str());
     task.set_result(success);
-
     auto output = zmq::Message::Factory();
     output->AddFrame(message);
     rpc_publisher_->Send(output);

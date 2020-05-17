@@ -17,7 +17,7 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/Secret.hpp"
 #include "opentxs/crypto/key/Ed25519.hpp"
 #include "opentxs/protobuf/Enums.pb.h"
 #include "util/Sodium.hpp"
@@ -65,8 +65,8 @@ auto Factory::Ed25519Key(
 auto Factory::Ed25519Key(
     const api::internal::Core& api,
     const crypto::EcdsaProvider& ecdsa,
-    const OTPassword& privateKey,
-    const OTPassword& chainCode,
+    const Secret& privateKey,
+    const Secret& chainCode,
     const Data& publicKey,
     const proto::HDPath& path,
     const Bip32Fingerprint parent,
@@ -116,8 +116,8 @@ Ed25519::Ed25519(
 Ed25519::Ed25519(
     const api::internal::Core& api,
     const crypto::EcdsaProvider& ecdsa,
-    const OTPassword& privateKey,
-    const OTPassword& chainCode,
+    const Secret& privateKey,
+    const Secret& chainCode,
     const Data& publicKey,
     const proto::HDPath& path,
     const Bip32Fingerprint parent,
@@ -150,7 +150,7 @@ Ed25519::Ed25519(const Ed25519& rhs) noexcept
 
 auto Ed25519::TransportKey(
     Data& publicKey,
-    OTPassword& privateKey,
+    Secret& privateKey,
     const PasswordPrompt& reason) const noexcept -> bool
 {
     if (false == HasPublic()) { return false; }
@@ -159,7 +159,7 @@ auto Ed25519::TransportKey(
     return sodium::ToCurveKeypair(
         PrivateKey(reason),
         PublicKey(),
-        privateKey.WriteInto(OTPassword::Mode::Mem),
+        privateKey.WriteInto(Secret::Mode::Mem),
         publicKey.WriteInto());
 }
 }  // namespace opentxs::crypto::key::implementation

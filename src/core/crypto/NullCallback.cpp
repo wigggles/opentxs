@@ -10,7 +10,7 @@
 #include <memory>
 
 #include "Factory.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/Secret.hpp"
 
 #define OPENTXS_NULL_PASSWORD "opentxs"
 
@@ -26,12 +26,12 @@ namespace opentxs::implementation
 {
 const std::string NullCallback::password_{OPENTXS_NULL_PASSWORD};
 
-void NullCallback::runOne(const char*, OTPassword& output) const
+void NullCallback::runOne(const char*, Secret& output) const
 {
-    output.setPassword(password_);
+    output.AssignText(password_);
 }
 
-void NullCallback::runTwo(const char* display, OTPassword& output) const
+void NullCallback::runTwo(const char* display, Secret& output) const
 {
     runOne(display, output);
 }

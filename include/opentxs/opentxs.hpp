@@ -96,6 +96,7 @@
 #include <opentxs/core/OTTransaction.hpp>
 #include <opentxs/core/OTTransactionType.hpp>
 #include <opentxs/core/PasswordPrompt.hpp>
+#include <opentxs/core/Secret.hpp>
 #include <opentxs/core/String.hpp>
 #include <opentxs/core/contract/CurrencyContract.hpp>
 #include <opentxs/core/contract/SecurityContract.hpp>
@@ -117,7 +118,6 @@
 #include <opentxs/core/cron/OTCronItem.hpp>
 #include <opentxs/core/crypto/OTCallback.hpp>
 #include <opentxs/core/crypto/OTCaller.hpp>
-#include <opentxs/core/crypto/OTPassword.hpp>
 #include <opentxs/core/crypto/OTSignedFile.hpp>
 #include <opentxs/core/crypto/PaymentCode.hpp>
 #include <opentxs/core/identifier/Nym.hpp>

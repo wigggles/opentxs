@@ -50,6 +50,7 @@ class Server;
 
 class Flag;
 class OTPassword;
+class Secret;
 }  // namespace opentxs
 
 namespace std
@@ -359,8 +360,7 @@ private:
     {
         return parent_.finish_task(taskID, success, std::move(result));
     }
-    auto get_admin(const TaskID taskID, const OTPassword& password) const
-        -> bool;
+    auto get_admin(const TaskID taskID, const Secret& password) const -> bool;
     auto get_nym_fetch(const identifier::Server& serverID) const
         -> UniqueQueue<OTNymID>&
     {

@@ -40,6 +40,7 @@ class Source;
 class NymParameters;
 class OTPassword;
 class PasswordPrompt;
+class Secret;
 }  // namespace opentxs
 
 namespace opentxs::identity::credential::implementation
@@ -84,7 +85,7 @@ public:
     auto SourceSignature() const -> Signature final;
     auto TransportKey(
         Data& publicKey,
-        OTPassword& privateKey,
+        Secret& privateKey,
         const PasswordPrompt& reason) const -> bool override;
     auto Type() const -> proto::CredentialType final { return type_; }
     auto Validate() const -> bool final;

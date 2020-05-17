@@ -37,11 +37,11 @@
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/PasswordPrompt.hpp"
+#include "opentxs/core/Secret.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/UniqueQueue.hpp"
 #include "opentxs/core/contract/ServerContract.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
@@ -232,8 +232,8 @@ auto StateMachine::check_admin(const otx::context::Server& context) const
     needAdmin = context.HaveAdminPassword() && (false == haveAdmin);
 
     if (needAdmin) {
-        OTPassword serverPassword;
-        serverPassword.setPassword(context.AdminPassword());
+        auto serverPassword =
+            client_.Factory().SecretFromText(context.AdminPassword());
         get_admin(next_task_id(), serverPassword);
     }
 
@@ -582,10 +582,12 @@ auto StateMachine::find_contract(
     return false;
 }
 
-auto StateMachine::get_admin(const TaskID taskID, const OTPassword& password)
-    const -> bool
+auto StateMachine::get_admin(const TaskID taskID, const Secret& password) const
+    -> bool
 {
-    DO_OPERATION(RequestAdmin, String::Factory(password.getPassword()));
+    DO_OPERATION(
+        RequestAdmin,
+        String::Factory(reinterpret_cast<const char*>(password.data())));
 
     return finish_task(taskID, success, std::move(result));
 }

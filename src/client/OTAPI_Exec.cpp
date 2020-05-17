@@ -32,7 +32,6 @@
 #include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/contract/basket/Basket.hpp"
 #include "opentxs/core/contract/basket/BasketContract.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
@@ -2816,9 +2815,8 @@ auto OTAPI_Exec::Wallet_ImportSeed(
     const std::string& passphrase) const -> std::string
 {
     auto reason = api_.Factory().PasswordPrompt("Importing a BIP-39 seed");
-    OTPassword secureWords, securePassphrase;
-    secureWords.setPassword(words);
-    securePassphrase.setPassword(passphrase);
+    auto secureWords = api_.Factory().SecretFromText(words);
+    auto securePassphrase = api_.Factory().SecretFromText(passphrase);
 
 #if OT_CRYPTO_WITH_BIP32
     return api_.Seeds().ImportSeed(secureWords, securePassphrase, reason);
