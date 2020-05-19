@@ -39,6 +39,6 @@ set_property(TARGET opentxs-otx-consensus PROPERTY POSITION_INDEPENDENT_CODE 1)
 
 install(
   FILES ${cxx-install-headers}
-  DESTINATION include/opentxs/consensus
+  DESTINATION include/opentxs/otx/consensus
   COMPONENT dev
 )
