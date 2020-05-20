@@ -5,13 +5,14 @@
 
 #pragma once
 
+#include <array>
 #include <deque>
 #include <map>
-#include <tuple>
 #include <memory>
 #include <mutex>
 #include <set>
 #include <string>
+#include <tuple>
 #include <utility>
 #include <vector>
 
@@ -52,12 +53,6 @@ namespace opentxs::blockchain::client::implementation
 class HeaderOracle final : virtual public internal::HeaderOracle
 {
 public:
-    using CheckpointsTypeData =
-        std::tuple<block::Height, std::string, std::string>;
-    using CheckpointsType = std::map<blockchain::Type, CheckpointsTypeData>;
-    using CheckpointData =
-        std::tuple<block::Height, block::pHash, block::pHash>;
-
     auto BestChain() const noexcept -> block::Position final;
     auto BestHash(const block::Height height) const noexcept
         -> block::pHash final;
@@ -99,7 +94,17 @@ private:
     };
 
     using Candidates = std::vector<Candidate>;
-    static const CheckpointsType checkpoints_;
+    using BlockHashHex = std::string;
+    using PreviousBlockHashHex = std::string;
+    using FilterHeaderHex = std::string;
+    using CheckpointRawData = std::tuple<
+        block::Height,
+        BlockHashHex,
+        PreviousBlockHashHex,
+        FilterHeaderHex>;
+    using CheckpointMap = std::map<blockchain::Type, CheckpointRawData>;
+
+    static const CheckpointMap checkpoints_;
 
     const api::internal::Core& api_;
     const internal::HeaderDatabase& database_;

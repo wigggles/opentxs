@@ -82,23 +82,27 @@ auto HeaderOracle::GenesisBlockHash(const blockchain::Type type)
 
 namespace opentxs::blockchain::client::implementation
 {
-const HeaderOracle::CheckpointsType HeaderOracle::checkpoints_{
+const HeaderOracle::CheckpointMap HeaderOracle::checkpoints_{
     {blockchain::Type::Bitcoin,
      {630000,
       "6de9d737a62ea1c197000edb02c252089969dfd8ea4b02000000000000000000",
-      "1e2b96b120a73bacb0667279bd231bdb95b08be16b650d000000000000000000"}},
+      "1e2b96b120a73bacb0667279bd231bdb95b08be16b650d000000000000000000",
+      "63059e205633ebffb7d35e737611a6be5d1d3f904fa9c86a756afa7e0aee02f2"}},
     {blockchain::Type::Bitcoin_testnet3,
      {1740000,
       "f758e6307382affd044c64e2bead2efdd2d9222bce9d232ae3fc000000000000",
-      "b7b063b8908b78d83c837c53bfa1222dc141fab18537d525f5f6000000000000"}},
+      "b7b063b8908b78d83c837c53bfa1222dc141fab18537d525f5f6000000000000",
+      "6ae92c333eafd91b2a995064f249fe558ea7569fdc723b5e008637362829c1e0"}},
     {blockchain::Type::BitcoinCash,
      {635259,
       "f73075b2c598f49b3a19558c070b52d5a5d6c21fefdf33000000000000000000",
-      "1a78f5c89b05a56167066be9b0a36ac8f1781ed0472c30030000000000000000"}},
+      "1a78f5c89b05a56167066be9b0a36ac8f1781ed0472c30030000000000000000",
+      "15ceed5cc33ecfdda722164b81b43e4e95ba7e1d65eaf94f7c2e3707343bf4c5"}},
     {blockchain::Type::BitcoinCash_testnet3,
      {1378461,
       "d715e9fab7bbdf301081eeadbe6e931db282cf6b92b1365f9b50f59900000000",
-      "24b33d026d36cbff3a693ea754a3be177dc5fb80966294cb643cf37000000000"}},
+      "24b33d026d36cbff3a693ea754a3be177dc5fb80966294cb643cf37000000000",
+      "ee4ac1f50b0fba7dd9d2c5145fb4dd6a7e66b516c08a9b505cad8c2da53263fa"}},
 };
 
 HeaderOracle::HeaderOracle(
@@ -496,15 +500,12 @@ auto HeaderOracle::evaluate_candidate(
 
 auto HeaderOracle::GetDefaultCheckpoint() const noexcept -> CheckpointData
 {
-    const auto& dataStrings = checkpoints_.at(chain_);
-    const auto& [first, second, third] = dataStrings;
-    auto secondData = api_.Factory().Data();
-    secondData->DecodeHex(second);
-    auto thirdData = api_.Factory().Data();
-    thirdData->DecodeHex(third);
-    const auto data = CheckpointData{first, secondData, thirdData};
+    const auto& [height, block, previous, filter] = checkpoints_.at(chain_);
 
-    return data;
+    return CheckpointData{height,
+                          api_.Factory().Data(block, StringStyle::Hex),
+                          api_.Factory().Data(previous, StringStyle::Hex),
+                          api_.Factory().Data(filter, StringStyle::Hex)};
 }
 
 auto HeaderOracle::GetCheckpoint() const noexcept -> block::Position
@@ -520,7 +521,7 @@ auto HeaderOracle::Init() noexcept -> void
     const auto existingCheckpoint = GetCheckpoint();
     const auto& [existingHeight, existingBlockHash] = existingCheckpoint;
     const auto defaultCheckpoint = GetDefaultCheckpoint();
-    const auto& [defaultHeight, defaultBlockhash, defaultParenthash] =
+    const auto& [defaultHeight, defaultBlockhash, defaultParenthash, defaultFilterhash] =
         defaultCheckpoint;
 
     // A checkpoint has been set that is newer than the default

@@ -185,6 +185,13 @@ private:
         mutable std::map<block::pHash, Time> hashes_;
     };
 
+    using FilterHeaderHex = std::string;
+    using FilterHeaderMap = std::map<filter::Type, FilterHeaderHex>;
+    using ChainMap = std::map<block::Height, FilterHeaderMap>;
+    using CheckpointMap = std::map<blockchain::Type, ChainMap>;
+
+    static const CheckpointMap filter_checkpoints_;
+
     const internal::Network& network_;
     const internal::FilterDatabase& database_;
     const filter::Type default_type_;
@@ -194,6 +201,9 @@ private:
     std::promise<void> init_promise_;
     std::shared_future<void> init_;
 
+    auto oldest_checkpoint_before(const block::Height height) const noexcept
+        -> block::Height;
+
     auto check_filters(
         const filter::Type type,
         const block::Height maxRequests,
@@ -202,11 +212,14 @@ private:
         const filter::Type type,
         const block::Height maxRequests,
         Cleanup& repeat) noexcept -> void;
+    auto compare_tips_to_checkpoint() noexcept -> void;
+    auto compare_tips_to_header_chain() noexcept -> bool;
     auto pipeline(const zmq::Message& in) noexcept -> void;
     auto process_cfheader(const zmq::Message& in) noexcept -> void;
     auto process_cfilter(const zmq::Message& in) noexcept -> void;
     auto process_reorg(const zmq::Message& in) noexcept -> void;
     auto request() noexcept -> bool;
+    auto reset_tips_to(const block::Position position) noexcept -> bool;
     auto shutdown(std::promise<void>& promise) noexcept -> void;
 
     FilterOracle() = delete;
