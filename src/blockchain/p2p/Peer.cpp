@@ -55,6 +55,7 @@ Peer::Peer(
     : Executor(api, std::bind(&Peer::state_machine, this))
     , network_(network)
     , manager_(manager)
+    , chain_(address->Chain())
     , endpoint_(
           make_endpoint(address->Type(), address->Bytes(), address->Port()))
     , send_promise_()
@@ -62,9 +63,7 @@ Peer::Peer(
     , address_(std::move(address))
     , download_peers_()
     , header_(make_buffer(headerSize))
-    , outgoing_handshake_(false)
-    , incoming_handshake_(false)
-    , subscribe_()
+    , state_()
     , header_bytes_(headerSize)
     , id_(id)
     , connection_id_()
@@ -73,13 +72,8 @@ Peer::Peer(
     , socket_(context_.operator boost::asio::io_context&())
     , outgoing_message_(Data::Factory())
     , connection_id_promise_()
-    , connection_promise_()
-    , connected_(connection_promise_.get_future())
-    , handshake_promise_()
-    , handshake_(handshake_promise_.get_future())
     , send_promises_()
     , activity_()
-    , state_(State::Handshake)
     , cb_(zmq::ListenCallback::Factory([&](auto& in) { pipeline_d(in); }))
     , dealer_(api.ZeroMQ().DealerSocket(
           cb_,
@@ -124,6 +118,11 @@ Peer::SendPromises::SendPromises() noexcept
     , counter_(0)
     , map_()
 {
+}
+
+bool Peer::verifying() noexcept
+{
+    return (State::Verify == state_.value_.load());
 }
 
 auto Peer::Activity::Bump() noexcept -> void
@@ -245,25 +244,9 @@ auto Peer::SendPromises::SetPromise(const int promise, const bool value) -> void
     }
 }
 
-auto Peer::Subscriptions::Push(value_type& tasks) noexcept -> void
-{
-    Lock lock(lock_);
-    tasks_.swap(tasks);
-}
-
-auto Peer::Subscriptions::Pop() noexcept -> value_type
-{
-    auto output = value_type{};
-    Lock lock(lock_);
-    tasks_.swap(output);
-
-    return output;
-}
-
 auto Peer::break_promises() noexcept -> void
 {
-    handshake_promise_ = {};
-    connection_promise_ = {};
+    state_.break_promises();
     send_promise_ = {};
     send_promises_.Break();
 }
@@ -295,25 +278,21 @@ auto Peer::check_download_peers() noexcept -> void
 
 auto Peer::check_handshake() noexcept -> void
 {
-    if (outgoing_handshake_ && incoming_handshake_) {
-        try {
-            state_.store(State::Run);
-            handshake_promise_.set_value();
-            update_address_activity();
-            LogNormal("Connected to ")(blockchain::internal::DisplayString(
-                address_.Chain()))(" peer at ")(address_.Display())
-                .Flush();
-            LogNormal("Advertised services: ").Flush();
+    auto& state = state_.handshake_;
 
-            for (const auto& service : address_.Services()) {
-                LogNormal(" * ")(p2p::DisplayService(service)).Flush();
-            }
+    if (state.first_action_ && state.second_action_ &&
+        (false == state.done())) {
+        LogNormal("Connected to ")(blockchain::internal::DisplayString(
+            address_.Chain()))(" peer at ")(address_.Display())
+            .Flush();
+        LogNormal("Advertised services: ").Flush();
 
-        } catch (...) {
+        for (const auto& service : address_.Services()) {
+            LogNormal(" * ")(p2p::DisplayService(service)).Flush();
         }
 
-        request_headers();
-        request_addresses();
+        update_address_activity();
+        state.promise_.set_value();
     }
 }
 
@@ -328,33 +307,11 @@ auto Peer::connect() noexcept -> void
 auto Peer::disconnect() noexcept -> void
 {
     try {
-        connection_promise_.set_value(false);
+        state_.connect_.promise_.set_value(false);
     } catch (...) {
     }
 
     manager_.Disconnect(id_);
-}
-
-auto Peer::handshake() noexcept -> void
-{
-    static const auto limit = std::chrono::seconds(15);
-    static const auto wait = std::chrono::milliseconds(10);
-    start_handshake();
-    auto disconnect{true};
-    auto done{handshake_};
-    const auto start = Clock::now();
-
-    try {
-        while (running_.get() && (limit > (Clock::now() - start))) {
-            if (std::future_status::ready == done.wait_for(wait)) {
-                disconnect = false;
-                break;
-            }
-        }
-    } catch (...) {
-    }
-
-    if (disconnect) { this->disconnect(); }
 }
 
 auto Peer::init() noexcept -> void { connect(); }
@@ -494,7 +451,8 @@ auto Peer::pipeline_d(zmq::Message& message) noexcept -> void
                 endpoint_.address().to_string())(":")(endpoint_.port())(
                 " successful")
                 .Flush();
-            connection_promise_.set_value(true);
+            state_.connect_.promise_.set_value(true);
+            state_.value_.store(State::Handshake);
             init_executor(
                 {manager_.Endpoint(Task::Heartbeat), shutdown_endpoint_});
             Trigger();
@@ -546,7 +504,7 @@ auto Peer::pipeline_d(zmq::Message& message) noexcept -> void
 
 auto Peer::process_state_machine() noexcept -> void
 {
-    switch (state_.load()) {
+    switch (state_.value_.load()) {
         case State::Run: {
             check_activity();
             check_download_peers();
@@ -570,7 +528,7 @@ auto Peer::run() noexcept -> void
 auto Peer::send(OTData in) noexcept -> SendStatus
 {
     try {
-        if (false == connected_.get()) {
+        if (false == state_.connect_.future_.get()) {
             LogVerbose(OT_METHOD)(__FUNCTION__)(
                 ": Unable to send to disconnected peer")
                 .Flush();
@@ -604,7 +562,7 @@ auto Peer::Shutdown() noexcept -> std::shared_future<void>
 auto Peer::shutdown(std::promise<void>& promise) noexcept -> void
 {
     if (running_->Off()) {
-        const auto state = state_.exchange(State::Shutdown);
+        const auto state = state_.value_.exchange(State::Shutdown);
 
         try {
             state_machine_.set_value(false);
@@ -638,12 +596,27 @@ auto Peer::state_machine() noexcept -> bool
 {
     if (false == running_.get()) { return false; }
 
-    switch (state_.load()) {
+    auto disconnect{false};
+
+    switch (state_.value_.load()) {
         case State::Handshake: {
-            handshake();
+            disconnect = state_.handshake_.run(
+                std::chrono::seconds(15),
+                [this] { start_handshake(); },
+                State::Verify);
         } break;
+        case State::Verify: {
+            disconnect = state_.verify_.run(
+                std::chrono::seconds(15),
+                [this] { start_verify(); },
+                State::Subscribe);
+        } break;
+        case State::Subscribe: {
+            subscribe();
+            state_.value_.store(State::Run);
+            [[fallthrough]];
+        }
         case State::Run: {
-            subscribe_work();
             pipeline_->Push(MakeWork(Task::StateMachine));
         } break;
         case State::Shutdown: {
@@ -654,30 +627,32 @@ auto Peer::state_machine() noexcept -> bool
         }
     }
 
+    if (disconnect) { this->disconnect(); }
+
     return false;
 }
 
-void Peer::subscribe_work() noexcept
+auto Peer::subscribe() noexcept -> void
 {
-    for (const auto& task : subscribe_.Pop()) {
-        switch (task) {
-            case Task::Getheaders: {
-                pipeline_->Start(manager_.Endpoint(Task::Getheaders));
-            } break;
-            case Task::Getcfheaders: {
-                pipeline_->Start(manager_.Endpoint(Task::Getcfheaders));
-            } break;
-            case Task::Getcfilters: {
-                pipeline_->Start(manager_.Endpoint(Task::Getcfilters));
-            } break;
-            case Task::Getblock: {
-                pipeline_->Start(manager_.Endpoint(Task::Getblock));
-            } break;
-            default: {
-                OT_FAIL;
-            }
-        }
+    const auto network =
+        (1 == address_.Services().count(p2p::Service::Network));
+    const auto limited =
+        (1 == address_.Services().count(p2p::Service::Limited));
+    const auto cfilter =
+        (1 == address_.Services().count(p2p::Service::CompactFilters));
+
+    if (network || limited) {
+        pipeline_->Start(manager_.Endpoint(Task::Getheaders));
+        pipeline_->Start(manager_.Endpoint(Task::Getblock));
     }
+
+    if (cfilter) {
+        pipeline_->Start(manager_.Endpoint(Task::Getcfheaders));
+        pipeline_->Start(manager_.Endpoint(Task::Getcfilters));
+    }
+
+    request_headers();
+    request_addresses();
 }
 
 auto Peer::transmit(zmq::Message& message) noexcept -> void

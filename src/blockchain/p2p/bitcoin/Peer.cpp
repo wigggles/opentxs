@@ -47,6 +47,7 @@
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
+#include "util/Cleanup.hpp"
 
 #define OT_METHOD "opentxs::blockchain::p2p::bitcoin::implementation::Peer::"
 
@@ -150,7 +151,6 @@ Peer::Peer(
           HeaderType::Size(),
           MessageType::MaxPayload(),
           std::move(address))
-    , chain_(address_.Chain())
     , protocol_((0 == protocol) ? default_protocol_version_ : protocol)
     , nonce_(nonce(api_))
     , magic_(GetMagic(chain_))
@@ -673,15 +673,22 @@ auto Peer::process_getheaders(
 
         return;
     }
-
-    // TODO
 }
 
 auto Peer::process_headers(
     std::unique_ptr<HeaderType> header,
     const zmq::Frame& payload) -> void
 {
-    get_headers_.Finish();
+    auto postcondition = Cleanup{[this] {
+        if (verifying() && (false == state_.verify_.done())) {
+            LogNormal("Disconnecting ")(
+                blockchain::internal::DisplayString(chain_))(" peer ")(
+                address_.Display())(" due to block checkpoint failure.")
+                .Flush();
+            disconnect();
+        }
+    }};
+
     const auto pMessage =
         std::unique_ptr<message::internal::Headers>{Factory::BitcoinP2PHeaders(
             api_,
@@ -691,31 +698,72 @@ auto Peer::process_headers(
             payload.size())};
 
     if (false == bool(pMessage)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to decode message payload")
+        LogVerbose(OT_METHOD)(__FUNCTION__)(
+            ": Failed to decode message payload")
             .Flush();
 
         return;
     }
 
-    using Promise = std::promise<void>;
-    auto* promise = new Promise{};
+    if (verifying()) {
+        LogVerbose(OT_METHOD)(__FUNCTION__)(
+            ": Received checkpoint header message")
+            .Flush();
 
-    OT_ASSERT(nullptr != promise);
+        if (1 != pMessage->size()) {
+            LogVerbose(OT_METHOD)(__FUNCTION__)(": Unexpected header count: ")(
+                pMessage->size())
+                .Flush();
 
-    auto future = promise->get_future();
-    auto pointer = reinterpret_cast<std::uintptr_t>(promise);
-    const auto& message = *pMessage;
-    using Task = client::internal::Network::Task;
-    auto work = network_.Work(Task::SubmitBlockHeader);
-    work->AddFrame(pointer);
+            return;
+        }
 
-    for (const auto& header : message) { work->AddFrame(header.Serialize()); }
+        const auto checkpointData =
+            network_.HeaderOracle().GetDefaultCheckpoint();
+        const auto& [height, checkpointHash, parentHash] = checkpointData;
 
-    network_.Submit(work);
+        for (const auto& header : *pMessage) {
+            if (checkpointHash != header.Hash()) {
+                LogVerbose(OT_METHOD)(__FUNCTION__)(
+                    ": unexpected header hash: ")(header.Hash().asHex())(
+                    ". Expected: ")(checkpointHash->asHex())
+                    .Flush();
 
-    if (std::future_status::ready ==
-        future.wait_for(std::chrono::seconds(10))) {
-        if (false == network_.IsSynchronized()) { request_headers(); }
+                return;
+            }
+        }
+
+        LogNormal("Block checkpoint validated for ")(
+            blockchain::internal::DisplayString(chain_))(" peer ")(
+            address_.Display())
+            .Flush();
+        state_.verify_.promise_.set_value();
+        Trigger();
+    } else {
+        get_headers_.Finish();
+
+        using Promise = std::promise<void>;
+        auto* promise = new Promise{};
+
+        OT_ASSERT(nullptr != promise);
+
+        auto future = promise->get_future();
+        auto pointer = reinterpret_cast<std::uintptr_t>(promise);
+        const auto& message = *pMessage;
+        using Task = client::internal::Network::Task;
+        auto work = network_.Work(Task::SubmitBlockHeader);
+        work->AddFrame(pointer);
+
+        for (const auto& header : message) {
+            work->AddFrame(header.Serialize());
+        }
+
+        network_.Submit(work);
+
+        if (std::future_status::ready ==
+            future.wait_for(std::chrono::seconds(10))) {
+            if (false == network_.IsSynchronized()) { request_headers(); }
+        }
     }
 }
 
@@ -1030,8 +1078,9 @@ auto Peer::process_verack(
         return;
     }
 
-    incoming_handshake_ = true;
+    state_.handshake_.first_action_ = true;
     check_handshake();
+    Trigger();
 }
 
 auto Peer::process_version(
@@ -1078,22 +1127,8 @@ auto Peer::process_version(
 
     const auto& verack = *pVerack;
     send(verack.Encode());
-    outgoing_handshake_ = true;
+    state_.handshake_.second_action_ = true;
     check_handshake();
-    auto subscribe = Subscriptions::value_type{};
-
-    if ((1 == services.count(p2p::Service::Network)) ||
-        (1 == services.count(p2p::Service::Limited))) {
-        subscribe.emplace_back(Task::Getheaders);
-        subscribe.emplace_back(Task::Getblock);
-    }
-
-    if (1 == services.count(p2p::Service::CompactFilters)) {
-        subscribe.emplace_back(Task::Getcfheaders);
-        subscribe.emplace_back(Task::Getcfilters);
-    }
-
-    subscribe_.Push(subscribe);
     Trigger();
 }
 
@@ -1263,7 +1298,7 @@ auto Peer::start_handshake() noexcept -> void
         std::unique_ptr<Message> pVersion{Factory::BitcoinP2PVersion(
             api_,
             chain_,
-            protocol_,
+            protocol_.load(),
             local_services_,
             local.address().to_v6().to_string(),
             local.port(),
@@ -1279,6 +1314,37 @@ auto Peer::start_handshake() noexcept -> void
 
         const auto& version = *pVersion;
         send(version.Encode());
+    } catch (...) {
+        disconnect();
+    }
+}
+
+auto Peer::start_verify() noexcept -> void
+{
+    try {
+        auto checkpointData = network_.HeaderOracle().GetDefaultCheckpoint();
+        auto [height, checkpointBlockHash, parentBlockHash] = checkpointData;
+        auto pbh = api_.Factory().Data();
+        pbh->DecodeHex(parentBlockHash->asHex());
+        std::vector<block::pHash> parentHashes{pbh};
+        auto pMessage = std::unique_ptr<Message>{Factory::BitcoinP2PGetheaders(
+            api_,
+            chain_,
+            protocol_.load(),
+            std::move(parentHashes),
+            std::move(checkpointBlockHash))};
+
+        if (false == bool(pMessage)) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(
+                ": Failed to construct getheaders")
+                .Flush();
+
+            return;
+        }
+
+        const auto& message = *pMessage;
+        send(message.Encode());
+
     } catch (...) {
         disconnect();
     }
