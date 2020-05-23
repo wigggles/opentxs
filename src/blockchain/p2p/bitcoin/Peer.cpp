@@ -10,6 +10,7 @@
 #include <boost/asio.hpp>
 #include <algorithm>
 #include <cstdint>
+#include <tuple>
 #include <utility>
 #include <vector>
 
@@ -341,6 +342,17 @@ auto Peer::process_cfheaders(
     std::unique_ptr<HeaderType> header,
     const zmq::Frame& payload) -> void
 {
+    auto& success = state_.verify_.second_action_;
+    auto postcondition = Cleanup{[this, &success] {
+        if (verifying() && (false == success)) {
+            LogNormal("Disconnecting ")(
+                blockchain::internal::DisplayString(chain_))(" peer ")(
+                address_.Display())(" due to filter checkpoint failure.")
+                .Flush();
+            disconnect();
+        }
+    }};
+
     const auto pMessage = std::unique_ptr<message::internal::Cfheaders>{
         Factory::BitcoinP2PCfheaders(
             api_,
@@ -357,16 +369,55 @@ auto Peer::process_cfheaders(
     }
 
     const auto& message = *pMessage;
-    const auto type = message.Type();
-    using Task = client::internal::Network::Task;
-    auto work = network_.Work(Task::SubmitFilterHeader);
-    work->AddFrame(type);
-    work->AddFrame(message.Stop());
-    work->AddFrame(message.Previous());
 
-    for (const auto& header : message) { work->AddFrame(header); }
+    if (verifying()) {
+        LogVerbose(OT_METHOD)(__FUNCTION__)(
+            ": Received checkpoint filter header message")
+            .Flush();
 
-    network_.Submit(work);
+        if (1 != pMessage->size()) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(
+                ": Unexpected filter header count: ")(pMessage->size())
+                .Flush();
+
+            return;
+        }
+
+        const auto checkpointData =
+            network_.HeaderOracle().GetDefaultCheckpoint();
+        const auto& [height, checkpointHash, parentHash, filterHash] =
+            checkpointData;
+        const auto receivedFilterHeader =
+            blockchain::internal::FilterHashToHeader(
+                api_, message.at(0).Bytes(), message.Previous().Bytes());
+
+        if (filterHash != receivedFilterHeader) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Unexpected filter header: ")(
+                receivedFilterHeader->asHex())(". Expected: ")(
+                filterHash->asHex())
+                .Flush();
+
+            return;
+        }
+
+        LogNormal("Filter checkpoint validated for ")(
+            blockchain::internal::DisplayString(chain_))(" peer ")(
+            address_.Display())
+            .Flush();
+        success = true;
+        check_verify();
+    } else {
+        const auto type = message.Type();
+        using Task = client::internal::Network::Task;
+        auto work = network_.Work(Task::SubmitFilterHeader);
+        work->AddFrame(type);
+        work->AddFrame(message.Stop());
+        work->AddFrame(message.Previous());
+
+        for (const auto& header : message) { work->AddFrame(header); }
+
+        network_.Submit(work);
+    }
 }
 
 auto Peer::process_cfilter(
@@ -679,8 +730,9 @@ auto Peer::process_headers(
     std::unique_ptr<HeaderType> header,
     const zmq::Frame& payload) -> void
 {
-    auto postcondition = Cleanup{[this] {
-        if (verifying() && (false == state_.verify_.done())) {
+    auto& success = state_.verify_.first_action_;
+    auto postcondition = Cleanup{[this, &success] {
+        if (verifying() && (false == success)) {
             LogNormal("Disconnecting ")(
                 blockchain::internal::DisplayString(chain_))(" peer ")(
                 address_.Display())(" due to block checkpoint failure.")
@@ -705,9 +757,11 @@ auto Peer::process_headers(
         return;
     }
 
+    const auto& message = *pMessage;
+
     if (verifying()) {
         LogVerbose(OT_METHOD)(__FUNCTION__)(
-            ": Received checkpoint header message")
+            ": Received checkpoint block header message")
             .Flush();
 
         if (1 != pMessage->size()) {
@@ -720,25 +774,25 @@ auto Peer::process_headers(
 
         const auto checkpointData =
             network_.HeaderOracle().GetDefaultCheckpoint();
-        const auto& [height, checkpointHash, parentHash] = checkpointData;
+        const auto& [height, checkpointHash, parentHash, filterHash] =
+            checkpointData;
+        const auto& receivedBlockHash = message.at(0).Hash();
 
-        for (const auto& header : *pMessage) {
-            if (checkpointHash != header.Hash()) {
-                LogVerbose(OT_METHOD)(__FUNCTION__)(
-                    ": unexpected header hash: ")(header.Hash().asHex())(
-                    ". Expected: ")(checkpointHash->asHex())
-                    .Flush();
+        if (checkpointHash != receivedBlockHash) {
+            LogVerbose(OT_METHOD)(__FUNCTION__)(
+                ": Unexpected block header hash: ")(receivedBlockHash.asHex())(
+                ". Expected: ")(checkpointHash->asHex())
+                .Flush();
 
-                return;
-            }
+            return;
         }
 
         LogNormal("Block checkpoint validated for ")(
             blockchain::internal::DisplayString(chain_))(" peer ")(
             address_.Display())
             .Flush();
-        state_.verify_.promise_.set_value();
-        Trigger();
+        success = true;
+        check_verify();
     } else {
         get_headers_.Finish();
 
@@ -749,7 +803,6 @@ auto Peer::process_headers(
 
         auto future = promise->get_future();
         auto pointer = reinterpret_cast<std::uintptr_t>(promise);
-        const auto& message = *pMessage;
         using Task = client::internal::Network::Task;
         auto work = network_.Work(Task::SubmitBlockHeader);
         work->AddFrame(pointer);
@@ -799,7 +852,9 @@ auto Peer::process_inv(
         switch (inv.type_) {
             case Inventory::Type::MsgBlock:
             case Inventory::Type::MsgWitnessBlock: {
-                request_headers(inv.hash_);
+                if (State::Run == state_.value_.load()) {
+                    request_headers(inv.hash_);
+                }
             } break;
             default: {
             }
@@ -1080,7 +1135,6 @@ auto Peer::process_verack(
 
     state_.handshake_.first_action_ = true;
     check_handshake();
-    Trigger();
 }
 
 auto Peer::process_version(
@@ -1129,7 +1183,6 @@ auto Peer::process_version(
     send(verack.Encode());
     state_.handshake_.second_action_ = true;
     check_handshake();
-    Trigger();
 }
 
 auto Peer::request_addresses() noexcept -> void
@@ -1249,6 +1302,96 @@ auto Peer::request_cfilter(zmq::Message& in) noexcept -> void
     }
 }
 
+auto Peer::request_checkpoint_block_header() noexcept -> void
+{
+    auto success = false;
+    auto postcondition = Cleanup{[this, &success] {
+        if (success) {
+            LogVerbose("Requested checkpoint block header from ")(
+                blockchain::internal::DisplayString(chain_))(" peer ")(
+                address_.Display())(".")
+                .Flush();
+        } else {
+            LogNormal("Failed to request checkpoint block header from ")(
+                blockchain::internal::DisplayString(chain_))(" peer ")(
+                address_.Display())(".")
+                .Flush();
+            disconnect();
+        }
+    }};
+
+    try {
+        auto checkpointData = network_.HeaderOracle().GetDefaultCheckpoint();
+        auto [height, checkpointBlockHash, parentBlockHash, filterHash] =
+            checkpointData;
+        auto pMessage = std::unique_ptr<Message>{Factory::BitcoinP2PGetheaders(
+            api_,
+            chain_,
+            protocol_.load(),
+            {std::move(parentBlockHash)},
+            std::move(checkpointBlockHash))};
+
+        if (false == bool(pMessage)) {
+            LogVerbose(OT_METHOD)(__FUNCTION__)(
+                ": Failed to construct getheaders")
+                .Flush();
+
+            return;
+        }
+
+        const auto& message = *pMessage;
+        send(message.Encode());
+        success = true;
+    } catch (...) {
+    }
+}
+
+auto Peer::request_checkpoint_filter_header() noexcept -> void
+{
+    auto success = false;
+    auto postcondition = Cleanup{[this, &success] {
+        if (success) {
+            LogVerbose("Requested checkpoint filter header from ")(
+                blockchain::internal::DisplayString(chain_))(" peer ")(
+                address_.Display())(".")
+                .Flush();
+        } else {
+            LogNormal("Failed to request checkpoint filter header from ")(
+                blockchain::internal::DisplayString(chain_))(" peer ")(
+                address_.Display())(".")
+                .Flush();
+            disconnect();
+        }
+    }};
+
+    try {
+        auto checkpointData = network_.HeaderOracle().GetDefaultCheckpoint();
+        auto [height, checkpointBlockHash, parentBlockHash, filterHash] =
+            checkpointData;
+        auto pMessage =
+            std::unique_ptr<Message>{Factory::BitcoinP2PGetcfheaders(
+                api_,
+                chain_,
+                network_.FilterOracle().DefaultType(),
+                height,
+                checkpointBlockHash)};
+
+        if (false == bool(pMessage)) {
+            LogVerbose(OT_METHOD)(__FUNCTION__)(
+                ": Failed to construct getcfheaders")
+                .Flush();
+
+            return;
+        }
+
+        const auto& message = *pMessage;
+        send(message.Encode());
+        success = true;
+    } catch (...) {
+        LogVerbose(OT_METHOD)(__FUNCTION__)(": Invalid parameters").Flush();
+    }
+}
+
 auto Peer::request_headers() noexcept -> void
 {
     request_headers(api_.Factory().Data());
@@ -1314,37 +1457,6 @@ auto Peer::start_handshake() noexcept -> void
 
         const auto& version = *pVersion;
         send(version.Encode());
-    } catch (...) {
-        disconnect();
-    }
-}
-
-auto Peer::start_verify() noexcept -> void
-{
-    try {
-        auto checkpointData = network_.HeaderOracle().GetDefaultCheckpoint();
-        auto [height, checkpointBlockHash, parentBlockHash] = checkpointData;
-        auto pbh = api_.Factory().Data();
-        pbh->DecodeHex(parentBlockHash->asHex());
-        std::vector<block::pHash> parentHashes{pbh};
-        auto pMessage = std::unique_ptr<Message>{Factory::BitcoinP2PGetheaders(
-            api_,
-            chain_,
-            protocol_.load(),
-            std::move(parentHashes),
-            std::move(checkpointBlockHash))};
-
-        if (false == bool(pMessage)) {
-            LogOutput(OT_METHOD)(__FUNCTION__)(
-                ": Failed to construct getheaders")
-                .Flush();
-
-            return;
-        }
-
-        const auto& message = *pMessage;
-        send(message.Encode());
-
     } catch (...) {
         disconnect();
     }

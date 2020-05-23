@@ -8,8 +8,10 @@
 #include <boost/asio.hpp>
 #include <boost/system/error_code.hpp>
 #include <atomic>
+#include <chrono>
 #include <cstdint>
 #include <deque>
+#include <functional>
 #include <future>
 #include <iosfwd>
 #include <map>
@@ -31,6 +33,8 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/Pipeline.hpp"
 #include "opentxs/network/zeromq/socket/Dealer.hpp"
@@ -134,9 +138,10 @@ protected:
     template <typename ValueType>
     struct StateData {
         std::atomic<State>& state_;
+        bool first_run_;
         Time started_;
-        bool first_action_;
-        bool second_action_;
+        std::atomic_bool first_action_;
+        std::atomic_bool second_action_;
         std::promise<ValueType> promise_;
         std::shared_future<ValueType> future_;
 
@@ -159,10 +164,10 @@ protected:
             SimpleCallback firstAction,
             const State nextState) noexcept -> bool
         {
-            if (firstAction && (false == first_action_)) {
-                firstAction();
-                first_action_ = true;
+            if ((false == first_run_) && firstAction) {
+                first_run_ = true;
                 started_ = Clock::now();
+                firstAction();
 
                 return false;
             }
@@ -173,7 +178,11 @@ protected:
                 disconnect = false;
                 state_.store(nextState);
             } else {
-                disconnect = ((Clock::now() - started_) < limit);
+                disconnect = ((Clock::now() - started_) > limit);
+            }
+
+            if (disconnect) {
+                LogVerbose("State transition timeout exceeded.").Flush();
             }
 
             return disconnect;
@@ -181,6 +190,7 @@ protected:
 
         StateData(std::atomic<State>& state) noexcept
             : state_(state)
+            , first_run_(false)
             , started_()
             , first_action_(false)
             , second_action_(false)
@@ -223,12 +233,13 @@ protected:
     OTData header_;
     States state_;
 
-    bool verifying() noexcept;
-    void check_handshake() noexcept;
-    void disconnect() noexcept;
+    auto verifying() noexcept -> bool;
+    auto check_handshake() noexcept -> void;
+    auto check_verify() noexcept -> void;
+    auto disconnect() noexcept -> void;
     auto local_endpoint() noexcept -> tcp::socket::endpoint_type;
     // NOTE call init in every final child class constructor
-    void init() noexcept;
+    auto init() noexcept -> void;
     virtual void ping() noexcept = 0;
     virtual void pong() noexcept = 0;
     virtual void request_addresses() noexcept = 0;
@@ -236,8 +247,8 @@ protected:
     virtual void request_headers() noexcept = 0;
     auto send(OTData message) noexcept -> SendStatus;
     auto state_machine() noexcept -> bool;
-    void update_address_services(
-        const std::set<p2p::Service>& services) noexcept;
+    auto update_address_services(
+        const std::set<p2p::Service>& services) noexcept -> void;
 
     Peer(
         const api::internal::Core& api,
@@ -301,25 +312,28 @@ private:
     virtual auto get_body_size(const zmq::Frame& header) const noexcept
         -> std::size_t = 0;
 
-    void break_promises() noexcept;
-    void check_activity() noexcept;
-    void check_download_peers() noexcept;
-    void connect() noexcept;
-    void init_send_promise() noexcept;
-    void pipeline(zmq::Message& message) noexcept;
-    void pipeline_d(zmq::Message& message) noexcept;
-    virtual void process_message(const zmq::Message& message) noexcept = 0;
-    void process_state_machine() noexcept;
-    virtual void request_cfheaders(zmq::Message& message) noexcept = 0;
-    virtual void request_cfilter(zmq::Message& message) noexcept = 0;
-    void run() noexcept;
-    void shutdown(std::promise<void>& promise) noexcept;
-    virtual void start_handshake() noexcept = 0;
-    virtual void start_verify() noexcept = 0;
-    void subscribe() noexcept;
-    void transmit(zmq::Message& message) noexcept;
-    void update_address_activity() noexcept;
-    void verify() noexcept;
+    auto break_promises() noexcept -> void;
+    auto check_activity() noexcept -> void;
+    auto check_download_peers() noexcept -> void;
+    auto connect() noexcept -> void;
+    auto init_send_promise() noexcept -> void;
+    auto pipeline(zmq::Message& message) noexcept -> void;
+    auto pipeline_d(zmq::Message& message) noexcept -> void;
+    virtual auto process_message(const zmq::Message& message) noexcept
+        -> void = 0;
+    auto process_state_machine() noexcept -> void;
+    virtual auto request_cfheaders(zmq::Message& message) noexcept -> void = 0;
+    virtual auto request_cfilter(zmq::Message& message) noexcept -> void = 0;
+    virtual auto request_checkpoint_block_header() noexcept -> void = 0;
+    virtual auto request_checkpoint_filter_header() noexcept -> void = 0;
+    auto run() noexcept -> void;
+    auto shutdown(std::promise<void>& promise) noexcept -> void;
+    virtual auto start_handshake() noexcept -> void = 0;
+    auto start_verify() noexcept -> void;
+    auto subscribe() noexcept -> void;
+    auto transmit(zmq::Message& message) noexcept -> void;
+    auto update_address_activity() noexcept -> void;
+    auto verify() noexcept -> void;
 
     Peer() = delete;
     Peer(const Peer&) = delete;

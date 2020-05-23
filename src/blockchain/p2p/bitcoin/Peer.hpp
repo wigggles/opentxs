@@ -129,115 +129,116 @@ private:
     auto get_body_size(const zmq::Frame& header) const noexcept
         -> std::size_t final;
 
-    void ping() noexcept final;
-    void pong() noexcept final;
-    void process_message(const zmq::Message& message) noexcept final;
-    void request_addresses() noexcept final;
-    void request_block(zmq::Message& message) noexcept final;
-    void request_cfheaders(zmq::Message& message) noexcept final;
-    void request_cfilter(zmq::Message& message) noexcept final;
+    auto ping() noexcept -> void final;
+    auto pong() noexcept -> void final;
+    auto process_message(const zmq::Message& message) noexcept -> void final;
+    auto request_addresses() noexcept -> void final;
+    auto request_block(zmq::Message& message) noexcept -> void final;
+    auto request_cfheaders(zmq::Message& message) noexcept -> void final;
+    auto request_cfilter(zmq::Message& message) noexcept -> void final;
+    auto request_checkpoint_block_header() noexcept -> void final;
+    auto request_checkpoint_filter_header() noexcept -> void final;
     using p2p::implementation::Peer::request_headers;
-    void request_headers() noexcept final;
-    void request_headers(const block::Hash& hash) noexcept;
-    void start_handshake() noexcept final;
-    void start_verify() noexcept final;
+    auto request_headers() noexcept -> void final;
+    auto request_headers(const block::Hash& hash) noexcept -> void;
+    auto start_handshake() noexcept -> void final;
 
-    void process_addr(
+    auto process_addr(
         std::unique_ptr<HeaderType> header,
-        const zmq::Frame& payload);
-    void process_block(
+        const zmq::Frame& payload) -> void;
+    auto process_block(
         std::unique_ptr<HeaderType> header,
-        const zmq::Frame& payload);
-    void process_blocktxn(
+        const zmq::Frame& payload) -> void;
+    auto process_blocktxn(
         std::unique_ptr<HeaderType> header,
-        const zmq::Frame& payload);
-    void process_cfcheckpt(
+        const zmq::Frame& payload) -> void;
+    auto process_cfcheckpt(
         std::unique_ptr<HeaderType> header,
-        const zmq::Frame& payload);
-    void process_cfheaders(
+        const zmq::Frame& payload) -> void;
+    auto process_cfheaders(
         std::unique_ptr<HeaderType> header,
-        const zmq::Frame& payload);
-    void process_cfilter(
+        const zmq::Frame& payload) -> void;
+    auto process_cfilter(
         std::unique_ptr<HeaderType> header,
-        const zmq::Frame& payload);
-    void process_cmpctblock(
+        const zmq::Frame& payload) -> void;
+    auto process_cmpctblock(
         std::unique_ptr<HeaderType> header,
-        const zmq::Frame& payload);
-    void process_feefilter(
+        const zmq::Frame& payload) -> void;
+    auto process_feefilter(
         std::unique_ptr<HeaderType> header,
-        const zmq::Frame& payload);
-    void process_filteradd(
+        const zmq::Frame& payload) -> void;
+    auto process_filteradd(
         std::unique_ptr<HeaderType> header,
-        const zmq::Frame& payload);
-    void process_filterclear(
+        const zmq::Frame& payload) -> void;
+    auto process_filterclear(
         std::unique_ptr<HeaderType> header,
-        const zmq::Frame& payload);
-    void process_filterload(
+        const zmq::Frame& payload) -> void;
+    auto process_filterload(
         std::unique_ptr<HeaderType> header,
-        const zmq::Frame& payload);
-    void process_getaddr(
+        const zmq::Frame& payload) -> void;
+    auto process_getaddr(
         std::unique_ptr<HeaderType> header,
-        const zmq::Frame& payload);
-    void process_getblocks(
+        const zmq::Frame& payload) -> void;
+    auto process_getblocks(
         std::unique_ptr<HeaderType> header,
-        const zmq::Frame& payload);
-    void process_getblocktxn(
+        const zmq::Frame& payload) -> void;
+    auto process_getblocktxn(
         std::unique_ptr<HeaderType> header,
-        const zmq::Frame& payload);
-    void process_getcfcheckpt(
+        const zmq::Frame& payload) -> void;
+    auto process_getcfcheckpt(
         std::unique_ptr<HeaderType> header,
-        const zmq::Frame& payload);
-    void process_getcfheaders(
+        const zmq::Frame& payload) -> void;
+    auto process_getcfheaders(
         std::unique_ptr<HeaderType> header,
-        const zmq::Frame& payload);
-    void process_getcfilters(
+        const zmq::Frame& payload) -> void;
+    auto process_getcfilters(
         std::unique_ptr<HeaderType> header,
-        const zmq::Frame& payload);
-    void process_getdata(
+        const zmq::Frame& payload) -> void;
+    auto process_getdata(
         std::unique_ptr<HeaderType> header,
-        const zmq::Frame& payload);
-    void process_getheaders(
+        const zmq::Frame& payload) -> void;
+    auto process_getheaders(
         std::unique_ptr<HeaderType> header,
-        const zmq::Frame& payload);
-    void process_headers(
+        const zmq::Frame& payload) -> void;
+    auto process_headers(
         std::unique_ptr<HeaderType> header,
-        const zmq::Frame& payload);
-    void process_inv(
+        const zmq::Frame& payload) -> void;
+    auto process_inv(
         std::unique_ptr<HeaderType> header,
-        const zmq::Frame& payload);
-    void process_mempool(
+        const zmq::Frame& payload) -> void;
+    auto process_mempool(
         std::unique_ptr<HeaderType> header,
-        const zmq::Frame& payload);
-    void process_merkleblock(
+        const zmq::Frame& payload) -> void;
+    auto process_merkleblock(
         std::unique_ptr<HeaderType> header,
-        const zmq::Frame& payload);
-    void process_notfound(
+        const zmq::Frame& payload) -> void;
+    auto process_notfound(
         std::unique_ptr<HeaderType> header,
-        const zmq::Frame& payload);
-    void process_ping(
+        const zmq::Frame& payload) -> void;
+    auto process_ping(
         std::unique_ptr<HeaderType> header,
-        const zmq::Frame& payload);
-    void process_pong(
+        const zmq::Frame& payload) -> void;
+    auto process_pong(
         std::unique_ptr<HeaderType> header,
-        const zmq::Frame& payload);
-    void process_reject(
+        const zmq::Frame& payload) -> void;
+    auto process_reject(
         std::unique_ptr<HeaderType> header,
-        const zmq::Frame& payload);
-    void process_sendcmpct(
+        const zmq::Frame& payload) -> void;
+    auto process_sendcmpct(
         std::unique_ptr<HeaderType> header,
-        const zmq::Frame& payload);
-    void process_sendheaders(
+        const zmq::Frame& payload) -> void;
+    auto process_sendheaders(
         std::unique_ptr<HeaderType> header,
-        const zmq::Frame& payload);
-    void process_tx(
+        const zmq::Frame& payload) -> void;
+    auto process_tx(
         std::unique_ptr<HeaderType> header,
-        const zmq::Frame& payload);
-    void process_verack(
+        const zmq::Frame& payload) -> void;
+    auto process_verack(
         std::unique_ptr<HeaderType> header,
-        const zmq::Frame& payload);
-    void process_version(
+        const zmq::Frame& payload) -> void;
+    auto process_version(
         std::unique_ptr<HeaderType> header,
-        const zmq::Frame& payload);
+        const zmq::Frame& payload) -> void;
 
     Peer(
         const api::internal::Core& api,

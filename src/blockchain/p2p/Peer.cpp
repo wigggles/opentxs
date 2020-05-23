@@ -293,7 +293,23 @@ auto Peer::check_handshake() noexcept -> void
 
         update_address_activity();
         state.promise_.set_value();
+
+        OT_ASSERT(state.done());
     }
+
+    Trigger();
+}
+
+auto Peer::check_verify() noexcept -> void
+{
+    auto& state = state_.verify_;
+
+    if (state.first_action_ && state.second_action_ &&
+        (false == state.done())) {
+        state.promise_.set_value();
+    }
+
+    Trigger();
 }
 
 auto Peer::connect() noexcept -> void
@@ -394,13 +410,17 @@ auto Peer::pipeline(zmq::Message& message) noexcept -> void
 
     switch (header.at(0).as<Task>()) {
         case Task::Getheaders: {
-            request_headers();
+            if (State::Run == state_.value_.load()) { request_headers(); }
         } break;
         case Task::Getcfheaders: {
-            request_cfheaders(message);
+            if (State::Run == state_.value_.load()) {
+                request_cfheaders(message);
+            }
         } break;
         case Task::Getcfilters: {
-            request_cfilter(message);
+            if (State::Run == state_.value_.load()) {
+                request_cfilter(message);
+            }
         } break;
         case Task::Heartbeat: {
             Trigger();
@@ -590,6 +610,12 @@ auto Peer::shutdown(std::promise<void>& promise) noexcept -> void
         } catch (...) {
         }
     }
+}
+
+auto Peer::start_verify() noexcept -> void
+{
+    request_checkpoint_block_header();
+    request_checkpoint_filter_header();
 }
 
 auto Peer::state_machine() noexcept -> bool
