@@ -6,9 +6,9 @@
 #ifndef __IRR_STRING_HPP_INCLUDED__
 #define __IRR_STRING_HPP_INCLUDED__
 
-#include "irrTypes.hpp"
-
 #include <cstdlib>
+
+#include "irrTypes.hpp"
 
 namespace irr
 {

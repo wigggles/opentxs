@@ -16,12 +16,13 @@
 #include <string>
 #include <tuple>
 
-#include "opentxs/core/identifier/Nym.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/crypto/key/Keypair.hpp"
-#include "opentxs/iterator/Bidirectional.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Secret.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/crypto/key/Keypair.hpp"
+#include "opentxs/iterator/Bidirectional.hpp"
 
 namespace opentxs
 {
@@ -118,7 +119,7 @@ public:
     OPENTXS_EXPORT virtual const std::set<proto::ContactItemType>
     SocialMediaProfileTypes() const = 0;
     OPENTXS_EXPORT virtual const identity::Source& Source() const = 0;
-    OPENTXS_EXPORT virtual std::unique_ptr<OTPassword> TransportKey(
+    OPENTXS_EXPORT virtual OTSecret TransportKey(
         Data& pubkey,
         const PasswordPrompt& reason) const = 0;
 

@@ -24,8 +24,6 @@ namespace api
 {
 class Legacy;
 }  // namespace api
-
-class Factory;
 }  // namespace opentxs
 
 namespace opentxs::api::implementation
@@ -133,11 +131,11 @@ public:
 
     auto Reset() -> bool final;
 
+    Settings(const api::Legacy& legacy, const String& strConfigFilePath);
+
     ~Settings() final;
 
 private:
-    friend opentxs::Factory;
-
     class SettingsPvt;
 
     const api::Legacy& legacy_;
@@ -158,9 +156,6 @@ private:
 
     auto Init() -> bool;
 
-    explicit Settings(
-        const api::Legacy& legacy,
-        const String& strConfigFilePath);
     Settings(const Settings&) = delete;
     auto operator=(const Settings&) -> Settings& = delete;
 };

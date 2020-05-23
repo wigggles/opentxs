@@ -38,6 +38,7 @@ set(
   OTTransaction.cpp
   OTTransactionType.cpp
   PasswordPrompt.cpp
+  Secret.cpp
   Shutdown.cpp
   StateMachine.cpp
   String.cpp
@@ -70,6 +71,7 @@ set(
   "${opentxs_SOURCE_DIR}/include/opentxs/core/OTTransaction.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/core/OTTransactionType.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/core/PasswordPrompt.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/core/Secret.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/core/String.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/core/StringXML.hpp"
 )
@@ -84,6 +86,7 @@ set(
   "Flag.hpp"
   "Identifier.hpp"
   "NymFile.hpp"
+  "Secret.hpp"
   "Shutdown.hpp"
   "StateMachine.hpp"
   "String.hpp"

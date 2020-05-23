@@ -364,7 +364,7 @@ public:
     bool test_base58_encode()
     {
         for (const auto& [key, value] : base_58_) {
-            auto input = ot::Data::Factory();
+            auto input = client_.Factory().Data();
             input->DecodeHex(key);
             const auto output = crypto_.Encode().IdentifierEncode(input);
 
@@ -377,11 +377,11 @@ public:
     bool test_base58_decode()
     {
         for (const auto& [key, value] : base_58_) {
-            auto expected = ot::Data::Factory();
+            auto expected = client_.Factory().Data();
             expected->DecodeHex(key);
             const auto decoded = crypto_.Encode().IdentifierDecode(value);
             const auto output =
-                ot::Data::Factory(decoded.c_str(), decoded.size());
+                client_.Factory().Data(decoded, ot::StringStyle::Raw);
 
             EXPECT_EQ(expected.get(), output.get());
         }
@@ -392,8 +392,8 @@ public:
     bool test_ripemd160()
     {
         for (const auto& [preimage, hash] : ripemd160_) {
-            auto input = ot::Data::Factory();
-            auto output = ot::Data::Factory();
+            auto input = client_.Factory().Data();
+            auto output = client_.Factory().Data();
 
             EXPECT_TRUE(input->DecodeHex(hash));
             EXPECT_TRUE(crypto_.Hash().Digest(
@@ -405,12 +405,11 @@ public:
     }
 
 #if OT_CRYPTO_WITH_BIP32
-    std::unique_ptr<ot::OTPassword> get_seed(const std::string& hex) const
+    auto get_seed(const std::string& hex) const -> ot::OTSecret
     {
-        auto data = ot::Data::Factory();
+        auto data = client_.Factory().Data();
         data->DecodeHex(hex);
-        auto output = std::make_unique<ot::OTPassword>();
-        output->setMemory(data->data(), data->size());
+        auto output = client_.Factory().SecretFromBytes(data->Bytes());
 
         return output;
     }
@@ -419,12 +418,12 @@ public:
     {
         for (const auto& [hex, value] : bip_39_) {
             [[maybe_unused]] const auto& [words, node, xprv] = value;
-            auto data = ot::Data::Factory();
+            auto data = client_.Factory().Data();
 
             EXPECT_TRUE(data->DecodeHex(node));
 
-            const ot::OTPassword seed{data->data(), data->size()};
-            const auto seedID = library.SeedID(seed.Bytes())->str();
+            const auto seed = client_.Factory().SecretFromBytes(data->Bytes());
+            const auto seedID = library.SeedID(seed->Bytes())->str();
             const auto serialized =
                 library.DeriveKey(ot::EcdsaCurve::secp256k1, seed, {});
             auto pKey = client_.Asymmetric().InstantiateKey(
@@ -460,10 +459,10 @@ public:
         ot::Bip32Depth lDepth{}, rDepth{};
         ot::Bip32Fingerprint lParent{}, rParent{};
         ot::Bip32Index lIndex{}, rIndex{};
-        auto lChainCode = ot::Data::Factory();
-        auto rChainCode = ot::Data::Factory();
-        ot::OTPassword lKey{}, rKey{};
-
+        auto lChainCode = client_.Factory().Data();
+        auto rChainCode = client_.Factory().Data();
+        auto lKey = client_.Factory().Secret(0);
+        auto rKey = client_.Factory().Secret(0);
         output &= library.DeserializePrivate(
             lhs, lNetwork, lDepth, lParent, lIndex, lChainCode, lKey);
 
@@ -471,11 +470,8 @@ public:
 
         output &= library.DeserializePrivate(
             rhs, rNetwork, rDepth, rParent, rIndex, rChainCode, rKey);
-
-        auto lKeyData =
-            ot::Data::Factory(lKey.getMemory(), lKey.getMemorySize());
-        auto rKeyData =
-            ot::Data::Factory(rKey.getMemory(), rKey.getMemorySize());
+        auto lKeyData = client_.Factory().Data(lKey->Bytes());
+        auto rKeyData = client_.Factory().Data(rKey->Bytes());
 
         EXPECT_TRUE(output);
         EXPECT_EQ(lNetwork, rNetwork);
@@ -505,10 +501,10 @@ public:
         ot::Bip32Depth lDepth{}, rDepth{};
         ot::Bip32Fingerprint lParent{}, rParent{};
         ot::Bip32Index lIndex{}, rIndex{};
-        auto lChainCode = ot::Data::Factory();
-        auto rChainCode = ot::Data::Factory();
-        auto lKey = ot::Data::Factory();
-        auto rKey = ot::Data::Factory();
+        auto lChainCode = client_.Factory().Data();
+        auto rChainCode = client_.Factory().Data();
+        auto lKey = client_.Factory().Data();
+        auto rKey = client_.Factory().Data();
 
         output &= library.DeserializePublic(
             lhs, lNetwork, lDepth, lParent, lIndex, lChainCode, lKey);
@@ -544,7 +540,7 @@ public:
             for (const auto& testCase : cases) {
                 const auto& [rawPath, expectPub, expectPrv] = testCase;
                 const auto pSeed = get_seed(hex);
-                const auto& seed = *pSeed;
+                const auto& seed = pSeed.get();
                 const auto seedID = library.SeedID(seed.Bytes())->str();
                 const auto serialized =
                     library.DeriveKey(ot::EcdsaCurve::secp256k1, seed, rawPath);
@@ -579,35 +575,30 @@ public:
     bool test_bip39(const ot::crypto::Bip32& library)
     {
         for (const auto& [hex, value] : bip_39_) {
-            [[maybe_unused]] const auto& [words, seed, xprv] = value;
-            const std::vector<std::uint8_t> blank{0};
+            const auto& [words, seed, xprv] = value;
             auto data = ot::Data::Factory();
-            ot::OTPassword entropy{};
-            ot::OTPassword passphrase{};
-            ot::OTPassword calculatedWords{};
-            ot::OTPassword calculatedRoot{};
-            ot::OTPassword targetWords{};
-            ot::OTPassword targetRoot{};
 
             EXPECT_TRUE(data->DecodeHex(hex));
-            EXPECT_NE(0, entropy.setMemory(data->data(), data->size()));
-            EXPECT_NE(0, passphrase.setPassword("TREZOR"));
-            EXPECT_NE(0, targetWords.setPassword(words));
-            EXPECT_TRUE(crypto_.BIP39().SeedToWords(entropy, calculatedWords));
-            EXPECT_STREQ(
-                targetWords.getPassword(), calculatedWords.getPassword());
+
+            const auto entropy =
+                client_.Factory().SecretFromBytes(data->Bytes());
+            const auto passphrase = client_.Factory().SecretFromText("TREZOR");
+            const auto targetWords = client_.Factory().SecretFromText(words);
+
             EXPECT_TRUE(data->DecodeHex(seed));
-            EXPECT_NE(0, targetRoot.setMemory(data->data(), data->size()));
-            EXPECT_NE(0, calculatedRoot.setMemory(blank.data(), blank.size()));
+
+            const auto targetRoot =
+                client_.Factory().SecretFromBytes(data->Bytes());
+            auto calculatedWords = client_.Factory().Secret(0);
+            auto calculatedRoot = client_.Factory().Secret(0);
+
+            EXPECT_TRUE(crypto_.BIP39().SeedToWords(entropy, calculatedWords));
 
             crypto_.BIP39().WordsToSeed(
                 calculatedWords, calculatedRoot, passphrase);
-            const auto input = ot::Data::Factory(
-                targetRoot.getMemory(), targetRoot.getMemorySize());
-            const auto output = ot::Data::Factory(
-                calculatedRoot.getMemory(), calculatedRoot.getMemorySize());
 
-            EXPECT_EQ(input.get(), output.get());
+            EXPECT_EQ(targetWords, calculatedWords);
+            EXPECT_EQ(targetRoot, calculatedRoot);
         }
 
         return true;

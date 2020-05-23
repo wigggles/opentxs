@@ -9,6 +9,7 @@
 
 #include <cstring>
 #include <memory>
+#include <string_view>
 #include <vector>
 
 #include "Factory.hpp"
@@ -20,7 +21,7 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/Secret.hpp"
 #include "opentxs/crypto/library/HashingProvider.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/protobuf/Enums.pb.h"
@@ -301,7 +302,7 @@ auto Hash::PKCS5_PBKDF2_HMAC(
 }
 
 auto Hash::PKCS5_PBKDF2_HMAC(
-    const OTPassword& input,
+    const Secret& input,
     const Data& salt,
     const std::size_t iterations,
     const proto::HashType type,
@@ -309,10 +310,11 @@ auto Hash::PKCS5_PBKDF2_HMAC(
     Data& output) const noexcept -> bool
 {
     output.SetSize(bytes);
+    const auto data = input.Bytes();
 
     return pbkdf2_.PKCS5_PBKDF2_HMAC(
-        input.isPassword() ? input.getPassword() : input.getMemory(),
-        input.isPassword() ? input.getPasswordSize() : input.getMemorySize(),
+        data.data(),
+        data.size(),
         salt.data(),
         salt.size(),
         iterations,

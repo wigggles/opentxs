@@ -16,7 +16,7 @@
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/core/Data.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/Secret.hpp"
 #include "opentxs/crypto/key/Asymmetric.hpp"
 #include "opentxs/crypto/library/AsymmetricProvider.hpp"
 #include "opentxs/protobuf/Enums.pb.h"
@@ -63,7 +63,7 @@ public:
         const proto::AsymmetricKeyType type,
         const PasswordPrompt& reason,
         std::uint32_t& tag,
-        OTPassword& password) const noexcept -> bool final;
+        Secret& password) const noexcept -> bool final;
     auto CalculateTag(
         const key::Asymmetric& dhKey,
         const Identifier& credential,
@@ -72,7 +72,7 @@ public:
     auto CalculateSessionPassword(
         const key::Asymmetric& dhKey,
         const PasswordPrompt& reason,
-        OTPassword& password) const noexcept -> bool final;
+        Secret& password) const noexcept -> bool final;
     auto CalculateID(Identifier& theOutput) const noexcept -> bool final;
     auto engine() const noexcept -> const crypto::AsymmetricProvider& final
     {
@@ -117,7 +117,7 @@ public:
         const proto::HashType hash) const noexcept -> bool final;
     auto TransportKey(
         Data& publicKey,
-        OTPassword& privateKey,
+        Secret& privateKey,
         const PasswordPrompt& reason) const noexcept -> bool override;
     auto Verify(const Data& plaintext, const proto::Signature& sig) const
         noexcept -> bool final;
@@ -132,7 +132,7 @@ protected:
     friend OTAsymmetricKey;
 
     using EncryptedKey = std::unique_ptr<proto::Ciphertext>;
-    using EncryptedExtractor = std::function<EncryptedKey(Data&, OTPassword&)>;
+    using EncryptedExtractor = std::function<EncryptedKey(Data&, Secret&)>;
 
     const api::internal::Core& api_;
     const crypto::AsymmetricProvider& provider_;
@@ -143,7 +143,7 @@ protected:
     bool has_private_;
     OTSignatureMetadata* m_pMetadata;
     const OTData key_;
-    mutable OTPassword plaintext_key_;
+    mutable OTSecret plaintext_key_;
     std::unique_ptr<proto::Ciphertext> encrypted_key_;
 
     static auto create_key(
@@ -153,7 +153,7 @@ protected:
         const proto::KeyRole role,
         const AllocateOutput publicKey,
         const AllocateOutput privateKey,
-        const OTPassword& prv,
+        const Secret& prv,
         const AllocateOutput params,
         const PasswordPrompt& reason) noexcept(false)
         -> std::unique_ptr<proto::Ciphertext>;
@@ -185,7 +185,7 @@ protected:
     auto get_password(
         const key::Asymmetric& target,
         const PasswordPrompt& reason,
-        OTPassword& password) const noexcept -> bool;
+        Secret& password) const noexcept -> bool;
     auto get_tag(
         const key::Asymmetric& target,
         const Identifier& credential,

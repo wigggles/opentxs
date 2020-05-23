@@ -7,6 +7,10 @@
 #include "1_Internal.hpp"  // IWYU pragma: associated
 #include "core/Data.hpp"   // IWYU pragma: associated
 
+extern "C" {
+#include <sodium.h>
+}
+
 #include <boost/endian/buffers.hpp>
 #include <algorithm>
 #include <cstdint>
@@ -16,13 +20,10 @@
 #include <limits>
 #include <memory>
 #include <sstream>
-#include <utility>
 
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Data.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
 
 template class opentxs::Pimpl<opentxs::Data>;
@@ -189,7 +190,7 @@ Data::Data(const void* data, std::size_t size)
 {
 }
 
-Data::Data(const std::vector<unsigned char>& sourceVector)
+Data::Data(const Vector& sourceVector)
 {
     Assign(sourceVector.data(), sourceVector.size());
 }
@@ -197,12 +198,6 @@ Data::Data(const std::vector<unsigned char>& sourceVector)
 Data::Data(const std::vector<std::byte>& sourceVector)
 {
     Assign(sourceVector.data(), sourceVector.size());
-}
-
-Data::Data(const Vector& rhs, const std::size_t size)
-    : data_{rhs}
-    , position_{size}
-{
 }
 
 auto Data::operator==(const opentxs::Data& in) const -> bool
@@ -378,7 +373,6 @@ void Data::Assign(const opentxs::Data& rhs)
     if (&dynamic_cast<const Data&>(rhs) == this) { return; }
 
     data_ = dynamic_cast<const Data&>(rhs).data_;
-    position_ = dynamic_cast<const Data&>(rhs).position_;
 }
 
 void Data::Assign(const void* data, const std::size_t& size)
@@ -497,11 +491,7 @@ auto Data::Extract(std::uint64_t& output, const std::size_t pos) const -> bool
     return true;
 }
 
-void Data::Initialize()
-{
-    data_.clear();
-    reset();
-}
+void Data::Initialize() { data_.clear(); }
 
 auto Data::IsNull() const -> bool
 {
@@ -514,40 +504,15 @@ auto Data::IsNull() const -> bool
     return true;
 }
 
-// First use reset() to set the internal position to 0. Then you pass in the
-// buffer where the results go. You pass in the length of that buffer. It
-// returns how much was actually read. If you start at position 0, and read 100
-// bytes, then you are now on position 100, and the next OTfread will proceed
-// from that position. (Unless you reset().)
-auto Data::OTfread(std::uint8_t* data, const std::size_t& readSize)
-    -> std::size_t
-{
-    OT_ASSERT(data != nullptr && readSize > 0);
-
-    std::size_t sizeToRead = 0;
-
-    if (position_ < size()) {
-        // If the size is 20, and position is 5 (I've already read the first 5
-        // bytes) then the size remaining to read is 15. That is, GetSize()
-        // minus position_.
-        sizeToRead = size() - position_;
-
-        if (readSize < sizeToRead) { sizeToRead = readSize; }
-
-        OTPassword::safe_memcpy(data, readSize, &data_[position_], sizeToRead);
-        position_ += sizeToRead;
-    }
-
-    return sizeToRead;
-}
-
 auto Data::Randomize(const std::size_t& size) -> bool
 {
     SetSize(size);
 
     if (size == 0) { return false; }
 
-    return OTPassword::randomizeMemory_uint8(data_.data(), size);
+    ::randombytes_buf(data_.data(), size);
+
+    return true;
 }
 
 void Data::Release()
@@ -574,7 +539,6 @@ void Data::swap(opentxs::Data&& rhs)
 {
     auto& in = dynamic_cast<Data&>(rhs);
     std::swap(data_, in.data_);
-    std::swap(position_, in.position_);
 }
 
 auto Data::WriteInto() noexcept -> AllocateOutput

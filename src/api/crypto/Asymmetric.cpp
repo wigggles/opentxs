@@ -251,7 +251,7 @@ auto Asymmetric::InstantiateKey(const proto::AsymmetricKey& serialized) const
 #if OT_CRYPTO_WITH_BIP32
 auto Asymmetric::NewHDKey(
     const std::string& seedID,
-    const OTPassword& seed,
+    const Secret& seed,
     const EcdsaCurve& curve,
     const opentxs::crypto::Bip32::Path& path,
     const PasswordPrompt& reason,
@@ -270,7 +270,7 @@ auto Asymmetric::NewHDKey(
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 auto Asymmetric::NewSecp256k1Key(
     const std::string& seedID,
-    const OTPassword& seed,
+    const Secret& seed,
     const opentxs::crypto::Bip32::Path& derive,
     const PasswordPrompt& reason,
     const proto::KeyRole role,

@@ -45,6 +45,7 @@ class Frame;
 class Data;
 class Factory;
 class OTPassword;
+class Secret;
 }  // namespace opentxs
 
 namespace opentxs::api::crypto::implementation
@@ -81,7 +82,7 @@ public:
         const std::size_t bytes,
         Data& output) const noexcept -> bool final;
     auto PKCS5_PBKDF2_HMAC(
-        const OTPassword& input,
+        const Secret& input,
         const Data& salt,
         const std::size_t iterations,
         const proto::HashType hashType,

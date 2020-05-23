@@ -89,15 +89,16 @@ public:
         return reinterpret_cast<std::byte&>(data_.at(position));
     }
     auto begin() -> iterator final { return iterator(this, 0); }
+    void Concatenate(const ReadView data) final
+    {
+        Concatenate(data.data(), data.size());
+    }
     void Concatenate(const void* data, const std::size_t& size) final;
     auto data() -> void* final { return data_.data(); }
     auto DecodeHex(const std::string& hex) -> bool final;
     auto end() -> iterator final { return iterator(this, data_.size()); }
-    auto OTfread(std::uint8_t* data, const std::size_t& size)
-        -> std::size_t final;
     auto Randomize(const std::size_t& size) -> bool final;
     void Release() final;
-    void reset() final { position_ = 0; }
     void resize(const std::size_t size) final { data_.resize(size); }
     void SetSize(const std::size_t size) final;
     auto str() const -> std::string override;
@@ -111,24 +112,19 @@ protected:
     using Vector = std::vector<std::uint8_t>;
 
     Vector data_{};
-    std::size_t position_{0};
 
     void Initialize();
 
     Data() = default;
     explicit Data(const void* data, std::size_t size);
     explicit Data(const Armored& source);
-    explicit Data(const std::vector<unsigned char>& sourceVector);
+    explicit Data(const Vector& sourceVector);
     explicit Data(const std::vector<std::byte>& sourceVector);
-    explicit Data(const Vector& rhs, const std::size_t size);
 
 private:
     friend opentxs::Data;
 
-    auto clone() const -> Data* override
-    {
-        return new Data(this->data_, this->position_);
-    }
+    auto clone() const -> Data* override { return new Data(this->data_); }
 
     auto check_sub(const std::size_t pos, const std::size_t target) const
         -> bool;

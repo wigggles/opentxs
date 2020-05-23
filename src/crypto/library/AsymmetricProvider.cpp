@@ -11,13 +11,16 @@ extern "C" {
 #include <sodium.h>
 }
 
+#include "opentxs/OT.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Types.hpp"
+#include "opentxs/api/Context.hpp"
+#include "opentxs/api/Primitives.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/Secret.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/Signature.hpp"
 #include "opentxs/protobuf/Enums.pb.h"
 #include "util/Sodium.hpp"
@@ -86,11 +89,11 @@ auto AsymmetricProvider::SeedToCurveKey(
     const AllocateOutput publicKey) const noexcept -> bool
 {
     auto edPublic = Data::Factory();
-    auto edPrivate = OTPassword{};
+    auto edPrivate = Context().Factory().Secret(0);
 
     if (false == sodium::ExpandSeed(
                      seed,
-                     edPrivate.WriteInto(OTPassword::Mode::Mem),
+                     edPrivate->WriteInto(Secret::Mode::Mem),
                      edPublic->WriteInto())) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to expand seed.").Flush();
 
@@ -105,7 +108,7 @@ auto AsymmetricProvider::SeedToCurveKey(
     }
 
     return sodium::ToCurveKeypair(
-        edPrivate.Bytes(), edPublic->Bytes(), privateKey, publicKey);
+        edPrivate->Bytes(), edPublic->Bytes(), privateKey, publicKey);
 }
 
 auto AsymmetricProvider::SignContract(

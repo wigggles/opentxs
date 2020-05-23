@@ -25,6 +25,11 @@
 
 namespace opentxs
 {
+class Secret;
+}  // namespace opentxs
+
+namespace opentxs
+{
 namespace api
 {
 namespace crypto
@@ -58,7 +63,7 @@ public:
 #if OT_CRYPTO_WITH_BIP32
     OPENTXS_EXPORT virtual HDKey NewHDKey(
         const std::string& seedID,
-        const OTPassword& seed,
+        const Secret& seed,
         const EcdsaCurve& curve,
         const opentxs::crypto::Bip32::Path& path,
         const PasswordPrompt& reason,
@@ -68,7 +73,7 @@ public:
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
     OPENTXS_EXPORT virtual Secp256k1Key NewSecp256k1Key(
         const std::string& seedID,
-        const OTPassword& seed,
+        const Secret& seed,
         const opentxs::crypto::Bip32::Path& path,
         const PasswordPrompt& reason,
         const proto::KeyRole role = proto::KEYROLE_SIGN,

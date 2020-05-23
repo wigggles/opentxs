@@ -14,9 +14,14 @@
 #include <memory>
 #include <string>
 
-#include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
+#include "opentxs/core/contract/Signable.hpp"
+
+namespace opentxs
+{
+class Secret;
+}  // namespace opentxs
 
 namespace opentxs
 {
@@ -51,7 +56,7 @@ public:
     OPENTXS_EXPORT virtual Signature SourceSignature() const = 0;
     OPENTXS_EXPORT virtual bool TransportKey(
         Data& publicKey,
-        OTPassword& privateKey,
+        Secret& privateKey,
         const PasswordPrompt& reason) const = 0;
     OPENTXS_EXPORT virtual proto::CredentialType Type() const = 0;
     OPENTXS_EXPORT virtual bool Verify(

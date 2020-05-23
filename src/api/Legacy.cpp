@@ -18,6 +18,7 @@ extern "C" {
 #include <cstdlib>
 #include <memory>
 
+#include "internal/api/Api.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/core/Log.hpp"
@@ -34,15 +35,18 @@ extern "C" {
 
 //#define OT_METHOD "opentxs::Legacy::"
 
+using ReturnType = opentxs::api::implementation::Legacy;
+
+namespace opentxs::factory
+{
+auto Legacy(const std::string& home) noexcept -> std::unique_ptr<api::Legacy>
+{
+    return std::make_unique<ReturnType>(home);
+}
+}  // namespace opentxs::factory
+
 namespace opentxs
 {
-using ReturnType = api::implementation::Legacy;
-
-auto Factory::Legacy(const std::string& home) -> api::Legacy*
-{
-    return new ReturnType{home};
-}
-
 namespace api
 {
 auto Legacy::SuggestFolder(const std::string& app) noexcept -> std::string

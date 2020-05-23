@@ -13,6 +13,7 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -24,12 +25,13 @@
 #include "opentxs/Version.hpp"
 #include "opentxs/api/Context.hpp"
 #include "opentxs/api/Legacy.hpp"
+#include "opentxs/api/Primitives.hpp"
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/network/ZAP.hpp"
 #include "opentxs/api/server/Manager.hpp"
 #include "opentxs/core/Lockable.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/Secret.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 
 namespace opentxs
@@ -47,7 +49,6 @@ struct RPC;
 }  // namespace internal
 }  // namespace rpc
 
-class Factory;
 class Flag;
 class OTCallback;
 class OTCaller;
@@ -57,7 +58,7 @@ class Signals;
 
 namespace opentxs::api::implementation
 {
-class Context final : api::internal::Context, Lockable, Periodic
+class Context final : public api::internal::Context, Lockable, Periodic
 {
 public:
     auto Client(const int instance) const
@@ -65,6 +66,7 @@ public:
     auto Clients() const -> std::size_t final { return client_.size(); }
     auto Config(const std::string& path) const -> const api::Settings& final;
     auto Crypto() const -> const api::Crypto& final;
+    auto Factory() const -> const api::Primitives& final;
     void HandleSignals(ShutdownCallback* shutdown) const final;
     auto Legacy() const noexcept -> const api::Legacy& final
     {
@@ -94,15 +96,18 @@ public:
 
     auto GetPasswordCaller() const -> OTCaller& final;
 
-private:
-    friend opentxs::Factory;
+    Context(
+        Flag& running,
+        const ArgList& args,
+        const std::chrono::seconds gcInterval,
+        OTCaller* externalPasswordCallback = nullptr);
 
+    ~Context() final;
+
+private:
     using ConfigMap = std::map<std::string, std::unique_ptr<api::Settings>>;
 
-    const std::chrono::seconds gc_interval_;
     const std::string home_;
-    OTPassword word_list_;
-    OTPassword passphrase_;
     mutable std::mutex config_lock_;
     mutable std::mutex task_list_lock_;
     mutable std::mutex signal_handler_lock_;
@@ -111,6 +116,7 @@ private:
     mutable std::unique_ptr<Signals> signal_handler_;
     std::unique_ptr<api::internal::Log> log_;
     std::unique_ptr<api::Crypto> crypto_;
+    std::unique_ptr<api::Primitives> factory_;
     std::unique_ptr<api::Legacy> legacy_;
     std::unique_ptr<api::network::ZAP> zap_;
     const ArgList args_;
@@ -135,6 +141,7 @@ private:
     void start_server(const Lock& lock, const ArgList& args) const;
 
     void Init_Crypto();
+    void Init_Factory();
     void Init_Log(const std::int32_t argLevel);
 #ifndef _WIN32
     void Init_Rlimit() noexcept;
@@ -144,17 +151,10 @@ private:
     void setup_default_external_password_callback();
     void shutdown() final;
 
-    explicit Context(
-        Flag& running,
-        const ArgList& args,
-        const std::chrono::seconds gcInterval,
-        OTCaller* externalPasswordCallback = nullptr);
     Context() = delete;
     Context(const Context&) = delete;
     Context(Context&&) = delete;
     auto operator=(const Context&) -> Context& = delete;
     auto operator=(Context &&) -> Context& = delete;
-
-    ~Context() final;
 };
 }  // namespace opentxs::api::implementation

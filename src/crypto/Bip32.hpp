@@ -28,7 +28,7 @@ namespace crypto
 class EcdsaProvider;
 }  // namespace crypto
 
-class OTPassword;
+class Secret;
 }  // namespace opentxs
 
 namespace be = boost::endian;
@@ -41,7 +41,7 @@ public:
 #if OT_CRYPTO_WITH_BIP32
     auto DeriveKey(
         const EcdsaCurve& curve,
-        const OTPassword& seed,
+        const Secret& seed,
         const Path& path) const -> Key final;
 #endif  // OT_CRYPTO_WITH_BIP32
     auto DeserializePrivate(
@@ -51,7 +51,7 @@ public:
         Bip32Fingerprint& parent,
         Bip32Index& index,
         Data& chainCode,
-        OTPassword& key) const -> bool final;
+        Secret& key) const -> bool final;
     auto DeserializePublic(
         const std::string& serialized,
         Bip32Network& network,
@@ -67,7 +67,7 @@ public:
         const Bip32Fingerprint parent,
         const Bip32Index index,
         const Data& chainCode,
-        const OTPassword& key) const -> std::string final;
+        const Secret& key) const -> std::string final;
     auto SerializePublic(
         const Bip32Network network,
         const Bip32Depth depth,

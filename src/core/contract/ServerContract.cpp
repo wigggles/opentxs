@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <iterator>
+#include <memory>
 #include <stdexcept>
 #include <tuple>
 #include <utility>
@@ -374,7 +375,7 @@ auto Server::TransportKey() const -> const Data&
 }
 
 auto Server::TransportKey(Data& pubkey, const PasswordPrompt& reason) const
-    -> std::unique_ptr<OTPassword>
+    -> OTSecret
 {
     OT_ASSERT(nym_);
 

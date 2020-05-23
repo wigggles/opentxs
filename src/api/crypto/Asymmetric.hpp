@@ -36,6 +36,7 @@ class Factory;
 class NymParameters;
 class OTPassword;
 class PasswordPrompt;
+class Secret;
 }  // namespace opentxs
 
 namespace opentxs::api::crypto::implementation
@@ -61,7 +62,7 @@ public:
 #if OT_CRYPTO_WITH_BIP32
     auto NewHDKey(
         const std::string& seedID,
-        const OTPassword& seed,
+        const Secret& seed,
         const EcdsaCurve& curve,
         const opentxs::crypto::Bip32::Path& path,
         const PasswordPrompt& reason,
@@ -70,7 +71,7 @@ public:
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
     auto NewSecp256k1Key(
         const std::string& seedID,
-        const OTPassword& seed,
+        const Secret& seed,
         const opentxs::crypto::Bip32::Path& path,
         const PasswordPrompt& reason,
         const proto::KeyRole role = proto::KEYROLE_SIGN,

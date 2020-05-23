@@ -18,6 +18,11 @@
 
 namespace opentxs
 {
+class Secret;
+}  // namespace opentxs
+
+namespace opentxs
+{
 namespace api
 {
 namespace crypto
@@ -54,7 +59,7 @@ public:
         const std::size_t bytes,
         Data& output) const noexcept = 0;
     OPENTXS_EXPORT virtual bool PKCS5_PBKDF2_HMAC(
-        const OTPassword& input,
+        const Secret& input,
         const Data& salt,
         const std::size_t iterations,
         const proto::HashType hashType,

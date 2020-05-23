@@ -46,6 +46,7 @@ class HDPath;
 class Data;
 class OTPassword;
 class PasswordPrompt;
+class Secret;
 }  // namespace opentxs
 
 namespace opentxs::crypto::key::implementation
@@ -93,7 +94,7 @@ protected:
         const api::internal::Core& api,
         const crypto::EcdsaProvider& ecdsa,
         const proto::AsymmetricKeyType keyType,
-        const OTPassword& privateKey,
+        const Secret& privateKey,
         const Data& publicKey,
         const proto::KeyRole role,
         const VersionNumber version,

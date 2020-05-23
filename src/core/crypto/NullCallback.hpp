@@ -16,6 +16,7 @@ namespace opentxs
 {
 class Factory;
 class OTPassword;
+class Secret;
 }  // namespace opentxs
 
 namespace opentxs::implementation
@@ -23,8 +24,8 @@ namespace opentxs::implementation
 class NullCallback final : virtual public OTCallback
 {
 public:
-    void runOne(const char* display, OTPassword& output) const final;
-    void runTwo(const char* display, OTPassword& output) const final;
+    void runOne(const char* display, Secret& output) const final;
+    void runTwo(const char* display, Secret& output) const final;
 
     NullCallback() = default;
 

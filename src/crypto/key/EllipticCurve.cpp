@@ -15,7 +15,7 @@
 #include "opentxs/Types.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/Secret.hpp"
 #include "opentxs/crypto/key/EllipticCurve.hpp"
 #include "opentxs/crypto/library/EcdsaProvider.hpp"
 #include "opentxs/protobuf/Enums.pb.h"
@@ -65,7 +65,7 @@ EllipticCurve::EllipticCurve(
                   {},
                   role,
                   pub.WriteInto(),
-                  prv.WriteInto(OTPassword::Mode::Mem),
+                  prv.WriteInto(Secret::Mode::Mem),
                   prv,
                   {},
                   reason);
@@ -82,7 +82,7 @@ EllipticCurve::EllipticCurve(
     const api::internal::Core& api,
     const crypto::EcdsaProvider& ecdsa,
     const proto::AsymmetricKeyType keyType,
-    const OTPassword& privateKey,
+    const Secret& privateKey,
     const Data& publicKey,
     const proto::KeyRole role,
     const VersionNumber version,

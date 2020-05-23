@@ -17,11 +17,6 @@
 
 namespace opentxs
 {
-namespace api
-{
-class Factory;
-}  // namespace api
-
 namespace network
 {
 namespace zeromq
@@ -37,15 +32,12 @@ namespace opentxs::api::implementation
 class Log final : virtual public api::internal::Log
 {
 public:
-    explicit Log(
-        const opentxs::network::zeromq::Context& zmq,
+    Log(const opentxs::network::zeromq::Context& zmq,
         const std::string& endpoint);
 
     ~Log() = default;
 
 private:
-    friend api::Factory;
-
     OTZMQListenCallback callback_;
     OTZMQPullSocket socket_;
     OTZMQPublishSocket publish_socket_;

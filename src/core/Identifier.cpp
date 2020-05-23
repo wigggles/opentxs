@@ -332,11 +332,8 @@ Identifier::Identifier(const identity::Nym& theNym)
     (const_cast<identity::Nym&>(theNym)).GetIdentifier(*this);
 }
 
-Identifier::Identifier(
-    const Vector& data,
-    const std::size_t size,
-    const ID type)
-    : ot_super(data, size)
+Identifier::Identifier(const Vector& data, const ID type)
+    : ot_super(data)
     , type_(type)
 {
 }
@@ -395,7 +392,7 @@ auto Identifier::CalculateDigest(const ReadView bytes, const ID type) -> bool
 
 auto Identifier::clone() const -> Identifier*
 {
-    return new Identifier(data_, position_, type_);
+    return new Identifier(data_, type_);
 }
 
 auto Identifier::contract_contents_to_identifier(const Contract& in)

@@ -13,7 +13,7 @@
 #include "opentxs/Types.hpp"
 #include "opentxs/Version.hpp"
 #include "opentxs/core/Data.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/Secret.hpp"
 #include "opentxs/crypto/key/RSA.hpp"
 #include "opentxs/protobuf/Enums.pb.h"
 
@@ -46,6 +46,7 @@ class Ciphertext;
 class NymParameters;
 class OTPassword;
 class PasswordPrompt;
+class Secret;
 }  // namespace opentxs
 
 namespace opentxs::crypto::key::implementation
@@ -85,7 +86,7 @@ private:
         const api::internal::Core& api,
         const proto::AsymmetricKey& serialized,
         Data& publicKey,
-        OTPassword& privateKey) noexcept(false)
+        Secret& privateKey) noexcept(false)
         -> std::unique_ptr<proto::Ciphertext>;
 
     auto clone() const noexcept -> RSA* final { return new RSA{*this}; }

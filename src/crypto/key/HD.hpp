@@ -14,7 +14,7 @@
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/Version.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/Secret.hpp"
 #include "opentxs/crypto/key/HD.hpp"
 #include "opentxs/protobuf/Enums.pb.h"
 
@@ -76,8 +76,8 @@ protected:
     HD(const api::internal::Core& api,
        const crypto::EcdsaProvider& ecdsa,
        const proto::AsymmetricKeyType keyType,
-       const OTPassword& privateKey,
-       const OTPassword& chainCode,
+       const Secret& privateKey,
+       const Secret& chainCode,
        const Data& publicKey,
        const proto::HDPath& path,
        const Bip32Fingerprint parent,
@@ -92,7 +92,7 @@ protected:
 private:
     const std::shared_ptr<const proto::HDPath> path_;
     const std::unique_ptr<const proto::Ciphertext> chain_code_;
-    mutable OTPassword plaintext_chain_code_;
+    mutable OTSecret plaintext_chain_code_;
     const Bip32Fingerprint parent_;
 
     auto get_params() const noexcept

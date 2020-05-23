@@ -10,13 +10,14 @@
 
 #include <iosfwd>
 #include <memory>
+#include <optional>
 #include <vector>
 
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/blind/Purse.hpp"
 #include "opentxs/blind/Token.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/Secret.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/crypto/Envelope.hpp"
@@ -131,7 +132,7 @@ public:
         const identifier::Server& server,
         const proto::CashType type,
         const Mint& mint,
-        std::unique_ptr<OTPassword> secondaryKeyPassword,
+        OTSecret&& secondaryKeyPassword,
         std::unique_ptr<const OTSymmetricKey> secondaryKey,
         std::unique_ptr<const OTEnvelope> secondaryEncrypted);
 
@@ -153,10 +154,10 @@ private:
     Time earliest_valid_to_;
     std::vector<OTToken> tokens_;
     mutable bool unlocked_;
-    mutable OTPassword primary_key_password_;
+    mutable OTSecret primary_key_password_;
     std::shared_ptr<OTSymmetricKey> primary_;
     std::vector<proto::Envelope> primary_passwords_;
-    OTPassword secondary_key_password_;
+    OTSecret secondary_key_password_;
     const std::shared_ptr<const OTSymmetricKey> secondary_;
     const std::shared_ptr<const OTEnvelope> secondary_password_;
 
@@ -172,7 +173,7 @@ private:
         -> std::vector<proto::Envelope>;
 
     auto clone() const noexcept -> Purse* final { return new Purse(*this); }
-    auto generate_key(OTPassword& password) const -> OTSymmetricKey;
+    auto generate_key(Secret& password) const -> OTSymmetricKey;
 
     void apply_times(const Token& token);
     void recalculate_times();
@@ -197,7 +198,7 @@ private:
         const std::vector<proto::Envelope>& primaryPasswords,
         const std::shared_ptr<const OTSymmetricKey> secondaryKey,
         const std::shared_ptr<const OTEnvelope> secondaryEncrypted,
-        const std::shared_ptr<const OTPassword> secondaryKeyPassword);
+        std::optional<OTSecret> secondaryKeyPassword);
     Purse(const api::internal::Core& api, const Purse& owner);
     Purse(const api::internal::Core& api, const proto::Purse& serialized);
     Purse() = delete;

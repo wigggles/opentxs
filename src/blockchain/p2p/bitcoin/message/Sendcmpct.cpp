@@ -8,6 +8,7 @@
 #include "blockchain/p2p/bitcoin/message/Sendcmpct.hpp"  // IWYU pragma: associated
 
 #include <cstddef>
+#include <cstring>
 #include <utility>
 
 #include "Factory.hpp"
@@ -15,7 +16,6 @@
 #include "internal/blockchain/p2p/bitcoin/Bitcoin.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
 
 //#define OT_METHOD " opentxs::blockchain::p2p::bitcoin::message::Sendcmpct::"
 
@@ -50,11 +50,9 @@ auto Factory::BitcoinP2PSendcmpct(
     }
     auto* it{static_cast<const std::byte*>(payload)};
     // --------------------------------------------------------
-    ReturnType::Raw raw_item;
-
-    OTPassword::safe_memcpy(&raw_item, sizeof(raw_item), it, sizeof(raw_item));
+    auto raw_item = ReturnType::Raw{};
+    std::memcpy(static_cast<void*>(&raw_item), it, sizeof(raw_item));
     it += sizeof(raw_item);
-
     const bool announce = (0 == raw_item.announce_.value()) ? false : true;
     const std::uint64_t version = raw_item.version_.value();
     // --------------------------------------------------------

@@ -52,6 +52,7 @@ class Server;
 class Flag;
 class OTPassword;
 class PasswordPrompt;
+class Secret;
 }  // namespace opentxs
 
 namespace opentxs::server
@@ -63,7 +64,7 @@ public:
     void DropOutgoing(const int count) const;
 
     void cleanup();
-    void init(const bool inproc, const int port, const OTPassword& privkey);
+    void init(const bool inproc, const int port, const Secret& privkey);
     void Start();
 
     explicit MessageProcessor(

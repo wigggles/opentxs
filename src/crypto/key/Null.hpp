@@ -43,8 +43,8 @@ public:
     {
         return {};
     }
-    auto GetTransportKey(Data&, OTPassword&, const PasswordPrompt&) const
-        noexcept -> bool final
+    auto GetTransportKey(Data&, Secret&, const PasswordPrompt&) const noexcept
+        -> bool final
     {
         return {};
     }
@@ -72,7 +72,7 @@ public:
         const proto::AsymmetricKeyType,
         const PasswordPrompt&,
         std::uint32_t&,
-        OTPassword&) const noexcept -> bool final
+        Secret&) const noexcept -> bool final
     {
         return false;
     }
@@ -87,7 +87,7 @@ public:
     auto CalculateSessionPassword(
         const Asymmetric&,
         const PasswordPrompt&,
-        OTPassword&) const noexcept -> bool final
+        Secret&) const noexcept -> bool final
     {
         return false;
     }
@@ -139,7 +139,7 @@ public:
     {
         return false;
     }
-    auto TransportKey(Data&, OTPassword&, const PasswordPrompt&) const noexcept
+    auto TransportKey(Data&, Secret&, const PasswordPrompt&) const noexcept
         -> bool final
     {
         return false;

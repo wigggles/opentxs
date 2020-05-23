@@ -9,6 +9,7 @@
 #include "opentxs/Version.hpp"  // IWYU pragma: associated
 
 #include "opentxs/protobuf/Basic.hpp"
+
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wlanguage-extension-token"
 #pragma GCC diagnostic ignored "-Wundef"
@@ -17,6 +18,7 @@
 #pragma GCC diagnostic ignored "-Wsign-conversion"
 #pragma GCC diagnostic ignored "-Winconsistent-missing-destructor-override"
 #include "opentxs/protobuf/PaymentWorkflowEnums.pb.h"
+
 #pragma GCC diagnostic pop
 
 #include <cstdint>

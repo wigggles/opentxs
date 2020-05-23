@@ -137,7 +137,7 @@ auto RSA::deserialize_key(
     const api::internal::Core& api,
     const proto::AsymmetricKey& proto,
     Data& publicKey,
-    OTPassword&) noexcept(false) -> std::unique_ptr<proto::Ciphertext>
+    Secret&) noexcept(false) -> std::unique_ptr<proto::Ciphertext>
 {
     auto output = std::unique_ptr<proto::Ciphertext>{};
     publicKey.Assign(proto.key());

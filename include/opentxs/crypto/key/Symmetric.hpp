@@ -28,6 +28,8 @@ class Symmetric;
 }  // namespace key
 }  // namespace crypto
 
+class Secret;
+
 using OTSymmetricKey = Pimpl<crypto::key::Symmetric>;
 }  // namespace opentxs
 
@@ -76,14 +78,14 @@ public:
         const PasswordPrompt& reason) const = 0;
     OPENTXS_EXPORT virtual bool RawKey(
         const PasswordPrompt& reason,
-        OTPassword& output) const = 0;
+        Secret& output) const = 0;
     OPENTXS_EXPORT virtual bool Serialize(
         proto::SymmetricKey& output) const = 0;
     OPENTXS_EXPORT virtual bool Unlock(const PasswordPrompt& reason) const = 0;
 
     OPENTXS_EXPORT virtual bool ChangePassword(
         const PasswordPrompt& reason,
-        const OTPassword& newPassword) = 0;
+        const Secret& newPassword) = 0;
 
     OPENTXS_EXPORT virtual ~Symmetric() = default;
 

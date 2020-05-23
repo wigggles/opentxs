@@ -35,7 +35,6 @@
 #include "opentxs/core/PasswordPrompt.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/crypto/key/Asymmetric.hpp"
 #include "opentxs/crypto/key/Keypair.hpp"
@@ -1106,7 +1105,7 @@ auto Authority::Sign(
 
 auto Authority::TransportKey(
     Data& publicKey,
-    OTPassword& privateKey,
+    Secret& privateKey,
     const opentxs::PasswordPrompt& reason) const -> bool
 {
     for (const auto& [id, pCredential] : key_credentials_) {
@@ -1170,7 +1169,7 @@ auto Authority::Unlock(
                 continue;
             }
 
-            auto password = OTPassword{};
+            auto password = api_.Factory().Secret(0);
             calculated =
                 encryptKey.CalculateSessionPassword(dhKey, reason, password);
 

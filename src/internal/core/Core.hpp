@@ -11,6 +11,11 @@
 
 namespace opentxs
 {
+class Secret;
+}
+
+namespace opentxs
+{
 template <>
 struct make_blank<OTData> {
     static auto value(const api::Core&) -> OTData { return Data::Factory(); }
@@ -31,3 +36,11 @@ struct NymFile : virtual public opentxs::NymFile {
     virtual auto SaveSignedNymFile(const PasswordPrompt& reason) -> bool = 0;
 };
 }  // namespace opentxs::internal
+
+namespace opentxs::factory
+{
+auto Secret(const std::size_t bytes) noexcept
+    -> std::unique_ptr<opentxs::Secret>;
+auto Secret(const ReadView bytes, const bool mode) noexcept
+    -> std::unique_ptr<opentxs::Secret>;
+}  // namespace opentxs::factory

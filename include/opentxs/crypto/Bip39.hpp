@@ -10,18 +10,22 @@
 
 namespace opentxs
 {
+class Secret;
+}  // namespace opentxs
+
+namespace opentxs
+{
 namespace crypto
 {
 class Bip39
 {
 public:
-    OPENTXS_EXPORT virtual bool SeedToWords(
-        const OTPassword& seed,
-        OTPassword& words) const noexcept = 0;
+    OPENTXS_EXPORT virtual bool SeedToWords(const Secret& seed, Secret& words)
+        const noexcept = 0;
     OPENTXS_EXPORT virtual void WordsToSeed(
-        const OTPassword& words,
-        OTPassword& seed,
-        const OTPassword& passphrase) const noexcept = 0;
+        const Secret& words,
+        Secret& seed,
+        const Secret& passphrase) const noexcept = 0;
 
     OPENTXS_EXPORT virtual ~Bip39() = default;
 

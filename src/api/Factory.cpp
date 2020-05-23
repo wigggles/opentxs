@@ -21,8 +21,10 @@
 #include "internal/blockchain/p2p/P2P.hpp"
 #endif  // OT_BLOCKCHAIN
 #include "opentxs/Forward.hpp"
+#include "opentxs/OT.hpp"  // TODO remove
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Proto.tpp"
+#include "opentxs/api/Context.hpp"
 #if OT_CRYPTO_WITH_BIP32
 #include "opentxs/api/HDSeed.hpp"
 #endif  // OT_CRYPTO_WITH_BIP32
@@ -69,7 +71,6 @@
 #include "opentxs/core/contract/peer/StoreSecret.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
 #include "opentxs/core/cron/OTCronItem.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTSignedFile.hpp"
 #include "opentxs/core/crypto/PaymentCode.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
@@ -102,6 +103,7 @@ namespace opentxs::api::implementation
 Factory::Factory(const api::internal::Core& api)
     : api::internal::Factory()
     , api_(api)
+    , primitives_(opentxs::Context().Factory())  // TODO pass in as argument
     , pAsymmetric_(opentxs::Factory::AsymmetricAPI(api_))
     , asymmetric_(*pAsymmetric_)
     , pSymmetric_(opentxs::Factory::Symmetric(api_))
@@ -587,19 +589,6 @@ auto Factory::BlockHeader(
     }
 }
 #endif  // OT_BLOCKCHAIN
-
-auto Factory::BinarySecret() const -> std::unique_ptr<OTPassword>
-{
-    auto output = std::make_unique<OTPassword>();
-
-    OT_ASSERT(output);
-
-    auto& secret = *output;
-    std::array<std::uint8_t, 32> empty{0};
-    secret.setMemory(empty.data(), empty.size());
-
-    return output;
-}
 
 auto Factory::Cheque(const OTTransaction& receipt) const
     -> std::unique_ptr<opentxs::Cheque>
@@ -2267,7 +2256,7 @@ auto Factory::SymmetricKey(
 
 auto Factory::SymmetricKey(
     const opentxs::crypto::SymmetricProvider& engine,
-    const OTPassword& seed,
+    const opentxs::Secret& seed,
     const std::uint64_t operations,
     const std::uint64_t difficulty,
     const std::size_t size,
@@ -2279,7 +2268,7 @@ auto Factory::SymmetricKey(
 
 auto Factory::SymmetricKey(
     const opentxs::crypto::SymmetricProvider& engine,
-    const OTPassword& raw,
+    const opentxs::Secret& raw,
     const opentxs::PasswordPrompt& reason) const -> OTSymmetricKey
 {
     return OTSymmetricKey{

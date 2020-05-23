@@ -22,8 +22,6 @@ namespace zeromq
 class Context;
 }  // namespace zeromq
 }  // namespace network
-
-class Factory;
 }  // namespace opentxs
 
 namespace opentxs::api::implementation
@@ -65,11 +63,13 @@ public:
     auto WidgetUpdate() const noexcept -> std::string final;
     auto WorkflowAccountUpdate() const noexcept -> std::string final;
 
+    Endpoints(
+        const opentxs::network::zeromq::Context& zmq,
+        const int instance) noexcept;
+
     ~Endpoints() final = default;
 
 private:
-    friend opentxs::Factory;
-
     const opentxs::network::zeromq::Context& zmq_;
     const int instance_;
 
@@ -80,9 +80,6 @@ private:
         const int version,
         const std::string& suffix) const noexcept -> std::string;
 
-    Endpoints(
-        const opentxs::network::zeromq::Context& zmq,
-        const int instance) noexcept;
     Endpoints() = delete;
     Endpoints(const Endpoints&) = delete;
     Endpoints(Endpoints&&) = delete;

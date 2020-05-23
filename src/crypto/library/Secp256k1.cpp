@@ -14,22 +14,25 @@ extern "C" {
 }
 
 #include <array>
-#include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <functional>
 #include <stdexcept>
 #include <string_view>
 
 #include "Factory.hpp"
 #include "crypto/library/EcdsaProvider.hpp"
+#include "opentxs/OT.hpp"
 #include "opentxs/Pimpl.hpp"
+#include "opentxs/api/Context.hpp"
+#include "opentxs/api/Primitives.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/api/crypto/Util.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/Secret.hpp"
 #include "opentxs/crypto/key/Asymmetric.hpp"
 #include "opentxs/protobuf/Enums.pb.h"
 
@@ -75,13 +78,14 @@ auto Secp256k1::RandomKeypair(
 
     auto counter{0};
     auto valid{false};
-    auto temp = OTPassword{};
+    auto temp = Context().Factory().Secret(0);
     const auto null = std::array<std::uint8_t, PrivateKeySize>{};
 
     while (false == valid) {
-        temp.randomizeMemory(PrivateKeySize);
+        temp->Randomize(PrivateKeySize);
+        auto writer = temp->WriteInto(Secret::Mode::Mem)(PrivateKeySize);
 
-        OT_ASSERT(temp.getMemorySize() == PrivateKeySize);
+        OT_ASSERT(writer.valid(PrivateKeySize));
 
         // We add the random key to a zero value key because
         // secp256k1_privkey_tweak_add checks the result to make sure it's in
@@ -91,9 +95,7 @@ auto Secp256k1::RandomKeypair(
         // chance of randomly generating an invalid key thus requiring a second
         // attempt)
         valid = secp256k1_ec_privkey_tweak_add(
-            context_,
-            static_cast<unsigned char*>(temp.getMemoryWritable()),
-            null.data());
+            context_, static_cast<unsigned char*>(writer.data()), null.data());
 
         OT_ASSERT(3 > ++counter);
     }
@@ -108,7 +110,7 @@ auto Secp256k1::RandomKeypair(
         return false;
     }
 
-    std::memcpy(prv, temp.getMemory(), prv);
+    std::memcpy(prv, temp->data(), prv);
 
     return ScalarMultiplyBase({prv.as<const char>(), prv.size()}, publicKey);
 }
@@ -205,7 +207,7 @@ auto Secp256k1::SharedSecret(
     const key::Asymmetric& publicKey,
     const key::Asymmetric& privateKey,
     const PasswordPrompt& reason,
-    OTPassword& secret) const noexcept -> bool
+    Secret& secret) const noexcept -> bool
 {
     if (publicKey.keyType() != proto::AKEYTYPE_SECP256K1) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Public key is wrong type")
@@ -223,9 +225,8 @@ auto Secp256k1::SharedSecret(
 
     const auto pub = publicKey.PublicKey();
     const auto prv = privateKey.PrivateKey(reason);
-    static const auto blank = std::array<std::byte, 32>{};
 
-    if (32 != prv.size()) {
+    if (PrivateKeySize != prv.size()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid private key").Flush();
 
         return false;
@@ -243,13 +244,13 @@ auto Secp256k1::SharedSecret(
         return false;
     }
 
-    secret.setMemory(blank.data(), blank.size());
+    auto writer = secret.WriteInto(Secret::Mode::Mem)(PrivateKeySize);
 
-    OT_ASSERT(32 == secret.getMemorySize());
+    OT_ASSERT(writer.valid(PrivateKeySize));
 
     return 1 == ::secp256k1_ecdh(
                     context_,
-                    static_cast<unsigned char*>(secret.getMemoryWritable()),
+                    static_cast<unsigned char*>(writer.data()),
                     &key,
                     reinterpret_cast<const unsigned char*>(prv.data()));
 }
@@ -261,7 +262,7 @@ auto Secp256k1::Sign(
     const proto::HashType type,
     Data& signature,  // output
     const PasswordPrompt& reason,
-    const OTPassword* exportPassword) const -> bool
+    const std::optional<OTSecret>) const -> bool
 {
     if (proto::AKEYTYPE_SECP256K1 != key.keyType()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid key type").Flush();

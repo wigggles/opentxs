@@ -10,16 +10,18 @@
 #include <cstddef>
 #include <cstdint>
 #include <memory>
+#include <string_view>
 #include <vector>
 
 #include "Factory.hpp"
+#include "opentxs/Bytes.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/Secret.hpp"
 #include "opentxs/protobuf/Enums.pb.h"
 
 #define OT_METHOD "opentxs::crypto::implementation::Bip39::"
@@ -56,16 +58,12 @@ auto Bip39::bitShift(std::size_t theBit) noexcept -> std::byte
     return static_cast<std::byte>(1 << (ByteBits - (theBit % ByteBits) - 1));
 }
 
-auto Bip39::entropy_to_words(const OTPassword& entropy, OTPassword& words) const
+auto Bip39::entropy_to_words(const Secret& entropy, Secret& words) const
     noexcept -> bool
 {
-    if (false == entropy.isMemory()) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid entropy").Flush();
+    const auto bytes = entropy.Bytes();
 
-        return false;
-    }
-
-    switch (entropy.getMemorySize()) {
+    switch (bytes.size()) {
         case 16:
         case 20:
         case 24:
@@ -74,15 +72,14 @@ auto Bip39::entropy_to_words(const OTPassword& entropy, OTPassword& words) const
             break;
         default: {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid entropy size: ")(
-                entropy.getMemorySize())
+                bytes.size())
                 .Flush();
 
             return false;
         }
     }
 
-    const auto entropyBitCount =
-        std::size_t{entropy.getMemorySize() * ByteBits};
+    const auto entropyBitCount = std::size_t{bytes.size() * ByteBits};
     const auto checksumBits = std::size_t{entropyBitCount / EntropyBitDivisor};
     const auto entropyPlusCheckBits =
         std::size_t{entropyBitCount + checksumBits};
@@ -104,14 +101,12 @@ auto Bip39::entropy_to_words(const OTPassword& entropy, OTPassword& words) const
         return false;
     }
 
-    auto newData = opentxs::Data::Factory();
-    auto digestInput =
-        opentxs::Data::Factory(entropy.getMemory(), entropy.getMemorySize());
+    auto newData = opentxs::Data::Factory();  // TODO should be secret
     auto digestOutput = opentxs::Data::Factory();
 
     if (false == crypto_.Hash().Digest(
                      opentxs::proto::HashType::HASHTYPE_SHA256,
-                     digestInput->Bytes(),
+                     bytes,
                      digestOutput->WriteInto())) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Digest(opentxs::proto::HashType::HASHTYPE_SHA256...) failed.")
@@ -119,7 +114,7 @@ auto Bip39::entropy_to_words(const OTPassword& entropy, OTPassword& words) const
 
         return false;
     } else {
-        newData += digestInput;
+        newData->Concatenate(bytes);
         newData += digestOutput;
     }
 
@@ -179,29 +174,27 @@ auto Bip39::entropy_to_words(const OTPassword& entropy, OTPassword& words) const
         output += word;
     }
 
-    words.setPassword(output);
+    words.AssignText(output);
 
     return true;
 }
 
-auto Bip39::SeedToWords(const OTPassword& seed, OTPassword& words) const
-    noexcept -> bool
+auto Bip39::SeedToWords(const Secret& seed, Secret& words) const noexcept
+    -> bool
 {
     return entropy_to_words(seed, words);
 }
 
 auto Bip39::words_to_root(
-    const OTPassword& words,
-    OTPassword& bip32RootNode,
-    const OTPassword& passphrase) const noexcept -> void
+    const Secret& words,
+    Secret& bip32RootNode,
+    const Secret& passphrase) const noexcept -> void
 {
     auto salt = std::string{PassphrasePrefix};
 
-    if (passphrase.getPasswordSize() > 0) {
-        salt += std::string{passphrase.getPassword()};
-    }
+    if (passphrase.size() > 0) { salt += std::string{passphrase.Bytes()}; }
 
-    auto dataOutput = opentxs::Data::Factory();
+    auto dataOutput = opentxs::Data::Factory();  // TODO should be secret
     const auto dataSalt = opentxs::Data::Factory(salt.data(), salt.size());
     crypto_.Hash().PKCS5_PBKDF2_HMAC(
         words,
@@ -210,13 +203,13 @@ auto Bip39::words_to_root(
         proto::HashType::HASHTYPE_SHA512,
         HmacOutputSizeBytes,
         dataOutput);
-    bip32RootNode.setMemory(dataOutput);
+    bip32RootNode.Assign(dataOutput->Bytes());
 }
 
 auto Bip39::WordsToSeed(
-    const OTPassword& words,
-    OTPassword& seed,
-    const OTPassword& passphrase) const noexcept -> void
+    const Secret& words,
+    Secret& seed,
+    const Secret& passphrase) const noexcept -> void
 {
     words_to_root(words, seed, passphrase);
 }

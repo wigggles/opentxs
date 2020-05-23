@@ -20,15 +20,18 @@
 #include <vector>
 
 #include "crypto/HDNode.hpp"
+#include "opentxs/OT.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Proto.hpp"
+#include "opentxs/api/Context.hpp"
+#include "opentxs/api/Primitives.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/Secret.hpp"
 #include "opentxs/crypto/Bip32.hpp"
 #include "opentxs/crypto/library/EcdsaProvider.hpp"
 #include "opentxs/protobuf/Enums.pb.h"
@@ -100,10 +103,12 @@ auto Bip32::decode(const std::string& serialized) const noexcept -> OTData
 #if OT_CRYPTO_WITH_BIP32
 auto Bip32::DeriveKey(
     const EcdsaCurve& curve,
-    const OTPassword& seed,
+    const Secret& seed,
     const Path& path) const -> Key
 {
-    auto output = Key{OTPassword{}, OTPassword{}, Data::Factory(), path, 0};
+    const auto& factory = Context().Factory();
+    auto output =
+        Key{factory.Secret(0), factory.Secret(0), Data::Factory(), path, 0};
     auto& [privateKey, chainCode, publicKey, pathOut, parent] = output;
     auto node = HDNode{crypto_};
     auto& hash = node.hash_;
@@ -201,13 +206,13 @@ auto Bip32::DeriveKey(
     const auto publicOut = node.ParentPublic();
 
     if (EcdsaCurve::secp256k1 == curve) {
-        privateKey.setMemory(privateOut.data(), privateOut.size());
+        privateKey->Assign(privateOut);
         publicKey->Assign(publicOut);
     } else {
         const auto expanded = sodium::ExpandSeed(
             {reinterpret_cast<const char*>(privateOut.data()),
              privateOut.size()},
-            privateKey.WriteInto(OTPassword::Mode::Mem),
+            privateKey->WriteInto(Secret::Mode::Mem),
             publicKey->WriteInto());
 
         if (false == expanded) {
@@ -217,7 +222,7 @@ auto Bip32::DeriveKey(
         }
     }
 
-    chainCode.setMemory(chainOut.data(), chainOut.size());
+    chainCode->Assign(chainOut);
 
     return output;
 }
@@ -230,7 +235,7 @@ auto Bip32::DeserializePrivate(
     Bip32Fingerprint& parent,
     Bip32Index& index,
     Data& chainCode,
-    OTPassword& key) const -> bool
+    Secret& key) const -> bool
 {
     const auto input = decode(serialized);
     const auto size = input->size();
@@ -250,7 +255,7 @@ auto Bip32::DeserializePrivate(
         return {};
     }
 
-    key.setMemory(&input->at(46), 32);
+    key.Assign(&input->at(46), 32);
 
     return output;
 }
@@ -327,7 +332,7 @@ auto Bip32::provider(const EcdsaCurve& curve) const noexcept(false)
 
 #if OT_CRYPTO_WITH_BIP32
 auto Bip32::root_node(
-    [[maybe_unused]] const EcdsaCurve& curve,
+    const EcdsaCurve& curve,
     const ReadView entropy,
     const AllocateOutput key,
     const AllocateOutput code,
@@ -410,9 +415,9 @@ auto Bip32::SerializePrivate(
     const Bip32Fingerprint parent,
     const Bip32Index index,
     const Data& chainCode,
-    const OTPassword& key) const -> std::string
+    const Secret& key) const -> std::string
 {
-    const auto size = key.getMemorySize();
+    const auto size = key.size();
 
     if (32 != size) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid key size (")(size)(")")
@@ -421,12 +426,12 @@ auto Bip32::SerializePrivate(
         return {};
     }
 
-    auto input = Data::Factory();
+    auto input = Data::Factory();  // TODO should be secret
     input->DecodeHex("0x00");
 
     OT_ASSERT(1 == input->size());
 
-    input += Data::Factory(key.getMemory(), key.getMemorySize());
+    input->Concatenate(key.Bytes());
 
     OT_ASSERT(33 == input->size());
 

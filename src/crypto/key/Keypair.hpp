@@ -32,6 +32,7 @@ class AsymmetricKey;
 class Data;
 class OTPassword;
 class PasswordPrompt;
+class Secret;
 class Signature;
 }  // namespace opentxs
 
@@ -54,7 +55,7 @@ public:
         -> std::shared_ptr<proto::AsymmetricKey> final;
     auto GetTransportKey(
         Data& publicKey,
-        OTPassword& privateKey,
+        Secret& privateKey,
         const PasswordPrompt& reason) const noexcept -> bool final;
 
     Keypair(

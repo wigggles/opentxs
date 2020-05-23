@@ -25,8 +25,8 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/core/PasswordPrompt.hpp"
+#include "opentxs/core/Secret.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/crypto/key/Symmetric.hpp"
 #include "opentxs/crypto/library/SymmetricProvider.hpp"
 #include "opentxs/protobuf/Check.hpp"
@@ -64,13 +64,13 @@ auto Factory::SymmetricKey(
     Lock lock(output->lock_);
     const auto size = output->engine_.KeySize(realMode);
     output->key_size_ = size;
-    output->plaintext_key_ = std::make_unique<OTPassword>();
+    output->plaintext_key_ = api.Factory().Secret(0);
 
-    OT_ASSERT(output->plaintext_key_);
+    OT_ASSERT(output->plaintext_key_.has_value());
 
-    auto& key = *output->plaintext_key_;
+    auto& key = output->plaintext_key_.value();
 
-    if (false == output->allocate(lock, size, key, false)) { return nullptr; }
+    if (false == output->allocate(lock, size, key)) { return nullptr; }
 
     output->encrypt_key(lock, key, reason);
 
@@ -96,7 +96,7 @@ auto Factory::SymmetricKey(
 auto Factory::SymmetricKey(
     const api::internal::Core& api,
     const crypto::SymmetricProvider& engine,
-    const OTPassword& seed,
+    const Secret& seed,
     const std::uint64_t operations,
     const std::uint64_t difficulty,
     const std::size_t size,
@@ -105,7 +105,7 @@ auto Factory::SymmetricKey(
     std::unique_ptr<crypto::key::implementation::Symmetric> output;
     std::string salt{};
     crypto::key::implementation::Symmetric::Allocate(
-        engine.SaltSize(type), salt, false);
+        api, engine.SaltSize(type), salt, false);
 
     const std::uint64_t ops =
         (0 == operations) ? OT_SYMMETRIC_KEY_DEFAULT_OPERATIONS : operations;
@@ -121,20 +121,17 @@ auto Factory::SymmetricKey(
 auto Factory::SymmetricKey(
     const api::internal::Core& api,
     const crypto::SymmetricProvider& engine,
-    const OTPassword& raw,
+    const Secret& raw,
     const opentxs::PasswordPrompt& reason) -> crypto::key::Symmetric*
 {
     std::unique_ptr<crypto::key::implementation::Symmetric> output;
-
-    if (false == raw.isMemory()) { return nullptr; }
-
     output.reset(new crypto::key::implementation::Symmetric(api, engine));
 
     if (false == bool(output)) { return nullptr; }
 
     Lock lock(output->lock_);
     output->encrypt_key(lock, raw, reason);
-    output->key_size_ = raw.getMemorySize();
+    output->key_size_ = raw.size();
 
     return output.release();
 }
@@ -159,7 +156,7 @@ Symmetric::Symmetric(
     std::string* salt,
     const std::uint64_t operations,
     const std::uint64_t difficulty,
-    OTPassword* plaintextKey,
+    std::optional<OTSecret> plaintextKey,
     proto::Ciphertext* encryptedKey)
     : key::Symmetric()
     , api_(api)
@@ -188,7 +185,7 @@ Symmetric::Symmetric(
           nullptr,
           0,
           0,
-          nullptr,
+          {},
           nullptr)
 {
 }
@@ -206,7 +203,7 @@ Symmetric::Symmetric(
           new std::string(serialized.salt()),
           serialized.operations(),
           serialized.difficulty(),
-          nullptr,
+          {},
           new proto::Ciphertext(serialized.key()))
 {
 }
@@ -214,7 +211,7 @@ Symmetric::Symmetric(
 Symmetric::Symmetric(
     const api::internal::Core& api,
     const crypto::SymmetricProvider& engine,
-    const OTPassword& seed,
+    const Secret& seed,
     const std::string& salt,
     const std::size_t size,
     const std::uint64_t operations,
@@ -229,7 +226,7 @@ Symmetric::Symmetric(
           new std::string(salt),
           operations,
           difficulty,
-          new OTPassword,
+          api.Factory().Secret(0),
           nullptr)
 {
     OT_ASSERT(salt_);
@@ -240,8 +237,11 @@ Symmetric::Symmetric(
 
     Lock lock(lock_);
     auto& plain = get_plaintext(lock);
+
+    OT_ASSERT(plain.has_value());
+
     auto& salt_m = get_salt(lock);
-    allocate(lock, key_size_, *plain, false);
+    allocate(lock, key_size_, *plain);
     const auto bytes = seed.Bytes();
 
     const bool derived = engine.Derive(
@@ -252,8 +252,8 @@ Symmetric::Symmetric(
         operations_,
         difficulty_,
         type_,
-        static_cast<std::uint8_t*>(plain->getMemoryWritable()),
-        plain->getMemorySize());
+        reinterpret_cast<std::uint8_t*>(plain.value()->data()),
+        plain.value()->size());
 
     OT_ASSERT(derived);
 }
@@ -268,13 +268,13 @@ Symmetric::Symmetric(const Symmetric& rhs)
           nullptr,
           rhs.operations_,
           rhs.difficulty_,
-          nullptr,
+          {},
           nullptr)
 {
     if (rhs.salt_) { salt_.reset(new std::string(*rhs.salt_)); }
 
-    if (rhs.plaintext_key_) {
-        plaintext_key_.reset(new OTPassword(*rhs.plaintext_key_));
+    if (rhs.plaintext_key_.has_value()) {
+        plaintext_key_ = rhs.plaintext_key_.value();
     }
 
     if (rhs.encrypted_key_) {
@@ -302,6 +302,7 @@ auto Symmetric::Allocate(const std::size_t size, String& container) -> bool
 }
 
 auto Symmetric::Allocate(
+    const api::Core& api,
     const std::size_t size,
     std::string& container,
     const bool random) -> bool
@@ -309,9 +310,9 @@ auto Symmetric::Allocate(
     container.resize(size, 0x0);
 
     if (random) {
-        OTPassword::randomizeMemory(
-            static_cast<void*>(const_cast<char*>(container.data())),
-            container.size());
+        auto secret = api.Factory().Secret(0);
+        secret->Randomize(size);
+        container.assign(secret->Bytes());
     }
 
     return (size == container.size());
@@ -320,34 +321,25 @@ auto Symmetric::Allocate(
 auto Symmetric::allocate(
     const Lock& lock,
     const std::size_t size,
-    OTPassword& container,
-    const bool text) const -> bool
+    Secret& container) const -> bool
 {
-    std::int32_t result;
-
-    if (text) {
-        result = container.randomizePassword(size);
-    } else {
-        result = container.randomizeMemory(size);
-    }
-
-    if (0 > result) { return false; }
-
-    return (size == static_cast<std::uint32_t>(result));
+    return size == container.Randomize(size);
 }
 
 auto Symmetric::ChangePassword(
     const opentxs::PasswordPrompt& reason,
-    const OTPassword& newPassword) -> bool
+    const Secret& newPassword) -> bool
 {
     Lock lock(lock_);
     auto& plain = get_plaintext(lock);
+
+    OT_ASSERT(plain.has_value());
 
     if (unlock(lock, reason)) {
         OTPasswordPrompt copy{reason};
         copy->SetPassword(newPassword);
 
-        return encrypt_key(lock, *plain, copy);
+        return encrypt_key(lock, plain.value(), copy);
     }
 
     LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to unlock master key.")
@@ -366,7 +358,7 @@ auto Symmetric::decrypt(
 {
     auto& plain = get_plaintext(lock);
 
-    if (false == bool(plain)) {
+    if (false == plain.has_value()) {
         if (false == unlock(lock, reason)) {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to unlock master key.")
                 .Flush();
@@ -375,8 +367,13 @@ auto Symmetric::decrypt(
         }
     }
 
+    OT_ASSERT(plain.has_value());
+
     const bool output = engine_.Decrypt(
-        input, plain->getMemory_uint8(), plain->getMemorySize(), plaintext);
+        input,
+        reinterpret_cast<const std::uint8_t*>(plain.value()->data()),
+        plain.value()->size(),
+        plaintext);
 
     if (false == output) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to decrypt key.").Flush();
@@ -433,7 +430,7 @@ auto Symmetric::encrypt(
 
     auto& plain = get_plaintext(lock);
 
-    if (false == bool(plain)) {
+    if (false == plain.has_value()) {
         if (false == unlock(lock, reason)) {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to unlock master key.")
                 .Flush();
@@ -441,6 +438,8 @@ auto Symmetric::encrypt(
             return false;
         }
     }
+
+    OT_ASSERT(plain.has_value());
 
     ciphertext.set_version(1);
 
@@ -451,22 +450,22 @@ auto Symmetric::encrypt(
     }
 
     if ((0 == ivSize) || (nullptr == iv)) {
-        OTPassword blankIV;
-        blankIV.randomizeMemory(engine_.IvSize(ciphertext.mode()));
-        ciphertext.set_iv(blankIV.getMemory(), blankIV.getMemorySize());
+        auto blankIV = api_.Factory().Secret(0);
+        blankIV->Randomize(engine_.IvSize(ciphertext.mode()));
+        ciphertext.set_iv(blankIV->data(), blankIV->size());
     } else {
         ciphertext.set_iv(iv, ivSize);
     }
 
     ciphertext.set_text(text);
 
-    OT_ASSERT(nullptr != plain->getMemory_uint8());
+    OT_ASSERT(nullptr != plain.value()->data());
 
     return engine_.Encrypt(
         input,
         inputSize,
-        plain->getMemory_uint8(),
-        plain->getMemorySize(),
+        reinterpret_cast<const std::uint8_t*>(plain.value()->data()),
+        plain.value()->size(),
         ciphertext);
 }
 
@@ -497,7 +496,7 @@ auto Symmetric::Encrypt(
 
 auto Symmetric::encrypt_key(
     const Lock& lock,
-    const OTPassword& plaintextKey,
+    const Secret& plaintextKey,
     const opentxs::PasswordPrompt& reason,
     const proto::SymmetricKeyType type) const -> bool
 {
@@ -507,11 +506,11 @@ auto Symmetric::encrypt_key(
     OT_ASSERT(encrypted);
 
     encrypted->set_mode(engine_.DefaultMode());
-    OTPassword blankIV;
-    blankIV.randomizeMemory(engine_.IvSize(encrypted->mode()));
-    encrypted->set_iv(blankIV.getMemory(), blankIV.getMemorySize());
+    auto blankIV = api_.Factory().Secret(0);
+    blankIV->Randomize(engine_.IvSize(encrypted->mode()));
+    encrypted->set_iv(blankIV->data(), blankIV->size());
     encrypted->set_text(false);
-    OTPassword key;
+    auto key = api_.Factory().Secret(0);
     get_password(lock, reason, key);
     const auto saltSize = engine_.SaltSize(type);
     auto& salt = get_salt(lock);
@@ -521,23 +520,25 @@ auto Symmetric::encrypt_key(
     OT_ASSERT(salt);
 
     if (salt->size() != saltSize) {
-        if (!Allocate(saltSize, *salt, true)) { return false; }
+        if (!Allocate(api_, saltSize, *salt, true)) { return false; }
     }
 
-    Symmetric secondaryKey(
-        api_,
-        engine_,
-        key,
-        *salt,
-        engine_.KeySize(encrypted->mode()),
-        OT_SYMMETRIC_KEY_DEFAULT_OPERATIONS,
-        OT_SYMMETRIC_KEY_DEFAULT_DIFFICULTY);
+    auto secondaryKey = Symmetric{api_,
+                                  engine_,
+                                  key,
+                                  *salt,
+                                  engine_.KeySize(encrypted->mode()),
+                                  OT_SYMMETRIC_KEY_DEFAULT_OPERATIONS,
+                                  OT_SYMMETRIC_KEY_DEFAULT_DIFFICULTY};
+
+    OT_ASSERT(secondaryKey.plaintext_key_.has_value());
 
     return engine_.Encrypt(
-        plaintextKey.getMemory_uint8(),
-        plaintextKey.getMemorySize(),
-        secondaryKey.plaintext_key_->getMemory_uint8(),
-        secondaryKey.plaintext_key_->getMemorySize(),
+        reinterpret_cast<const std::uint8_t*>(plaintextKey.data()),
+        plaintextKey.size(),
+        reinterpret_cast<const std::uint8_t*>(
+            secondaryKey.plaintext_key_.value()->data()),
+        secondaryKey.plaintext_key_.value()->size(),
         *encrypted);
 }
 
@@ -550,31 +551,29 @@ auto Symmetric::get_encrypted(const Lock& lock) const
 auto Symmetric::get_password(
     const Lock& lock,
     const opentxs::PasswordPrompt& reason,
-    OTPassword& password) const -> bool
+    Secret& password) const -> bool
 {
-    if (reason.Password()) {
-        password = *reason.Password();
+    if (false == reason.Password().empty()) {
+        password.Assign(reason.Password());
 
         return true;
     } else {
-        std::unique_ptr<OTPassword> master(new OTPassword);
-
-        OT_ASSERT(master);
-
-        master->randomizeMemory(master->getBlockSize());
+        auto buffer = api_.Factory().Secret(0);
+        buffer->Randomize(1024);
         auto* callback = api_.GetInternalPasswordCallback();
 
         OT_ASSERT(nullptr != callback);
 
+        auto bytes = buffer->Bytes();
         const auto length = (*callback)(
-            static_cast<char*>(master->getMemoryWritable()),
-            master->getBlockSize(),
+            const_cast<char*>(bytes.data()),
+            bytes.size(),
             0,
             const_cast<PasswordPrompt*>(&reason));
         bool result = false;
 
         if (0 < length) {
-            password.setMemory(master->getMemory(), length);
+            password.Assign(bytes.data(), static_cast<std::size_t>(length));
             result = true;
         } else {
             LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -587,7 +586,7 @@ auto Symmetric::get_password(
 }
 
 auto Symmetric::get_plaintext(const Lock& lock) const
-    -> std::unique_ptr<OTPassword>&
+    -> std::optional<OTSecret>&
 {
     return plaintext_key_;
 }
@@ -603,7 +602,7 @@ auto Symmetric::ID(const opentxs::PasswordPrompt& reason) const -> OTIdentifier
     Lock lock(lock_);
     auto& plain = get_plaintext(lock);
 
-    if (false == bool(plain)) {
+    if (false == plain.has_value()) {
         if (false == unlock(lock, reason)) {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to unlock master key.")
                 .Flush();
@@ -612,19 +611,18 @@ auto Symmetric::ID(const opentxs::PasswordPrompt& reason) const -> OTIdentifier
         }
     }
 
-    OT_ASSERT(plain);
+    OT_ASSERT(plain.has_value());
 
-    return api_.Factory().Identifier(plain->Bytes());
+    return api_.Factory().Identifier(plain.value()->Bytes());
 }
 
-auto Symmetric::RawKey(
-    const opentxs::PasswordPrompt& reason,
-    OTPassword& output) const -> bool
+auto Symmetric::RawKey(const opentxs::PasswordPrompt& reason, Secret& output)
+    const -> bool
 {
     Lock lock(lock_);
     auto& plain = get_plaintext(lock);
 
-    if (false == bool(plain)) {
+    if (false == plain.has_value()) {
         if (false == unlock(lock, reason)) {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to unlock master key.")
                 .Flush();
@@ -633,13 +631,9 @@ auto Symmetric::RawKey(
         }
     }
 
-    OT_ASSERT(plain);
+    OT_ASSERT(plain.has_value());
 
-    if (plain->isMemory()) {
-        output.setMemory(plain->getMemory(), plain->getMemorySize());
-    } else {
-        output.setPassword(plain->getPassword(), plain->getPasswordSize());
-    }
+    output.Assign(plain.value());
 
     return true;
 }
@@ -684,19 +678,19 @@ auto Symmetric::unlock(const Lock& lock, const opentxs::PasswordPrompt& reason)
         return false;
     }
 
-    if (plain) {
-        if (0 < plain->Bytes().size()) {
+    if (plain.has_value()) {
+        if (0 < plain.value()->Bytes().size()) {
             LogDetail(OT_METHOD)(__FUNCTION__)(": Already unlocked").Flush();
 
             return true;
         }
     } else {
-        plain.reset(new OTPassword);
+        plain = api_.Factory().Secret(0);
 
-        OT_ASSERT(plain);
+        OT_ASSERT(plain.has_value());
 
         // Allocate space for plaintext (same size as ciphertext)
-        if (!allocate(lock, encrypted->data().size(), *plain)) {
+        if (!allocate(lock, encrypted->data().size(), plain.value())) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
                 ": Unable to allocate space for plaintext master key.")
                 .Flush();
@@ -705,8 +699,10 @@ auto Symmetric::unlock(const Lock& lock, const opentxs::PasswordPrompt& reason)
         }
     }
 
+    OT_ASSERT(plain.has_value());
+
     auto& salt = get_salt(lock);
-    auto key = OTPassword{};
+    auto key = api_.Factory().Secret(0);
 
     if (false == get_password(lock, reason, key)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -723,11 +719,15 @@ auto Symmetric::unlock(const Lock& lock, const opentxs::PasswordPrompt& reason)
                                   engine_.KeySize(encrypted->mode()),
                                   OT_SYMMETRIC_KEY_DEFAULT_OPERATIONS,
                                   OT_SYMMETRIC_KEY_DEFAULT_DIFFICULTY};
+
+    OT_ASSERT(secondaryKey.plaintext_key_.has_value());
+
     const auto output = engine_.Decrypt(
         *encrypted,
-        secondaryKey.plaintext_key_->getMemory_uint8(),
-        secondaryKey.plaintext_key_->getMemorySize(),
-        static_cast<std::uint8_t*>(plain->getMemoryWritable()));
+        reinterpret_cast<const std::uint8_t*>(
+            secondaryKey.plaintext_key_.value()->data()),
+        secondaryKey.plaintext_key_.value()->size(),
+        reinterpret_cast<std::uint8_t*>(plain.value()->data()));
 
     if (output) {
         LogDetail(OT_METHOD)(__FUNCTION__)(": Key unlocked").Flush();

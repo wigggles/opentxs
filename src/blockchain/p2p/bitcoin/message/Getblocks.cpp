@@ -9,6 +9,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <type_traits>
 #include <utility>
 
 #include "Factory.hpp"
@@ -16,7 +17,6 @@
 #include "internal/blockchain/bitcoin/Bitcoin.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
 
 //#define OT_METHOD " opentxs::blockchain::p2p::bitcoin::message::Getblocks::"
 
@@ -52,13 +52,9 @@ auto Factory::BitcoinP2PGetblocks(
         return nullptr;
     }
     auto* it{static_cast<const std::byte*>(payload)};
-    OTPassword::safe_memcpy(
-        &raw_item.version_,
-        sizeof(raw_item.version_),
-        it,
-        sizeof(raw_item.version_));
+    std::memcpy(
+        static_cast<void*>(&raw_item.version_), it, sizeof(raw_item.version_));
     it += sizeof(raw_item.version_);
-
     bitcoin::ProtocolVersionUnsigned version = raw_item.version_.value();
     expectedSize += sizeof(std::byte);
 
@@ -94,13 +90,9 @@ auto Factory::BitcoinP2PGetblocks(
                 return nullptr;
             }
 
-            bitcoin::BlockHeaderHashField tempHash;
-            OTPassword::safe_memcpy(
-                tempHash.data(), sizeof(tempHash), it, sizeof(tempHash));
-            it += sizeof(tempHash);
-
-            auto dataHash = Data::Factory(tempHash.data(), sizeof(tempHash));
-            header_hashes.push_back(dataHash);
+            header_hashes.push_back(
+                Data::Factory(it, sizeof(bitcoin::BlockHeaderHashField)));
+            it += sizeof(bitcoin::BlockHeaderHashField);
         }
     }
     // --------------------------------------------------------
@@ -113,16 +105,17 @@ auto Factory::BitcoinP2PGetblocks(
 
         return nullptr;
     }
-    bitcoin::BlockHeaderHashField tempStopHash;
-    OTPassword::safe_memcpy(
-        tempStopHash.data(), sizeof(tempStopHash), it, sizeof(tempStopHash));
-    it += sizeof(tempStopHash);
 
-    auto stop_hash = Data::Factory(tempStopHash.data(), sizeof(tempStopHash));
-    // --------------------------------------------------------
+    auto stop_hash = Data::Factory(it, sizeof(bitcoin::BlockHeaderHashField));
+    it += sizeof(bitcoin::BlockHeaderHashField);
+
     try {
         return new ReturnType(
-            api, std::move(pHeader), version, header_hashes, stop_hash);
+            api,
+            std::move(pHeader),
+            version,
+            header_hashes,
+            std::move(stop_hash));
     } catch (...) {
         LogOutput("opentxs::Factory::")(__FUNCTION__)(": Checksum failure")
             .Flush();

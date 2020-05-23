@@ -9,6 +9,7 @@
 #include <chrono>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <string>
 #include <thread>
 
@@ -28,6 +29,7 @@
 #include "opentxs/api/crypto/Symmetric.hpp"
 #include "opentxs/api/network/Dht.hpp"
 #include "opentxs/api/storage/Storage.hpp"
+#include "opentxs/core/Secret.hpp"
 #include "opentxs/crypto/key/Symmetric.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 
@@ -78,7 +80,7 @@ public:
     INTERNAL_PASSWORD_CALLBACK* GetInternalPasswordCallback() const final;
     auto GetSecret(
         const opentxs::Lock& lock,
-        OTPassword& secret,
+        Secret& secret,
         const PasswordPrompt& reason,
         const bool twice) const -> bool final;
     auto Instance() const -> int final { return instance_; }
@@ -113,7 +115,7 @@ protected:
     std::unique_ptr<api::Wallet> wallet_;
     std::unique_ptr<api::network::Dht> dht_;
     mutable std::mutex master_key_lock_;
-    mutable std::unique_ptr<OTPassword> master_secret_;
+    mutable std::optional<OTSecret> master_secret_;
     mutable OTSymmetricKey master_key_;
     mutable std::thread password_timeout_;
     mutable std::chrono::seconds password_duration_;
@@ -124,7 +126,7 @@ protected:
         const api::internal::Context& parent,
         const api::Factory& factory,
         const proto::Ciphertext& encrypted_secret_,
-        std::unique_ptr<OTPassword>& master_secret_,
+        std::optional<OTSecret>& master_secret_,
         const api::crypto::Symmetric& symmetric,
         const api::storage::Storage& storage) -> OTSymmetricKey;
 

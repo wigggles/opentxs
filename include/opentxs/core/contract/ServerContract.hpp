@@ -15,9 +15,10 @@
 #include <string>
 #include <tuple>
 
-#include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/SharedPimpl.hpp"
+#include "opentxs/core/Secret.hpp"
+#include "opentxs/core/contract/Signable.hpp"
 
 namespace opentxs
 {
@@ -55,7 +56,7 @@ public:
     OPENTXS_EXPORT virtual proto::ServerContract PublicContract() const = 0;
     OPENTXS_EXPORT virtual bool Statistics(String& strContents) const = 0;
     OPENTXS_EXPORT virtual const Data& TransportKey() const = 0;
-    OPENTXS_EXPORT virtual std::unique_ptr<OTPassword> TransportKey(
+    OPENTXS_EXPORT virtual OTSecret TransportKey(
         Data& pubkey,
         const PasswordPrompt& reason) const = 0;
 

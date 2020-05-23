@@ -7,6 +7,10 @@
 #include "1_Internal.hpp"   // IWYU pragma: associated
 #include "core/String.hpp"  // IWYU pragma: associated
 
+extern "C" {
+#include <sodium.h>
+}
+
 #include <algorithm>
 #include <cctype>
 #include <cstdarg>
@@ -31,7 +35,6 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/core/NymFile.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/Signature.hpp"
 
 #define MAX_STRING_LENGTH 0x800000  // this is about 8 megs.
@@ -243,7 +246,7 @@ auto String::vformat(const char* fmt, va_list* pvl, std::string& str_Output)
 
     buffer = new char[size + 100];
     OT_ASSERT(nullptr != buffer);
-    OTPassword::zeroMemory(buffer, size + 100);
+    ::sodium_memzero(buffer, size + 100);
 
 #ifdef _WIN32
     nsize = vsnprintf_s(buffer, size, size, fmt, args_2);
@@ -274,7 +277,7 @@ auto String::vformat(const char* fmt, va_list* pvl, std::string& str_Output)
         delete[] buffer;
         buffer = new char[size + 100];
         OT_ASSERT(nullptr != buffer);
-        OTPassword::zeroMemory(buffer, size + 100);
+        ::sodium_memzero(buffer, size + 100);
 
 #ifdef _WIN32
         nsize = vsnprintf_s(buffer, size, size, fmt, *pvl);
@@ -1083,7 +1086,7 @@ void String::WriteToFile(std::ostream& ofs) const
 void String::zeroMemory()
 {
     if (false == internal_.empty()) {
-        OTPassword::zeroMemory(internal_.data(), length_);
+        ::sodium_memzero(internal_.data(), length_);
     }
 }
 

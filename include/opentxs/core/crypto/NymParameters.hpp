@@ -19,7 +19,7 @@
 #include "opentxs/Types.hpp"
 #include "opentxs/Version.hpp"
 #if OT_CRYPTO_WITH_BIP32
-#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/Secret.hpp"
 #endif  // OT_CRYPTO_WITH_BIP32
 #include "opentxs/crypto/key/Keypair.hpp"
 #include "opentxs/identity/credential/Base.hpp"
@@ -54,7 +54,7 @@ public:
     OPENTXS_EXPORT ReadView DHParams() const;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
 #if OT_CRYPTO_WITH_BIP32
-    OPENTXS_EXPORT const std::unique_ptr<OTPassword>& Entropy() const;
+    OPENTXS_EXPORT const Secret& Entropy() const;
 #endif  // OT_CRYPTO_WITH_BIP32
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
     OPENTXS_EXPORT std::int32_t keySize() const;
@@ -79,7 +79,7 @@ public:
     OPENTXS_EXPORT void SetCredIndex(const Bip32Index path);
     OPENTXS_EXPORT void SetCredset(const Bip32Index path);
     OPENTXS_EXPORT void SetDefault(const bool in);
-    OPENTXS_EXPORT void SetEntropy(const OTPassword& entropy);
+    OPENTXS_EXPORT void SetEntropy(const Secret& entropy);
 #endif  // OT_CRYPTO_WITH_BIP32
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
     OPENTXS_EXPORT void setKeySize(std::int32_t keySize);
@@ -159,7 +159,7 @@ private:
     std::shared_ptr<proto::ContactData> contact_data_;
     std::shared_ptr<proto::VerificationSet> verification_set_;
 #if OT_CRYPTO_WITH_BIP32
-    std::unique_ptr<OTPassword> entropy_;
+    OTSecret entropy_;
     std::string seed_;
     Bip32Index nym_;
     Bip32Index credset_;

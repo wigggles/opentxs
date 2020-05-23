@@ -32,6 +32,8 @@ class Asymmetric;
 }  // namespace key
 }  // namespace crypto
 
+class Secret;
+
 using OTAsymmetricKey = Pimpl<crypto::key::Asymmetric>;
 }  // namespace opentxs
 
@@ -63,7 +65,7 @@ public:
         const proto::AsymmetricKeyType type,
         const PasswordPrompt& reason,
         std::uint32_t& tag,
-        OTPassword& password) const noexcept = 0;
+        Secret& password) const noexcept = 0;
     OPENTXS_EXPORT virtual bool CalculateTag(
         const Asymmetric& dhKey,
         const Identifier& credential,
@@ -72,7 +74,7 @@ public:
     OPENTXS_EXPORT virtual bool CalculateSessionPassword(
         const Asymmetric& dhKey,
         const PasswordPrompt& reason,
-        OTPassword& password) const noexcept = 0;
+        Secret& password) const noexcept = 0;
     OPENTXS_EXPORT virtual const opentxs::crypto::AsymmetricProvider& engine()
         const noexcept = 0;
     OPENTXS_EXPORT virtual const OTSignatureMetadata* GetMetadata() const
@@ -103,7 +105,7 @@ public:
         const proto::HashType hash = proto::HASHTYPE_ERROR) const noexcept = 0;
     OPENTXS_EXPORT virtual bool TransportKey(
         Data& publicKey,
-        OTPassword& privateKey,
+        Secret& privateKey,
         const PasswordPrompt& reason) const noexcept = 0;
     OPENTXS_EXPORT virtual bool Verify(
         const Data& plaintext,

@@ -19,7 +19,7 @@ extern "C" {
 #include <iostream>
 #include <memory>
 
-#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
@@ -33,14 +33,16 @@ extern "C" {
 
 namespace zmq = opentxs::network::zeromq;
 
-namespace opentxs
+namespace opentxs::factory
 {
-auto Factory::Log(const zmq::Context& zmq, const std::string& endpoint)
-    -> api::internal::Log*
+auto Log(const zmq::Context& zmq, const std::string& endpoint) noexcept
+    -> std::unique_ptr<api::internal::Log>
 {
-    return new api::implementation::Log(zmq, endpoint);
+    using ReturnType = api::implementation::Log;
+
+    return std::make_unique<ReturnType>(zmq, endpoint);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::api::implementation
 {
@@ -65,17 +67,23 @@ void Log::callback(zmq::Message& message)
 {
     if (message.Body().size() < 3) { return; }
 
-    int level{-1};
     const auto& levelFrame = message.Body_at(0);
     const auto& messageFrame = message.Body_at(1);
     const auto& id = message.Body_at(2);
-    OTPassword::safe_memcpy(
-        &level, sizeof(level), levelFrame.data(), levelFrame.size());
+
+    try {
+        const auto level = levelFrame.as<int>();
+
 #ifdef ANDROID
-    print_android(level, messageFrame, id);
+        print_android(level, messageFrame, id);
 #else
-    print(level, messageFrame, id);
+        print(level, messageFrame, id);
 #endif
+    } catch (...) {
+        std::cout << "Invalid level size: " << levelFrame.size() << '\n';
+
+        OT_FAIL;
+    }
 
     if (publish_) { publish_socket_->Send(message); }
 

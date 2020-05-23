@@ -48,7 +48,7 @@
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
-#include "util/Cleanup.hpp"
+#include "util/ScopeGuard.hpp"
 
 #define OT_METHOD "opentxs::blockchain::p2p::bitcoin::implementation::Peer::"
 
@@ -343,7 +343,7 @@ auto Peer::process_cfheaders(
     const zmq::Frame& payload) -> void
 {
     auto& success = state_.verify_.second_action_;
-    auto postcondition = Cleanup{[this, &success] {
+    auto postcondition = ScopeGuard{[this, &success] {
         if (verifying() && (false == success)) {
             LogNormal("Disconnecting ")(
                 blockchain::internal::DisplayString(chain_))(" peer ")(
@@ -731,7 +731,7 @@ auto Peer::process_headers(
     const zmq::Frame& payload) -> void
 {
     auto& success = state_.verify_.first_action_;
-    auto postcondition = Cleanup{[this, &success] {
+    auto postcondition = ScopeGuard{[this, &success] {
         if (verifying() && (false == success)) {
             LogNormal("Disconnecting ")(
                 blockchain::internal::DisplayString(chain_))(" peer ")(
@@ -1305,7 +1305,7 @@ auto Peer::request_cfilter(zmq::Message& in) noexcept -> void
 auto Peer::request_checkpoint_block_header() noexcept -> void
 {
     auto success = false;
-    auto postcondition = Cleanup{[this, &success] {
+    auto postcondition = ScopeGuard{[this, &success] {
         if (success) {
             LogVerbose("Requested checkpoint block header from ")(
                 blockchain::internal::DisplayString(chain_))(" peer ")(
@@ -1349,7 +1349,7 @@ auto Peer::request_checkpoint_block_header() noexcept -> void
 auto Peer::request_checkpoint_filter_header() noexcept -> void
 {
     auto success = false;
-    auto postcondition = Cleanup{[this, &success] {
+    auto postcondition = ScopeGuard{[this, &success] {
         if (success) {
             LogVerbose("Requested checkpoint filter header from ")(
                 blockchain::internal::DisplayString(chain_))(" peer ")(

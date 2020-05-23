@@ -45,11 +45,13 @@
 #include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/socket/Socket.hpp"
-#include "util/Cleanup.hpp"
 #endif  // OT_BLOCKCHAIN
 #include "opentxs/protobuf/BlockchainEnums.pb.h"
 #include "opentxs/protobuf/ContactEnums.pb.h"
 #include "opentxs/protobuf/Enums.pb.h"
+#if OT_BLOCKCHAIN
+#include "util/ScopeGuard.hpp"
+#endif  // OT_BLOCKCHAIN
 
 #define LOCK_NYM()                                                             \
     Lock mapLock(lock_);                                                       \
@@ -217,7 +219,7 @@ auto Blockchain::BalanceOracle::cb(
 
     auto output = opentxs::blockchain::Balance{};
     const auto& chainFrame = body.at(0);
-    auto cleanup = Cleanup{[&]() {
+    auto postcondition = ScopeGuard{[&]() {
         auto message = zmq_.ReplyMessage(in);
         message->AddFrame(chainFrame);
         message->AddFrame(output.first);

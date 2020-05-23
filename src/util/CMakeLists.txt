@@ -5,9 +5,9 @@
 
 set(
   cxx-sources
-  Cleanup.cpp
   LMDB.cpp
   PIDFile.cpp
+  ScopeGuard.cpp
   Signals.cpp
   Sodium.cpp
 )
@@ -19,9 +19,9 @@ set(
 set(
   cxx-headers
   ${cxx-install-headers}
-  Cleanup.hpp
   LMDB.hpp
   PIDFile.hpp
+  ScopeGuard.hpp
   Sodium.hpp
 )
 

@@ -28,6 +28,8 @@ class Keypair;
 }  // namespace key
 }  // namespace crypto
 
+class Secret;
+
 using OTKeypair = Pimpl<crypto::key::Keypair>;
 }  // namespace opentxs
 
@@ -61,7 +63,7 @@ public:
         bool privateKey) const noexcept = 0;
     OPENTXS_EXPORT virtual bool GetTransportKey(
         Data& publicKey,
-        OTPassword& privateKey,
+        Secret& privateKey,
         const PasswordPrompt& reason) const noexcept = 0;
 
     OPENTXS_EXPORT virtual ~Keypair() = default;

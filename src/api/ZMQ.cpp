@@ -7,7 +7,7 @@
 #include "1_Internal.hpp"  // IWYU pragma: associated
 #include "api/ZMQ.hpp"     // IWYU pragma: associated
 
-#include "Factory.hpp"
+#include "internal/api/Api.hpp"
 #include "opentxs/core/Log.hpp"
 
 namespace opentxs::api::implementation
@@ -17,7 +17,7 @@ ZMQ::ZMQ(
     const int instance) noexcept
     : zmq_context_(zmq)
     , instance_(instance)
-    , endpoints_p_(opentxs::Factory::Endpoints(zmq_context_, instance_))
+    , endpoints_p_(factory::Endpoints(zmq_context_, instance_))
     , endpoints_(*endpoints_p_)
     , shutdown_sender_(zmq, endpoints_.Shutdown())
 {

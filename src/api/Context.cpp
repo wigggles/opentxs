@@ -23,13 +23,16 @@ extern "C" {
 #include <utility>
 #include <vector>
 
+#include "internal/api/Api.hpp"
 #include "internal/rpc/RPC.hpp"
+#include "opentxs/OT.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/api/Context.hpp"
 #include "opentxs/api/Factory.hpp"
 #if OT_CRYPTO_WITH_BIP32
 #include "opentxs/api/HDSeed.hpp"
 #endif  // OT_CRYPTO_WITH_BIP32
+#include "opentxs/api/Primitives.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
@@ -41,18 +44,21 @@ extern "C" {
 
 // #define OT_METHOD "opentxs::api::implementation::Context::"
 
-namespace opentxs
+namespace opentxs::factory
 {
-auto Factory::Context(
+auto Context(
     Flag& running,
     const ArgList& args,
     const std::chrono::seconds gcInterval,
-    OTCaller* externalPasswordCallback) -> api::internal::Context*
+    OTCaller* externalPasswordCallback) noexcept
+    -> std::unique_ptr<api::internal::Context>
 {
-    return new api::implementation::Context(
+    using ReturnType = api::implementation::Context;
+
+    return std::make_unique<ReturnType>(
         running, args, gcInterval, externalPasswordCallback);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::api
 {
@@ -67,26 +73,22 @@ namespace opentxs::api::implementation
 Context::Context(
     Flag& running,
     const ArgList& args,
-    const std::chrono::seconds gcInterval,
+    [[maybe_unused]] const std::chrono::seconds gcInterval,
     OTCaller* externalPasswordCallback)
     : api::internal::Context()
     , Lockable()
     , Periodic(running)
-    , gc_interval_(gcInterval)
     , home_(get_arg(args, OPENTXS_ARG_HOME))
-    , word_list_()
-    , passphrase_()
     , config_lock_()
     , task_list_lock_()
     , signal_handler_lock_()
     , config_()
     , zmq_context_(opentxs::Factory::ZMQContext())
     , signal_handler_(nullptr)
-    , log_(opentxs::Factory::Log(
-          zmq_context_,
-          get_arg(args, OPENTXS_ARG_LOGENDPOINT)))
+    , log_(factory::Log(zmq_context_, get_arg(args, OPENTXS_ARG_LOGENDPOINT)))
     , crypto_(nullptr)
-    , legacy_(opentxs::Factory::Legacy(home_))
+    , factory_(nullptr)
+    , legacy_(factory::Legacy(home_))
     , zap_(nullptr)
     , args_(args)
     , shutdown_callback_(nullptr)
@@ -107,15 +109,6 @@ Context::Context(
     }
 
     assert(nullptr != external_password_callback_);
-
-    const auto& word = get_arg(args, OPENTXS_ARG_WORDS);
-    if (!word.empty()) { word_list_.setPassword(word.c_str(), word.size()); }
-
-    const auto& passphrase = get_arg(args, OPENTXS_ARG_PASSPHRASE);
-    if (!passphrase.empty()) {
-        passphrase_.setPassword(passphrase.c_str(), passphrase.size());
-    }
-
     assert(rpc_);
 }
 
@@ -142,8 +135,7 @@ auto Context::Config(const std::string& path) const -> const api::Settings&
     auto& config = config_[path];
 
     if (!config) {
-        config.reset(
-            opentxs::Factory::Settings(*legacy_, String::Factory(path)));
+        config = factory::Settings(*legacy_, String::Factory(path));
     }
 
     OT_ASSERT(config);
@@ -158,6 +150,13 @@ auto Context::Crypto() const -> const api::Crypto&
     OT_ASSERT(crypto_)
 
     return *crypto_;
+}
+
+auto Context::Factory() const -> const api::Primitives&
+{
+    OT_ASSERT(factory_)
+
+    return *factory_;
 }
 
 auto Context::get_arg(const ArgList& args, const std::string& argName)
@@ -210,6 +209,7 @@ void Context::Init()
 
     Init_Log(argLevel);
     Init_Crypto();
+    Init_Factory();
 #ifndef _WIN32
     Init_Rlimit();
 #endif  // _WIN32
@@ -220,6 +220,15 @@ void Context::Init_Crypto()
 {
     crypto_.reset(
         opentxs::Factory::Crypto(Config(legacy_->CryptoConfigFilePath())));
+
+    OT_ASSERT(crypto_);
+}
+
+void Context::Init_Factory()
+{
+    factory_ = factory::Primitives(*crypto_);
+
+    OT_ASSERT(factory_);
 }
 
 void Context::Init_Log(const std::int32_t argLevel)
@@ -433,10 +442,10 @@ auto Context::StartClient(
     auto reason = client.Factory().PasswordPrompt("Recovering a BIP-39 seed");
 
     if (0 < recoverWords.size()) {
-        OTPassword wordList{};
-        OTPassword phrase{};
-        wordList.setPassword(recoverWords);
-        phrase.setPassword(recoverPassphrase);
+        auto wordList =
+            opentxs::Context().Factory().SecretFromText(recoverWords);
+        auto phrase =
+            opentxs::Context().Factory().SecretFromText(recoverPassphrase);
         client.Seeds().ImportSeed(wordList, phrase, reason);
     }
 

@@ -19,14 +19,14 @@ OTCaller::OTCaller()
 {
 }
 
-void OTCaller::AskOnce(const PasswordPrompt& prompt, OTPassword& output)
+void OTCaller::AskOnce(const PasswordPrompt& prompt, Secret& output)
 {
     OT_ASSERT(callback_);
 
     callback_->runOne(prompt.GetDisplayString(), output);
 }
 
-void OTCaller::AskTwice(const PasswordPrompt& prompt, OTPassword& output)
+void OTCaller::AskTwice(const PasswordPrompt& prompt, Secret& output)
 {
     OT_ASSERT(callback_);
 

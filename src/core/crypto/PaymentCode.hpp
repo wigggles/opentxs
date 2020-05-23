@@ -18,7 +18,7 @@
 #include "opentxs/Types.hpp"
 #include "opentxs/Version.hpp"
 #include "opentxs/core/Data.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/Secret.hpp"
 #include "opentxs/core/crypto/PaymentCode.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/crypto/key/Asymmetric.hpp"
@@ -172,7 +172,7 @@ private:
     const std::uint8_t version_;
     const bool hasBitmessage_;
     const OTData pubkey_;
-    const OTPassword chain_code_;
+    const OTSecret chain_code_;
     const std::uint8_t bitmessage_version_;
     const std::uint8_t bitmessage_stream_;
     const OTNymID id_;

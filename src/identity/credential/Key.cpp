@@ -390,7 +390,7 @@ auto Key::new_key(
 
 auto Key::SelfSign(
     const PasswordPrompt& reason,
-    const OTPassword*,
+    const std::optional<OTSecret>,
     const bool onlyPrivate) -> bool
 {
     Lock lock(lock_);
@@ -518,7 +518,7 @@ auto Key::signing_key(
 
 auto Key::TransportKey(
     Data& publicKey,
-    OTPassword& privateKey,
+    Secret& privateKey,
     const PasswordPrompt& reason) const -> bool
 {
     return authentication_key_->GetTransportKey(publicKey, privateKey, reason);

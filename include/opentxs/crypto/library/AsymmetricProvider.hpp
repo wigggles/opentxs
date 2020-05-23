@@ -10,9 +10,12 @@
 
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
-#include "opentxs/core/crypto/NymParameters.hpp"
+#include <optional>
+
 #include "opentxs/Bytes.hpp"
 #include "opentxs/Proto.hpp"
+#include "opentxs/core/Secret.hpp"
+#include "opentxs/core/crypto/NymParameters.hpp"
 
 namespace opentxs
 {
@@ -23,7 +26,10 @@ namespace internal
 struct Core;
 }  // namespace internal
 }  // namespace api
+}  // namespace opentxs
 
+namespace opentxs
+{
 namespace crypto
 {
 class AsymmetricProvider
@@ -42,7 +48,7 @@ public:
         const key::Asymmetric& publicKey,
         const key::Asymmetric& privateKey,
         const PasswordPrompt& reason,
-        OTPassword& secret) const noexcept = 0;
+        Secret& secret) const noexcept = 0;
     OPENTXS_EXPORT virtual bool RandomKeypair(
         const AllocateOutput privateKey,
         const AllocateOutput publicKey,
@@ -56,7 +62,7 @@ public:
         const proto::HashType hashType,
         Data& signature,  // output
         const PasswordPrompt& reason,
-        const OTPassword* exportPassword = nullptr) const = 0;
+        const std::optional<OTSecret> exportPassword = {}) const = 0;
     OPENTXS_EXPORT virtual bool SignContract(
         const api::internal::Core& api,
         const String& strContractUnsigned,

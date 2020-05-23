@@ -100,10 +100,7 @@ private:
     explicit Identifier(const String& rhs);
     explicit Identifier(const identity::Nym& nym);
     explicit Identifier(const Contract& contract);
-    explicit Identifier(
-        const Vector& data,
-        const std::size_t size,
-        const ID type);
+    explicit Identifier(const Vector& data, const ID type);
     Identifier(const proto::ContactItemType type, const proto::HDPath& path);
     Identifier();
     Identifier(const Identifier& rhs) = delete;

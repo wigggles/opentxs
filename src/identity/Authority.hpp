@@ -72,6 +72,7 @@ class Factory;
 class NymParameters;
 class OTPassword;
 class PasswordPrompt;
+class Secret;
 class Signature;
 }  // namespace opentxs
 
@@ -156,7 +157,7 @@ public:
     }
     auto TransportKey(
         Data& publicKey,
-        OTPassword& privateKey,
+        Secret& privateKey,
         const PasswordPrompt& reason) const -> bool final;
     auto Unlock(
         const crypto::key::Asymmetric& dhKey,

@@ -24,8 +24,8 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/Secret.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/crypto/Bip32.hpp"
 #include "opentxs/crypto/key/HD.hpp"
 #include "opentxs/crypto/key/Symmetric.hpp"
@@ -84,7 +84,7 @@ HD::HD(
           serializedKey.has_chaincode()
               ? std::make_unique<proto::Ciphertext>(serializedKey.chaincode())
               : nullptr)
-    , plaintext_chain_code_()
+    , plaintext_chain_code_(api.Factory().Secret(0))
     , parent_(serializedKey.bip32_parent())
 {
 }
@@ -99,7 +99,7 @@ HD::HD(
     : EllipticCurve(api, ecdsa, keyType, role, version, reason)
     , path_(nullptr)
     , chain_code_(nullptr)
-    , plaintext_chain_code_()
+    , plaintext_chain_code_(api.Factory().Secret(0))
     , parent_(0)
 {
 }
@@ -109,8 +109,8 @@ HD::HD(
     const api::internal::Core& api,
     const crypto::EcdsaProvider& ecdsa,
     const proto::AsymmetricKeyType keyType,
-    const OTPassword& privateKey,
-    const OTPassword& chainCode,
+    const Secret& privateKey,
+    const Secret& chainCode,
     const Data& publicKey,
     const proto::HDPath& path,
     const Bip32Fingerprint parent,
@@ -151,7 +151,7 @@ HD::HD(const HD& rhs) noexcept
 
 auto HD::Chaincode(const PasswordPrompt& reason) const noexcept -> ReadView
 {
-    auto existing = plaintext_chain_code_.Bytes();
+    auto existing = plaintext_chain_code_->Bytes();
 
     if (nullptr != existing.data() && 0 < existing.size()) { return existing; }
 
@@ -172,7 +172,7 @@ auto HD::Chaincode(const PasswordPrompt& reason) const noexcept -> ReadView
         return {};
     }
 
-    auto allocator = plaintext_chain_code_.WriteInto(OTPassword::Mode::Mem);
+    auto allocator = plaintext_chain_code_->WriteInto(Secret::Mode::Mem);
 
     if (false == sessionKey->Decrypt(chaincode, reason, allocator)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to decrypt chain code")
@@ -181,7 +181,7 @@ auto HD::Chaincode(const PasswordPrompt& reason) const noexcept -> ReadView
         return {};
     }
 
-    return plaintext_chain_code_.Bytes();
+    return plaintext_chain_code_->Bytes();
 }
 
 auto HD::Depth() const noexcept -> int
@@ -308,7 +308,7 @@ auto HD::Xprv(const PasswordPrompt& reason) const noexcept -> std::string
 
     if (false == ready) { return {}; }
 
-    OTPassword privateKey{OTPassword::Mode::Mem, PrivateKey(reason)};
+    auto privateKey = api_.Factory().SecretFromBytes(PrivateKey(reason));
 
     // FIXME Bip32::SerializePrivate should accept ReadView
 

@@ -15,6 +15,7 @@ extern "C" {
 }
 
 #include <cstdint>
+#include <cstring>
 #include <limits>
 #include <memory>
 #include <string_view>
@@ -23,8 +24,8 @@ extern "C" {
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/Secret.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/crypto/key/Asymmetric.hpp"
 #include "opentxs/crypto/library/HashingProvider.hpp"
 #include "opentxs/protobuf/Enums.pb.h"
@@ -308,7 +309,7 @@ auto OpenSSL::HMAC(
             &size);
 
         if (nullptr != data) {
-            OTPassword::safe_memcpy(output, size, data, size);
+            std::memcpy(output, data, size);
 
             return true;
         } else {
@@ -689,7 +690,7 @@ auto OpenSSL::SharedSecret(
     const key::Asymmetric& publicKey,
     const key::Asymmetric& privateKey,
     const PasswordPrompt& reason,
-    OTPassword& secret) const noexcept -> bool
+    Secret& secret) const noexcept -> bool
 {
     if (proto::AKEYTYPE_LEGACY != publicKey.keyType()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid public key type").Flush();
@@ -735,7 +736,7 @@ auto OpenSSL::SharedSecret(
         return false;
     }
 
-    auto allocate = secret.WriteInto(OTPassword::Mode::Mem);
+    auto allocate = secret.WriteInto(Secret::Mode::Mem);
 
     if (false == bool(allocate)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to get output allocator")
@@ -781,7 +782,7 @@ auto OpenSSL::Sign(
     const proto::HashType type,
     Data& out,
     const PasswordPrompt& reason,
-    const OTPassword*) const -> bool
+    const std::optional<OTSecret>) const -> bool
 {
     if (proto::AKEYTYPE_LEGACY != key.keyType()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid key type").Flush();

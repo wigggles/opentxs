@@ -164,7 +164,7 @@ auto Keypair::GetSerialized(bool privateKey) const noexcept
 
 auto Keypair::GetTransportKey(
     Data& publicKey,
-    OTPassword& privateKey,
+    Secret& privateKey,
     const opentxs::PasswordPrompt& reason) const noexcept -> bool
 {
     return m_pkeyPrivate->TransportKey(publicKey, privateKey, reason);

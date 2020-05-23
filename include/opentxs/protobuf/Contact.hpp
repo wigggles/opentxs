@@ -19,6 +19,7 @@
 #pragma GCC diagnostic ignored "-Wsign-conversion"
 #pragma GCC diagnostic ignored "-Winconsistent-missing-destructor-override¶"
 #include "opentxs/protobuf/ContactEnums.pb.h"  // IWYU pragma: export
+
 #pragma GCC diagnostic pop
 
 namespace opentxs

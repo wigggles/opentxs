@@ -10,6 +10,7 @@
 #include <cstdint>
 #include <memory>
 
+#include "internal/api/Api.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 
 #define ENDPOINT_VERSION_1 1
@@ -48,14 +49,16 @@
 
 //#define OT_METHOD "opentxs::api::implementation::Endpoints::"
 
-namespace opentxs
+namespace opentxs::factory
 {
-auto Factory::Endpoints(const network::zeromq::Context& zmq, const int instance)
-    -> api::Endpoints*
+auto Endpoints(const network::zeromq::Context& zmq, const int instance) noexcept
+    -> std::unique_ptr<api::Endpoints>
 {
-    return new api::implementation::Endpoints(zmq, instance);
+    using ReturnType = api::implementation::Endpoints;
+
+    return std::make_unique<ReturnType>(zmq, instance);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::api::implementation
 {
