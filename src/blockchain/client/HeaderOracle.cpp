@@ -13,6 +13,7 @@
 #include <iosfwd>
 #include <iterator>
 #include <map>
+#include <stdexcept>
 #include <type_traits>
 
 #include "blockchain/client/UpdateTransaction.hpp"
@@ -314,6 +315,35 @@ auto HeaderOracle::BestHash(const block::Height height) const noexcept
     }
 }
 
+auto HeaderOracle::BestHashes(
+    const block::Height start,
+    const std::size_t limit) const noexcept -> std::vector<block::pHash>
+{
+    Lock lock(lock_);
+    auto output = std::vector<block::pHash>{};
+    const auto limitIsZero = (0 == limit);
+    auto current{start};
+    const auto last{
+        current + static_cast<block::Height>(limit) -
+        static_cast<block::Height>(1)};
+
+    while (limitIsZero || (current <= last)) {
+        try {
+            auto hash = database_.BestBlock(current++);
+
+            // TODO this check shouldn't be necessary but BestBlock doesn't
+            // throw the exception documented in its declaration.
+            if (hash->empty()) { break; }
+
+            output.emplace_back(std::move(hash));
+        } catch (...) {
+            break;
+        }
+    }
+
+    return output;
+}
+
 auto HeaderOracle::CalculateReorg(const block::Position tip) const
     noexcept(false) -> std::vector<block::Position>
 {
@@ -541,10 +571,11 @@ auto HeaderOracle::GetDefaultCheckpoint() const noexcept -> CheckpointData
 {
     const auto& [height, block, previous, filter] = checkpoints_.at(chain_);
 
-    return CheckpointData{height,
-                          api_.Factory().Data(block, StringStyle::Hex),
-                          api_.Factory().Data(previous, StringStyle::Hex),
-                          api_.Factory().Data(filter, StringStyle::Hex)};
+    return CheckpointData{
+        height,
+        api_.Factory().Data(block, StringStyle::Hex),
+        api_.Factory().Data(previous, StringStyle::Hex),
+        api_.Factory().Data(filter, StringStyle::Hex)};
 }
 
 auto HeaderOracle::GetCheckpoint() const noexcept -> block::Position

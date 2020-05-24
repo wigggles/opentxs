@@ -208,6 +208,25 @@ public:
         return true;
     }
 
+    [[maybe_unused]] auto verify_hash_sequence(
+        const bb::Height start,
+        const std::size_t stop,
+        const std::vector<std::string>& expected) -> bool
+    {
+        const auto hashes = header_oracle_.BestHashes(start, stop);
+
+        if (hashes.size() != expected.size()) { return false; }
+
+        for (std::size_t index{0}; index < hashes.size(); ++index) {
+            const auto& hash = hashes.at(index);
+            const auto expectedHash = get_block_hash(expected.at(index));
+
+            if (expectedHash != hash) { return false; }
+        }
+
+        return true;
+    }
+
     [[maybe_unused]] bool verify_post_state(const PostStateVector& vector)
     {
         for (const auto& [sHash, spHash, height, status, pStatus] : vector) {

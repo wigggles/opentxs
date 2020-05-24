@@ -7,6 +7,7 @@
 
 #include <array>
 #include <deque>
+#include <iosfwd>
 #include <map>
 #include <memory>
 #include <mutex>
@@ -56,6 +57,8 @@ public:
     auto BestChain() const noexcept -> block::Position final;
     auto BestHash(const block::Height height) const noexcept
         -> block::pHash final;
+    auto BestHashes(const block::Height start, const std::size_t limit = 0)
+        const noexcept -> std::vector<block::pHash> final;
     auto CalculateReorg(const block::Position tip) const noexcept(false)
         -> std::vector<block::Position> final;
     auto CommonParent(const block::Position& position) const noexcept
@@ -120,8 +123,8 @@ private:
         const block::Header& candidate) noexcept -> bool;
 
     auto best_chain(const Lock& lock) const noexcept -> block::Position;
-    auto is_in_best_chain(const Lock& lock, const block::Hash& hash) const
-        noexcept -> bool;
+    auto is_in_best_chain(const Lock& lock, const block::Hash& hash)
+        const noexcept -> bool;
     auto is_in_best_chain(const Lock& lock, const block::Position& position)
         const noexcept -> bool;
     auto is_in_best_chain(
