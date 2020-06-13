@@ -47,6 +47,7 @@ if(OT_BLOCKCHAIN_EXPORT)
       $<TARGET_OBJECTS:opentxs-blockchain-block>
       $<TARGET_OBJECTS:opentxs-blockchain-client-bitcoin>
       $<TARGET_OBJECTS:opentxs-blockchain-client>
+      $<TARGET_OBJECTS:opentxs-blockchain-database>
       $<TARGET_OBJECTS:opentxs-blockchain-p2p-bitcoin-message>
       $<TARGET_OBJECTS:opentxs-blockchain-p2p-bitcoin>
       $<TARGET_OBJECTS:opentxs-blockchain-p2p>

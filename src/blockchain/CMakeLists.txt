@@ -6,13 +6,13 @@
 add_subdirectory(bitcoin)
 add_subdirectory(block)
 add_subdirectory(client)
+add_subdirectory(database)
 add_subdirectory(p2p)
 
 set(
   cxx-sources
   Blockchain.cpp
   BloomFilter.cpp
-  Database.cpp
   GCS.cpp
   NumericHash.cpp
   Work.cpp
@@ -31,7 +31,6 @@ set(
   cxx-headers
   ${cxx-install-headers}
   "${opentxs_SOURCE_DIR}/src/internal/blockchain/Blockchain.hpp"
-  Database.hpp
   GCS.hpp
   NumericHash.hpp
   Work.hpp
