@@ -162,6 +162,13 @@ public:
         }
     }
 
+    [[maybe_unused]] auto make_position(
+        const bb::Height height,
+        const std::string_view hash) -> bb::Position
+    {
+        return bb::Position{height, api_.Factory().Data(hash)};
+    }
+
     [[maybe_unused]] bool make_test_block(
         const std::string& hash,
         const bb::Hash& parent)

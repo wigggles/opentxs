@@ -314,6 +314,45 @@ auto HeaderOracle::BestHash(const block::Height height) const noexcept
     }
 }
 
+auto HeaderOracle::CalculateReorg(const block::Position tip) const
+    noexcept(false) -> std::vector<block::Position>
+{
+    auto output = std::vector<block::Position>{};
+    Lock lock(lock_);
+
+    if (is_in_best_chain(lock, tip)) { return output; }
+
+    output.emplace_back(tip);
+
+    for (auto height{tip.first}; height >= 0; --height) {
+        if (0 == height) {
+            throw std::runtime_error(
+                "Provided tip does not connect to genesis block");
+        }
+
+        const auto& child = *output.crbegin();
+        const auto pHeader = database_.TryLoadHeader(child.second);
+
+        if (false == bool(pHeader)) {
+            throw std::runtime_error("Failed to load block header");
+        }
+
+        const auto& header = *pHeader;
+
+        if (height != header.Height()) {
+            throw std::runtime_error("Wrong height specified for block hash");
+        }
+
+        auto parent = block::Position{height - 1, header.ParentHash()};
+
+        if (is_in_best_chain(lock, parent)) { break; }
+
+        output.emplace_back(std::move(parent));
+    }
+
+    return output;
+}
+
 auto HeaderOracle::choose_candidate(
     const block::Header& current,
     const Candidates& candidates,
@@ -599,6 +638,14 @@ auto HeaderOracle::IsInBestChain(const block::Hash& hash) const noexcept -> bool
     return is_in_best_chain(lock, hash);
 }
 
+auto HeaderOracle::IsInBestChain(const block::Position& position) const noexcept
+    -> bool
+{
+    Lock lock(lock_);
+
+    return is_in_best_chain(lock, position.first, position.second);
+}
+
 auto HeaderOracle::is_disconnected(
     const block::Hash& parent,
     UpdateTransaction& update) noexcept -> const block::Header*
@@ -628,8 +675,23 @@ auto HeaderOracle::is_in_best_chain(const Lock& lock, const block::Hash& hash)
 
     const auto& header = *pHeader;
 
+    return is_in_best_chain(lock, header.Height(), hash);
+}
+
+auto HeaderOracle::is_in_best_chain(
+    const Lock& lock,
+    const block::Position& position) const noexcept -> bool
+{
+    return is_in_best_chain(lock, position.first, position.second);
+}
+
+auto HeaderOracle::is_in_best_chain(
+    const Lock& lock,
+    const block::Height height,
+    const block::Hash& hash) const noexcept -> bool
+{
     try {
-        return hash == database_.BestBlock(header.Height());
+        return hash == database_.BestBlock(height);
 
     } catch (...) {
 

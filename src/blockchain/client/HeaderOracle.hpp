@@ -56,11 +56,15 @@ public:
     auto BestChain() const noexcept -> block::Position final;
     auto BestHash(const block::Height height) const noexcept
         -> block::pHash final;
+    auto CalculateReorg(const block::Position tip) const noexcept(false)
+        -> std::vector<block::Position> final;
     auto CommonParent(const block::Position& position) const noexcept
         -> std::pair<block::Position, block::Position> final;
     auto GetCheckpoint() const noexcept -> block::Position final;
     auto GetDefaultCheckpoint() const noexcept -> CheckpointData final;
     auto IsInBestChain(const block::Hash& hash) const noexcept -> bool final;
+    auto IsInBestChain(const block::Position& position) const noexcept
+        -> bool final;
     auto LoadHeader(const block::Hash& hash) const noexcept
         -> std::unique_ptr<block::Header> final;
     auto RecentHashes() const noexcept -> std::vector<block::pHash> final
@@ -118,6 +122,12 @@ private:
     auto best_chain(const Lock& lock) const noexcept -> block::Position;
     auto is_in_best_chain(const Lock& lock, const block::Hash& hash) const
         noexcept -> bool;
+    auto is_in_best_chain(const Lock& lock, const block::Position& position)
+        const noexcept -> bool;
+    auto is_in_best_chain(
+        const Lock& lock,
+        const block::Height height,
+        const block::Hash& hash) const noexcept -> bool;
 
     auto add_header(
         const Lock& lock,
