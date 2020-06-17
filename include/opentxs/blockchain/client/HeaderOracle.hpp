@@ -12,6 +12,7 @@
 #include <string>
 #include <set>
 #include <tuple>
+#include <vector>
 
 #include "opentxs/blockchain/Blockchain.hpp"
 
@@ -31,6 +32,25 @@ public:
     OPENTXS_EXPORT virtual block::Position BestChain() const noexcept = 0;
     OPENTXS_EXPORT virtual block::pHash BestHash(
         const block::Height height) const noexcept = 0;
+    OPENTXS_EXPORT virtual std::vector<block::pHash> BestHashes(
+        const block::Height start,
+        const std::size_t limit = 0) const noexcept = 0;
+    /** Determine how which ancestors of a orphaned tip must be rolled back
+     *  due to a chain reorg
+     *
+     *  If the provided tip is in the best chain, the returned vector will be
+     *  empty.
+     *
+     *  Otherwise it will contain a list of orphaned block positions in
+     *  descending order starting from the provided tip. The parent block hash
+     *  of the block indicated by the final element in the vector
+     *  is in the best chain.
+     *
+     *  \throws std::runtime_error if the provided position is not a descendant
+     *  of this chain's genesis block
+     */
+    OPENTXS_EXPORT virtual std::vector<block::Position> CalculateReorg(
+        const block::Position tip) const noexcept(false) = 0;
     /** Test block position for membership in the best chain
      *
      *  returns {parent position, best position}
@@ -42,12 +62,14 @@ public:
     OPENTXS_EXPORT virtual std::pair<block::Position, block::Position>
     CommonParent(const block::Position& input) const noexcept = 0;
     OPENTXS_EXPORT virtual block::Position GetCheckpoint() const noexcept = 0;
-    OPENTXS_EXPORT virtual bool IsInBestChain(const block::Hash& hash) const
-        noexcept = 0;
+    OPENTXS_EXPORT virtual bool IsInBestChain(
+        const block::Hash& hash) const noexcept = 0;
+    OPENTXS_EXPORT virtual bool IsInBestChain(
+        const block::Position& position) const noexcept = 0;
     OPENTXS_EXPORT virtual std::unique_ptr<block::Header> LoadHeader(
         const block::Hash& hash) const noexcept = 0;
-    OPENTXS_EXPORT virtual std::vector<block::pHash> RecentHashes() const
-        noexcept = 0;
+    OPENTXS_EXPORT virtual std::vector<block::pHash> RecentHashes()
+        const noexcept = 0;
     OPENTXS_EXPORT virtual std::set<block::pHash> Siblings() const noexcept = 0;
 
     OPENTXS_EXPORT virtual bool AddCheckpoint(

@@ -162,6 +162,13 @@ public:
         }
     }
 
+    [[maybe_unused]] auto make_position(
+        const bb::Height height,
+        const std::string_view hash) -> bb::Position
+    {
+        return bb::Position{height, api_.Factory().Data(hash)};
+    }
+
     [[maybe_unused]] bool make_test_block(
         const std::string& hash,
         const bb::Hash& parent)
@@ -197,6 +204,25 @@ public:
 
         EXPECT_EQ(heightAfter, vector.size() - 1);
         EXPECT_EQ(hash, get_block_hash(*vector.crbegin()));
+
+        return true;
+    }
+
+    [[maybe_unused]] auto verify_hash_sequence(
+        const bb::Height start,
+        const std::size_t stop,
+        const std::vector<std::string>& expected) -> bool
+    {
+        const auto hashes = header_oracle_.BestHashes(start, stop);
+
+        if (hashes.size() != expected.size()) { return false; }
+
+        for (std::size_t index{0}; index < hashes.size(); ++index) {
+            const auto& hash = hashes.at(index);
+            const auto expectedHash = get_block_hash(expected.at(index));
+
+            if (expectedHash != hash) { return false; }
+        }
 
         return true;
     }

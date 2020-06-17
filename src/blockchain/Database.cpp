@@ -286,8 +286,8 @@ auto Database::Filters::CurrentTip(const filter::Type type) const noexcept
     return output;
 }
 
-auto Database::Filters::import_genesis(const blockchain::Type chain) const
-    noexcept -> void
+auto Database::Filters::import_genesis(
+    const blockchain::Type chain) const noexcept -> void
 {
     const auto style{blockchain::internal::DefaultFilter(chain)};
     const auto needHeader =
@@ -572,6 +572,12 @@ auto Database::Headers::BestBlock(const block::Height position) const
         tsv(static_cast<std::size_t>(position)),
         [&](const auto in) -> void { output->Assign(in.data(), in.size()); });
 
+    if (output->empty()) {
+        // TODO some callers which should be catching this exception aren't.
+        // Clean up those call sites then start throwing this exception.
+        // throw std::out_of_range("No best hash at specified height");
+    }
+
     return output;
 }
 
@@ -670,8 +676,8 @@ auto Database::Headers::DisconnectedHashes() const noexcept
     return output;
 }
 
-auto Database::Headers::HasDisconnectedChildren(const block::Hash& hash) const
-    noexcept -> bool
+auto Database::Headers::HasDisconnectedChildren(
+    const block::Hash& hash) const noexcept -> bool
 {
     Lock lock(lock_);
 
@@ -700,8 +706,8 @@ auto Database::Headers::HeaderExists(const block::Hash& hash) const noexcept
     return header_exists(lock, hash);
 }
 
-auto Database::Headers::import_genesis(const blockchain::Type type) const
-    noexcept -> void
+auto Database::Headers::import_genesis(
+    const blockchain::Type type) const noexcept -> void
 {
     auto success{false};
     const auto& hash = client::HeaderOracle::GenesisBlockHash(type);
@@ -781,8 +787,8 @@ auto Database::Headers::load_header(const block::Hash& hash) const
     return output;
 }
 
-auto Database::Headers::pop_best(const std::size_t i, MDB_txn* parent) const
-    noexcept -> bool
+auto Database::Headers::pop_best(const std::size_t i, MDB_txn* parent)
+    const noexcept -> bool
 {
     return lmdb_.Delete(BlockHeaderBest, tsv(i), parent);
 }
