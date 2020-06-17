@@ -7,6 +7,7 @@
 
 #include <atomic>
 #include <map>
+#include <mutex>
 #include <optional>
 #include <queue>
 #include <vector>
@@ -53,6 +54,18 @@ struct HDStateData {
         std::map<block::pHash, BlockOracle::BitcoinBlockFuture>;
     using Subchain = internal::WalletDatabase::Subchain;
     using WalletDatabase = internal::WalletDatabase;
+    using ProcessQueue = std::queue<OutstandingMap::iterator>;
+
+    struct ReorgQueue {
+        auto Empty() const noexcept -> bool;
+
+        auto Queue(const block::Position& parent) noexcept -> bool;
+        auto Next() noexcept -> block::Position;
+
+    private:
+        mutable std::mutex lock_{};
+        std::queue<block::Position> parents_{};
+    };
 
     const internal::Network& network_;
     const internal::WalletDatabase& db_;
@@ -60,14 +73,16 @@ struct HDStateData {
     const filter::Type filter_type_;
     const Subchain subchain_;
     std::atomic<bool> running_;
+    ReorgQueue reorg_;
     std::optional<Bip32Index> last_indexed_;
     std::optional<block::Position> last_scanned_;
     std::vector<block::pHash> blocks_to_request_;
     OutstandingMap outstanding_blocks_;
-    std::queue<OutstandingMap::iterator> process_block_queue_;
+    ProcessQueue process_block_queue_;
 
     auto index() noexcept -> void;
     auto process() noexcept -> void;
+    auto reorg() noexcept -> void;
     auto scan() noexcept -> void;
 
     HDStateData(
@@ -76,7 +91,6 @@ struct HDStateData {
         const api::client::blockchain::HD& node,
         const filter::Type filter,
         const Subchain subchain) noexcept;
-    HDStateData(HDStateData&&) noexcept;
 
 private:
     auto get_targets(
@@ -94,5 +108,9 @@ private:
         const block::Block::Matches matches) noexcept -> void;
 
     HDStateData() = delete;
+    HDStateData(const HDStateData&) = delete;
+    HDStateData(HDStateData&&) = delete;
+    HDStateData& operator=(const HDStateData&) = delete;
+    HDStateData& operator=(HDStateData&&) = delete;
 };
 }  // namespace opentxs::blockchain::client::implementation

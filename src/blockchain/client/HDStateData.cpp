@@ -53,6 +53,7 @@ HDStateData::HDStateData(
     , filter_type_(filter)
     , subchain_(subchain)
     , running_(false)
+    , reorg_()
     , last_indexed_()
     , last_scanned_()
     , blocks_to_request_()
@@ -61,19 +62,31 @@ HDStateData::HDStateData(
 {
 }
 
-HDStateData::HDStateData(HDStateData&& rhs) noexcept
-    : network_(rhs.network_)
-    , db_(rhs.db_)
-    , node_(rhs.node_)
-    , filter_type_(rhs.filter_type_)
-    , subchain_(rhs.subchain_)
-    , running_(rhs.running_.load())
-    , last_indexed_(std::move(rhs.last_indexed_))
-    , last_scanned_(std::move(rhs.last_scanned_))
-    , blocks_to_request_(std::move(rhs.blocks_to_request_))
-    , outstanding_blocks_(std::move(rhs.outstanding_blocks_))
-    , process_block_queue_(std::move(rhs.process_block_queue_))
+auto HDStateData::ReorgQueue::Empty() const noexcept -> bool
 {
+    Lock lock(lock_);
+
+    return 0 == parents_.size();
+}
+
+auto HDStateData::ReorgQueue::Queue(const block::Position& parent) noexcept
+    -> bool
+{
+    Lock lock(lock_);
+    parents_.push(parent);
+
+    return true;
+}
+
+auto HDStateData::ReorgQueue::Next() noexcept -> block::Position
+{
+    OT_ASSERT(false == Empty());
+
+    Lock lock(lock_);
+    auto output{parents_.front()};
+    parents_.pop();
+
+    return output;
 }
 
 auto HDStateData::get_targets(
@@ -252,6 +265,31 @@ auto HDStateData::process() noexcept -> void
     }
 }
 
+auto HDStateData::reorg() noexcept -> void
+{
+    while (false == reorg_.Empty()) {
+        reorg_.Next();
+        const auto tip =
+            db_.SubchainLastProcessed(node_.ID(), subchain_, filter_type_);
+        const auto reorg = network_.HeaderOracle().CalculateReorg(tip);
+        db_.ReorgTo(node_.ID(), subchain_, filter_type_, reorg);
+    }
+
+    const auto scannedTarget = network_.HeaderOracle()
+                                   .CommonParent(db_.SubchainLastScanned(
+                                       node_.ID(), subchain_, filter_type_))
+                                   .first;
+
+    if (last_scanned_.has_value()) { last_scanned_ = scannedTarget; }
+
+    blocks_to_request_.clear();
+    outstanding_blocks_.clear();
+
+    while (false == process_block_queue_.empty()) {
+        process_block_queue_.pop();
+    }
+}
+
 auto HDStateData::scan() noexcept -> void
 {
     const auto start = Clock::now();
@@ -412,7 +450,8 @@ auto HDStateData::update_utxos(
 
     for (const auto& [txid, data] : transactions) {
         auto& [outputs, pTX] = data;
-        auto updated = db_.AddConfirmedTransaction(position, outputs, *pTX);
+        auto updated = db_.AddConfirmedTransaction(
+            node_.ID(), subchain_, filter_type_, position, outputs, *pTX);
 
         OT_ASSERT(updated);  // TODO handle database errors
     }

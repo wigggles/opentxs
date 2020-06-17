@@ -28,6 +28,7 @@
 #include "opentxs/blockchain/block/bitcoin/Outputs.hpp"
 #include "opentxs/blockchain/block/bitcoin/Transaction.hpp"
 #include "opentxs/core/Data.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 
@@ -71,6 +72,7 @@ Wallet::Wallet(
     , outputs_()
     , output_positions_()
     , output_states_()
+    , output_subchain_()
     , transactions_()
     , tx_to_block_()
     , block_to_tx_()
@@ -115,6 +117,10 @@ auto Wallet::add_transaction(
 }
 
 auto Wallet::AddConfirmedTransaction(
+    const NodeID& balanceNode,
+    const Subchain subchain,
+    const FilterType type,
+    const VersionNumber version,
     const block::Position& block,
     const std::vector<std::uint32_t> outputIndices,
     const block::bitcoin::Transaction& transaction) const noexcept -> bool
@@ -160,6 +166,7 @@ auto Wallet::AddConfirmedTransaction(
     for (const auto index : outputIndices) {
         const auto outpoint =
             block::bitcoin::Outpoint{transaction.ID().Bytes(), index};
+        const auto& output = transaction.Outputs().at(index);
 
         if (auto out = find_output(lock, outpoint); out.has_value()) {
             if (false ==
@@ -171,12 +178,9 @@ auto Wallet::AddConfirmedTransaction(
                 return false;
             }
         } else {
-            if (false == create_state(
-                             lock,
-                             outpoint,
-                             State::ConfirmedNew,
-                             block,
-                             transaction.Outputs().at(index))) {
+            if (false ==
+                create_state(
+                    lock, outpoint, State::ConfirmedNew, block, output)) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(
                     ": Error created new output state")
                     .Flush();
@@ -184,11 +188,36 @@ auto Wallet::AddConfirmedTransaction(
                 return false;
             }
         }
+
+        {
+            auto& vector = output_subchain_[subchain_id(
+                balanceNode, subchain, type, version)];
+            vector.emplace_back(outpoint);
+            dedup(vector);
+        }
     }
 
     blockchain_.UpdateBalance(chain_, get_balance(lock));
 
     return true;
+}
+
+auto Wallet::belongs_to(
+    const Lock& lock,
+    const block::bitcoin::Outpoint& id,
+    const SubchainID& subchain) const noexcept -> bool
+{
+    const auto it1 = output_subchain_.find(subchain);
+
+    if (output_subchain_.cend() == it1) { return false; }
+
+    const auto& vector = it1->second;
+
+    for (const auto& outpoint : vector) {
+        if (id == outpoint) { return true; }
+    }
+
+    return false;
 }
 
 auto Wallet::change_state(
@@ -451,6 +480,97 @@ auto Wallet::pattern_id(const SubchainID& subchain, const Bip32Index index)
     output->CalculateDigest(preimage->Bytes());
 
     return output;
+}
+
+auto Wallet::ReorgTo(
+    const NodeID& balanceNode,
+    const Subchain subchain,
+    const FilterType type,
+    const std::vector<block::Position>& reorg) const noexcept -> bool
+{
+    if (reorg.empty()) { return true; }
+
+    const auto& oldest = *reorg.crbegin();
+    const auto lastGoodHeight = block::Height{oldest.first - 1};
+    Lock lock(lock_);
+    const auto subchainID = subchain_version_index(balanceNode, subchain, type);
+
+    try {
+        auto& scanned = subchain_last_scanned_.at(subchainID);
+        const auto& currentHeight = scanned.first;
+
+        if (currentHeight < lastGoodHeight) {
+            // noop
+        } else if (currentHeight > lastGoodHeight) {
+            scanned.first = lastGoodHeight;
+        } else {
+            scanned.first = std::min<block::Height>(lastGoodHeight - 1, 0);
+        }
+
+    } catch (...) {
+        OT_FAIL;
+    }
+
+    try {
+        auto& processed = subchain_last_processed_.at(subchainID);
+        const auto& currentHeight = processed.first;
+
+        if (currentHeight < lastGoodHeight) { return true; }
+
+        for (const auto& position : reorg) {
+            if (false == rollback(lock, subchainID, position)) { return false; }
+        }
+    } catch (...) {
+        OT_FAIL;
+    }
+
+    return true;
+}
+
+auto Wallet::rollback(
+    const Lock& lock,
+    const SubchainID& subchain,
+    const block::Position& position) const noexcept -> bool
+{
+    auto outpoints = std::vector<block::bitcoin::Outpoint>{};
+
+    for (const auto& outpoint : output_positions_[position]) {
+        if (belongs_to(lock, outpoint, subchain)) {
+            outpoints.emplace_back(outpoint);
+        }
+    }
+
+    dedup(outpoints);
+
+    for (const auto& id : outpoints) {
+        auto& [opState, opPosition, data] = outputs_.at(id);
+        auto change{true};
+        auto newState = State{};
+
+        switch (opState) {
+            case State::ConfirmedNew:
+            case State::OrphanedNew: {
+                newState = State::UnconfirmedNew;
+            } break;
+            case State::ConfirmedSpend:
+            case State::OrphanedSpend: {
+                newState = State::UnconfirmedSpend;
+            } break;
+            default: {
+                change = false;
+            }
+        }
+
+        if (change && (false == change_state(lock, id, newState, position))) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(
+                ": Failed to update output state")
+                .Flush();
+
+            return false;
+        }
+    }
+
+    return true;
 }
 
 auto Wallet::SubchainAddElements(

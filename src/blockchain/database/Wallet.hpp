@@ -15,6 +15,7 @@
 #include <optional>
 #include <set>
 #include <string>
+#include <tuple>
 #include <utility>
 #include <vector>
 
@@ -29,10 +30,10 @@
 #include "opentxs/Types.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/blockchain/block/bitcoin/Input.hpp"
+#include "opentxs/blockchain/block/bitcoin/Output.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "util/LMDB.hpp"
-#include "opentxs/blockchain/block/bitcoin/Output.hpp"
 
 namespace opentxs
 {
@@ -55,6 +56,7 @@ namespace block
 {
 namespace bitcoin
 {
+class Output;
 class Transaction;
 }  // namespace bitcoin
 }  // namespace block
@@ -80,6 +82,10 @@ public:
     using UTXO = Parent::UTXO;
 
     auto AddConfirmedTransaction(
+        const NodeID& balanceNode,
+        const Subchain subchain,
+        const FilterType type,
+        const VersionNumber version,
         const block::Position& block,
         const std::vector<std::uint32_t> outputIndices,
         const block::bitcoin::Transaction& transaction) const noexcept -> bool;
@@ -96,6 +102,11 @@ public:
         const FilterType type,
         const ReadView blockID,
         const VersionNumber version) const noexcept -> Patterns;
+    auto ReorgTo(
+        const NodeID& balanceNode,
+        const Subchain subchain,
+        const FilterType type,
+        const std::vector<block::Position>& reorg) const noexcept -> bool;
     auto SubchainAddElements(
         const NodeID& balanceNode,
         const Subchain subchain,
@@ -177,6 +188,8 @@ private:
         std::map<block::Position, std::vector<block::bitcoin::Outpoint>>;
     using OutputStateIndex =
         std::map<State, std::vector<block::bitcoin::Outpoint>>;
+    using OutputSubchainIndex =
+        std::map<pSubchainID, std::vector<block::bitcoin::Outpoint>>;
     using TransactionMap = std::map<block::pTxid, proto::BlockchainTransaction>;
     using TransactionBlockMap =
         std::map<block::pTxid, std::vector<block::pHash>>;
@@ -197,10 +210,15 @@ private:
     mutable OutputMap outputs_;
     mutable OutputPositionIndex output_positions_;
     mutable OutputStateIndex output_states_;
+    mutable OutputSubchainIndex output_subchain_;
     mutable TransactionMap transactions_;
     mutable TransactionBlockMap tx_to_block_;
     mutable BlockTransactionMap block_to_tx_;
 
+    auto belongs_to(
+        const Lock& lock,
+        const block::bitcoin::Outpoint& id,
+        const SubchainID& subchain) const noexcept -> bool;
     auto effective_position(const State state, const block::Position& position)
         const noexcept -> const block::Position&;
     auto get_balance(const Lock& lock) const noexcept -> Balance;
@@ -253,6 +271,10 @@ private:
         const noexcept -> std::optional<OutputMap::iterator>;
     auto pattern_id(const SubchainID& subchain, const Bip32Index index)
         const noexcept -> pPatternID;
+    auto rollback(
+        const Lock& lock,
+        const SubchainID& subchain,
+        const block::Position& position) const noexcept -> bool;
     auto subchain_version_index(
         const NodeID& balanceNode,
         const Subchain subchain,

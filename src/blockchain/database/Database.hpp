@@ -94,13 +94,22 @@ class Database final : virtual public internal::Database
 {
 public:
     auto AddConfirmedTransaction(
+        const NodeID& balanceNode,
+        const Subchain subchain,
+        const FilterType type,
         const block::Position& block,
         const std::vector<std::uint32_t> outputIndices,
-        const block::bitcoin::Transaction& transaction) const noexcept
-        -> bool final
+        const block::bitcoin::Transaction& transaction,
+        const VersionNumber version) const noexcept -> bool final
     {
         return wallet_.AddConfirmedTransaction(
-            block, outputIndices, transaction);
+            balanceNode,
+            subchain,
+            type,
+            version,
+            block,
+            outputIndices,
+            transaction);
     }
     auto AddOrUpdate(Address address) const noexcept -> bool final
     {
@@ -245,6 +254,14 @@ public:
     auto RecentHashes() const noexcept -> std::vector<block::pHash> final
     {
         return headers_.RecentHashes();
+    }
+    auto ReorgTo(
+        const NodeID& balanceNode,
+        const Subchain subchain,
+        const FilterType type,
+        const std::vector<block::Position>& reorg) const noexcept -> bool final
+    {
+        return wallet_.ReorgTo(balanceNode, subchain, type, reorg);
     }
     auto SetFilterHeaderTip(
         const filter::Type type,
