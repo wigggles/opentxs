@@ -32,6 +32,7 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "util/LMDB.hpp"
+#include "opentxs/blockchain/block/bitcoin/Output.hpp"
 
 namespace opentxs
 {
@@ -148,6 +149,15 @@ public:
         const blockchain::Type chain) noexcept;
 
 private:
+    enum class State : std::uint8_t {
+        UnconfirmedNew,
+        UnconfirmedSpend,
+        ConfirmedNew,
+        ConfirmedSpend,
+        OrphanedNew,
+        OrphanedSpend,
+    };
+
     using SubchainID = Identifier;
     using pSubchainID = OTIdentifier;
     using PatternID = Identifier;
@@ -162,9 +172,11 @@ private:
     using MatchIndex = std::map<block::pHash, IDSet>;
     using OutputMap = std::map<
         block::bitcoin::Outpoint,
-        std::pair<block::Height, proto::BlockchainTransactionOutput>>;
-    using OutputStateMap =
-        std::map<block::Height, std::vector<block::bitcoin::Outpoint>>;
+        std::tuple<State, block::Position, proto::BlockchainTransactionOutput>>;
+    using OutputPositionIndex =
+        std::map<block::Position, std::vector<block::bitcoin::Outpoint>>;
+    using OutputStateIndex =
+        std::map<State, std::vector<block::bitcoin::Outpoint>>;
     using TransactionMap = std::map<block::pTxid, proto::BlockchainTransaction>;
     using TransactionBlockMap =
         std::map<block::pTxid, std::vector<block::pHash>>;
@@ -183,16 +195,14 @@ private:
     mutable PositionMap subchain_last_processed_;
     mutable MatchIndex match_index_;
     mutable OutputMap outputs_;
-    mutable OutputStateMap unconfirmed_new_;
-    mutable OutputStateMap confirmed_new_;
-    mutable OutputStateMap unconfirmed_spend_;
-    mutable OutputStateMap confirmed_spend_;
-    mutable OutputStateMap orphaned_new_;
-    mutable OutputStateMap orphaned_spend_;
+    mutable OutputPositionIndex output_positions_;
+    mutable OutputStateIndex output_states_;
     mutable TransactionMap transactions_;
     mutable TransactionBlockMap tx_to_block_;
     mutable BlockTransactionMap block_to_tx_;
 
+    auto effective_position(const State state, const block::Position& position)
+        const noexcept -> const block::Position&;
     auto get_balance(const Lock& lock) const noexcept -> Balance;
     auto get_patterns(
         const Lock& lock,
@@ -231,18 +241,18 @@ private:
     auto change_state(
         const Lock& lock,
         const block::bitcoin::Outpoint& id,
-        const block::Height originalHeight,
-        const block::Height newHeight,
-        OutputStateMap& to) const noexcept -> bool;
+        const State newState,
+        const block::Position newPosition) const noexcept -> bool;
+    auto create_state(
+        const Lock& lock,
+        const block::bitcoin::Outpoint& id,
+        const State state,
+        const block::Position position,
+        const block::bitcoin::Output& output) const noexcept -> bool;
     auto find_output(const Lock& lock, const block::bitcoin::Outpoint& id)
         const noexcept -> std::optional<OutputMap::iterator>;
     auto pattern_id(const SubchainID& subchain, const Bip32Index index)
         const noexcept -> pPatternID;
-    auto remove_state(
-        const Lock& lock,
-        const block::bitcoin::Outpoint& id,
-        const block::Height height,
-        OutputStateMap& from) const noexcept -> bool;
     auto subchain_version_index(
         const NodeID& balanceNode,
         const Subchain subchain,

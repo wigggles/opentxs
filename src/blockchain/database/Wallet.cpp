@@ -31,7 +31,25 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 
-// #define OT_METHOD "opentxs::blockchain::database::Wallet::"
+#define OT_METHOD "opentxs::blockchain::database::Wallet::"
+
+template <typename Key>
+auto delete_from_vector(std::vector<Key>& vector, const Key& key) noexcept
+    -> bool
+{
+    auto found{false};
+
+    for (auto i{vector.begin()}; i != vector.end();) {
+        if (key == *i) {
+            i = vector.erase(i);
+            found = true;
+        } else {
+            ++i;
+        }
+    }
+
+    return found;
+}
 
 namespace opentxs::blockchain::database
 {
@@ -51,12 +69,8 @@ Wallet::Wallet(
     , subchain_last_processed_()
     , match_index_()
     , outputs_()
-    , unconfirmed_new_()
-    , confirmed_new_()
-    , unconfirmed_spend_()
-    , confirmed_spend_()
-    , orphaned_new_()
-    , orphaned_spend_()
+    , output_positions_()
+    , output_states_()
     , transactions_()
     , tx_to_block_()
     , block_to_tx_()
@@ -109,7 +123,8 @@ auto Wallet::AddConfirmedTransaction(
     const auto& [height, blockHash] = block;
 
     if (false == add_transaction(lock, blockHash, transaction)) {
-        LogOutput(__FUNCTION__)(": Error adding transaction to database")
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Error adding transaction to database")
             .Flush();
 
         return false;
@@ -119,19 +134,14 @@ auto Wallet::AddConfirmedTransaction(
         const auto& outpoint = input.PreviousOutput();
 
         if (auto out = find_output(lock, outpoint); out.has_value()) {
-            auto& lastHeight = out.value()->second.first;
-
             if (false ==
-                change_state(
-                    lock, outpoint, lastHeight, height, confirmed_spend_)) {
-                LogOutput(__FUNCTION__)(
+                change_state(lock, outpoint, State::ConfirmedSpend, block)) {
+                LogOutput(OT_METHOD)(__FUNCTION__)(
                     ": Error updating consumed output state")
                     .Flush();
 
                 return false;
             }
-
-            lastHeight = height;
         }
 
         // NOTE consider the case of parallel chain scanning where one
@@ -152,29 +162,27 @@ auto Wallet::AddConfirmedTransaction(
             block::bitcoin::Outpoint{transaction.ID().Bytes(), index};
 
         if (auto out = find_output(lock, outpoint); out.has_value()) {
-            auto& lastHeight = out.value()->second.first;
-
             if (false ==
-                change_state(
-                    lock, outpoint, lastHeight, height, confirmed_new_)) {
-                LogOutput(__FUNCTION__)(": Error updating created output state")
+                change_state(lock, outpoint, State::ConfirmedNew, block)) {
+                LogOutput(OT_METHOD)(__FUNCTION__)(
+                    ": Error updating created output state")
                     .Flush();
 
                 return false;
             }
-
-            lastHeight = height;
         } else {
-            const auto& output = transaction.Outputs().at(index);
-            auto serialized = block::bitcoin::Output::SerializeType{};
-            output.Serialize(serialized);
-            outputs_.emplace(
-                std::piecewise_construct,
-                std::forward_as_tuple(outpoint),
-                std::forward_as_tuple(height, std::move(serialized)));
-            auto& map = confirmed_new_[height];
-            map.emplace_back(outpoint);
-            dedup(map);
+            if (false == create_state(
+                             lock,
+                             outpoint,
+                             State::ConfirmedNew,
+                             block,
+                             transaction.Outputs().at(index))) {
+                LogOutput(OT_METHOD)(__FUNCTION__)(
+                    ": Error created new output state")
+                    .Flush();
+
+                return false;
+            }
         }
     }
 
@@ -186,37 +194,111 @@ auto Wallet::AddConfirmedTransaction(
 auto Wallet::change_state(
     const Lock& lock,
     const block::bitcoin::Outpoint& id,
-    const block::Height originalHeight,
-    const block::Height newHeight,
-    OutputStateMap& to) const noexcept -> bool
+    const State newState,
+    const block::Position newPosition) const noexcept -> bool
 {
-    auto in = std::vector<OutputStateMap*>{};
+    auto itOutput = outputs_.find(id);
 
-    if (&to != &unconfirmed_new_) { in.emplace_back(&unconfirmed_new_); }
+    if (outputs_.end() == itOutput) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Outpoint does not exist in db")
+            .Flush();
 
-    if (&to != &confirmed_new_) { in.emplace_back(&confirmed_new_); }
+        return false;
+    }
 
-    if (&to != &unconfirmed_spend_) { in.emplace_back(&unconfirmed_spend_); }
+    auto& [outpointState, outpointPosition, data] = itOutput->second;
 
-    if (&to != &confirmed_spend_) { in.emplace_back(&confirmed_spend_); }
+    if (false == delete_from_vector(output_states_[outpointState], id)) {
+        // Repair database inconsistency
 
-    if (&to != &orphaned_new_) { in.emplace_back(&orphaned_new_); }
+        for (auto& [state, vector] : output_states_) {
+            if (state == outpointState) { continue; }
 
-    if (&to != &orphaned_spend_) { in.emplace_back(&orphaned_spend_); }
-
-    for (auto& from : in) {
-        if (false == remove_state(lock, id, originalHeight, *from)) {
-            LogOutput(__FUNCTION__)(": Error updating output state").Flush();
-
-            return false;
+            delete_from_vector(vector, id);
         }
     }
 
-    auto& map = to[newHeight];
-    map.emplace_back(id);
-    dedup(map);
+    {
+        outpointState = newState;
+        auto& vector = output_states_[outpointState];
+        vector.emplace_back(id);
+        dedup(vector);
+    }
+
+    if (false == delete_from_vector(output_positions_[outpointPosition], id)) {
+        // Repair database inconsistency
+
+        for (auto& [position, vector] : output_positions_) {
+            if (position == outpointPosition) { continue; }
+
+            delete_from_vector(vector, id);
+        }
+    }
+
+    {
+        outpointPosition = effective_position(newState, newPosition);
+        auto& vector = output_positions_[outpointPosition];
+        vector.emplace_back(id);
+        dedup(vector);
+    }
 
     return true;
+}
+
+auto Wallet::create_state(
+    const Lock& lock,
+    const block::bitcoin::Outpoint& id,
+    const State state,
+    const block::Position position,
+    const block::bitcoin::Output& output) const noexcept -> bool
+{
+    if (0 < outputs_.count(id)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Outpoint already exists in db")
+            .Flush();
+
+        return false;
+    }
+
+    auto data = block::bitcoin::Output::SerializeType{};
+
+    if (false == output.Serialize(data)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to serialize output")
+            .Flush();
+
+        return false;
+    }
+
+    const auto& effectivePosition = effective_position(state, position);
+    outputs_.emplace(
+        std::piecewise_construct,
+        std::forward_as_tuple(id),
+        std::forward_as_tuple(state, effectivePosition, std::move(data)));
+
+    {
+        auto& vector = output_states_[state];
+        vector.emplace_back(id);
+        dedup(vector);
+    }
+
+    {
+        auto& vector = output_positions_[effectivePosition];
+        vector.emplace_back(id);
+        dedup(vector);
+    }
+
+    return true;
+}
+
+auto Wallet::effective_position(
+    const State state,
+    const block::Position& position) const noexcept -> const block::Position&
+{
+    static const auto blankPosition = make_blank<block::Position>::value(api_);
+
+    return ((State::UnconfirmedNew == state) ||
+            (State::UnconfirmedSpend == state))
+               ? blankPosition
+               : position;
 }
 
 auto Wallet::find_output(const Lock& lock, const block::bitcoin::Outpoint& id)
@@ -237,27 +319,18 @@ auto Wallet::get_balance(const Lock&) const noexcept -> Balance
 {
     auto output = Balance{};
     auto& [confirmed, unconfirmed] = output;
-    auto cb = [this](const auto previous, const auto& in) -> auto
+    auto cb = [this](const auto previous, const auto& outpoint) -> auto
     {
-        const auto& outpoints = in.second;
-        auto cb = [this](const auto previous, const auto& in) -> auto
-        {
-            return previous + outputs_.at(in).second.value();
-        };
+        const auto& [state, position, data] = outputs_.at(outpoint);
 
-        return std::accumulate(
-            std::begin(outpoints), std::end(outpoints), previous, cb);
+        return previous + data.value();
     };
+    const auto& confirmedNew = output_states_[State::ConfirmedNew];
     confirmed = std::accumulate(
-        std::begin(confirmed_new_),
-        std::end(confirmed_new_),
-        std::uint64_t{0},
-        cb);
+        std::begin(confirmedNew), std::end(confirmedNew), std::uint64_t{0}, cb);
+    const auto& unconfirmedNew = output_states_[State::UnconfirmedNew];
     unconfirmed = std::accumulate(
-        std::begin(unconfirmed_new_),
-        std::end(unconfirmed_new_),
-        confirmed,
-        cb);
+        std::begin(unconfirmedNew), std::end(unconfirmedNew), confirmed, cb);
 
     return output;
 }
@@ -311,24 +384,24 @@ auto Wallet::get_unspent_outputs(const Lock& lock) const noexcept
 {
     auto retrieve = std::vector<block::bitcoin::Outpoint>{};
 
-    for (const auto& [height, outpoints] : unconfirmed_new_) {
-        retrieve.insert(retrieve.end(), outpoints.begin(), outpoints.end());
+    for (const auto& outpoint : output_states_[State::UnconfirmedNew]) {
+        retrieve.emplace_back(outpoint);
     }
 
-    for (const auto& [height, outpoints] : confirmed_new_) {
-        retrieve.insert(retrieve.end(), outpoints.begin(), outpoints.end());
+    for (const auto& outpoint : output_states_[State::ConfirmedNew]) {
+        retrieve.emplace_back(outpoint);
     }
 
-    for (const auto& [height, outpoints] : unconfirmed_spend_) {
-        retrieve.insert(retrieve.end(), outpoints.begin(), outpoints.end());
+    for (const auto& outpoint : output_states_[State::UnconfirmedSpend]) {
+        retrieve.emplace_back(outpoint);
     }
 
     dedup(retrieve);
     auto output = std::vector<UTXO>{};
 
     for (const auto& outpoint : retrieve) {
-        const auto& [height, txout] = outputs_.at(outpoint);
-        output.emplace_back(outpoint, txout);
+        const auto& [state, position, data] = outputs_.at(outpoint);
+        output.emplace_back(outpoint, data);
     }
 
     return output;
@@ -378,31 +451,6 @@ auto Wallet::pattern_id(const SubchainID& subchain, const Bip32Index index)
     output->CalculateDigest(preimage->Bytes());
 
     return output;
-}
-
-auto Wallet::remove_state(
-    const Lock& lock,
-    const block::bitcoin::Outpoint& id,
-    const block::Height height,
-    OutputStateMap& from) const noexcept -> bool
-{
-    auto pSource = from.find(height);
-
-    if (from.end() == pSource) { return true; }
-
-    auto& sourceMap = pSource->second;
-
-    for (auto i{sourceMap.begin()}; i != sourceMap.end();) {
-        if (id == *i) {
-            i = sourceMap.erase(i);
-        } else {
-            ++i;
-        }
-    }
-
-    if (sourceMap.empty()) { from.erase(pSource); }
-
-    return true;
 }
 
 auto Wallet::SubchainAddElements(
