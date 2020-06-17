@@ -44,6 +44,7 @@
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/socket/Push.hpp"
 #include "opentxs/network/zeromq/socket/Socket.hpp"
+#include "util/ScopeGuard.hpp"
 
 #define OT_METHOD "opentxs::blockchain::client::implementation::Wallet::"
 
@@ -68,18 +69,6 @@ namespace opentxs::blockchain::client::internal
 {
 auto Wallet::ProcessTask(const zmq::Message& in) noexcept -> void
 {
-    struct Cleanup {
-        Cleanup(std::atomic<bool>& running) noexcept
-            : running_(running)
-        {
-        }
-
-        ~Cleanup() { running_.store(false); }
-
-    private:
-        std::atomic<bool>& running_;
-    };
-
     const auto body = in.Body();
 
     if (2 > body.size()) {
@@ -96,7 +85,7 @@ auto Wallet::ProcessTask(const zmq::Message& in) noexcept -> void
     OT_ASSERT(nullptr != pData);
 
     auto& data = *pData;
-    auto cleanup = Cleanup{data.running_};
+    auto postcondition = ScopeGuard{[&] { data.running_.store(false); }};
 
     switch (body.at(1).as<Task>()) {
         case Task::index: {
@@ -107,6 +96,9 @@ auto Wallet::ProcessTask(const zmq::Message& in) noexcept -> void
         } break;
         case Task::process: {
             data.process();
+        } break;
+        case Task::reorg: {
+            data.reorg();
         } break;
         default: {
             OT_FAIL;
@@ -210,6 +202,61 @@ auto Wallet::Account::queue_work(
     socket_.Send(work);
 }
 
+auto Wallet::Account::reorg(const block::Position& parent) noexcept -> bool
+{
+    auto output{false};
+
+    for (const auto& subaccount : ref_.GetHD()) {
+        const auto& id = subaccount.ID();
+        LogVerbose(OT_METHOD)("Account::")(__FUNCTION__)(
+            ": Processing account ")(id)
+            .Flush();
+
+        {
+            auto it = internal_.find(id);
+
+            if (internal_.end() == it) {
+                auto [it2, added] = internal_.try_emplace(
+                    id,
+                    network_,
+                    db_,
+                    subaccount,
+                    filter_type_,
+                    Subchain::Internal);
+                it = it2;
+            }
+
+            output |= reorg_hd(it->second, parent);
+        }
+
+        {
+            auto it = external_.find(id);
+
+            if (external_.end() == it) {
+                auto [it2, added] = external_.try_emplace(
+                    id,
+                    network_,
+                    db_,
+                    subaccount,
+                    filter_type_,
+                    Subchain::External);
+                it = it2;
+            }
+
+            output |= reorg_hd(it->second, parent);
+        }
+    }
+
+    return output;
+}
+
+auto Wallet::Account::reorg_hd(
+    HDStateData& data,
+    const block::Position& parent) noexcept -> bool
+{
+    return data.reorg_.Queue(parent);
+}
+
 auto Wallet::Account::state_machine() noexcept -> bool
 {
     auto output{false};
@@ -262,6 +309,7 @@ auto Wallet::Account::state_machine_hd(HDStateData& data) noexcept -> bool
 {
     const auto& node = data.node_;
     const auto subchain = data.subchain_;
+    auto& reorg = data.reorg_;
     auto& running = data.running_;
     auto& lastIndexed = data.last_indexed_;
     auto& lastScanned = data.last_scanned_;
@@ -270,6 +318,13 @@ auto Wallet::Account::state_machine_hd(HDStateData& data) noexcept -> bool
     auto& queue = data.process_block_queue_;
 
     if (running) { return true; }
+
+    if (false == reorg.Empty()) {
+        running.store(true);
+        queue_work(Task::reorg, data);
+
+        return true;
+    }
 
     {
         for (const auto& hash : requestBlocks) {
@@ -423,6 +478,15 @@ auto Wallet::Accounts::init(
     return output;
 }
 
+auto Wallet::Accounts::Reorg(const block::Position& parent) noexcept -> bool
+{
+    auto output{false};
+
+    for (auto& [nym, account] : map_) { output |= account.reorg(parent); }
+
+    return output;
+}
+
 auto Wallet::Accounts::state_machine() noexcept -> bool
 {
     auto output{false};
@@ -466,8 +530,7 @@ auto Wallet::pipeline(const zmq::Message& in) noexcept -> void
             Trigger();
         } break;
         case Work::reorg: {
-            // TODO
-            Trigger();
+            process_reorg(in);
         } break;
         case Work::statemachine: {
             state_machine();
@@ -481,6 +544,27 @@ auto Wallet::pipeline(const zmq::Message& in) noexcept -> void
             OT_FAIL;
         }
     }
+}
+
+auto Wallet::process_reorg(const zmq::Message& in) noexcept -> void
+{
+    const auto body = in.Body();
+
+    if (3 > body.size()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid message").Flush();
+
+        OT_FAIL;
+    }
+
+    const auto chain = body.at(0).as<blockchain::Type>();
+
+    if (chain_ != chain) { return; }
+
+    const auto parent =
+        block::Position{body.at(2).as<block::Height>(),
+                        api_.Factory().Data(body.at(1).Bytes())};
+    accounts_.Reorg(parent);
+    Trigger();
 }
 
 auto Wallet::shutdown(std::promise<void>& promise) noexcept -> void

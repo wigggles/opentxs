@@ -35,6 +35,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/crypto/key/EllipticCurve.hpp"
+#include "util/ScopeGuard.hpp"
 
 #define OT_METHOD "opentxs::blockchain::client::implementation::HDStateData::"
 
@@ -52,6 +53,7 @@ HDStateData::HDStateData(
     , filter_type_(filter)
     , subchain_(subchain)
     , running_(false)
+    , reorg_()
     , last_indexed_()
     , last_scanned_()
     , blocks_to_request_()
@@ -60,19 +62,31 @@ HDStateData::HDStateData(
 {
 }
 
-HDStateData::HDStateData(HDStateData&& rhs) noexcept
-    : network_(rhs.network_)
-    , db_(rhs.db_)
-    , node_(rhs.node_)
-    , filter_type_(rhs.filter_type_)
-    , subchain_(rhs.subchain_)
-    , running_(rhs.running_.load())
-    , last_indexed_(std::move(rhs.last_indexed_))
-    , last_scanned_(std::move(rhs.last_scanned_))
-    , blocks_to_request_(std::move(rhs.blocks_to_request_))
-    , outstanding_blocks_(std::move(rhs.outstanding_blocks_))
-    , process_block_queue_(std::move(rhs.process_block_queue_))
+auto HDStateData::ReorgQueue::Empty() const noexcept -> bool
 {
+    Lock lock(lock_);
+
+    return 0 == parents_.size();
+}
+
+auto HDStateData::ReorgQueue::Queue(const block::Position& parent) noexcept
+    -> bool
+{
+    Lock lock(lock_);
+    parents_.push(parent);
+
+    return true;
+}
+
+auto HDStateData::ReorgQueue::Next() noexcept -> block::Position
+{
+    OT_ASSERT(false == Empty());
+
+    Lock lock(lock_);
+    auto output{parents_.front()};
+    parents_.pop();
+
+    return output;
 }
 
 auto HDStateData::get_targets(
@@ -178,29 +192,14 @@ auto HDStateData::index_element(
 
 auto HDStateData::process() noexcept -> void
 {
-    struct Cleanup {
-        Cleanup(HDStateData::OutstandingMap::iterator it, HDStateData& data)
-            : it_(it)
-            , data_(data)
-        {
-        }
-
-        ~Cleanup()
-        {
-            data_.outstanding_blocks_.erase(it_);
-            data_.process_block_queue_.pop();
-        }
-
-    private:
-        HDStateData::OutstandingMap::iterator it_;
-        HDStateData& data_;
-    };
-
     const auto start = Clock::now();
     const auto& filters = network_.FilterOracle();
     auto it = process_block_queue_.front();
+    auto postcondition = ScopeGuard{[&] {
+        outstanding_blocks_.erase(it);
+        process_block_queue_.pop();
+    }};
     const auto& blockHash = it->first.get();
-    auto cleanup = Cleanup{it, *this};
     const auto pBlock = it->second.get();
 
     if (false == bool(pBlock)) {
@@ -263,6 +262,31 @@ auto HDStateData::process() noexcept -> void
         // Re-scan the last 1000 blocks
         const auto height = std::max(header.Height() - 1000, block::Height{0});
         last_scanned_ = block::Position{height, oracle.BestHash(height)};
+    }
+}
+
+auto HDStateData::reorg() noexcept -> void
+{
+    while (false == reorg_.Empty()) {
+        reorg_.Next();
+        const auto tip =
+            db_.SubchainLastProcessed(node_.ID(), subchain_, filter_type_);
+        const auto reorg = network_.HeaderOracle().CalculateReorg(tip);
+        db_.ReorgTo(node_.ID(), subchain_, filter_type_, reorg);
+    }
+
+    const auto scannedTarget = network_.HeaderOracle()
+                                   .CommonParent(db_.SubchainLastScanned(
+                                       node_.ID(), subchain_, filter_type_))
+                                   .first;
+
+    if (last_scanned_.has_value()) { last_scanned_ = scannedTarget; }
+
+    blocks_to_request_.clear();
+    outstanding_blocks_.clear();
+
+    while (false == process_block_queue_.empty()) {
+        process_block_queue_.pop();
     }
 }
 
@@ -426,7 +450,8 @@ auto HDStateData::update_utxos(
 
     for (const auto& [txid, data] : transactions) {
         auto& [outputs, pTX] = data;
-        auto updated = db_.AddConfirmedTransaction(position, outputs, *pTX);
+        auto updated = db_.AddConfirmedTransaction(
+            node_.ID(), subchain_, filter_type_, position, outputs, *pTX);
 
         OT_ASSERT(updated);  // TODO handle database errors
     }

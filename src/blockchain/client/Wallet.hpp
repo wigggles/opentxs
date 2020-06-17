@@ -5,8 +5,10 @@
 
 #pragma once
 
+#include <deque>
 #include <future>
 #include <map>
+#include <queue>
 #include <string>
 
 #include "1_Internal.hpp"
@@ -15,6 +17,7 @@
 #include "internal/api/client/blockchain/Blockchain.hpp"
 #include "internal/blockchain/client/Client.hpp"
 #include "opentxs/Types.hpp"
+#include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/network/zeromq/socket/Push.hpp"
@@ -61,6 +64,7 @@ public:
 
         auto queue_work(const Task task, const HDStateData& data) noexcept
             -> void;
+        auto reorg(const block::Position& parent) noexcept -> bool;
         auto state_machine() noexcept -> bool;
 
         Account(
@@ -82,6 +86,8 @@ public:
         std::map<OTIdentifier, HDStateData> external_;
 
         auto state_machine_hd(HDStateData& data) noexcept -> bool;
+        auto reorg_hd(HDStateData& data, const block::Position& parent) noexcept
+            -> bool;
 
         Account(const Account&) = delete;
     };
@@ -116,6 +122,7 @@ private:
     struct Accounts {
         auto Add(const identifier::Nym& nym) noexcept -> bool;
         auto Add(const zmq::Frame& message) noexcept -> bool;
+        auto Reorg(const block::Position& parent) noexcept -> bool;
 
         auto state_machine() noexcept -> bool;
 
@@ -157,6 +164,7 @@ private:
     Accounts accounts_;
 
     auto pipeline(const zmq::Message& in) noexcept -> void;
+    auto process_reorg(const zmq::Message& in) noexcept -> void;
     auto shutdown(std::promise<void>& promise) noexcept -> void;
     auto state_machine() noexcept -> void;
 

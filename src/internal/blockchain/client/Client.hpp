@@ -144,8 +144,9 @@ template <>
 struct make_blank<blockchain::block::Position> {
     static auto value(const api::Core& api) -> blockchain::block::Position
     {
-        return {make_blank<blockchain::block::Height>::value(api),
-                make_blank<blockchain::block::pHash>::value(api)};
+        return {
+            make_blank<blockchain::block::Height>::value(api),
+            make_blank<blockchain::block::pHash>::value(api)};
     }
 };
 }  // namespace opentxs
@@ -224,8 +225,8 @@ struct FilterDatabase {
     virtual auto HaveFilterHeader(
         const filter::Type type,
         const block::Hash& block) const noexcept -> bool = 0;
-    virtual auto LoadFilter(const filter::Type type, const ReadView block) const
-        noexcept -> std::unique_ptr<const blockchain::internal::GCS> = 0;
+    virtual auto LoadFilter(const filter::Type type, const ReadView block)
+        const noexcept -> std::unique_ptr<const blockchain::internal::GCS> = 0;
     virtual auto LoadFilterHash(const filter::Type type, const ReadView block)
         const noexcept -> Hash = 0;
     virtual auto LoadFilterHeader(const filter::Type type, const ReadView block)
@@ -278,8 +279,8 @@ struct HeaderOracle : virtual public opentxs::blockchain::client::HeaderOracle {
 };
 
 struct HeaderDatabase {
-    virtual auto ApplyUpdate(const client::UpdateTransaction& update) const
-        noexcept -> bool = 0;
+    virtual auto ApplyUpdate(
+        const client::UpdateTransaction& update) const noexcept -> bool = 0;
     // Throws std::out_of_range if no block at that position
     virtual auto BestBlock(const block::Height position) const noexcept(false)
         -> block::pHash = 0;
@@ -308,7 +309,7 @@ struct HeaderDatabase {
 struct IO {
     using tcp = boost::asio::ip::tcp;
 
-    operator boost::asio::io_context&() const noexcept { return context_; }
+    operator boost::asio::io_context &() const noexcept { return context_; }
 
     auto Connect(
         const Space& id,
@@ -388,8 +389,8 @@ struct Network : virtual public opentxs::blockchain::Network {
         -> void = 0;
     virtual auto UpdateHeight(const block::Height height) const noexcept
         -> void = 0;
-    virtual auto UpdateLocalHeight(const block::Position position) const
-        noexcept -> void = 0;
+    virtual auto UpdateLocalHeight(
+        const block::Position position) const noexcept -> void = 0;
     virtual auto Work(const Task type) const noexcept -> OTZMQMessage = 0;
 
     virtual auto HeaderOracle() noexcept -> client::HeaderOracle& = 0;
@@ -477,6 +478,7 @@ struct Wallet {
         index = 0,
         scan = 1,
         process = 2,
+        reorg = 3,
     };
 
     static auto ProcessTask(const zmq::Message& task) noexcept -> void;
@@ -506,9 +508,13 @@ struct WalletDatabase {
     static const VersionNumber DefaultIndexVersion;
 
     virtual auto AddConfirmedTransaction(
+        const NodeID& balanceNode,
+        const Subchain subchain,
+        const FilterType type,
         const block::Position& block,
         const std::vector<std::uint32_t> outputIndices,
-        const block::bitcoin::Transaction& transaction) const noexcept
+        const block::bitcoin::Transaction& transaction,
+        const VersionNumber version = DefaultIndexVersion) const noexcept
         -> bool = 0;
     virtual auto GetBalance() const noexcept -> Balance = 0;
     virtual auto GetPatterns(
@@ -525,6 +531,11 @@ struct WalletDatabase {
         const ReadView blockID,
         const VersionNumber version = DefaultIndexVersion) const noexcept
         -> Patterns = 0;
+    virtual auto ReorgTo(
+        const NodeID& balanceNode,
+        const Subchain subchain,
+        const FilterType type,
+        const std::vector<block::Position>& reorg) const noexcept -> bool = 0;
     virtual auto SubchainAddElements(
         const NodeID& balanceNode,
         const Subchain subchain,
