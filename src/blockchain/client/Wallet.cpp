@@ -44,6 +44,7 @@
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/socket/Push.hpp"
 #include "opentxs/network/zeromq/socket/Socket.hpp"
+#include "util/ScopeGuard.hpp"
 
 #define OT_METHOD "opentxs::blockchain::client::implementation::Wallet::"
 
@@ -68,18 +69,6 @@ namespace opentxs::blockchain::client::internal
 {
 auto Wallet::ProcessTask(const zmq::Message& in) noexcept -> void
 {
-    struct Cleanup {
-        Cleanup(std::atomic<bool>& running) noexcept
-            : running_(running)
-        {
-        }
-
-        ~Cleanup() { running_.store(false); }
-
-    private:
-        std::atomic<bool>& running_;
-    };
-
     const auto body = in.Body();
 
     if (2 > body.size()) {
@@ -96,7 +85,7 @@ auto Wallet::ProcessTask(const zmq::Message& in) noexcept -> void
     OT_ASSERT(nullptr != pData);
 
     auto& data = *pData;
-    auto cleanup = Cleanup{data.running_};
+    auto postcondition = ScopeGuard{[&] { data.running_.store(false); }};
 
     switch (body.at(1).as<Task>()) {
         case Task::index: {

@@ -31,6 +31,7 @@
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/Pipeline.hpp"
 #include "opentxs/network/zeromq/socket/Socket.hpp"
+#include "util/ScopeGuard.hpp"
 
 #define OT_BLOCKCHAIN_PEER_PING_SECONDS 30
 #define OT_BLOCKCHAIN_PEER_DISCONNECT_SECONDS 40
@@ -685,25 +686,6 @@ auto Peer::transmit(zmq::Message& message) noexcept -> void
 {
     if (false == running_.get()) { return; }
 
-    struct Cleanup {
-        Cleanup(const bool& sucess, const zmq::Frame& frame, Peer& parent)
-            : success_(sucess)
-            , parent_(parent)
-            , index_(0)
-        {
-            OT_ASSERT(sizeof(index_) == frame.size());
-
-            std::memcpy(&index_, frame.data(), frame.size());
-        }
-
-        ~Cleanup() { parent_.send_promises_.SetPromise(index_, success_); }
-
-    private:
-        const bool& success_;
-        Peer& parent_;
-        int index_;
-    };
-
     if (2 < message.Body().size()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid message").Flush();
 
@@ -712,8 +694,10 @@ auto Peer::transmit(zmq::Message& message) noexcept -> void
 
     const auto& payload = message.Body_at(0);
     const auto& promiseFrame = message.Body_at(1);
+    const auto index = promiseFrame.as<int>();
     auto success = bool{false};
-    const Cleanup cleanup{success, promiseFrame, *this};
+    auto postcondition =
+        ScopeGuard{[&] { send_promises_.SetPromise(index, success); }};
     LogTrace(OT_METHOD)(__FUNCTION__)(": Sending ")(payload.size())(
         " byte message:")
         .Flush();

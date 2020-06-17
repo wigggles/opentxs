@@ -25,6 +25,7 @@
 #include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/Pipeline.hpp"
+#include "util/ScopeGuard.hpp"
 
 #define OT_METHOD "opentxs::blockchain::client::implementation::Network::"
 
@@ -217,22 +218,10 @@ auto Network::process_filter(network::zeromq::Message& in) noexcept -> void
 
 auto Network::process_header(network::zeromq::Message& in) noexcept -> void
 {
-    struct Cleanup {
-        Cleanup(Flag& flag)
-            : flag_(flag)
-        {
-            flag_.On();
-        }
-
-        ~Cleanup() { flag_.Off(); }
-
-    private:
-        Flag& flag_;
-    };
-
     if (false == running_.get()) { return; }
 
-    auto cleanup = Cleanup(processing_headers_);
+    processing_headers_->On();
+    auto postcondition = ScopeGuard{[&] { processing_headers_->Off(); }};
     using Promise = std::promise<void>;
     auto pPromise = std::unique_ptr<Promise>{};
     auto input = std::vector<ReadView>{};

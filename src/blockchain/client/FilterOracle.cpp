@@ -34,6 +34,7 @@
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/Pipeline.hpp"
 #include "opentxs/network/zeromq/socket/Publish.hpp"
+#include "util/ScopeGuard.hpp"
 
 #define OT_METHOD "opentxs::blockchain::client::implementation::FilterOracle::"
 
@@ -731,18 +732,7 @@ auto FilterOracle::process_cfilter(const zmq::Message& in) noexcept -> void
         header.Height(), header.Hash(), std::move(gcs));
 
     if (outstanding_filters_.IsFull()) {
-        struct Cleanup {
-            FilterOracle& this_;
-
-            Cleanup(FilterOracle& parent)
-                : this_(parent)
-            {
-            }
-
-            ~Cleanup() { this_.outstanding_filters_.Reset(); }
-        };
-
-        auto cleanup = Cleanup{*this};
+        auto postcondition = ScopeGuard{[&] { outstanding_filters_.Reset(); }};
         auto filters = std::vector<internal::FilterDatabase::Filter>{};
         auto position = outstanding_filters_.Flush(filters);
 

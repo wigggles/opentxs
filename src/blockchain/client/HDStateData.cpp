@@ -35,6 +35,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/crypto/key/EllipticCurve.hpp"
+#include "util/ScopeGuard.hpp"
 
 #define OT_METHOD "opentxs::blockchain::client::implementation::HDStateData::"
 
@@ -178,29 +179,14 @@ auto HDStateData::index_element(
 
 auto HDStateData::process() noexcept -> void
 {
-    struct Cleanup {
-        Cleanup(HDStateData::OutstandingMap::iterator it, HDStateData& data)
-            : it_(it)
-            , data_(data)
-        {
-        }
-
-        ~Cleanup()
-        {
-            data_.outstanding_blocks_.erase(it_);
-            data_.process_block_queue_.pop();
-        }
-
-    private:
-        HDStateData::OutstandingMap::iterator it_;
-        HDStateData& data_;
-    };
-
     const auto start = Clock::now();
     const auto& filters = network_.FilterOracle();
     auto it = process_block_queue_.front();
+    auto postcondition = ScopeGuard{[&] {
+        outstanding_blocks_.erase(it);
+        process_block_queue_.pop();
+    }};
     const auto& blockHash = it->first.get();
-    auto cleanup = Cleanup{it, *this};
     const auto pBlock = it->second.get();
 
     if (false == bool(pBlock)) {
