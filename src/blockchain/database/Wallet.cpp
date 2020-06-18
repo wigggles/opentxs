@@ -76,14 +76,17 @@ Wallet::Wallet(
     , transactions_()
     , tx_to_block_()
     , block_to_tx_()
+    , tx_history_()
 {
 }
 
 auto Wallet::add_transaction(
     const Lock& lock,
-    const block::Hash& block,
+    const block::Position& block,
     const block::bitcoin::Transaction& transaction) const noexcept -> bool
 {
+    const auto& [height, blockHash] = block;
+
     if (auto it = transactions_.find(transaction.ID());
         transactions_.end() != it) {
         auto& serialized = it->second;
@@ -103,12 +106,18 @@ auto Wallet::add_transaction(
 
     {
         auto& index = tx_to_block_[transaction.ID()];
-        index.emplace_back(block);
+        index.emplace_back(blockHash);
         dedup(index);
     }
 
     {
-        auto& index = block_to_tx_[block];
+        auto& index = block_to_tx_[blockHash];
+        index.emplace_back(transaction.ID());
+        dedup(index);
+    }
+
+    {
+        auto& index = tx_history_[height];
         index.emplace_back(transaction.ID());
         dedup(index);
     }
@@ -126,9 +135,8 @@ auto Wallet::AddConfirmedTransaction(
     const block::bitcoin::Transaction& transaction) const noexcept -> bool
 {
     Lock lock(lock_);
-    const auto& [height, blockHash] = block;
 
-    if (false == add_transaction(lock, blockHash, transaction)) {
+    if (false == add_transaction(lock, block, transaction)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Error adding transaction to database")
             .Flush();
@@ -541,6 +549,7 @@ auto Wallet::rollback(
     }
 
     dedup(outpoints);
+    auto& history = tx_history_[position.first];
 
     for (const auto& id : outpoints) {
         auto& [opState, opPosition, data] = outputs_.at(id);
@@ -564,6 +573,16 @@ auto Wallet::rollback(
         if (change && (false == change_state(lock, id, newState, position))) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
                 ": Failed to update output state")
+                .Flush();
+
+            return false;
+        }
+
+        const auto& txid = api_.Factory().Data(id.Txid());
+
+        if (false == delete_from_vector(history, txid)) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(
+                ": Failed to update transaction history")
                 .Flush();
 
             return false;

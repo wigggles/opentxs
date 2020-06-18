@@ -195,6 +195,7 @@ private:
         std::map<block::pTxid, std::vector<block::pHash>>;
     using BlockTransactionMap =
         std::map<block::pHash, std::vector<block::pTxid>>;
+    using TransactionHistory = std::map<block::Height, std::vector<block::pTxid>>;
 
     const api::Core& api_;
     const api::client::internal::Blockchain& blockchain_;
@@ -214,6 +215,7 @@ private:
     mutable TransactionMap transactions_;
     mutable TransactionBlockMap tx_to_block_;
     mutable BlockTransactionMap block_to_tx_;
+    mutable TransactionHistory tx_history_;
 
     auto belongs_to(
         const Lock& lock,
@@ -254,7 +256,7 @@ private:
 
     auto add_transaction(
         const Lock& lock,
-        const block::Hash& block,
+        const block::Position& block,
         const block::bitcoin::Transaction& transaction) const noexcept -> bool;
     auto change_state(
         const Lock& lock,
