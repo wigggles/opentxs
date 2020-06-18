@@ -13,8 +13,8 @@
 #include <utility>
 #include <vector>
 
-#include "internal/api/Api.hpp"
 #include "opentxs/Pimpl.hpp"
+#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/blockchain/block/Header.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -32,7 +32,7 @@
 namespace opentxs::blockchain::client::implementation
 {
 Network::Network(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     const api::client::internal::Blockchain& blockchain,
     const Type type,
     const std::string& seednode,

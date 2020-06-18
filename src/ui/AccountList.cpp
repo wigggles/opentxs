@@ -7,13 +7,13 @@
 #include "1_Internal.hpp"      // IWYU pragma: associated
 #include "ui/AccountList.hpp"  // IWYU pragma: associated
 
-#include <algorithm>
 #include <map>
 #include <memory>
 #include <set>
 #include <string>
 #include <thread>
 #include <utility>
+#include <vector>
 
 #include "internal/api/client/Client.hpp"
 #include "opentxs/Pimpl.hpp"
@@ -39,6 +39,7 @@
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/socket/Socket.hpp"
 #include "ui/List.hpp"
+#include "util/Blank.hpp"
 
 #define OT_METHOD "opentxs::ui::implementation::AccountList::"
 

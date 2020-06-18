@@ -8,6 +8,7 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/NymFile.hpp"
+#include "util/Blank.hpp"
 
 namespace opentxs
 {

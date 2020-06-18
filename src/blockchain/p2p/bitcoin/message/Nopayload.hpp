@@ -21,10 +21,10 @@ namespace opentxs
 {
 namespace api
 {
-namespace internal
+namespace client
 {
-struct Core;
-}  // namespace internal
+class Manager;
+}  // namespace client
 }  // namespace api
 
 namespace blockchain
@@ -37,8 +37,6 @@ class Header;
 }  // namespace bitcoin
 }  // namespace p2p
 }  // namespace blockchain
-
-class Factory;
 }  // namespace opentxs
 
 namespace opentxs::blockchain::p2p::bitcoin::message::implementation
@@ -47,15 +45,8 @@ template <typename InterfaceType>
 class Nopayload final : virtual public InterfaceType
 {
 public:
-    ~Nopayload() final = default;
-
-private:
-    friend opentxs::Factory;
-
-    auto payload() const noexcept -> OTData final { return Data::Factory(); }
-
     Nopayload(
-        const api::internal::Core& api,
+        const api::client::Manager& api,
         const blockchain::Type network,
         const bitcoin::Command command) noexcept
         : Message(api, network, command)
@@ -63,11 +54,17 @@ private:
         Message::init_hash();
     }
     Nopayload(
-        const api::internal::Core& api,
+        const api::client::Manager& api,
         std::unique_ptr<Header> header) noexcept
         : Message(api, std::move(header))
     {
     }
+
+    ~Nopayload() final = default;
+
+private:
+    auto payload() const noexcept -> OTData final { return Data::Factory(); }
+
     Nopayload(const Nopayload&) = delete;
     Nopayload(Nopayload&&) = delete;
     auto operator=(const Nopayload&) -> Nopayload& = delete;

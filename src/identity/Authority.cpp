@@ -19,13 +19,12 @@
 #include <utility>
 #include <vector>
 
-#include "Factory.hpp"
+#include "2_Factory.hpp"
 #include "internal/api/Api.hpp"
 #include "internal/identity/Identity.hpp"
 #include "internal/identity/credential/Credential.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Proto.hpp"
-#include "opentxs/Version.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/Data.hpp"

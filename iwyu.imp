@@ -1,7 +1,7 @@
 [
 { "include": ["@<google/protobuf/.*>", "private", "\"opentxs/Proto.hpp\"", "public"] },
 { "include": ["@<boost/asio/.*>", "private", "<boost/asio.hpp>", "public"] },
-{ "include": ["@<boost/bind/.*>", "private", "<boost/bind.hpp>", "public"] },
+{ "include": ["@<boost/bind/.*>", "private", "<boost/bind/bind.hpp>", "public"] },
 { "include": ["@<boost/dynamic_bitset/.*>", "private", "<boost/dynamic_bitset.hpp>", "public"] },
 { "include": ["@<boost/endian/detail/.*>", "private", "<boost/endian/buffers.hpp>", "public"] },
 { "include": ["@<boost/filesystem/.*>", "private", "<boost/filesystem.hpp>", "public"] },

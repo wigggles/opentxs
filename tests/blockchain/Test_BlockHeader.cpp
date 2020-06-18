@@ -4,6 +4,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include "OTTestEnvironment.hpp"
+#include "internal/blockchain/block/Block.hpp"
 
 #define BTC_GENESIS_HASH_NUMERIC                                               \
     "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"
@@ -50,7 +51,7 @@ TEST_F(Test_BlockHeader, genesis_block_header)
         ot::Data::Factory(BTC_GENESIS_HASH, ot::Data::Mode::Hex);
     const std::string numericHash{BTC_GENESIS_HASH_NUMERIC};
     std::unique_ptr<const bb::Header> pHeader{
-        ot::Factory::GenesisBlockHeader(api_, b::Type::Bitcoin)};
+        ot::factory::GenesisBlockHeader(api_, b::Type::Bitcoin)};
 
     ASSERT_TRUE(pHeader);
 
@@ -75,7 +76,7 @@ TEST_F(Test_BlockHeader, genesis_block_header)
 TEST_F(Test_BlockHeader, Serialize)
 {
     std::unique_ptr<const bb::Header> pHeader{
-        ot::Factory::GenesisBlockHeader(api_, b::Type::Bitcoin)};
+        ot::factory::GenesisBlockHeader(api_, b::Type::Bitcoin)};
 
     ASSERT_TRUE(pHeader);
 
@@ -101,7 +102,7 @@ TEST_F(Test_BlockHeader, Deserialize)
     const auto expectedHash =
         ot::Data::Factory(BTC_GENESIS_HASH, ot::Data::Mode::Hex);
     std::unique_ptr<const bb::Header> pHeader{
-        ot::Factory::GenesisBlockHeader(api_, b::Type::Bitcoin)};
+        ot::factory::GenesisBlockHeader(api_, b::Type::Bitcoin)};
 
     ASSERT_TRUE(pHeader);
 

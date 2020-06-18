@@ -26,6 +26,8 @@ namespace internal
 {
 struct Core;
 }  // namespace internal
+
+class Core;
 }  // namespace api
 
 namespace proto

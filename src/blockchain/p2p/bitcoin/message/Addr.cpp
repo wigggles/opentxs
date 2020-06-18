@@ -7,29 +7,28 @@
 #include "1_Internal.hpp"                           // IWYU pragma: associated
 #include "blockchain/p2p/bitcoin/message/Addr.hpp"  // IWYU pragma: associated
 
-#include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
 #include <type_traits>
 
-#include "Factory.hpp"
 #include "blockchain/p2p/bitcoin/Header.hpp"
 #include "blockchain/p2p/bitcoin/Message.hpp"
 #include "internal/blockchain/bitcoin/Bitcoin.hpp"
 #include "internal/blockchain/p2p/P2P.hpp"
 #include "opentxs/Forward.hpp"
 #include "opentxs/Pimpl.hpp"
+#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 
 //#define OT_METHOD "
 // opentxs::blockchain::p2p::bitcoin::message::implementation::Addr::"
 
-namespace opentxs
+namespace opentxs::factory
 {
-auto Factory::BitcoinP2PAddr(
-    const api::internal::Core& api,
+auto BitcoinP2PAddr(
+    const api::client::Manager& api,
     std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
     const blockchain::p2p::bitcoin::ProtocolVersion version,
     const void* payload,
@@ -41,7 +40,7 @@ auto Factory::BitcoinP2PAddr(
     using ReturnType = bitcoin::message::implementation::Addr;
 
     if (false == bool(pHeader)) {
-        LogOutput("opentxs::Factory::")(__FUNCTION__)(": Invalid header")
+        LogOutput("opentxs::factory::")(__FUNCTION__)(": Invalid header")
             .Flush();
 
         return nullptr;
@@ -51,7 +50,7 @@ auto Factory::BitcoinP2PAddr(
     auto expectedSize = sizeof(std::byte);
 
     if (expectedSize > size) {
-        LogOutput("opentxs::Factory::")(__FUNCTION__)(
+        LogOutput("opentxs::factory::")(__FUNCTION__)(
             ": Payload too short (compactsize)")
             .Flush();
 
@@ -81,7 +80,7 @@ auto Factory::BitcoinP2PAddr(
             expectedSize += addressSize;
 
             if (expectedSize > size) {
-                LogOutput("opentxs::Factory::")(__FUNCTION__)(
+                LogOutput("opentxs::factory::")(__FUNCTION__)(
                     ": Address entries incomplete at entry index ")(i)
                     .Flush();
 
@@ -94,7 +93,7 @@ auto Factory::BitcoinP2PAddr(
                     reinterpret_cast<std::byte*>(&raw), it, sizeof(raw));
                 const auto [network, bytes] =
                     ReturnType::ExtractAddress(raw.data_.address_);
-                addresses.emplace_back(Factory::BlockchainAddress(
+                addresses.emplace_back(factory::BlockchainAddress(
                     api,
                     p2p::Protocol::bitcoin,
                     network,
@@ -112,7 +111,7 @@ auto Factory::BitcoinP2PAddr(
                     reinterpret_cast<std::byte*>(&raw), it, sizeof(raw));
                 const auto [network, bytes] =
                     ReturnType::ExtractAddress(raw.address_);
-                addresses.emplace_back(Factory::BlockchainAddress(
+                addresses.emplace_back(factory::BlockchainAddress(
                     api,
                     p2p::Protocol::bitcoin,
                     network,
@@ -134,8 +133,8 @@ auto Factory::BitcoinP2PAddr(
         api, std::move(pHeader), version, std::move(addresses));
 }
 
-auto Factory::BitcoinP2PAddr(
-    const api::internal::Core& api,
+auto BitcoinP2PAddr(
+    const api::client::Manager& api,
     const blockchain::Type network,
     const blockchain::p2p::bitcoin::ProtocolVersion version,
     std::vector<std::unique_ptr<blockchain::p2p::internal::Address>>&&
@@ -146,12 +145,12 @@ auto Factory::BitcoinP2PAddr(
 
     return new ReturnType(api, network, version, std::move(addresses));
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::blockchain::p2p::bitcoin::message::implementation
 {
 Addr::Addr(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     const blockchain::Type network,
     const ProtocolVersion version,
     AddressVector&& addresses) noexcept
@@ -163,7 +162,7 @@ Addr::Addr(
 }
 
 Addr::Addr(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     std::unique_ptr<Header> header,
     const ProtocolVersion version,
     AddressVector&& addresses) noexcept
@@ -192,8 +191,8 @@ Addr::BitcoinFormat_31402::BitcoinFormat_31402()
 auto Addr::ExtractAddress(AddressByteField in) noexcept
     -> std::pair<p2p::Network, OTData>
 {
-    std::pair<p2p::Network, OTData> output{Network::ipv6,
-                                           Data::Factory(in.data(), in.size())};
+    std::pair<p2p::Network, OTData> output{
+        Network::ipv6, Data::Factory(in.data(), in.size())};
     auto& [type, bytes] = output;
     auto prefix = Data::Factory();
 

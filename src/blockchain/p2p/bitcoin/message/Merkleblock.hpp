@@ -22,10 +22,10 @@ namespace opentxs
 {
 namespace api
 {
-namespace internal
+namespace client
 {
-struct Core;
-}  // namespace internal
+class Manager;
+}  // namespace client
 }  // namespace api
 
 namespace blockchain
@@ -38,8 +38,6 @@ class Header;
 }  // namespace bitcoin
 }  // namespace p2p
 }  // namespace blockchain
-
-class Factory;
 }  // namespace opentxs
 
 namespace opentxs::blockchain::p2p::bitcoin::message
@@ -47,6 +45,14 @@ namespace opentxs::blockchain::p2p::bitcoin::message
 class Merkleblock final : virtual public bitcoin::Message
 {
 public:
+    struct Raw {
+        BlockHeaderField block_header_;
+        TxnCountField txn_count_;
+
+        Raw(const Data& block_header, const TxnCount txn_count) noexcept;
+        Raw() noexcept;
+    };
+
     auto getBlockHeader() const noexcept -> OTData
     {
         return Data::Factory(block_header_);
@@ -61,40 +67,31 @@ public:
         return flags_;
     }
 
-    ~Merkleblock() final = default;
-
-    auto payload() const noexcept -> OTData final;
-
-private:
-    friend opentxs::Factory;
-
-    struct Raw {
-        BlockHeaderField block_header_;
-        TxnCountField txn_count_;
-
-        Raw(const Data& block_header, const TxnCount txn_count) noexcept;
-        Raw() noexcept;
-    };
-
-    const OTData block_header_;
-    const TxnCount txn_count_{};
-    const std::vector<OTData> hashes_;
-    const std::vector<std::byte> flags_;
-
     Merkleblock(
-        const api::internal::Core& api,
+        const api::client::Manager& api,
         const blockchain::Type network,
         const Data& block_header,
         const TxnCount txn_count,
         const std::vector<OTData>& hashes,
         const std::vector<std::byte>& flags) noexcept;
     Merkleblock(
-        const api::internal::Core& api,
+        const api::client::Manager& api,
         std::unique_ptr<Header> header,
         const Data& block_header,
         const TxnCount txn_count,
         const std::vector<OTData>& hashes,
         const std::vector<std::byte>& flags) noexcept(false);
+
+    ~Merkleblock() final = default;
+
+private:
+    const OTData block_header_;
+    const TxnCount txn_count_{};
+    const std::vector<OTData> hashes_;
+    const std::vector<std::byte> flags_;
+
+    auto payload() const noexcept -> OTData final;
+
     Merkleblock(const Merkleblock&) = delete;
     Merkleblock(Merkleblock&&) = delete;
     auto operator=(const Merkleblock&) -> Merkleblock& = delete;

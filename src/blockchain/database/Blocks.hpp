@@ -37,10 +37,10 @@ namespace opentxs
 {
 namespace api
 {
-namespace internal
+namespace client
 {
-struct Core;
-}  // namespace internal
+class Manager;
+}  // namespace client
 }  // namespace api
 
 namespace blockchain
@@ -67,12 +67,12 @@ public:
     auto Store(const block::Block& block) const noexcept -> bool;
 
     Blocks(
-        const api::internal::Core& api,
+        const api::client::Manager& api,
         const Common& common,
         const blockchain::Type type) noexcept;
 
 private:
-    const api::internal::Core& api_;
+    const api::client::Manager& api_;
     const Common& common_;
     const blockchain::Type chain_;
 };

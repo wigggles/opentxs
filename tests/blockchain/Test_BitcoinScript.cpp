@@ -4,6 +4,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include "OTTestEnvironment.hpp"
+#include "internal/blockchain/block/bitcoin/Bitcoin.hpp"
 
 namespace b = ot::blockchain::block::bitcoin;
 
@@ -864,8 +865,8 @@ TEST(Test_BitcoinScript, opcodes_general)
         element.opcode_ = op;
     }
 
-    const auto script1 = ot::Factory::BitcoinScript(std::move(elements1));
-    const auto script2 = ot::Factory::BitcoinScript(std::move(elements2));
+    const auto script1 = ot::factory::BitcoinScript(std::move(elements1));
+    const auto script2 = ot::factory::BitcoinScript(std::move(elements2));
 
     ASSERT_TRUE(script1);
     ASSERT_TRUE(script2);
@@ -907,8 +908,8 @@ TEST(Test_BitcoinScript, opcodes_push_inline)
                 serialized.emplace(serialized.begin(), std::byte{n});
             }
 
-            auto script1 = ot::Factory::BitcoinScript(std::move(elements));
-            auto script2 = ot::Factory::BitcoinScript(
+            auto script1 = ot::factory::BitcoinScript(std::move(elements));
+            auto script2 = ot::factory::BitcoinScript(
                 ot::reader(serialized), true, false, false);
 
             ASSERT_TRUE(script1);
@@ -948,8 +949,8 @@ TEST(Test_BitcoinScript, opcodes_push_inline)
                 serialized.emplace(serialized.begin(), std::byte{n});
             }
 
-            auto script1 = ot::Factory::BitcoinScript(std::move(elements));
-            auto script2 = ot::Factory::BitcoinScript(
+            auto script1 = ot::factory::BitcoinScript(std::move(elements));
+            auto script2 = ot::factory::BitcoinScript(
                 ot::reader(serialized), true, false, false);
 
             EXPECT_FALSE(script1);
@@ -967,8 +968,8 @@ TEST(Test_BitcoinScript, opcodes_push_inline)
                 serialized.emplace(serialized.begin(), std::byte{n});
             }
 
-            auto script1 = ot::Factory::BitcoinScript(std::move(elements));
-            auto script2 = ot::Factory::BitcoinScript(
+            auto script1 = ot::factory::BitcoinScript(std::move(elements));
+            auto script2 = ot::factory::BitcoinScript(
                 ot::reader(serialized), true, false, false);
 
             EXPECT_FALSE(script1);
@@ -992,8 +993,8 @@ TEST(Test_BitcoinScript, opcodes_push_1)
             serialized.emplace(serialized.begin(), std::byte{76});
         }
 
-        auto script1 = ot::Factory::BitcoinScript(std::move(elements));
-        auto script2 = ot::Factory::BitcoinScript(
+        auto script1 = ot::factory::BitcoinScript(std::move(elements));
+        auto script2 = ot::factory::BitcoinScript(
             ot::reader(serialized), true, false, false);
 
         ASSERT_TRUE(script1);
@@ -1034,7 +1035,7 @@ TEST(Test_BitcoinScript, opcodes_push_1)
             opcode = b::OP::PUSHDATA1;
         }
 
-        auto script = ot::Factory::BitcoinScript(std::move(elements));
+        auto script = ot::factory::BitcoinScript(std::move(elements));
 
         EXPECT_FALSE(script);
     }
@@ -1049,8 +1050,8 @@ TEST(Test_BitcoinScript, opcodes_push_1)
             serialized.emplace(serialized.begin(), std::byte{76});
         }
 
-        auto script1 = ot::Factory::BitcoinScript(std::move(elements));
-        auto script2 = ot::Factory::BitcoinScript(
+        auto script1 = ot::factory::BitcoinScript(std::move(elements));
+        auto script2 = ot::factory::BitcoinScript(
             ot::reader(serialized), true, false, false);
 
         EXPECT_FALSE(script1);
@@ -1070,8 +1071,8 @@ TEST(Test_BitcoinScript, opcodes_push_1)
             serialized.emplace(serialized.begin(), std::byte{76});
         }
 
-        auto script1 = ot::Factory::BitcoinScript(std::move(elements));
-        auto script2 = ot::Factory::BitcoinScript(
+        auto script1 = ot::factory::BitcoinScript(std::move(elements));
+        auto script2 = ot::factory::BitcoinScript(
             ot::reader(serialized), true, false, false);
 
         EXPECT_FALSE(script1);
@@ -1087,7 +1088,7 @@ TEST(Test_BitcoinScript, opcodes_push_1)
             data = ot::space(3);
         }
 
-        auto script1 = ot::Factory::BitcoinScript(std::move(elements));
+        auto script1 = ot::factory::BitcoinScript(std::move(elements));
 
         EXPECT_FALSE(script1);
     }
@@ -1109,8 +1110,8 @@ TEST(Test_BitcoinScript, opcodes_push_2)
             serialized.emplace(serialized.begin(), std::byte{77});
         }
 
-        auto script1 = ot::Factory::BitcoinScript(std::move(elements));
-        auto script2 = ot::Factory::BitcoinScript(
+        auto script1 = ot::factory::BitcoinScript(std::move(elements));
+        auto script2 = ot::factory::BitcoinScript(
             ot::reader(serialized), true, false, false);
 
         ASSERT_TRUE(script1);
@@ -1154,8 +1155,8 @@ TEST(Test_BitcoinScript, opcodes_push_2)
             serialized.emplace(serialized.begin(), std::byte{77});
         }
 
-        auto script1 = ot::Factory::BitcoinScript(std::move(elements));
-        auto script2 = ot::Factory::BitcoinScript(
+        auto script1 = ot::factory::BitcoinScript(std::move(elements));
+        auto script2 = ot::factory::BitcoinScript(
             ot::reader(serialized), true, false, false);
 
         EXPECT_FALSE(script1);
@@ -1173,8 +1174,8 @@ TEST(Test_BitcoinScript, opcodes_push_2)
             serialized.emplace(serialized.begin(), std::byte{77});
         }
 
-        auto script1 = ot::Factory::BitcoinScript(std::move(elements));
-        auto script2 = ot::Factory::BitcoinScript(
+        auto script1 = ot::factory::BitcoinScript(std::move(elements));
+        auto script2 = ot::factory::BitcoinScript(
             ot::reader(serialized), true, false, false);
 
         EXPECT_FALSE(script1);
@@ -1193,8 +1194,8 @@ TEST(Test_BitcoinScript, opcodes_push_2)
             serialized.emplace(serialized.begin(), std::byte{77});
         }
 
-        auto script1 = ot::Factory::BitcoinScript(std::move(elements));
-        auto script2 = ot::Factory::BitcoinScript(
+        auto script1 = ot::factory::BitcoinScript(std::move(elements));
+        auto script2 = ot::factory::BitcoinScript(
             ot::reader(serialized), true, false, false);
 
         EXPECT_FALSE(script1);
@@ -1215,8 +1216,8 @@ TEST(Test_BitcoinScript, opcodes_push_2)
             serialized.emplace(serialized.begin(), std::byte{77});
         }
 
-        auto script1 = ot::Factory::BitcoinScript(std::move(elements));
-        auto script2 = ot::Factory::BitcoinScript(
+        auto script1 = ot::factory::BitcoinScript(std::move(elements));
+        auto script2 = ot::factory::BitcoinScript(
             ot::reader(serialized), true, false, false);
 
         EXPECT_FALSE(script1);
@@ -1232,7 +1233,7 @@ TEST(Test_BitcoinScript, opcodes_push_2)
             data = ot::space(3);
         }
 
-        auto script1 = ot::Factory::BitcoinScript(std::move(elements));
+        auto script1 = ot::factory::BitcoinScript(std::move(elements));
 
         EXPECT_FALSE(script1);
     }
@@ -1257,8 +1258,8 @@ TEST(Test_BitcoinScript, opcodes_push_4)
             serialized.emplace(serialized.begin(), std::byte{78});
         }
 
-        auto script1 = ot::Factory::BitcoinScript(std::move(elements));
-        auto script2 = ot::Factory::BitcoinScript(
+        auto script1 = ot::factory::BitcoinScript(std::move(elements));
+        auto script2 = ot::factory::BitcoinScript(
             ot::reader(serialized), true, false, false);
 
         ASSERT_TRUE(script1);
@@ -1306,8 +1307,8 @@ TEST(Test_BitcoinScript, opcodes_push_4)
             serialized.emplace(serialized.begin(), std::byte{78});
         }
 
-        auto script1 = ot::Factory::BitcoinScript(std::move(elements));
-        auto script2 = ot::Factory::BitcoinScript(
+        auto script1 = ot::factory::BitcoinScript(std::move(elements));
+        auto script2 = ot::factory::BitcoinScript(
             ot::reader(serialized), true, false, false);
 
         EXPECT_FALSE(script1);
@@ -1327,8 +1328,8 @@ TEST(Test_BitcoinScript, opcodes_push_4)
             serialized.emplace(serialized.begin(), std::byte{78});
         }
 
-        auto script1 = ot::Factory::BitcoinScript(std::move(elements));
-        auto script2 = ot::Factory::BitcoinScript(
+        auto script1 = ot::factory::BitcoinScript(std::move(elements));
+        auto script2 = ot::factory::BitcoinScript(
             ot::reader(serialized), true, false, false);
 
         EXPECT_FALSE(script1);
@@ -1350,8 +1351,8 @@ TEST(Test_BitcoinScript, opcodes_push_4)
             serialized.emplace(serialized.begin(), std::byte{78});
         }
 
-        auto script1 = ot::Factory::BitcoinScript(std::move(elements));
-        auto script2 = ot::Factory::BitcoinScript(
+        auto script1 = ot::factory::BitcoinScript(std::move(elements));
+        auto script2 = ot::factory::BitcoinScript(
             ot::reader(serialized), true, false, false);
 
         EXPECT_FALSE(script1);
@@ -1375,8 +1376,8 @@ TEST(Test_BitcoinScript, opcodes_push_4)
             serialized.emplace(serialized.begin(), std::byte{78});
         }
 
-        auto script1 = ot::Factory::BitcoinScript(std::move(elements));
-        auto script2 = ot::Factory::BitcoinScript(
+        auto script1 = ot::factory::BitcoinScript(std::move(elements));
+        auto script2 = ot::factory::BitcoinScript(
             ot::reader(serialized), true, false, false);
 
         EXPECT_FALSE(script1);
@@ -1393,7 +1394,7 @@ TEST(Test_BitcoinScript, opcodes_push_4)
             data = ot::space(3);
         }
 
-        auto script1 = ot::Factory::BitcoinScript(std::move(elements));
+        auto script1 = ot::factory::BitcoinScript(std::move(elements));
 
         EXPECT_FALSE(script1);
     }
@@ -1402,7 +1403,7 @@ TEST(Test_BitcoinScript, opcodes_push_4)
 TEST(Test_BitcoinScript, p2pk)
 {
     for (const auto& serialized : p2pk_good_) {
-        const auto script = ot::Factory::BitcoinScript(
+        const auto script = ot::factory::BitcoinScript(
             ot::reader(serialized), true, false, false);
 
         ASSERT_TRUE(script);
@@ -1469,7 +1470,7 @@ TEST(Test_BitcoinScript, p2pk)
     }
 
     for (const auto& serialized : p2pk_bad_) {
-        const auto script = ot::Factory::BitcoinScript(
+        const auto script = ot::factory::BitcoinScript(
             ot::reader(serialized), true, false, false);
 
         ASSERT_TRUE(script);
@@ -1487,7 +1488,7 @@ TEST(Test_BitcoinScript, p2pk)
 TEST(Test_BitcoinScript, p2pkh)
 {
     for (const auto& serialized : p2pkh_good_) {
-        const auto script = ot::Factory::BitcoinScript(
+        const auto script = ot::factory::BitcoinScript(
             ot::reader(serialized), true, false, false);
 
         ASSERT_TRUE(script);
@@ -1557,7 +1558,7 @@ TEST(Test_BitcoinScript, p2pkh)
     }
 
     for (const auto& serialized : p2pkh_bad_) {
-        const auto script = ot::Factory::BitcoinScript(
+        const auto script = ot::factory::BitcoinScript(
             ot::reader(serialized), true, false, false);
 
         ASSERT_TRUE(script);
@@ -1575,7 +1576,7 @@ TEST(Test_BitcoinScript, p2pkh)
 TEST(Test_BitcoinScript, p2sh)
 {
     for (const auto& serialized : p2sh_good_) {
-        const auto script = ot::Factory::BitcoinScript(
+        const auto script = ot::factory::BitcoinScript(
             ot::reader(serialized), true, false, false);
 
         ASSERT_TRUE(script);
@@ -1630,7 +1631,7 @@ TEST(Test_BitcoinScript, p2sh)
     }
 
     for (const auto& serialized : p2sh_bad_) {
-        const auto script = ot::Factory::BitcoinScript(
+        const auto script = ot::factory::BitcoinScript(
             ot::reader(serialized), true, false, false);
 
         ASSERT_TRUE(script);
@@ -1648,7 +1649,7 @@ TEST(Test_BitcoinScript, p2sh)
 TEST(Test_BitcoinScript, null_data)
 {
     for (const auto& serialized : data_good_) {
-        const auto script = ot::Factory::BitcoinScript(
+        const auto script = ot::factory::BitcoinScript(
             ot::reader(serialized), true, false, false);
 
         ASSERT_TRUE(script);
@@ -1697,7 +1698,7 @@ TEST(Test_BitcoinScript, null_data)
     }
 
     for (const auto& serialized : data_bad_) {
-        const auto script = ot::Factory::BitcoinScript(
+        const auto script = ot::factory::BitcoinScript(
             ot::reader(serialized), true, false, false);
 
         ASSERT_TRUE(script);
@@ -1715,7 +1716,7 @@ TEST(Test_BitcoinScript, null_data)
 TEST(Test_BitcoinScript, multisig)
 {
     for (const auto& serialized : multisig_good_) {
-        const auto script = ot::Factory::BitcoinScript(
+        const auto script = ot::factory::BitcoinScript(
             ot::reader(serialized), true, false, false);
 
         ASSERT_TRUE(script);
@@ -1815,7 +1816,7 @@ TEST(Test_BitcoinScript, multisig)
     }
 
     for (const auto& serialized : multisig_bad_) {
-        const auto script = ot::Factory::BitcoinScript(
+        const auto script = ot::factory::BitcoinScript(
             ot::reader(serialized), true, false, false);
 
         ASSERT_TRUE(script);
@@ -1830,7 +1831,7 @@ TEST(Test_BitcoinScript, multisig)
     }
 
     for (const auto& serialized : multisig_malformed_) {
-        const auto script = ot::Factory::BitcoinScript(
+        const auto script = ot::factory::BitcoinScript(
             ot::reader(serialized), true, false, false);
 
         ASSERT_TRUE(script);
@@ -1848,7 +1849,7 @@ TEST(Test_BitcoinScript, multisig)
 TEST(Test_BitcoinScript, input)
 {
     for (const auto& serialized : input_good_) {
-        const auto script = ot::Factory::BitcoinScript(
+        const auto script = ot::factory::BitcoinScript(
             ot::reader(serialized), false, false, false);
 
         ASSERT_TRUE(script);

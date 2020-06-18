@@ -13,7 +13,7 @@
 #include <utility>
 #include <vector>
 
-#include "Factory.hpp"
+#include "2_Factory.hpp"
 #include "internal/identity/wot/verification/Verification.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Proto.hpp"

@@ -7,7 +7,6 @@
 #include "1_Internal.hpp"                   // IWYU pragma: associated
 #include "server/UserCommandProcessor.hpp"  // IWYU pragma: associated
 
-#include <algorithm>
 #include <map>
 #include <memory>
 #include <set>

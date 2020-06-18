@@ -10,11 +10,12 @@
 #include <iosfwd>
 #include <utility>
 
-#include "Factory.hpp"
 #include "blockchain/p2p/bitcoin/Header.hpp"
 #include "blockchain/p2p/bitcoin/Message.hpp"
+#include "internal/blockchain/Blockchain.hpp"
 #include "internal/blockchain/p2p/bitcoin/Bitcoin.hpp"
 #include "opentxs/Pimpl.hpp"
+#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/blockchain/BloomFilter.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
@@ -22,10 +23,10 @@
 // #define OT_METHOD
 // "opentxs::blockchain::p2p::bitcoin::message::implementation::Filterload::"
 
-namespace opentxs
+namespace opentxs::factory
 {
-auto Factory::BitcoinP2PFilterload(
-    const api::internal::Core& api,
+auto BitcoinP2PFilterload(
+    const api::client::Manager& api,
     std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
     const blockchain::p2p::bitcoin::ProtocolVersion version,
     const void* payload,
@@ -36,17 +37,17 @@ auto Factory::BitcoinP2PFilterload(
     using ReturnType = bitcoin::message::implementation::Filterload;
 
     if (false == bool(pHeader)) {
-        LogOutput("opentxs::Factory::")(__FUNCTION__)(": Invalid header")
+        LogOutput("opentxs::factory::")(__FUNCTION__)(": Invalid header")
             .Flush();
 
         return nullptr;
     }
 
     std::unique_ptr<blockchain::BloomFilter> pFilter{
-        Factory::BloomFilter(api, Data::Factory(payload, size))};
+        factory::BloomFilter(api, Data::Factory(payload, size))};
 
     if (false == bool(pFilter)) {
-        LogOutput("opentxs::Factory::")(__FUNCTION__)(": Invalid filter")
+        LogOutput("opentxs::factory::")(__FUNCTION__)(": Invalid filter")
             .Flush();
 
         return nullptr;
@@ -55,8 +56,8 @@ auto Factory::BitcoinP2PFilterload(
     return new ReturnType(api, std::move(pHeader), *pFilter);
 }
 
-auto Factory::BitcoinP2PFilterload(
-    const api::internal::Core& api,
+auto BitcoinP2PFilterload(
+    const api::client::Manager& api,
     const blockchain::Type network,
     const blockchain::BloomFilter& filter)
     -> blockchain::p2p::bitcoin::message::internal::Filterload*
@@ -66,12 +67,12 @@ auto Factory::BitcoinP2PFilterload(
 
     return new ReturnType(api, network, filter);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::blockchain::p2p::bitcoin::message::implementation
 {
 Filterload::Filterload(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     const blockchain::Type network,
     const blockchain::BloomFilter& filter) noexcept
     : Message(api, network, bitcoin::Command::filterload)
@@ -81,7 +82,7 @@ Filterload::Filterload(
 }
 
 Filterload::Filterload(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     std::unique_ptr<Header> header,
     const blockchain::BloomFilter& filter) noexcept
     : Message(api, std::move(header))

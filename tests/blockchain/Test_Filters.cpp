@@ -4,6 +4,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include "OTTestEnvironment.hpp"
+#include "internal/blockchain/Blockchain.hpp"
 
 namespace
 {
@@ -42,7 +43,7 @@ public:
                 api_.Factory().Data(element, ot::StringStyle::Hex));
         }
 
-        const auto pGCS = ot::Factory::GCS(
+        const auto pGCS = ot::factory::GCS(
             api_,
             19,
             784931,
@@ -204,7 +205,7 @@ TEST_F(Test_Filters, bloom_filter)
     const auto object3(ot::Data::Factory(s3.data(), s3.length()));
     const auto object4(ot::Data::Factory(s4.data(), s4.length()));
 
-    ot::OTBloomFilter pFilter{ot::Factory::BloomFilter(
+    ot::OTBloomFilter pFilter{ot::factory::BloomFilter(
         api_, 9873485, ot::blockchain::BloomUpdateFlag::None, 5, 0.001)};
 
     pFilter->AddElement(object1);
@@ -340,7 +341,7 @@ TEST_F(Test_Filters, gcs)
         std::vector<ot::OTData>{object1, object2, object3, object4};
     auto excludedElements = std::vector<ot::OTData>{object5, object6};
     auto key = std::string{"0123456789abcdef"};
-    auto pGcs = ot::Factory::GCS(api_, 19, 784931, key, includedElements);
+    auto pGcs = ot::factory::GCS(api_, 19, 784931, key, includedElements);
 
     ASSERT_TRUE(pGcs);
 
@@ -402,7 +403,7 @@ TEST_F(Test_Filters, bip158_case_1665877)
 
     auto key = ot::blockchain::internal::BlockHashToFilterKey(block->Bytes());
     const auto pGcs =
-        ot::Factory::GCS(api_, 19, 784931, key, 154, encodedGCS->Bytes());
+        ot::factory::GCS(api_, 19, 784931, key, 154, encodedGCS->Bytes());
 
     ASSERT_TRUE(pGcs);
 
@@ -481,7 +482,7 @@ TEST_F(Test_Filters, hash)
     const auto preimage =
         api_.Factory().Data("0x019dfca8", ot::StringStyle::Hex);
     const auto filter_0 = api_.Factory().Data("0x9dfca8", ot::StringStyle::Hex);
-    auto pGcs = ot::Factory::GCS(
+    auto pGcs = ot::factory::GCS(
         api_,
         19,
         784931,

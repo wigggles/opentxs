@@ -3,7 +3,6 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include <boost/bind.hpp>
 #include <boost/asio.hpp>
 #include <gtest/gtest.h>
 #include <functional>
@@ -20,6 +19,8 @@
 #include <chrono>
 
 #include "OTTestEnvironment.hpp"
+#include "internal/blockchain/p2p/P2P.hpp"
+#include "internal/blockchain/p2p/bitcoin/message/Message.hpp"
 
 namespace b = ot::blockchain;
 namespace bb = b::bitcoin;
@@ -98,7 +99,7 @@ TEST_F(Test_Message, getblocks)
     stop_hash->Randomize(32);
 
     std::unique_ptr<bitcoin::message::Getblocks> pMessage{
-        ot::Factory::BitcoinP2PGetblocks(
+        ot::factory::BitcoinP2PGetblocks(
             api_,
             ot::blockchain::Type::BitcoinCash,
             version,
@@ -112,11 +113,11 @@ TEST_F(Test_Message, getblocks)
     auto frame = api_.ZeroMQ().Message(serialized_header);
 
     std::unique_ptr<bitcoin::Header> pHeader{
-        ot::Factory::BitcoinP2PHeader(api_, frame->at(0))};
+        ot::factory::BitcoinP2PHeader(api_, frame->at(0))};
 
     if (payload->size() > 0) {
         std::unique_ptr<bitcoin::Message> pLoadedMsg{
-            ot::Factory::BitcoinP2PMessage(
+            ot::factory::BitcoinP2PMessage(
                 api_,
                 std::move(pHeader),
                 70015,
@@ -125,7 +126,7 @@ TEST_F(Test_Message, getblocks)
         ASSERT_TRUE(pMessage->payload() == pLoadedMsg->payload());
     } else {
         std::unique_ptr<bitcoin::Message> pLoadedMsg{
-            ot::Factory::BitcoinP2PMessage(api_, std::move(pHeader), 70015)};
+            ot::factory::BitcoinP2PMessage(api_, std::move(pHeader), 70015)};
         ASSERT_TRUE(pMessage->payload() == pLoadedMsg->payload());
     }
 }

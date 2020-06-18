@@ -168,8 +168,8 @@ void IssuerItem::process_account(
     OT_ASSERT(2 == message.Body().size())
 
     const auto accountID = Identifier::Factory(message.Body().at(0));
-    const IssuerItemRowID rowID{accountID,
-                                {api_.Storage().AccountUnit(accountID)}};
+    const IssuerItemRowID rowID{
+        accountID, {api_.Storage().AccountUnit(accountID)}};
 
     if (accountID->empty()) {
         LogDetail(OT_METHOD)(__FUNCTION__)(": Invalid account").Flush();

@@ -70,8 +70,8 @@ public:
     auto ContactID() const noexcept -> std::string final;
     auto DisplayName() const noexcept -> std::string final;
 #if OT_QT
-    int FindRow(const ContactRowID& id, const ContactSortKey& key) const
-        noexcept final
+    int FindRow(const ContactRowID& id, const ContactSortKey& key)
+        const noexcept final
     {
         return find_row(id, key);
     }
@@ -110,8 +110,8 @@ private:
     {
         return ContactType::last(id);
     }
-    void update(ContactRowInterface& row, const CustomData& custom) const
-        noexcept;
+    void update(ContactRowInterface& row, const CustomData& custom)
+        const noexcept;
 
     void process_contact(const opentxs::Contact& contact) noexcept;
     void process_contact(const network::zeromq::Message& message) noexcept;

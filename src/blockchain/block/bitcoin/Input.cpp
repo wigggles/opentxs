@@ -19,10 +19,11 @@
 #include <string>
 #include <utility>
 
-#include "Factory.hpp"
 #include "blockchain/bitcoin/CompactSize.hpp"
 #include "internal/blockchain/block/Block.hpp"
+#include "internal/blockchain/block/bitcoin/Bitcoin.hpp"
 #include "opentxs/Proto.hpp"
+#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/blockchain/block/bitcoin/Input.hpp"
 #include "opentxs/blockchain/block/bitcoin/Script.hpp"
@@ -33,12 +34,12 @@ namespace be = boost::endian;
 
 #define OT_METHOD "opentxs::blockchain::block::bitcoin::implementation::Input::"
 
-namespace opentxs
+namespace opentxs::factory
 {
 using ReturnType = blockchain::block::bitcoin::implementation::Input;
 
-auto Factory::BitcoinTransactionInput(
-    const api::Core& api,
+auto BitcoinTransactionInput(
+    const api::client::Manager& api,
     const ReadView outpoint,
     const blockchain::bitcoin::CompactSize& cs,
     const ReadView script,
@@ -71,19 +72,19 @@ auto Factory::BitcoinTransactionInput(
                 buf.value(),
                 blockchain::block::bitcoin::Outpoint{outpoint},
                 std::move(witness),
-                opentxs::Factory::BitcoinScript(script, false, false),
+                factory::BitcoinScript(script, false, false),
                 ReturnType::default_version_,
                 outpoint.size() + cs.Total() + sequence.size());
         }
     } catch (const std::exception& e) {
-        LogOutput("opentxs::Factory::")(__FUNCTION__)(": ")(e.what()).Flush();
+        LogOutput("opentxs::factory::")(__FUNCTION__)(": ")(e.what()).Flush();
 
         return {};
     }
 }
 
-auto Factory::BitcoinTransactionInput(
-    const api::Core& api,
+auto BitcoinTransactionInput(
+    const api::client::Manager& api,
     const proto::BlockchainTransactionInput in,
     const bool coinbase) noexcept
     -> std::unique_ptr<blockchain::block::bitcoin::Input>
@@ -115,16 +116,16 @@ auto Factory::BitcoinTransactionInput(
                     outpoint.txid(),
                     static_cast<std::uint32_t>(outpoint.index())},
                 std::move(witness),
-                opentxs::Factory::BitcoinScript(in.script(), false, coinbase),
+                factory::BitcoinScript(in.script(), false, coinbase),
                 in.version());
         }
     } catch (const std::exception& e) {
-        LogOutput("opentxs::Factory::")(__FUNCTION__)(": ")(e.what()).Flush();
+        LogOutput("opentxs::factory::")(__FUNCTION__)(": ")(e.what()).Flush();
 
         return {};
     }
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::blockchain::block::bitcoin
 {
@@ -214,7 +215,7 @@ const VersionNumber Input::default_version_{1};
 const VersionNumber Input::outpoint_version_{1};
 
 Input::Input(
-    const api::Core& api,
+    const api::client::Manager& api,
     const std::uint32_t sequence,
     Outpoint&& previous,
     std::vector<Space>&& witness,
@@ -231,6 +232,7 @@ Input::Input(
     , sequence_(sequence)
     , size_(size)
     , normalized_size_()
+    , keys_()
 {
     if (false == bool(script_)) {
         throw std::runtime_error("Invalid input script");
@@ -242,7 +244,7 @@ Input::Input(
 }
 
 Input::Input(
-    const api::Core& api,
+    const api::client::Manager& api,
     const std::uint32_t sequence,
     Outpoint&& previous,
     std::vector<Space>&& witness,
@@ -262,7 +264,7 @@ Input::Input(
 }
 
 Input::Input(
-    const api::Core& api,
+    const api::client::Manager& api,
     const std::uint32_t sequence,
     Outpoint&& previous,
     std::vector<Space>&& witness,
@@ -274,10 +276,11 @@ Input::Input(
           sequence,
           std::move(previous),
           std::move(witness),
-          Factory::BitcoinScript(ScriptElements{}, false, true),
-          Space{reinterpret_cast<const std::byte*>(coinbase.data()),
-                reinterpret_cast<const std::byte*>(coinbase.data()) +
-                    coinbase.size()},
+          factory::BitcoinScript(ScriptElements{}, false, true),
+          Space{
+              reinterpret_cast<const std::byte*>(coinbase.data()),
+              reinterpret_cast<const std::byte*>(coinbase.data()) +
+                  coinbase.size()},
           version,
           size)
 {
@@ -372,6 +375,14 @@ auto Input::FindMatches(
             std::make_move_iterator(temp.begin()),
             std::make_move_iterator(temp.end()));
     }
+
+    std::for_each(
+        std::begin(output), std::end(output), [this](const auto& match) {
+            const auto& [txid, element] = match;
+            const auto& [index, subchainID] = element;
+            const auto& [subchain, account] = subchainID;
+            keys_.emplace(KeyID{account->str(), subchain, index});
+        });
 
     return output;
 }

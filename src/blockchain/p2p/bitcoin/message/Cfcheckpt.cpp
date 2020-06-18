@@ -7,12 +7,10 @@
 #include "1_Internal.hpp"  // IWYU pragma: associated
 #include "blockchain/p2p/bitcoin/message/Cfcheckpt.hpp"  // IWYU pragma: associated
 
-#include <algorithm>
 #include <cstddef>
 #include <cstring>
 #include <utility>
 
-#include "Factory.hpp"
 #include "blockchain/p2p/bitcoin/Header.hpp"
 #include "blockchain/p2p/bitcoin/Message.hpp"
 #include "internal/blockchain/bitcoin/Bitcoin.hpp"
@@ -26,10 +24,10 @@
 // #define OT_METHOD
 // "opentxs::blockchain::p2p::bitcoin::message::implemenetation::Cfcheckpt::"
 
-namespace opentxs
+namespace opentxs::factory
 {
-auto Factory::BitcoinP2PCfcheckpt(
-    const api::internal::Core& api,
+auto BitcoinP2PCfcheckpt(
+    const api::client::Manager& api,
     std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
     const blockchain::p2p::bitcoin::ProtocolVersion version,
     const void* payload,
@@ -40,7 +38,7 @@ auto Factory::BitcoinP2PCfcheckpt(
     using ReturnType = bitcoin::message::implementation::Cfcheckpt;
 
     if (false == bool(pHeader)) {
-        LogOutput("opentxs::Factory::")(__FUNCTION__)(": Invalid header")
+        LogOutput("opentxs::factory::")(__FUNCTION__)(": Invalid header")
             .Flush();
 
         return nullptr;
@@ -51,7 +49,7 @@ auto Factory::BitcoinP2PCfcheckpt(
     auto expectedSize = sizeof(raw);
 
     if (expectedSize > size) {
-        LogOutput("opentxs::Factory::")(__FUNCTION__)(
+        LogOutput("opentxs::factory::")(__FUNCTION__)(
             ": Payload too short (begin)")
             .Flush();
 
@@ -64,7 +62,7 @@ auto Factory::BitcoinP2PCfcheckpt(
     expectedSize += sizeof(std::byte);
 
     if (expectedSize > size) {
-        LogOutput("opentxs::Factory::")(__FUNCTION__)(
+        LogOutput("opentxs::factory::")(__FUNCTION__)(
             ": Payload too short (compactsize)")
             .Flush();
 
@@ -88,7 +86,7 @@ auto Factory::BitcoinP2PCfcheckpt(
             expectedSize += sizeof(bitcoin::message::HashField);
 
             if (expectedSize > size) {
-                LogOutput("opentxs::Factory::")(__FUNCTION__)(
+                LogOutput("opentxs::factory::")(__FUNCTION__)(
                     ": Filter header entries incomplete at entry index ")(i)
                     .Flush();
 
@@ -109,8 +107,8 @@ auto Factory::BitcoinP2PCfcheckpt(
         headers);
 }
 
-auto Factory::BitcoinP2PCfcheckpt(
-    const api::internal::Core& api,
+auto BitcoinP2PCfcheckpt(
+    const api::client::Manager& api,
     const blockchain::Type network,
     const blockchain::filter::Type type,
     const blockchain::filter::Hash& stop,
@@ -122,12 +120,12 @@ auto Factory::BitcoinP2PCfcheckpt(
 
     return new ReturnType(api, network, type, stop, headers);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::blockchain::p2p::bitcoin::message::implementation
 {
 Cfcheckpt::Cfcheckpt(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     const blockchain::Type network,
     const filter::Type type,
     const filter::Hash& stop,
@@ -141,7 +139,7 @@ Cfcheckpt::Cfcheckpt(
 }
 
 Cfcheckpt::Cfcheckpt(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     std::unique_ptr<Header> header,
     const filter::Type type,
     const filter::Hash& stop,

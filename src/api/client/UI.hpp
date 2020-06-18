@@ -271,15 +271,15 @@ private:
         const identifier::Nym& nymID,
         const Identifier& accountID) const noexcept
         -> AccountActivityMap::mapped_type&;
-    auto account_list(const Lock& lock, const identifier::Nym& nymID) const
-        noexcept -> AccountListMap::mapped_type&;
+    auto account_list(const Lock& lock, const identifier::Nym& nymID)
+        const noexcept -> AccountListMap::mapped_type&;
     auto account_summary(
         const Lock& lock,
         const identifier::Nym& nymID,
         const proto::ContactItemType currency) const noexcept
         -> AccountSummaryMap::mapped_type&;
-    auto activity_summary(const Lock& lock, const identifier::Nym& nymID) const
-        noexcept -> ActivitySummaryMap::mapped_type&;
+    auto activity_summary(const Lock& lock, const identifier::Nym& nymID)
+        const noexcept -> ActivitySummaryMap::mapped_type&;
     auto activity_thread(
         const Lock& lock,
         const identifier::Nym& nymID,
@@ -287,14 +287,14 @@ private:
         -> ActivityThreadMap::mapped_type&;
     auto contact(const Lock& lock, const Identifier& contactID) const noexcept
         -> ContactMap::mapped_type&;
-    auto contact_list(const Lock& lock, const identifier::Nym& nymID) const
-        noexcept -> ContactListMap::mapped_type&;
+    auto contact_list(const Lock& lock, const identifier::Nym& nymID)
+        const noexcept -> ContactListMap::mapped_type&;
 #if OT_BLOCKCHAIN
     auto is_blockchain_account(const Identifier& id) const noexcept
         -> std::optional<opentxs::blockchain::Type>;
 #endif  // OT_BLOCKCHAIN
-    auto messagable_list(const Lock& lock, const identifier::Nym& nymID) const
-        noexcept -> MessagableListMap::mapped_type&;
+    auto messagable_list(const Lock& lock, const identifier::Nym& nymID)
+        const noexcept -> MessagableListMap::mapped_type&;
     auto payable_list(
         const Lock& lock,
         const identifier::Nym& nymID,
@@ -302,8 +302,8 @@ private:
         -> PayableListMap::mapped_type&;
     auto profile(const Lock& lock, const identifier::Nym& nymID) const noexcept
         -> ProfileMap::mapped_type&;
-    auto unit_list(const Lock& lock, const identifier::Nym& nymID) const
-        noexcept -> UnitListMap::mapped_type&;
+    auto unit_list(const Lock& lock, const identifier::Nym& nymID)
+        const noexcept -> UnitListMap::mapped_type&;
 
     UI(const api::client::internal::Manager& api,
        const Flag& running

@@ -109,8 +109,9 @@ ContactList::ContactList(
 #if OT_QT
           ,
           qt,
-          Roles{{ContactListQt::ContactIDRole, "id"},
-                {ContactListQt::SectionRole, "section"}},
+          Roles{
+              {ContactListQt::ContactIDRole, "id"},
+              {ContactListQt::SectionRole, "section"}},
           1,
           1
 #endif

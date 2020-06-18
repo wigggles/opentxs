@@ -19,10 +19,10 @@ namespace opentxs
 {
 namespace api
 {
-namespace internal
+namespace client
 {
-struct Core;
-}  // namespace internal
+class Manager;
+}  // namespace client
 }  // namespace api
 
 namespace blockchain
@@ -35,8 +35,6 @@ class Header;
 }  // namespace bitcoin
 }  // namespace p2p
 }  // namespace blockchain
-
-class Factory;
 }  // namespace opentxs
 
 namespace opentxs::blockchain::p2p::bitcoin::message::implementation
@@ -44,15 +42,6 @@ namespace opentxs::blockchain::p2p::bitcoin::message::implementation
 class Ping final : public internal::Ping
 {
 public:
-    auto Nonce() const noexcept -> bitcoin::Nonce final { return nonce_; }
-
-    ~Ping() final = default;
-
-    auto payload() const noexcept -> OTData final;
-
-private:
-    friend opentxs::Factory;
-
     struct BitcoinFormat_60001 {
         NonceField nonce_{};
 
@@ -60,16 +49,24 @@ private:
         BitcoinFormat_60001() noexcept;
     };
 
-    const bitcoin::Nonce nonce_{};
+    auto Nonce() const noexcept -> bitcoin::Nonce final { return nonce_; }
 
     Ping(
-        const api::internal::Core& api,
+        const api::client::Manager& api,
         const blockchain::Type network,
         const bitcoin::Nonce nonce) noexcept;
     Ping(
-        const api::internal::Core& api,
+        const api::client::Manager& api,
         std::unique_ptr<Header> header,
         const bitcoin::Nonce nonce) noexcept;
+
+    ~Ping() final = default;
+
+private:
+    const bitcoin::Nonce nonce_{};
+
+    auto payload() const noexcept -> OTData final;
+
     Ping(const Ping&) = delete;
     Ping(Ping&&) = delete;
     auto operator=(const Ping&) -> Ping& = delete;

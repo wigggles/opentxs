@@ -5,6 +5,15 @@
 
 #pragma once
 
+namespace opentxs
+{
+namespace proto
+{
+class RPCCommand;
+class RPCResponse;
+}  // namespace proto
+}  // namespace opentxs
+
 namespace opentxs::rpc::internal
 {
 struct RPC {

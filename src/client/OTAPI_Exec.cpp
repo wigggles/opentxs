@@ -18,7 +18,6 @@
 #include "opentxs/Proto.tpp"
 #include "opentxs/SharedPimpl.hpp"
 #include "opentxs/Types.hpp"
-#include "opentxs/Version.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/HDSeed.hpp"
 #include "opentxs/api/Wallet.hpp"

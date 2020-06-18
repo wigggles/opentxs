@@ -13,27 +13,30 @@
 #include <ctime>
 #include <stdexcept>
 
-#include "Factory.hpp"
-#include "internal/api/Api.hpp"
+#include "internal/blockchain/Blockchain.hpp"
 #include "internal/blockchain/block/Block.hpp"
+#include "internal/blockchain/block/bitcoin/Bitcoin.hpp"
+#include "internal/blockchain/client/Client.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/api/Factory.hpp"
+#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/blockchain/NumericHash.hpp"
 #include "opentxs/blockchain/Work.hpp"
 #include "opentxs/blockchain/block/bitcoin/Header.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
+#include "util/Blank.hpp"
 
 #define OT_BITCOIN_BLOCK_HEADER_SIZE 80
 
 #define OT_METHOD "opentxs::blockchain::block::bitcoin::Header::"
 
-namespace opentxs
+namespace opentxs::factory
 {
-auto Factory::BitcoinBlockHeader(
-    const api::internal::Core& api,
+auto BitcoinBlockHeader(
+    const api::client::Manager& api,
     const proto::BlockchainBlockHeader& serialized) noexcept
     -> std::unique_ptr<blockchain::block::bitcoin::internal::Header>
 {
@@ -42,8 +45,8 @@ auto Factory::BitcoinBlockHeader(
     return std::make_unique<ReturnType>(api, serialized);
 }
 
-auto Factory::BitcoinBlockHeader(
-    const api::internal::Core& api,
+auto BitcoinBlockHeader(
+    const api::client::Manager& api,
     const blockchain::Type chain,
     const ReadView raw) noexcept
     -> std::unique_ptr<blockchain::block::bitcoin::internal::Header>
@@ -51,7 +54,7 @@ auto Factory::BitcoinBlockHeader(
     using ReturnType = blockchain::block::bitcoin::implementation::Header;
 
     if (OT_BITCOIN_BLOCK_HEADER_SIZE != raw.size()) {
-        LogOutput("opentxs::Factory::")(__FUNCTION__)(
+        LogOutput("opentxs::factory::")(__FUNCTION__)(
             ": Invalid serialized block")
             .Flush();
 
@@ -69,7 +72,7 @@ auto Factory::BitcoinBlockHeader(
         std::memcpy(static_cast<void*>(&serialized), raw.data(), raw.size());
 
     if (nullptr == result) {
-        LogOutput("opentxs::Factory::")(__FUNCTION__)(
+        LogOutput("opentxs::factory::")(__FUNCTION__)(
             ": Failed to deserialize header")
             .Flush();
 
@@ -89,8 +92,8 @@ auto Factory::BitcoinBlockHeader(
         serialized.nonce_.value());
 }
 
-auto Factory::BitcoinBlockHeader(
-    const api::internal::Core& api,
+auto BitcoinBlockHeader(
+    const api::client::Manager& api,
     const blockchain::Type chain,
     const blockchain::block::Hash& hash,
     const blockchain::block::Hash& parent,
@@ -101,7 +104,7 @@ auto Factory::BitcoinBlockHeader(
 
     return std::make_unique<ReturnType>(api, chain, hash, parent, height);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::blockchain::block::bitcoin::implementation
 {
@@ -109,7 +112,7 @@ const VersionNumber Header::local_data_version_{1};
 const VersionNumber Header::subversion_default_{1};
 
 Header::Header(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     const blockchain::Type chain,
     const VersionNumber subversion,
     const block::Hash& hash,
@@ -137,7 +140,7 @@ Header::Header(
 }
 
 Header::Header(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     const blockchain::Type chain,
     const block::Hash& hash,
     const block::Hash& parentHash,
@@ -155,7 +158,7 @@ Header::Header(
 }
 
 Header::Header(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     const SerializedType& serialized) noexcept
     : bitcoin::Header()
     , ot_super(
@@ -227,7 +230,7 @@ Header::BitcoinFormat::BitcoinFormat(
 }
 
 auto Header::calculate_hash(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     const blockchain::Type chain,
     const ReadView serialized) -> block::pHash
 {
@@ -238,18 +241,19 @@ auto Header::calculate_hash(
 }
 
 auto Header::calculate_hash(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     const SerializedType& serialized) -> block::pHash
 {
     auto bitcoinFormat = BitcoinFormat{};
 
     try {
-        bitcoinFormat = BitcoinFormat{serialized.bitcoin().block_version(),
-                                      serialized.bitcoin().previous_header(),
-                                      serialized.bitcoin().merkle_hash(),
-                                      serialized.bitcoin().timestamp(),
-                                      serialized.bitcoin().nbits(),
-                                      serialized.bitcoin().nonce()};
+        bitcoinFormat = BitcoinFormat{
+            serialized.bitcoin().block_version(),
+            serialized.bitcoin().previous_header(),
+            serialized.bitcoin().merkle_hash(),
+            serialized.bitcoin().timestamp(),
+            serialized.bitcoin().nbits(),
+            serialized.bitcoin().nonce()};
     } catch (const std::invalid_argument& e) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": ")(e.what()).Flush();
     }
@@ -264,9 +268,9 @@ auto Header::calculate_hash(
 
 auto Header::calculate_work(const std::int32_t nbits) -> OTWork
 {
-    const auto hash = OTNumericHash{Factory::NumericHashNBits(nbits)};
+    const auto hash = OTNumericHash{factory::NumericHashNBits(nbits)};
 
-    return OTWork{Factory::Work(hash)};
+    return OTWork{factory::Work(hash)};
 }
 
 auto Header::clone() const noexcept -> std::unique_ptr<block::Header>
@@ -299,13 +303,13 @@ auto Header::Serialize() const noexcept -> Header::SerializedType
 
 auto Header::Serialize(const AllocateOutput destination) const noexcept -> bool
 {
-    const auto raw =
-        BitcoinFormat{block_version_,
-                      parent_hash_->str(),
-                      merkle_root_->str(),
-                      static_cast<std::uint32_t>(Clock::to_time_t(timestamp_)),
-                      nbits_,
-                      nonce_};
+    const auto raw = BitcoinFormat{
+        block_version_,
+        parent_hash_->str(),
+        merkle_root_->str(),
+        static_cast<std::uint32_t>(Clock::to_time_t(timestamp_)),
+        nbits_,
+        nonce_};
 
     if (false == bool(destination)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid output allocator")
@@ -330,6 +334,6 @@ auto Header::Serialize(const AllocateOutput destination) const noexcept -> bool
 
 auto Header::Target() const noexcept -> OTNumericHash
 {
-    return OTNumericHash{Factory::NumericHashNBits(nbits_)};
+    return OTNumericHash{factory::NumericHashNBits(nbits_)};
 }
 }  // namespace opentxs::blockchain::block::bitcoin::implementation

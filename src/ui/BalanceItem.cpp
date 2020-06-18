@@ -7,7 +7,6 @@
 #include "1_Internal.hpp"      // IWYU pragma: associated
 #include "ui/BalanceItem.hpp"  // IWYU pragma: associated
 
-#include <algorithm>
 #include <memory>
 #include <string>
 #include <thread>
@@ -25,6 +24,9 @@
 #include "opentxs/protobuf/PaymentWorkflowEnums.pb.h"
 #include "ui/ChequeBalanceItem.hpp"
 #include "ui/TransferBalanceItem.hpp"
+#if OT_QT
+#include "util/Polarity.hpp"  // IWYU pragma: keep
+#endif                        // OT_QT
 
 #define OT_METHOD "opentxs::ui::implementation::BalanceItem::"
 

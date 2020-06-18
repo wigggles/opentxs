@@ -7,12 +7,28 @@
 #include "1_Internal.hpp"          // IWYU pragma: associated
 #include "api/client/Factory.hpp"  // IWYU pragma: associated
 
-#include "api/Factory.hpp"
+#include "2_Factory.hpp"
 #include "internal/api/client/Client.hpp"
+#if OT_BLOCKCHAIN
+#include "internal/blockchain/block/Block.hpp"
+#include "internal/blockchain/block/bitcoin/Bitcoin.hpp"
+#endif  // OT_BLOCKCHAIN
+#include "opentxs/Proto.hpp"
+#if OT_BLOCKCHAIN
+#include "opentxs/blockchain/block/Header.hpp"
+#endif  // OT_BLOCKCHAIN
+#include "opentxs/core/Data.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
 #include "opentxs/core/contract/peer/PeerObject.hpp"
 #include "opentxs/core/contract/peer/PeerReply.hpp"
+#include "opentxs/core/contract/peer/PeerRequest.hpp"
+#include "opentxs/protobuf/Check.hpp"
+#include "opentxs/protobuf/verify/BlockchainBlockHeader.hpp"
 
-//#define OT_METHOD "opentxs::api::client::implementation::Factory::"
+#if OT_BLOCKCHAIN
+#define OT_METHOD "opentxs::api::client::implementation::Factory::"
+#endif  // OT_BLOCKCHAIN
 
 namespace opentxs
 {
@@ -30,6 +46,89 @@ Factory::Factory(const api::client::internal::Manager& client)
     , client_(client)
 {
 }
+
+#if OT_BLOCKCHAIN
+auto Factory::BitcoinBlock(
+    const opentxs::blockchain::Type chain,
+    const ReadView bytes) const noexcept
+    -> std::shared_ptr<const opentxs::blockchain::block::bitcoin::Block>
+{
+    return factory::BitcoinBlock(client_, chain, bytes);
+}
+
+auto Factory::BlockHeader(const proto::BlockchainBlockHeader& serialized) const
+    -> std::unique_ptr<opentxs::blockchain::block::Header>
+{
+    if (false == proto::Validate(serialized, VERBOSE)) { return {}; }
+
+    const auto type(static_cast<opentxs::blockchain::Type>(serialized.type()));
+
+    switch (type) {
+        case opentxs::blockchain::Type::Bitcoin:
+        case opentxs::blockchain::Type::Bitcoin_testnet3:
+        case opentxs::blockchain::Type::BitcoinCash:
+        case opentxs::blockchain::Type::BitcoinCash_testnet3: {
+            return std::unique_ptr<opentxs::blockchain::block::Header>(
+                factory::BitcoinBlockHeader(client_, serialized));
+        }
+        default: {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Unsupported type (")(
+                static_cast<std::uint32_t>(type))(")")
+                .Flush();
+
+            return {};
+        }
+    }
+}
+
+auto Factory::BlockHeader(
+    const opentxs::blockchain::Type type,
+    const opentxs::Data& raw) const
+    -> std::unique_ptr<opentxs::blockchain::block::Header>
+{
+    switch (type) {
+        case opentxs::blockchain::Type::Bitcoin:
+        case opentxs::blockchain::Type::Bitcoin_testnet3:
+        case opentxs::blockchain::Type::BitcoinCash:
+        case opentxs::blockchain::Type::BitcoinCash_testnet3: {
+            return factory::BitcoinBlockHeader(client_, type, raw.Bytes());
+        }
+        default: {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Unsupported type (")(
+                static_cast<std::uint32_t>(type))(")")
+                .Flush();
+
+            return {};
+        }
+    }
+}
+
+auto Factory::BlockHeader(
+    const opentxs::blockchain::Type type,
+    const opentxs::blockchain::block::Hash& hash,
+    const opentxs::blockchain::block::Hash& parent,
+    const opentxs::blockchain::block::Height height) const
+    -> std::unique_ptr<opentxs::blockchain::block::Header>
+{
+    switch (type) {
+        case opentxs::blockchain::Type::Bitcoin:
+        case opentxs::blockchain::Type::Bitcoin_testnet3:
+        case opentxs::blockchain::Type::BitcoinCash:
+        case opentxs::blockchain::Type::BitcoinCash_testnet3: {
+            return std::unique_ptr<opentxs::blockchain::block::Header>(
+                factory::BitcoinBlockHeader(
+                    client_, type, hash, parent, height));
+        }
+        default: {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Unsupported type (")(
+                static_cast<std::uint32_t>(type))(")")
+                .Flush();
+
+            return {};
+        }
+    }
+}
+#endif  // OT_BLOCKCHAIN
 
 auto Factory::PeerObject(const Nym_p& senderNym, const std::string& message)
     const -> std::unique_ptr<opentxs::PeerObject>

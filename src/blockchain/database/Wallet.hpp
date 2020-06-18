@@ -195,7 +195,8 @@ private:
         std::map<block::pTxid, std::vector<block::pHash>>;
     using BlockTransactionMap =
         std::map<block::pHash, std::vector<block::pTxid>>;
-    using TransactionHistory = std::map<block::Height, std::vector<block::pTxid>>;
+    using TransactionHistory =
+        std::map<block::Height, std::vector<block::pTxid>>;
 
     const api::Core& api_;
     const api::client::internal::Blockchain& blockchain_;

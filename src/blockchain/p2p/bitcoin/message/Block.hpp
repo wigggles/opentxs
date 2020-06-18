@@ -18,10 +18,10 @@ namespace opentxs
 {
 namespace api
 {
-namespace internal
+namespace client
 {
-struct Core;
-}  // namespace internal
+class Manager;
+}  // namespace client
 }  // namespace api
 
 namespace blockchain
@@ -34,8 +34,6 @@ class Header;
 }  // namespace bitcoin
 }  // namespace p2p
 }  // namespace blockchain
-
-class Factory;
 }  // namespace opentxs
 
 namespace opentxs::blockchain::p2p::bitcoin::message::implementation
@@ -44,23 +42,23 @@ class Block final : public internal::Block
 {
 public:
     auto GetBlock() const noexcept -> OTData final { return payload_; }
-    auto payload() const noexcept -> OTData final { return payload_; }
+
+    Block(
+        const api::client::Manager& api,
+        const blockchain::Type network,
+        const Data& block) noexcept;
+    Block(
+        const api::client::Manager& api,
+        std::unique_ptr<Header> header,
+        const Data& block) noexcept;
 
     ~Block() final = default;
 
 private:
-    friend opentxs::Factory;
-
     const OTData payload_;
 
-    Block(
-        const api::internal::Core& api,
-        const blockchain::Type network,
-        const Data& block) noexcept;
-    Block(
-        const api::internal::Core& api,
-        std::unique_ptr<Header> header,
-        const Data& block) noexcept;
+    auto payload() const noexcept -> OTData final { return payload_; }
+
     Block(const Block&) = delete;
     Block(Block&&) = delete;
     auto operator=(const Block&) -> Block& = delete;

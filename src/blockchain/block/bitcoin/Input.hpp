@@ -9,6 +9,7 @@
 #include <iosfwd>
 #include <memory>
 #include <optional>
+#include <set>
 #include <vector>
 
 #include "opentxs/Bytes.hpp"
@@ -20,7 +21,10 @@ namespace opentxs
 {
 namespace api
 {
-class Core;
+namespace client
+{
+class Manager;
+}  // namespace client
 }  // namespace api
 
 namespace proto
@@ -45,6 +49,7 @@ public:
         const FilterType type,
         const Patterns& txos,
         const Patterns& elements) const noexcept -> Matches final;
+    auto Keys() const noexcept -> std::vector<KeyID> final;
     auto PreviousOutput() const noexcept -> const Outpoint& final
     {
         return previous_;
@@ -68,7 +73,7 @@ public:
     }
 
     Input(
-        const api::Core& api,
+        const api::client::Manager& api,
         const std::uint32_t sequence,
         Outpoint&& previous,
         std::vector<Space>&& witness,
@@ -76,7 +81,7 @@ public:
         const VersionNumber version,
         std::optional<std::size_t> size = {}) noexcept(false);
     Input(
-        const api::Core& api,
+        const api::client::Manager& api,
         const std::uint32_t sequence,
         Outpoint&& previous,
         std::vector<Space>&& witness,
@@ -88,7 +93,7 @@ public:
 private:
     static const VersionNumber outpoint_version_;
 
-    const api::Core& api_;
+    const api::client::Manager& api_;
     const VersionNumber serialize_version_;
     const Outpoint previous_;
     const std::vector<Space> witness_;
@@ -97,12 +102,13 @@ private:
     const std::uint32_t sequence_;
     mutable std::optional<std::size_t> size_;
     mutable std::optional<std::size_t> normalized_size_;
+    mutable std::set<KeyID> keys_;
 
     auto serialize(const AllocateOutput destination, const bool normalized)
         const noexcept -> std::optional<std::size_t>;
 
     Input(
-        const api::Core& api,
+        const api::client::Manager& api,
         const std::uint32_t sequence,
         Outpoint&& previous,
         std::vector<Space>&& witness,

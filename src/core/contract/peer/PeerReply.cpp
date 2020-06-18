@@ -10,7 +10,7 @@
 #include <ctime>
 #include <list>
 
-#include "Factory.hpp"
+#include "2_Factory.hpp"
 #include "internal/api/Api.hpp"
 #include "internal/core/contract/Contract.hpp"
 #include "opentxs/Pimpl.hpp"

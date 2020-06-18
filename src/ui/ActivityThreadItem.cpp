@@ -16,6 +16,9 @@
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "ui/Widget.hpp"
+#if OT_QT
+#include "util/Polarity.hpp"  // IWYU pragma: keep
+#endif                        // OT_QT
 
 namespace opentxs::ui::implementation
 {

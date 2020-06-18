@@ -259,9 +259,9 @@ auto Base::Save() const -> bool
 
 auto Base::SelfSignature(CredentialModeFlag version) const -> Base::Signature
 {
-    const auto targetRole{(PRIVATE_VERSION == version)
-                              ? proto::SIGROLE_PRIVCREDENTIAL
-                              : proto::SIGROLE_PUBCREDENTIAL};
+    const auto targetRole{
+        (PRIVATE_VERSION == version) ? proto::SIGROLE_PRIVCREDENTIAL
+                                     : proto::SIGROLE_PUBCREDENTIAL};
     const auto self = id_->str();
 
     for (auto& it : signatures_) {

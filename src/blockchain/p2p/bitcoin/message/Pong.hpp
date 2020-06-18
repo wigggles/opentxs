@@ -19,10 +19,10 @@ namespace opentxs
 {
 namespace api
 {
-namespace internal
+namespace client
 {
-struct Core;
-}  // namespace internal
+class Manager;
+}  // namespace client
 }  // namespace api
 
 namespace blockchain
@@ -35,8 +35,6 @@ class Header;
 }  // namespace bitcoin
 }  // namespace p2p
 }  // namespace blockchain
-
-class Factory;
 }  // namespace opentxs
 
 namespace opentxs::blockchain::p2p::bitcoin::message::implementation
@@ -44,13 +42,6 @@ namespace opentxs::blockchain::p2p::bitcoin::message::implementation
 class Pong final : public internal::Pong
 {
 public:
-    auto Nonce() const noexcept -> bitcoin::Nonce final { return nonce_; }
-
-    ~Pong() final = default;
-
-private:
-    friend opentxs::Factory;
-
     struct BitcoinFormat_60001 {
         NonceField nonce_{};
 
@@ -58,18 +49,24 @@ private:
         BitcoinFormat_60001() noexcept;
     };
 
+    auto Nonce() const noexcept -> bitcoin::Nonce final { return nonce_; }
+
+    Pong(
+        const api::client::Manager& api,
+        const blockchain::Type network,
+        const bitcoin::Nonce nonce) noexcept;
+    Pong(
+        const api::client::Manager& api,
+        std::unique_ptr<Header> header,
+        const bitcoin::Nonce nonce) noexcept;
+
+    ~Pong() final = default;
+
+private:
     const bitcoin::Nonce nonce_{};
 
     auto payload() const noexcept -> OTData final;
 
-    Pong(
-        const api::internal::Core& api,
-        const blockchain::Type network,
-        const bitcoin::Nonce nonce) noexcept;
-    Pong(
-        const api::internal::Core& api,
-        std::unique_ptr<Header> header,
-        const bitcoin::Nonce nonce) noexcept;
     Pong(const Pong&) = delete;
     Pong(Pong&&) = delete;
     auto operator=(const Pong&) -> Pong& = delete;

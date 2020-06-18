@@ -7,7 +7,6 @@
 #include "1_Internal.hpp"                   // IWYU pragma: associated
 #include "opentxs/contact/ContactItem.hpp"  // IWYU pragma: associated
 
-#include <algorithm>
 #include <memory>
 #include <tuple>
 

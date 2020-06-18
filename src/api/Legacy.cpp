@@ -266,16 +266,16 @@ auto Legacy::get_suffix() noexcept -> fs::path
 #endif
 }
 
-auto Legacy::get_file(const std::string& fragment, const int instance) const
-    noexcept -> std::string
+auto Legacy::get_file(const std::string& fragment, const int instance)
+    const noexcept -> std::string
 {
     const auto output = get_path(fragment, instance);
 
     return {output.c_str(), output.size() - 1};
 }
 
-auto Legacy::get_path(const std::string& fragment, const int instance) const
-    noexcept -> std::string
+auto Legacy::get_path(const std::string& fragment, const int instance)
+    const noexcept -> std::string
 {
     const auto name =
         (0 == instance) ? fragment : fragment + "-" + std::to_string(instance);

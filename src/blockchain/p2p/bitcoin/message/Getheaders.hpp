@@ -21,10 +21,10 @@ namespace opentxs
 {
 namespace api
 {
-namespace internal
+namespace client
 {
-struct Core;
-}  // namespace internal
+class Manager;
+}  // namespace client
 }  // namespace api
 
 namespace blockchain
@@ -37,8 +37,6 @@ class Header;
 }  // namespace bitcoin
 }  // namespace p2p
 }  // namespace blockchain
-
-class Factory;
 }  // namespace opentxs
 
 namespace opentxs::blockchain::p2p::bitcoin::message::implementation
@@ -66,29 +64,28 @@ public:
         return version_;
     }
 
+    Getheaders(
+        const api::client::Manager& api,
+        const blockchain::Type network,
+        const bitcoin::ProtocolVersionUnsigned version,
+        std::vector<block::pHash>&& hashes,
+        block::pHash&& stop) noexcept;
+    Getheaders(
+        const api::client::Manager& api,
+        std::unique_ptr<Header> header,
+        const bitcoin::ProtocolVersionUnsigned version,
+        std::vector<block::pHash>&& hashes,
+        block::pHash&& stop) noexcept;
+
     ~Getheaders() final = default;
 
 private:
-    friend opentxs::Factory;
-
     const bitcoin::ProtocolVersionUnsigned version_;
     const std::vector<block::pHash> payload_;
     const block::pHash stop_;
 
     auto payload() const noexcept -> OTData final;
 
-    Getheaders(
-        const api::internal::Core& api,
-        const blockchain::Type network,
-        const bitcoin::ProtocolVersionUnsigned version,
-        std::vector<block::pHash>&& hashes,
-        block::pHash&& stop) noexcept;
-    Getheaders(
-        const api::internal::Core& api,
-        std::unique_ptr<Header> header,
-        const bitcoin::ProtocolVersionUnsigned version,
-        std::vector<block::pHash>&& hashes,
-        block::pHash&& stop) noexcept;
     Getheaders(const Getheaders&) = delete;
     Getheaders(Getheaders&&) = delete;
     auto operator=(const Getheaders&) -> Getheaders& = delete;

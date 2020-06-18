@@ -7,8 +7,8 @@
 #include "1_Internal.hpp"                         // IWYU pragma: associated
 #include "blockchain/client/bitcoin/Network.hpp"  // IWYU pragma: associated
 
-#include "Factory.hpp"
 #include "internal/blockchain/block/Block.hpp"
+#include "internal/blockchain/block/bitcoin/Bitcoin.hpp"
 #include "internal/blockchain/client/Client.hpp"
 #include "opentxs/Proto.tpp"
 #include "opentxs/blockchain/block/Header.hpp"
@@ -19,7 +19,7 @@
 namespace opentxs::factory
 {
 auto BlockchainNetworkBitcoin(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     const api::client::internal::Blockchain& blockchain,
     const blockchain::Type type,
     const std::string& seednode,
@@ -36,7 +36,7 @@ auto BlockchainNetworkBitcoin(
 namespace opentxs::blockchain::client::bitcoin::implementation
 {
 Network::Network(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     const api::client::internal::Blockchain& blockchain,
     const Type type,
     const std::string& seednode,
@@ -51,8 +51,8 @@ auto Network::instantiate_header(const ReadView payload) const noexcept
 {
     using Type = block::Header::SerializedType;
 
-    return std::unique_ptr<block::Header>{opentxs::Factory::BitcoinBlockHeader(
-        api_, proto::Factory<Type>(payload))};
+    return std::unique_ptr<block::Header>{
+        factory::BitcoinBlockHeader(api_, proto::Factory<Type>(payload))};
 }
 
 Network::~Network() { Shutdown(); }

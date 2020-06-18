@@ -19,8 +19,9 @@
 #include <utility>
 #include <vector>
 
-#include "Factory.hpp"
+#include "2_Factory.hpp"
 #include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.hpp"
 #include "opentxs/api/Editor.hpp"
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Settings.hpp"

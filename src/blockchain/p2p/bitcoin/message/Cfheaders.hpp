@@ -21,10 +21,10 @@ namespace opentxs
 {
 namespace api
 {
-namespace internal
+namespace client
 {
-struct Core;
-}  // namespace internal
+class Manager;
+}  // namespace client
 }  // namespace api
 
 namespace blockchain
@@ -46,6 +46,8 @@ namespace opentxs::blockchain::p2p::bitcoin::message::implementation
 class Cfheaders final : public internal::Cfheaders
 {
 public:
+    using BitcoinFormat = FilterPrefixChained;
+
     auto at(const std::size_t position) const noexcept(false)
         -> const value_type& final
     {
@@ -67,13 +69,24 @@ public:
     auto Stop() const noexcept -> const value_type& final { return stop_; }
     auto Type() const noexcept -> filter::Type final { return type_; }
 
+    Cfheaders(
+        const api::client::Manager& api,
+        const blockchain::Type network,
+        const filter::Type type,
+        const filter::Hash& stop,
+        const filter::Hash& previous,
+        const std::vector<filter::pHash>& headers) noexcept;
+    Cfheaders(
+        const api::client::Manager& api,
+        std::unique_ptr<Header> header,
+        const filter::Type type,
+        const filter::Hash& stop,
+        const filter::Hash& previous,
+        const std::vector<filter::pHash>& headers) noexcept;
+
     ~Cfheaders() final = default;
 
 private:
-    friend opentxs::Factory;
-
-    using BitcoinFormat = FilterPrefixChained;
-
     const filter::Type type_;
     const filter::pHash stop_;
     const filter::pHash previous_;
@@ -81,20 +94,6 @@ private:
 
     auto payload() const noexcept -> OTData final;
 
-    Cfheaders(
-        const api::internal::Core& api,
-        const blockchain::Type network,
-        const filter::Type type,
-        const filter::Hash& stop,
-        const filter::Hash& previous,
-        const std::vector<filter::pHash>& headers) noexcept;
-    Cfheaders(
-        const api::internal::Core& api,
-        std::unique_ptr<Header> header,
-        const filter::Type type,
-        const filter::Hash& stop,
-        const filter::Hash& previous,
-        const std::vector<filter::pHash>& headers) noexcept;
     Cfheaders(const Cfheaders&) = delete;
     Cfheaders(Cfheaders&&) = delete;
     auto operator=(const Cfheaders&) -> Cfheaders& = delete;

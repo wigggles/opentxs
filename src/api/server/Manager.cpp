@@ -7,7 +7,6 @@
 #include "1_Internal.hpp"          // IWYU pragma: associated
 #include "api/server/Manager.hpp"  // IWYU pragma: associated
 
-#include <algorithm>
 #include <atomic>
 #include <chrono>
 #include <deque>
@@ -22,6 +21,7 @@
 #include <type_traits>
 #include <utility>
 
+#include "2_Factory.hpp"
 #include "api/Core.hpp"
 #include "api/Scheduler.hpp"
 #include "api/StorageParent.hpp"

@@ -23,6 +23,11 @@ namespace internal
 struct Manager;
 }  // namespace internal
 }  // namespace server
+
+namespace internal
+{
+struct Factory;
+}  // namespace internal
 }  // namespace api
 
 class Factory;

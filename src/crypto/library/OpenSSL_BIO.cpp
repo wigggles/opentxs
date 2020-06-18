@@ -11,7 +11,6 @@ extern "C" {
 #include <openssl/bio.h>
 }
 
-#include <algorithm>
 #include <cstddef>
 #include <vector>
 

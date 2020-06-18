@@ -31,10 +31,13 @@ namespace opentxs
 {
 namespace api
 {
+namespace client
+{
 namespace internal
 {
-struct Core;
+struct Manager;
 }  // namespace internal
+}  // namespace client
 
 class Legacy;
 }  // namespace api
@@ -83,8 +86,8 @@ public:
     auto BlockExists(const BlockHash& block) const noexcept -> bool;
     auto BlockLoad(const BlockHash& block) const noexcept -> BlockReader;
     auto BlockPolicy() const noexcept -> BlockStorage { return block_policy_; }
-    auto BlockStore(const BlockHash& block, const std::size_t bytes) const
-        noexcept -> BlockWriter;
+    auto BlockStore(const BlockHash& block, const std::size_t bytes)
+        const noexcept -> BlockWriter;
     auto Find(
         const Chain chain,
         const Protocol protocol,
@@ -93,13 +96,13 @@ public:
     {
         return peers_.Find(chain, protocol, onNetworks, withServices);
     }
-    auto HaveFilter(const FilterType type, const ReadView blockHash) const
-        noexcept -> bool
+    auto HaveFilter(const FilterType type, const ReadView blockHash)
+        const noexcept -> bool
     {
         return filters_.HaveFilter(type, blockHash);
     }
-    auto HaveFilterHeader(const FilterType type, const ReadView blockHash) const
-        noexcept -> bool
+    auto HaveFilterHeader(const FilterType type, const ReadView blockHash)
+        const noexcept -> bool
     {
         return filters_.HaveFilterHeader(type, blockHash);
     }
@@ -153,7 +156,7 @@ public:
     }
 
     Database(
-        const api::internal::Core& api,
+        const api::client::internal::Manager& api,
         const api::Legacy& legacy,
         const std::string& dataFolder,
         const ArgList& args) noexcept(false);
@@ -161,7 +164,7 @@ public:
 private:
     static const opentxs::storage::lmdb::TableNames table_names_;
 
-    const api::internal::Core& api_;
+    const api::client::internal::Manager& api_;
     const OTString blockchain_path_;
     const OTString common_path_;
 #if OPENTXS_BLOCK_STORAGE_ENABLED

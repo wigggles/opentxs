@@ -40,6 +40,8 @@
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/socket/Router.hpp"
+#include "util/Blank.hpp"
+#include "util/Work.hpp"
 #endif  // OT_BLOCKCHAIN
 
 namespace opentxs
@@ -63,6 +65,8 @@ namespace internal
 {
 struct Blockchain;
 }  // namespace internal
+
+class Manager;
 }  // namespace client
 
 namespace internal
@@ -126,6 +130,9 @@ namespace proto
 {
 class BlockchainTransactionOutput;
 }  // namespace proto
+
+template <typename T>
+struct make_blank;
 }  // namespace opentxs
 
 namespace zmq = opentxs::network::zeromq;
@@ -324,11 +331,11 @@ struct IO {
     auto AddNetwork() noexcept -> void;
     auto Shutdown() noexcept -> void;
 
-    IO(const api::Core& api) noexcept;
+    IO(const api::client::Manager& api) noexcept;
     ~IO();
 
 private:
-    const api::Core& api_;
+    const api::client::Manager& api_;
     mutable std::mutex lock_;
     OTZMQListenCallback cb_;
     OTZMQRouterSocket socket_;
@@ -361,7 +368,7 @@ struct Network : virtual public opentxs::blockchain::Network {
         Shutdown = OT_ZMQ_SHUTDOWN_SIGNAL,
     };
 
-    virtual auto API() const noexcept -> const api::internal::Core& = 0;
+    virtual auto API() const noexcept -> const api::client::Manager& = 0;
     virtual auto Blockchain() const noexcept
         -> const api::client::internal::Blockchain& = 0;
     virtual auto BlockOracle() const noexcept
@@ -594,28 +601,28 @@ struct WalletDatabase {
 namespace opentxs::factory
 {
 auto BlockchainDatabase(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     const api::client::internal::Blockchain& blockchain,
     const blockchain::client::internal::Network& network,
     const api::client::blockchain::database::implementation::Database& db,
     const blockchain::Type type) noexcept
     -> std::unique_ptr<blockchain::internal::Database>;
 auto BlockchainFilterOracle(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     const blockchain::client::internal::Network& network,
     const blockchain::client::internal::FilterDatabase& database,
     const blockchain::Type type,
     const std::string& shutdown) noexcept
     -> std::unique_ptr<blockchain::client::internal::FilterOracle>;
 OPENTXS_EXPORT auto BlockchainNetworkBitcoin(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     const api::client::internal::Blockchain& blockchain,
     const blockchain::Type type,
     const std::string& seednode,
     const std::string& shutdown) noexcept
     -> std::unique_ptr<blockchain::client::internal::Network>;
 auto BlockchainPeerManager(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     const blockchain::client::internal::Network& network,
     const blockchain::client::internal::PeerDatabase& database,
     const blockchain::client::internal::IO& io,
@@ -624,20 +631,20 @@ auto BlockchainPeerManager(
     const std::string& shutdown) noexcept
     -> std::unique_ptr<blockchain::client::internal::PeerManager>;
 OPENTXS_EXPORT auto BlockchainWallet(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     const api::client::internal::Blockchain& blockchain,
     const blockchain::client::internal::Network& parent,
     const blockchain::Type chain,
     const std::string& shutdown)
     -> std::unique_ptr<blockchain::client::internal::Wallet>;
 auto BlockOracle(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     const blockchain::client::internal::Network& network,
     const blockchain::Type type,
     const std::string& shutdown) noexcept
     -> std::unique_ptr<blockchain::client::internal::BlockOracle>;
 auto HeaderOracle(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     const blockchain::client::internal::Network& network,
     const blockchain::client::internal::HeaderDatabase& database,
     const blockchain::Type type) noexcept

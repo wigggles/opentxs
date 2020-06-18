@@ -26,10 +26,10 @@ namespace opentxs
 {
 namespace api
 {
-namespace internal
+namespace client
 {
-struct Core;
-}  // namespace internal
+class Manager;
+}  // namespace client
 }  // namespace api
 
 namespace network
@@ -60,7 +60,7 @@ public:
     }
 
     BlockOracle(
-        const api::internal::Core& api,
+        const api::client::Manager& api,
         const internal::Network& network,
         const blockchain::Type type,
         const std::string& shutdown) noexcept;

@@ -14,6 +14,9 @@
 #include "internal/api/client/Client.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "ui/Widget.hpp"
+#if OT_QT
+#include "util/Polarity.hpp"  // IWYU pragma: keep
+#endif                        // OT_QT
 
 // #define OT_METHOD "opentxs::ui::implementation::BlockchainAccountListItem::"
 
@@ -56,8 +59,8 @@ BlockchainAccountListItem::BlockchainAccountListItem(
 }
 
 #if OT_QT
-auto BlockchainAccountListItem::qt_data(const int column, int role) const
-    noexcept -> QVariant
+auto BlockchainAccountListItem::qt_data(const int column, int role)
+    const noexcept -> QVariant
 {
     switch (role) {
         case AccountListQt::NotaryIDRole: {

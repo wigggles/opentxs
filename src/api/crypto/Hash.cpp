@@ -12,7 +12,7 @@
 #include <string_view>
 #include <vector>
 
-#include "Factory.hpp"
+#include "2_Factory.hpp"
 #include "internal/crypto/library/Pbkdf2.hpp"
 #include "internal/crypto/library/Ripemd160.hpp"
 #include "opentxs/Pimpl.hpp"

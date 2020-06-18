@@ -8,14 +8,14 @@
 #include "internal/blockchain/client/Client.hpp"  // IWYU pragma: associated
 
 #include <boost/asio.hpp>
-#include <boost/bind.hpp>
+#include <boost/bind/bind.hpp>
 #include <algorithm>
 #include <functional>
 #include <thread>
 
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/api/Core.hpp"
 #include "opentxs/api/Endpoints.hpp"
+#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
@@ -23,10 +23,11 @@
 #include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/socket/Socket.hpp"
+#include "util/Work.hpp"
 
 namespace opentxs::blockchain::client::internal
 {
-IO::IO(const api::Core& api) noexcept
+IO::IO(const api::client::Manager& api) noexcept
     : api_(api)
     , lock_()
     , cb_(zmq::ListenCallback::Factory([this](auto& in) { callback(in); }))

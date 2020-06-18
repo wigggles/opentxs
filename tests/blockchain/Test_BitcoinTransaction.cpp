@@ -4,6 +4,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include "OTTestEnvironment.hpp"
+#include "internal/blockchain/block/bitcoin/Bitcoin.hpp"
 
 namespace
 {
@@ -102,7 +103,7 @@ struct Test_BitcoinTransaction : public ::testing::Test {
 
 TEST_F(Test_BitcoinTransaction, serialization)
 {
-    const auto transaction = ot::Factory::BitcoinTransaction(
+    const auto transaction = ot::factory::BitcoinTransaction(
         api_,
         ot::blockchain::Type::Bitcoin,
         false,
@@ -264,7 +265,7 @@ TEST_F(Test_BitcoinTransaction, serialization)
     ASSERT_TRUE(serialized.has_value());
 
     auto transaction2 =
-        ot::Factory::BitcoinTransaction(api_, false, serialized.value());
+        ot::factory::BitcoinTransaction(api_, false, serialized.value());
 
     ASSERT_TRUE(transaction2);
     EXPECT_EQ(transaction2->Locktime(), 0);
@@ -429,13 +430,13 @@ TEST_F(Test_BitcoinTransaction, serialization)
 
 TEST_F(Test_BitcoinTransaction, normalized_id)
 {
-    const auto transaction1 = ot::Factory::BitcoinTransaction(
+    const auto transaction1 = ot::factory::BitcoinTransaction(
         api_,
         ot::blockchain::Type::Bitcoin,
         false,
         ot::blockchain::bitcoin::EncodedTransaction::Deserialize(
             api_, ot::blockchain::Type::Bitcoin, tx_bytes_->Bytes()));
-    const auto transaction2 = ot::Factory::BitcoinTransaction(
+    const auto transaction2 = ot::factory::BitcoinTransaction(
         api_,
         ot::blockchain::Type::Bitcoin,
         false,

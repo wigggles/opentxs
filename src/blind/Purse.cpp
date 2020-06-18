@@ -15,12 +15,11 @@
 #include <utility>
 #include <vector>
 
-#include "Factory.hpp"
+#include "2_Factory.hpp"
 #include "blind/Token.hpp"
 #include "internal/api/Api.hpp"
 #include "internal/api/server/Server.hpp"
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/Version.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/crypto/Symmetric.hpp"
 #include "opentxs/blind/Mint.hpp"

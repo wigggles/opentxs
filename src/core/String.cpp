@@ -11,7 +11,6 @@ extern "C" {
 #include <sodium.h>
 }
 
-#include <algorithm>
 #include <cctype>
 #include <cstdarg>
 #include <cstdint>

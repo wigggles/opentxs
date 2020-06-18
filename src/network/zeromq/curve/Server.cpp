@@ -68,8 +68,8 @@ auto Server::SetPrivateKey(const std::string& z85) const noexcept -> bool
     return set_private_key(key.data(), key.size());
 }
 
-auto Server::set_private_key(const void* key, const std::size_t keySize) const
-    noexcept -> bool
+auto Server::set_private_key(const void* key, const std::size_t keySize)
+    const noexcept -> bool
 {
     OT_ASSERT(nullptr != parent_);
 

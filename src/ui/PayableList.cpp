@@ -96,8 +96,9 @@ PayableList::PayableList(
 #if OT_QT
           ,
           qt,
-          Roles{{PayableListQt::ContactIDRole, "id"},
-                {PayableListQt::SectionRole, "section"}},
+          Roles{
+              {PayableListQt::ContactIDRole, "id"},
+              {PayableListQt::SectionRole, "section"}},
           2
 #endif
           )

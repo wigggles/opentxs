@@ -15,7 +15,7 @@
 #include <string_view>
 #include <utility>
 
-#include "Factory.hpp"
+#include "2_Factory.hpp"
 #include "internal/api/Api.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Proto.hpp"
@@ -135,7 +135,7 @@ PaymentCode::PaymentCode(const PaymentCode& rhs)
 {
 }
 
-PaymentCode::operator const crypto::key::Asymmetric&() const noexcept
+PaymentCode::operator const crypto::key::Asymmetric &() const noexcept
 {
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
     return *key_;

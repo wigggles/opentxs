@@ -11,11 +11,10 @@
 #include <cstring>
 #include <stdexcept>
 
-#include "Factory.hpp"
-#include "internal/api/Api.hpp"
 #include "internal/blockchain/p2p/P2P.hpp"
 #include "opentxs/Bytes.hpp"
 #include "opentxs/Proto.hpp"
+#include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
@@ -26,12 +25,12 @@
 
 // #define OT_METHOD "opentxs::blockchain::p2p::implementation::Address::"
 
-namespace opentxs
+namespace opentxs::factory
 {
 using ReturnType = blockchain::p2p::implementation::Address;
 
-auto Factory::BlockchainAddress(
-    const api::internal::Core& api,
+auto BlockchainAddress(
+    const api::Core& api,
     const blockchain::p2p::Protocol protocol,
     const blockchain::p2p::Network network,
     const Data& bytes,
@@ -53,14 +52,14 @@ auto Factory::BlockchainAddress(
             lastConnected,
             services);
     } catch (const std::exception& e) {
-        LogOutput("opentxs::Factory::")(__FUNCTION__)(": ")(e.what()).Flush();
+        LogOutput("opentxs::factory::")(__FUNCTION__)(": ")(e.what()).Flush();
 
         return {};
     }
 }
 
-auto Factory::BlockchainAddress(
-    const api::internal::Core& api,
+auto BlockchainAddress(
+    const api::Core& api,
     const proto::BlockchainPeerAddress serialized) noexcept
     -> std::unique_ptr<blockchain::p2p::internal::Address>
 {
@@ -76,19 +75,19 @@ auto Factory::BlockchainAddress(
             Clock::from_time_t(serialized.time()),
             ReturnType::instantiate_services(serialized));
     } catch (const std::exception& e) {
-        LogOutput("opentxs::Factory::")(__FUNCTION__)(": ")(e.what()).Flush();
+        LogOutput("opentxs::factory::")(__FUNCTION__)(": ")(e.what()).Flush();
 
         return {};
     }
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::blockchain::p2p::implementation
 {
 const VersionNumber Address::DefaultVersion{1};
 
 Address::Address(
-    const api::internal::Core& api,
+    const api::Core& api,
     const VersionNumber version,
     const Protocol protocol,
     const Network network,
@@ -162,7 +161,7 @@ Address::Address(const Address& rhs) noexcept
 }
 
 auto Address::calculate_id(
-    const api::internal::Core& api,
+    const api::Core& api,
     const VersionNumber version,
     const Protocol protocol,
     const Network network,

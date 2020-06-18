@@ -11,7 +11,7 @@
 #include <stdexcept>
 #include <string>
 
-#include "Factory.hpp"
+#include "2_Factory.hpp"
 #include "identity/credential/Base.hpp"
 #include "internal/api/Api.hpp"
 #include "internal/identity/Identity.hpp"

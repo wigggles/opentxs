@@ -15,10 +15,10 @@
 #include <random>
 #include <utility>
 
-#include "Factory.hpp"
 #include "internal/blockchain/p2p/P2P.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Proto.tpp"
+#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/blockchain/p2p/Address.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
@@ -33,7 +33,7 @@
 namespace opentxs::api::client::blockchain::database::implementation
 {
 Peers::Peers(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     opentxs::storage::lmdb::LMDB& lmdb) noexcept(false)
     : api_(api)
     , lmdb_(lmdb)
@@ -388,6 +388,6 @@ auto Peers::load_address(const std::string& id) const noexcept(false)
         throw std::out_of_range("Invalid address");
     }
 
-    return opentxs::Factory::BlockchainAddress(api_, serialized);
+    return factory::BlockchainAddress(api_, serialized);
 }
 }  // namespace opentxs::api::client::blockchain::database::implementation

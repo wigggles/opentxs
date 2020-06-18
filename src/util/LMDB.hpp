@@ -101,8 +101,8 @@ public:
         const ReadView key,
         const ReadView value,
         const Mode mode = Mode::One) const noexcept -> bool;
-    auto Read(const Table table, const ReadCallback cb, const Dir dir) const
-        noexcept -> bool;
+    auto Read(const Table table, const ReadCallback cb, const Dir dir)
+        const noexcept -> bool;
     auto Store(
         const Table table,
         const ReadView key,

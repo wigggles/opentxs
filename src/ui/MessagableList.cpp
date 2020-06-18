@@ -93,8 +93,9 @@ MessagableList::MessagableList(
 #if OT_QT
           ,
           qt,
-          Roles{{MessagableListQt::ContactIDRole, "id"},
-                {MessagableListQt::SectionRole, "section"}},
+          Roles{
+              {MessagableListQt::ContactIDRole, "id"},
+              {MessagableListQt::SectionRole, "section"}},
           1
 #endif
           )

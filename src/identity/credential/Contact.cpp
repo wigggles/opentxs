@@ -13,7 +13,7 @@
 #include <stdexcept>
 #include <string>
 
-#include "Factory.hpp"
+#include "2_Factory.hpp"
 #include "identity/credential/Base.hpp"
 #include "internal/api/Api.hpp"
 #include "opentxs/Pimpl.hpp"
@@ -143,13 +143,14 @@ auto Contact::asClaim(
 
     for (auto& attrib : item.attribute()) { attributes.insert(attrib); }
 
-    return Claim{ClaimID(api, nymid.Get(), section, item),
-                 section,
-                 item.type(),
-                 item.value(),
-                 item.start(),
-                 item.end(),
-                 attributes};
+    return Claim{
+        ClaimID(api, nymid.Get(), section, item),
+        section,
+        item.type(),
+        item.value(),
+        item.start(),
+        item.end(),
+        attributes};
 }
 }  // namespace opentxs::identity::credential
 

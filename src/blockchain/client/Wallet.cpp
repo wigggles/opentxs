@@ -22,15 +22,14 @@
 
 #include "blockchain/client/HDStateData.hpp"
 #include "core/Executor.hpp"
-#include "internal/api/Api.hpp"
 #include "internal/api/client/Client.hpp"
 #include "internal/blockchain/Blockchain.hpp"
 #include "internal/blockchain/client/Client.hpp"
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/api/Core.hpp"
 #include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
+#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/client/blockchain/BalanceTree.hpp"
 #include "opentxs/api/client/blockchain/HD.hpp"
 #include "opentxs/core/Data.hpp"
@@ -51,7 +50,7 @@
 namespace opentxs::factory
 {
 auto BlockchainWallet(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     const api::client::internal::Blockchain& blockchain,
     const blockchain::client::internal::Network& parent,
     const blockchain::Type chain,
@@ -110,7 +109,7 @@ auto Wallet::ProcessTask(const zmq::Message& in) noexcept -> void
 namespace opentxs::blockchain::client::implementation
 {
 Wallet::Wallet(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     const api::client::internal::Blockchain& blockchain,
     const internal::Network& parent,
     const Type chain,
@@ -123,7 +122,7 @@ Wallet::Wallet(
     , init_promise_()
     , init_(init_promise_.get_future())
     , socket_(api_.ZeroMQ().PushSocket(zmq::socket::Socket::Direction::Connect))
-    , accounts_(api_, blockchain_api_, parent_, db_, socket_, chain_)
+    , accounts_(api, blockchain_api_, parent_, db_, socket_, chain_)
 {
     auto zmq = socket_->Start(blockchain.ThreadPool().Endpoint());
 
@@ -138,7 +137,7 @@ Wallet::Wallet(
 }
 
 Wallet::Account::Account(
-    const api::Core& api,
+    const api::client::Manager& api,
     const BalanceTree& ref,
     const internal::Network& network,
     const internal::WalletDatabase& db,
@@ -174,7 +173,7 @@ Wallet::Account::Account(Account&& rhs) noexcept
 }
 
 Wallet::Accounts::Accounts(
-    const api::Core& api,
+    const api::client::Manager& api,
     const api::client::internal::Blockchain& blockchain,
     const internal::Network& network,
     const internal::WalletDatabase& db,
@@ -458,7 +457,7 @@ auto Wallet::Accounts::Add(const zmq::Frame& message) noexcept -> bool
 }
 
 auto Wallet::Accounts::init(
-    const api::Core& api,
+    const api::client::Manager& api,
     const api::client::internal::Blockchain& blockchain,
     const internal::Network& network,
     const internal::WalletDatabase& db,
@@ -560,9 +559,9 @@ auto Wallet::process_reorg(const zmq::Message& in) noexcept -> void
 
     if (chain_ != chain) { return; }
 
-    const auto parent =
-        block::Position{body.at(2).as<block::Height>(),
-                        api_.Factory().Data(body.at(1).Bytes())};
+    const auto parent = block::Position{
+        body.at(2).as<block::Height>(),
+        api_.Factory().Data(body.at(1).Bytes())};
     accounts_.Reorg(parent);
     Trigger();
 }

@@ -112,9 +112,8 @@ public:
         return row_id_;
     }
 
-    void reindex(
-        const ProfileSortKey& key,
-        const CustomData& custom) noexcept final;
+    void reindex(const ProfileSortKey& key, const CustomData& custom) noexcept
+        final;
 
     ProfileSection(
         const ProfileInternalInterface& parent,

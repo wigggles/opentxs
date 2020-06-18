@@ -5,6 +5,7 @@
 
 #include "OTTestEnvironment.hpp"
 #include "Bip158.hpp"
+#include "internal/blockchain/Blockchain.hpp"
 
 namespace
 {
@@ -104,7 +105,7 @@ TEST_F(Test_BitcoinBlock, bip158)
                 it, expectedSize, encodedFilter->size(), encodedElements));
         }
 
-        const auto pGCS = ot::Factory::GCS(
+        const auto pGCS = ot::factory::GCS(
             api_,
             19,
             784931,

@@ -15,7 +15,7 @@
 #include <type_traits>
 
 #include "Exclusive.tpp"
-#include "Factory.hpp"
+#include "2_Factory.hpp"
 #include "internal/api/Api.hpp"
 #include "internal/core/Core.hpp"
 #include "internal/identity/Identity.hpp"
@@ -63,6 +63,7 @@
 #include "opentxs/protobuf/PeerEnums.pb.h"
 #include "opentxs/protobuf/verify/Nym.hpp"
 #include "opentxs/protobuf/verify/Purse.hpp"
+#include "util/Work.hpp"
 
 template class opentxs::Exclusive<opentxs::Account>;
 template class opentxs::Shared<opentxs::Account>;
@@ -2288,11 +2289,12 @@ auto Wallet::Server(
             std::end(endpoints),
             std::back_inserter(list),
             [](const auto& in) -> Endpoint {
-                return {static_cast<int>(std::get<0>(in)),
-                        static_cast<int>(std::get<1>(in)),
-                        std::get<2>(in),
-                        std::get<3>(in),
-                        std::get<4>(in)};
+                return {
+                    static_cast<int>(std::get<0>(in)),
+                    static_cast<int>(std::get<1>(in)),
+                    std::get<2>(in),
+                    std::get<3>(in),
+                    std::get<4>(in)};
             });
         auto pContract =
             std::unique_ptr<contract::Server>{opentxs::Factory::ServerContract(

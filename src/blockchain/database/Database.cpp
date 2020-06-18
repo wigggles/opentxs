@@ -10,8 +10,8 @@
 #include <memory>
 #include <string>
 
-#include "internal/api/Api.hpp"
 #include "internal/blockchain/Blockchain.hpp"
+#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/core/Log.hpp"
 #include "util/LMDB.hpp"
 
@@ -20,7 +20,7 @@
 namespace opentxs::factory
 {
 auto BlockchainDatabase(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     const api::client::internal::Blockchain& blockchain,
     const blockchain::client::internal::Network& network,
     const api::client::blockchain::database::implementation::Database& common,
@@ -59,7 +59,7 @@ const opentxs::storage::lmdb::TableNames Database::table_names_{
 };
 
 Database::Database(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     const api::client::internal::Blockchain& blockchain,
     const client::internal::Network& network,
     const database::Common& common,

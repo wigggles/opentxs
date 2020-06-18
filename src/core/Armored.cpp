@@ -16,6 +16,7 @@
 #include <stdexcept>
 #include <string>
 
+#include "2_Factory.hpp"
 #include "core/String.hpp"
 #include "opentxs/OT.hpp"
 #include "opentxs/Pimpl.hpp"

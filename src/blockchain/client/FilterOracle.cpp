@@ -14,15 +14,14 @@
 #include <tuple>
 #include <type_traits>
 
-#include "Factory.hpp"
 #include "blockchain/client/FilterCheckpoints.hpp"
 #include "core/Executor.hpp"
-#include "internal/api/Api.hpp"
 #include "internal/blockchain/Blockchain.hpp"
 #include "opentxs/Bytes.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Factory.hpp"
+#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/blockchain/block/Header.hpp"
 #include "opentxs/blockchain/client/HeaderOracle.hpp"
 #include "opentxs/core/Flag.hpp"
@@ -35,13 +34,14 @@
 #include "opentxs/network/zeromq/Pipeline.hpp"
 #include "opentxs/network/zeromq/socket/Publish.hpp"
 #include "util/ScopeGuard.hpp"
+#include "util/Work.hpp"
 
 #define OT_METHOD "opentxs::blockchain::client::implementation::FilterOracle::"
 
 namespace opentxs::factory
 {
 auto BlockchainFilterOracle(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     const blockchain::client::internal::Network& network,
     const blockchain::client::internal::FilterDatabase& database,
     const blockchain::Type type,
@@ -60,7 +60,7 @@ const std::chrono::seconds FilterOracle::FilterQueue::timeout_{20};
 const std::chrono::seconds FilterOracle::RequestQueue::limit_{15};
 
 FilterOracle::FilterOracle(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     const internal::Network& network,
     const internal::FilterDatabase& database,
     const blockchain::Type type,
@@ -84,7 +84,7 @@ FilterOracle::FilterOracle(
     init_executor({shutdown, api.Endpoints().BlockchainReorg()});
 }
 
-FilterOracle::FilterQueue::FilterQueue(const api::Core& api) noexcept
+FilterOracle::FilterQueue::FilterQueue(const api::client::Manager& api) noexcept
     : error_(false)
     , api_(api)
     , running_(false)
@@ -96,7 +96,8 @@ FilterOracle::FilterQueue::FilterQueue(const api::Core& api) noexcept
     filters_.reserve(1000);
 }
 
-FilterOracle::RequestQueue::RequestQueue(const api::Core& api) noexcept
+FilterOracle::RequestQueue::RequestQueue(
+    const api::client::Manager& api) noexcept
     : hashes_()
 {
 }
@@ -462,8 +463,8 @@ auto FilterOracle::compare_tips_to_header_chain() noexcept -> bool
     return true;
 }
 
-auto FilterOracle::oldest_checkpoint_before(const block::Height height) const
-    noexcept -> block::Height
+auto FilterOracle::oldest_checkpoint_before(
+    const block::Height height) const noexcept -> block::Height
 {
     const auto& cp = filter_checkpoints_.at(network_.Chain());
 
@@ -689,7 +690,7 @@ auto FilterOracle::process_cfilter(const zmq::Message& in) noexcept -> void
     const auto fpRate = body.at(3).as<std::uint32_t>();
     const auto count = body.at(4).as<std::uint32_t>();
     const auto bytes = body.at(5).Bytes();
-    auto gcs = std::unique_ptr<const blockchain::internal::GCS>{Factory::GCS(
+    auto gcs = std::unique_ptr<const blockchain::internal::GCS>{factory::GCS(
         api_,
         bits,
         fpRate,
@@ -778,9 +779,9 @@ auto FilterOracle::process_reorg(const zmq::Message& in) noexcept -> void
 
     header_requests_.Reset();
     outstanding_filters_.Reset();
-    const auto parent =
-        block::Position{body.at(2).as<block::Height>(),
-                        api_.Factory().Data(body.at(1).Bytes())};
+    const auto parent = block::Position{
+        body.at(2).as<block::Height>(),
+        api_.Factory().Data(body.at(1).Bytes())};
     reset_tips_to(parent);
     LogNormal(blockchain::internal::DisplayString(network_.Chain()))(
         " filter chain tips reset to reorg parent ")(parent.second->asHex())(

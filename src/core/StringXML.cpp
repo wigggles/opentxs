@@ -92,7 +92,7 @@ auto StringXML::operator=(const opentxs::StringXML& rhs) -> StringXML&
     return *this;
 }
 
-StringXML::operator irr::io::IFileReadCallBack*() { return pvt_; }
+StringXML::operator irr::io::IFileReadCallBack *() { return pvt_; }
 
 auto StringXML::read(void* buffer, std::uint32_t sizeToRead) -> std::int32_t
 {

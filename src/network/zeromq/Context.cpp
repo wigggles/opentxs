@@ -11,7 +11,7 @@
 #include <cstdint>
 #include <memory>
 
-#include "Factory.hpp"
+#include "2_Factory.hpp"
 #include "PairEventListener.hpp"
 #include "opentxs/Bytes.hpp"
 #include "opentxs/Pimpl.hpp"
@@ -234,8 +234,8 @@ auto Context::PublishSocket() const noexcept -> OTZMQPublishSocket
     return OTZMQPublishSocket{Factory::PublishSocket(*this)};
 }
 
-auto Context::PullSocket(const socket::Socket::Direction direction) const
-    noexcept -> OTZMQPullSocket
+auto Context::PullSocket(
+    const socket::Socket::Direction direction) const noexcept -> OTZMQPullSocket
 {
     return OTZMQPullSocket{
         Factory::PullSocket(*this, static_cast<bool>(direction))};
@@ -249,8 +249,8 @@ auto Context::PullSocket(
         Factory::PullSocket(*this, static_cast<bool>(direction), callback)};
 }
 
-auto Context::PushSocket(const socket::Socket::Direction direction) const
-    noexcept -> OTZMQPushSocket
+auto Context::PushSocket(
+    const socket::Socket::Direction direction) const noexcept -> OTZMQPushSocket
 {
     return OTZMQPushSocket{
         Factory::PushSocket(*this, static_cast<bool>(direction))};

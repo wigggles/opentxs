@@ -23,7 +23,10 @@ namespace opentxs
 {
 namespace api
 {
-class Core;
+namespace client
+{
+class Manager;
+}  // namespace client
 }  // namespace api
 }  // namespace opentxs
 
@@ -64,7 +67,7 @@ public:
     auto WTXID() const noexcept -> const Txid& final { return wtxid_; }
 
     Transaction(
-        const api::Core& api,
+        const api::client::Manager& api,
         const VersionNumber serializeVersion,
         const blockchain::Type chain,
         const std::int32_t version,
@@ -77,7 +80,7 @@ public:
     ~Transaction() final = default;
 
 private:
-    const api::Core& api_;
+    const api::client::Manager& api_;
     const blockchain::Type chain_;
     const VersionNumber serialize_version_;
     const std::int32_t version_;
@@ -98,8 +101,8 @@ private:
 
     auto calculate_size(const bool normalize) const noexcept -> std::size_t;
     auto calculate_witness_size() const noexcept -> std::size_t;
-    auto serialize(const AllocateOutput destination, const bool normalize) const
-        noexcept -> std::optional<std::size_t>;
+    auto serialize(const AllocateOutput destination, const bool normalize)
+        const noexcept -> std::optional<std::size_t>;
 
     Transaction() = delete;
     Transaction(const Transaction&) = delete;

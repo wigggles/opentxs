@@ -305,12 +305,13 @@ auto Accounts::get_account_data(const Lock& lock, const OTIdentifier& accountID)
     auto data = account_data_.find(accountID);
 
     if (account_data_.end() == data) {
-        AccountData blank{identifier::Nym::Factory(),
-                          identifier::Nym::Factory(),
-                          identifier::Nym::Factory(),
-                          identifier::Server::Factory(),
-                          identifier::UnitDefinition::Factory(),
-                          proto::CITEMTYPE_UNKNOWN};
+        AccountData blank{
+            identifier::Nym::Factory(),
+            identifier::Nym::Factory(),
+            identifier::Nym::Factory(),
+            identifier::Server::Factory(),
+            identifier::UnitDefinition::Factory(),
+            proto::CITEMTYPE_UNKNOWN};
         auto [output, added] =
             account_data_.emplace(accountID, std::move(blank));
 

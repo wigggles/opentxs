@@ -14,7 +14,7 @@
 #include <iterator>
 #include <vector>
 
-#include "Factory.hpp"
+#include "internal/blockchain/Blockchain.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/blockchain/NumericHash.hpp"
@@ -27,10 +27,9 @@
 
 namespace be = boost::endian;
 
-namespace opentxs
+namespace opentxs::factory
 {
-auto Factory::NumericHashNBits(const std::int32_t input)
-    -> blockchain::NumericHash*
+auto NumericHashNBits(const std::int32_t input) -> blockchain::NumericHash*
 {
     using ReturnType = blockchain::implementation::NumericHash;
     using ArgumentType = ReturnType::Type;
@@ -51,7 +50,7 @@ auto Factory::NumericHashNBits(const std::int32_t input)
     try {
         value = ArgumentType{mantissa << (8 * (exponent - 3))};
     } catch (...) {
-        LogOutput("opentxs::Factory::")(__FUNCTION__)(
+        LogOutput("opentxs::factory::")(__FUNCTION__)(
             ": Failed to calculate target")
             .Flush();
 
@@ -61,7 +60,7 @@ auto Factory::NumericHashNBits(const std::int32_t input)
     return new ReturnType(value);
 }
 
-auto Factory::NumericHash(const blockchain::block::Hash& hash)
+auto NumericHash(const blockchain::block::Hash& hash)
     -> blockchain::NumericHash*
 {
     using ReturnType = blockchain::implementation::NumericHash;
@@ -73,7 +72,7 @@ auto Factory::NumericHash(const blockchain::block::Hash& hash)
         // Interpret hash as little endian
         mp::import_bits(value, hash.begin(), hash.end(), 8, false);
     } catch (...) {
-        LogOutput("opentxs::Factory::")(__FUNCTION__)(": Failed to decode hash")
+        LogOutput("opentxs::factory::")(__FUNCTION__)(": Failed to decode hash")
             .Flush();
 
         return new ReturnType();
@@ -81,7 +80,10 @@ auto Factory::NumericHash(const blockchain::block::Hash& hash)
 
     return new ReturnType(value);
 }
+}  // namespace opentxs::factory
 
+namespace opentxs
+{
 auto operator==(
     const OTNumericHash& lhs,
     const blockchain::NumericHash& rhs) noexcept -> bool

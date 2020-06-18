@@ -14,6 +14,7 @@
 #include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/blockchain/p2p/Address.hpp"
 #include "opentxs/blockchain/p2p/Peer.hpp"
+#include "opentxs/core/Identifier.hpp"
 
 namespace ba = boost::asio;
 namespace ip = ba::ip;
@@ -37,3 +38,21 @@ struct Peer : virtual public p2p::Peer {
     virtual ~Peer() override = default;
 };
 }  // namespace opentxs::blockchain::p2p::internal
+
+namespace opentxs::factory
+{
+auto BlockchainAddress(
+    const api::Core& api,
+    const blockchain::p2p::Protocol protocol,
+    const blockchain::p2p::Network network,
+    const Data& bytes,
+    const std::uint16_t port,
+    const blockchain::Type chain,
+    const Time lastConnected,
+    const std::set<blockchain::p2p::Service>& services) noexcept
+    -> std::unique_ptr<blockchain::p2p::internal::Address>;
+auto BlockchainAddress(
+    const api::Core& api,
+    const proto::BlockchainPeerAddress serialized) noexcept
+    -> std::unique_ptr<blockchain::p2p::internal::Address>;
+}  // namespace opentxs::factory

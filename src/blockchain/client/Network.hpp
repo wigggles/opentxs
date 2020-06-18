@@ -20,6 +20,7 @@
 #include "opentxs/Bytes.hpp"
 #include "opentxs/Forward.hpp"
 #include "opentxs/Types.hpp"
+#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
@@ -39,12 +40,9 @@ namespace blockchain
 class BalanceTree;
 class PaymentCode;
 }  // namespace blockchain
-}  // namespace client
 
-namespace internal
-{
-struct Core;
-}  // namespace internal
+class Manager;
+}  // namespace client
 }  // namespace api
 
 namespace blockchain
@@ -89,7 +87,7 @@ public:
     {
         return *block_p_;
     }
-    auto API() const noexcept -> const api::internal::Core& final
+    auto API() const noexcept -> const api::client::Manager& final
     {
         return api_;
     }
@@ -187,7 +185,7 @@ protected:
     auto init() noexcept -> void;
 
     Network(
-        const api::internal::Core& api,
+        const api::client::Manager& api,
         const api::client::internal::Blockchain& blockchain,
         const Type type,
         const std::string& seednode,

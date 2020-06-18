@@ -7,7 +7,6 @@
 #include "1_Internal.hpp"                           // IWYU pragma: associated
 #include "api/client/blockchain/Deterministic.hpp"  // IWYU pragma: associated
 
-#include <algorithm>
 #include <memory>
 #include <utility>
 
@@ -152,8 +151,8 @@ auto Deterministic::LastUsed(const Subchain type) const noexcept
 }
 
 #if OT_CRYPTO_WITH_BIP32
-auto Deterministic::need_lookahead(const Lock& lock, const Subchain type) const
-    noexcept -> bool
+auto Deterministic::need_lookahead(const Lock& lock, const Subchain type)
+    const noexcept -> bool
 {
     return Lookahead > (generated_.at(type) - used_.at(type));
 }

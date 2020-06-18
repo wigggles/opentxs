@@ -46,9 +46,10 @@ class Input
 {
 public:
     using FilterType = Transaction::FilterType;
-    using Patterns = Transaction::Patterns;
+    using KeyID = api::client::blockchain::Key;
     using Match = Transaction::Match;
     using Matches = Transaction::Matches;
+    using Patterns = Transaction::Patterns;
 
     OPENTXS_EXPORT virtual auto CalculateSize(
         const bool normalized = false) const noexcept -> std::size_t = 0;
@@ -59,6 +60,7 @@ public:
         const FilterType type,
         const Patterns& txos,
         const Patterns& elements) const noexcept -> Matches = 0;
+    OPENTXS_EXPORT virtual auto Keys() const noexcept -> std::vector<KeyID> = 0;
     OPENTXS_EXPORT virtual auto PreviousOutput() const noexcept
         -> const Outpoint& = 0;
     OPENTXS_EXPORT virtual auto Serialize(const AllocateOutput destination)

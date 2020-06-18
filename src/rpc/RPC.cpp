@@ -22,7 +22,7 @@
 #include <tuple>
 #include <vector>
 
-#include "Factory.hpp"
+#include "2_Factory.hpp"
 #include "internal/api/client/Client.hpp"
 #include "opentxs/Exclusive.hpp"
 #include "opentxs/Shared.hpp"

@@ -16,6 +16,7 @@
 
 #include "internal/api/client/Client.hpp"
 #include "opentxs/Pimpl.hpp"
+#include "opentxs/Types.hpp"
 #include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/client/Blockchain.hpp"
 #include "opentxs/api/storage/Storage.hpp"
@@ -108,8 +109,9 @@ UnitList::UnitList(
           blockchain_balance_cb_,
           zmq::socket::Socket::Direction::Connect))
 #endif  // OT_BLOCKCHAIN
-    , listeners_{{api_.Endpoints().AccountUpdate(),
-                  new MessageProcessor<UnitList>(&UnitList::process_account)}}
+    , listeners_{
+          {api_.Endpoints().AccountUpdate(),
+           new MessageProcessor<UnitList>(&UnitList::process_account)}}
 {
     init();
     setup_listeners(listeners_);

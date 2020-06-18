@@ -33,7 +33,6 @@
 #include "internal/api/Api.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Types.hpp"
-#include "opentxs/Version.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Identifier.hpp"

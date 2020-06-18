@@ -23,10 +23,10 @@ namespace opentxs
 {
 namespace api
 {
-namespace internal
+namespace client
 {
-struct Core;
-}  // namespace internal
+class Manager;
+}  // namespace client
 }  // namespace api
 
 namespace blockchain
@@ -39,8 +39,6 @@ class Header;
 }  // namespace bitcoin
 }  // namespace p2p
 }  // namespace blockchain
-
-class Factory;
 }  // namespace opentxs
 
 namespace opentxs::blockchain::p2p::bitcoin::message
@@ -57,26 +55,25 @@ public:
         return txn_indices_;
     }
 
-    ~Getblocktxn() final = default;
-
-    auto payload() const noexcept -> OTData final;
-
-private:
-    friend opentxs::Factory;
-
-    const OTData block_hash_;
-    const std::vector<std::size_t> txn_indices_;
-
     Getblocktxn(
-        const api::internal::Core& api,
+        const api::client::Manager& api,
         const blockchain::Type network,
         const Data& block_hash,
         const std::vector<std::size_t>& txn_indices) noexcept;
     Getblocktxn(
-        const api::internal::Core& api,
+        const api::client::Manager& api,
         std::unique_ptr<Header> header,
         const Data& block_hash,
         const std::vector<std::size_t>& txn_indices) noexcept(false);
+
+    ~Getblocktxn() final = default;
+
+private:
+    const OTData block_hash_;
+    const std::vector<std::size_t> txn_indices_;
+
+    auto payload() const noexcept -> OTData final;
+
     Getblocktxn(const Getblocktxn&) = delete;
     Getblocktxn(Getblocktxn&&) = delete;
     auto operator=(const Getblocktxn&) -> Getblocktxn& = delete;

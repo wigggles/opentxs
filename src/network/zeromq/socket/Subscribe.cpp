@@ -9,7 +9,7 @@
 
 #include <zmq.h>
 
-#include "Factory.hpp"
+#include "2_Factory.hpp"
 #include "network/zeromq/socket/Receiver.tpp"
 #include "network/zeromq/socket/Socket.hpp"
 #include "opentxs/Pimpl.hpp"

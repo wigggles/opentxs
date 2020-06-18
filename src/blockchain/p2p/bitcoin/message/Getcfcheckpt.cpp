@@ -11,7 +11,6 @@
 #include <cstring>
 #include <utility>
 
-#include "Factory.hpp"
 #include "blockchain/p2p/bitcoin/Header.hpp"
 #include "blockchain/p2p/bitcoin/Message.hpp"
 #include "internal/blockchain/p2p/bitcoin/Bitcoin.hpp"
@@ -22,10 +21,10 @@
 // #define OT_METHOD
 // "opentxs::blockchain::p2p::bitcoin::message::implemenetationGetcfcheckpt::"
 
-namespace opentxs
+namespace opentxs::factory
 {
-auto Factory::BitcoinP2PGetcfcheckpt(
-    const api::internal::Core& api,
+auto BitcoinP2PGetcfcheckpt(
+    const api::client::Manager& api,
     std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
     const blockchain::p2p::bitcoin::ProtocolVersion version,
     const void* payload,
@@ -36,7 +35,7 @@ auto Factory::BitcoinP2PGetcfcheckpt(
     using ReturnType = bitcoin::message::implementation::Getcfcheckpt;
 
     if (false == bool(pHeader)) {
-        LogOutput("opentxs::Factory::")(__FUNCTION__)(": Invalid header")
+        LogOutput("opentxs::factory::")(__FUNCTION__)(": Invalid header")
             .Flush();
 
         return nullptr;
@@ -47,7 +46,7 @@ auto Factory::BitcoinP2PGetcfcheckpt(
     auto expectedSize = sizeof(raw);
 
     if (expectedSize > size) {
-        LogOutput("opentxs::Factory::")(__FUNCTION__)(": Payload too short")
+        LogOutput("opentxs::factory::")(__FUNCTION__)(": Payload too short")
             .Flush();
 
         return nullptr;
@@ -61,8 +60,8 @@ auto Factory::BitcoinP2PGetcfcheckpt(
         api, std::move(pHeader), raw.Type(header.Network()), raw.Hash());
 }
 
-auto Factory::BitcoinP2PGetcfcheckpt(
-    const api::internal::Core& api,
+auto BitcoinP2PGetcfcheckpt(
+    const api::client::Manager& api,
     const blockchain::Type network,
     const blockchain::filter::Type type,
     const blockchain::filter::Hash& stop)
@@ -73,12 +72,12 @@ auto Factory::BitcoinP2PGetcfcheckpt(
 
     return new ReturnType(api, network, type, stop);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::blockchain::p2p::bitcoin::message::implementation
 {
 Getcfcheckpt::Getcfcheckpt(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     const blockchain::Type network,
     const filter::Type type,
     const filter::Hash& stop) noexcept
@@ -90,7 +89,7 @@ Getcfcheckpt::Getcfcheckpt(
 }
 
 Getcfcheckpt::Getcfcheckpt(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     std::unique_ptr<Header> header,
     const filter::Type type,
     const filter::Hash& stop) noexcept

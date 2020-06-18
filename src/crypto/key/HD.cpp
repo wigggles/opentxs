@@ -30,6 +30,7 @@
 #include "opentxs/crypto/key/HD.hpp"
 #include "opentxs/crypto/key/Symmetric.hpp"
 #include "opentxs/protobuf/Enums.pb.h"
+#include "util/HDIndex.hpp"
 
 #define OT_METHOD "opentxs::crypto::key::implementation::HD::"
 

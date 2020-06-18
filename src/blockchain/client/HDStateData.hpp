@@ -95,8 +95,8 @@ struct HDStateData {
 private:
     auto get_targets(
         const internal::WalletDatabase::Patterns& keys,
-        const std::vector<internal::WalletDatabase::UTXO>& unspent) const
-        noexcept -> blockchain::internal::GCS::Targets;
+        const std::vector<internal::WalletDatabase::UTXO>& unspent)
+        const noexcept -> blockchain::internal::GCS::Targets;
     auto index_element(
         const filter::Type type,
         const api::client::blockchain::BalanceNode::Element& input,

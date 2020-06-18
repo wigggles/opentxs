@@ -18,6 +18,9 @@
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "ui/Widget.hpp"
+#if OT_QT
+#include "util/Polarity.hpp"  // IWYU pragma: keep
+#endif                        // OT_QT
 
 // #define OT_METHOD "opentxs::ui::implementation::AccountListItem::"
 

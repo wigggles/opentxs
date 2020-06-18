@@ -24,7 +24,6 @@ extern "C" {
 #include "internal/api/Api.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Proto.hpp"
-#include "opentxs/Version.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/blind/Mint.hpp"

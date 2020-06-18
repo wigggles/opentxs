@@ -13,7 +13,6 @@
 #include <cstring>
 #include <utility>
 
-#include "Factory.hpp"
 #include "blockchain/p2p/bitcoin/Header.hpp"
 #include "blockchain/p2p/bitcoin/Message.hpp"
 #include "opentxs/Pimpl.hpp"
@@ -24,10 +23,10 @@
 //#define OT_METHOD "
 // opentxs::blockchain::p2p::bitcoin::message::implementation::Version::"
 
-namespace opentxs
+namespace opentxs::factory
 {
-auto Factory::BitcoinP2PVersion(
-    const api::internal::Core& api,
+auto BitcoinP2PVersion(
+    const api::client::Manager& api,
     std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
     const blockchain::p2p::bitcoin::ProtocolVersion,
     const void* payload,
@@ -38,7 +37,7 @@ auto Factory::BitcoinP2PVersion(
     using ReturnType = bitcoin::message::implementation::Version;
 
     if (false == bool(pHeader)) {
-        LogOutput("opentxs::Factory::")(__FUNCTION__)(": Invalid header")
+        LogOutput("opentxs::factory::")(__FUNCTION__)(": Invalid header")
             .Flush();
 
         return nullptr;
@@ -48,7 +47,7 @@ auto Factory::BitcoinP2PVersion(
     auto expectedSize = sizeof(ReturnType::BitcoinFormat_1);
 
     if (expectedSize > size) {
-        LogOutput("opentxs::Factory::")(__FUNCTION__)(
+        LogOutput("opentxs::factory::")(__FUNCTION__)(
             ": Size below minimum for version 1")
             .Flush();
 
@@ -64,8 +63,8 @@ auto Factory::BitcoinP2PVersion(
     auto localServices{services};
     auto timestamp = Clock::from_time_t(raw1.timestamp_.value());
     auto remoteServices = bitcoin::GetServices(raw1.remote_.services_.value());
-    tcp::endpoint remoteAddress{ip::make_address_v6(raw1.remote_.address_),
-                                raw1.remote_.port_.value()};
+    tcp::endpoint remoteAddress{
+        ip::make_address_v6(raw1.remote_.address_), raw1.remote_.port_.value()};
     tcp::endpoint localAddress{};
     api::client::blockchain::Nonce nonce{};
     std::string userAgent{};
@@ -76,7 +75,7 @@ auto Factory::BitcoinP2PVersion(
         expectedSize += (1 + sizeof(ReturnType::BitcoinFormat_106));
 
         if (expectedSize > size) {
-            LogOutput("opentxs::Factory::")(__FUNCTION__)(
+            LogOutput("opentxs::factory::")(__FUNCTION__)(
                 ": Size below minimum for version 106")
                 .Flush();
 
@@ -87,8 +86,9 @@ auto Factory::BitcoinP2PVersion(
         std::memcpy(reinterpret_cast<std::byte*>(&raw2), it, sizeof(raw2));
         it += sizeof(raw2);
         localServices = bitcoin::GetServices(raw2.local_.services_.value());
-        localAddress = {ip::make_address_v6(raw2.local_.address_),
-                        raw2.local_.port_.value()};
+        localAddress = {
+            ip::make_address_v6(raw2.local_.address_),
+            raw2.local_.port_.value()};
         nonce = raw2.nonce_.value();
         std::size_t uaSize{0};
 
@@ -99,7 +99,7 @@ auto Factory::BitcoinP2PVersion(
             expectedSize += csBytes;
 
             if (expectedSize > size) {
-                LogOutput("opentxs::Factory::")(__FUNCTION__)(
+                LogOutput("opentxs::factory::")(__FUNCTION__)(
                     ": CompactSize incomplete")
                     .Flush();
 
@@ -119,7 +119,7 @@ auto Factory::BitcoinP2PVersion(
             expectedSize += uaSize;
 
             if (expectedSize > size) {
-                LogOutput("opentxs::Factory::")(__FUNCTION__)(
+                LogOutput("opentxs::factory::")(__FUNCTION__)(
                     ": User agent string incomplete")
                     .Flush();
 
@@ -135,7 +135,7 @@ auto Factory::BitcoinP2PVersion(
         expectedSize += sizeof(ReturnType::BitcoinFormat_209);
 
         if (expectedSize > size) {
-            LogOutput("opentxs::Factory::")(__FUNCTION__)(
+            LogOutput("opentxs::factory::")(__FUNCTION__)(
                 ": Required height field is missing")
                 .Flush();
 
@@ -176,8 +176,8 @@ auto Factory::BitcoinP2PVersion(
         timestamp);
 }
 
-auto Factory::BitcoinP2PVersion(
-    const api::internal::Core& api,
+auto BitcoinP2PVersion(
+    const api::client::Manager& api,
     const blockchain::Type network,
     const std::int32_t version,
     const std::set<blockchain::p2p::Service>& localServices,
@@ -220,12 +220,12 @@ auto Factory::BitcoinP2PVersion(
         height,
         relay);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::blockchain::p2p::bitcoin::message::implementation
 {
 Version::Version(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     const blockchain::Type network,
     const bitcoin::ProtocolVersion version,
     const tcp::endpoint localAddress,
@@ -255,7 +255,7 @@ Version::Version(
 }
 
 Version::Version(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     std::unique_ptr<Header> header,
     const bitcoin::ProtocolVersion version,
     const tcp::endpoint localAddress,

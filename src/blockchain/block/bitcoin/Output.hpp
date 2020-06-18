@@ -9,6 +9,7 @@
 #include <iosfwd>
 #include <memory>
 #include <optional>
+#include <set>
 #include <vector>
 
 #include "opentxs/Bytes.hpp"
@@ -21,7 +22,10 @@ namespace opentxs
 {
 namespace api
 {
-class Core;
+namespace client
+{
+class Manager;
+}  // namespace client
 }  // namespace api
 }  // namespace opentxs
 
@@ -37,7 +41,7 @@ public:
         const ReadView txid,
         const FilterType type,
         const Patterns& patterns) const noexcept -> Matches final;
-    auto Keys() const noexcept -> std::vector<KeyID> final { return keys_; }
+    auto Keys() const noexcept -> std::vector<KeyID> final;
     auto MergeMetadata(const SerializeType& rhs) const noexcept -> void final;
     auto Payee() const noexcept -> ContactID final { return payee_; }
     auto Payer() const noexcept -> ContactID final { return payer_; }
@@ -51,7 +55,7 @@ public:
     auto Value() const noexcept -> std::int64_t final { return value_; }
 
     Output(
-        const api::Core& api,
+        const api::client::Manager& api,
         const std::uint32_t index,
         const std::int64_t value,
         const std::size_t size,
@@ -62,7 +66,7 @@ public:
 private:
     static const VersionNumber default_version_;
 
-    const api::Core& api_;
+    const api::client::Manager& api_;
     const VersionNumber serialize_version_;
     const std::uint32_t index_;
     const std::int64_t value_;
@@ -70,10 +74,13 @@ private:
     mutable std::optional<std::size_t> size_;
     mutable OTIdentifier payee_;
     mutable OTIdentifier payer_;
-    mutable std::vector<KeyID> keys_;
+    mutable std::set<KeyID> keys_;
+
+    auto set_payee() const noexcept -> void;
+    auto set_payer() const noexcept -> void;
 
     Output(
-        const api::Core& api,
+        const api::client::Manager& api,
         const VersionNumber version,
         const std::uint32_t index,
         const std::int64_t value,

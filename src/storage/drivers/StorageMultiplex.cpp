@@ -7,7 +7,6 @@
 #include "1_Internal.hpp"                        // IWYU pragma: associated
 #include "storage/drivers/StorageMultiplex.hpp"  // IWYU pragma: associated
 
-#include <algorithm>
 #include <cstdint>
 #include <iosfwd>
 #include <limits>
@@ -15,7 +14,7 @@
 #include <stdexcept>
 #include <vector>
 
-#include "Factory.hpp"
+#include "2_Factory.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/api/storage/Plugin.hpp"

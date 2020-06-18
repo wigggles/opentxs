@@ -32,7 +32,7 @@
 #endif  // elif defined(TARGET_OS_MAC)
 #endif  // PREDEF_PLATFORM_UNIX
 
-#include "Factory.hpp"
+#include "2_Factory.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 

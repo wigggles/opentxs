@@ -7,12 +7,10 @@
 #include "1_Internal.hpp"                          // IWYU pragma: associated
 #include "blockchain/p2p/bitcoin/message/Inv.hpp"  // IWYU pragma: associated
 
-#include <algorithm>
 #include <cstddef>
 #include <utility>
 #include <vector>
 
-#include "Factory.hpp"
 #include "blockchain/bitcoin/Inventory.hpp"
 #include "blockchain/p2p/bitcoin/Header.hpp"
 #include "blockchain/p2p/bitcoin/Message.hpp"
@@ -27,10 +25,10 @@
 //#define OT_METHOD "
 // opentxs::blockchain::p2p::bitcoin::message::implementation::Inv::"
 
-namespace opentxs
+namespace opentxs::factory
 {
-auto Factory::BitcoinP2PInv(
-    const api::internal::Core& api,
+auto BitcoinP2PInv(
+    const api::client::Manager& api,
     std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
     const blockchain::p2p::bitcoin::ProtocolVersion version,
     const void* payload,
@@ -40,7 +38,7 @@ auto Factory::BitcoinP2PInv(
     using ReturnType = bitcoin::implementation::Inv;
 
     if (false == bool(pHeader)) {
-        LogOutput("opentxs::Factory::")(__FUNCTION__)(": Invalid header")
+        LogOutput("opentxs::factory::")(__FUNCTION__)(": Invalid header")
             .Flush();
 
         return nullptr;
@@ -49,7 +47,7 @@ auto Factory::BitcoinP2PInv(
     auto expectedSize = sizeof(std::byte);
 
     if (expectedSize > size) {
-        LogOutput("opentxs::Factory::")(__FUNCTION__)(
+        LogOutput("opentxs::factory::")(__FUNCTION__)(
             ": Size below minimum for Inv 1")
             .Flush();
 
@@ -74,7 +72,7 @@ auto Factory::BitcoinP2PInv(
             expectedSize += ReturnType::value_type::EncodedSize;
 
             if (expectedSize > size) {
-                LogOutput("opentxs::Factory::")(__FUNCTION__)(
+                LogOutput("opentxs::factory::")(__FUNCTION__)(
                     ": Inventory entries incomplete at entry index ")(i)
                     .Flush();
 
@@ -89,8 +87,8 @@ auto Factory::BitcoinP2PInv(
     return new ReturnType(api, std::move(pHeader), std::move(items));
 }
 
-auto Factory::BitcoinP2PInv(
-    const api::internal::Core& api,
+auto BitcoinP2PInv(
+    const api::client::Manager& api,
     const blockchain::Type network,
     std::vector<blockchain::bitcoin::Inventory>&& payload)
     -> blockchain::p2p::bitcoin::message::internal::Inv*
@@ -100,12 +98,12 @@ auto Factory::BitcoinP2PInv(
 
     return new ReturnType(api, network, std::move(payload));
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::blockchain::p2p::bitcoin::message::implementation
 {
 Inv::Inv(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     const blockchain::Type network,
     std::vector<value_type>&& payload) noexcept
     : Message(api, network, bitcoin::Command::inv)
@@ -115,7 +113,7 @@ Inv::Inv(
 }
 
 Inv::Inv(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     std::unique_ptr<Header> header,
     std::vector<value_type>&& payload) noexcept
     : Message(api, std::move(header))

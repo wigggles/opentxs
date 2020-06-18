@@ -199,8 +199,8 @@ auto Client::set_local_keys(
     return parent_.apply_socket(std::move(cb));
 }
 
-auto Client::set_remote_key(const void* key, const std::size_t size) const
-    noexcept -> bool
+auto Client::set_remote_key(const void* key, const std::size_t size)
+    const noexcept -> bool
 {
     OT_ASSERT(nullptr != parent_);
 

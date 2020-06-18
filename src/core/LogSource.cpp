@@ -16,7 +16,6 @@
 
 #include "opentxs/OT.hpp"
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/Version.hpp"
 #include "opentxs/api/Context.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -204,9 +203,10 @@ auto LogSource::get_buffer(std::string& out) noexcept -> LogSource::Source&
         Lock lock(buffer_lock_);
         auto inner = buffer_.emplace(
             id,
-            Source{Context().ZMQ().PushSocket(
-                       zmq::socket::Socket::Direction::Connect),
-                   std::stringstream{}});
+            Source{
+                Context().ZMQ().PushSocket(
+                    zmq::socket::Socket::Direction::Connect),
+                std::stringstream{}});
         auto& source = std::get<0>(inner)->second;
         auto& socket = std::get<0>(source).get();
         socket.Start(LOG_SINK);

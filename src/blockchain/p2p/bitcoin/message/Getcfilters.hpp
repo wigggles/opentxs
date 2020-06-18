@@ -19,10 +19,10 @@ namespace opentxs
 {
 namespace api
 {
-namespace internal
+namespace client
 {
-struct Core;
-}  // namespace internal
+class Manager;
+}  // namespace client
 }  // namespace api
 
 namespace blockchain
@@ -35,8 +35,6 @@ class Header;
 }  // namespace bitcoin
 }  // namespace p2p
 }  // namespace blockchain
-
-class Factory;
 }  // namespace opentxs
 
 namespace opentxs::blockchain::p2p::bitcoin::message::implementation
@@ -44,35 +42,34 @@ namespace opentxs::blockchain::p2p::bitcoin::message::implementation
 class Getcfilters final : public internal::Getcfilters
 {
 public:
+    using BitcoinFormat = FilterRequest;
+
     auto Start() const noexcept -> block::Height final { return start_; }
     auto Stop() const noexcept -> const filter::Hash& final { return stop_; }
     auto Type() const noexcept -> filter::Type final { return type_; }
 
+    Getcfilters(
+        const api::client::Manager& api,
+        const blockchain::Type network,
+        const filter::Type type,
+        const block::Height start,
+        const filter::Hash& stop) noexcept;
+    Getcfilters(
+        const api::client::Manager& api,
+        std::unique_ptr<Header> header,
+        const filter::Type type,
+        const block::Height start,
+        const filter::Hash& stop) noexcept;
+
     ~Getcfilters() final = default;
 
 private:
-    friend opentxs::Factory;
-
-    using BitcoinFormat = FilterRequest;
-
     const filter::Type type_;
     const block::Height start_;
     const filter::pHash stop_;
 
     auto payload() const noexcept -> OTData final;
 
-    Getcfilters(
-        const api::internal::Core& api,
-        const blockchain::Type network,
-        const filter::Type type,
-        const block::Height start,
-        const filter::Hash& stop) noexcept;
-    Getcfilters(
-        const api::internal::Core& api,
-        std::unique_ptr<Header> header,
-        const filter::Type type,
-        const block::Height start,
-        const filter::Hash& stop) noexcept;
     Getcfilters(const Getcfilters&) = delete;
     Getcfilters(Getcfilters&&) = delete;
     auto operator=(const Getcfilters&) -> Getcfilters& = delete;

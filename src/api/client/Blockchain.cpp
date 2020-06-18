@@ -17,7 +17,7 @@
 #include <thread>
 #include <type_traits>
 
-#include "Factory.hpp"
+#include "2_Factory.hpp"
 #include "internal/api/client/Client.hpp"
 #include "internal/api/client/blockchain/Blockchain.hpp"
 #include "opentxs/Pimpl.hpp"
@@ -49,9 +49,11 @@
 #include "opentxs/protobuf/BlockchainEnums.pb.h"
 #include "opentxs/protobuf/ContactEnums.pb.h"
 #include "opentxs/protobuf/Enums.pb.h"
+#include "util/Container.hpp"
 #if OT_BLOCKCHAIN
 #include "util/ScopeGuard.hpp"
 #endif  // OT_BLOCKCHAIN
+#include "util/HDIndex.hpp"
 
 #define LOCK_NYM()                                                             \
     Lock mapLock(lock_);                                                       \
@@ -1262,7 +1264,7 @@ auto Blockchain::Start(const Chain type, const std::string& seednode)
             thread_pool_.Reset(type);
             auto [it, added] = networks_.emplace(
                 type,
-                opentxs::factory::BlockchainNetworkBitcoin(
+                factory::BlockchainNetworkBitcoin(
                     api_, *this, type, seednode, ""));
 
             return it->second->Connect();

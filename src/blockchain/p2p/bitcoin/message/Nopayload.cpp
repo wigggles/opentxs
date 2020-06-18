@@ -7,17 +7,16 @@
 #include "1_Internal.hpp"  // IWYU pragma: associated
 #include "blockchain/p2p/bitcoin/message/Nopayload.hpp"  // IWYU pragma: associated
 
-#include "Factory.hpp"
 #include "blockchain/p2p/bitcoin/Header.hpp"
 #include "internal/blockchain/p2p/bitcoin/message/Message.hpp"  // IWYU pragma: keep
 
 namespace bitcoin = opentxs::blockchain::p2p::bitcoin;
 namespace message = bitcoin::message;
 
-namespace opentxs
+namespace opentxs::factory
 {
-auto Factory::BitcoinP2PFilterclear(
-    const api::internal::Core& api,
+auto BitcoinP2PFilterclear(
+    const api::client::Manager& api,
     std::unique_ptr<blockchain::p2p::bitcoin::Header> header)
     -> blockchain::p2p::bitcoin::message::internal::Filterclear*
 {
@@ -27,8 +26,8 @@ auto Factory::BitcoinP2PFilterclear(
     return new ReturnType(api, std::move(header));
 }
 
-auto Factory::BitcoinP2PFilterclear(
-    const api::internal::Core& api,
+auto BitcoinP2PFilterclear(
+    const api::client::Manager& api,
     const blockchain::Type network)
     -> blockchain::p2p::bitcoin::message::internal::Filterclear*
 {
@@ -37,8 +36,8 @@ auto Factory::BitcoinP2PFilterclear(
 
     return new ReturnType(api, network, bitcoin::Command::filterclear);
 }
-auto Factory::BitcoinP2PGetaddr(
-    const api::internal::Core& api,
+auto BitcoinP2PGetaddr(
+    const api::client::Manager& api,
     std::unique_ptr<blockchain::p2p::bitcoin::Header> header)
     -> blockchain::p2p::bitcoin::message::internal::Getaddr*
 {
@@ -48,8 +47,8 @@ auto Factory::BitcoinP2PGetaddr(
     return new ReturnType(api, std::move(header));
 }
 
-auto Factory::BitcoinP2PGetaddr(
-    const api::internal::Core& api,
+auto BitcoinP2PGetaddr(
+    const api::client::Manager& api,
     const blockchain::Type network)
     -> blockchain::p2p::bitcoin::message::internal::Getaddr*
 {
@@ -59,8 +58,8 @@ auto Factory::BitcoinP2PGetaddr(
     return new ReturnType(api, network, bitcoin::Command::getaddr);
 }
 
-auto Factory::BitcoinP2PMempool(
-    const api::internal::Core& api,
+auto BitcoinP2PMempool(
+    const api::client::Manager& api,
     std::unique_ptr<blockchain::p2p::bitcoin::Header> header)
     -> blockchain::p2p::bitcoin::message::internal::Mempool*
 {
@@ -70,8 +69,8 @@ auto Factory::BitcoinP2PMempool(
     return new ReturnType(api, std::move(header));
 }
 
-auto Factory::BitcoinP2PMempool(
-    const api::internal::Core& api,
+auto BitcoinP2PMempool(
+    const api::client::Manager& api,
     const blockchain::Type network)
     -> blockchain::p2p::bitcoin::message::internal::Mempool*
 {
@@ -81,8 +80,8 @@ auto Factory::BitcoinP2PMempool(
     return new ReturnType(api, network, bitcoin::Command::mempool);
 }
 
-auto Factory::BitcoinP2PSendheaders(
-    const api::internal::Core& api,
+auto BitcoinP2PSendheaders(
+    const api::client::Manager& api,
     std::unique_ptr<blockchain::p2p::bitcoin::Header> header)
     -> blockchain::p2p::bitcoin::message::internal::Sendheaders*
 {
@@ -92,8 +91,8 @@ auto Factory::BitcoinP2PSendheaders(
     return new ReturnType(api, std::move(header));
 }
 
-auto Factory::BitcoinP2PSendheaders(
-    const api::internal::Core& api,
+auto BitcoinP2PSendheaders(
+    const api::client::Manager& api,
     const blockchain::Type network)
     -> blockchain::p2p::bitcoin::message::internal::Sendheaders*
 {
@@ -103,8 +102,8 @@ auto Factory::BitcoinP2PSendheaders(
     return new ReturnType(api, network, bitcoin::Command::sendheaders);
 }
 
-auto Factory::BitcoinP2PVerack(
-    const api::internal::Core& api,
+auto BitcoinP2PVerack(
+    const api::client::Manager& api,
     std::unique_ptr<blockchain::p2p::bitcoin::Header> header)
     -> blockchain::p2p::bitcoin::message::internal::Verack*
 {
@@ -114,8 +113,8 @@ auto Factory::BitcoinP2PVerack(
     return new ReturnType(api, std::move(header));
 }
 
-auto Factory::BitcoinP2PVerack(
-    const api::internal::Core& api,
+auto BitcoinP2PVerack(
+    const api::client::Manager& api,
     const blockchain::Type network)
     -> blockchain::p2p::bitcoin::message::internal::Verack*
 {
@@ -124,4 +123,4 @@ auto Factory::BitcoinP2PVerack(
 
     return new ReturnType(api, network, bitcoin::Command::verack);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory

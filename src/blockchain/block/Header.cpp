@@ -12,8 +12,9 @@
 #include <stdexcept>
 #include <utility>
 
-#include "Factory.hpp"
+#include "internal/blockchain/Blockchain.hpp"
 #include "internal/blockchain/block/Block.hpp"
+#include "internal/blockchain/block/bitcoin/Bitcoin.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/blockchain/NumericHash.hpp"
@@ -25,10 +26,10 @@
 
 // #define OT_METHOD "opentxs::blockchain::block::Header::"
 
-namespace opentxs
+namespace opentxs::factory
 {
-auto Factory::GenesisBlockHeader(
-    const api::internal::Core& api,
+auto GenesisBlockHeader(
+    const api::client::Manager& api,
     const blockchain::Type type) noexcept
     -> std::unique_ptr<blockchain::block::Header>
 {
@@ -39,11 +40,11 @@ auto Factory::GenesisBlockHeader(
         case blockchain::Type::BitcoinCash:
         case blockchain::Type::Bitcoin_testnet3:
         case blockchain::Type::BitcoinCash_testnet3: {
-            return BitcoinBlockHeader(
+            return factory::BitcoinBlockHeader(
                 api, type, ReturnType::genesis_blocks_.at(type)->Bytes());
         }
         default: {
-            LogOutput("opentxs::Factory::")(__FUNCTION__)(
+            LogOutput("opentxs::factory::")(__FUNCTION__)(
                 ": Unsupported type (")(static_cast<std::uint32_t>(type))(")")
                 .Flush();
 
@@ -51,7 +52,7 @@ auto Factory::GenesisBlockHeader(
         }
     }
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::blockchain::block
 {
@@ -93,7 +94,7 @@ const Header::GenesisBlockMap Header::genesis_blocks_{
 };
 
 Header::Header(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     const VersionNumber version,
     const blockchain::Type type,
     const block::Hash& hash,
@@ -117,7 +118,7 @@ Header::Header(
 }
 
 Header::Header(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     const block::Hash& hash,
     const block::Hash& parentHash,
     const SerializedType& serialized) noexcept
@@ -130,13 +131,13 @@ Header::Header(
           serialized.local().height(),
           static_cast<Status>(serialized.local().status()),
           static_cast<Status>(serialized.local().inherit_status()),
-          OTWork{Factory::Work(serialized.local().work())},
-          OTWork{Factory::Work(serialized.local().inherit_work())})
+          OTWork{factory::Work(serialized.local().work())},
+          OTWork{factory::Work(serialized.local().inherit_work())})
 {
 }
 
 Header::Header(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     const blockchain::Type type,
     const block::Hash& hash,
     const block::Hash& parentHash,
@@ -244,14 +245,14 @@ auto Header::LocalState() const noexcept -> Header::Status { return status_; }
 auto Header::minimum_work() -> OTWork
 {
     const auto maxTarget =
-        OTNumericHash{Factory::NumericHashNBits(NumericHash::MaxTarget)};
+        OTNumericHash{factory::NumericHashNBits(NumericHash::MaxTarget)};
 
-    return OTWork{Factory::Work(maxTarget)};
+    return OTWork{factory::Work(maxTarget)};
 }
 
 auto Header::NumericHash() const noexcept -> OTNumericHash
 {
-    return OTNumericHash{Factory::NumericHash(hash_)};
+    return OTNumericHash{factory::NumericHash(hash_)};
 }
 
 auto Header::ParentHash() const noexcept -> const block::Hash&

@@ -70,8 +70,8 @@ private:
     mutable std::optional<std::size_t> size_;
     mutable std::optional<std::size_t> normalized_size_;
 
-    auto serialize(const AllocateOutput destination, const bool normalize) const
-        noexcept -> std::optional<std::size_t>;
+    auto serialize(const AllocateOutput destination, const bool normalize)
+        const noexcept -> std::optional<std::size_t>;
 
     Inputs() = delete;
     Inputs(const Inputs&) = delete;

@@ -9,7 +9,7 @@
 
 #include <zmq.h>
 
-#include "Factory.hpp"
+#include "2_Factory.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"

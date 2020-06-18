@@ -16,7 +16,7 @@ extern "C" {
 #include <string>
 #include <string_view>
 
-#include "Factory.hpp"
+#include "2_Factory.hpp"
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
 #include "crypto/library/AsymmetricProvider.hpp"
 #include "crypto/library/EcdsaProvider.hpp"

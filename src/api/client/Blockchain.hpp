@@ -30,6 +30,7 @@
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/Version.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/client/Blockchain.hpp"
 #include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/api/client/blockchain/BalanceTree.hpp"
@@ -58,6 +59,11 @@ namespace blockchain
 class BalanceTree;
 class HD;
 }  // namespace blockchain
+
+namespace internal
+{
+struct Manager;
+}  // namespace internal
 
 class Activity;
 }  // namespace client
@@ -412,7 +418,7 @@ private:
     static const StyleMap address_style_map_;
     static const StyleReverseMap address_style_reverse_map_;
 
-    const api::internal::Core& api_;
+    const api::client::internal::Manager& api_;
     const api::client::Activity& activity_;
     const api::client::Contacts& contacts_;
     mutable std::mutex lock_;

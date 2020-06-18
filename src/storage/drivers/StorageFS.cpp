@@ -3,9 +3,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "0_stdafx.hpp"    // IWYU pragma: associated
-#include "1_Internal.hpp"  // IWYU pragma: associated
-#if OT_STORAGE_FS
+#include "0_stdafx.hpp"                   // IWYU pragma: associated
+#include "1_Internal.hpp"                 // IWYU pragma: associated
 #include "storage/drivers/StorageFS.hpp"  // IWYU pragma: associated
 
 extern "C" {
@@ -248,4 +247,3 @@ auto StorageFS::write_file(
 StorageFS::~StorageFS() { Cleanup_StorageFS(); }
 
 }  // namespace opentxs
-#endif

@@ -7,12 +7,10 @@
 #include "1_Internal.hpp"  // IWYU pragma: associated
 #include "blockchain/p2p/bitcoin/message/Getdata.hpp"  // IWYU pragma: associated
 
-#include <algorithm>
 #include <cstddef>
 #include <utility>
 #include <vector>
 
-#include "Factory.hpp"
 #include "blockchain/bitcoin/Inventory.hpp"
 #include "blockchain/p2p/bitcoin/Header.hpp"
 #include "blockchain/p2p/bitcoin/Message.hpp"
@@ -27,10 +25,10 @@
 //#define OT_METHOD "
 // opentxs::blockchain::p2p::bitcoin::message::implementation::Getdata::"
 
-namespace opentxs
+namespace opentxs::factory
 {
-auto Factory::BitcoinP2PGetdata(
-    const api::internal::Core& api,
+auto BitcoinP2PGetdata(
+    const api::client::Manager& api,
     std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
     const blockchain::p2p::bitcoin::ProtocolVersion version,
     const void* payload,
@@ -41,7 +39,7 @@ auto Factory::BitcoinP2PGetdata(
     using ReturnType = bitcoin::implementation::Getdata;
 
     if (false == bool(pHeader)) {
-        LogOutput("opentxs::Factory::")(__FUNCTION__)(": Invalid header")
+        LogOutput("opentxs::factory::")(__FUNCTION__)(": Invalid header")
             .Flush();
 
         return nullptr;
@@ -50,7 +48,7 @@ auto Factory::BitcoinP2PGetdata(
     auto expectedSize = sizeof(std::byte);
 
     if (expectedSize > size) {
-        LogOutput("opentxs::Factory::")(__FUNCTION__)(
+        LogOutput("opentxs::factory::")(__FUNCTION__)(
             ": Size below minimum for Getdata 1")
             .Flush();
 
@@ -75,7 +73,7 @@ auto Factory::BitcoinP2PGetdata(
             expectedSize += ReturnType::value_type::EncodedSize;
 
             if (expectedSize > size) {
-                LogOutput("opentxs::Factory::")(__FUNCTION__)(
+                LogOutput("opentxs::factory::")(__FUNCTION__)(
                     ": Inventory entries incomplete at entry index ")(i)
                     .Flush();
 
@@ -90,8 +88,8 @@ auto Factory::BitcoinP2PGetdata(
     return new ReturnType(api, std::move(pHeader), std::move(items));
 }
 
-auto Factory::BitcoinP2PGetdata(
-    const api::internal::Core& api,
+auto BitcoinP2PGetdata(
+    const api::client::Manager& api,
     const blockchain::Type network,
     std::vector<blockchain::bitcoin::Inventory>&& payload)
     -> blockchain::p2p::bitcoin::message::internal::Getdata*
@@ -101,12 +99,12 @@ auto Factory::BitcoinP2PGetdata(
 
     return new ReturnType(api, network, std::move(payload));
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::blockchain::p2p::bitcoin::message::implementation
 {
 Getdata::Getdata(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     const blockchain::Type network,
     std::vector<blockchain::bitcoin::Inventory>&& payload) noexcept
     : Message(api, network, bitcoin::Command::getdata)
@@ -116,7 +114,7 @@ Getdata::Getdata(
 }
 
 Getdata::Getdata(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     std::unique_ptr<Header> header,
     std::vector<blockchain::bitcoin::Inventory>&& payload) noexcept
     : Message(api, std::move(header))

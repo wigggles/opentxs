@@ -3,9 +3,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "0_stdafx.hpp"    // IWYU pragma: associated
-#include "1_Internal.hpp"  // IWYU pragma: associated
-#if OT_CRYPTO_USING_LIBSECP256K1
+#include "0_stdafx.hpp"                  // IWYU pragma: associated
+#include "1_Internal.hpp"                // IWYU pragma: associated
 #include "crypto/library/Secp256k1.hpp"  // IWYU pragma: associated
 
 extern "C" {
@@ -20,7 +19,7 @@ extern "C" {
 #include <stdexcept>
 #include <string_view>
 
-#include "Factory.hpp"
+#include "2_Factory.hpp"
 #include "crypto/library/EcdsaProvider.hpp"
 #include "opentxs/OT.hpp"
 #include "opentxs/Pimpl.hpp"
@@ -430,4 +429,3 @@ Secp256k1::~Secp256k1()
     Initialized_ = false;
 }
 }  // namespace opentxs::crypto::implementation
-#endif

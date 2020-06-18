@@ -10,6 +10,7 @@
 #include <memory>
 #include <string>
 
+#include "2_Factory.hpp"
 #include "opentxs/core/Log.hpp"
 
 //#define OT_METHOD "opentxs::StorageMemDB::"

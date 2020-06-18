@@ -3,9 +3,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "0_stdafx.hpp"    // IWYU pragma: associated
-#include "1_Internal.hpp"  // IWYU pragma: associated
-#if OT_STORAGE_FS
+#include "0_stdafx.hpp"                     // IWYU pragma: associated
+#include "1_Internal.hpp"                   // IWYU pragma: associated
 #include "storage/drivers/StorageFSGC.hpp"  // IWYU pragma: associated
 
 #include <boost/filesystem.hpp>
@@ -14,6 +13,7 @@
 #include <memory>
 #include <thread>
 
+#include "2_Factory.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Log.hpp"
 #include "storage/StorageConfig.hpp"
@@ -119,5 +119,3 @@ auto StorageFSGC::root_filename() const -> std::string
 
 StorageFSGC::~StorageFSGC() { Cleanup_StorageFSGC(); }
 }  // namespace opentxs::storage::implementation
-
-#endif

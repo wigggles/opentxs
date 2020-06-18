@@ -10,7 +10,7 @@
 #include <type_traits>
 #include <utility>
 
-#include "Factory.hpp"
+#include "2_Factory.hpp"
 #include "crypto/key/Null.hpp"
 #include "internal/api/Api.hpp"
 #include "opentxs/api/crypto/Asymmetric.hpp"

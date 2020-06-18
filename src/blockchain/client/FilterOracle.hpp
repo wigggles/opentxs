@@ -23,17 +23,16 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/socket/Publish.hpp"
+#include "util/Work.hpp"
 
 namespace opentxs
 {
 namespace api
 {
-namespace internal
+namespace client
 {
-struct Core;
-}  // namespace internal
-
-class Core;
+class Manager;
+}  // namespace client
 }  // namespace api
 
 namespace blockchain
@@ -75,8 +74,8 @@ public:
     {
         return default_type_;
     }
-    auto LoadFilter(const filter::Type type, const block::Hash& block) const
-        noexcept -> std::unique_ptr<const blockchain::internal::GCS> final
+    auto LoadFilter(const filter::Type type, const block::Hash& block)
+        const noexcept -> std::unique_ptr<const blockchain::internal::GCS> final
     {
         return database_.LoadFilter(type, block.Bytes());
     }
@@ -88,7 +87,7 @@ public:
     auto Start() noexcept -> void;
 
     FilterOracle(
-        const api::internal::Core& api,
+        const api::client::Manager& api,
         const internal::Network& network,
         const internal::FilterDatabase& database,
         const blockchain::Type type,
@@ -151,7 +150,7 @@ private:
             const client::HeaderOracle& headers) noexcept -> void;
         auto Reset() noexcept -> void;
 
-        FilterQueue(const api::Core& api) noexcept;
+        FilterQueue(const api::client::Manager& api) noexcept;
 
     private:
         using Pointer = std::unique_ptr<const blockchain::internal::GCS>;
@@ -159,7 +158,7 @@ private:
 
         static const std::chrono::seconds timeout_;
 
-        const api::Core& api_;
+        const api::client::Manager& api_;
         bool running_;
         std::size_t queued_;
         std::vector<FilterData> filters_;
@@ -173,7 +172,7 @@ private:
         auto Reset() noexcept -> void { hashes_.clear(); }
         auto Start(const block::Hash& hash) noexcept -> void;
 
-        RequestQueue(const api::Core& api) noexcept;
+        RequestQueue(const api::client::Manager& api) noexcept;
 
     private:
         using Map = std::map<block::pHash, Time>;

@@ -24,10 +24,10 @@ namespace opentxs
 {
 namespace api
 {
-namespace internal
+namespace client
 {
-struct Core;
-}  // namespace internal
+class Manager;
+}  // namespace client
 }  // namespace api
 
 namespace network
@@ -37,8 +37,6 @@ namespace zeromq
 class Frame;
 }  // namespace zeromq
 }  // namespace network
-
-class Factory;
 }  // namespace opentxs
 
 namespace ot = opentxs;
@@ -83,26 +81,24 @@ public:
     void SetChecksum(const std::size_t payload, OTData&& checksum) noexcept;
 
     Header(
-        const api::internal::Core& api,
+        const api::client::Manager& api,
         const blockchain::Type network,
         const bitcoin::Command command) noexcept;
+    Header(
+        const api::client::Manager& api,
+        const blockchain::Type network,
+        const bitcoin::Command command,
+        const std::size_t payload,
+        const OTData checksum) noexcept;
 
     ~Header() = default;
 
 private:
-    friend opentxs::Factory;
-
     blockchain::Type chain_{};
     bitcoin::Command command_{};
     std::size_t payload_size_{};
     OTData checksum_;
 
-    Header(
-        const api::internal::Core& api,
-        const blockchain::Type network,
-        const bitcoin::Command command,
-        const std::size_t payload,
-        const OTData checksum) noexcept;
     Header() = delete;
     Header(const Header&) = delete;
     Header(Header&&) = delete;

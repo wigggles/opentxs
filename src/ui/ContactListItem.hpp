@@ -61,9 +61,8 @@ public:
     QVariant qt_data(const int column, const int role) const noexcept override;
 #endif
 
-    void reindex(
-        const ContactListSortKey&,
-        const CustomData&) noexcept override;
+    void reindex(const ContactListSortKey&, const CustomData&) noexcept
+        override;
 
     ContactListItem(
         const ContactListInternalInterface& parent,

@@ -2460,8 +2460,8 @@ void Server::need_process_nymbox(
             .Flush();
 
         if (process_nymbox_) {
-            DeliveryResult result{proto::LASTREPLYSTATUS_MESSAGESUCCESS,
-                                  pending_message_};
+            DeliveryResult result{
+                proto::LASTREPLYSTATUS_MESSAGESUCCESS, pending_message_};
             resolve_queue(
                 contextLock,
                 std::move(result),
@@ -2499,8 +2499,8 @@ void Server::need_process_nymbox(
     if (false == accepted) {
         if (alreadySeen == static_cast<std::size_t>(count)) {
             if (process_nymbox_) {
-                DeliveryResult result{proto::LASTREPLYSTATUS_MESSAGESUCCESS,
-                                      pending_message_};
+                DeliveryResult result{
+                    proto::LASTREPLYSTATUS_MESSAGESUCCESS, pending_message_};
                 resolve_queue(
                     contextLock,
                     std::move(result),

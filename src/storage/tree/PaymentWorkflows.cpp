@@ -89,8 +89,8 @@ void PaymentWorkflows::delete_by_value(const std::string& value)
 auto PaymentWorkflows::GetState(const std::string& workflowID) const
     -> PaymentWorkflows::State
 {
-    State output{proto::PAYMENTWORKFLOWTYPE_ERROR,
-                 proto::PAYMENTWORKFLOWSTATE_ERROR};
+    State output{
+        proto::PAYMENTWORKFLOWTYPE_ERROR, proto::PAYMENTWORKFLOWSTATE_ERROR};
     auto& [outType, outState] = output;
     Lock lock(write_lock_);
     const auto& it = workflow_state_map_.find(workflowID);

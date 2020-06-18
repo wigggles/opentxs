@@ -13,10 +13,11 @@
 #include <memory>
 #include <type_traits>
 
-#include "Factory.hpp"
+#include "2_Factory.hpp"
 #include "internal/api/Api.hpp"
 #include "opentxs/Forward.hpp"
 #include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.hpp"
 #include "opentxs/Proto.tpp"
 #include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Factory.hpp"

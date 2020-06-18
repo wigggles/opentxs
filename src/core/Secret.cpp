@@ -11,7 +11,6 @@ extern "C" {
 #include <sodium.h>
 }
 
-#include <algorithm>
 #include <cstring>
 #include <iterator>
 #include <memory>
@@ -256,8 +255,8 @@ auto Secret::WriteInto(const std::optional<Mode> mode) noexcept
         if (binary) {
             Assign(blank.data(), blank.size());
         } else {
-            AssignText(ReadView{reinterpret_cast<const char*>(blank.data()),
-                                blank.size()});
+            AssignText(ReadView{
+                reinterpret_cast<const char*>(blank.data()), blank.size()});
         }
 
         return WritableView{data(), this->size()};

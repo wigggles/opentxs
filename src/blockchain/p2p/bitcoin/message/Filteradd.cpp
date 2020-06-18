@@ -11,7 +11,6 @@
 #include <utility>
 #include <vector>
 
-#include "Factory.hpp"
 #include "blockchain/p2p/bitcoin/Header.hpp"
 #include "blockchain/p2p/bitcoin/Message.hpp"
 #include "internal/blockchain/p2p/bitcoin/Bitcoin.hpp"
@@ -22,10 +21,10 @@
 // #define OT_METHOD
 // "opentxs::blockchain::p2p::bitcoin::message::implementation::Filteradd::"
 
-namespace opentxs
+namespace opentxs::factory
 {
-auto Factory::BitcoinP2PFilteradd(
-    const api::internal::Core& api,
+auto BitcoinP2PFilteradd(
+    const api::client::Manager& api,
     std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
     const blockchain::p2p::bitcoin::ProtocolVersion version,
     const void* payload,
@@ -36,7 +35,7 @@ auto Factory::BitcoinP2PFilteradd(
     using ReturnType = bitcoin::message::implementation::Filteradd;
 
     if (false == bool(pHeader)) {
-        LogOutput("opentxs::Factory::")(__FUNCTION__)(": Invalid header")
+        LogOutput("opentxs::factory::")(__FUNCTION__)(": Invalid header")
             .Flush();
 
         return nullptr;
@@ -46,8 +45,8 @@ auto Factory::BitcoinP2PFilteradd(
         api, std::move(pHeader), Data::Factory(payload, size));
 }
 
-auto Factory::BitcoinP2PFilteradd(
-    const api::internal::Core& api,
+auto BitcoinP2PFilteradd(
+    const api::client::Manager& api,
     const blockchain::Type network,
     const Data& element)
     -> blockchain::p2p::bitcoin::message::internal::Filteradd*
@@ -57,12 +56,12 @@ auto Factory::BitcoinP2PFilteradd(
 
     return new ReturnType(api, network, element);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::blockchain::p2p::bitcoin::message::implementation
 {
 Filteradd::Filteradd(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     const blockchain::Type network,
     const Data& element) noexcept
     : Message(api, network, bitcoin::Command::filteradd)
@@ -72,7 +71,7 @@ Filteradd::Filteradd(
 }
 
 Filteradd::Filteradd(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     std::unique_ptr<Header> header,
     const Data& element) noexcept
     : Message(api, std::move(header))

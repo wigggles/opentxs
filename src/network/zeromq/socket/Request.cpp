@@ -13,7 +13,7 @@
 #include <thread>
 #include <type_traits>
 
-#include "Factory.hpp"
+#include "2_Factory.hpp"
 #include "network/zeromq/curve/Client.hpp"
 #include "network/zeromq/socket/Socket.hpp"
 #include "opentxs/Pimpl.hpp"

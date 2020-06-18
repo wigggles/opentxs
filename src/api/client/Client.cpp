@@ -3,15 +3,17 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "0_stdafx.hpp"    // IWYU pragma: associated
-#include "1_Internal.hpp"  // IWYU pragma: associated
+#include "0_stdafx.hpp"                    // IWYU pragma: associated
+#include "1_Internal.hpp"                  // IWYU pragma: associated
+#include "internal/api/client/Client.hpp"  // IWYU pragma: associated
 
 #include <map>
-#include <string>
 
-#include "opentxs/Proto.hpp"
-#include "opentxs/Types.hpp"
+#include "opentxs/protobuf/ContactEnums.pb.h"
+#include "util/Container.hpp"
 
+namespace opentxs
+{
 const std::map<opentxs::blockchain::Type, opentxs::proto::ContactItemType>
     type_map_{
         {opentxs::blockchain::Type::Unknown, opentxs::proto::CITEMTYPE_UNKNOWN},
@@ -31,20 +33,6 @@ const std::map<opentxs::blockchain::Type, opentxs::proto::ContactItemType>
     };
 const std::map<opentxs::proto::ContactItemType, opentxs::blockchain::Type>
     type_reverse_map_{opentxs::reverse_map(type_map_)};
-
-namespace opentxs
-{
-auto operator==(
-    const opentxs::ProtobufType& lhs,
-    const opentxs::ProtobufType& rhs) noexcept -> bool
-{
-    auto sLeft = std::string{};
-    auto sRight = std::string{};
-    lhs.SerializeToString(&sLeft);
-    rhs.SerializeToString(&sRight);
-
-    return sLeft == sRight;
-}
 
 auto Translate(const blockchain::Type type) noexcept -> proto::ContactItemType
 {

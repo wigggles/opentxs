@@ -13,6 +13,7 @@
 #include <limits>
 #include <utility>
 
+#include "2_Factory.hpp"
 #include "api/Scheduler.hpp"
 #include "api/StorageParent.hpp"
 #include "api/ZMQ.hpp"

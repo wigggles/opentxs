@@ -19,10 +19,10 @@ namespace opentxs
 {
 namespace api
 {
-namespace internal
+namespace client
 {
-struct Core;
-}  // namespace internal
+class Manager;
+}  // namespace client
 }  // namespace api
 
 namespace blockchain
@@ -35,8 +35,6 @@ class Header;
 }  // namespace bitcoin
 }  // namespace p2p
 }  // namespace blockchain
-
-class Factory;
 }  // namespace opentxs
 
 namespace opentxs::blockchain::p2p::bitcoin::message::implementation
@@ -46,11 +44,18 @@ class Filterload final : virtual public internal::Filterload
 public:
     virtual auto Filter() const noexcept -> OTBloomFilter { return payload_; }
 
+    Filterload(
+        const api::client::Manager& api,
+        const blockchain::Type network,
+        const blockchain::BloomFilter& filter) noexcept;
+    Filterload(
+        const api::client::Manager& api,
+        std::unique_ptr<Header> header,
+        const blockchain::BloomFilter& filter) noexcept;
+
     ~Filterload() final = default;
 
 private:
-    friend opentxs::Factory;
-
     const OTBloomFilter payload_;
 
     auto payload() const noexcept -> OTData final
@@ -58,14 +63,6 @@ private:
         return payload_->Serialize();
     }
 
-    Filterload(
-        const api::internal::Core& api,
-        const blockchain::Type network,
-        const blockchain::BloomFilter& filter) noexcept;
-    Filterload(
-        const api::internal::Core& api,
-        std::unique_ptr<Header> header,
-        const blockchain::BloomFilter& filter) noexcept;
     Filterload(const Filterload&) = delete;
     Filterload(Filterload&&) = delete;
     auto operator=(const Filterload&) -> Filterload& = delete;

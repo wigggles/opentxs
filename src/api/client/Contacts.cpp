@@ -13,7 +13,7 @@
 #include <stdexcept>
 #include <vector>
 
-#include "Factory.hpp"
+#include "2_Factory.hpp"
 #include "internal/api/client/Client.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/api/Endpoints.hpp"

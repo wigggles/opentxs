@@ -23,8 +23,8 @@ auto CheckProto_1(const AddClaim& input, const bool silent) -> bool
 {
     CHECK_EXISTS(sectionversion);
     CHECK_EXISTS(sectiontype);
-    const ContactSectionVersion section{input.sectionversion(),
-                                        input.sectiontype()};
+    const ContactSectionVersion section{
+        input.sectionversion(), input.sectiontype()};
     CHECK_SUBOBJECT_VA(
         item, AddClaimAllowedContactItem(), ClaimType::Normal, section);
 

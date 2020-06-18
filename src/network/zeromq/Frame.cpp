@@ -9,7 +9,7 @@
 
 #include <cstring>
 
-#include "Factory.hpp"
+#include "2_Factory.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/core/Log.hpp"
 
@@ -75,8 +75,9 @@ Frame::operator std::string() const noexcept { return std::string{Bytes()}; }
 
 auto Frame::Bytes() const noexcept -> ReadView
 {
-    return ReadView{static_cast<const char*>(zmq_msg_data(&message_)),
-                    zmq_msg_size(&message_)};
+    return ReadView{
+        static_cast<const char*>(zmq_msg_data(&message_)),
+        zmq_msg_size(&message_)};
 }
 
 auto Frame::clone() const noexcept -> Frame*

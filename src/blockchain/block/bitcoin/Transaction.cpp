@@ -14,16 +14,16 @@
 #include <map>
 #include <numeric>
 #include <stdexcept>
-#include <type_traits>
 #include <utility>
 
-#include "Factory.hpp"
 #include "blockchain/bitcoin/CompactSize.hpp"
+#include "internal/api/client/Client.hpp"
 #include "internal/blockchain/bitcoin/Bitcoin.hpp"
+#include "internal/blockchain/block/bitcoin/Bitcoin.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Proto.hpp"
-#include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
+#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/blockchain/block/bitcoin/Input.hpp"
 #include "opentxs/blockchain/block/bitcoin/Inputs.hpp"
 #include "opentxs/blockchain/block/bitcoin/Output.hpp"
@@ -40,12 +40,12 @@ namespace be = boost::endian;
 #define OT_METHOD                                                              \
     "opentxs::blockchain::block::bitcoin::implementation::Transaction::"
 
-namespace opentxs
+namespace opentxs::factory
 {
 using ReturnType = blockchain::block::bitcoin::implementation::Transaction;
 
-auto Factory::BitcoinTransaction(
-    const api::Core& api,
+auto BitcoinTransaction(
+    const api::client::Manager& api,
     const blockchain::Type chain,
     const bool isGeneration,
     blockchain::bitcoin::EncodedTransaction&& parsed) noexcept
@@ -75,14 +75,14 @@ auto Factory::BitcoinTransaction(
                 }
 
                 instantiatedInputs.emplace_back(
-                    Factory::BitcoinTransactionInput(
+                    factory::BitcoinTransactionInput(
                         api,
-                        ReadView{reinterpret_cast<const char*>(&op),
-                                 sizeof(op)},
+                        ReadView{
+                            reinterpret_cast<const char*>(&op), sizeof(op)},
                         input.cs_,
                         reader(input.script_),
-                        ReadView{reinterpret_cast<const char*>(&seq),
-                                 sizeof(seq)},
+                        ReadView{
+                            reinterpret_cast<const char*>(&seq), sizeof(seq)},
                         isGeneration && (0 == counter),
                         std::move(witness)));
                 ++counter;
@@ -103,7 +103,7 @@ auto Factory::BitcoinTransaction(
 
             for (const auto& output : parsed.outputs_) {
                 instantiatedOutputs.emplace_back(
-                    Factory::BitcoinTransactionOutput(
+                    factory::BitcoinTransactionOutput(
                         api,
                         counter++,
                         output.value_.value(),
@@ -130,19 +130,19 @@ auto Factory::BitcoinTransaction(
             parsed.lock_time_.value(),
             api.Factory().Data(parsed.txid_),
             api.Factory().Data(parsed.wtxid_),
-            opentxs::Factory::BitcoinTransactionInputs(
+            factory::BitcoinTransactionInputs(
                 std::move(instantiatedInputs), inputBytes),
-            opentxs::Factory::BitcoinTransactionOutputs(
+            factory::BitcoinTransactionOutputs(
                 std::move(instantiatedOutputs), outputBytes));
     } catch (const std::exception& e) {
-        LogOutput("opentxs::Factory::")(__FUNCTION__)(": ")(e.what()).Flush();
+        LogOutput("opentxs::factory::")(__FUNCTION__)(": ")(e.what()).Flush();
 
         return {};
     }
 }
 
-auto Factory::BitcoinTransaction(
-    const api::Core& api,
+auto BitcoinTransaction(
+    const api::client::Manager& api,
     const bool isGeneration,
     const proto::BlockchainTransaction& in) noexcept
     -> std::shared_ptr<blockchain::block::bitcoin::Transaction>
@@ -160,7 +160,7 @@ auto Factory::BitcoinTransaction(
                 const auto index = input.index();
                 map.emplace(
                     index,
-                    Factory::BitcoinTransactionInput(
+                    factory::BitcoinTransactionInput(
                         api, input, (0u == index) && isGeneration));
             }
 
@@ -180,7 +180,7 @@ auto Factory::BitcoinTransaction(
             for (const auto& output : in.output()) {
                 const auto index = output.index();
                 map.emplace(
-                    index, Factory::BitcoinTransactionOutput(api, output));
+                    index, factory::BitcoinTransactionOutput(api, output));
             }
 
             std::transform(
@@ -197,22 +197,22 @@ auto Factory::BitcoinTransaction(
             in.locktime(),
             api.Factory().Data(in.txid(), StringStyle::Raw),
             api.Factory().Data(in.wtxid(), StringStyle::Raw),
-            opentxs::Factory::BitcoinTransactionInputs(std::move(inputs)),
-            opentxs::Factory::BitcoinTransactionOutputs(std::move(outputs)));
+            factory::BitcoinTransactionInputs(std::move(inputs)),
+            factory::BitcoinTransactionOutputs(std::move(outputs)));
     } catch (const std::exception& e) {
-        LogOutput("opentxs::Factory::")(__FUNCTION__)(": ")(e.what()).Flush();
+        LogOutput("opentxs::factory::")(__FUNCTION__)(": ")(e.what()).Flush();
 
         return {};
     }
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::blockchain::block::bitcoin::implementation
 {
 const VersionNumber Transaction::default_version_{1};
 
 Transaction::Transaction(
-    const api::Core& api,
+    const api::client::Manager& api,
     const VersionNumber serializeVersion,
     const blockchain::Type chain,
     const std::int32_t version,

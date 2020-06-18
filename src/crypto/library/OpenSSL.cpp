@@ -3,9 +3,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "0_stdafx.hpp"    // IWYU pragma: associated
-#include "1_Internal.hpp"  // IWYU pragma: associated
-#if OT_CRYPTO_USING_OPENSSL
+#include "0_stdafx.hpp"                // IWYU pragma: associated
+#include "1_Internal.hpp"              // IWYU pragma: associated
 #include "crypto/library/OpenSSL.hpp"  // IWYU pragma: associated
 
 extern "C" {
@@ -20,6 +19,7 @@ extern "C" {
 #include <memory>
 #include <string_view>
 
+#include "2_Factory.hpp"
 #include "crypto/library/AsymmetricProvider.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
@@ -486,8 +486,8 @@ auto OpenSSL::get_params(
     return write_dh(params, output);
 }
 
-auto OpenSSL::import_dh(const ReadView existing, ::EVP_PKEY* output) const
-    noexcept -> bool
+auto OpenSSL::import_dh(const ReadView existing, ::EVP_PKEY* output)
+    const noexcept -> bool
 {
     struct DH {
         ::DH* dh_;
@@ -895,8 +895,8 @@ auto OpenSSL::Verify(
     return true;
 }
 
-auto OpenSSL::write_dh(const AllocateOutput dhParams, ::EVP_PKEY* input) const
-    noexcept -> bool
+auto OpenSSL::write_dh(const AllocateOutput dhParams, ::EVP_PKEY* input)
+    const noexcept -> bool
 {
     auto dh = OpenSSL_DH{::EVP_PKEY_get1_DH(input), ::DH_free};
 
@@ -971,4 +971,3 @@ auto OpenSSL::write_keypair(
 }
 #endif
 }  // namespace opentxs::crypto::implementation
-#endif  // OT_CRYPTO_USING_OPENSSL

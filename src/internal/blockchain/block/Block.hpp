@@ -26,3 +26,11 @@ auto PushData(const ReadView data) noexcept(false) -> ScriptElement;
 struct Header : virtual public bitcoin::Header {
 };
 }  // namespace opentxs::blockchain::block::bitcoin::internal
+
+namespace opentxs::factory
+{
+OPENTXS_EXPORT auto GenesisBlockHeader(
+    const api::client::Manager& api,
+    const blockchain::Type type) noexcept
+    -> std::unique_ptr<blockchain::block::Header>;
+}  // namespace opentxs::factory

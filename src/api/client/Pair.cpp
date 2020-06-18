@@ -17,7 +17,7 @@
 #include <set>
 #include <type_traits>
 
-#include "Factory.hpp"
+#include "2_Factory.hpp"
 #include "core/StateMachine.hpp"
 #include "internal/api/client/Client.hpp"
 #include "opentxs/Pimpl.hpp"

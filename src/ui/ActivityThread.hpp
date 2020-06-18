@@ -33,6 +33,7 @@
 #include "opentxs/ui/ActivityThread.hpp"
 #include "ui/List.hpp"
 #include "ui/Widget.hpp"
+#include "util/Blank.hpp"
 
 namespace opentxs
 {
@@ -121,8 +122,9 @@ template <>
 struct make_blank<DraftTask> {
     static auto value(const api::Core& api) -> DraftTask
     {
-        return {make_blank<ui::implementation::ActivityThreadRowID>::value(api),
-                make_blank<api::client::OTX::BackgroundTask>::value(api)};
+        return {
+            make_blank<ui::implementation::ActivityThreadRowID>::value(api),
+            make_blank<api::client::OTX::BackgroundTask>::value(api)};
     }
 };
 }  // namespace opentxs

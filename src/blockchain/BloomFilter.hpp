@@ -22,13 +22,8 @@ namespace opentxs
 {
 namespace api
 {
-namespace internal
-{
-struct Core;
-}  // namespace internal
+class Core;
 }  // namespace api
-
-class Factory;
 }  // namespace opentxs
 
 namespace be = boost::endian;
@@ -38,25 +33,42 @@ namespace opentxs::blockchain::implementation
 class BloomFilter final : virtual public blockchain::BloomFilter
 {
 public:
+    using FalsePositiveRate = double;
+    using Filter = boost::dynamic_bitset<>;
+    using Tweak = std::uint32_t;
+
     auto Serialize() const noexcept -> OTData final;
     auto Test(const Data& element) const noexcept -> bool final;
 
     void AddElement(const Data& element) noexcept final;
 
+    BloomFilter(
+        const api::Core& api,
+        const Tweak tweak,
+        const BloomUpdateFlag update,
+        const std::size_t functionCount,
+        const Filter& data) noexcept;
+    BloomFilter(
+        const api::Core& api,
+        const Tweak tweak,
+        const BloomUpdateFlag update,
+        const std::size_t targets,
+        const FalsePositiveRate rate) noexcept;
+    BloomFilter(
+        const api::Core& api,
+        const Tweak tweak,
+        const BloomUpdateFlag update,
+        const std::size_t functionCount,
+        const Data& data) noexcept;
+
     ~BloomFilter() final = default;
 
 private:
-    friend opentxs::Factory;
-
-    using FalsePositiveRate = double;
-    using Filter = boost::dynamic_bitset<>;
-    using Tweak = std::uint32_t;
-
     static const std::size_t max_filter_bytes_;
     static const std::size_t max_hash_function_count_;
     static const std::uint32_t seed_;
 
-    const api::internal::Core& api_;
+    const api::Core& api_;
     Tweak tweak_{};
     BloomUpdateFlag flags_{};
     std::size_t function_count_{};
@@ -69,24 +81,6 @@ private:
     auto hash(const Data& input, std::size_t hash_index) const noexcept
         -> std::uint32_t;
 
-    BloomFilter(
-        const api::internal::Core& api,
-        const Tweak tweak,
-        const BloomUpdateFlag update,
-        const std::size_t functionCount,
-        const Filter& data) noexcept;
-    BloomFilter(
-        const api::internal::Core& api,
-        const Tweak tweak,
-        const BloomUpdateFlag update,
-        const std::size_t targets,
-        const FalsePositiveRate rate) noexcept;
-    BloomFilter(
-        const api::internal::Core& api,
-        const Tweak tweak,
-        const BloomUpdateFlag update,
-        const std::size_t functionCount,
-        const Data& data) noexcept;
     BloomFilter() = delete;
     BloomFilter(const BloomFilter& rhs) noexcept;
     BloomFilter(BloomFilter&&) = delete;

@@ -21,6 +21,7 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/network/zeromq/socket/Push.hpp"
+#include "util/Work.hpp"
 
 namespace opentxs
 {
@@ -32,14 +33,9 @@ namespace internal
 {
 struct Blockchain;
 }  // namespace internal
+
+class Manager;
 }  // namespace client
-
-namespace internal
-{
-struct Core;
-}  // namespace internal
-
-class Core;
 }  // namespace api
 
 namespace network
@@ -68,7 +64,7 @@ public:
         auto state_machine() noexcept -> bool;
 
         Account(
-            const api::Core& api,
+            const api::client::Manager& api,
             const BalanceTree& ref,
             const internal::Network& network,
             const internal::WalletDatabase& db,
@@ -76,7 +72,7 @@ public:
         Account(Account&&) noexcept;
 
     private:
-        const api::Core& api_;
+        const api::client::Manager& api_;
         const BalanceTree& ref_;
         const internal::Network& network_;
         const internal::WalletDatabase& db_;
@@ -100,7 +96,7 @@ public:
     }
 
     Wallet(
-        const api::internal::Core& api,
+        const api::client::Manager& api,
         const api::client::internal::Blockchain& blockchain,
         const internal::Network& parent,
         const Type chain,
@@ -127,7 +123,7 @@ private:
         auto state_machine() noexcept -> bool;
 
         Accounts(
-            const api::Core& api,
+            const api::client::Manager& api,
             const api::client::internal::Blockchain& blockchain,
             const internal::Network& network,
             const internal::WalletDatabase& db,
@@ -137,7 +133,7 @@ private:
     private:
         using AccountMap = std::map<OTNymID, Account>;
 
-        const api::Core& api_;
+        const api::client::Manager& api_;
         const api::client::internal::Blockchain& blockchain_api_;
         const internal::Network& network_;
         const internal::WalletDatabase& db_;
@@ -146,7 +142,7 @@ private:
         AccountMap map_;
 
         static auto init(
-            const api::Core& api,
+            const api::client::Manager& api,
             const api::client::internal::Blockchain& blockchain,
             const internal::Network& network,
             const internal::WalletDatabase& db,

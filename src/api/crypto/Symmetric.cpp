@@ -7,7 +7,7 @@
 #include "1_Internal.hpp"            // IWYU pragma: associated
 #include "api/crypto/Symmetric.hpp"  // IWYU pragma: associated
 
-#include "Factory.hpp"
+#include "2_Factory.hpp"
 #include "internal/api/Api.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"

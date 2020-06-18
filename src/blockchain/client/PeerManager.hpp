@@ -27,15 +27,16 @@
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/socket/Publish.hpp"
 #include "opentxs/network/zeromq/socket/Push.hpp"
+#include "util/Work.hpp"
 
 namespace opentxs
 {
 namespace api
 {
-namespace internal
+namespace client
 {
-struct Core;
-}  // namespace internal
+class Manager;
+}  // namespace client
 }  // namespace api
 
 namespace blockchain
@@ -116,7 +117,7 @@ public:
     auto Run() noexcept -> void final { Trigger(); }
 
     PeerManager(
-        const api::internal::Core& api,
+        const api::client::Manager& api,
         const internal::Network& network,
         const internal::PeerDatabase& database,
         const blockchain::client::internal::IO& io,
@@ -132,14 +133,14 @@ private:
 
     struct Jobs {
         auto Endpoint(const Task type) const noexcept -> std::string;
-        auto Work(const Task task, std::promise<void>* promise = nullptr) const
-            noexcept -> OTZMQMessage;
+        auto Work(const Task task, std::promise<void>* promise = nullptr)
+            const noexcept -> OTZMQMessage;
 
         auto Dispatch(const Task type) noexcept -> void;
         auto Dispatch(zmq::Message& work) noexcept -> void;
         auto Shutdown() noexcept -> void;
 
-        Jobs(const api::internal::Core& api) noexcept;
+        Jobs(const api::client::Manager& api) noexcept;
 
     private:
         using EndpointMap = std::map<Task, std::string>;
@@ -171,7 +172,7 @@ private:
         auto Shutdown() noexcept -> void;
 
         Peers(
-            const api::internal::Core& api,
+            const api::client::Manager& api,
             const internal::Network& network,
             const internal::PeerDatabase& database,
             const internal::PeerManager& parent,
@@ -186,7 +187,7 @@ private:
         using Peer = std::unique_ptr<p2p::internal::Peer>;
         using Resolver = boost::asio::ip::tcp::resolver;
 
-        const api::internal::Core& api_;
+        const api::client::Manager& api_;
         const internal::Network& network_;
         const internal::PeerDatabase& database_;
         const internal::PeerManager& parent_;

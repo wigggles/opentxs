@@ -7,14 +7,13 @@
 #include "1_Internal.hpp"            // IWYU pragma: associated
 #include "crypto/key/Symmetric.hpp"  // IWYU pragma: associated
 
-#include <algorithm>
 #include <cstdint>
 #include <memory>
 #include <string>
 #include <string_view>
 #include <vector>
 
-#include "Factory.hpp"
+#include "2_Factory.hpp"
 #include "crypto/key/SymmetricNull.hpp"
 #include "internal/api/Api.hpp"
 #include "opentxs/Pimpl.hpp"
@@ -59,8 +58,8 @@ auto Factory::SymmetricKey(
 
     if (false == bool(output)) { return nullptr; }
 
-    const auto realMode{mode == proto::SMODE_ERROR ? engine.DefaultMode()
-                                                   : mode};
+    const auto realMode{
+        mode == proto::SMODE_ERROR ? engine.DefaultMode() : mode};
     Lock lock(output->lock_);
     const auto size = output->engine_.KeySize(realMode);
     output->key_size_ = size;
@@ -523,13 +522,14 @@ auto Symmetric::encrypt_key(
         if (!Allocate(api_, saltSize, *salt, true)) { return false; }
     }
 
-    auto secondaryKey = Symmetric{api_,
-                                  engine_,
-                                  key,
-                                  *salt,
-                                  engine_.KeySize(encrypted->mode()),
-                                  OT_SYMMETRIC_KEY_DEFAULT_OPERATIONS,
-                                  OT_SYMMETRIC_KEY_DEFAULT_DIFFICULTY};
+    auto secondaryKey = Symmetric{
+        api_,
+        engine_,
+        key,
+        *salt,
+        engine_.KeySize(encrypted->mode()),
+        OT_SYMMETRIC_KEY_DEFAULT_OPERATIONS,
+        OT_SYMMETRIC_KEY_DEFAULT_DIFFICULTY};
 
     OT_ASSERT(secondaryKey.plaintext_key_.has_value());
 
@@ -712,13 +712,14 @@ auto Symmetric::unlock(const Lock& lock, const opentxs::PasswordPrompt& reason)
         return false;
     }
 
-    auto secondaryKey = Symmetric{api_,
-                                  engine_,
-                                  key,
-                                  *salt,
-                                  engine_.KeySize(encrypted->mode()),
-                                  OT_SYMMETRIC_KEY_DEFAULT_OPERATIONS,
-                                  OT_SYMMETRIC_KEY_DEFAULT_DIFFICULTY};
+    auto secondaryKey = Symmetric{
+        api_,
+        engine_,
+        key,
+        *salt,
+        engine_.KeySize(encrypted->mode()),
+        OT_SYMMETRIC_KEY_DEFAULT_OPERATIONS,
+        OT_SYMMETRIC_KEY_DEFAULT_DIFFICULTY};
 
     OT_ASSERT(secondaryKey.plaintext_key_.has_value());
 

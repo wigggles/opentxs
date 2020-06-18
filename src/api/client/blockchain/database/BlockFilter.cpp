@@ -12,7 +12,6 @@
 #include <string>
 #include <utility>
 
-#include "Factory.hpp"
 #include "internal/api/Api.hpp"  // IWYU pragma: keep
 #include "internal/blockchain/Blockchain.hpp"
 #include "opentxs/Proto.hpp"
@@ -27,7 +26,7 @@
 namespace opentxs::api::client::blockchain::database::implementation
 {
 BlockFilter::BlockFilter(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     opentxs::storage::lmdb::LMDB& lmdb) noexcept(false)
     : api_(api)
     , lmdb_(lmdb)
@@ -64,7 +63,7 @@ auto BlockFilter::LoadFilter(const FilterType type, const ReadView blockHash)
     auto cb = [this, &output](const auto in) {
         if ((nullptr == in.data()) || (0 == in.size())) { return; }
 
-        output = opentxs::Factory::GCS(api_, proto::Factory<proto::GCS>(in));
+        output = factory::GCS(api_, proto::Factory<proto::GCS>(in));
     };
 
     try {

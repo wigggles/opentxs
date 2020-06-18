@@ -49,6 +49,29 @@ struct less<COIN> {
 };
 }  // namespace std
 
+namespace opentxs
+{
+namespace api
+{
+namespace client
+{
+namespace blockchain
+{
+namespace internal
+{
+struct BalanceList;
+struct BalanceNode;
+struct BalanceTree;
+struct Deterministic;
+struct HD;
+struct Imported;
+struct PaymentCode;
+}  // namespace internal
+}  // namespace blockchain
+}  // namespace client
+}  // namespace api
+}  // namespace opentxs
+
 #if OT_BLOCKCHAIN
 namespace opentxs::api::client::blockchain
 {

@@ -8,7 +8,6 @@
 #if OT_STORAGE_LMDB
 #include "util/LMDB.hpp"  // IWYU pragma: associated
 
-#include <algorithm>
 #include <cstddef>
 #include <stdexcept>
 
@@ -542,8 +541,8 @@ auto LMDB::Queue(
     return true;
 }
 
-auto LMDB::Read(const Table table, const ReadCallback cb, const Dir dir) const
-    noexcept -> bool
+auto LMDB::Read(const Table table, const ReadCallback cb, const Dir dir)
+    const noexcept -> bool
 {
     struct Cleanup {
         bool success_;

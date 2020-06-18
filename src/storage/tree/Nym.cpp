@@ -883,8 +883,9 @@ auto Nym::Store(
 auto Nym::Store(const proto::Purse& purse) -> bool
 {
     Lock lock(write_lock_);
-    const PurseID id{identifier::Server::Factory(purse.notary()),
-                     identifier::UnitDefinition::Factory(purse.mint())};
+    const PurseID id{
+        identifier::Server::Factory(purse.notary()),
+        identifier::UnitDefinition::Factory(purse.mint())};
     std::string hash{};
     const auto output = driver_.StoreProto(purse, hash);
 

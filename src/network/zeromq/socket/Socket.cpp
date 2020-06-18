@@ -132,8 +132,8 @@ auto Socket::bind(const Lock& lock, const std::string& endpoint) const noexcept
     return output;
 }
 
-auto Socket::connect(const Lock& lock, const std::string& endpoint) const
-    noexcept -> bool
+auto Socket::connect(const Lock& lock, const std::string& endpoint)
+    const noexcept -> bool
 {
     if (false == apply_timeouts(lock)) { return false; }
 

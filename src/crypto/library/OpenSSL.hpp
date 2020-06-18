@@ -235,8 +235,8 @@ private:
 #endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
 
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
-    auto generate_dh(const NymParameters& options, ::EVP_PKEY* output) const
-        noexcept -> bool;
+    auto generate_dh(const NymParameters& options, ::EVP_PKEY* output)
+        const noexcept -> bool;
     auto get_params(
         const AllocateOutput params,
         const NymParameters& options,

@@ -23,10 +23,10 @@ namespace opentxs
 {
 namespace api
 {
-namespace internal
+namespace client
 {
-struct Core;
-}  // namespace internal
+class Manager;
+}  // namespace client
 }  // namespace api
 
 namespace blockchain
@@ -39,8 +39,6 @@ class Header;
 }  // namespace bitcoin
 }  // namespace p2p
 }  // namespace blockchain
-
-class Factory;
 }  // namespace opentxs
 
 namespace opentxs::blockchain::p2p::bitcoin::message
@@ -50,23 +48,22 @@ class Feefilter final : virtual public bitcoin::Message
 public:
     auto feeRate() const noexcept -> std::uint64_t { return fee_rate_; }
 
-    ~Feefilter() final = default;
-
-    auto payload() const noexcept -> OTData final;
-
-private:
-    friend opentxs::Factory;
-
-    const std::uint64_t fee_rate_{};
-
     Feefilter(
-        const api::internal::Core& api,
+        const api::client::Manager& api,
         const blockchain::Type network,
         const std::uint64_t fee_rate) noexcept;
     Feefilter(
-        const api::internal::Core& api,
+        const api::client::Manager& api,
         std::unique_ptr<Header> header,
         const std::uint64_t fee_rate) noexcept(false);
+
+    ~Feefilter() final = default;
+
+private:
+    const std::uint64_t fee_rate_{};
+
+    auto payload() const noexcept -> OTData final;
+
     Feefilter(const Feefilter&) = delete;
     Feefilter(Feefilter&&) = delete;
     auto operator=(const Feefilter&) -> Feefilter& = delete;

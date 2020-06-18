@@ -10,7 +10,7 @@
 #include <memory>
 #include <stdexcept>
 
-#include "Factory.hpp"
+#include "2_Factory.hpp"
 #include "core/contract/Signable.hpp"
 #include "identity/credential/Key.hpp"
 #include "internal/api/Api.hpp"

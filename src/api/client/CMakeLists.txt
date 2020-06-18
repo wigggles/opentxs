@@ -9,6 +9,7 @@ set(
   cxx-sources
   Activity.cpp
   Blockchain.cpp
+  Client.cpp
   Contacts.cpp
   Factory.cpp
   Issuer.cpp

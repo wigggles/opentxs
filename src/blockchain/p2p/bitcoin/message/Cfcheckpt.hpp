@@ -21,10 +21,10 @@ namespace opentxs
 {
 namespace api
 {
-namespace internal
+namespace client
 {
-struct Core;
-}  // namespace internal
+class Manager;
+}  // namespace client
 }  // namespace api
 
 namespace blockchain
@@ -37,8 +37,6 @@ class Header;
 }  // namespace bitcoin
 }  // namespace p2p
 }  // namespace blockchain
-
-class Factory;
 }  // namespace opentxs
 
 namespace opentxs::blockchain::p2p::bitcoin::message::implementation
@@ -46,6 +44,8 @@ namespace opentxs::blockchain::p2p::bitcoin::message::implementation
 class Cfcheckpt final : public internal::Cfcheckpt
 {
 public:
+    using BitcoinFormat = FilterPrefixBasic;
+
     auto at(const std::size_t position) const noexcept(false)
         -> const value_type& final
     {
@@ -63,31 +63,28 @@ public:
     auto Stop() const noexcept -> const value_type& final { return stop_; }
     auto Type() const noexcept -> filter::Type final { return type_; }
 
+    Cfcheckpt(
+        const api::client::Manager& api,
+        const blockchain::Type network,
+        const filter::Type type,
+        const filter::Hash& stop,
+        const std::vector<filter::pHash>& headers) noexcept;
+    Cfcheckpt(
+        const api::client::Manager& api,
+        std::unique_ptr<Header> header,
+        const filter::Type type,
+        const filter::Hash& stop,
+        const std::vector<filter::pHash>& headers) noexcept;
+
     ~Cfcheckpt() final = default;
 
 private:
-    friend opentxs::Factory;
-
-    using BitcoinFormat = FilterPrefixBasic;
-
     const filter::Type type_;
     const filter::pHash stop_;
     const std::vector<filter::pHash> payload_;
 
     auto payload() const noexcept -> OTData final;
 
-    Cfcheckpt(
-        const api::internal::Core& api,
-        const blockchain::Type network,
-        const filter::Type type,
-        const filter::Hash& stop,
-        const std::vector<filter::pHash>& headers) noexcept;
-    Cfcheckpt(
-        const api::internal::Core& api,
-        std::unique_ptr<Header> header,
-        const filter::Type type,
-        const filter::Hash& stop,
-        const std::vector<filter::pHash>& headers) noexcept;
     Cfcheckpt(const Cfcheckpt&) = delete;
     Cfcheckpt(Cfcheckpt&&) = delete;
     auto operator=(const Cfcheckpt&) -> Cfcheckpt& = delete;

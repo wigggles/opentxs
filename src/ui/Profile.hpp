@@ -89,8 +89,8 @@ public:
         const noexcept -> bool final;
     auto DisplayName() const noexcept -> std::string final;
 #if OT_QT
-    int FindRow(const ProfileRowID& id, const ProfileSortKey& key) const
-        noexcept final
+    int FindRow(const ProfileRowID& id, const ProfileSortKey& key)
+        const noexcept final
     {
         return find_row(id, key);
     }

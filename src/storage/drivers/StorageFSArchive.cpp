@@ -3,15 +3,15 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "0_stdafx.hpp"    // IWYU pragma: associated
-#include "1_Internal.hpp"  // IWYU pragma: associated
-#if OT_STORAGE_FS
+#include "0_stdafx.hpp"                          // IWYU pragma: associated
+#include "1_Internal.hpp"                        // IWYU pragma: associated
 #include "storage/drivers/StorageFSArchive.hpp"  // IWYU pragma: associated
 
 #include <boost/filesystem.hpp>
 #include <boost/system/error_code.hpp>
 #include <memory>
 
+#include "2_Factory.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Proto.tpp"
@@ -172,4 +172,3 @@ auto StorageFSArchive::root_filename() const -> std::string
 
 StorageFSArchive::~StorageFSArchive() { Cleanup_StorageFSArchive(); }
 }  // namespace opentxs::storage::implementation
-#endif

@@ -7,6 +7,8 @@
 
 #include <cstdint>
 
+#include "opentxs/Proto.hpp"  // IWYU pragma: keep
+
 namespace opentxs::crypto
 {
 class Pbkdf2

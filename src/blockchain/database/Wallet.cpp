@@ -14,7 +14,6 @@
 #include <map>
 #include <numeric>
 #include <tuple>
-#include <type_traits>
 
 #include "internal/api/client/Client.hpp"
 #include "opentxs/Pimpl.hpp"
@@ -31,6 +30,7 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
+#include "util/Container.hpp"
 
 #define OT_METHOD "opentxs::blockchain::database::Wallet::"
 

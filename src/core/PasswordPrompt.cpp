@@ -9,7 +9,7 @@
 
 #include <memory>
 
-#include "Factory.hpp"
+#include "2_Factory.hpp"
 #include "internal/api/Api.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/core/Secret.hpp"

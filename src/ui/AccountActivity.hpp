@@ -23,6 +23,7 @@
 #include "opentxs/ui/AccountActivity.hpp"
 #include "ui/List.hpp"
 #include "ui/Widget.hpp"
+#include "util/Polarity.hpp"
 
 namespace opentxs
 {

@@ -46,8 +46,8 @@ void StateMachine::execute() const noexcept
     if (shutdown_.load()) { clean(lock); }
 }
 
-auto StateMachine::make_wait_promise(const Lock& lock, const bool set) const
-    noexcept -> StateMachine::WaitFuture
+auto StateMachine::make_wait_promise(const Lock& lock, const bool set)
+    const noexcept -> StateMachine::WaitFuture
 {
     waiting_ = {};
     waiting_future_ = waiting_.get_future();

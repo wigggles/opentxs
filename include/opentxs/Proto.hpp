@@ -311,5 +311,8 @@ namespace opentxs
 using ProtobufType = ::google::protobuf::MessageLite;
 
 static const proto::HashType StandardHash{proto::HASHTYPE_BLAKE2B256};
+
+auto operator==(const ProtobufType& lhs, const ProtobufType& rhs) noexcept
+    -> bool;
 }  // namespace opentxs
 #endif

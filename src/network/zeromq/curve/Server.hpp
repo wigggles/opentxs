@@ -42,8 +42,8 @@ public:
     auto SetPrivateKey(const std::string& z85) const noexcept -> bool final;
 
 protected:
-    auto set_private_key(const void* key, const std::size_t keySize) const
-        noexcept -> bool;
+    auto set_private_key(const void* key, const std::size_t keySize)
+        const noexcept -> bool;
 
     Server(zeromq::socket::implementation::Socket& socket) noexcept;
 

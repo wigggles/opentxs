@@ -15,6 +15,7 @@
 #include "opentxs/core/contract/peer/PeerReply.hpp"
 #include "opentxs/core/contract/peer/PeerRequest.hpp"
 #include "opentxs/otx/consensus/Server.hpp"
+#include "util/Blank.hpp"
 
 namespace opentxs
 {
@@ -100,9 +101,10 @@ template <>
 struct make_blank<otx::client::DepositPaymentTask> {
     static auto value(const api::Core& api) -> otx::client::DepositPaymentTask
     {
-        return {make_blank<OTUnitID>::value(api),
-                make_blank<OTIdentifier>::value(api),
-                nullptr};
+        return {
+            make_blank<OTUnitID>::value(api),
+            make_blank<OTIdentifier>::value(api),
+            nullptr};
     }
 };
 #if OT_CASH
@@ -134,8 +136,9 @@ template <>
 struct make_blank<otx::client::PayCashTask> {
     static auto value(const api::Core& api) -> otx::client::PayCashTask
     {
-        return {make_blank<OTNymID>::value(api),
-                make_blank<OTIdentifier>::value(api)};
+        return {
+            make_blank<OTNymID>::value(api),
+            make_blank<OTIdentifier>::value(api)};
     }
 };
 #endif  // OT_CASH
@@ -150,9 +153,10 @@ template <>
 struct make_blank<otx::client::PeerReplyTask> {
     static auto value(const api::Core& api) -> otx::client::PeerReplyTask
     {
-        return {make_blank<OTNymID>::value(api),
-                api.Factory().PeerReply(),
-                api.Factory().PeerRequest()};
+        return {
+            make_blank<OTNymID>::value(api),
+            api.Factory().PeerReply(),
+            api.Factory().PeerRequest()};
     }
 };
 template <>
@@ -181,22 +185,24 @@ template <>
 struct make_blank<otx::client::SendChequeTask> {
     static auto value(const api::Core& api) -> otx::client::SendChequeTask
     {
-        return {make_blank<OTIdentifier>::value(api),
-                make_blank<OTNymID>::value(api),
-                0,
-                "",
-                Clock::now(),
-                Clock::now()};
+        return {
+            make_blank<OTIdentifier>::value(api),
+            make_blank<OTNymID>::value(api),
+            0,
+            "",
+            Clock::now(),
+            Clock::now()};
     }
 };
 template <>
 struct make_blank<otx::client::SendTransferTask> {
     static auto value(const api::Core& api) -> otx::client::SendTransferTask
     {
-        return {make_blank<OTIdentifier>::value(api),
-                make_blank<OTIdentifier>::value(api),
-                0,
-                ""};
+        return {
+            make_blank<OTIdentifier>::value(api),
+            make_blank<OTIdentifier>::value(api),
+            0,
+            ""};
     }
 };
 #if OT_CASH

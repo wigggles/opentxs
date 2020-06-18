@@ -24,6 +24,7 @@
 #include "opentxs/api/crypto/Symmetric.hpp"
 #if OT_BLOCKCHAIN
 #include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/blockchain/block/Header.hpp"
 #include "opentxs/blockchain/p2p/Address.hpp"
 #endif  // OT_BLOCKCHAIN
 #include "opentxs/core/Armored.hpp"
@@ -215,9 +216,12 @@ public:
         const proto::UnitDefinition serialized) const noexcept(false)
         -> OTBasketContract final;
 #if OT_BLOCKCHAIN
-    auto BitcoinBlock(const blockchain::Type chain, const ReadView bytes) const
-        noexcept
-        -> std::shared_ptr<const blockchain::block::bitcoin::Block> final;
+    auto BitcoinBlock(const blockchain::Type chain, const ReadView bytes)
+        const noexcept
+        -> std::shared_ptr<const blockchain::block::bitcoin::Block> override
+    {
+        return {};
+    }
     auto BitcoinScriptNullData(
         const blockchain::Type chain,
         const std::vector<ReadView>& data) const noexcept
@@ -254,15 +258,24 @@ public:
         const blockchain::p2p::Address::SerializedType& serialized) const
         -> OTBlockchainAddress final;
     auto BlockHeader(const proto::BlockchainBlockHeader& serialized) const
-        -> std::unique_ptr<blockchain::block::Header> final;
+        -> std::unique_ptr<blockchain::block::Header> override
+    {
+        return {};
+    }
     auto BlockHeader(const blockchain::Type type, const opentxs::Data& raw)
-        const -> std::unique_ptr<blockchain::block::Header> final;
+        const -> std::unique_ptr<blockchain::block::Header> override
+    {
+        return {};
+    }
     auto BlockHeader(
         const blockchain::Type type,
         const blockchain::block::Hash& hash,
         const blockchain::block::Hash& parent,
         const blockchain::block::Height height) const
-        -> std::unique_ptr<blockchain::block::Header> final;
+        -> std::unique_ptr<blockchain::block::Header> override
+    {
+        return {};
+    }
 #endif  // OT_BLOCKCHAIN
     auto Cheque(const OTTransaction& receipt) const
         -> std::unique_ptr<opentxs::Cheque> final;

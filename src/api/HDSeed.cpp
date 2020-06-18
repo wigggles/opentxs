@@ -14,7 +14,7 @@
 #include <string>
 #include <vector>
 
-#include "Factory.hpp"
+#include "2_Factory.hpp"
 #include "internal/api/Api.hpp"
 #include "opentxs/Bytes.hpp"
 #include "opentxs/OT.hpp"
@@ -38,6 +38,7 @@
 #include "opentxs/protobuf/Check.hpp"
 #include "opentxs/protobuf/Enums.pb.h"
 #include "opentxs/protobuf/verify/Seed.hpp"
+#include "util/HDIndex.hpp"
 
 #define OT_METHOD "opentxs::api::implementation::HDSeed::"
 

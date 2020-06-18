@@ -9,6 +9,7 @@
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include "opentxs/Pimpl.hpp"
+#include "opentxs/core/Data.hpp"
 
 namespace opentxs
 {

@@ -10,6 +10,7 @@
 #include <cstdint>
 #include <functional>
 #include <iosfwd>
+#include <memory>
 #include <string>
 #include <tuple>
 #include <vector>
@@ -18,6 +19,7 @@
 #include "opentxs/Bytes.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
+#include "opentxs/Version.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/core/Data.hpp"
 
@@ -27,6 +29,13 @@ namespace api
 {
 class Core;
 }  // namespace api
+
+namespace blockchain
+{
+class BloomFilter;
+class NumericHash;
+class Work;
+}  // namespace blockchain
 }  // namespace opentxs
 
 namespace be = boost::endian;
@@ -177,3 +186,43 @@ auto Ticker(const Type chain) noexcept -> std::string;
 namespace opentxs::blockchain::script
 {
 }  // namespace opentxs::blockchain::script
+
+namespace opentxs::factory
+{
+#if OT_BLOCKCHAIN
+OPENTXS_EXPORT auto BloomFilter(
+    const api::Core& api,
+    const std::uint32_t tweak,
+    const blockchain::BloomUpdateFlag update,
+    const std::size_t targets,
+    const double falsePositiveRate) -> blockchain::BloomFilter*;
+OPENTXS_EXPORT auto BloomFilter(const api::Core& api, const Data& serialized)
+    -> blockchain::BloomFilter*;
+OPENTXS_EXPORT auto GCS(
+    const api::Core& api,
+    const std::uint8_t bits,
+    const std::uint32_t fpRate,
+    const ReadView key,
+    const std::vector<OTData>& elements) noexcept
+    -> std::unique_ptr<blockchain::internal::GCS>;
+OPENTXS_EXPORT auto GCS(
+    const api::Core& api,
+    const proto::GCS& serialized) noexcept
+    -> std::unique_ptr<blockchain::internal::GCS>;
+OPENTXS_EXPORT auto GCS(
+    const api::Core& api,
+    const std::uint8_t bits,
+    const std::uint32_t fpRate,
+    const ReadView key,
+    const std::uint32_t filterElementCount,
+    const ReadView filter) noexcept
+    -> std::unique_ptr<blockchain::internal::GCS>;
+OPENTXS_EXPORT auto NumericHash(const blockchain::block::Hash& hash)
+    -> blockchain::NumericHash*;
+OPENTXS_EXPORT auto NumericHashNBits(const std::int32_t nBits)
+    -> blockchain::NumericHash*;
+OPENTXS_EXPORT auto Work(const std::string& hex) -> blockchain::Work*;
+OPENTXS_EXPORT auto Work(const blockchain::NumericHash& target)
+    -> blockchain::Work*;
+#endif  // OT_BLOCKCHAIN
+}  // namespace opentxs::factory

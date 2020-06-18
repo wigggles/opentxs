@@ -23,6 +23,7 @@ extern "C" {
 #include <utility>
 #include <vector>
 
+#include "2_Factory.hpp"
 #include "internal/api/Api.hpp"
 #include "internal/rpc/RPC.hpp"
 #include "opentxs/OT.hpp"

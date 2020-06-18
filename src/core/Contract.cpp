@@ -19,6 +19,7 @@
 
 #include "internal/api/Api.hpp"
 #include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Wallet.hpp"

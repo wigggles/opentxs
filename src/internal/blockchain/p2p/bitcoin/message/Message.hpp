@@ -9,9 +9,11 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <memory>
 #include <set>
 #include <string>
 #include <tuple>
+#include <vector>
 
 #include "1_Internal.hpp"
 #include "blockchain/p2p/bitcoin/Message.hpp"
@@ -29,6 +31,11 @@ namespace opentxs
 {
 namespace api
 {
+namespace client
+{
+class Manager;
+}  // namespace client
+
 namespace internal
 {
 struct Core;
@@ -37,10 +44,40 @@ struct Core;
 
 namespace blockchain
 {
+namespace bitcoin
+{
+class Inventory;
+}  // namespace bitcoin
+
+namespace block
+{
+namespace bitcoin
+{
+class Header;
+}  // namespace bitcoin
+}  // namespace block
+
+namespace internal
+{
+struct GCS;
+}  // namespace internal
+
 namespace p2p
 {
 namespace bitcoin
 {
+namespace message
+{
+class Cmpctblock;
+class Feefilter;
+class Getblocks;
+class Getblocktxn;
+class Merkleblock;
+class Reject;
+class Sendcmpct;
+class Tx;
+}  // namespace message
+
 class Header;
 }  // namespace bitcoin
 }  // namespace p2p
@@ -108,7 +145,7 @@ struct FilterRequest {
 };
 
 auto VerifyChecksum(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     const Header& header,
     const network::zeromq::Frame& payload) noexcept -> bool;
 }  // namespace opentxs::blockchain::p2p::bitcoin::message
@@ -274,3 +311,396 @@ struct Version : virtual public bitcoin::Message {
     virtual auto UserAgent() const noexcept -> const std::string& = 0;
 };
 }  // namespace opentxs::blockchain::p2p::bitcoin::message::internal
+
+namespace opentxs::factory
+{
+#if OT_BLOCKCHAIN
+auto BitcoinP2PAddr(
+    const api::client::Manager& api,
+    std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
+    const blockchain::p2p::bitcoin::ProtocolVersion version,
+    const void* payload,
+    const std::size_t size)
+    -> blockchain::p2p::bitcoin::message::internal::Addr*;
+auto BitcoinP2PAddr(
+    const api::client::Manager& api,
+    const blockchain::Type network,
+    const blockchain::p2p::bitcoin::ProtocolVersion version,
+    std::vector<std::unique_ptr<blockchain::p2p::internal::Address>>&&
+        addresses) -> blockchain::p2p::bitcoin::message::internal::Addr*;
+auto BitcoinP2PBlock(
+    const api::client::Manager& api,
+    std::unique_ptr<blockchain::p2p::bitcoin::Header> header,
+    const blockchain::p2p::bitcoin::ProtocolVersion version,
+    const void* payload,
+    const std::size_t size)
+    -> blockchain::p2p::bitcoin::message::internal::Block*;
+auto BitcoinP2PBlock(
+    const api::client::Manager& api,
+    const blockchain::Type network,
+    const Data& raw_block)
+    -> blockchain::p2p::bitcoin::message::internal::Block*;
+auto BitcoinP2PBlocktxn(
+    const api::client::Manager& api,
+    std::unique_ptr<blockchain::p2p::bitcoin::Header> header,
+    const blockchain::p2p::bitcoin::ProtocolVersion version,
+    const void* payload,
+    const std::size_t size)
+    -> blockchain::p2p::bitcoin::message::internal::Blocktxn*;
+auto BitcoinP2PBlocktxn(
+    const api::client::Manager& api,
+    const blockchain::Type network,
+    const Data& raw_Blocktxn)
+    -> blockchain::p2p::bitcoin::message::internal::Blocktxn*;
+auto BitcoinP2PCfcheckpt(
+    const api::client::Manager& api,
+    std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
+    const blockchain::p2p::bitcoin::ProtocolVersion version,
+    const void* payload,
+    const std::size_t size)
+    -> blockchain::p2p::bitcoin::message::internal::Cfcheckpt*;
+auto BitcoinP2PCfcheckpt(
+    const api::client::Manager& api,
+    const blockchain::Type network,
+    const blockchain::filter::Type type,
+    const blockchain::filter::Hash& stop,
+    const std::vector<blockchain::filter::pHash>& headers)
+    -> blockchain::p2p::bitcoin::message::internal::Cfcheckpt*;
+auto BitcoinP2PCfheaders(
+    const api::client::Manager& api,
+    std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
+    const blockchain::p2p::bitcoin::ProtocolVersion version,
+    const void* payload,
+    const std::size_t size)
+    -> blockchain::p2p::bitcoin::message::internal::Cfheaders*;
+auto BitcoinP2PCfheaders(
+    const api::client::Manager& api,
+    const blockchain::Type network,
+    const blockchain::filter::Type type,
+    const blockchain::filter::Hash& stop,
+    const blockchain::filter::Hash& previous,
+    const std::vector<blockchain::filter::pHash>& headers)
+    -> blockchain::p2p::bitcoin::message::internal::Cfheaders*;
+auto BitcoinP2PCfilter(
+    const api::client::Manager& api,
+    std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
+    const blockchain::p2p::bitcoin::ProtocolVersion version,
+    const void* payload,
+    const std::size_t size)
+    -> blockchain::p2p::bitcoin::message::internal::Cfilter*;
+auto BitcoinP2PCfilter(
+    const api::client::Manager& api,
+    const blockchain::Type network,
+    const blockchain::filter::Type type,
+    const blockchain::filter::Hash& hash,
+    std::unique_ptr<blockchain::internal::GCS> filter)
+    -> blockchain::p2p::bitcoin::message::internal::Cfilter*;
+auto BitcoinP2PCmpctblock(
+    const api::client::Manager& api,
+    std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
+    const blockchain::p2p::bitcoin::ProtocolVersion version,
+    const void* payload,
+    const std::size_t size) -> blockchain::p2p::bitcoin::message::Cmpctblock*;
+auto BitcoinP2PCmpctblock(
+    const api::client::Manager& api,
+    const blockchain::Type network,
+    const Data& raw_cmpctblock)
+    -> blockchain::p2p::bitcoin::message::Cmpctblock*;
+auto BitcoinP2PFeefilter(
+    const api::client::Manager& api,
+    std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
+    const blockchain::p2p::bitcoin::ProtocolVersion version,
+    const void* payload,
+    const std::size_t size) -> blockchain::p2p::bitcoin::message::Feefilter*;
+auto BitcoinP2PFeefilter(
+    const api::client::Manager& api,
+    const blockchain::Type network,
+    const std::uint64_t fee_rate)
+    -> blockchain::p2p::bitcoin::message::Feefilter*;
+auto BitcoinP2PFilteradd(
+    const api::client::Manager& api,
+    std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
+    const blockchain::p2p::bitcoin::ProtocolVersion version,
+    const void* payload,
+    const std::size_t size)
+    -> blockchain::p2p::bitcoin::message::internal::Filteradd*;
+auto BitcoinP2PFilteradd(
+    const api::client::Manager& api,
+    const blockchain::Type network,
+    const Data& element)
+    -> blockchain::p2p::bitcoin::message::internal::Filteradd*;
+auto BitcoinP2PFilterclear(
+    const api::client::Manager& api,
+    std::unique_ptr<blockchain::p2p::bitcoin::Header> header)
+    -> blockchain::p2p::bitcoin::message::internal::Filterclear*;
+auto BitcoinP2PFilterclear(
+    const api::client::Manager& api,
+    const blockchain::Type network)
+    -> blockchain::p2p::bitcoin::message::internal::Filterclear*;
+auto BitcoinP2PFilterload(
+    const api::client::Manager& api,
+    std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
+    const blockchain::p2p::bitcoin::ProtocolVersion version,
+    const void* payload,
+    const std::size_t size)
+    -> blockchain::p2p::bitcoin::message::internal::Filterload*;
+auto BitcoinP2PFilterload(
+    const api::client::Manager& api,
+    const blockchain::Type network,
+    const blockchain::BloomFilter& filter)
+    -> blockchain::p2p::bitcoin::message::internal::Filterload*;
+auto BitcoinP2PGetaddr(
+    const api::client::Manager& api,
+    std::unique_ptr<blockchain::p2p::bitcoin::Header> header)
+    -> blockchain::p2p::bitcoin::message::internal::Getaddr*;
+auto BitcoinP2PGetaddr(
+    const api::client::Manager& api,
+    const blockchain::Type network)
+    -> blockchain::p2p::bitcoin::message::internal::Getaddr*;
+OPENTXS_EXPORT auto BitcoinP2PGetblocks(
+    const api::client::Manager& api,
+    std::unique_ptr<blockchain::p2p::bitcoin::Header> header,
+    const blockchain::p2p::bitcoin::ProtocolVersion version,
+    const void* payload,
+    const std::size_t size) -> blockchain::p2p::bitcoin::message::Getblocks*;
+OPENTXS_EXPORT auto BitcoinP2PGetblocks(
+    const api::client::Manager& api,
+    const blockchain::Type network,
+    const std::uint32_t version,
+    const std::vector<OTData>& header_hashes,
+    const Data& stop_hash) -> blockchain::p2p::bitcoin::message::Getblocks*;
+auto BitcoinP2PGetblocktxn(
+    const api::client::Manager& api,
+    std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
+    const blockchain::p2p::bitcoin::ProtocolVersion version,
+    const void* payload,
+    const std::size_t size) -> blockchain::p2p::bitcoin::message::Getblocktxn*;
+auto BitcoinP2PGetblocktxn(
+    const api::client::Manager& api,
+    const blockchain::Type network,
+    const Data& block_hash,
+    const std::vector<std::size_t>& txn_indices)
+    -> blockchain::p2p::bitcoin::message::Getblocktxn*;
+auto BitcoinP2PGetcfcheckpt(
+    const api::client::Manager& api,
+    std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
+    const blockchain::p2p::bitcoin::ProtocolVersion version,
+    const void* payload,
+    const std::size_t size)
+    -> blockchain::p2p::bitcoin::message::internal::Getcfcheckpt*;
+auto BitcoinP2PGetcfcheckpt(
+    const api::client::Manager& api,
+    const blockchain::Type network,
+    const blockchain::filter::Type type,
+    const blockchain::filter::Hash& stop)
+    -> blockchain::p2p::bitcoin::message::internal::Getcfcheckpt*;
+auto BitcoinP2PGetcfheaders(
+    const api::client::Manager& api,
+    std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
+    const blockchain::p2p::bitcoin::ProtocolVersion version,
+    const void* payload,
+    const std::size_t size)
+    -> blockchain::p2p::bitcoin::message::internal::Getcfheaders*;
+auto BitcoinP2PGetcfheaders(
+    const api::client::Manager& api,
+    const blockchain::Type network,
+    const blockchain::filter::Type type,
+    const blockchain::block::Height start,
+    const blockchain::filter::Hash& stop)
+    -> blockchain::p2p::bitcoin::message::internal::Getcfheaders*;
+auto BitcoinP2PGetcfilters(
+    const api::client::Manager& api,
+    std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
+    const blockchain::p2p::bitcoin::ProtocolVersion version,
+    const void* payload,
+    const std::size_t size)
+    -> blockchain::p2p::bitcoin::message::internal::Getcfilters*;
+auto BitcoinP2PGetcfilters(
+    const api::client::Manager& api,
+    const blockchain::Type network,
+    const blockchain::filter::Type type,
+    const blockchain::block::Height start,
+    const blockchain::filter::Hash& stop)
+    -> blockchain::p2p::bitcoin::message::internal::Getcfilters*;
+auto BitcoinP2PGetdata(
+    const api::client::Manager& api,
+    std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
+    const blockchain::p2p::bitcoin::ProtocolVersion version,
+    const void* payload,
+    const std::size_t size)
+    -> blockchain::p2p::bitcoin::message::internal::Getdata*;
+auto BitcoinP2PGetdata(
+    const api::client::Manager& api,
+    const blockchain::Type network,
+    std::vector<blockchain::bitcoin::Inventory>&& payload)
+    -> blockchain::p2p::bitcoin::message::internal::Getdata*;
+auto BitcoinP2PGetheaders(
+    const api::client::Manager& api,
+    std::unique_ptr<blockchain::p2p::bitcoin::Header> header,
+    const blockchain::p2p::bitcoin::ProtocolVersion version,
+    const void* payload,
+    const std::size_t size)
+    -> blockchain::p2p::bitcoin::message::internal::Getheaders*;
+auto BitcoinP2PGetheaders(
+    const api::client::Manager& api,
+    const blockchain::Type network,
+    const blockchain::p2p::bitcoin::ProtocolVersionUnsigned version,
+    std::vector<blockchain::block::pHash>&& history,
+    blockchain::block::pHash&& stop)
+    -> blockchain::p2p::bitcoin::message::internal::Getheaders*;
+OPENTXS_EXPORT auto BitcoinP2PHeaders(
+    const api::client::Manager& api,
+    std::unique_ptr<blockchain::p2p::bitcoin::Header> header,
+    const blockchain::p2p::bitcoin::ProtocolVersion version,
+    const void* payload,
+    const std::size_t size)
+    -> blockchain::p2p::bitcoin::message::internal::Headers*;
+auto BitcoinP2PHeaders(
+    const api::client::Manager& api,
+    const blockchain::Type network,
+    std::vector<std::unique_ptr<blockchain::block::bitcoin::Header>>&& headers)
+    -> blockchain::p2p::bitcoin::message::internal::Headers*;
+auto BitcoinP2PInv(
+    const api::client::Manager& api,
+    std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
+    const blockchain::p2p::bitcoin::ProtocolVersion version,
+    const void* payload,
+    const std::size_t size)
+    -> blockchain::p2p::bitcoin::message::internal::Inv*;
+auto BitcoinP2PInv(
+    const api::client::Manager& api,
+    const blockchain::Type network,
+    std::vector<blockchain::bitcoin::Inventory>&& payload)
+    -> blockchain::p2p::bitcoin::message::internal::Inv*;
+auto BitcoinP2PMempool(
+    const api::client::Manager& api,
+    std::unique_ptr<blockchain::p2p::bitcoin::Header> header)
+    -> blockchain::p2p::bitcoin::message::internal::Mempool*;
+auto BitcoinP2PMempool(
+    const api::client::Manager& api,
+    const blockchain::Type network)
+    -> blockchain::p2p::bitcoin::message::internal::Mempool*;
+auto BitcoinP2PMerkleblock(
+    const api::client::Manager& api,
+    std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
+    const blockchain::p2p::bitcoin::ProtocolVersion version,
+    const void* payload,
+    const std::size_t size) -> blockchain::p2p::bitcoin::message::Merkleblock*;
+auto BitcoinP2PMerkleblock(
+    const api::client::Manager& api,
+    const blockchain::Type network,
+    const Data& block_header,
+    const std::uint32_t txn_count,
+    const std::vector<OTData>& hashes,
+    const std::vector<std::byte>& flags)
+    -> blockchain::p2p::bitcoin::message::Merkleblock*;
+auto BitcoinP2PNotfound(
+    const api::client::Manager& api,
+    std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
+    const blockchain::p2p::bitcoin::ProtocolVersion version,
+    const void* payload,
+    const std::size_t size)
+    -> blockchain::p2p::bitcoin::message::internal::Notfound*;
+auto BitcoinP2PNotfound(
+    const api::client::Manager& api,
+    const blockchain::Type network,
+    std::vector<blockchain::bitcoin::Inventory>&& payload)
+    -> blockchain::p2p::bitcoin::message::internal::Notfound*;
+auto BitcoinP2PPing(
+    const api::client::Manager& api,
+    std::unique_ptr<blockchain::p2p::bitcoin::Header> header,
+    const blockchain::p2p::bitcoin::ProtocolVersion version,
+    const void* payload,
+    const std::size_t size)
+    -> blockchain::p2p::bitcoin::message::internal::Ping*;
+auto BitcoinP2PPing(
+    const api::client::Manager& api,
+    const blockchain::Type network,
+    const std::uint64_t nonce)
+    -> blockchain::p2p::bitcoin::message::internal::Ping*;
+auto BitcoinP2PPong(
+    const api::client::Manager& api,
+    std::unique_ptr<blockchain::p2p::bitcoin::Header> header,
+    const blockchain::p2p::bitcoin::ProtocolVersion version,
+    const void* payload,
+    const std::size_t size)
+    -> blockchain::p2p::bitcoin::message::internal::Pong*;
+auto BitcoinP2PPong(
+    const api::client::Manager& api,
+    const blockchain::Type network,
+    const std::uint64_t nonce)
+    -> blockchain::p2p::bitcoin::message::internal::Pong*;
+auto BitcoinP2PReject(
+    const api::client::Manager& api,
+    std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
+    const blockchain::p2p::bitcoin::ProtocolVersion version,
+    const void* payload,
+    const std::size_t size) -> blockchain::p2p::bitcoin::message::Reject*;
+auto BitcoinP2PReject(
+    const api::client::Manager& api,
+    const blockchain::Type network,
+    const std::string& message,
+    const std::uint8_t code,
+    const std::string& reason,
+    const Data& extra) -> blockchain::p2p::bitcoin::message::Reject*;
+auto BitcoinP2PSendcmpct(
+    const api::client::Manager& api,
+    std::unique_ptr<blockchain::p2p::bitcoin::Header> header,
+    const blockchain::p2p::bitcoin::ProtocolVersion version,
+    const void* payload,
+    const std::size_t size) -> blockchain::p2p::bitcoin::message::Sendcmpct*;
+auto BitcoinP2PSendcmpct(
+    const api::client::Manager& api,
+    const blockchain::Type network,
+    const bool announce,
+    const std::uint64_t version)
+    -> blockchain::p2p::bitcoin::message::Sendcmpct*;
+auto BitcoinP2PSendheaders(
+    const api::client::Manager& api,
+    std::unique_ptr<blockchain::p2p::bitcoin::Header> header)
+    -> blockchain::p2p::bitcoin::message::internal::Sendheaders*;
+auto BitcoinP2PSendheaders(
+    const api::client::Manager& api,
+    const blockchain::Type network)
+    -> blockchain::p2p::bitcoin::message::internal::Sendheaders*;
+auto BitcoinP2PTx(
+    const api::client::Manager& api,
+    std::unique_ptr<blockchain::p2p::bitcoin::Header> header,
+    const blockchain::p2p::bitcoin::ProtocolVersion version,
+    const void* payload,
+    const std::size_t size) -> blockchain::p2p::bitcoin::message::Tx*;
+auto BitcoinP2PTx(
+    const api::client::Manager& api,
+    const blockchain::Type network,
+    const Data& raw_tx) -> blockchain::p2p::bitcoin::message::Tx*;
+auto BitcoinP2PVerack(
+    const api::client::Manager& api,
+    std::unique_ptr<blockchain::p2p::bitcoin::Header> header)
+    -> blockchain::p2p::bitcoin::message::internal::Verack*;
+auto BitcoinP2PVerack(
+    const api::client::Manager& api,
+    const blockchain::Type network)
+    -> blockchain::p2p::bitcoin::message::internal::Verack*;
+auto BitcoinP2PVersion(
+    const api::client::Manager& api,
+    std::unique_ptr<blockchain::p2p::bitcoin::Header> header,
+    const blockchain::p2p::bitcoin::ProtocolVersion version,
+    const void* payload,
+    const std::size_t size)
+    -> blockchain::p2p::bitcoin::message::internal::Version*;
+auto BitcoinP2PVersion(
+    const api::client::Manager& api,
+    const blockchain::Type network,
+    const std::int32_t version,
+    const std::set<blockchain::p2p::Service>& localServices,
+    const std::string& localAddress,
+    const std::uint16_t localPort,
+    const std::set<blockchain::p2p::Service>& remoteServices,
+    const std::string& remoteAddress,
+    const std::uint16_t remotePort,
+    const std::uint64_t nonce,
+    const std::string& userAgent,
+    const blockchain::block::Height height,
+    const bool relay) -> blockchain::p2p::bitcoin::message::internal::Version*;
+#endif  // OT_BLOCKCHAIN
+}  // namespace opentxs::factory

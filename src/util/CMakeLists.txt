@@ -19,10 +19,15 @@ set(
 set(
   cxx-headers
   ${cxx-install-headers}
+  Blank.hpp
+  Container.hpp
+  HDIndex.hpp
   LMDB.hpp
   PIDFile.hpp
+  Polarity.hpp
   ScopeGuard.hpp
   Sodium.hpp
+  Work.hpp
 )
 
 add_library(opentxs-util OBJECT ${cxx-sources} ${cxx-headers})

@@ -19,10 +19,11 @@
 #include <set>
 #include <utility>
 
-#include "Factory.hpp"
+#include "2_Factory.hpp"
 #include "internal/api/Api.hpp"
 #include "internal/core/contract/Contract.hpp"
 #include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.hpp"
 #include "opentxs/Shared.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Legacy.hpp"

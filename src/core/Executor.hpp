@@ -10,16 +10,17 @@
 #include <future>
 
 #include "core/StateMachine.hpp"
-#include "internal/api/Api.hpp"
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Factory.hpp"
+#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/Pipeline.hpp"
+#include "util/Work.hpp"
 
 namespace opentxs
 {
@@ -32,7 +33,7 @@ auto MakeWork(const api::Core& api, const Enum type) noexcept -> OTZMQMessage
     return output;
 }
 
-template <typename Child>
+template <typename Child, typename API = api::client::Manager>
 class Executor : public internal::StateMachine
 {
 public:
@@ -45,7 +46,7 @@ public:
 protected:
     using Callback = internal::StateMachine::Callback;
 
-    const api::internal::Core& api_;
+    const API& api_;
     OTFlag running_;
     std::promise<bool> state_machine_;
     std::promise<void> shutdown_promise_;
@@ -76,7 +77,7 @@ protected:
         return shutdown_;
     }
 
-    Executor(const api::internal::Core& api, const Callback cb = {}) noexcept
+    Executor(const API& api, const Callback cb = {}) noexcept
         : StateMachine(
               cb ? cb : [this]() -> bool { return default_state_machine(); })
         , api_(api)
@@ -105,7 +106,7 @@ private:
         state_machine_ = {};
         auto future = state_machine_.get_future();
         auto work =
-            api_.ZeroMQ().Message(std::uint8_t{OT_ZMQ_STATE_MACHINE_SIGNAL});
+            api_.ZeroMQ().Message(OTZMQWorkType{OT_ZMQ_STATE_MACHINE_SIGNAL});
         work->AddFrame();
         pipeline_->Push(work);
 

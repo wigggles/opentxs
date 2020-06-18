@@ -24,8 +24,6 @@ namespace api
 {
 class Core;
 }  // namespace api
-
-class Factory;
 }  // namespace opentxs
 
 namespace opentxs::blockchain::implementation
@@ -61,8 +59,6 @@ public:
     ~GCS() final = default;
 
 private:
-    friend opentxs::Factory;
-
     using Elements = std::vector<std::uint64_t>;
 
     const VersionNumber version_;
@@ -80,12 +76,12 @@ private:
         -> std::vector<ReadView>;
 
     auto decompress() const noexcept -> const Elements&;
-    auto hashed_set_construct(const std::vector<OTData>& elements) const
-        noexcept -> std::vector<std::uint64_t>;
+    auto hashed_set_construct(const std::vector<OTData>& elements)
+        const noexcept -> std::vector<std::uint64_t>;
     auto hashed_set_construct(const std::vector<Space>& elements) const noexcept
         -> std::vector<std::uint64_t>;
-    auto hashed_set_construct(const std::vector<ReadView>& elements) const
-        noexcept -> std::vector<std::uint64_t>;
+    auto hashed_set_construct(const std::vector<ReadView>& elements)
+        const noexcept -> std::vector<std::uint64_t>;
     auto test(const std::vector<std::uint64_t>& targetHashes) const noexcept
         -> bool;
     auto hash_to_range(const ReadView in) const noexcept -> std::uint64_t;

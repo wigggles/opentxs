@@ -12,7 +12,6 @@
 #include <cstring>
 #include <utility>
 
-#include "Factory.hpp"
 #include "blockchain/p2p/bitcoin/Header.hpp"
 #include "blockchain/p2p/bitcoin/Message.hpp"
 #include "opentxs/core/Data.hpp"
@@ -22,10 +21,10 @@
 //#define OT_METHOD "
 // opentxs::blockchain::p2p::bitcoin::message::implementation::Pong::"
 
-namespace opentxs
+namespace opentxs::factory
 {
-auto Factory::BitcoinP2PPong(
-    const api::internal::Core& api,
+auto BitcoinP2PPong(
+    const api::client::Manager& api,
     std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
     const blockchain::p2p::bitcoin::ProtocolVersion version,
     const void* payload,
@@ -36,7 +35,7 @@ auto Factory::BitcoinP2PPong(
     using ReturnType = bitcoin::message::implementation::Pong;
 
     if (false == bool(pHeader)) {
-        LogOutput("opentxs::Factory::")(__FUNCTION__)(": Invalid header")
+        LogOutput("opentxs::factory::")(__FUNCTION__)(": Invalid header")
             .Flush();
 
         return nullptr;
@@ -66,8 +65,8 @@ auto Factory::BitcoinP2PPong(
     return new ReturnType(api, std::move(pHeader), nonce);
 }
 
-auto Factory::BitcoinP2PPong(
-    const api::internal::Core& api,
+auto BitcoinP2PPong(
+    const api::client::Manager& api,
     const blockchain::Type network,
     const std::uint64_t nonce)
     -> blockchain::p2p::bitcoin::message::internal::Pong*
@@ -77,12 +76,12 @@ auto Factory::BitcoinP2PPong(
 
     return new ReturnType(api, network, nonce);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::blockchain::p2p::bitcoin::message::implementation
 {
 Pong::Pong(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     const blockchain::Type network,
     const bitcoin::Nonce nonce) noexcept
     : Message(api, network, bitcoin::Command::pong)
@@ -92,7 +91,7 @@ Pong::Pong(
 }
 
 Pong::Pong(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     std::unique_ptr<Header> header,
     const bitcoin::Nonce nonce) noexcept
     : Message(api, std::move(header))

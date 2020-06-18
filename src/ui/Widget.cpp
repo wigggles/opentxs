@@ -7,7 +7,6 @@
 #include "1_Internal.hpp"  // IWYU pragma: associated
 #include "ui/Widget.hpp"   // IWYU pragma: associated
 
-#include <algorithm>
 #include <functional>
 #include <thread>
 

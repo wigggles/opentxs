@@ -5,7 +5,7 @@
 
 #include "BalanceTree.hpp"  // IWYU pragma: associated
 
-#include "Factory.hpp"
+#include "2_Factory.hpp"
 
 namespace opentxs
 {

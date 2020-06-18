@@ -7,7 +7,6 @@
 #include "1_Internal.hpp"                   // IWYU pragma: associated
 #include "ui/CustodialAccountActivity.hpp"  // IWYU pragma: associated
 
-#include <algorithm>
 #include <atomic>
 #include <chrono>
 #include <map>
@@ -21,6 +20,7 @@
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Shared.hpp"
+#include "opentxs/Types.hpp"
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Endpoints.hpp"  // IWYU pragma: keep
 #include "opentxs/api/Wallet.hpp"
@@ -448,8 +448,9 @@ auto CustodialAccountActivity::process_workflow(
     for (const auto& [type, row] : rows) {
         const auto& [time, event_p] = row;
         AccountActivityRowID key{Identifier::Factory(workflowID), type};
-        CustomData custom{new proto::PaymentWorkflow(*workflow),
-                          new proto::PaymentEvent(*event_p)};
+        CustomData custom{
+            new proto::PaymentWorkflow(*workflow),
+            new proto::PaymentEvent(*event_p)};
         add_item(key, time, custom);
         active.emplace(std::move(key));
     }

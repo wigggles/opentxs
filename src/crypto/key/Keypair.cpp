@@ -10,7 +10,7 @@
 #include <stdexcept>
 #include <utility>
 
-#include "Factory.hpp"
+#include "2_Factory.hpp"
 #include "crypto/key/Null.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/core/Log.hpp"

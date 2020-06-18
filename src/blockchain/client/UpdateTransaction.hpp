@@ -15,7 +15,10 @@ namespace opentxs
 {
 namespace api
 {
-class Core;
+namespace client
+{
+class Manager;
+}  // namespace client
 }  // namespace api
 
 namespace blockchain
@@ -45,8 +48,8 @@ public:
     {
         return disconnected();
     }
-    auto EffectiveHasDisconnectedChildren(const block::Hash& hash) const
-        noexcept -> bool;
+    auto EffectiveHasDisconnectedChildren(
+        const block::Hash& hash) const noexcept -> bool;
     auto EffectiveHeaderExists(const block::Hash& hash) const noexcept -> bool;
     auto EffectiveIsSibling(const block::Hash& hash) const noexcept -> bool
     {
@@ -83,12 +86,14 @@ public:
     // Stages an existing header for possible metadata update
     auto Stage(const block::Height& height) noexcept(false) -> block::Header&;
 
-    UpdateTransaction(const api::Core& api, const internal::HeaderDatabase& db);
+    UpdateTransaction(
+        const api::client::Manager& api,
+        const internal::HeaderDatabase& db);
 
 private:
     friend opentxs::Factory;
 
-    const api::Core& api_;
+    const api::client::Manager& api_;
     const internal::HeaderDatabase& db_;
     bool have_reorg_;
     bool have_checkpoint_;

@@ -3,16 +3,15 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "0_stdafx.hpp"    // IWYU pragma: associated
-#include "1_Internal.hpp"  // IWYU pragma: associated
-#if OT_CRYPTO_SUPPORTED_KEY_RSA
+#include "0_stdafx.hpp"        // IWYU pragma: associated
+#include "1_Internal.hpp"      // IWYU pragma: associated
 #include "crypto/key/RSA.hpp"  // IWYU pragma: associated
 
 #include <stdexcept>
 #include <string>
 #include <utility>
 
-#include "Factory.hpp"
+#include "2_Factory.hpp"
 #include "crypto/key/Asymmetric.hpp"
 #include "internal/api/Api.hpp"
 #include "opentxs/Proto.hpp"
@@ -164,4 +163,3 @@ auto RSA::Serialize() const noexcept -> std::shared_ptr<proto::AsymmetricKey>
     return output;
 }
 }  // namespace opentxs::crypto::key::implementation
-#endif  // OT_CRYPTO_SUPPORTED_KEY_RSA

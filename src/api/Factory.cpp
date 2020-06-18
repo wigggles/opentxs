@@ -13,11 +13,13 @@
 #include <stdexcept>
 #include <utility>
 
+#include "2_Factory.hpp"
 #include "core/crypto/PaymentCode.hpp"
 #include "crypto/key/Null.hpp"
 #include "internal/api/Api.hpp"
 #if OT_BLOCKCHAIN
 #include "internal/blockchain/block/Block.hpp"
+#include "internal/blockchain/block/bitcoin/Bitcoin.hpp"
 #include "internal/blockchain/p2p/P2P.hpp"
 #endif  // OT_BLOCKCHAIN
 #include "opentxs/Forward.hpp"
@@ -36,7 +38,6 @@
 #include "opentxs/blind/Purse.hpp"
 #endif  // OT_CASH
 #if OT_BLOCKCHAIN
-#include "opentxs/blockchain/block/Header.hpp"
 #include "opentxs/blockchain/block/bitcoin/Script.hpp"
 #include "opentxs/blockchain/p2p/Address.hpp"
 #endif  // OT_BLOCKCHAIN
@@ -93,8 +94,8 @@
 #include "opentxs/protobuf/ContactEnums.pb.h"
 #include "opentxs/protobuf/Enums.pb.h"
 #include "opentxs/protobuf/PeerEnums.pb.h"
-#include "opentxs/protobuf/verify/BlockchainBlockHeader.hpp"
 #include "opentxs/protobuf/verify/Envelope.hpp"
+#include "util/HDIndex.hpp"
 
 #define OT_METHOD "opentxs::api::implementation::Factory::"
 
@@ -347,12 +348,6 @@ auto Factory::BasketContract(
 }
 
 #if OT_BLOCKCHAIN
-auto Factory::BitcoinBlock(const blockchain::Type chain, const ReadView bytes)
-    const noexcept -> std::shared_ptr<const blockchain::block::bitcoin::Block>
-{
-    return opentxs::Factory::BitcoinBlock(api_, chain, bytes);
-}
-
 auto Factory::BitcoinScriptNullData(
     const blockchain::Type chain,
     const std::vector<ReadView>& data) const noexcept
@@ -368,7 +363,7 @@ auto Factory::BitcoinScriptNullData(
         elements.emplace_back(bb::internal::PushData(element));
     }
 
-    return opentxs::Factory::BitcoinScript(std::move(elements));
+    return factory::BitcoinScript(std::move(elements));
 }
 
 auto Factory::BitcoinScriptP2MS(
@@ -410,7 +405,7 @@ auto Factory::BitcoinScriptP2MS(
     elements.emplace_back(bb::internal::Opcode(static_cast<bb::OP>(N + 80)));
     elements.emplace_back(bb::internal::Opcode(bb::OP::CHECKMULTISIG));
 
-    return opentxs::Factory::BitcoinScript(std::move(elements));
+    return factory::BitcoinScript(std::move(elements));
 }
 
 auto Factory::BitcoinScriptP2PK(
@@ -424,7 +419,7 @@ auto Factory::BitcoinScriptP2PK(
     elements.emplace_back(bb::internal::PushData(key.PublicKey()));
     elements.emplace_back(bb::internal::Opcode(bb::OP::CHECKSIG));
 
-    return opentxs::Factory::BitcoinScript(std::move(elements));
+    return factory::BitcoinScript(std::move(elements));
 }
 
 auto Factory::BitcoinScriptP2PKH(
@@ -451,7 +446,7 @@ auto Factory::BitcoinScriptP2PKH(
     elements.emplace_back(bb::internal::Opcode(bb::OP::EQUALVERIFY));
     elements.emplace_back(bb::internal::Opcode(bb::OP::CHECKSIG));
 
-    return opentxs::Factory::BitcoinScript(std::move(elements));
+    return factory::BitcoinScript(std::move(elements));
 }
 
 auto Factory::BitcoinScriptP2SH(
@@ -484,7 +479,7 @@ auto Factory::BitcoinScriptP2SH(
     elements.emplace_back(bb::internal::PushData(reader(hash)));
     elements.emplace_back(bb::internal::Opcode(bb::OP::EQUAL));
 
-    return opentxs::Factory::BitcoinScript(std::move(elements));
+    return factory::BitcoinScript(std::move(elements));
 }
 
 auto Factory::BlockchainAddress(
@@ -497,7 +492,7 @@ auto Factory::BlockchainAddress(
     const std::set<blockchain::p2p::Service>& services) const
     -> OTBlockchainAddress
 {
-    return OTBlockchainAddress{opentxs::Factory::BlockchainAddress(
+    return OTBlockchainAddress{factory::BlockchainAddress(
                                    api_,
                                    protocol,
                                    network,
@@ -514,79 +509,7 @@ auto Factory::BlockchainAddress(
     -> OTBlockchainAddress
 {
     return OTBlockchainAddress{
-        opentxs::Factory::BlockchainAddress(api_, serialized).release()};
-}
-
-auto Factory::BlockHeader(const proto::BlockchainBlockHeader& serialized) const
-    -> std::unique_ptr<blockchain::block::Header>
-{
-    if (false == proto::Validate(serialized, VERBOSE)) { return {}; }
-
-    const auto type(static_cast<blockchain::Type>(serialized.type()));
-
-    switch (type) {
-        case blockchain::Type::Bitcoin:
-        case blockchain::Type::Bitcoin_testnet3:
-        case blockchain::Type::BitcoinCash:
-        case blockchain::Type::BitcoinCash_testnet3: {
-            return std::unique_ptr<blockchain::block::Header>(
-                opentxs::Factory::BitcoinBlockHeader(api_, serialized));
-        }
-        default: {
-            LogOutput(OT_METHOD)(__FUNCTION__)(": Unsupported type (")(
-                static_cast<std::uint32_t>(type))(")")
-                .Flush();
-
-            return {};
-        }
-    }
-}
-
-auto Factory::BlockHeader(const blockchain::Type type, const opentxs::Data& raw)
-    const -> std::unique_ptr<blockchain::block::Header>
-{
-    switch (type) {
-        case blockchain::Type::Bitcoin:
-        case blockchain::Type::Bitcoin_testnet3:
-        case blockchain::Type::BitcoinCash:
-        case blockchain::Type::BitcoinCash_testnet3: {
-            return opentxs::Factory::BitcoinBlockHeader(
-                api_, type, raw.Bytes());
-        }
-        default: {
-            LogOutput(OT_METHOD)(__FUNCTION__)(": Unsupported type (")(
-                static_cast<std::uint32_t>(type))(")")
-                .Flush();
-
-            return {};
-        }
-    }
-}
-
-auto Factory::BlockHeader(
-    const blockchain::Type type,
-    const blockchain::block::Hash& hash,
-    const blockchain::block::Hash& parent,
-    const blockchain::block::Height height) const
-    -> std::unique_ptr<blockchain::block::Header>
-{
-    switch (type) {
-        case blockchain::Type::Bitcoin:
-        case blockchain::Type::Bitcoin_testnet3:
-        case blockchain::Type::BitcoinCash:
-        case blockchain::Type::BitcoinCash_testnet3: {
-            return std::unique_ptr<blockchain::block::Header>(
-                opentxs::Factory::BitcoinBlockHeader(
-                    api_, type, hash, parent, height));
-        }
-        default: {
-            LogOutput(OT_METHOD)(__FUNCTION__)(": Unsupported type (")(
-                static_cast<std::uint32_t>(type))(")")
-                .Flush();
-
-            return {};
-        }
-    }
+        factory::BlockchainAddress(api_, serialized).release()};
 }
 #endif  // OT_BLOCKCHAIN
 
@@ -1316,12 +1239,12 @@ auto Factory::Keypair(
         }
     }
 
-    const auto path =
-        api::HDSeed::Path{HDIndex{Bip43Purpose::NYM, Bip32Child::HARDENED},
-                          HDIndex{nym, Bip32Child::HARDENED},
-                          HDIndex{credset, Bip32Child::HARDENED},
-                          HDIndex{credindex, Bip32Child::HARDENED},
-                          roleIndex};
+    const auto path = api::HDSeed::Path{
+        HDIndex{Bip43Purpose::NYM, Bip32Child::HARDENED},
+        HDIndex{nym, Bip32Child::HARDENED},
+        HDIndex{credset, Bip32Child::HARDENED},
+        HDIndex{credindex, Bip32Child::HARDENED},
+        roleIndex};
     auto pPrivateKey = api_.Seeds().GetHDKey(input, curve, path, reason, role);
 
     if (false == bool(pPrivateKey)) {

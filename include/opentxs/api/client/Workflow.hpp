@@ -14,6 +14,7 @@
 #include <vector>
 
 #include "opentxs/Proto.hpp"
+#include "opentxs/core/Identifier.hpp"
 
 namespace opentxs
 {
