@@ -708,6 +708,9 @@ TEST_F(Test_BlockchainAPI, TestSeedRoot)
     } catch (...) {
         EXPECT_TRUE(false);
     }
+
+    EXPECT_EQ(alex_, api_.Blockchain().Owner(account_1_id_));
+    EXPECT_EQ(daniel_, api_.Blockchain().Owner(account_2_id_));
 }
 
 // Test that one onym creates the same account for the same chain (BIP32 or

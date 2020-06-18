@@ -120,6 +120,7 @@ Blockchain::Blockchain(
     , contacts_(contacts)
     , lock_()
     , nym_lock_()
+    , accounts_(api_)
     , balance_lists_(*this)
     , txo_db_(*this)
 #if OT_BLOCKCHAIN
@@ -137,6 +138,14 @@ Blockchain::Blockchain(
 
     OT_ASSERT(listen);
 #endif  // OT_BLOCKCHAIN
+}
+
+Blockchain::AccountCache::AccountCache(const api::Core& api) noexcept
+    : api_(api)
+    , lock_()
+    , account_map_()
+    , account_index_()
+{
 }
 
 #if OT_BLOCKCHAIN
@@ -185,6 +194,80 @@ Blockchain::Txo::Txo(api::client::internal::Blockchain& parent)
     : parent_(parent)
     , lock_()
 {
+}
+
+auto Blockchain::AccountCache::AccountList(
+    const identifier::Nym& nymID,
+    const Chain chain) const noexcept -> std::set<OTIdentifier>
+{
+    Lock lock(lock_);
+    const auto& map = get_account_map(lock, chain);
+    auto it = map.find(nymID);
+
+    if (map.end() == it) { return {}; }
+
+    return it->second;
+}
+
+auto Blockchain::AccountCache::AccountOwner(
+    const Identifier& accountID) const noexcept -> const identifier::Nym&
+{
+    static const auto blank = api_.Factory().NymID();
+
+    try {
+
+        return account_index_.at(accountID);
+    } catch (...) {
+
+        return blank;
+    }
+}
+
+auto Blockchain::AccountCache::build_account_map(
+    const Lock&,
+    const Chain chain,
+    std::optional<NymAccountMap>& map) const noexcept -> void
+{
+    const auto nyms = api_.Wallet().LocalNyms();
+    map = NymAccountMap{};
+
+    OT_ASSERT(map.has_value());
+
+    auto& output = map.value();
+    std::for_each(std::begin(nyms), std::end(nyms), [&](const auto& nym) {
+        const auto& accounts =
+            api_.Storage().BlockchainAccountList(nym->str(), Translate(chain));
+        std::for_each(
+            std::begin(accounts), std::end(accounts), [&](const auto& account) {
+                auto& set = output[nym];
+                auto accountID = api_.Factory().Identifier(account);
+                account_index_.emplace(accountID, nym);
+                set.emplace(std::move(accountID));
+            });
+    });
+}
+
+auto Blockchain::AccountCache::get_account_map(
+    const Lock& lock,
+    const Chain chain) const noexcept -> NymAccountMap&
+{
+    auto& map = account_map_[chain];
+
+    if (false == map.has_value()) { build_account_map(lock, chain, map); }
+
+    OT_ASSERT(map.has_value());
+
+    return map.value();
+}
+
+auto Blockchain::AccountCache::NewAccount(
+    const Chain chain,
+    const Identifier& account,
+    const identifier::Nym& owner) const noexcept -> void
+{
+    Lock lock(lock_);
+    get_account_map(lock, chain)[owner].emplace(account);
+    account_index_.emplace(account, owner);
 }
 
 auto Blockchain::BalanceLists::Get(const Chain chain) noexcept
@@ -486,22 +569,6 @@ auto Blockchain::Txo::Lookup(const identifier::Nym& nym, const Data& element)
         auto& data = *pData;
 
         if (loaded) { output.emplace_back(Status{coin, data.spent()}); }
-    }
-
-    return output;
-}
-
-auto Blockchain::AccountList(const identifier::Nym& nymID, const Chain chain)
-    const noexcept -> std::set<OTIdentifier>
-{
-    if (false == validate_nym(nymID)) { return {}; }
-
-    std::set<OTIdentifier> output;
-    auto list =
-        api_.Storage().BlockchainAccountList(nymID.str(), Translate(chain));
-
-    for (const auto& accountID : list) {
-        output.emplace(Identifier::Factory(accountID));
     }
 
     return output;
@@ -1005,6 +1072,7 @@ auto Blockchain::NewHDSubaccount(
         auto accountID = Identifier::Factory();
         auto& tree = balance_lists_.Get(chain).Nym(nymID);
         tree.AddHDNode(accountPath, accountID);
+        accounts_.NewAccount(chain, accountID, nymID);
 #if OT_BLOCKCHAIN
         balances_.UpdateBalance(chain, {});
 #endif  // OT_BLOCKCHAIN
@@ -1169,8 +1237,8 @@ auto Blockchain::PubkeyHash(
 }
 
 #if OT_BLOCKCHAIN
-auto Blockchain::Start(const Chain type, const std::string& seednode) const
-    noexcept -> bool
+auto Blockchain::Start(const Chain type, const std::string& seednode)
+    const noexcept -> bool
 {
     if (0 == opentxs::blockchain::SupportedChains().count(type)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Unsupported chain").Flush();

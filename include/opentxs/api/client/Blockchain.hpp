@@ -69,6 +69,10 @@ public:
         const BlockchainAccountType standard,
         const Chain chain,
         const PasswordPrompt& reason) const noexcept = 0;
+    OPENTXS_EXPORT virtual const identifier::Nym& Owner(
+        const Identifier& accountID) const noexcept = 0;
+    OPENTXS_EXPORT virtual const identifier::Nym& Owner(
+        const blockchain::Key& key) const noexcept = 0;
 #if OT_BLOCKCHAIN
     OPENTXS_EXPORT virtual bool Start(
         const Chain type,

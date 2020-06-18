@@ -99,8 +99,11 @@ public:
     {
         return BalanceTree(nymID, chain);
     }
-    auto AccountList(const identifier::Nym& nymID, const Chain chain) const
-        noexcept -> std::set<OTIdentifier> final;
+    auto AccountList(const identifier::Nym& nymID, const Chain chain)
+        const noexcept -> std::set<OTIdentifier> final
+    {
+        return accounts_.AccountList(nymID, chain);
+    }
     auto API() const noexcept -> const api::internal::Core& final
     {
         return api_;
@@ -157,6 +160,16 @@ public:
         const BlockchainAccountType standard,
         const Chain chain,
         const PasswordPrompt& reason) const noexcept -> OTIdentifier final;
+    auto Owner(const Identifier& accountID) const noexcept
+        -> const identifier::Nym& final
+    {
+        return accounts_.AccountOwner(accountID);
+    }
+    auto Owner(const blockchain::Key& key) const noexcept
+        -> const identifier::Nym& final
+    {
+        return Owner(api_.Factory().Identifier(std::get<0>(key)));
+    }
     auto PubkeyHash(const Chain chain, const Data& pubkey) const noexcept(false)
         -> OTData final;
 #if OT_BLOCKCHAIN
@@ -190,8 +203,8 @@ public:
         balances_.UpdateBalance(chain, balance);
     }
 #endif  // OT_BLOCKCHAIN
-    auto UpdateTransactions(const std::map<OTData, OTIdentifier>& changed) const
-        noexcept -> bool final;
+    auto UpdateTransactions(const std::map<OTData, OTIdentifier>& changed)
+        const noexcept -> bool final;
 
     Blockchain(
         const api::client::internal::Manager& api,
@@ -229,6 +242,36 @@ private:
 
     friend opentxs::Factory;
 
+    struct AccountCache {
+        auto AccountList(const identifier::Nym& nymID, const Chain chain)
+            const noexcept -> std::set<OTIdentifier>;
+        auto AccountOwner(const Identifier& accountID) const noexcept
+            -> const identifier::Nym&;
+        auto NewAccount(
+            const Chain chain,
+            const Identifier& account,
+            const identifier::Nym& owner) const noexcept -> void;
+
+        AccountCache(const api::Core& api) noexcept;
+
+    private:
+        using NymAccountMap = std::map<OTNymID, std::set<OTIdentifier>>;
+        using ChainAccountMap = std::map<Chain, std::optional<NymAccountMap>>;
+        using AccountNymIndex = std::map<OTIdentifier, OTNymID>;
+
+        const api::Core& api_;
+        mutable std::mutex lock_;
+        mutable ChainAccountMap account_map_;
+        mutable AccountNymIndex account_index_;
+
+        auto build_account_map(
+            const Lock&,
+            const Chain chain,
+            std::optional<NymAccountMap>& map) const noexcept -> void;
+        auto get_account_map(const Lock&, const Chain chain) const noexcept
+            -> NymAccountMap&;
+    };
+
     struct BalanceLists {
         auto Get(const Chain chain) noexcept
             -> client::blockchain::internal::BalanceList&;
@@ -248,8 +291,8 @@ private:
         using Balance = opentxs::blockchain::Balance;
         using Chain = opentxs::blockchain::Type;
 
-        auto UpdateBalance(const Chain chain, const Balance balance) const
-            noexcept -> void;
+        auto UpdateBalance(const Chain chain, const Balance balance)
+            const noexcept -> void;
 
         BalanceOracle(
             const api::client::internal::Blockchain& parent,
@@ -278,10 +321,10 @@ private:
             const identifier::Nym& nym,
             const blockchain::Coin txo,
             const std::vector<OTData>& elements) const noexcept -> bool final;
-        auto Claim(const identifier::Nym& nym, const blockchain::Coin txo) const
-            noexcept -> bool final;
-        auto Lookup(const identifier::Nym& nym, const Data& element) const
-            noexcept -> std::vector<Status> final;
+        auto Claim(const identifier::Nym& nym, const blockchain::Coin txo)
+            const noexcept -> bool final;
+        auto Lookup(const identifier::Nym& nym, const Data& element)
+            const noexcept -> std::vector<Status> final;
 
         Txo(api::client::internal::Blockchain& parent);
 
@@ -374,6 +417,7 @@ private:
     const api::client::Contacts& contacts_;
     mutable std::mutex lock_;
     mutable IDLock nym_lock_;
+    mutable AccountCache accounts_;
     mutable BalanceLists balance_lists_;
     mutable Txo txo_db_;
 #if OT_BLOCKCHAIN
