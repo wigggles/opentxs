@@ -61,9 +61,8 @@ private:
     auto have_callback() const noexcept -> bool final { return true; }
 
     void init() noexcept final;
-    void process_incoming(
-        const Lock& lock,
-        zap::Request& message) noexcept final;
+    void process_incoming(const Lock& lock, zap::Request& message) noexcept
+        final;
 
     Handler(
         const zeromq::Context& context,

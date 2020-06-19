@@ -1033,10 +1033,10 @@ auto AllowedSubtypes() noexcept -> const std::set<ContactSectionName>&
 }
 auto ContactItemAttributes() noexcept -> const EnumTranslation&
 {
-    static const auto output =
-        EnumTranslation{{{CITEMATTR_ACTIVE, "en"}, "Active"},
-                        {{CITEMATTR_PRIMARY, "en"}, "Primary"},
-                        {{CITEMATTR_LOCAL, "en"}, "Local"}};
+    static const auto output = EnumTranslation{
+        {{CITEMATTR_ACTIVE, "en"}, "Active"},
+        {{CITEMATTR_PRIMARY, "en"}, "Primary"},
+        {{CITEMATTR_LOCAL, "en"}, "Local"}};
 
     return output;
 }
@@ -1238,17 +1238,17 @@ auto ContactItemTypes() noexcept -> const EnumTranslation&
 }
 auto ContactSectionNames() noexcept -> const EnumTranslation&
 {
-    static const auto output =
-        EnumTranslation{{{CONTACTSECTION_SCOPE, "en"}, "Scope"},
-                        {{CONTACTSECTION_IDENTIFIER, "en"}, "Identifier"},
-                        {{CONTACTSECTION_ADDRESS, "en"}, "Address"},
-                        {{CONTACTSECTION_COMMUNICATION, "en"}, "Communication"},
-                        {{CONTACTSECTION_PROFILE, "en"}, "Profile"},
-                        {{CONTACTSECTION_RELATIONSHIP, "en"}, "Relationships"},
-                        {{CONTACTSECTION_DESCRIPTOR, "en"}, "Descriptor"},
-                        {{CONTACTSECTION_EVENT, "en"}, "Event"},
-                        {{CONTACTSECTION_CONTRACT, "en"}, "Contracts"},
-                        {{CONTACTSECTION_PROCEDURE, "en"}, "Procedures"}};
+    static const auto output = EnumTranslation{
+        {{CONTACTSECTION_SCOPE, "en"}, "Scope"},
+        {{CONTACTSECTION_IDENTIFIER, "en"}, "Identifier"},
+        {{CONTACTSECTION_ADDRESS, "en"}, "Address"},
+        {{CONTACTSECTION_COMMUNICATION, "en"}, "Communication"},
+        {{CONTACTSECTION_PROFILE, "en"}, "Profile"},
+        {{CONTACTSECTION_RELATIONSHIP, "en"}, "Relationships"},
+        {{CONTACTSECTION_DESCRIPTOR, "en"}, "Descriptor"},
+        {{CONTACTSECTION_EVENT, "en"}, "Event"},
+        {{CONTACTSECTION_CONTRACT, "en"}, "Contracts"},
+        {{CONTACTSECTION_PROCEDURE, "en"}, "Procedures"}};
 
     return output;
 }

@@ -30,8 +30,8 @@ public:
     static auto get_suffix(const char* application) noexcept -> fs::path;
 
     auto Account() const noexcept -> const char* final { return account_; }
-    auto AppendFile(String& out, const String& base, const String& file) const
-        noexcept -> bool final;
+    auto AppendFile(String& out, const String& base, const String& file)
+        const noexcept -> bool final;
     auto AppendFolder(String& out, const String& base, const String& folder)
         const noexcept -> bool final;
     auto BuildFolderPath(const String& path) const noexcept -> bool final;
@@ -104,10 +104,10 @@ private:
         -> fs::path;
     static auto get_suffix() noexcept -> fs::path;
 
-    auto get_path(const std::string& fragment, const int instance = 0) const
-        noexcept -> std::string;
-    auto get_file(const std::string& fragment, const int instance = 0) const
-        noexcept -> std::string;
+    auto get_path(const std::string& fragment, const int instance = 0)
+        const noexcept -> std::string;
+    auto get_file(const std::string& fragment, const int instance = 0)
+        const noexcept -> std::string;
 
     Legacy() = delete;
     Legacy(const Legacy&) = delete;

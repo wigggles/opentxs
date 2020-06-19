@@ -10,7 +10,7 @@
 #include <list>
 #include <memory>
 
-#include "Factory.hpp"
+#include "2_Factory.hpp"
 #include "internal/api/Api.hpp"
 #include "internal/core/contract/Contract.hpp"
 #include "opentxs/Pimpl.hpp"
@@ -25,7 +25,6 @@
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/identity/Nym.hpp"
 #include "opentxs/protobuf/Check.hpp"
-#include "opentxs/protobuf/Enums.pb.h"
 #include "opentxs/protobuf/PeerEnums.pb.h"
 #include "opentxs/protobuf/verify/PeerRequest.hpp"
 

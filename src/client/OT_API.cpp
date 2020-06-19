@@ -4316,10 +4316,10 @@ auto OT_API::issueMarketOffer(
     const auto VALID_FROM = GetTime();
     // defaults to 24 hours (a "Day Order") aka OT_API_GetTime() + 86,400
     const auto VALID_TO =
-        VALID_FROM +
-        std::chrono::seconds{(std::chrono::seconds{0} == tLifespanInSeconds)
-                                 ? std::chrono::hours{24}
-                                 : tLifespanInSeconds};
+        VALID_FROM + std::chrono::seconds{
+                         (std::chrono::seconds{0} == tLifespanInSeconds)
+                             ? std::chrono::hours{24}
+                             : tLifespanInSeconds};
     std::int64_t lTotalAssetsOnOffer = 1, lMinimumIncrement = 1,
                  lPriceLimit = 0,  // your price limit, per scale of assets.
         lMarketScale = 1, lActivationPrice = 0;

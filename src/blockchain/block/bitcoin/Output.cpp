@@ -15,27 +15,29 @@
 #include <string>
 #include <utility>
 
-#include "Factory.hpp"
 #include "blockchain/bitcoin/CompactSize.hpp"
 #include "internal/blockchain/block/Block.hpp"
+#include "internal/blockchain/block/bitcoin/Bitcoin.hpp"
 #include "opentxs/Bytes.hpp"
-#include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
+#include "opentxs/api/client/Blockchain.hpp"
+#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/blockchain/block/bitcoin/Output.hpp"
 #include "opentxs/blockchain/block/bitcoin/Script.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/protobuf/BlockchainTransactionOutput.pb.h"
 
 #define OT_METHOD                                                              \
     "opentxs::blockchain::block::bitcoin::implementation::Output::"
 
-namespace opentxs
+namespace opentxs::factory
 {
 using ReturnType = blockchain::block::bitcoin::implementation::Output;
 
-auto Factory::BitcoinTransactionOutput(
-    const api::Core& api,
+auto BitcoinTransactionOutput(
+    const api::client::Manager& api,
     const std::uint32_t index,
     const std::int64_t value,
     const blockchain::bitcoin::CompactSize& cs,
@@ -46,14 +48,14 @@ auto Factory::BitcoinTransactionOutput(
         return std::make_unique<ReturnType>(
             api, index, value, sizeof(value) + cs.Total(), script);
     } catch (const std::exception& e) {
-        LogOutput("opentxs::Factory::")(__FUNCTION__)(": ")(e.what()).Flush();
+        LogOutput("opentxs::factory::")(__FUNCTION__)(": ")(e.what()).Flush();
 
         return {};
     }
 }
 
-auto Factory::BitcoinTransactionOutput(
-    const api::Core& api,
+auto BitcoinTransactionOutput(
+    const api::client::Manager& api,
     const proto::BlockchainTransactionOutput in) noexcept
     -> std::unique_ptr<blockchain::block::bitcoin::Output>
 {
@@ -69,19 +71,19 @@ auto Factory::BitcoinTransactionOutput(
             in.script(),
             in.version());
     } catch (const std::exception& e) {
-        LogOutput("opentxs::Factory::")(__FUNCTION__)(": ")(e.what()).Flush();
+        LogOutput("opentxs::factory::")(__FUNCTION__)(": ")(e.what()).Flush();
 
         return {};
     }
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::blockchain::block::bitcoin::implementation
 {
 const VersionNumber Output::default_version_{1};
 
 Output::Output(
-    const api::Core& api,
+    const api::client::Manager& api,
     const VersionNumber version,
     const std::uint32_t index,
     const std::int64_t value,
@@ -105,7 +107,7 @@ Output::Output(
 }
 
 Output::Output(
-    const api::Core& api,
+    const api::client::Manager& api,
     const std::uint32_t index,
     const std::int64_t value,
     const std::size_t size,
@@ -116,7 +118,7 @@ Output::Output(
           version,
           index,
           value,
-          opentxs::Factory::BitcoinScript(in, true, false),
+          factory::BitcoinScript(in, true, false),
           size)
 {
 }
@@ -143,9 +145,29 @@ auto Output::FindMatches(
     const FilterType type,
     const Patterns& patterns) const noexcept -> Matches
 {
-    // TODO set payee_, payer_, and keys_ based on match results
+    const auto output =
+        SetIntersection(api_, txid, patterns, ExtractElements(type));
+    std::for_each(
+        std::begin(output), std::end(output), [this](const auto& match) {
+            const auto& [txid, element] = match;
+            const auto& [index, subchainID] = element;
+            const auto& [subchain, account] = subchainID;
+            keys_.emplace(KeyID{account->str(), subchain, index});
+        });
+    set_payee();
+    set_payer();
 
-    return SetIntersection(api_, txid, patterns, ExtractElements(type));
+    return output;
+}
+
+auto Output::Keys() const noexcept -> std::vector<KeyID>
+{
+    auto output = std::vector<KeyID>{};
+    std::transform(
+        std::begin(keys_), std::end(keys_), std::back_inserter(output), [
+        ](const auto& key) -> auto { return key; });
+
+    return output;
 }
 
 auto Output::MergeMetadata(const SerializeType& rhs) const noexcept -> void
@@ -235,5 +257,23 @@ auto Output::Serialize(SerializeType& out) const noexcept -> bool
     */
 
     return true;
+}
+
+auto Output::set_payee() const noexcept -> void
+{
+    // TODO handle multisig and other strange cases
+
+    if (1 != keys_.size()) { return; }
+
+    payee_ = api_.Blockchain().Owner(*keys_.cbegin());
+}
+
+auto Output::set_payer() const noexcept -> void
+{
+    // TODO handle multisig and other strange cases
+
+    if (1 != keys_.size()) { return; }
+
+    // TODO look up key and see if it has an associated contact
 }
 }  // namespace opentxs::blockchain::block::bitcoin::implementation

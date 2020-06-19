@@ -22,10 +22,10 @@ namespace opentxs
 {
 namespace api
 {
-namespace internal
+namespace client
 {
-struct Core;
-}  // namespace internal
+class Manager;
+}  // namespace client
 }  // namespace api
 
 namespace blockchain
@@ -38,8 +38,6 @@ class Header;
 }  // namespace bitcoin
 }  // namespace p2p
 }  // namespace blockchain
-
-class Factory;
 }  // namespace opentxs
 
 namespace opentxs::blockchain::p2p::bitcoin::message::implementation
@@ -47,6 +45,8 @@ namespace opentxs::blockchain::p2p::bitcoin::message::implementation
 class Cfilter final : public internal::Cfilter
 {
 public:
+    using BitcoinFormat = FilterPrefixBasic;
+
     auto Bits() const noexcept -> std::uint8_t final
     {
         return gcs_bits_.at(type_);
@@ -60,13 +60,24 @@ public:
     auto Hash() const noexcept -> const filter::Hash& final { return hash_; }
     auto Type() const noexcept -> filter::Type final { return type_; }
 
+    Cfilter(
+        const api::client::Manager& api,
+        const blockchain::Type network,
+        const filter::Type type,
+        const filter::Hash& hash,
+        const std::uint32_t count,
+        const Space& compressed) noexcept;
+    Cfilter(
+        const api::client::Manager& api,
+        std::unique_ptr<Header> header,
+        const filter::Type type,
+        const filter::Hash& hash,
+        const std::uint32_t count,
+        Space&& compressed) noexcept;
+
     ~Cfilter() final = default;
 
 private:
-    friend opentxs::Factory;
-
-    using BitcoinFormat = FilterPrefixBasic;
-
     static const std::map<filter::Type, std::uint8_t> gcs_bits_;
     static const std::map<filter::Type, std::uint32_t> gcs_fp_rate_;
 
@@ -77,20 +88,6 @@ private:
 
     auto payload() const noexcept -> OTData final;
 
-    Cfilter(
-        const api::internal::Core& api,
-        const blockchain::Type network,
-        const filter::Type type,
-        const filter::Hash& hash,
-        const std::uint32_t count,
-        const Space& compressed) noexcept;
-    Cfilter(
-        const api::internal::Core& api,
-        std::unique_ptr<Header> header,
-        const filter::Type type,
-        const filter::Hash& hash,
-        const std::uint32_t count,
-        Space&& compressed) noexcept;
     Cfilter(const Cfilter&) = delete;
     Cfilter(Cfilter&&) = delete;
     auto operator=(const Cfilter&) -> Cfilter& = delete;

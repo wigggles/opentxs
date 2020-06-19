@@ -35,6 +35,7 @@
 #include "opentxs/protobuf/ContactEnums.pb.h"
 #include "opentxs/protobuf/verify/ContactItem.hpp"
 #include "opentxs/protobuf/verify/VerifyContacts.hpp"
+#include "util/Container.hpp"
 
 #define ID_BYTES 32
 
@@ -281,8 +282,8 @@ void Contact::add_nym_claim(
 {
     OT_ASSERT(verify_write_lock(lock));
 
-    std::set<proto::ContactItemAttribute> attr{proto::CITEMATTR_LOCAL,
-                                               proto::CITEMATTR_ACTIVE};
+    std::set<proto::ContactItemAttribute> attr{
+        proto::CITEMATTR_LOCAL, proto::CITEMATTR_ACTIVE};
 
     if (primary) { attr.emplace(proto::CITEMATTR_PRIMARY); }
 
@@ -932,9 +933,10 @@ auto Contact::translate(
     const std::string& value,
     const std::string& subtype) noexcept(false) -> Contact::BlockchainAddress
 {
-    auto output = BlockchainAddress{api.Factory().Data(value, StringStyle::Hex),
-                                    translate_style(subtype),
-                                    Translate(chain)};
+    auto output = BlockchainAddress{
+        api.Factory().Data(value, StringStyle::Hex),
+        translate_style(subtype),
+        Translate(chain)};
     auto& [outBytes, outStyle, outChain] = output;
     const auto bad = outBytes->empty() || (AddressStyle::Unknown == outStyle) ||
                      (BlockchainType::Unknown == outChain);

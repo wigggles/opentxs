@@ -24,30 +24,32 @@
 #include <type_traits>
 #include <vector>
 
-#include "Factory.hpp"
 #include "blockchain/block/Block.hpp"
-#include "internal/api/Api.hpp"
 #include "internal/blockchain/bitcoin/Bitcoin.hpp"
 #include "internal/blockchain/block/Block.hpp"
+#include "internal/blockchain/block/bitcoin/Bitcoin.hpp"
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
+#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/blockchain/block/bitcoin/Block.hpp"
 #include "opentxs/blockchain/block/bitcoin/Transaction.hpp"
 #include "opentxs/core/Data.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
+#include "util/Container.hpp"
 
 #define OT_METHOD "opentxs::blockchain::block::bitcoin::implementation::Block::"
 
 namespace be = boost::endian;
 
-namespace opentxs
+namespace opentxs::factory
 {
 using ReturnType = blockchain::block::bitcoin::implementation::Block;
 
-auto Factory::BitcoinBlock(
-    const api::internal::Core& api,
+auto BitcoinBlock(
+    const api::client::Manager& api,
     const blockchain::Type chain,
     const ReadView in) noexcept
     -> std::shared_ptr<blockchain::block::bitcoin::Block>
@@ -104,8 +106,9 @@ auto Factory::BitcoinBlock(
             auto data = bb::EncodedTransaction::Deserialize(
                 api,
                 chain,
-                ReadView{reinterpret_cast<const char*>(it),
-                         in.size() - expectedSize});
+                ReadView{
+                    reinterpret_cast<const char*>(it),
+                    in.size() - expectedSize});
             const auto txBytes = data.size();
             std::advance(it, txBytes);
             expectedSize += txBytes;
@@ -124,12 +127,12 @@ auto Factory::BitcoinBlock(
             std::move(transactions),
             std::move(sizeData));
     } catch (const std::exception& e) {
-        LogOutput("opentxs::Factory::")(__FUNCTION__)(": ")(e.what()).Flush();
+        LogOutput("opentxs::factory::")(__FUNCTION__)(": ")(e.what()).Flush();
 
         return {};
     }
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::blockchain::block
 {
@@ -222,7 +225,7 @@ const std::size_t Block::header_bytes_{80};
 const Block::value_type Block::null_tx_{};
 
 Block::Block(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     const blockchain::Type chain,
     std::unique_ptr<const internal::Header> header,
     TxidIndex&& index,

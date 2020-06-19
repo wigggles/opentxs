@@ -19,14 +19,14 @@
 #include <random>
 #include <utility>
 
-#include "Factory.hpp"
 #include "core/Executor.hpp"
-#include "internal/api/Api.hpp"
 #include "internal/blockchain/client/Client.hpp"
 #include "internal/blockchain/p2p/P2P.hpp"
+#include "internal/blockchain/p2p/bitcoin/Bitcoin.hpp"
 #include "opentxs/Bytes.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/api/Factory.hpp"
+#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/blockchain/p2p/Address.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -47,7 +47,7 @@
 namespace opentxs::factory
 {
 auto BlockchainPeerManager(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     const blockchain::client::internal::Network& network,
     const blockchain::client::internal::PeerDatabase& database,
     const blockchain::client::internal::IO& io,
@@ -122,7 +122,7 @@ const std::map<Type, p2p::Protocol> PeerManager::protocol_map_{
 };
 
 PeerManager::PeerManager(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     const internal::Network& network,
     const internal::PeerDatabase& database,
     const blockchain::client::internal::IO& io,
@@ -149,7 +149,7 @@ PeerManager::PeerManager(
     init_executor({shutdown});
 }
 
-PeerManager::Jobs::Jobs(const api::internal::Core& api) noexcept
+PeerManager::Jobs::Jobs(const api::client::Manager& api) noexcept
     : zmq_(api.ZeroMQ())
     , getheaders_(api.ZeroMQ().PushSocket(zmq::socket::Socket::Direction::Bind))
     , getcfheaders_(
@@ -176,7 +176,7 @@ PeerManager::Jobs::Jobs(const api::internal::Core& api) noexcept
 }
 
 PeerManager::Peers::Peers(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     const internal::Network& network,
     const internal::PeerDatabase& database,
     const internal::PeerManager& parent,
@@ -199,14 +199,14 @@ PeerManager::Peers::Peers(
           localhost_peer_,
           const_cast<bool&>(invalid_peer_)))
     , context_(context)
-    , resolver_(context_.operator boost::asio::io_context&())
+    , resolver_(context_.operator boost::asio::io_context &())
     , next_id_(0)
     , minimum_peers_(peer_target_)
     , peers_()
     , active_()
     , count_()
 {
-    database_.AddOrUpdate(Endpoint{opentxs::Factory().BlockchainAddress(
+    database_.AddOrUpdate(Endpoint{factory::BlockchainAddress(
         api_,
         protocol_map_.at(chain_),
         p2p::Network::ipv4,
@@ -264,8 +264,8 @@ auto PeerManager::Jobs::Shutdown() noexcept -> void
     for (auto [type, socket] : socket_map_) { socket->Close(); }
 }
 
-auto PeerManager::Jobs::Work(const Task task, std::promise<void>* promise) const
-    noexcept -> OTZMQMessage
+auto PeerManager::Jobs::Work(const Task task, std::promise<void>* promise)
+    const noexcept -> OTZMQMessage
 {
     auto output = zmq_.Message(task);
 
@@ -316,7 +316,7 @@ auto PeerManager::Peers::AddPeer(
         return;
     }
 
-    auto endpoint = Endpoint{Factory::BlockchainAddress(
+    auto endpoint = Endpoint{factory::BlockchainAddress(
         api_,
         address.Style(),
         address.Type(),
@@ -336,7 +336,7 @@ auto PeerManager::Peers::get_default_peer() const noexcept -> Endpoint
 {
     if (localhost_peer_.get() == default_peer_) { return {}; }
 
-    return Endpoint{opentxs::Factory().BlockchainAddress(
+    return Endpoint{factory::BlockchainAddress(
         api_,
         protocol_map_.at(chain_),
         p2p::Network::ipv4,
@@ -382,26 +382,26 @@ auto PeerManager::Peers::get_dns_peer() const noexcept -> Endpoint
 
             if (address.is_v4()) {
                 const auto bytes = address.to_v4().to_bytes();
-                output = opentxs::Factory().BlockchainAddress(
+                output = factory::BlockchainAddress(
                     api_,
                     protocol_map_.at(chain_),
                     p2p::Network::ipv4,
-                    api_.Factory().Data(
-                        ReadView{reinterpret_cast<const char*>(bytes.data()),
-                                 bytes.size()}),
+                    api_.Factory().Data(ReadView{
+                        reinterpret_cast<const char*>(bytes.data()),
+                        bytes.size()}),
                     port,
                     chain_,
                     Time{},
                     {});
             } else if (address.is_v6()) {
                 const auto bytes = address.to_v6().to_bytes();
-                output = opentxs::Factory().BlockchainAddress(
+                output = factory::BlockchainAddress(
                     api_,
                     protocol_map_.at(chain_),
                     p2p::Network::ipv6,
-                    api_.Factory().Data(
-                        ReadView{reinterpret_cast<const char*>(bytes.data()),
-                                 bytes.size()}),
+                    api_.Factory().Data(ReadView{
+                        reinterpret_cast<const char*>(bytes.data()),
+                        bytes.size()}),
                     port,
                     chain_,
                     Time{},
@@ -429,8 +429,8 @@ auto PeerManager::Peers::get_dns_peer() const noexcept -> Endpoint
     }
 }
 
-auto PeerManager::Peers::get_fallback_peer(const p2p::Protocol protocol) const
-    noexcept -> Endpoint
+auto PeerManager::Peers::get_fallback_peer(
+    const p2p::Protocol protocol) const noexcept -> Endpoint
 {
     return database_.Get(
         protocol, {p2p::Network::ipv4, p2p::Network::ipv6}, {});
@@ -480,8 +480,8 @@ auto PeerManager::Peers::get_peer() const noexcept -> Endpoint
     return pAddress;
 }
 
-auto PeerManager::Peers::get_preferred_peer(const p2p::Protocol protocol) const
-    noexcept -> Endpoint
+auto PeerManager::Peers::get_preferred_peer(
+    const p2p::Protocol protocol) const noexcept -> Endpoint
 {
     return database_.Get(
         protocol,
@@ -497,7 +497,7 @@ auto PeerManager::Peers::peer_factory(Endpoint endpoint, const int id) noexcept
         case Type::Bitcoin_testnet3:
         case Type::BitcoinCash:
         case Type::BitcoinCash_testnet3: {
-            return opentxs::Factory::BitcoinP2PPeerLegacy(
+            return factory::BitcoinP2PPeerLegacy(
                 api_,
                 network_,
                 parent_,

@@ -3,7 +3,26 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "OTTestEnvironment.hpp"
+#include <gtest/gtest-message.h>
+#include <gtest/gtest-test-part.h>
+#include <gtest/gtest.h>
+#include <iterator>
+#include <map>
+#include <memory>
+#include <string>
+
+#include "1_Internal.hpp"
+#include "OTTestEnvironment.hpp"  // IWYU pragma: keep
+#include "internal/api/client/Client.hpp"
+#include "opentxs/OT.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/api/Context.hpp"
+#include "opentxs/api/client/Manager.hpp"
+#include "opentxs/contact/ContactGroup.hpp"
+#include "opentxs/contact/ContactItem.hpp"
+#include "opentxs/contact/ContactSection.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/protobuf/ContactEnums.pb.h"
 
 namespace
 {

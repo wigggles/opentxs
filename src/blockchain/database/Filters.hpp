@@ -37,10 +37,10 @@ namespace opentxs
 {
 namespace api
 {
-namespace internal
+namespace client
 {
-struct Core;
-}  // namespace internal
+class Manager;
+}  // namespace client
 }  // namespace api
 
 namespace blockchain
@@ -111,7 +111,7 @@ public:
     }
 
     Filters(
-        const api::internal::Core& api,
+        const api::client::Manager& api,
         const Common& common,
         const opentxs::storage::lmdb::LMDB& lmdb,
         const blockchain::Type chain) noexcept;
@@ -122,7 +122,7 @@ private:
         std::map<filter::Type, std::pair<std::string, std::string>>>
         genesis_filters_;
 
-    const api::internal::Core& api_;
+    const api::client::Manager& api_;
     const Common& common_;
     const opentxs::storage::lmdb::LMDB& lmdb_;
     const block::Position blank_position_;

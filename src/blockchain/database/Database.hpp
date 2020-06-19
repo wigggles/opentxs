@@ -44,20 +44,29 @@ namespace opentxs
 {
 namespace api
 {
-namespace internal
-{
-struct Core;
-}  // namespace internal
-
 namespace client
 {
+namespace blockchain
+{
+namespace database
+{
+namespace implementation
+{
+class Database;
+}  // namespace implementation
+}  // namespace database
+}  // namespace blockchain
+
 namespace internal
 {
 struct Blockchain;
 }  // namespace internal
+
+class Manager;
 }  // namespace client
 
 class Core;
+class Manager;
 }  // namespace api
 
 namespace blockchain
@@ -376,7 +385,7 @@ public:
     }
 
     Database(
-        const api::internal::Core& api,
+        const api::client::Manager& api,
         const api::client::internal::Blockchain& blockchain,
         const client::internal::Network& network,
         const database::Common& common,

@@ -38,8 +38,8 @@ class Deterministic : virtual public internal::Deterministic, public BalanceNode
 {
 public:
 #if OT_CRYPTO_WITH_BIP32
-    auto GenerateNext(const Subchain type, const PasswordPrompt& reason) const
-        noexcept -> std::optional<Bip32Index> final;
+    auto GenerateNext(const Subchain type, const PasswordPrompt& reason)
+        const noexcept -> std::optional<Bip32Index> final;
 #endif  // OT_CRYPTO_WITH_BIP32
     auto LastGenerated(const Subchain type) const noexcept
         -> std::optional<Bip32Index> final;
@@ -113,8 +113,8 @@ protected:
         IndexMap used) noexcept;
 
 private:
-    auto bump(const Lock& lock, const Subchain type, IndexMap map) const
-        noexcept -> std::optional<Bip32Index>;
+    auto bump(const Lock& lock, const Subchain type, IndexMap map)
+        const noexcept -> std::optional<Bip32Index>;
 #if OT_CRYPTO_WITH_BIP32
     virtual auto generate_next(
         const Lock& lock,

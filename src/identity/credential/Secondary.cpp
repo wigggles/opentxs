@@ -10,7 +10,7 @@
 #include <memory>
 #include <stdexcept>
 
-#include "Factory.hpp"
+#include "2_Factory.hpp"
 #include "identity/credential/Key.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/core/Log.hpp"

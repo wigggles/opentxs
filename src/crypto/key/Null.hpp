@@ -61,8 +61,8 @@ public:
     {
         return {};
     }
-    auto CalculateHash(const proto::HashType, const PasswordPrompt&) const
-        noexcept -> OTData final
+    auto CalculateHash(const proto::HashType, const PasswordPrompt&)
+        const noexcept -> OTData final
     {
         return Data::Factory();
     }

@@ -11,7 +11,7 @@
 #include <stdexcept>
 #include <string>
 
-#include "Factory.hpp"
+#include "2_Factory.hpp"
 #include "identity/credential/Base.hpp"
 #include "internal/api/Api.hpp"
 #include "internal/identity/Identity.hpp"
@@ -23,7 +23,6 @@
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/identity/credential/Verification.hpp"
-#include "opentxs/protobuf/Enums.pb.h"
 
 #define OT_METHOD "opentxs::identity::credential::Verification::"
 

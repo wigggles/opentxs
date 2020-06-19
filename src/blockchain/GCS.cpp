@@ -23,7 +23,6 @@
 #include <string>
 #include <vector>
 
-#include "Factory.hpp"
 #include "blockchain/bitcoin/CompactSize.hpp"
 #include "internal/blockchain/Blockchain.hpp"
 #include "opentxs/Pimpl.hpp"
@@ -35,7 +34,7 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
-#include "opentxs/protobuf/Enums.pb.h"
+#include "util/Container.hpp"
 
 //#define OT_METHOD "opentxs::blockchain::implementation::GCS::"
 
@@ -48,8 +47,11 @@ constexpr auto bitmask(const std::uint64_t n) -> std::uint64_t
 {
     return (1u << n) - 1u;
 }
+}  // namespace opentxs
 
-auto Factory::GCS(
+namespace opentxs::factory
+{
+auto GCS(
     const api::Core& api,
     const std::uint8_t bits,
     const std::uint32_t fpRate,
@@ -72,14 +74,13 @@ auto Factory::GCS(
 
         return std::make_unique<ReturnType>(api, bits, fpRate, key, effective);
     } catch (const std::exception& e) {
-        LogVerbose("opentxs::Factory::GCS::")(__FUNCTION__)(": ")(e.what())
-            .Flush();
+        LogVerbose("opentxs::factory::")(__FUNCTION__)(": ")(e.what()).Flush();
 
         return nullptr;
     }
 }
 
-auto Factory::GCS(const api::Core& api, const proto::GCS& in) noexcept
+auto GCS(const api::Core& api, const proto::GCS& in) noexcept
     -> std::unique_ptr<blockchain::internal::GCS>
 {
     using ReturnType = blockchain::implementation::GCS;
@@ -88,14 +89,13 @@ auto Factory::GCS(const api::Core& api, const proto::GCS& in) noexcept
         return std::make_unique<ReturnType>(
             api, in.bits(), in.fprate(), in.count(), in.key(), in.filter());
     } catch (const std::exception& e) {
-        LogVerbose("opentxs::Factory::GCS::")(__FUNCTION__)(": ")(e.what())
-            .Flush();
+        LogVerbose("opentxs::factory::")(__FUNCTION__)(": ")(e.what()).Flush();
 
         return nullptr;
     }
 }
 
-auto Factory::GCS(
+auto GCS(
     const api::Core& api,
     const std::uint8_t bits,
     const std::uint32_t fpRate,
@@ -110,13 +110,12 @@ auto Factory::GCS(
         return std::make_unique<ReturnType>(
             api, bits, fpRate, filterElementCount, key, filter);
     } catch (const std::exception& e) {
-        LogVerbose("opentxs::Factory::GCS::")(__FUNCTION__)(": ")(e.what())
-            .Flush();
+        LogVerbose("opentxs::factory::")(__FUNCTION__)(": ")(e.what()).Flush();
 
         return nullptr;
     }
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::gcs
 {
@@ -320,9 +319,10 @@ GCS::GCS(
 
 auto GCS::Compressed() const noexcept -> Space
 {
-    return {reinterpret_cast<const std::byte*>(compressed_->data()),
-            reinterpret_cast<const std::byte*>(compressed_->data()) +
-                compressed_->size()};
+    return {
+        reinterpret_cast<const std::byte*>(compressed_->data()),
+        reinterpret_cast<const std::byte*>(compressed_->data()) +
+            compressed_->size()};
 }
 
 auto GCS::decompress() const noexcept -> const Elements&
@@ -332,9 +332,10 @@ auto GCS::decompress() const noexcept -> const Elements&
         set = gcs::GolombDecode(
             count_,
             bits_,
-            Space{reinterpret_cast<const std::byte*>(compressed_->data()),
-                  reinterpret_cast<const std::byte*>(compressed_->data()) +
-                      compressed_->size()});
+            Space{
+                reinterpret_cast<const std::byte*>(compressed_->data()),
+                reinterpret_cast<const std::byte*>(compressed_->data()) +
+                    compressed_->size()});
         std::sort(set.value().begin(), set.value().end());
     }
 
@@ -355,20 +356,20 @@ auto GCS::Hash() const noexcept -> OTData
     return internal::FilterToHash(api_, Encode()->Bytes());
 }
 
-auto GCS::hashed_set_construct(const std::vector<OTData>& elements) const
-    noexcept -> std::vector<std::uint64_t>
+auto GCS::hashed_set_construct(const std::vector<OTData>& elements)
+    const noexcept -> std::vector<std::uint64_t>
 {
     return hashed_set_construct(transform(elements));
 }
 
-auto GCS::hashed_set_construct(const std::vector<Space>& elements) const
-    noexcept -> std::vector<std::uint64_t>
+auto GCS::hashed_set_construct(const std::vector<Space>& elements)
+    const noexcept -> std::vector<std::uint64_t>
 {
     return hashed_set_construct(transform(elements));
 }
 
-auto GCS::hashed_set_construct(const std::vector<ReadView>& elements) const
-    noexcept -> std::vector<std::uint64_t>
+auto GCS::hashed_set_construct(const std::vector<ReadView>& elements)
+    const noexcept -> std::vector<std::uint64_t>
 {
     return gcs::HashedSetConstruct(
         api_, key_->Bytes(), count_, false_positive_rate_, elements);

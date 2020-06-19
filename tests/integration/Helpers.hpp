@@ -5,7 +5,22 @@
 
 #pragma once
 
-#include "OTTestEnvironment.hpp"
+#include "OTTestEnvironment.hpp"  // IWYU pragma: keep
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/api/Settings.hpp"
+#include "opentxs/api/Wallet.hpp"
+#include "opentxs/api/client/Manager.hpp"
+#include "opentxs/api/client/OTX.hpp"
+#include "opentxs/api/server/Manager.hpp"
+#include "opentxs/client/OTAPI_Exec.hpp"
+#include "opentxs/core/Data.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/PasswordPrompt.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/contract/ServerContract.hpp"
+#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/network/zeromq/FrameSection.hpp"
+#include "opentxs/network/zeromq/ListenCallback.hpp"
 
 namespace
 {

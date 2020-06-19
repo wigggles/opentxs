@@ -13,7 +13,6 @@
 #include <stdexcept>
 #include <utility>
 
-#include "Factory.hpp"
 #include "blockchain/p2p/bitcoin/Header.hpp"
 #include "blockchain/p2p/bitcoin/message/Cmpctblock.hpp"
 #include "blockchain/p2p/bitcoin/message/Feefilter.hpp"
@@ -23,19 +22,19 @@
 #include "blockchain/p2p/bitcoin/message/Reject.hpp"
 #include "blockchain/p2p/bitcoin/message/Sendcmpct.hpp"
 #include "blockchain/p2p/bitcoin/message/Tx.hpp"
-#include "internal/api/Api.hpp"
 #include "internal/blockchain/p2p/bitcoin/message/Message.hpp"
 #include "opentxs/Pimpl.hpp"
+#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 
 #define OT_METHOD "opentxs::blockchain::p2p::bitcoin::Message::"
 
-namespace opentxs
+namespace opentxs::factory
 {
-auto Factory::BitcoinP2PMessage(
-    const api::internal::Core& api,
+auto BitcoinP2PMessage(
+    const api::client::Manager& api,
     std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
     const blockchain::p2p::bitcoin::ProtocolVersion version,
     const void* payload,
@@ -45,7 +44,7 @@ auto Factory::BitcoinP2PMessage(
     using ReturnType = bitcoin::Message;
 
     if (false == bool(pHeader)) {
-        LogOutput("opentxs::Factory::")(__FUNCTION__)(": Invalid header")
+        LogOutput("opentxs::factory::")(__FUNCTION__)(": Invalid header")
             .Flush();
 
         return nullptr;
@@ -55,126 +54,126 @@ auto Factory::BitcoinP2PMessage(
 
     switch (pHeader->Command()) {
         case bitcoin::Command::addr: {
-            pMessage = Factory::BitcoinP2PAddr(
-                api, std::move(pHeader), version, payload, size);
+            pMessage =
+                BitcoinP2PAddr(api, std::move(pHeader), version, payload, size);
         } break;
         case bitcoin::Command::block: {
-            pMessage = Factory::BitcoinP2PBlock(
+            pMessage = BitcoinP2PBlock(
                 api, std::move(pHeader), version, payload, size);
         } break;
         case bitcoin::Command::blocktxn: {
-            pMessage = Factory::BitcoinP2PBlocktxn(
+            pMessage = BitcoinP2PBlocktxn(
                 api, std::move(pHeader), version, payload, size);
         } break;
         case bitcoin::Command::cmpctblock: {
-            pMessage = Factory::BitcoinP2PCmpctblock(
+            pMessage = BitcoinP2PCmpctblock(
                 api, std::move(pHeader), version, payload, size);
         } break;
         case bitcoin::Command::feefilter: {
-            pMessage = Factory::BitcoinP2PFeefilter(
+            pMessage = BitcoinP2PFeefilter(
                 api, std::move(pHeader), version, payload, size);
         } break;
         case bitcoin::Command::filteradd: {
-            pMessage = Factory::BitcoinP2PFilteradd(
+            pMessage = BitcoinP2PFilteradd(
                 api, std::move(pHeader), version, payload, size);
         } break;
         case bitcoin::Command::filterclear: {
-            pMessage = Factory::BitcoinP2PFilterclear(api, std::move(pHeader));
+            pMessage = BitcoinP2PFilterclear(api, std::move(pHeader));
         } break;
         case bitcoin::Command::filterload: {
-            pMessage = Factory::BitcoinP2PFilterload(
+            pMessage = BitcoinP2PFilterload(
                 api, std::move(pHeader), version, payload, size);
         } break;
         case bitcoin::Command::getaddr: {
-            pMessage = Factory::BitcoinP2PGetaddr(api, std::move(pHeader));
+            pMessage = BitcoinP2PGetaddr(api, std::move(pHeader));
         } break;
         case bitcoin::Command::getblocks: {
-            pMessage = Factory::BitcoinP2PGetblocks(
+            pMessage = BitcoinP2PGetblocks(
                 api, std::move(pHeader), version, payload, size);
         } break;
         case bitcoin::Command::getblocktxn: {
-            pMessage = Factory::BitcoinP2PGetblocktxn(
+            pMessage = BitcoinP2PGetblocktxn(
                 api, std::move(pHeader), version, payload, size);
         } break;
         case bitcoin::Command::getdata: {
-            pMessage = Factory::BitcoinP2PGetdata(
+            pMessage = BitcoinP2PGetdata(
                 api, std::move(pHeader), version, payload, size);
         } break;
         case bitcoin::Command::getheaders: {
-            pMessage = Factory::BitcoinP2PGetheaders(
+            pMessage = BitcoinP2PGetheaders(
                 api, std::move(pHeader), version, payload, size);
         } break;
         case bitcoin::Command::headers: {
-            pMessage = Factory::BitcoinP2PHeaders(
+            pMessage = BitcoinP2PHeaders(
                 api, std::move(pHeader), version, payload, size);
         } break;
         case bitcoin::Command::inv: {
-            pMessage = Factory::BitcoinP2PInv(
-                api, std::move(pHeader), version, payload, size);
+            pMessage =
+                BitcoinP2PInv(api, std::move(pHeader), version, payload, size);
         } break;
         case bitcoin::Command::mempool: {
-            pMessage = Factory::BitcoinP2PMempool(api, std::move(pHeader));
+            pMessage = BitcoinP2PMempool(api, std::move(pHeader));
         } break;
         case bitcoin::Command::merkleblock: {
-            pMessage = Factory::BitcoinP2PMerkleblock(
+            pMessage = BitcoinP2PMerkleblock(
                 api, std::move(pHeader), version, payload, size);
         } break;
         case bitcoin::Command::notfound: {
-            pMessage = Factory::BitcoinP2PNotfound(
+            pMessage = BitcoinP2PNotfound(
                 api, std::move(pHeader), version, payload, size);
         } break;
         case bitcoin::Command::ping: {
-            pMessage = Factory::BitcoinP2PPing(
-                api, std::move(pHeader), version, payload, size);
+            pMessage =
+                BitcoinP2PPing(api, std::move(pHeader), version, payload, size);
         } break;
         case bitcoin::Command::pong: {
-            pMessage = Factory::BitcoinP2PPong(
-                api, std::move(pHeader), version, payload, size);
+            pMessage =
+                BitcoinP2PPong(api, std::move(pHeader), version, payload, size);
         } break;
         case bitcoin::Command::reject: {
-            pMessage = Factory::BitcoinP2PReject(
+            pMessage = BitcoinP2PReject(
                 api, std::move(pHeader), version, payload, size);
         } break;
         case bitcoin::Command::sendcmpct: {
-            pMessage = Factory::BitcoinP2PSendcmpct(
+            pMessage = BitcoinP2PSendcmpct(
                 api, std::move(pHeader), version, payload, size);
         } break;
         case bitcoin::Command::sendheaders: {
-            pMessage = Factory::BitcoinP2PSendheaders(api, std::move(pHeader));
+            pMessage = BitcoinP2PSendheaders(api, std::move(pHeader));
         } break;
         case bitcoin::Command::tx: {
-            pMessage = Factory::BitcoinP2PTx(
-                api, std::move(pHeader), version, payload, size);
+            pMessage =
+                BitcoinP2PTx(api, std::move(pHeader), version, payload, size);
         } break;
         case bitcoin::Command::verack: {
-            pMessage = Factory::BitcoinP2PVerack(api, std::move(pHeader));
+            pMessage = BitcoinP2PVerack(api, std::move(pHeader));
         } break;
         case bitcoin::Command::version: {
-            pMessage = Factory::BitcoinP2PVersion(
+            pMessage = BitcoinP2PVersion(
                 api, std::move(pHeader), version, payload, size);
         } break;
         case bitcoin::Command::getcfilters: {
-            pMessage = Factory::BitcoinP2PGetcfilters(
+            pMessage = BitcoinP2PGetcfilters(
                 api, std::move(pHeader), version, payload, size);
         } break;
         case bitcoin::Command::cfilter: {
-            pMessage = Factory::BitcoinP2PCfilter(
+            pMessage = BitcoinP2PCfilter(
                 api, std::move(pHeader), version, payload, size);
         } break;
         case bitcoin::Command::getcfheaders: {
-            pMessage = Factory::BitcoinP2PGetcfheaders(
+            pMessage = BitcoinP2PGetcfheaders(
                 api, std::move(pHeader), version, payload, size);
         } break;
         case bitcoin::Command::cfheaders: {
-            pMessage = Factory::BitcoinP2PCfheaders(
+            pMessage = BitcoinP2PCfheaders(
                 api, std::move(pHeader), version, payload, size);
         } break;
         case bitcoin::Command::getcfcheckpt: {
-            pMessage = Factory::BitcoinP2PGetcfcheckpt(
+            pMessage = BitcoinP2PGetcfcheckpt(
                 api, std::move(pHeader), version, payload, size);
         } break;
         case bitcoin::Command::cfcheckpt: {
-            pMessage = Factory::BitcoinP2PCfcheckpt(
+            pMessage = BitcoinP2PCfcheckpt(
                 api, std::move(pHeader), version, payload, size);
         } break;
         case bitcoin::Command::alert:
@@ -183,7 +182,7 @@ auto Factory::BitcoinP2PMessage(
         case bitcoin::Command::submitorder:
         case bitcoin::Command::unknown:
         default: {
-            LogOutput("opentxs::Factory::")(__FUNCTION__)(
+            LogOutput("opentxs::factory::")(__FUNCTION__)(
                 ": Unsupported message type")
                 .Flush();
             return nullptr;
@@ -192,12 +191,12 @@ auto Factory::BitcoinP2PMessage(
 
     return pMessage;
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::blockchain::p2p::bitcoin
 {
 Message::Message(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     const blockchain::Type network,
     const bitcoin::Command command) noexcept
     : api_(api)
@@ -207,7 +206,7 @@ Message::Message(
 }
 
 Message::Message(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     std::unique_ptr<Header> header) noexcept
     : api_(api)
     , header_(std::move(header))

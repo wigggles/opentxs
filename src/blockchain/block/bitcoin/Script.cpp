@@ -18,7 +18,7 @@
 #include <utility>
 #include <vector>
 
-#include "Factory.hpp"
+#include "internal/blockchain/block/bitcoin/Bitcoin.hpp"
 #include "opentxs/blockchain/block/bitcoin/Script.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
@@ -28,11 +28,11 @@ namespace be = boost::endian;
 #define OT_METHOD                                                              \
     "opentxs::blockchain::block::bitcoin::implementation::Script::"
 
-namespace opentxs
+namespace opentxs::factory
 {
 using ReturnType = blockchain::block::bitcoin::implementation::Script;
 
-auto Factory::BitcoinScript(
+auto BitcoinScript(
     const ReadView bytes,
     const bool isOutput,
     const bool isCoinbase,
@@ -82,7 +82,7 @@ auto Factory::BitcoinScript(
                                                : pushSize;
 
                 if ((read + effectiveSize) > target) {
-                    LogVerbose("opentxs::Factory::")(__FUNCTION__)(
+                    LogVerbose("opentxs::factory::")(__FUNCTION__)(
                         ": Incomplete direct data push")
                         .Flush();
 
@@ -114,7 +114,7 @@ auto Factory::BitcoinScript(
                                             : sizeBytes;
 
                     if ((read + effectiveSize) > target) {
-                        LogVerbose("opentxs::Factory::")(__FUNCTION__)(
+                        LogVerbose("opentxs::factory::")(__FUNCTION__)(
                             ": Incomplete data push")
                             .Flush();
 
@@ -139,7 +139,7 @@ auto Factory::BitcoinScript(
                                             : pushSize;
 
                     if ((read + effectiveSize) > target) {
-                        LogVerbose("opentxs::Factory::")(__FUNCTION__)(
+                        LogVerbose("opentxs::factory::")(__FUNCTION__)(
                             ": Data push bytes missing")
                             .Flush();
 
@@ -156,7 +156,7 @@ auto Factory::BitcoinScript(
             }
         }
     } catch (...) {
-        LogVerbose("opentxs::Factory::")(__FUNCTION__)(": Unknown opcode")
+        LogVerbose("opentxs::factory::")(__FUNCTION__)(": Unknown opcode")
             .Flush();
 
         return {};
@@ -168,20 +168,20 @@ auto Factory::BitcoinScript(
         return std::make_unique<ReturnType>(
             role, std::move(elements), bytes.size());
     } catch (const std::exception& e) {
-        LogVerbose("opentxs::Factory::")(__FUNCTION__)(": ")(e.what()).Flush();
+        LogVerbose("opentxs::factory::")(__FUNCTION__)(": ")(e.what()).Flush();
 
         return {};
     }
 }
 
-auto Factory::BitcoinScript(
+auto BitcoinScript(
     blockchain::block::bitcoin::ScriptElements&& elements,
     const bool isOutput,
     const bool isCoinbase) noexcept
     -> std::unique_ptr<blockchain::block::bitcoin::Script>
 {
     if (false == ReturnType::validate(elements)) {
-        LogVerbose("opentxs::Factory::")(__FUNCTION__)(": Invalid elements")
+        LogVerbose("opentxs::factory::")(__FUNCTION__)(": Invalid elements")
             .Flush();
 
         return {};
@@ -192,7 +192,7 @@ auto Factory::BitcoinScript(
                                              : ReturnType::Position::Input);
 
     if ((0 == elements.size()) && (ReturnType::Position::Output == role)) {
-        LogVerbose("opentxs::Factory::")(__FUNCTION__)(": Empty input").Flush();
+        LogVerbose("opentxs::factory::")(__FUNCTION__)(": Empty input").Flush();
 
         return {};
     }
@@ -201,7 +201,7 @@ auto Factory::BitcoinScript(
 
     return std::make_unique<ReturnType>(role, std::move(elements));
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::blockchain::block::bitcoin::implementation
 {
@@ -802,7 +802,7 @@ auto Script::RedeemScript() const noexcept -> std::unique_ptr<bitcoin::Script>
 
     if (false == is_data_push(element)) { return {}; }
 
-    return opentxs::Factory::BitcoinScript(
+    return factory::BitcoinScript(
         reader(element.data_.value()), false, false, false);
 }
 

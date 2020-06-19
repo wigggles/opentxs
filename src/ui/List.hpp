@@ -94,8 +94,8 @@ public:
 
         return valid_pointers_.data(index, role);
     }
-    QModelIndex index(int row, int column, const QModelIndex& parent) const
-        noexcept override
+    QModelIndex index(int row, int column, const QModelIndex& parent)
+        const noexcept override
     {
         if (nullptr == get_pointer(parent)) {
             return get_index(row, column);
@@ -205,8 +205,8 @@ protected:
 
             return {};
         }
-        auto index(int row, int column, const QModelIndex& parent) const
-            noexcept -> QModelIndex
+        auto index(int row, int column, const QModelIndex& parent)
+            const noexcept -> QModelIndex
         {
             Lock lock(lock_);
             const auto* pointer = get_pointer(parent);

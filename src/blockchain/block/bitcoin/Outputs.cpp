@@ -7,7 +7,6 @@
 #include "1_Internal.hpp"                        // IWYU pragma: associated
 #include "blockchain/block/bitcoin/Outputs.hpp"  // IWYU pragma: associated
 
-#include <algorithm>
 #include <cstddef>
 #include <cstring>
 #include <iterator>
@@ -17,8 +16,8 @@
 #include <utility>
 #include <vector>
 
-#include "Factory.hpp"
 #include "blockchain/bitcoin/CompactSize.hpp"
+#include "internal/blockchain/block/bitcoin/Bitcoin.hpp"
 #include "opentxs/blockchain/block/bitcoin/Output.hpp"
 #include "opentxs/blockchain/block/bitcoin/Outputs.hpp"
 #include "opentxs/core/Log.hpp"
@@ -28,11 +27,11 @@
 #define OT_METHOD                                                              \
     "opentxs::blockchain::block::bitcoin::implementation::Outputs::"
 
-namespace opentxs
+namespace opentxs::factory
 {
 using ReturnType = blockchain::block::bitcoin::implementation::Outputs;
 
-auto Factory::BitcoinTransactionOutputs(
+auto BitcoinTransactionOutputs(
     std::vector<std::unique_ptr<blockchain::block::bitcoin::Output>>&& outputs,
     std::optional<std::size_t> size) noexcept
     -> std::unique_ptr<blockchain::block::bitcoin::Outputs>
@@ -41,12 +40,12 @@ auto Factory::BitcoinTransactionOutputs(
 
         return std::make_unique<ReturnType>(std::move(outputs), size);
     } catch (const std::exception& e) {
-        LogOutput("opentxs::Factory::")(__FUNCTION__)(": ")(e.what()).Flush();
+        LogOutput("opentxs::factory::")(__FUNCTION__)(": ")(e.what()).Flush();
 
         return {};
     }
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::blockchain::block::bitcoin::implementation
 {
@@ -183,8 +182,8 @@ auto Outputs::Serialize(const AllocateOutput destination) const noexcept
     return size;
 }
 
-auto Outputs::Serialize(proto::BlockchainTransaction& destination) const
-    noexcept -> bool
+auto Outputs::Serialize(
+    proto::BlockchainTransaction& destination) const noexcept -> bool
 {
     for (const auto& output : outputs_) {
         OT_ASSERT(output);

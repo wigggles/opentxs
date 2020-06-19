@@ -3,7 +3,15 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "OTTestEnvironment.hpp"
+#pragma once
+
+#include "OTTestEnvironment.hpp"  // IWYU pragma: keep
+#include "internal/api/client/Client.hpp"
+#include "internal/blockchain/Blockchain.hpp"
+#include "opentxs/OT.hpp"
+#include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/blockchain/block/bitcoin/Header.hpp"
+#include "opentxs/blockchain/client/HeaderOracle.hpp"
 
 namespace b = ot::blockchain;
 namespace bb = b::block;

@@ -11,7 +11,7 @@
 #include <set>
 #include <utility>
 
-#include "Factory.hpp"
+#include "2_Factory.hpp"
 #include "opentxs/Pimpl.hpp"
 #if OT_CRYPTO_WITH_BIP32
 #include "opentxs/api/Factory.hpp"

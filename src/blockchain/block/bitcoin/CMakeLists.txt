@@ -30,6 +30,7 @@ set(
 set(
   cxx-headers
   ${cxx-install-headers}
+  "${opentxs_SOURCE_DIR}/src/internal/blockchain/block/bitcoin/Bitcoin.hpp"
   Block.hpp
   Header.hpp
   Input.hpp

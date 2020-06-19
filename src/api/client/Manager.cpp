@@ -14,14 +14,13 @@
 #include <string>
 #include <utility>
 
-#include "Factory.hpp"
+#include "2_Factory.hpp"
 #include "api/Core.hpp"
 #include "api/Scheduler.hpp"
 #include "api/StorageParent.hpp"
 #include "internal/api/Api.hpp"
 #include "internal/api/client/Client.hpp"
 #include "internal/api/storage/Storage.hpp"
-#include "opentxs/Version.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/api/client/Activity.hpp"
 #include "opentxs/api/client/Blockchain.hpp"

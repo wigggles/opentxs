@@ -114,8 +114,8 @@ private:
         const Nym_p& localNym,
         const Nym_p& remoteNym,
         std::shared_ptr<otx::context::internal::Base>& output) const final;
-    void nym_to_contact(const identity::Nym& nym, const std::string& name) const
-        noexcept final;
+    void nym_to_contact(const identity::Nym& nym, const std::string& name)
+        const noexcept final;
     auto signer_nym(const identifier::Nym& id) const -> Nym_p final;
 
     Wallet(const api::client::internal::Manager& client);

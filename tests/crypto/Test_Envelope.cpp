@@ -3,7 +3,34 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "OTTestEnvironment.hpp"
+#include <gtest/gtest-message.h>
+#include <gtest/gtest-test-part.h>
+#include <gtest/gtest.h>
+#include <algorithm>
+#include <iosfwd>
+#include <iterator>
+#include <memory>
+#include <set>
+#include <utility>
+#include <vector>
+
+#include "OTTestEnvironment.hpp"  // IWYU pragma: keep
+#include "internal/api/Api.hpp"
+#include "internal/api/client/Client.hpp"
+#include "opentxs/OT.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/Version.hpp"
+#include "opentxs/api/Context.hpp"
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/api/Wallet.hpp"
+#include "opentxs/api/client/Manager.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/PasswordPrompt.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/crypto/NymParameters.hpp"
+#include "opentxs/crypto/Envelope.hpp"
+#include "opentxs/identity/Nym.hpp"
 
 namespace
 {

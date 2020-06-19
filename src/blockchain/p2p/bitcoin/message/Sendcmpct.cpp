@@ -11,19 +11,19 @@
 #include <cstring>
 #include <utility>
 
-#include "Factory.hpp"
 #include "blockchain/p2p/bitcoin/Header.hpp"
 #include "internal/blockchain/p2p/bitcoin/Bitcoin.hpp"
+#include "internal/blockchain/p2p/bitcoin/message/Message.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 
 //#define OT_METHOD " opentxs::blockchain::p2p::bitcoin::message::Sendcmpct::"
 
-namespace opentxs
+namespace opentxs::factory
 {
 // We have a header and a raw payload. Parse it.
-auto Factory::BitcoinP2PSendcmpct(
-    const api::internal::Core& api,
+auto BitcoinP2PSendcmpct(
+    const api::client::Manager& api,
     std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
     const blockchain::p2p::bitcoin::ProtocolVersion,
     const void* payload,
@@ -33,7 +33,7 @@ auto Factory::BitcoinP2PSendcmpct(
     using ReturnType = bitcoin::message::Sendcmpct;
 
     if (false == bool(pHeader)) {
-        LogOutput("opentxs::Factory::")(__FUNCTION__)(": Invalid header")
+        LogOutput("opentxs::factory::")(__FUNCTION__)(": Invalid header")
             .Flush();
 
         return nullptr;
@@ -42,7 +42,7 @@ auto Factory::BitcoinP2PSendcmpct(
     auto expectedSize = sizeof(ReturnType::Raw);
 
     if (expectedSize > size) {
-        LogOutput("opentxs::Factory::")(__FUNCTION__)(
+        LogOutput("opentxs::factory::")(__FUNCTION__)(
             ": Size below minimum for Sendcmpct 1")
             .Flush();
 
@@ -59,7 +59,7 @@ auto Factory::BitcoinP2PSendcmpct(
     try {
         return new ReturnType(api, std::move(pHeader), announce, version);
     } catch (...) {
-        LogOutput("opentxs::Factory::")(__FUNCTION__)(": Checksum failure")
+        LogOutput("opentxs::factory::")(__FUNCTION__)(": Checksum failure")
             .Flush();
 
         return nullptr;
@@ -67,8 +67,8 @@ auto Factory::BitcoinP2PSendcmpct(
 }
 
 // We have all the data members to create the message from scratch (for sending)
-auto Factory::BitcoinP2PSendcmpct(
-    const api::internal::Core& api,
+auto BitcoinP2PSendcmpct(
+    const api::client::Manager& api,
     const blockchain::Type network,
     const bool announce,
     const std::uint64_t version)
@@ -79,13 +79,13 @@ auto Factory::BitcoinP2PSendcmpct(
 
     return new ReturnType(api, network, announce, version);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::blockchain::p2p::bitcoin::message
 {
 // We have all the data members to create the message from scratch (for sending)
 Sendcmpct::Sendcmpct(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     const blockchain::Type network,
     const bool announce,
     const std::uint64_t version) noexcept
@@ -99,7 +99,7 @@ Sendcmpct::Sendcmpct(
 // We have a header and the data members. They've been parsed, so now we are
 // instantiating the message from them.
 Sendcmpct::Sendcmpct(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     std::unique_ptr<Header> header,
     const bool announce,
     const std::uint64_t version) noexcept(false)

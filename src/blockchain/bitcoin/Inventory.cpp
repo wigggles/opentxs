@@ -14,6 +14,7 @@
 #include <utility>
 
 #include "opentxs/Pimpl.hpp"
+#include "util/Container.hpp"
 
 // #define OT_METHOD "opentxs::blockchain::bitcoin::CompactSize::"
 

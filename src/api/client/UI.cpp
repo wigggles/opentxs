@@ -11,7 +11,7 @@
 #include <memory>
 #include <tuple>
 
-#include "Factory.hpp"
+#include "2_Factory.hpp"
 #include "internal/api/client/Client.hpp"
 #include "internal/ui/UI.hpp"
 #include "opentxs/Types.hpp"
@@ -211,8 +211,8 @@ auto UI::AccountActivityQt(
 }
 #endif
 
-auto UI::account_list(const Lock& lock, const identifier::Nym& nymID) const
-    noexcept -> AccountListMap::mapped_type&
+auto UI::account_list(const Lock& lock, const identifier::Nym& nymID)
+    const noexcept -> AccountListMap::mapped_type&
 {
     auto key = AccountListKey{nymID};
     auto it = account_lists_.find(key);
@@ -338,8 +338,8 @@ auto UI::AccountSummaryQt(
 }
 #endif
 
-auto UI::activity_summary(const Lock& lock, const identifier::Nym& nymID) const
-    noexcept -> ActivitySummaryMap::mapped_type&
+auto UI::activity_summary(const Lock& lock, const identifier::Nym& nymID)
+    const noexcept -> ActivitySummaryMap::mapped_type&
 {
     auto key = ActivitySummaryKey{nymID};
     auto it = activity_summaries_.find(key);
@@ -523,8 +523,8 @@ auto UI::ContactQt(const Identifier& contactID) const noexcept -> ui::ContactQt*
 }
 #endif
 
-auto UI::contact_list(const Lock& lock, const identifier::Nym& nymID) const
-    noexcept -> ContactListMap::mapped_type&
+auto UI::contact_list(const Lock& lock, const identifier::Nym& nymID)
+    const noexcept -> ContactListMap::mapped_type&
 {
     auto key = ContactListKey{nymID};
     auto it = contact_lists_.find(key);
@@ -594,8 +594,8 @@ auto UI::is_blockchain_account(const Identifier& id) const noexcept
 }
 #endif  // OT_BLOCKCHAIN
 
-auto UI::messagable_list(const Lock& lock, const identifier::Nym& nymID) const
-    noexcept -> MessagableListMap::mapped_type&
+auto UI::messagable_list(const Lock& lock, const identifier::Nym& nymID)
+    const noexcept -> MessagableListMap::mapped_type&
 {
     auto key = MessagableListKey{nymID};
     auto it = messagable_lists_.find(key);
@@ -773,8 +773,8 @@ auto UI::ProfileQt(const identifier::Nym& nymID) const noexcept
 }
 #endif
 
-auto UI::unit_list(const Lock& lock, const identifier::Nym& nymID) const
-    noexcept -> UnitListMap::mapped_type&
+auto UI::unit_list(const Lock& lock, const identifier::Nym& nymID)
+    const noexcept -> UnitListMap::mapped_type&
 {
     auto key = UnitListKey{nymID};
     auto it = unit_lists_.find(key);

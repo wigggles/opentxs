@@ -25,10 +25,10 @@ namespace opentxs
 {
 namespace api
 {
-namespace internal
+namespace client
 {
-struct Core;
-}  // namespace internal
+class Manager;
+}  // namespace client
 }  // namespace api
 }  // namespace opentxs
 
@@ -72,7 +72,7 @@ public:
     auto size() const noexcept -> std::size_t final { return index_.size(); }
 
     Block(
-        const api::internal::Core& api,
+        const api::client::Manager& api,
         const blockchain::Type chain,
         std::unique_ptr<const internal::Header> header,
         TxidIndex&& index,

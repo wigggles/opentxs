@@ -18,16 +18,17 @@
 #include "internal/blockchain/p2p/P2P.hpp"
 #include "opentxs/Bytes.hpp"
 #include "opentxs/Types.hpp"
+#include "opentxs/api/client/Manager.hpp"
 #include "util/LMDB.hpp"
 
 namespace opentxs
 {
 namespace api
 {
-namespace internal
+namespace client
 {
-struct Core;
-}  // namespace internal
+class Manager;
+}  // namespace client
 }  // namespace api
 
 namespace storage
@@ -54,7 +55,7 @@ public:
     auto Insert(Address_p address) noexcept -> bool;
 
     Peers(
-        const api::internal::Core& api,
+        const api::client::Manager& api,
         opentxs::storage::lmdb::LMDB& lmdb) noexcept(false);
 
 private:
@@ -64,7 +65,7 @@ private:
     using TypeIndexMap = std::map<Type, std::set<std::string>>;
     using ConnectedIndexMap = std::map<std::string, Time>;
 
-    const api::internal::Core& api_;
+    const api::client::Manager& api_;
     opentxs::storage::lmdb::LMDB& lmdb_;
     mutable std::mutex lock_;
     ChainIndexMap chains_;

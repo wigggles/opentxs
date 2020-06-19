@@ -7,25 +7,24 @@
 #include "1_Internal.hpp"  // IWYU pragma: associated
 #include "blockchain/p2p/bitcoin/message/Getblocktxn.hpp"  // IWYU pragma: associated
 
-#include <algorithm>
 #include <cstddef>
 #include <utility>
 
-#include "Factory.hpp"
 #include "blockchain/p2p/bitcoin/Header.hpp"
 #include "internal/blockchain/bitcoin/Bitcoin.hpp"
 #include "internal/blockchain/p2p/bitcoin/Bitcoin.hpp"
+#include "internal/blockchain/p2p/bitcoin/message/Message.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 
 //#define OT_METHOD " opentxs::blockchain::p2p::bitcoin::message::Getblocktxn::"
 
-namespace opentxs
+namespace opentxs::factory
 {
 // We have a header and a raw payload. Parse it.
-auto Factory::BitcoinP2PGetblocktxn(
-    const api::internal::Core& api,
+auto BitcoinP2PGetblocktxn(
+    const api::client::Manager& api,
     std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
     const blockchain::p2p::bitcoin::ProtocolVersion version,
     const void* payload,
@@ -35,7 +34,7 @@ auto Factory::BitcoinP2PGetblocktxn(
     using ReturnType = bitcoin::message::Getblocktxn;
 
     if (false == bool(pHeader)) {
-        LogOutput("opentxs::Factory::")(__FUNCTION__)(": Invalid header")
+        LogOutput("opentxs::factory::")(__FUNCTION__)(": Invalid header")
             .Flush();
 
         return nullptr;
@@ -44,7 +43,7 @@ auto Factory::BitcoinP2PGetblocktxn(
     auto expectedSize = sizeof(bitcoin::BlockHeaderHashField);
 
     if (expectedSize > size) {
-        LogOutput("opentxs::Factory::")(__FUNCTION__)(
+        LogOutput("opentxs::factory::")(__FUNCTION__)(
             ": Size below minimum for Getblocktxn 1")
             .Flush();
 
@@ -61,7 +60,7 @@ auto Factory::BitcoinP2PGetblocktxn(
     expectedSize += sizeof(std::byte);
 
     if (expectedSize > size) {
-        LogOutput("opentxs::Factory::")(__FUNCTION__)(
+        LogOutput("opentxs::factory::")(__FUNCTION__)(
             ": Size below minimum for Getblocktxn 1")
             .Flush();
 
@@ -85,7 +84,7 @@ auto Factory::BitcoinP2PGetblocktxn(
             expectedSize += sizeof(std::byte);
 
             if (expectedSize > size) {
-                LogOutput("opentxs::Factory::")(__FUNCTION__)(
+                LogOutput("opentxs::factory::")(__FUNCTION__)(
                     ": Txn index entries incomplete at entry index ")(ii)
                     .Flush();
 
@@ -110,7 +109,7 @@ auto Factory::BitcoinP2PGetblocktxn(
     try {
         return new ReturnType(api, std::move(pHeader), block_hash, txn_indices);
     } catch (...) {
-        LogOutput("opentxs::Factory::")(__FUNCTION__)(": Checksum failure")
+        LogOutput("opentxs::factory::")(__FUNCTION__)(": Checksum failure")
             .Flush();
 
         return nullptr;
@@ -118,8 +117,8 @@ auto Factory::BitcoinP2PGetblocktxn(
 }
 
 // We have all the data members to create the message from scratch (for sending)
-auto Factory::BitcoinP2PGetblocktxn(
-    const api::internal::Core& api,
+auto BitcoinP2PGetblocktxn(
+    const api::client::Manager& api,
     const blockchain::Type network,
     const Data& block_hash,
     const std::vector<std::size_t>& txn_indices)
@@ -130,7 +129,7 @@ auto Factory::BitcoinP2PGetblocktxn(
 
     return new ReturnType(api, network, block_hash, txn_indices);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::blockchain::p2p::bitcoin::message
 {
@@ -156,7 +155,7 @@ auto Getblocktxn::payload() const noexcept -> OTData
 
 // We have all the data members to create the message from scratch (for sending)
 Getblocktxn::Getblocktxn(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     const blockchain::Type network,
     const Data& block_hash,
     const std::vector<std::size_t>& txn_indices) noexcept
@@ -170,7 +169,7 @@ Getblocktxn::Getblocktxn(
 // We have a header and the data members. They've been parsed, so now we are
 // instantiating the message from them.
 Getblocktxn::Getblocktxn(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     std::unique_ptr<Header> header,
     const Data& block_hash,
     const std::vector<std::size_t>& txn_indices) noexcept(false)

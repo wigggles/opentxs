@@ -29,7 +29,6 @@
 #include "opentxs/Exclusive.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Shared.hpp"
-#include "opentxs/Version.hpp"
 #include "opentxs/api/Editor.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"

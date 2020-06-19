@@ -10,7 +10,7 @@
 #include <memory>
 #include <string>
 
-#include "Factory.hpp"
+#include "2_Factory.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/core/Log.hpp"

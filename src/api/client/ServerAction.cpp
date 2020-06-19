@@ -7,7 +7,7 @@
 #include "1_Internal.hpp"               // IWYU pragma: associated
 #include "api/client/ServerAction.hpp"  // IWYU pragma: associated
 
-#include "Factory.hpp"
+#include "2_Factory.hpp"
 #include "client/OTAPI_Func.hpp"
 #include "internal/api/client/Client.hpp"
 #include "opentxs/Pimpl.hpp"

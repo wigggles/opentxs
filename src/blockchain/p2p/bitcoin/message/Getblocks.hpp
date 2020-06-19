@@ -27,10 +27,10 @@ namespace opentxs
 {
 namespace api
 {
-namespace internal
+namespace client
 {
-struct Core;
-}  // namespace internal
+class Manager;
+}  // namespace client
 }  // namespace api
 
 namespace blockchain
@@ -43,8 +43,6 @@ class Header;
 }  // namespace bitcoin
 }  // namespace p2p
 }  // namespace blockchain
-
-class Factory;
 }  // namespace opentxs
 
 namespace opentxs::blockchain::p2p::bitcoin::message
@@ -52,6 +50,43 @@ namespace opentxs::blockchain::p2p::bitcoin::message
 class Getblocks final : virtual public bitcoin::Message
 {
 public:
+    struct Raw {
+        ProtocolVersionField version_;
+        std::vector<BlockHeaderHashField> header_hashes_;
+        BlockHeaderHashField stop_hash_;
+
+        Raw(ProtocolVersionUnsigned version,
+            const std::vector<OTData>& header_hashes,
+            const Data& stop_hash) noexcept(false)
+            : version_(version)
+            , header_hashes_()
+            , stop_hash_()
+        {
+            if (stop_hash.size() != sizeof(stop_hash_)) {
+                throw std::runtime_error("Invalid stop hash");
+            }
+
+            std::memcpy(stop_hash_.data(), stop_hash.data(), stop_hash.size());
+
+            for (const auto& hash : header_hashes) {
+                BlockHeaderHashField tempHash;
+
+                if (hash->size() != sizeof(tempHash)) {
+                    throw std::runtime_error("Invalid hash");
+                }
+
+                std::memcpy(tempHash.data(), hash->data(), hash->size());
+                header_hashes_.push_back(tempHash);
+            }
+        }
+        Raw() noexcept
+            : version_(2)  // TODO
+            , header_hashes_()
+            , stop_hash_()
+        {
+        }
+    };
+
     OPENTXS_EXPORT auto getHashes() const noexcept -> const std::vector<OTData>&
     {
         return header_hashes_;
@@ -93,64 +128,26 @@ public:
         return version_;
     }
 
-    OPENTXS_EXPORT ~Getblocks() final = default;
-
-private:
-    friend opentxs::Factory;
-
-    struct Raw {
-        ProtocolVersionField version_;
-        std::vector<BlockHeaderHashField> header_hashes_;
-        BlockHeaderHashField stop_hash_;
-
-        Raw(ProtocolVersionUnsigned version,
-            const std::vector<OTData>& header_hashes,
-            const Data& stop_hash) noexcept(false)
-            : version_(version)
-            , header_hashes_()
-            , stop_hash_()
-        {
-            if (stop_hash.size() != sizeof(stop_hash_)) {
-                throw std::runtime_error("Invalid stop hash");
-            }
-
-            std::memcpy(stop_hash_.data(), stop_hash.data(), stop_hash.size());
-
-            for (const auto& hash : header_hashes) {
-                BlockHeaderHashField tempHash;
-
-                if (hash->size() != sizeof(tempHash)) {
-                    throw std::runtime_error("Invalid hash");
-                }
-
-                std::memcpy(tempHash.data(), hash->data(), hash->size());
-                header_hashes_.push_back(tempHash);
-            }
-        }
-        Raw() noexcept
-            : version_(2)  // TODO
-            , header_hashes_()
-            , stop_hash_()
-        {
-        }
-    };
-
-    const bitcoin::ProtocolVersionUnsigned version_;
-    const std::vector<OTData> header_hashes_;
-    const OTData stop_hash_;
-
     Getblocks(
-        const api::internal::Core& api,
+        const api::client::Manager& api,
         const blockchain::Type network,
         const bitcoin::ProtocolVersionUnsigned version,
         const std::vector<OTData>& header_hashes,
         const Data& stop_hash) noexcept;
     Getblocks(
-        const api::internal::Core& api,
+        const api::client::Manager& api,
         std::unique_ptr<Header> header,
         const bitcoin::ProtocolVersionUnsigned version,
         const std::vector<OTData>& header_hashes,
         const Data& stop_hash) noexcept(false);
+
+    OPENTXS_EXPORT ~Getblocks() final = default;
+
+private:
+    const bitcoin::ProtocolVersionUnsigned version_;
+    const std::vector<OTData> header_hashes_;
+    const OTData stop_hash_;
+
     Getblocks(const Getblocks&) = delete;
     Getblocks(Getblocks&&) = delete;
     auto operator=(const Getblocks&) -> Getblocks& = delete;

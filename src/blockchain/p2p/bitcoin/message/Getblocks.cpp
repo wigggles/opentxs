@@ -12,19 +12,19 @@
 #include <type_traits>
 #include <utility>
 
-#include "Factory.hpp"
 #include "blockchain/p2p/bitcoin/Header.hpp"
 #include "internal/blockchain/bitcoin/Bitcoin.hpp"
+#include "internal/blockchain/p2p/bitcoin/message/Message.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 
 //#define OT_METHOD " opentxs::blockchain::p2p::bitcoin::message::Getblocks::"
 
-namespace opentxs
+namespace opentxs::factory
 {
 // We have a header and a raw payload. Parse it.
-auto Factory::BitcoinP2PGetblocks(
-    const api::internal::Core& api,
+auto BitcoinP2PGetblocks(
+    const api::client::Manager& api,
     std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
     const blockchain::p2p::bitcoin::ProtocolVersion,
     const void* payload,
@@ -34,7 +34,7 @@ auto Factory::BitcoinP2PGetblocks(
     using ReturnType = bitcoin::message::Getblocks;
 
     if (false == bool(pHeader)) {
-        LogOutput("opentxs::Factory::")(__FUNCTION__)(": Invalid header")
+        LogOutput("opentxs::factory::")(__FUNCTION__)(": Invalid header")
             .Flush();
 
         return nullptr;
@@ -45,7 +45,7 @@ auto Factory::BitcoinP2PGetblocks(
     auto expectedSize = sizeof(raw_item.version_);
 
     if (expectedSize > size) {
-        LogOutput("opentxs::Factory::")(__FUNCTION__)(
+        LogOutput("opentxs::factory::")(__FUNCTION__)(
             ": Size below minimum for Getblocks 1")
             .Flush();
 
@@ -59,7 +59,7 @@ auto Factory::BitcoinP2PGetblocks(
     expectedSize += sizeof(std::byte);
 
     if (expectedSize > size) {
-        LogOutput("opentxs::Factory::")(__FUNCTION__)(
+        LogOutput("opentxs::factory::")(__FUNCTION__)(
             ": Size below minimum for Getblocks 1")
             .Flush();
 
@@ -83,7 +83,7 @@ auto Factory::BitcoinP2PGetblocks(
             expectedSize += sizeof(bitcoin::BlockHeaderHashField);
 
             if (expectedSize > size) {
-                LogOutput("opentxs::Factory::")(__FUNCTION__)(
+                LogOutput("opentxs::factory::")(__FUNCTION__)(
                     ": Header hash entries incomplete at entry index ")(ii)
                     .Flush();
 
@@ -99,7 +99,7 @@ auto Factory::BitcoinP2PGetblocks(
     expectedSize += sizeof(bitcoin::BlockHeaderHashField);
 
     if (expectedSize > size) {
-        LogOutput("opentxs::Factory::")(__FUNCTION__)(
+        LogOutput("opentxs::factory::")(__FUNCTION__)(
             ": Stop hash entry missing or incomplete")
             .Flush();
 
@@ -117,7 +117,7 @@ auto Factory::BitcoinP2PGetblocks(
             header_hashes,
             std::move(stop_hash));
     } catch (...) {
-        LogOutput("opentxs::Factory::")(__FUNCTION__)(": Checksum failure")
+        LogOutput("opentxs::factory::")(__FUNCTION__)(": Checksum failure")
             .Flush();
 
         return nullptr;
@@ -125,8 +125,8 @@ auto Factory::BitcoinP2PGetblocks(
 }
 
 // We have all the data members to create the message from scratch (for sending)
-auto Factory::BitcoinP2PGetblocks(
-    const api::internal::Core& api,
+auto BitcoinP2PGetblocks(
+    const api::client::Manager& api,
     const blockchain::Type network,
     const std::uint32_t version,
     const std::vector<OTData>& header_hashes,
@@ -137,13 +137,13 @@ auto Factory::BitcoinP2PGetblocks(
 
     return new ReturnType(api, network, version, header_hashes, stop_hash);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::blockchain::p2p::bitcoin::message
 {
 // We have all the data members to create the message from scratch (for sending)
 Getblocks::Getblocks(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     const blockchain::Type network,
     const bitcoin::ProtocolVersionUnsigned version,
     const std::vector<OTData>& header_hashes,
@@ -159,7 +159,7 @@ Getblocks::Getblocks(
 // We have a header and the data members. They've been parsed, so now we are
 // instantiating the message from them.
 Getblocks::Getblocks(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     std::unique_ptr<Header> header,
     const bitcoin::ProtocolVersionUnsigned version,
     const std::vector<OTData>& header_hashes,

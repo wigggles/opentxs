@@ -9,7 +9,7 @@
 
 #include <memory>
 
-#include "Factory.hpp"
+#include "2_Factory.hpp"
 #include "opentxs/core/Secret.hpp"
 
 #define OPENTXS_NULL_PASSWORD "opentxs"

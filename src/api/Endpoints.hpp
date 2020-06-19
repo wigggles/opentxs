@@ -73,8 +73,8 @@ private:
     const opentxs::network::zeromq::Context& zmq_;
     const int instance_;
 
-    auto build_inproc_path(const std::string& path, const int version) const
-        noexcept -> std::string;
+    auto build_inproc_path(const std::string& path, const int version)
+        const noexcept -> std::string;
     auto build_inproc_path(
         const std::string& path,
         const int version,

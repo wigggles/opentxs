@@ -32,6 +32,7 @@ namespace api
 {
 namespace storage
 {
+class Plugin;
 class Storage;
 }  // namespace storage
 }  // namespace api

@@ -23,10 +23,10 @@ namespace opentxs
 {
 namespace api
 {
-namespace internal
+namespace client
 {
-struct Core;
-}  // namespace internal
+class Manager;
+}  // namespace client
 }  // namespace api
 
 namespace blockchain
@@ -39,8 +39,6 @@ class Header;
 }  // namespace bitcoin
 }  // namespace p2p
 }  // namespace blockchain
-
-class Factory;
 }  // namespace opentxs
 
 namespace opentxs::blockchain::p2p::bitcoin::message::implementation
@@ -48,44 +46,6 @@ namespace opentxs::blockchain::p2p::bitcoin::message::implementation
 class Version final : public internal::Version
 {
 public:
-    auto Height() const noexcept -> block::Height final { return height_; }
-    auto LocalAddress() const noexcept -> tcp::endpoint final
-    {
-        return local_address_;
-    }
-    auto LocalServices() const noexcept
-        -> std::set<blockchain::p2p::Service> final
-    {
-        return local_services_;
-    }
-    auto Nonce() const noexcept -> api::client::blockchain::Nonce final
-    {
-        return nonce_;
-    }
-    auto ProtocolVersion() const noexcept -> bitcoin::ProtocolVersion final
-    {
-        return version_;
-    }
-    auto Relay() const noexcept -> bool final { return relay_; }
-    auto RemoteAddress() const noexcept -> tcp::endpoint final
-    {
-        return remote_address_;
-    }
-    auto RemoteServices() const noexcept
-        -> std::set<blockchain::p2p::Service> final
-    {
-        return remote_services_;
-    }
-    auto UserAgent() const noexcept -> const std::string& final
-    {
-        return user_agent_;
-    }
-
-    ~Version() final = default;
-
-private:
-    friend opentxs::Factory;
-
     struct BitcoinFormat_1 {
         ProtocolVersionFieldSigned version_{};
         BitVectorField services_{};
@@ -119,6 +79,71 @@ private:
         BitcoinFormat_209() noexcept;
     };
 
+    auto Height() const noexcept -> block::Height final { return height_; }
+    auto LocalAddress() const noexcept -> tcp::endpoint final
+    {
+        return local_address_;
+    }
+    auto LocalServices() const noexcept
+        -> std::set<blockchain::p2p::Service> final
+    {
+        return local_services_;
+    }
+    auto Nonce() const noexcept -> api::client::blockchain::Nonce final
+    {
+        return nonce_;
+    }
+    auto ProtocolVersion() const noexcept -> bitcoin::ProtocolVersion final
+    {
+        return version_;
+    }
+    auto Relay() const noexcept -> bool final { return relay_; }
+    auto RemoteAddress() const noexcept -> tcp::endpoint final
+    {
+        return remote_address_;
+    }
+    auto RemoteServices() const noexcept
+        -> std::set<blockchain::p2p::Service> final
+    {
+        return remote_services_;
+    }
+    auto UserAgent() const noexcept -> const std::string& final
+    {
+        return user_agent_;
+    }
+
+    Version(
+        const api::client::Manager& api,
+        const blockchain::Type network,
+        const bitcoin::ProtocolVersion version,
+        const tcp::endpoint localAddress,
+        const tcp::endpoint remoteAddress,
+        const std::set<blockchain::p2p::Service>& services,
+        const std::set<blockchain::p2p::Service>& localServices,
+        const std::set<blockchain::p2p::Service>& remoteServices,
+        const api::client::blockchain::Nonce nonce,
+        const std::string& userAgent,
+        const block::Height height,
+        const bool relay,
+        const Time time = Clock::now()) noexcept;
+    Version(
+        const api::client::Manager& api,
+        std::unique_ptr<Header> header,
+        const bitcoin::ProtocolVersion version,
+        const tcp::endpoint localAddress,
+        const tcp::endpoint remoteAddress,
+        const std::set<blockchain::p2p::Service>& services,
+        const std::set<blockchain::p2p::Service>& localServices,
+        const std::set<blockchain::p2p::Service>& remoteServices,
+        const api::client::blockchain::Nonce nonce,
+        const std::string& userAgent,
+        const block::Height height,
+        const bool relay,
+        const Time time = Clock::now()) noexcept;
+
+    ~Version() final = default;
+
+private:
     const bitcoin::ProtocolVersion version_;
     const tcp::endpoint local_address_;
     const tcp::endpoint remote_address_;
@@ -133,34 +158,6 @@ private:
 
     auto payload() const noexcept -> OTData final;
 
-    Version(
-        const api::internal::Core& api,
-        const blockchain::Type network,
-        const bitcoin::ProtocolVersion version,
-        const tcp::endpoint localAddress,
-        const tcp::endpoint remoteAddress,
-        const std::set<blockchain::p2p::Service>& services,
-        const std::set<blockchain::p2p::Service>& localServices,
-        const std::set<blockchain::p2p::Service>& remoteServices,
-        const api::client::blockchain::Nonce nonce,
-        const std::string& userAgent,
-        const block::Height height,
-        const bool relay,
-        const Time time = Clock::now()) noexcept;
-    Version(
-        const api::internal::Core& api,
-        std::unique_ptr<Header> header,
-        const bitcoin::ProtocolVersion version,
-        const tcp::endpoint localAddress,
-        const tcp::endpoint remoteAddress,
-        const std::set<blockchain::p2p::Service>& services,
-        const std::set<blockchain::p2p::Service>& localServices,
-        const std::set<blockchain::p2p::Service>& remoteServices,
-        const api::client::blockchain::Nonce nonce,
-        const std::string& userAgent,
-        const block::Height height,
-        const bool relay,
-        const Time time = Clock::now()) noexcept;
     Version(const Version&) = delete;
     Version(Version&&) = delete;
     auto operator=(const Version&) -> Version& = delete;

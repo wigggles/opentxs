@@ -13,7 +13,7 @@ extern "C" {
 }
 #endif
 
-#include "Factory.hpp"
+#include "2_Factory.hpp"
 #include "crypto/Bip32.hpp"
 #if OT_CRYPTO_USING_OPENSSL
 #include "internal/crypto/library/OpenSSL.hpp"

@@ -14,6 +14,7 @@
 #include <utility>
 
 #include "opentxs/Pimpl.hpp"
+#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/blockchain/block/Header.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
@@ -21,7 +22,7 @@
 namespace opentxs::blockchain::client
 {
 UpdateTransaction::UpdateTransaction(
-    const api::Core& api,
+    const api::client::Manager& api,
     const internal::HeaderDatabase& db)
     : api_(api)
     , db_(db)
@@ -152,8 +153,8 @@ auto UpdateTransaction::EffectiveHasDisconnectedChildren(
     return 0 < std::distance(first, last);
 }
 
-auto UpdateTransaction::EffectiveHeaderExists(const block::Hash& hash) const
-    noexcept -> bool
+auto UpdateTransaction::EffectiveHeaderExists(
+    const block::Hash& hash) const noexcept -> bool
 {
     if (0 < headers_.count(hash)) { return true; }
 

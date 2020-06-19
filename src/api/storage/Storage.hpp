@@ -318,10 +318,10 @@ public:
     auto LocalNyms() const -> const std::set<std::string> final;
     auto LookupBlockchainTransaction(const std::string& txid) const
         -> std::set<OTNymID> final;
-    auto LookupElement(const identifier::Nym& nym, const Data& element) const
-        noexcept -> std::set<api::client::blockchain::Coin> final;
-    auto LookupTxid(const identifier::Nym& nym, const std::string& txid) const
-        noexcept -> std::set<api::client::blockchain::Coin> final;
+    auto LookupElement(const identifier::Nym& nym, const Data& element)
+        const noexcept -> std::set<api::client::blockchain::Coin> final;
+    auto LookupTxid(const identifier::Nym& nym, const std::string& txid)
+        const noexcept -> std::set<api::client::blockchain::Coin> final;
     void MapPublicNyms(NymLambda& lambda) const final;
     void MapServers(ServerLambda& lambda) const final;
     void MapUnitDefinitions(UnitLambda& lambda) const final;

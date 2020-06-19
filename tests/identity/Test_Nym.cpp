@@ -3,7 +3,41 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "OTTestEnvironment.hpp"
+#include <gtest/gtest-message.h>
+#include <gtest/gtest-test-part.h>
+#include <gtest/gtest.h>
+#include <list>
+#include <memory>
+#include <string>
+#include <utility>
+
+#include "2_Factory.hpp"
+#include "OTTestEnvironment.hpp"  // IWYU pragma: keep
+#include "internal/api/client/Client.hpp"
+#include "internal/identity/Identity.hpp"
+#include "opentxs/OT.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/Version.hpp"
+#include "opentxs/api/Context.hpp"
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/api/Wallet.hpp"
+#include "opentxs/api/client/Manager.hpp"
+#include "opentxs/api/storage/Storage.hpp"
+#include "opentxs/contact/ContactData.hpp"
+#include "opentxs/contact/ContactGroup.hpp"
+#include "opentxs/contact/ContactItem.hpp"
+#include "opentxs/contact/ContactSection.hpp"
+#include "opentxs/core/PasswordPrompt.hpp"
+#include "opentxs/core/crypto/NymParameters.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/identity/Nym.hpp"
+#include "opentxs/identity/Source.hpp"
+#include "opentxs/protobuf/Check.hpp"
+#include "opentxs/protobuf/ContactEnums.pb.h"
+#include "opentxs/protobuf/Enums.pb.h"
+#include "opentxs/protobuf/Nym.pb.h"
+#include "opentxs/protobuf/verify/Nym.hpp"
 
 namespace ot = opentxs;
 

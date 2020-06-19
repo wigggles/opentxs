@@ -16,10 +16,10 @@
 #include <stdexcept>
 #include <type_traits>
 
-#include "internal/api/Api.hpp"
 #include "internal/blockchain/Blockchain.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/api/Endpoints.hpp"
+#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Log.hpp"
@@ -32,6 +32,7 @@
 #include "opentxs/network/zeromq/Pipeline.hpp"
 #include "opentxs/network/zeromq/socket/Socket.hpp"
 #include "util/ScopeGuard.hpp"
+#include "util/Work.hpp"
 
 #define OT_BLOCKCHAIN_PEER_PING_SECONDS 30
 #define OT_BLOCKCHAIN_PEER_DISCONNECT_SECONDS 40
@@ -44,7 +45,7 @@ namespace zmq = opentxs::network::zeromq;
 namespace opentxs::blockchain::p2p::implementation
 {
 Peer::Peer(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     const client::internal::Network& network,
     const client::internal::PeerManager& manager,
     const blockchain::client::internal::IO& context,
@@ -70,7 +71,7 @@ Peer::Peer(
     , connection_id_()
     , shutdown_endpoint_(shutdown)
     , context_(context)
-    , socket_(context_.operator boost::asio::io_context&())
+    , socket_(context_.operator boost::asio::io_context &())
     , outgoing_message_(Data::Factory())
     , connection_id_promise_()
     , send_promises_()
@@ -714,7 +715,7 @@ auto Peer::transmit(zmq::Message& message) noexcept -> void
             this->socket_, asio::buffer(payload.data(), payload.size()), cb);
     };
 
-    auto& asio = context_.operator boost::asio::io_context&();
+    auto& asio = context_.operator boost::asio::io_context &();
     asio.post(work);
     auto result = SendResult{};
 

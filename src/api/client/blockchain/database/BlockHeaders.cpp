@@ -12,8 +12,8 @@
 #include <string>
 #include <utility>
 
-#include "internal/api/Api.hpp"
 #include "opentxs/Proto.tpp"
+#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/blockchain/block/Header.hpp"
@@ -25,7 +25,7 @@
 namespace opentxs::api::client::blockchain::database::implementation
 {
 BlockHeader::BlockHeader(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     opentxs::storage::lmdb::LMDB& lmdb) noexcept(false)
     : api_(api)
     , lmdb_(lmdb)

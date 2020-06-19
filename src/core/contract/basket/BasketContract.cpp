@@ -13,7 +13,7 @@
 #include <string>
 #include <utility>
 
-#include "Factory.hpp"
+#include "2_Factory.hpp"
 #include "core/contract/UnitDefinition.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"

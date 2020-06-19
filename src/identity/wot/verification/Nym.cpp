@@ -7,14 +7,13 @@
 #include "1_Internal.hpp"                     // IWYU pragma: associated
 #include "identity/wot/verification/Nym.hpp"  // IWYU pragma: associated
 
-#include <algorithm>
 #include <chrono>
 #include <memory>
 #include <stdexcept>
 #include <utility>
 #include <vector>
 
-#include "Factory.hpp"
+#include "2_Factory.hpp"
 #include "internal/api/Api.hpp"
 #include "internal/identity/wot/verification/Verification.hpp"
 #include "opentxs/Proto.hpp"

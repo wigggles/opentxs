@@ -9,7 +9,7 @@
 
 #include <memory>
 
-#include "Factory.hpp"
+#include "internal/blockchain/block/bitcoin/Bitcoin.hpp"
 #include "opentxs/Bytes.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/blockchain/block/Block.hpp"
@@ -21,7 +21,7 @@
 namespace opentxs::blockchain::database
 {
 Blocks::Blocks(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     const Common& common,
     const blockchain::Type type) noexcept
     : api_(api)
@@ -43,7 +43,7 @@ auto Blocks::LoadBitcoin(const block::Hash& block) const noexcept
         return {};
     }
 
-    return Factory::BitcoinBlock(api_, chain_, bytes.get());
+    return factory::BitcoinBlock(api_, chain_, bytes.get());
 }
 
 auto Blocks::Store(const block::Block& block) const noexcept -> bool

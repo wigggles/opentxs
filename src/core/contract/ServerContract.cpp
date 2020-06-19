@@ -14,7 +14,7 @@
 #include <tuple>
 #include <utility>
 
-#include "Factory.hpp"
+#include "2_Factory.hpp"
 #include "core/contract/Signable.hpp"
 #include "internal/api/Api.hpp"
 #include "internal/core/contract/Contract.hpp"
@@ -29,7 +29,6 @@
 #include "opentxs/identity/Nym.hpp"
 #include "opentxs/protobuf/Check.hpp"
 #include "opentxs/protobuf/ContractEnums.pb.h"
-#include "opentxs/protobuf/Enums.pb.h"
 #include "opentxs/protobuf/verify/ServerContract.hpp"
 
 #define OT_METHOD "opentxs::contract::implementation::Server::"
@@ -65,11 +64,12 @@ auto Factory::ServerContract(
         std::end(endpoints),
         std::back_inserter(list),
         [](const auto& in) -> contract::Server::Endpoint {
-            return {static_cast<proto::AddressType>(std::get<0>(in)),
-                    static_cast<proto::ProtocolVersion>(std::get<1>(in)),
-                    std::get<2>(in),
-                    std::get<3>(in),
-                    std::get<4>(in)};
+            return {
+                static_cast<proto::AddressType>(std::get<0>(in)),
+                static_cast<proto::ProtocolVersion>(std::get<1>(in)),
+                std::get<2>(in),
+                std::get<3>(in),
+                std::get<4>(in)};
         });
 
     try {
@@ -213,11 +213,12 @@ auto Server::extract_endpoints(const proto::ServerContract& serialized) noexcept
     for (auto& listen : serialized.address()) {
         // WARNING: preserve the order of this list, or signature verfication
         // will fail!
-        output.emplace_back(contract::Server::Endpoint{listen.type(),
-                                                       listen.protocol(),
-                                                       listen.host(),
-                                                       listen.port(),
-                                                       listen.version()});
+        output.emplace_back(contract::Server::Endpoint{
+            listen.type(),
+            listen.protocol(),
+            listen.host(),
+            listen.port(),
+            listen.version()});
     }
 
     return output;

@@ -10,6 +10,7 @@
 #include <utility>
 
 #include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.hpp"
 #include "opentxs/contact/ContactItem.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"

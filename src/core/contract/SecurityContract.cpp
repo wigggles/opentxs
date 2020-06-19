@@ -10,7 +10,7 @@
 #include <memory>
 #include <utility>
 
-#include "Factory.hpp"
+#include "2_Factory.hpp"
 #include "core/contract/UnitDefinition.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"

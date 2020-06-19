@@ -7,7 +7,6 @@
 #include "1_Internal.hpp"          // IWYU pragma: associated
 #include "ui/ActivitySummary.hpp"  // IWYU pragma: associated
 
-#include <algorithm>
 #include <chrono>
 #include <list>
 #include <map>
@@ -105,9 +104,7 @@ ActivitySummary::ActivitySummary(
           6
 #endif
           )
-    , listeners_{{api_.Activity().ThreadPublisher(nymID),
-                  new MessageProcessor<ActivitySummary>(
-                      &ActivitySummary::process_thread)}}
+    , listeners_{{api_.Activity().ThreadPublisher(nymID), new MessageProcessor<ActivitySummary>(&ActivitySummary::process_thread)}}
     , running_(running)
 {
     init();
@@ -131,8 +128,8 @@ auto ActivitySummary::construct_row(
     return it->second.get();
 }
 
-auto ActivitySummary::display_name(const proto::StorageThread& thread) const
-    noexcept -> std::string
+auto ActivitySummary::display_name(
+    const proto::StorageThread& thread) const noexcept -> std::string
 {
     std::set<std::string> names{};
 

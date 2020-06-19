@@ -11,12 +11,11 @@
 #include <memory>
 #include <stdexcept>
 
-#include "Factory.hpp"
+#include "2_Factory.hpp"
 #if OT_CASH_USING_LUCRE
 #include "blind/token/Lucre.hpp"
 #endif  // OT_CASH_USING_LUCRE
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/Version.hpp"
 #include "opentxs/blind/Purse.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"

@@ -8,6 +8,7 @@
 
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
+#include <cassert>  // IWYU pragma: keep
 #include <memory>
 #include <shared_mutex>
 #include <stdexcept>

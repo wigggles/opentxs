@@ -4,8 +4,22 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include <boost/endian/buffers.hpp>
+#include <gtest/gtest-message.h>
+#include <gtest/gtest-test-part.h>
+#include <gtest/gtest.h>
+#include <cstdint>
+#include <string>
 
-#include "OTTestEnvironment.hpp"
+#include "OTTestEnvironment.hpp"  // IWYU pragma: keep
+#include "internal/api/client/Client.hpp"
+#include "internal/blockchain/Blockchain.hpp"
+#include "opentxs/OT.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/api/Context.hpp"
+#include "opentxs/api/client/Manager.hpp"
+#include "opentxs/blockchain/NumericHash.hpp"
+#include "opentxs/blockchain/Work.hpp"
+#include "opentxs/core/Data.hpp"
 
 namespace be = boost::endian;
 
@@ -34,7 +48,7 @@ TEST_F(Test_NumericHash, number_low_1)
     const std::string hex{
         "0000000000000000000000000000000000000000000000000000000000000001"};
 
-    const ot::OTNumericHash number{ot::Factory::NumericHash(raw)};
+    const ot::OTNumericHash number{ot::factory::NumericHash(raw)};
 
     EXPECT_EQ(decimal, number->Decimal());
     EXPECT_EQ(hex, number->asHex());
@@ -51,7 +65,7 @@ TEST_F(Test_NumericHash, number_low_32)
     const std::string hex{
         "0000000000000000000000000000000000000000000000000000000000000001"};
 
-    const ot::OTNumericHash number{ot::Factory::NumericHash(raw)};
+    const ot::OTNumericHash number{ot::factory::NumericHash(raw)};
 
     EXPECT_EQ(decimal, number->Decimal());
     EXPECT_EQ(hex, number->asHex());
@@ -69,7 +83,7 @@ TEST_F(Test_NumericHash, number_high)
     const std::string hex{
         "fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1"};
 
-    const ot::OTNumericHash number{ot::Factory::NumericHash(raw)};
+    const ot::OTNumericHash number{ot::factory::NumericHash(raw)};
 
     EXPECT_EQ(decimal, number->Decimal());
     EXPECT_EQ(hex, number->asHex());
@@ -82,7 +96,7 @@ TEST_F(Test_NumericHash, nBits_1)
     const std::string hex{
         "0000000000000000000000000000000000000000000000000000000092340000"};
 
-    const ot::OTNumericHash number{ot::Factory::NumericHashNBits(nBits)};
+    const ot::OTNumericHash number{ot::factory::NumericHashNBits(nBits)};
 
     EXPECT_EQ(decimal, number->Decimal());
     EXPECT_EQ(hex, number->asHex());
@@ -95,7 +109,7 @@ TEST_F(Test_NumericHash, nBits_2)
     const std::string hex{
         "0000000000000000000000000000000000000000000000000000000012345600"};
 
-    const ot::OTNumericHash number{ot::Factory::NumericHashNBits(nBits)};
+    const ot::OTNumericHash number{ot::factory::NumericHashNBits(nBits)};
 
     EXPECT_EQ(decimal, number->Decimal());
     EXPECT_EQ(hex, number->asHex());
@@ -109,7 +123,7 @@ TEST_F(Test_NumericHash, nBits_3)
     const std::string hex{
         "00000000000000001bc330000000000000000000000000000000000000000000"};
 
-    const ot::OTNumericHash number{ot::Factory::NumericHashNBits(nBits)};
+    const ot::OTNumericHash number{ot::factory::NumericHashNBits(nBits)};
 
     EXPECT_EQ(decimal, number->Decimal());
     EXPECT_EQ(hex, number->asHex());
@@ -123,7 +137,7 @@ TEST_F(Test_NumericHash, nBits_4)
     const std::string hex{
         "00000000000404cb000000000000000000000000000000000000000000000000"};
 
-    const ot::OTNumericHash number{ot::Factory::NumericHashNBits(nBits)};
+    const ot::OTNumericHash number{ot::factory::NumericHashNBits(nBits)};
 
     EXPECT_EQ(decimal, number->Decimal());
     EXPECT_EQ(hex, number->asHex());
@@ -137,10 +151,10 @@ TEST_F(Test_NumericHash, nBits_5)
     const std::string hex{
         "00000000ffff0000000000000000000000000000000000000000000000000000"};
 
-    const ot::OTNumericHash number{ot::Factory::NumericHashNBits(nBits)};
+    const ot::OTNumericHash number{ot::factory::NumericHashNBits(nBits)};
 
     EXPECT_EQ(decimal, number->Decimal());
     EXPECT_EQ(hex, number->asHex());
-    EXPECT_STREQ("1", ot::Factory::Work(number)->Decimal().c_str());
+    EXPECT_STREQ("1", ot::factory::Work(number)->Decimal().c_str());
 }
 }  // namespace

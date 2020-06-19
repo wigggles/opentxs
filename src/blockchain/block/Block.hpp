@@ -13,10 +13,10 @@ namespace opentxs
 {
 namespace api
 {
-namespace internal
+namespace client
 {
-struct Core;
-}  // namespace internal
+class Manager;
+}  // namespace client
 }  // namespace api
 }  // namespace opentxs
 
@@ -35,9 +35,11 @@ public:
     }
 
 protected:
-    const api::internal::Core& api_;
+    const api::client::Manager& api_;
 
-    Block(const api::internal::Core& api, const block::Header& header) noexcept;
+    Block(
+        const api::client::Manager& api,
+        const block::Header& header) noexcept;
 
 private:
     const block::Header& base_header_;

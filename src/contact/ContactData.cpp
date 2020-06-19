@@ -824,8 +824,8 @@ auto ContactData::SetCommonName(const std::string& name) const -> ContactData
 {
     const proto::ContactSectionName section{proto::CONTACTSECTION_IDENTIFIER};
     const proto::ContactItemType type{proto::CITEMTYPE_COMMONNAME};
-    std::set<proto::ContactItemAttribute> attrib{proto::CITEMATTR_ACTIVE,
-                                                 proto::CITEMATTR_PRIMARY};
+    std::set<proto::ContactItemAttribute> attrib{
+        proto::CITEMATTR_ACTIVE, proto::CITEMATTR_PRIMARY};
 
     auto item = std::make_shared<ContactItem>(
         api_,
@@ -888,8 +888,8 @@ auto ContactData::SetScope(
     if (proto::CITEMTYPE_UNKNOWN == scope().first) {
         auto mapCopy = sections_;
         mapCopy.erase(section);
-        std::set<proto::ContactItemAttribute> attrib{proto::CITEMATTR_ACTIVE,
-                                                     proto::CITEMATTR_PRIMARY};
+        std::set<proto::ContactItemAttribute> attrib{
+            proto::CITEMATTR_ACTIVE, proto::CITEMATTR_PRIMARY};
 
         auto version = proto::RequiredVersion(section, type, version_);
 

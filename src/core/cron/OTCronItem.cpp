@@ -7,7 +7,6 @@
 #include "1_Internal.hpp"                    // IWYU pragma: associated
 #include "opentxs/core/cron/OTCronItem.hpp"  // IWYU pragma: associated
 
-#include <algorithm>
 #include <cinttypes>
 #include <cstdint>
 #include <deque>

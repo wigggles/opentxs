@@ -17,7 +17,7 @@
 #include <string>
 #include <utility>
 
-#include "Factory.hpp"
+#include "2_Factory.hpp"
 #include "internal/api/Api.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/api/Factory.hpp"

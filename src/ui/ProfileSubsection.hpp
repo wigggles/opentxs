@@ -100,10 +100,10 @@ public:
     }
     auto SetActive(const std::string& claimID, const bool active) const noexcept
         -> bool final;
-    auto SetPrimary(const std::string& claimID, const bool primary) const
-        noexcept -> bool final;
-    auto SetValue(const std::string& claimID, const std::string& value) const
-        noexcept -> bool final;
+    auto SetPrimary(const std::string& claimID, const bool primary)
+        const noexcept -> bool final;
+    auto SetValue(const std::string& claimID, const std::string& value)
+        const noexcept -> bool final;
     auto Type() const noexcept -> proto::ContactItemType final
     {
         return row_id_.second;

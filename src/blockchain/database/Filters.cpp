@@ -12,12 +12,12 @@
 #include <map>
 #include <memory>
 
-#include "Factory.hpp"
-#include "internal/api/Api.hpp"
 #include "internal/blockchain/Blockchain.hpp"
+#include "internal/blockchain/block/Block.hpp"
 #include "internal/blockchain/database/Database.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/api/Factory.hpp"
+#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/blockchain/block/Header.hpp"
 #include "opentxs/core/Data.hpp"
@@ -63,7 +63,7 @@ const std::map<
     };
 
 Filters::Filters(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     const Common& common,
     const opentxs::storage::lmdb::LMDB& lmdb,
     const blockchain::Type chain) noexcept
@@ -111,7 +111,7 @@ auto Filters::import_genesis(const blockchain::Type chain) const noexcept
 
     if (false == (needHeader || needFilter)) { return; }
 
-    const auto pBlock = opentxs::Factory::GenesisBlockHeader(api_, chain);
+    const auto pBlock = factory::GenesisBlockHeader(api_, chain);
 
     OT_ASSERT(pBlock);
 
@@ -119,7 +119,7 @@ auto Filters::import_genesis(const blockchain::Type chain) const noexcept
     const auto& blockHash = block.Hash();
     const auto& genesis = genesis_filters_.at(chain).at(style);
     const auto bytes = api_.Factory().Data(genesis.second, StringStyle::Hex);
-    auto gcs = std::unique_ptr<const blockchain::internal::GCS>{Factory::GCS(
+    auto gcs = std::unique_ptr<const blockchain::internal::GCS>{factory::GCS(
         api_,
         19,
         784931,

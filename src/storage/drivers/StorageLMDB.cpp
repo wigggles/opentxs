@@ -3,14 +3,14 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "0_stdafx.hpp"    // IWYU pragma: associated
-#include "1_Internal.hpp"  // IWYU pragma: associated
-#if OT_STORAGE_LMDB
+#include "0_stdafx.hpp"                     // IWYU pragma: associated
+#include "1_Internal.hpp"                   // IWYU pragma: associated
 #include "storage/drivers/StorageLMDB.hpp"  // IWYU pragma: associated
 
 #include <string>
 #include <utility>
 
+#include "2_Factory.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 #include "storage/StorageConfig.hpp"
@@ -135,4 +135,3 @@ auto StorageLMDB::StoreRoot(const bool commit, const std::string& hash) const
 
 StorageLMDB::~StorageLMDB() { Cleanup_StorageLMDB(); }
 }  // namespace opentxs::storage::implementation
-#endif

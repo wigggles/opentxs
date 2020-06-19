@@ -14,11 +14,6 @@
 
 #include "opentxs/blockchain/NumericHash.hpp"
 
-namespace opentxs
-{
-class Factory;
-}  // namespace opentxs
-
 namespace mp = boost::multiprecision;
 
 namespace opentxs::blockchain::implementation
@@ -41,11 +36,12 @@ public:
         -> std::string final;
     auto Decimal() const noexcept -> std::string final { return data_.str(); }
 
+    NumericHash(const Type& data) noexcept;
+    NumericHash() noexcept;
+
     ~NumericHash() final = default;
 
 private:
-    friend opentxs::Factory;
-
     Type data_;
 
     auto clone() const noexcept -> NumericHash* final
@@ -53,8 +49,6 @@ private:
         return new NumericHash(*this);
     }
 
-    NumericHash(const Type& data) noexcept;
-    NumericHash() noexcept;
     NumericHash(const NumericHash& rhs) noexcept;
     NumericHash(NumericHash&& rhs) = delete;
     auto operator=(const NumericHash& rhs) -> NumericHash& = delete;

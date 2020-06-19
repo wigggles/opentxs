@@ -13,153 +13,299 @@
 #pragma GCC diagnostic ignored "-Wzero-as-null-pointer-constant"
 #pragma GCC diagnostic ignored "-Wsign-conversion"
 #pragma GCC diagnostic ignored "-Winconsistent-missing-destructor-override"
-#include <opentxs/protobuf/APIArgument.pb.h>           // IWYU pragma: export
-#include <opentxs/protobuf/AcceptPendingPayment.pb.h>  // IWYU pragma: export
-#include <opentxs/protobuf/AccountData.pb.h>           // IWYU pragma: export
-#include <opentxs/protobuf/AccountEvent.pb.h>          // IWYU pragma: export
-#include <opentxs/protobuf/AddClaim.pb.h>              // IWYU pragma: export
-#include <opentxs/protobuf/AddContact.pb.h>            // IWYU pragma: export
-#include <opentxs/protobuf/AsymmetricKey.pb.h>         // IWYU pragma: export
-#include <opentxs/protobuf/Authority.pb.h>             // IWYU pragma: export
-#include <opentxs/protobuf/Bailment.pb.h>              // IWYU pragma: export
-#include <opentxs/protobuf/BailmentReply.pb.h>         // IWYU pragma: export
-#include <opentxs/protobuf/BasketItem.pb.h>            // IWYU pragma: export
-#include <opentxs/protobuf/BasketParams.pb.h>          // IWYU pragma: export
-#include <opentxs/protobuf/Bip47Address.pb.h>          // IWYU pragma: export
-#include <opentxs/protobuf/Bip47Channel.pb.h>          // IWYU pragma: export
-#include <opentxs/protobuf/Bip47Direction.pb.h>        // IWYU pragma: export
-#include <opentxs/protobuf/BitcoinBlockHeaderFields.pb.h>  // IWYU pragma: export
-#include <opentxs/protobuf/BlindedSeriesList.pb.h>      // IWYU pragma: export
-#include <opentxs/protobuf/BlockchainActivity.pb.h>     // IWYU pragma: export
-#include <opentxs/protobuf/BlockchainAddress.pb.h>      // IWYU pragma: export
-#include <opentxs/protobuf/BlockchainBlockHeader.pb.h>  // IWYU pragma: export
-#include <opentxs/protobuf/BlockchainBlockLocalData.pb.h>  // IWYU pragma: export
-#include <opentxs/protobuf/BlockchainExternalAddress.pb.h>  // IWYU pragma: export
-#include <opentxs/protobuf/BlockchainFilterHeader.pb.h>  // IWYU pragma: export
-#include <opentxs/protobuf/BlockchainInputWitness.pb.h>  // IWYU pragma: export
-#include <opentxs/protobuf/BlockchainPeerAddress.pb.h>   // IWYU pragma: export
-#include <opentxs/protobuf/BlockchainPreviousOutput.pb.h>  // IWYU pragma: export
-#include <opentxs/protobuf/BlockchainTransaction.pb.h>  // IWYU pragma: export
-#include <opentxs/protobuf/BlockchainTransactionInput.pb.h>  // IWYU pragma: export
-#include <opentxs/protobuf/BlockchainTransactionOutput.pb.h>  // IWYU pragma: export
-#include <opentxs/protobuf/BlockchainWalletKey.pb.h>  // IWYU pragma: export
-#include <opentxs/protobuf/ChildCredentialParameters.pb.h>  // IWYU pragma: export
-#include <opentxs/protobuf/Ciphertext.pb.h>           // IWYU pragma: export
-#include <opentxs/protobuf/Claim.pb.h>                // IWYU pragma: export
-#include <opentxs/protobuf/ClientContext.pb.h>        // IWYU pragma: export
-#include <opentxs/protobuf/ConnectionInfo.pb.h>       // IWYU pragma: export
-#include <opentxs/protobuf/ConnectionInfoReply.pb.h>  // IWYU pragma: export
-#include <opentxs/protobuf/Contact.pb.h>              // IWYU pragma: export
-#include <opentxs/protobuf/ContactData.pb.h>          // IWYU pragma: export
-#include <opentxs/protobuf/ContactEvent.pb.h>         // IWYU pragma: export
-#include <opentxs/protobuf/ContactItem.pb.h>          // IWYU pragma: export
-#include <opentxs/protobuf/ContactSection.pb.h>       // IWYU pragma: export
-#include <opentxs/protobuf/Context.pb.h>              // IWYU pragma: export
-#include <opentxs/protobuf/CreateInstrumentDefinition.pb.h>  // IWYU pragma: export
-#include <opentxs/protobuf/CreateNym.pb.h>       // IWYU pragma: export
-#include <opentxs/protobuf/Credential.pb.h>      // IWYU pragma: export
-#include <opentxs/protobuf/CurrencyParams.pb.h>  // IWYU pragma: export
+// IWYU pragma: begin_exports
+#include <opentxs/protobuf/APIArgument.pb.h>
+#include <opentxs/protobuf/AcceptPendingPayment.pb.h>
+#include <opentxs/protobuf/AccountData.pb.h>
+#include <opentxs/protobuf/AccountEvent.pb.h>
+#include <opentxs/protobuf/AddClaim.pb.h>
+#include <opentxs/protobuf/AddContact.pb.h>
+#include <opentxs/protobuf/AsymmetricKey.pb.h>
+#include <opentxs/protobuf/Authority.pb.h>
+#include <opentxs/protobuf/Bailment.pb.h>
+#include <opentxs/protobuf/BailmentReply.pb.h>
+#include <opentxs/protobuf/BasketItem.pb.h>
+#include <opentxs/protobuf/BasketParams.pb.h>
+#include <opentxs/protobuf/Bip47Address.pb.h>
+#include <opentxs/protobuf/Bip47Channel.pb.h>
+#include <opentxs/protobuf/Bip47Direction.pb.h>
+#include <opentxs/protobuf/BitcoinBlockHeaderFields.pb.h>
+#include <opentxs/protobuf/BlindedSeriesList.pb.h>
+#include <opentxs/protobuf/BlockchainActivity.pb.h>
+#include <opentxs/protobuf/BlockchainAddress.pb.h>
+#include <opentxs/protobuf/BlockchainBlockHeader.pb.h>
+#include <opentxs/protobuf/BlockchainBlockLocalData.pb.h>
+#include <opentxs/protobuf/BlockchainExternalAddress.pb.h>
+#include <opentxs/protobuf/BlockchainFilterHeader.pb.h>
+#include <opentxs/protobuf/BlockchainInputWitness.pb.h>
+#include <opentxs/protobuf/BlockchainPeerAddress.pb.h>
+#include <opentxs/protobuf/BlockchainPreviousOutput.pb.h>
+#include <opentxs/protobuf/BlockchainTransaction.pb.h>
+#include <opentxs/protobuf/BlockchainTransactionInput.pb.h>
+#include <opentxs/protobuf/BlockchainTransactionOutput.pb.h>
+#include <opentxs/protobuf/BlockchainWalletKey.pb.h>
+#include <opentxs/protobuf/ChildCredentialParameters.pb.h>
+#include <opentxs/protobuf/Ciphertext.pb.h>
+#include <opentxs/protobuf/Claim.pb.h>
+#include <opentxs/protobuf/ClientContext.pb.h>
+#include <opentxs/protobuf/ConnectionInfo.pb.h>
+#include <opentxs/protobuf/ConnectionInfoReply.pb.h>
+#include <opentxs/protobuf/Contact.pb.h>
+#include <opentxs/protobuf/ContactData.pb.h>
+#include <opentxs/protobuf/ContactEvent.pb.h>
+#include <opentxs/protobuf/ContactItem.pb.h>
+#include <opentxs/protobuf/ContactSection.pb.h>
+#include <opentxs/protobuf/Context.pb.h>
+#include <opentxs/protobuf/CreateInstrumentDefinition.pb.h>
+#include <opentxs/protobuf/CreateNym.pb.h>
+#include <opentxs/protobuf/Credential.pb.h>
+#include <opentxs/protobuf/CurrencyParams.pb.h>
 #include <opentxs/protobuf/Enums.pb.h>
-#include <opentxs/protobuf/Envelope.pb.h>      // IWYU pragma: export
-#include <opentxs/protobuf/EquityParams.pb.h>  // IWYU pragma: export
-#include <opentxs/protobuf/EthereumBlockHeaderFields.pb.h>  // IWYU pragma: export
-#include <opentxs/protobuf/Faucet.pb.h>              // IWYU pragma: export
-#include <opentxs/protobuf/GCS.pb.h>                 // IWYU pragma: export
-#include <opentxs/protobuf/GetWorkflow.pb.h>         // IWYU pragma: export
-#include <opentxs/protobuf/HDAccount.pb.h>           // IWYU pragma: export
-#include <opentxs/protobuf/HDPath.pb.h>              // IWYU pragma: export
-#include <opentxs/protobuf/HDSeed.pb.h>              // IWYU pragma: export
-#include <opentxs/protobuf/InstrumentRevision.pb.h>  // IWYU pragma: export
-#include <opentxs/protobuf/Issuer.pb.h>              // IWYU pragma: export
-#include <opentxs/protobuf/KeyCredential.pb.h>       // IWYU pragma: export
-#include <opentxs/protobuf/ListenAddress.pb.h>       // IWYU pragma: export
-#include <opentxs/protobuf/LucreTokenData.pb.h>      // IWYU pragma: export
-#include <opentxs/protobuf/MasterCredentialParameters.pb.h>  // IWYU pragma: export
-#include <opentxs/protobuf/ModifyAccount.pb.h>          // IWYU pragma: export
-#include <opentxs/protobuf/MoveFunds.pb.h>              // IWYU pragma: export
-#include <opentxs/protobuf/NoticeAcknowledgement.pb.h>  // IWYU pragma: export
-#include <opentxs/protobuf/Nym.pb.h>                    // IWYU pragma: export
-#include <opentxs/protobuf/NymIDSource.pb.h>            // IWYU pragma: export
-#include <opentxs/protobuf/OTXPush.pb.h>                // IWYU pragma: export
-#include <opentxs/protobuf/OutBailment.pb.h>            // IWYU pragma: export
-#include <opentxs/protobuf/OutBailmentReply.pb.h>       // IWYU pragma: export
-#include <opentxs/protobuf/PairEvent.pb.h>              // IWYU pragma: export
-#include <opentxs/protobuf/PaymentCode.pb.h>            // IWYU pragma: export
-#include <opentxs/protobuf/PaymentEvent.pb.h>           // IWYU pragma: export
-#include <opentxs/protobuf/PaymentWorkflow.pb.h>        // IWYU pragma: export
-#include <opentxs/protobuf/PeerObject.pb.h>             // IWYU pragma: export
-#include <opentxs/protobuf/PeerReply.pb.h>              // IWYU pragma: export
-#include <opentxs/protobuf/PeerRequest.pb.h>            // IWYU pragma: export
-#include <opentxs/protobuf/PeerRequestHistory.pb.h>     // IWYU pragma: export
-#include <opentxs/protobuf/PeerRequestWorkflow.pb.h>    // IWYU pragma: export
-#include <opentxs/protobuf/PendingBailment.pb.h>        // IWYU pragma: export
-#include <opentxs/protobuf/PendingCommand.pb.h>         // IWYU pragma: export
-#include <opentxs/protobuf/Purse.pb.h>                  // IWYU pragma: export
-#include <opentxs/protobuf/PurseExchange.pb.h>          // IWYU pragma: export
-#include <opentxs/protobuf/RPCCommand.pb.h>             // IWYU pragma: export
-#include <opentxs/protobuf/RPCPush.pb.h>                // IWYU pragma: export
-#include <opentxs/protobuf/RPCResponse.pb.h>            // IWYU pragma: export
-#include <opentxs/protobuf/RPCStatus.pb.h>              // IWYU pragma: export
-#include <opentxs/protobuf/RPCTask.pb.h>                // IWYU pragma: export
-#include <opentxs/protobuf/Seed.pb.h>                   // IWYU pragma: export
-#include <opentxs/protobuf/SendMessage.pb.h>            // IWYU pragma: export
-#include <opentxs/protobuf/SendPayment.pb.h>            // IWYU pragma: export
-#include <opentxs/protobuf/ServerContext.pb.h>          // IWYU pragma: export
-#include <opentxs/protobuf/ServerContract.pb.h>         // IWYU pragma: export
-#include <opentxs/protobuf/ServerReply.pb.h>            // IWYU pragma: export
-#include <opentxs/protobuf/ServerRequest.pb.h>          // IWYU pragma: export
-#include <opentxs/protobuf/SessionData.pb.h>            // IWYU pragma: export
-#include <opentxs/protobuf/Signature.pb.h>              // IWYU pragma: export
-#include <opentxs/protobuf/SourceProof.pb.h>            // IWYU pragma: export
-#include <opentxs/protobuf/SpentTokenList.pb.h>         // IWYU pragma: export
-#include <opentxs/protobuf/StorageAccountIndex.pb.h>    // IWYU pragma: export
-#include <opentxs/protobuf/StorageAccounts.pb.h>        // IWYU pragma: export
-#include <opentxs/protobuf/StorageBip47AddressIndex.pb.h>  // IWYU pragma: export
-#include <opentxs/protobuf/StorageBip47ChannelList.pb.h>  // IWYU pragma: export
-#include <opentxs/protobuf/StorageBip47Contexts.pb.h>     // IWYU pragma: export
-#include <opentxs/protobuf/StorageBip47NymAddressIndex.pb.h>  // IWYU pragma: export
-#include <opentxs/protobuf/StorageBlockchainAccountList.pb.h>  // IWYU pragma: export
-#include <opentxs/protobuf/StorageBlockchainTransactions.pb.h>  // IWYU pragma: export
-#include <opentxs/protobuf/StorageBlockchainTxo.pb.h>  // IWYU pragma: export
-#include <opentxs/protobuf/StorageContactAddressIndex.pb.h>  // IWYU pragma: export
-#include <opentxs/protobuf/StorageContactNymIndex.pb.h>   // IWYU pragma: export
-#include <opentxs/protobuf/StorageContacts.pb.h>          // IWYU pragma: export
-#include <opentxs/protobuf/StorageCredentials.pb.h>       // IWYU pragma: export
-#include <opentxs/protobuf/StorageIDList.pb.h>            // IWYU pragma: export
-#include <opentxs/protobuf/StorageIssuers.pb.h>           // IWYU pragma: export
-#include <opentxs/protobuf/StorageItemHash.pb.h>          // IWYU pragma: export
-#include <opentxs/protobuf/StorageItems.pb.h>             // IWYU pragma: export
-#include <opentxs/protobuf/StorageNotary.pb.h>            // IWYU pragma: export
-#include <opentxs/protobuf/StorageNym.pb.h>               // IWYU pragma: export
-#include <opentxs/protobuf/StorageNymList.pb.h>           // IWYU pragma: export
-#include <opentxs/protobuf/StoragePaymentWorkflows.pb.h>  // IWYU pragma: export
-#include <opentxs/protobuf/StoragePurse.pb.h>             // IWYU pragma: export
-#include <opentxs/protobuf/StorageRoot.pb.h>              // IWYU pragma: export
-#include <opentxs/protobuf/StorageSeeds.pb.h>             // IWYU pragma: export
-#include <opentxs/protobuf/StorageServers.pb.h>           // IWYU pragma: export
-#include <opentxs/protobuf/StorageThread.pb.h>            // IWYU pragma: export
-#include <opentxs/protobuf/StorageThreadItem.pb.h>        // IWYU pragma: export
-#include <opentxs/protobuf/StorageTxoIndex.pb.h>          // IWYU pragma: export
-#include <opentxs/protobuf/StorageUnits.pb.h>             // IWYU pragma: export
-#include <opentxs/protobuf/StorageWorkflowIndex.pb.h>     // IWYU pragma: export
-#include <opentxs/protobuf/StorageWorkflowType.pb.h>      // IWYU pragma: export
-#include <opentxs/protobuf/StoreSecret.pb.h>              // IWYU pragma: export
-#include <opentxs/protobuf/SymmetricKey.pb.h>             // IWYU pragma: export
-#include <opentxs/protobuf/TaggedKey.pb.h>                // IWYU pragma: export
-#include <opentxs/protobuf/TaskComplete.pb.h>             // IWYU pragma: export
-#include <opentxs/protobuf/Token.pb.h>                    // IWYU pragma: export
-#include <opentxs/protobuf/TransactionData.pb.h>          // IWYU pragma: export
-#include <opentxs/protobuf/UnitAccountMap.pb.h>           // IWYU pragma: export
-#include <opentxs/protobuf/UnitDefinition.pb.h>           // IWYU pragma: export
-#include <opentxs/protobuf/Verification.pb.h>             // IWYU pragma: export
-#include <opentxs/protobuf/VerificationGroup.pb.h>        // IWYU pragma: export
-#include <opentxs/protobuf/VerificationIdentity.pb.h>     // IWYU pragma: export
-#include <opentxs/protobuf/VerificationOffer.pb.h>        // IWYU pragma: export
-#include <opentxs/protobuf/VerificationSet.pb.h>          // IWYU pragma: export
-#include <opentxs/protobuf/VerifyClaim.pb.h>              // IWYU pragma: export
+#include <opentxs/protobuf/Envelope.pb.h>
+#include <opentxs/protobuf/EquityParams.pb.h>
+#include <opentxs/protobuf/EthereumBlockHeaderFields.pb.h>
+#include <opentxs/protobuf/Faucet.pb.h>
+#include <opentxs/protobuf/GCS.pb.h>
+#include <opentxs/protobuf/GetWorkflow.pb.h>
+#include <opentxs/protobuf/HDAccount.pb.h>
+#include <opentxs/protobuf/HDPath.pb.h>
+#include <opentxs/protobuf/HDSeed.pb.h>
+#include <opentxs/protobuf/InstrumentRevision.pb.h>
+#include <opentxs/protobuf/Issuer.pb.h>
+#include <opentxs/protobuf/KeyCredential.pb.h>
+#include <opentxs/protobuf/ListenAddress.pb.h>
+#include <opentxs/protobuf/LucreTokenData.pb.h>
+#include <opentxs/protobuf/MasterCredentialParameters.pb.h>
+#include <opentxs/protobuf/ModifyAccount.pb.h>
+#include <opentxs/protobuf/MoveFunds.pb.h>
+#include <opentxs/protobuf/NoticeAcknowledgement.pb.h>
+#include <opentxs/protobuf/Nym.pb.h>
+#include <opentxs/protobuf/NymIDSource.pb.h>
+#include <opentxs/protobuf/OTXPush.pb.h>
+#include <opentxs/protobuf/OutBailment.pb.h>
+#include <opentxs/protobuf/OutBailmentReply.pb.h>
+#include <opentxs/protobuf/PairEvent.pb.h>
+#include <opentxs/protobuf/PaymentCode.pb.h>
+#include <opentxs/protobuf/PaymentEvent.pb.h>
+#include <opentxs/protobuf/PaymentWorkflow.pb.h>
+#include <opentxs/protobuf/PeerObject.pb.h>
+#include <opentxs/protobuf/PeerReply.pb.h>
+#include <opentxs/protobuf/PeerRequest.pb.h>
+#include <opentxs/protobuf/PeerRequestHistory.pb.h>
+#include <opentxs/protobuf/PeerRequestWorkflow.pb.h>
+#include <opentxs/protobuf/PendingBailment.pb.h>
+#include <opentxs/protobuf/PendingCommand.pb.h>
+#include <opentxs/protobuf/Purse.pb.h>
+#include <opentxs/protobuf/PurseExchange.pb.h>
+#include <opentxs/protobuf/RPCCommand.pb.h>
+#include <opentxs/protobuf/RPCPush.pb.h>
+#include <opentxs/protobuf/RPCResponse.pb.h>
+#include <opentxs/protobuf/RPCStatus.pb.h>
+#include <opentxs/protobuf/RPCTask.pb.h>
+#include <opentxs/protobuf/Seed.pb.h>
+#include <opentxs/protobuf/SendMessage.pb.h>
+#include <opentxs/protobuf/SendPayment.pb.h>
+#include <opentxs/protobuf/ServerContext.pb.h>
+#include <opentxs/protobuf/ServerContract.pb.h>
+#include <opentxs/protobuf/ServerReply.pb.h>
+#include <opentxs/protobuf/ServerRequest.pb.h>
+#include <opentxs/protobuf/SessionData.pb.h>
+#include <opentxs/protobuf/Signature.pb.h>
+#include <opentxs/protobuf/SourceProof.pb.h>
+#include <opentxs/protobuf/SpentTokenList.pb.h>
+#include <opentxs/protobuf/StorageAccountIndex.pb.h>
+#include <opentxs/protobuf/StorageAccounts.pb.h>
+#include <opentxs/protobuf/StorageBip47AddressIndex.pb.h>
+#include <opentxs/protobuf/StorageBip47ChannelList.pb.h>
+#include <opentxs/protobuf/StorageBip47Contexts.pb.h>
+#include <opentxs/protobuf/StorageBip47NymAddressIndex.pb.h>
+#include <opentxs/protobuf/StorageBlockchainAccountList.pb.h>
+#include <opentxs/protobuf/StorageBlockchainTransactions.pb.h>
+#include <opentxs/protobuf/StorageBlockchainTxo.pb.h>
+#include <opentxs/protobuf/StorageContactAddressIndex.pb.h>
+#include <opentxs/protobuf/StorageContactNymIndex.pb.h>
+#include <opentxs/protobuf/StorageContacts.pb.h>
+#include <opentxs/protobuf/StorageCredentials.pb.h>
+#include <opentxs/protobuf/StorageIDList.pb.h>
+#include <opentxs/protobuf/StorageIssuers.pb.h>
+#include <opentxs/protobuf/StorageItemHash.pb.h>
+#include <opentxs/protobuf/StorageItems.pb.h>
+#include <opentxs/protobuf/StorageNotary.pb.h>
+#include <opentxs/protobuf/StorageNym.pb.h>
+#include <opentxs/protobuf/StorageNymList.pb.h>
+#include <opentxs/protobuf/StoragePaymentWorkflows.pb.h>
+#include <opentxs/protobuf/StoragePurse.pb.h>
+#include <opentxs/protobuf/StorageRoot.pb.h>
+#include <opentxs/protobuf/StorageSeeds.pb.h>
+#include <opentxs/protobuf/StorageServers.pb.h>
+#include <opentxs/protobuf/StorageThread.pb.h>
+#include <opentxs/protobuf/StorageThreadItem.pb.h>
+#include <opentxs/protobuf/StorageTxoIndex.pb.h>
+#include <opentxs/protobuf/StorageUnits.pb.h>
+#include <opentxs/protobuf/StorageWorkflowIndex.pb.h>
+#include <opentxs/protobuf/StorageWorkflowType.pb.h>
+#include <opentxs/protobuf/StoreSecret.pb.h>
+#include <opentxs/protobuf/SymmetricKey.pb.h>
+#include <opentxs/protobuf/TaggedKey.pb.h>
+#include <opentxs/protobuf/TaskComplete.pb.h>
+#include <opentxs/protobuf/Token.pb.h>
+#include <opentxs/protobuf/TransactionData.pb.h>
+#include <opentxs/protobuf/UnitAccountMap.pb.h>
+#include <opentxs/protobuf/UnitDefinition.pb.h>
+#include <opentxs/protobuf/Verification.pb.h>
+#include <opentxs/protobuf/VerificationGroup.pb.h>
+#include <opentxs/protobuf/VerificationIdentity.pb.h>
+#include <opentxs/protobuf/VerificationOffer.pb.h>
+#include <opentxs/protobuf/VerificationSet.pb.h>
+#include <opentxs/protobuf/VerifyClaim.pb.h>
 
+#include "opentxs/protobuf/APIArgument.pb.h"
+#include "opentxs/protobuf/AcceptPendingPayment.pb.h"
+#include "opentxs/protobuf/AccountData.pb.h"
+#include "opentxs/protobuf/AccountEvent.pb.h"
+#include "opentxs/protobuf/AddClaim.pb.h"
+#include "opentxs/protobuf/AddContact.pb.h"
+#include "opentxs/protobuf/AsymmetricKey.pb.h"
+#include "opentxs/protobuf/Authority.pb.h"
+#include "opentxs/protobuf/Bailment.pb.h"
+#include "opentxs/protobuf/BailmentReply.pb.h"
+#include "opentxs/protobuf/BasketItem.pb.h"
+#include "opentxs/protobuf/BasketParams.pb.h"
+#include "opentxs/protobuf/Bip47Address.pb.h"
+#include "opentxs/protobuf/Bip47Channel.pb.h"
+#include "opentxs/protobuf/Bip47Direction.pb.h"
+#include "opentxs/protobuf/BitcoinBlockHeaderFields.pb.h"
+#include "opentxs/protobuf/BlindedSeriesList.pb.h"
+#include "opentxs/protobuf/BlockchainActivity.pb.h"
+#include "opentxs/protobuf/BlockchainAddress.pb.h"
+#include "opentxs/protobuf/BlockchainBlockHeader.pb.h"
+#include "opentxs/protobuf/BlockchainBlockLocalData.pb.h"
+#include "opentxs/protobuf/BlockchainExternalAddress.pb.h"
+#include "opentxs/protobuf/BlockchainFilterHeader.pb.h"
+#include "opentxs/protobuf/BlockchainInputWitness.pb.h"
+#include "opentxs/protobuf/BlockchainPeerAddress.pb.h"
+#include "opentxs/protobuf/BlockchainPreviousOutput.pb.h"
+#include "opentxs/protobuf/BlockchainTransaction.pb.h"
+#include "opentxs/protobuf/BlockchainTransactionInput.pb.h"
+#include "opentxs/protobuf/BlockchainTransactionOutput.pb.h"
+#include "opentxs/protobuf/BlockchainWalletKey.pb.h"
+#include "opentxs/protobuf/ChildCredentialParameters.pb.h"
+#include "opentxs/protobuf/Ciphertext.pb.h"
+#include "opentxs/protobuf/Claim.pb.h"
+#include "opentxs/protobuf/ClientContext.pb.h"
+#include "opentxs/protobuf/ConnectionInfo.pb.h"
+#include "opentxs/protobuf/ConnectionInfoReply.pb.h"
+#include "opentxs/protobuf/Contact.pb.h"
+#include "opentxs/protobuf/ContactData.pb.h"
+#include "opentxs/protobuf/ContactEvent.pb.h"
+#include "opentxs/protobuf/ContactItem.pb.h"
+#include "opentxs/protobuf/ContactSection.pb.h"
+#include "opentxs/protobuf/Context.pb.h"
+#include "opentxs/protobuf/CreateInstrumentDefinition.pb.h"
+#include "opentxs/protobuf/CreateNym.pb.h"
+#include "opentxs/protobuf/Credential.pb.h"
+#include "opentxs/protobuf/CurrencyParams.pb.h"
+#include "opentxs/protobuf/Enums.pb.h"
+#include "opentxs/protobuf/Envelope.pb.h"
+#include "opentxs/protobuf/EquityParams.pb.h"
+#include "opentxs/protobuf/EthereumBlockHeaderFields.pb.h"
+#include "opentxs/protobuf/Faucet.pb.h"
+#include "opentxs/protobuf/GCS.pb.h"
+#include "opentxs/protobuf/GetWorkflow.pb.h"
+#include "opentxs/protobuf/HDAccount.pb.h"
+#include "opentxs/protobuf/HDPath.pb.h"
+#include "opentxs/protobuf/HDSeed.pb.h"
+#include "opentxs/protobuf/InstrumentRevision.pb.h"
+#include "opentxs/protobuf/Issuer.pb.h"
+#include "opentxs/protobuf/KeyCredential.pb.h"
+#include "opentxs/protobuf/ListenAddress.pb.h"
+#include "opentxs/protobuf/LucreTokenData.pb.h"
+#include "opentxs/protobuf/MasterCredentialParameters.pb.h"
+#include "opentxs/protobuf/ModifyAccount.pb.h"
+#include "opentxs/protobuf/MoveFunds.pb.h"
+#include "opentxs/protobuf/NoticeAcknowledgement.pb.h"
+#include "opentxs/protobuf/Nym.pb.h"
+#include "opentxs/protobuf/NymIDSource.pb.h"
+#include "opentxs/protobuf/OTXPush.pb.h"
+#include "opentxs/protobuf/OutBailment.pb.h"
+#include "opentxs/protobuf/OutBailmentReply.pb.h"
+#include "opentxs/protobuf/PairEvent.pb.h"
+#include "opentxs/protobuf/PaymentCode.pb.h"
+#include "opentxs/protobuf/PaymentEvent.pb.h"
+#include "opentxs/protobuf/PaymentWorkflow.pb.h"
+#include "opentxs/protobuf/PeerObject.pb.h"
+#include "opentxs/protobuf/PeerReply.pb.h"
+#include "opentxs/protobuf/PeerRequest.pb.h"
+#include "opentxs/protobuf/PeerRequestHistory.pb.h"
+#include "opentxs/protobuf/PeerRequestWorkflow.pb.h"
+#include "opentxs/protobuf/PendingBailment.pb.h"
+#include "opentxs/protobuf/PendingCommand.pb.h"
+#include "opentxs/protobuf/Purse.pb.h"
+#include "opentxs/protobuf/PurseExchange.pb.h"
+#include "opentxs/protobuf/RPCCommand.pb.h"
+#include "opentxs/protobuf/RPCPush.pb.h"
+#include "opentxs/protobuf/RPCResponse.pb.h"
+#include "opentxs/protobuf/RPCStatus.pb.h"
+#include "opentxs/protobuf/RPCTask.pb.h"
+#include "opentxs/protobuf/Seed.pb.h"
+#include "opentxs/protobuf/SendMessage.pb.h"
+#include "opentxs/protobuf/SendPayment.pb.h"
+#include "opentxs/protobuf/ServerContext.pb.h"
+#include "opentxs/protobuf/ServerContract.pb.h"
+#include "opentxs/protobuf/ServerReply.pb.h"
+#include "opentxs/protobuf/ServerRequest.pb.h"
+#include "opentxs/protobuf/SessionData.pb.h"
+#include "opentxs/protobuf/Signature.pb.h"
+#include "opentxs/protobuf/SourceProof.pb.h"
+#include "opentxs/protobuf/SpentTokenList.pb.h"
+#include "opentxs/protobuf/StorageAccountIndex.pb.h"
+#include "opentxs/protobuf/StorageAccounts.pb.h"
+#include "opentxs/protobuf/StorageBip47AddressIndex.pb.h"
+#include "opentxs/protobuf/StorageBip47ChannelList.pb.h"
+#include "opentxs/protobuf/StorageBip47Contexts.pb.h"
+#include "opentxs/protobuf/StorageBip47NymAddressIndex.pb.h"
+#include "opentxs/protobuf/StorageBlockchainAccountList.pb.h"
+#include "opentxs/protobuf/StorageBlockchainTransactions.pb.h"
+#include "opentxs/protobuf/StorageBlockchainTxo.pb.h"
+#include "opentxs/protobuf/StorageContactAddressIndex.pb.h"
+#include "opentxs/protobuf/StorageContactNymIndex.pb.h"
+#include "opentxs/protobuf/StorageContacts.pb.h"
+#include "opentxs/protobuf/StorageCredentials.pb.h"
+#include "opentxs/protobuf/StorageIDList.pb.h"
+#include "opentxs/protobuf/StorageIssuers.pb.h"
+#include "opentxs/protobuf/StorageItemHash.pb.h"
+#include "opentxs/protobuf/StorageItems.pb.h"
+#include "opentxs/protobuf/StorageNotary.pb.h"
+#include "opentxs/protobuf/StorageNym.pb.h"
+#include "opentxs/protobuf/StorageNymList.pb.h"
+#include "opentxs/protobuf/StoragePaymentWorkflows.pb.h"
+#include "opentxs/protobuf/StoragePurse.pb.h"
+#include "opentxs/protobuf/StorageRoot.pb.h"
+#include "opentxs/protobuf/StorageSeeds.pb.h"
+#include "opentxs/protobuf/StorageServers.pb.h"
+#include "opentxs/protobuf/StorageThread.pb.h"
+#include "opentxs/protobuf/StorageThreadItem.pb.h"
+#include "opentxs/protobuf/StorageTxoIndex.pb.h"
+#include "opentxs/protobuf/StorageUnits.pb.h"
+#include "opentxs/protobuf/StorageWorkflowIndex.pb.h"
+#include "opentxs/protobuf/StorageWorkflowType.pb.h"
+#include "opentxs/protobuf/StoreSecret.pb.h"
+#include "opentxs/protobuf/SymmetricKey.pb.h"
+#include "opentxs/protobuf/TaggedKey.pb.h"
+#include "opentxs/protobuf/TaskComplete.pb.h"
+#include "opentxs/protobuf/Token.pb.h"
+#include "opentxs/protobuf/TransactionData.pb.h"
+#include "opentxs/protobuf/UnitAccountMap.pb.h"
+#include "opentxs/protobuf/UnitDefinition.pb.h"
+#include "opentxs/protobuf/Verification.pb.h"
+#include "opentxs/protobuf/VerificationGroup.pb.h"
+#include "opentxs/protobuf/VerificationIdentity.pb.h"
+#include "opentxs/protobuf/VerificationOffer.pb.h"
+#include "opentxs/protobuf/VerificationSet.pb.h"
+#include "opentxs/protobuf/VerifyClaim.pb.h"
+
+// IWYU pragma: end_exports
 #pragma GCC diagnostic pop
-#include "opentxs/protobuf/Check.hpp"
 #include "opentxs/protobuf/verify/APIArgument.hpp"
 #include "opentxs/protobuf/verify/AcceptPendingPayment.hpp"
 #include "opentxs/protobuf/verify/AccountData.hpp"
@@ -311,5 +457,8 @@ namespace opentxs
 using ProtobufType = ::google::protobuf::MessageLite;
 
 static const proto::HashType StandardHash{proto::HASHTYPE_BLAKE2B256};
+
+auto operator==(const ProtobufType& lhs, const ProtobufType& rhs) noexcept
+    -> bool;
 }  // namespace opentxs
 #endif

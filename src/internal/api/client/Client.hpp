@@ -8,22 +8,93 @@
 #include <future>
 #include <string>
 #include <tuple>
+#include <utility>
+#include <vector>
 
 #include "internal/api/Api.hpp"
 #include "internal/core/Core.hpp"
 #include "internal/core/identifier/Identifier.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/Version.hpp"
 #include "opentxs/api/client/Activity.hpp"
 #include "opentxs/api/client/Blockchain.hpp"
 #include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/client/OTX.hpp"
 #include "opentxs/api/client/Pair.hpp"
+#include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/UniqueQueue.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/otx/consensus/Server.hpp"
+#include "opentxs/protobuf/ContactEnums.pb.h"
+
+namespace opentxs
+{
+namespace api
+{
+namespace client
+{
+namespace blockchain
+{
+namespace database
+{
+namespace implementation
+{
+class Database;
+}  // namespace implementation
+}  // namespace database
+
+namespace internal
+{
+struct BalanceTree;
+}  // namespace internal
+}  // namespace blockchain
+}  // namespace client
+}  // namespace api
+
+namespace blockchain
+{
+namespace client
+{
+namespace internal
+{
+struct IO;
+struct ThreadPool;
+}  // namespace internal
+}  // namespace client
+}  // namespace blockchain
+
+namespace identifier
+{
+class Server;
+class UnitDefinition;
+}  // namespace identifier
+
+namespace network
+{
+namespace zeromq
+{
+namespace socket
+{
+class Publish;
+}  // namespace socket
+}  // namespace zeromq
+}  // namespace network
+
+class Identifier;
+class OTPayment;
+template <class T>
+class UniqueQueue;
+}  // namespace opentxs
+
+namespace opentxs
+{
+auto Translate(const blockchain::Type type) noexcept -> proto::ContactItemType;
+auto Translate(const proto::ContactItemType type) noexcept -> blockchain::Type;
+}  // namespace opentxs
 
 namespace opentxs::api::client::internal
 {

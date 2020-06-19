@@ -19,11 +19,12 @@
 #include <type_traits>
 #include <vector>
 
-#include "Factory.hpp"
+#include "2_Factory.hpp"
 #include "core/StateMachine.hpp"
 #include "internal/api/client/Client.hpp"
 #include "opentxs/Forward.hpp"
 #include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.hpp"
 #include "opentxs/Proto.tpp"
 #include "opentxs/Shared.hpp"
 #include "opentxs/SharedPimpl.hpp"

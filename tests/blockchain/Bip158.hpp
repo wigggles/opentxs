@@ -5,7 +5,11 @@
 
 #pragma once
 
-#include "OTTestEnvironment.hpp"
+#include "OTTestEnvironment.hpp"  // IWYU pragma: keep
+#include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/core/Data.hpp"
 
 namespace
 {
@@ -59,13 +63,13 @@ struct Bip158Vector {
     {
         return parse_hex(api, filter_header_, true);
     }
-    [[maybe_unused]] auto PreviousFilterHeader(const ot::api::Core& api) const
-        noexcept
+    [[maybe_unused]] auto PreviousFilterHeader(
+        const ot::api::Core& api) const noexcept
     {
         return parse_hex(api, previous_filter_header_, true);
     }
-    [[maybe_unused]] auto PreviousOutputs(const ot::api::Core& api) const
-        noexcept
+    [[maybe_unused]] auto PreviousOutputs(
+        const ot::api::Core& api) const noexcept
     {
         auto output = std::vector<ot::OTData>{};
 

@@ -3,7 +3,32 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "OTTestEnvironment.hpp"
+#include <gtest/gtest-message.h>
+#include <gtest/gtest-test-part.h>
+#include <gtest/gtest.h>
+#include <memory>
+#include <string>
+
+#include "OTTestEnvironment.hpp"  // IWYU pragma: keep
+#include "internal/api/client/Client.hpp"
+#include "opentxs/OT.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/Version.hpp"
+#include "opentxs/api/Context.hpp"
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/api/HDSeed.hpp"
+#include "opentxs/api/client/Manager.hpp"
+#include "opentxs/api/crypto/Crypto.hpp"
+#include "opentxs/client/OTAPI_Exec.hpp"
+#include "opentxs/core/Data.hpp"
+#include "opentxs/core/crypto/NymParameters.hpp"
+#include "opentxs/crypto/key/Asymmetric.hpp"
+#include "opentxs/crypto/key/HD.hpp"
+#include "opentxs/crypto/library/AsymmetricProvider.hpp"
+#include "opentxs/crypto/library/EcdsaProvider.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
+#include "util/HDIndex.hpp"
 
 using namespace opentxs;
 

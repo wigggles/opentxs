@@ -12,20 +12,20 @@
 #include <cstring>
 #include <utility>
 
-#include "Factory.hpp"
 #include "blockchain/p2p/bitcoin/Header.hpp"
 #include "internal/blockchain/p2p/bitcoin/Bitcoin.hpp"
+#include "internal/blockchain/p2p/bitcoin/message/Message.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 
 //#define OT_METHOD " opentxs::blockchain::p2p::bitcoin::message::Feefilter::"
 
-namespace opentxs
-{
 using FeeRateField = be::little_uint64_buf_t;
 
-auto Factory::BitcoinP2PFeefilter(
-    const api::internal::Core& api,
+namespace opentxs::factory
+{
+auto BitcoinP2PFeefilter(
+    const api::client::Manager& api,
     std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
     const blockchain::p2p::bitcoin::ProtocolVersion version,
     const void* payload,
@@ -36,7 +36,7 @@ auto Factory::BitcoinP2PFeefilter(
     using ReturnType = bitcoin::message::Feefilter;
 
     if (false == bool(pHeader)) {
-        LogOutput("opentxs::Factory::")(__FUNCTION__)(": Invalid header")
+        LogOutput("opentxs::factory::")(__FUNCTION__)(": Invalid header")
             .Flush();
 
         return nullptr;
@@ -45,7 +45,7 @@ auto Factory::BitcoinP2PFeefilter(
     auto expectedSize = sizeof(FeeRateField);
 
     if (expectedSize > size) {
-        LogOutput("opentxs::Factory::")(__FUNCTION__)(
+        LogOutput("opentxs::factory::")(__FUNCTION__)(
             ": Size below minimum for Feefilter 1")
             .Flush();
 
@@ -62,15 +62,15 @@ auto Factory::BitcoinP2PFeefilter(
     try {
         return new ReturnType(api, std::move(pHeader), fee_rate);
     } catch (...) {
-        LogOutput("opentxs::Factory::")(__FUNCTION__)(": Checksum failure")
+        LogOutput("opentxs::factory::")(__FUNCTION__)(": Checksum failure")
             .Flush();
 
         return nullptr;
     }
 }
 
-auto Factory::BitcoinP2PFeefilter(
-    const api::internal::Core& api,
+auto BitcoinP2PFeefilter(
+    const api::client::Manager& api,
     const blockchain::Type network,
     const std::uint64_t fee_rate)
     -> blockchain::p2p::bitcoin::message::Feefilter*
@@ -80,12 +80,12 @@ auto Factory::BitcoinP2PFeefilter(
 
     return new ReturnType(api, network, fee_rate);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::blockchain::p2p::bitcoin::message
 {
 Feefilter::Feefilter(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     const blockchain::Type network,
     const std::uint64_t fee_rate) noexcept
     : Message(api, network, bitcoin::Command::feefilter)
@@ -95,7 +95,7 @@ Feefilter::Feefilter(
 }
 
 Feefilter::Feefilter(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     std::unique_ptr<Header> header,
     const std::uint64_t fee_rate) noexcept(false)
     : Message(api, std::move(header))

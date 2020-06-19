@@ -3,7 +3,53 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "OTTestEnvironment.hpp"
+#include <gtest/gtest-message.h>
+#include <gtest/gtest-test-part.h>
+#include <gtest/gtest.h>
+#include <chrono>
+#include <cstdint>
+#include <iosfwd>
+#include <map>
+#include <memory>
+#include <set>
+#include <string>
+#include <utility>
+#include <vector>
+
+#include "OTTestEnvironment.hpp"  // IWYU pragma: keep
+#include "opentxs/OT.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Shared.hpp"
+#include "opentxs/SharedPimpl.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/Version.hpp"
+#include "opentxs/api/Context.hpp"
+#include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/api/Wallet.hpp"
+#include "opentxs/api/client/Contacts.hpp"
+#include "opentxs/api/client/Manager.hpp"
+#include "opentxs/api/client/OTX.hpp"
+#include "opentxs/api/client/Workflow.hpp"
+#include "opentxs/api/server/Manager.hpp"
+#include "opentxs/api/storage/Storage.hpp"
+#include "opentxs/contact/ContactData.hpp"
+#include "opentxs/contact/ContactGroup.hpp"
+#include "opentxs/contact/ContactItem.hpp"
+#include "opentxs/core/Account.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/contract/ServerContract.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
+#include "opentxs/identity/Nym.hpp"
+#include "opentxs/protobuf/Check.hpp"
+#include "opentxs/protobuf/ContactEnums.pb.h"
+#include "opentxs/protobuf/PaymentWorkflowEnums.pb.h"
+#include "opentxs/protobuf/RPCEnums.pb.h"
+#include "opentxs/protobuf/verify/RPCResponse.hpp"
 
 #if OT_CRYPTO_WITH_BIP32
 #define TEST_SEED                                                              \
@@ -1517,10 +1563,11 @@ TEST_F(Test_Rpc, Rename_Accounts)
     auto command = init(proto::RPCCOMMAND_RENAMEACCOUNT);
     command.set_session(0);
     ot_.Client(0);
-    const std::vector<std::string> accounts{issuer_account_id_,
-                                            nym2_account_id_,
-                                            nym3_account1_id_,
-                                            nym3_account2_id_};
+    const std::vector<std::string> accounts{
+        issuer_account_id_,
+        nym2_account_id_,
+        nym3_account1_id_,
+        nym3_account2_id_};
 
     for (const auto& id : accounts) {
         auto& modify = *command.add_modifyaccount();

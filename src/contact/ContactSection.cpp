@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <utility>
 
+#include "opentxs/Proto.hpp"
 #include "opentxs/contact/ContactGroup.hpp"
 #include "opentxs/contact/ContactItem.hpp"
 #include "opentxs/core/Log.hpp"

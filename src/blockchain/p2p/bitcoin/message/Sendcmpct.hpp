@@ -22,10 +22,10 @@ namespace opentxs
 {
 namespace api
 {
-namespace internal
+namespace client
 {
-struct Core;
-}  // namespace internal
+class Manager;
+}  // namespace client
 }  // namespace api
 
 namespace blockchain
@@ -38,8 +38,6 @@ class Header;
 }  // namespace bitcoin
 }  // namespace p2p
 }  // namespace blockchain
-
-class Factory;
 }  // namespace opentxs
 
 namespace be = boost::endian;
@@ -49,14 +47,6 @@ namespace opentxs::blockchain::p2p::bitcoin::message
 class Sendcmpct final : virtual public bitcoin::Message
 {
 public:
-    auto announce() const noexcept -> bool { return announce_; }
-    auto version() const noexcept -> std::uint64_t { return version_; }
-
-    ~Sendcmpct() final = default;
-
-    auto payload() const noexcept -> OTData final;
-
-private:
     struct Raw {
         be::little_int8_buf_t announce_;
         be::little_uint64_buf_t version_;
@@ -65,21 +55,28 @@ private:
         Raw() noexcept;
     };
 
-    friend opentxs::Factory;
-
-    bool announce_{};
-    std::uint64_t version_{};
+    auto announce() const noexcept -> bool { return announce_; }
+    auto version() const noexcept -> std::uint64_t { return version_; }
 
     Sendcmpct(
-        const api::internal::Core& api,
+        const api::client::Manager& api,
         const blockchain::Type network,
         const bool announce,
         const std::uint64_t version) noexcept;
     Sendcmpct(
-        const api::internal::Core& api,
+        const api::client::Manager& api,
         std::unique_ptr<Header> header,
         const bool announce,
         const std::uint64_t version) noexcept(false);
+
+    ~Sendcmpct() final = default;
+
+private:
+    bool announce_{};
+    std::uint64_t version_{};
+
+    auto payload() const noexcept -> OTData final;
+
     Sendcmpct(const Sendcmpct&) = delete;
     Sendcmpct(Sendcmpct&&) = delete;
     auto operator=(const Sendcmpct&) -> Sendcmpct& = delete;

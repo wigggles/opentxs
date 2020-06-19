@@ -7,7 +7,6 @@
 #include "1_Internal.hpp"         // IWYU pragma: associated
 #include "ui/ActivityThread.hpp"  // IWYU pragma: associated
 
-#include <algorithm>
 #include <chrono>
 #include <map>
 #include <memory>
@@ -419,8 +418,8 @@ auto ActivityThread::Pay(
     }
 }
 
-auto ActivityThread::PaymentCode(const proto::ContactItemType currency) const
-    noexcept -> std::string
+auto ActivityThread::PaymentCode(
+    const proto::ContactItemType currency) const noexcept -> std::string
 {
     Lock lock(contact_lock_);
 
@@ -465,11 +464,12 @@ auto ActivityThread::process_drafts() noexcept -> bool
 auto ActivityThread::process_item(const proto::StorageThreadItem& item) noexcept
     -> ActivityThreadRowID
 {
-    const ActivityThreadRowID id{Identifier::Factory(item.id()),
-                                 static_cast<StorageBox>(item.box()),
-                                 Identifier::Factory(item.account())};
-    const ActivityThreadSortKey key{std::chrono::seconds(item.time()),
-                                    item.index()};
+    const ActivityThreadRowID id{
+        Identifier::Factory(item.id()),
+        static_cast<StorageBox>(item.box()),
+        Identifier::Factory(item.account())};
+    const ActivityThreadSortKey key{
+        std::chrono::seconds(item.time()), item.index()};
     const CustomData custom{new std::string};
     add_item(id, key, custom);
 
@@ -576,10 +576,11 @@ auto ActivityThread::send_cheque(
     id = ActivityThreadRowID{
         Identifier::Random(), StorageBox::PENDING_SEND, Identifier::Factory()};
     const ActivityThreadSortKey key{std::chrono::system_clock::now(), 0};
-    const CustomData custom{new std::string{"Sending cheque"},
-                            new Amount{amount},
-                            new std::string{displayAmount},
-                            new std::string{memo}};
+    const CustomData custom{
+        new std::string{"Sending cheque"},
+        new Amount{amount},
+        new std::string{displayAmount},
+        new std::string{memo}};
     const_cast<ActivityThread&>(*this).add_item(id, key, custom);
 
     OT_ASSERT(1 == items_.count(key));
@@ -676,8 +677,8 @@ auto ActivityThread::ThreadID() const noexcept -> std::string
     return threadID_->str();
 }
 
-auto ActivityThread::validate_account(const Identifier& sourceAccount) const
-    noexcept -> bool
+auto ActivityThread::validate_account(
+    const Identifier& sourceAccount) const noexcept -> bool
 {
     const auto owner = api_.Storage().AccountOwner(sourceAccount);
 

@@ -15,7 +15,7 @@
 #include <string_view>
 #include <utility>
 
-#include "Factory.hpp"
+#include "2_Factory.hpp"
 #include "internal/api/Api.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Proto.hpp"
@@ -38,7 +38,6 @@
 #include "opentxs/crypto/library/AsymmetricProvider.hpp"
 #include "opentxs/identity/credential/Base.hpp"
 #include "opentxs/protobuf/Check.hpp"
-#include "opentxs/protobuf/Enums.pb.h"
 #include "opentxs/protobuf/verify/Credential.hpp"
 #include "opentxs/protobuf/verify/PaymentCode.hpp"
 
@@ -135,7 +134,7 @@ PaymentCode::PaymentCode(const PaymentCode& rhs)
 {
 }
 
-PaymentCode::operator const crypto::key::Asymmetric&() const noexcept
+PaymentCode::operator const crypto::key::Asymmetric &() const noexcept
 {
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
     return *key_;

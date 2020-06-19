@@ -9,7 +9,7 @@
 
 #include <stdexcept>
 
-#include "Factory.hpp"
+#include "2_Factory.hpp"
 #include "internal/api/Api.hpp"
 #include "internal/identity/wot/verification/Verification.hpp"
 #include "opentxs/Pimpl.hpp"
@@ -20,7 +20,6 @@
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/identity/Nym.hpp"
-#include "opentxs/protobuf/Enums.pb.h"
 
 namespace opentxs
 {

@@ -18,7 +18,6 @@
 #include "opentxs/Proto.hpp"
 #include "opentxs/Proto.tpp"
 #include "opentxs/SharedPimpl.hpp"
-#include "opentxs/Version.hpp"
 #include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Factory.hpp"
 #if OT_CRYPTO_WITH_BIP32
@@ -335,39 +334,43 @@ void Server::CreateMainFile(bool& mainFileExists)
         LogNormal("Creating inproc contract for instance ")(
             manager_.GetInproc())
             .Flush();
-        contract::Server::Endpoint inproc{proto::ADDRESSTYPE_INPROC,
-                                          proto::PROTOCOLVERSION_LEGACY,
-                                          manager_.GetInproc(),
-                                          commandPort,
-                                          2};
+        contract::Server::Endpoint inproc{
+            proto::ADDRESSTYPE_INPROC,
+            proto::PROTOCOLVERSION_LEGACY,
+            manager_.GetInproc(),
+            commandPort,
+            2};
         endpoints.push_back(inproc);
     } else {
         LogNormal("Creating standard contract.").Flush();
-        contract::Server::Endpoint ipv4{proto::ADDRESSTYPE_IPV4,
-                                        proto::PROTOCOLVERSION_LEGACY,
-                                        hostname,
-                                        commandPort,
-                                        1};
+        contract::Server::Endpoint ipv4{
+            proto::ADDRESSTYPE_IPV4,
+            proto::PROTOCOLVERSION_LEGACY,
+            hostname,
+            commandPort,
+            1};
         endpoints.push_back(ipv4);
         const std::string& onion = manager_.GetOnion();
 
         if (0 < onion.size()) {
-            contract::Server::Endpoint tor{proto::ADDRESSTYPE_ONION,
-                                           proto::PROTOCOLVERSION_LEGACY,
-                                           onion,
-                                           commandPort,
-                                           1};
+            contract::Server::Endpoint tor{
+                proto::ADDRESSTYPE_ONION,
+                proto::PROTOCOLVERSION_LEGACY,
+                onion,
+                commandPort,
+                1};
             endpoints.push_back(tor);
         }
 
         const std::string& eep = manager_.GetEEP();
 
         if (0 < eep.size()) {
-            contract::Server::Endpoint i2p{proto::ADDRESSTYPE_EEP,
-                                           proto::PROTOCOLVERSION_LEGACY,
-                                           eep,
-                                           commandPort,
-                                           1};
+            contract::Server::Endpoint i2p{
+                proto::ADDRESSTYPE_EEP,
+                proto::PROTOCOLVERSION_LEGACY,
+                eep,
+                commandPort,
+                1};
             endpoints.push_back(i2p);
         }
     }

@@ -5,28 +5,11 @@
 
 #pragma once
 
-// IWYU pragma: begin_exports
-#include <opentxs/opentxs.hpp>
 #include <gtest/gtest.h>
 #include <string>
 
-#include "1_Internal.hpp"
-#include "Factory.hpp"
-#include "core/StateMachine.hpp"
-#include "internal/api/client/Client.hpp"
-#include "internal/api/server/Server.hpp"
-#include "internal/identity/Identity.hpp"
-#include "internal/otx/client/Client.hpp"
-#include "server/Server.hpp"
-#include "server/Transactor.hpp"
-#if OT_BLOCKCHAIN
-#include "blockchain/bitcoin/CompactSize.hpp"
-#include "blockchain/p2p/bitcoin/Message.hpp"
-#include "blockchain/p2p/bitcoin/message/Getblocks.hpp"
-#include "internal/blockchain/Blockchain.hpp"
-#include "internal/blockchain/client/Client.hpp"
-#endif  // OT_BLOCKCHAIN
-// IWYU pragma: end_exports
+#include "opentxs/Types.hpp"
+#include "opentxs/Version.hpp"
 
 namespace ot = opentxs;
 

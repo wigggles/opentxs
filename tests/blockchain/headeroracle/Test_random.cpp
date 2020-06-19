@@ -3,10 +3,26 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#include <gtest/gtest-message.h>
+#include <gtest/gtest-test-part.h>
+#include <gtest/gtest.h>
 #include <algorithm>
+#include <memory>
 #include <random>
+#include <string>
+#include <type_traits>
+#include <utility>
+#include <vector>
 
 #include "Helpers.hpp"
+#include "internal/api/client/Client.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/blockchain/Work.hpp"
+#include "opentxs/blockchain/block/Header.hpp"
+#include "opentxs/blockchain/client/HeaderOracle.hpp"
+#include "opentxs/core/Data.hpp"
 
 std::vector<std::unique_ptr<bb::Header>> headers_{};
 

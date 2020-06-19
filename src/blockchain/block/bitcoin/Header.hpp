@@ -25,10 +25,10 @@ namespace opentxs
 {
 namespace api
 {
-namespace internal
+namespace client
 {
-struct Core;
-}  // namespace internal
+class Manager;
+}  // namespace client
 }  // namespace api
 
 class Factory;
@@ -61,6 +61,12 @@ public:
     };
 
     static const VersionNumber local_data_version_;
+    static const VersionNumber subversion_default_;
+
+    static auto calculate_hash(
+        const api::client::Manager& api,
+        const blockchain::Type chain,
+        const ReadView serialized) -> block::pHash;
 
     auto clone() const noexcept -> std::unique_ptr<block::Header> final;
     auto Encode() const noexcept -> OTData final;
@@ -80,7 +86,7 @@ public:
     }
 
     Header(
-        const api::internal::Core& api,
+        const api::client::Manager& api,
         const blockchain::Type chain,
         const VersionNumber subversion,
         const block::Hash& hash,
@@ -91,22 +97,19 @@ public:
         const std::int32_t nbits,
         const std::uint32_t nonce) noexcept;
     Header(
-        const api::internal::Core& api,
+        const api::client::Manager& api,
         const blockchain::Type chain,
         const block::Hash& hash,
         const block::Hash& parentHash,
         const block::Height height) noexcept;
     Header(
-        const api::internal::Core& api,
+        const api::client::Manager& api,
         const SerializedType& serialized) noexcept;
 
     ~Header() final = default;
 
 private:
-    friend opentxs::Factory;
     using ot_super = block::implementation::Header;
-
-    static const VersionNumber subversion_default_;
 
     const VersionNumber subversion_;
     const std::int32_t block_version_;
@@ -116,11 +119,7 @@ private:
     const std::uint32_t nonce_;
 
     static auto calculate_hash(
-        const api::internal::Core& api,
-        const blockchain::Type chain,
-        const ReadView serialized) -> block::pHash;
-    static auto calculate_hash(
-        const api::internal::Core& api,
+        const api::client::Manager& api,
         const SerializedType& serialized) -> block::pHash;
     static auto calculate_work(const std::int32_t nbits) -> OTWork;
 

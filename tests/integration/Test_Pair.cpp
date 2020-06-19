@@ -3,8 +3,77 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "OTTestEnvironment.hpp"
+#include <gtest/gtest-message.h>
+#include <gtest/gtest-test-part.h>
+#include <gtest/gtest.h>
+#include <future>
+#include <map>
+#include <memory>
+#include <set>
+#include <string>
+#include <utility>
+#include <vector>
+
+#include "OTTestEnvironment.hpp"  // IWYU pragma: keep
 #include "integration/Helpers.hpp"
+#include "opentxs/OT.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Proto.tpp"
+#include "opentxs/SharedPimpl.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/Version.hpp"
+#include "opentxs/api/Context.hpp"
+#include "opentxs/api/Endpoints.hpp"
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/api/Wallet.hpp"
+#include "opentxs/api/client/Issuer.hpp"
+#include "opentxs/api/client/Manager.hpp"
+#include "opentxs/api/client/OTX.hpp"
+#include "opentxs/api/client/Pair.hpp"
+#include "opentxs/api/client/UI.hpp"
+#include "opentxs/client/NymData.hpp"
+#include "opentxs/contact/ContactData.hpp"
+#include "opentxs/contact/ContactGroup.hpp"
+#include "opentxs/contact/ContactItem.hpp"
+#include "opentxs/contact/ContactSection.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/Message.hpp"
+#include "opentxs/core/PasswordPrompt.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/contract/UnitDefinition.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
+#include "opentxs/identity/Nym.hpp"
+#include "opentxs/network/zeromq/Context.hpp"
+#include "opentxs/network/zeromq/Frame.hpp"
+#include "opentxs/network/zeromq/FrameSection.hpp"
+#include "opentxs/network/zeromq/ListenCallback.hpp"
+#include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/network/zeromq/socket/Subscribe.hpp"
+#include "opentxs/protobuf/Check.hpp"
+#include "opentxs/protobuf/ConsensusEnums.pb.h"
+#include "opentxs/protobuf/ContactEnums.pb.h"
+#include "opentxs/protobuf/ContractEnums.pb.h"
+#include "opentxs/protobuf/PeerEnums.pb.h"
+#include "opentxs/protobuf/ZMQEnums.pb.h"
+#include "opentxs/protobuf/verify/PairEvent.hpp"
+#include "opentxs/protobuf/verify/PeerRequest.hpp"
+#include "opentxs/ui/AccountSummary.hpp"
+#include "opentxs/ui/AccountSummaryItem.hpp"
+#include "opentxs/ui/IssuerItem.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace server
+{
+class Manager;
+}  // namespace server
+}  // namespace api
+}  // namespace opentxs
 
 #define UNIT_DEFINITION_CONTRACT_VERSION 2
 #define UNIT_DEFINITION_CONTRACT_NAME "Mt Gox USD"

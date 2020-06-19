@@ -17,9 +17,10 @@
 #include <type_traits>
 #include <utility>
 
-#include "Factory.hpp"
+#include "2_Factory.hpp"
 #include "api/client/blockchain/Deterministic.hpp"
 #include "internal/api/Api.hpp"
+#include "internal/api/client/Client.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/api/Factory.hpp"

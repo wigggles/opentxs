@@ -19,10 +19,10 @@ namespace opentxs
 {
 namespace api
 {
-namespace internal
+namespace client
 {
-struct Core;
-}  // namespace internal
+class Manager;
+}  // namespace client
 }  // namespace api
 
 namespace blockchain
@@ -35,8 +35,6 @@ class Header;
 }  // namespace bitcoin
 }  // namespace p2p
 }  // namespace blockchain
-
-class Factory;
 }  // namespace opentxs
 
 namespace opentxs::blockchain::p2p::bitcoin::message::implementation
@@ -44,31 +42,30 @@ namespace opentxs::blockchain::p2p::bitcoin::message::implementation
 class Getcfcheckpt final : public internal::Getcfcheckpt
 {
 public:
+    using BitcoinFormat = FilterPrefixBasic;
+
     auto Stop() const noexcept -> const filter::Hash& final { return stop_; }
     auto Type() const noexcept -> filter::Type final { return type_; }
+
+    Getcfcheckpt(
+        const api::client::Manager& api,
+        const blockchain::Type network,
+        const filter::Type type,
+        const filter::Hash& stop) noexcept;
+    Getcfcheckpt(
+        const api::client::Manager& api,
+        std::unique_ptr<Header> header,
+        const filter::Type type,
+        const filter::Hash& stop) noexcept;
 
     ~Getcfcheckpt() final = default;
 
 private:
-    friend opentxs::Factory;
-
-    using BitcoinFormat = FilterPrefixBasic;
-
     const filter::Type type_;
     const filter::pHash stop_;
 
     auto payload() const noexcept -> OTData final;
 
-    Getcfcheckpt(
-        const api::internal::Core& api,
-        const blockchain::Type network,
-        const filter::Type type,
-        const filter::Hash& stop) noexcept;
-    Getcfcheckpt(
-        const api::internal::Core& api,
-        std::unique_ptr<Header> header,
-        const filter::Type type,
-        const filter::Hash& stop) noexcept;
     Getcfcheckpt(const Getcfcheckpt&) = delete;
     Getcfcheckpt(Getcfcheckpt&&) = delete;
     auto operator=(const Getcfcheckpt&) -> Getcfcheckpt& = delete;

@@ -13,7 +13,6 @@
 #include <string>
 #include <utility>
 
-#include "opentxs/Version.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/core/String.hpp"

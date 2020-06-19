@@ -3,7 +3,18 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "OTTestEnvironment.hpp"
+#include <gtest/gtest-message.h>
+#include <gtest/gtest-test-part.h>
+#include <gtest/gtest.h>
+#include <cstdint>
+#include <map>
+#include <string>
+#include <vector>
+
+#include "OTTestEnvironment.hpp"  // IWYU pragma: keep
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Version.hpp"
+#include "opentxs/core/Data.hpp"
 
 using namespace opentxs;
 

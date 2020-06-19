@@ -11,7 +11,7 @@
 #include <stdexcept>
 #include <utility>
 
-#include "Factory.hpp"
+#include "2_Factory.hpp"
 #include "core/contract/peer/PeerReply.hpp"
 #include "internal/api/Api.hpp"
 #include "opentxs/Proto.hpp"

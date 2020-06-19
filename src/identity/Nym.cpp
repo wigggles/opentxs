@@ -7,7 +7,6 @@
 #include "1_Internal.hpp"    // IWYU pragma: associated
 #include "identity/Nym.hpp"  // IWYU pragma: associated
 
-#include <algorithm>
 #include <atomic>
 #include <iterator>
 #include <list>
@@ -16,12 +15,11 @@
 #include <utility>
 #include <vector>
 
-#include "Factory.hpp"
+#include "2_Factory.hpp"
 #include "internal/api/Api.hpp"
 #include "internal/identity/Identity.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Proto.tpp"
-#include "opentxs/Version.hpp"
 #include "opentxs/api/Factory.hpp"
 #if OT_CRYPTO_WITH_BIP32
 #include "opentxs/api/HDSeed.hpp"
@@ -86,11 +84,12 @@ auto Factory::Nym(
                 ReturnType::contact_credential_to_contact_data_version_.at(
                     identity::internal::Authority::NymToContactCredential(
                         identity::Nym::DefaultVersion));
-            const auto blank = ContactData{api,
-                                           pSource->NymID()->str(),
-                                           version,
-                                           version,
-                                           ContactData::SectionMap{}};
+            const auto blank = ContactData{
+                api,
+                pSource->NymID()->str(),
+                version,
+                version,
+                ContactData::SectionMap{}};
             const auto scope = blank.SetScope(type, name);
             revised.SetContactData(scope.Serialize());
         }

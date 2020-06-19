@@ -16,14 +16,13 @@ extern "C" {
 
 #include <utility>
 
-#include "Factory.hpp"
+#include "2_Factory.hpp"
 #include "blind/Lucre.hpp"
 #include "blind/Mint.hpp"
 #include "blind/token/Lucre.hpp"
 #include "crypto/library/OpenSSL_BIO.hpp"
 #include "internal/api/Api.hpp"
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/Version.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/blind/Token.hpp"
 #include "opentxs/core/Armored.hpp"

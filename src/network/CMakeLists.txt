@@ -5,13 +5,18 @@
 
 add_subdirectory(zeromq)
 
-set(cxx-sources OpenDHT.cpp ServerConnection.cpp)
+set(cxx-sources ServerConnection.cpp)
 set(
   cxx-install-headers
   "${opentxs_SOURCE_DIR}/include/opentxs/network/OpenDHT.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/network/ServerConnection.hpp"
 )
-set(cxx-headers ${cxx-install-headers} OpenDHT.hpp ServerConnection.hpp)
+set(cxx-headers ${cxx-install-headers} ServerConnection.hpp)
+
+if(DHT_EXPORT)
+  list(APPEND cxx-sources OpenDHT.cpp)
+  list(APPEND cxx-headers OpenDHT.hpp)
+endif()
 
 add_library(opentxs-network OBJECT ${cxx-sources} ${cxx-headers})
 

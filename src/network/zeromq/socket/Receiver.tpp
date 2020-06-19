@@ -36,8 +36,8 @@ Receiver<InterfaceType, MessageType>::Receiver(
 }
 
 template <typename InterfaceType, typename MessageType>
-auto Receiver<InterfaceType, MessageType>::add_task(SocketCallback&& cb) const
-    noexcept -> int
+auto Receiver<InterfaceType, MessageType>::add_task(
+    SocketCallback&& cb) const noexcept -> int
 {
     Lock lock(task_lock_);
     auto [it, success] = socket_tasks_.emplace(++next_task_, std::move(cb));
@@ -81,8 +81,8 @@ void Receiver<InterfaceType, MessageType>::init() noexcept
 }
 
 template <typename InterfaceType, typename MessageType>
-void Receiver<InterfaceType, MessageType>::run_tasks(const Lock& lock) const
-    noexcept
+void Receiver<InterfaceType, MessageType>::run_tasks(
+    const Lock& lock) const noexcept
 {
     Lock task_lock(task_lock_);
     auto i = socket_tasks_.begin();
@@ -103,8 +103,8 @@ void Receiver<InterfaceType, MessageType>::shutdown(const Lock& lock) noexcept
 }
 
 template <typename InterfaceType, typename MessageType>
-auto Receiver<InterfaceType, MessageType>::task_result(const int id) const
-    noexcept -> bool
+auto Receiver<InterfaceType, MessageType>::task_result(
+    const int id) const noexcept -> bool
 {
     Lock lock(task_lock_);
     const auto it = task_result_.find(id);
@@ -118,8 +118,8 @@ auto Receiver<InterfaceType, MessageType>::task_result(const int id) const
 }
 
 template <typename InterfaceType, typename MessageType>
-auto Receiver<InterfaceType, MessageType>::task_running(const int id) const
-    noexcept -> bool
+auto Receiver<InterfaceType, MessageType>::task_running(
+    const int id) const noexcept -> bool
 {
     Lock lock(task_lock_);
 

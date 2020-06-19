@@ -7,6 +7,7 @@
 
 #include "internal/api/client/blockchain/Blockchain.hpp"
 #include "opentxs/Proto.hpp"
+#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
 #include "util/LMDB.hpp"
 
@@ -14,10 +15,10 @@ namespace opentxs
 {
 namespace api
 {
-namespace internal
+namespace client
 {
-struct Core;
-}  // namespace internal
+class Manager;
+}  // namespace client
 }  // namespace api
 
 namespace blockchain
@@ -42,8 +43,8 @@ namespace opentxs::api::client::blockchain::database::implementation
 class BlockHeader
 {
 public:
-    auto BlockHeaderExists(const opentxs::blockchain::block::Hash& hash) const
-        noexcept -> bool;
+    auto BlockHeaderExists(
+        const opentxs::blockchain::block::Hash& hash) const noexcept -> bool;
     auto LoadBlockHeader(const opentxs::blockchain::block::Hash& hash) const
         noexcept(false) -> proto::BlockchainBlockHeader;
     auto StoreBlockHeader(const opentxs::blockchain::block::Header& header)
@@ -51,11 +52,11 @@ public:
     auto StoreBlockHeaders(const UpdatedHeader& headers) const noexcept -> bool;
 
     BlockHeader(
-        const api::internal::Core& api,
+        const api::client::Manager& api,
         opentxs::storage::lmdb::LMDB& lmdb) noexcept(false);
 
 private:
-    const api::internal::Core& api_;
+    const api::client::Manager& api_;
     opentxs::storage::lmdb::LMDB& lmdb_;
 };
 }  // namespace opentxs::api::client::blockchain::database::implementation

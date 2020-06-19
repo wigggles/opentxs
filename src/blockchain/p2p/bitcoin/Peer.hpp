@@ -30,10 +30,10 @@ namespace opentxs
 {
 namespace api
 {
-namespace internal
+namespace client
 {
-struct Core;
-}  // namespace internal
+class Manager;
+}  // namespace client
 }  // namespace api
 
 namespace blockchain
@@ -55,8 +55,6 @@ class Frame;
 class Message;
 }  // namespace zeromq
 }  // namespace network
-
-class Factory;
 }  // namespace opentxs
 
 namespace opentxs::blockchain::p2p::bitcoin::implementation
@@ -67,11 +65,21 @@ public:
     using MessageType = bitcoin::Message;
     using HeaderType = bitcoin::Header;
 
+    Peer(
+        const api::client::Manager& api,
+        const client::internal::Network& network,
+        const client::internal::PeerManager& manager,
+        const blockchain::client::internal::IO& io,
+        const std::string& shutdown,
+        const int id,
+        std::unique_ptr<internal::Address> address,
+        const bool relay = true,
+        const std::set<p2p::Service>& localServices = {},
+        const ProtocolVersion protocol = 0) noexcept;
+
     ~Peer() final;
 
 private:
-    friend opentxs::Factory;
-
     using CommandFunction =
         void (Peer::*)(std::unique_ptr<HeaderType>, const zmq::Frame&);
     using Nonce = bitcoin::Nonce;
@@ -124,7 +132,7 @@ private:
         const ProtocolVersion version,
         const blockchain::Type network,
         const std::set<p2p::Service>& input) noexcept -> std::set<p2p::Service>;
-    static auto nonce(const api::internal::Core& api) noexcept -> Nonce;
+    static auto nonce(const api::client::Manager& api) noexcept -> Nonce;
 
     auto get_body_size(const zmq::Frame& header) const noexcept
         -> std::size_t final;
@@ -239,18 +247,6 @@ private:
     auto process_version(
         std::unique_ptr<HeaderType> header,
         const zmq::Frame& payload) -> void;
-
-    Peer(
-        const api::internal::Core& api,
-        const client::internal::Network& network,
-        const client::internal::PeerManager& manager,
-        const blockchain::client::internal::IO& io,
-        const std::string& shutdown,
-        const int id,
-        std::unique_ptr<internal::Address> address,
-        const bool relay = true,
-        const std::set<p2p::Service>& localServices = {},
-        const ProtocolVersion protocol = 0) noexcept;
 
     Peer() = delete;
     Peer(const Peer&) = delete;

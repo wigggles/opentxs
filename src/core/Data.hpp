@@ -46,8 +46,8 @@ public:
     }
     auto Bytes() const noexcept -> ReadView final
     {
-        return ReadView{reinterpret_cast<const char*>(data_.data()),
-                        data_.size()};
+        return ReadView{
+            reinterpret_cast<const char*>(data_.data()), data_.size()};
     }
     auto cbegin() const -> const_iterator final
     {

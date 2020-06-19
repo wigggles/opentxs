@@ -7,14 +7,13 @@
 #include "1_Internal.hpp"                     // IWYU pragma: associated
 #include "blockchain/client/BlockOracle.hpp"  // IWYU pragma: associated
 
-#include <algorithm>
 #include <map>
 #include <memory>
 #include <type_traits>
 
-#include "Factory.hpp"
 #include "core/Executor.hpp"
 #include "internal/blockchain/Blockchain.hpp"
+#include "internal/blockchain/block/bitcoin/Bitcoin.hpp"
 #include "internal/blockchain/client/Client.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/blockchain/block/bitcoin/Block.hpp"
@@ -31,10 +30,10 @@ namespace opentxs
 {
 namespace api
 {
-namespace internal
+namespace client
 {
-struct Core;
-}  // namespace internal
+class Manager;
+}  // namespace client
 }  // namespace api
 }  // namespace opentxs
 
@@ -43,7 +42,7 @@ struct Core;
 namespace opentxs::factory
 {
 auto BlockOracle(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     const blockchain::client::internal::Network& network,
     const blockchain::Type type,
     const std::string& shutdown) noexcept
@@ -61,7 +60,7 @@ const std::size_t BlockOracle::Cache::cache_limit_{16};
 const std::chrono::seconds BlockOracle::Cache::download_timeout_{30};
 
 BlockOracle::BlockOracle(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     const internal::Network& network,
     [[maybe_unused]] const blockchain::Type type,
     const std::string& shutdown) noexcept
@@ -93,7 +92,7 @@ auto BlockOracle::Cache::ReceiveBlock(const zmq::Frame& in) const noexcept
     -> void
 {
     auto pBlock =
-        Factory::BitcoinBlock(network_.API(), network_.Chain(), in.Bytes());
+        factory::BitcoinBlock(network_.API(), network_.Chain(), in.Bytes());
 
     if (false == bool(pBlock)) {
         LogOutput(OT_METHOD)("Cache::")(__FUNCTION__)(": Invalid block")

@@ -11,7 +11,7 @@
 #include <map>
 #include <string>
 
-#include "Factory.hpp"
+#include "2_Factory.hpp"
 #include "network/zeromq/Message.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"

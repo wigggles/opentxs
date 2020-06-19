@@ -7,7 +7,6 @@
 #include "1_Internal.hpp"               // IWYU pragma: associated
 #include "otx/client/PaymentTasks.hpp"  // IWYU pragma: associated
 
-#include <algorithm>
 #include <chrono>
 #include <functional>
 #include <future>

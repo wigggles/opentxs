@@ -27,10 +27,10 @@ namespace opentxs
 {
 namespace api
 {
-namespace internal
+namespace client
 {
-struct Core;
-}  // namespace internal
+class Manager;
+}  // namespace client
 }  // namespace api
 
 namespace blockchain
@@ -87,7 +87,7 @@ public:
     auto Init() noexcept -> void;
 
     HeaderOracle(
-        const api::internal::Core& api,
+        const api::client::Manager& api,
         const internal::Network& network,
         const internal::HeaderDatabase& database,
         const blockchain::Type type) noexcept;
@@ -113,7 +113,7 @@ private:
 
     static const CheckpointMap checkpoints_;
 
-    const api::internal::Core& api_;
+    const api::client::Manager& api_;
     const internal::HeaderDatabase& database_;
     const blockchain::Type chain_;
     mutable std::mutex lock_;

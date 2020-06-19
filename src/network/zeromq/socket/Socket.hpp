@@ -93,8 +93,8 @@ protected:
         -> bool;
     auto connect(const Lock& lock, const std::string& endpoint) const noexcept
         -> bool;
-    auto receive_message(const Lock& lock, zeromq::Message& message) const
-        noexcept -> bool;
+    auto receive_message(const Lock& lock, zeromq::Message& message)
+        const noexcept -> bool;
     auto send_message(const Lock& lock, zeromq::Message& message) const noexcept
         -> bool;
     auto set_socks_proxy(const std::string& proxy) const noexcept -> bool;

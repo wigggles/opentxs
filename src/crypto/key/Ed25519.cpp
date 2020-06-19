@@ -3,14 +3,13 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "0_stdafx.hpp"    // IWYU pragma: associated
-#include "1_Internal.hpp"  // IWYU pragma: associated
-#if OT_CRYPTO_SUPPORTED_KEY_ED25519
+#include "0_stdafx.hpp"            // IWYU pragma: associated
+#include "1_Internal.hpp"          // IWYU pragma: associated
 #include "crypto/key/Ed25519.hpp"  // IWYU pragma: associated
 
 #include <stdexcept>
 
-#include "Factory.hpp"
+#include "2_Factory.hpp"
 #include "internal/api/Api.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/api/crypto/Symmetric.hpp"
@@ -163,4 +162,3 @@ auto Ed25519::TransportKey(
         publicKey.WriteInto());
 }
 }  // namespace opentxs::crypto::key::implementation
-#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519

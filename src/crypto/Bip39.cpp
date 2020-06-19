@@ -13,7 +13,7 @@
 #include <string_view>
 #include <vector>
 
-#include "Factory.hpp"
+#include "2_Factory.hpp"
 #include "opentxs/Bytes.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
@@ -58,8 +58,8 @@ auto Bip39::bitShift(std::size_t theBit) noexcept -> std::byte
     return static_cast<std::byte>(1 << (ByteBits - (theBit % ByteBits) - 1));
 }
 
-auto Bip39::entropy_to_words(const Secret& entropy, Secret& words) const
-    noexcept -> bool
+auto Bip39::entropy_to_words(const Secret& entropy, Secret& words)
+    const noexcept -> bool
 {
     const auto bytes = entropy.Bytes();
 

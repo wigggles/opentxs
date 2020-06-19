@@ -39,6 +39,10 @@ public:
     auto asHex() const noexcept -> std::string final;
     auto Decimal() const noexcept -> std::string final { return data_.str(); }
 
+    Work(Type&& data) noexcept;
+    Work() noexcept;
+    Work(const Work& rhs) noexcept;
+
     ~Work() final = default;
 
 private:
@@ -48,9 +52,6 @@ private:
 
     auto clone() const noexcept -> Work* final { return new Work(*this); }
 
-    Work(Type&& data) noexcept;
-    Work() noexcept;
-    Work(const Work& rhs) noexcept;
     Work(Work&& rhs) = delete;
     auto operator=(const Work& rhs) -> Work& = delete;
     auto operator=(Work&& rhs) -> Work& = delete;

@@ -9,8 +9,6 @@
 
 #include <thread>
 
-#include "opentxs/Version.hpp"
-
 namespace opentxs
 {
 const char* m_strVersion{OPENTXS_VERSION_STRING};

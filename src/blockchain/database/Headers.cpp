@@ -16,15 +16,15 @@
 #include <string_view>
 #include <utility>
 
-#include "Factory.hpp"
 #include "blockchain/client/UpdateTransaction.hpp"
 #include "core/Executor.hpp"
-#include "internal/api/Api.hpp"
+#include "internal/blockchain/block/Block.hpp"
 #include "internal/blockchain/database/Database.hpp"
 #include "opentxs/Bytes.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Proto.tpp"
 #include "opentxs/api/Factory.hpp"
+#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/blockchain/block/Header.hpp"
 #include "opentxs/blockchain/client/HeaderOracle.hpp"
@@ -34,6 +34,7 @@
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/socket/Publish.hpp"
 #include "util/LMDB.hpp"
+#include "util/Work.hpp"
 
 #define OT_METHOD "opentxs::blockchain::database::Headers::"
 
@@ -46,7 +47,7 @@ auto tsv(const Input& in) noexcept -> ReadView
 }
 
 Headers::Headers(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     const client::internal::Network& network,
     const Common& common,
     const opentxs::storage::lmdb::LMDB& lmdb,
@@ -391,7 +392,7 @@ auto Headers::import_genesis(const blockchain::Type type) const noexcept -> void
         }
     } catch (...) {
         auto genesis = std::unique_ptr<blockchain::block::Header>{
-            opentxs::Factory::GenesisBlockHeader(api_, type)};
+            factory::GenesisBlockHeader(api_, type)};
 
         OT_ASSERT(genesis);
 

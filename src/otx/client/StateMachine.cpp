@@ -21,6 +21,7 @@
 #include <type_traits>
 #include <utility>
 
+#include "2_Factory.hpp"
 #include "core/StateMachine.hpp"
 #include "internal/api/client/Client.hpp"
 #include "internal/otx/client/Client.hpp"

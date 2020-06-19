@@ -3,7 +3,37 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "OTTestEnvironment.hpp"
+#include <gtest/gtest-message.h>
+#include <gtest/gtest-test-part.h>
+#include <gtest/gtest.h>
+#include <cstring>
+#include <memory>
+#include <optional>
+#include <string>
+#include <vector>
+
+#include "OTTestEnvironment.hpp"  // IWYU pragma: keep
+#include "internal/api/client/Client.hpp"
+#include "internal/blockchain/bitcoin/Bitcoin.hpp"
+#include "internal/blockchain/block/bitcoin/Bitcoin.hpp"
+#include "opentxs/Bytes.hpp"
+#include "opentxs/OT.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/api/Context.hpp"
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/api/client/Manager.hpp"
+#include "opentxs/api/crypto/Crypto.hpp"
+#include "opentxs/api/crypto/Hash.hpp"
+#include "opentxs/blockchain/block/bitcoin/Input.hpp"
+#include "opentxs/blockchain/block/bitcoin/Inputs.hpp"
+#include "opentxs/blockchain/block/bitcoin/Output.hpp"
+#include "opentxs/blockchain/block/bitcoin/Outputs.hpp"
+#include "opentxs/blockchain/block/bitcoin/Script.hpp"
+#include "opentxs/blockchain/block/bitcoin/Transaction.hpp"
+#include "opentxs/core/Data.hpp"
+#include "opentxs/protobuf/BlockchainTransaction.pb.h"
+#include "opentxs/protobuf/Enums.pb.h"
 
 namespace
 {
@@ -102,7 +132,7 @@ struct Test_BitcoinTransaction : public ::testing::Test {
 
 TEST_F(Test_BitcoinTransaction, serialization)
 {
-    const auto transaction = ot::Factory::BitcoinTransaction(
+    const auto transaction = ot::factory::BitcoinTransaction(
         api_,
         ot::blockchain::Type::Bitcoin,
         false,
@@ -264,7 +294,7 @@ TEST_F(Test_BitcoinTransaction, serialization)
     ASSERT_TRUE(serialized.has_value());
 
     auto transaction2 =
-        ot::Factory::BitcoinTransaction(api_, false, serialized.value());
+        ot::factory::BitcoinTransaction(api_, false, serialized.value());
 
     ASSERT_TRUE(transaction2);
     EXPECT_EQ(transaction2->Locktime(), 0);
@@ -429,13 +459,13 @@ TEST_F(Test_BitcoinTransaction, serialization)
 
 TEST_F(Test_BitcoinTransaction, normalized_id)
 {
-    const auto transaction1 = ot::Factory::BitcoinTransaction(
+    const auto transaction1 = ot::factory::BitcoinTransaction(
         api_,
         ot::blockchain::Type::Bitcoin,
         false,
         ot::blockchain::bitcoin::EncodedTransaction::Deserialize(
             api_, ot::blockchain::Type::Bitcoin, tx_bytes_->Bytes()));
-    const auto transaction2 = ot::Factory::BitcoinTransaction(
+    const auto transaction2 = ot::factory::BitcoinTransaction(
         api_,
         ot::blockchain::Type::Bitcoin,
         false,

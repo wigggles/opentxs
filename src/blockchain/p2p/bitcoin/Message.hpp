@@ -22,10 +22,10 @@ namespace opentxs
 {
 namespace api
 {
-namespace internal
+namespace client
 {
-struct Core;
-}  // namespace internal
+class Manager;
+}  // namespace client
 }  // namespace api
 }  // namespace opentxs
 
@@ -46,7 +46,7 @@ public:
     virtual ~Message() = default;
 
 protected:
-    const ot::api::internal::Core& api_;
+    const ot::api::client::Manager& api_;
     std::unique_ptr<Header> header_;
 
     void verify_checksum() const noexcept(false);
@@ -54,11 +54,11 @@ protected:
     void init_hash() noexcept;
 
     Message(
-        const api::internal::Core& api,
+        const api::client::Manager& api,
         const blockchain::Type network,
         const bitcoin::Command command) noexcept;
     Message(
-        const api::internal::Core& api,
+        const api::client::Manager& api,
         std::unique_ptr<Header> header) noexcept;
 
 private:

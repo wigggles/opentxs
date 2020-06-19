@@ -3,7 +3,14 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#include <gtest/gtest-message.h>
+#include <gtest/gtest-test-part.h>
+#include <gtest/gtest.h>
+#include <memory>
+
 #include "Helpers.hpp"
+#include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/blockchain/client/HeaderOracle.hpp"
 
 TEST_F(Test_HeaderOracle, delete_checkpoint)
 {

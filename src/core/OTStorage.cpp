@@ -7,7 +7,6 @@
 #include "1_Internal.hpp"              // IWYU pragma: associated
 #include "opentxs/core/OTStorage.hpp"  // IWYU pragma: associated
 
-#include <algorithm>
 #include <cstdio>
 #include <fstream>
 #include <typeinfo>
@@ -18,6 +17,7 @@
 #include "Moneychanger.pb.h"
 #include "internal/api/Api.hpp"
 #include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/core/Armored.hpp"

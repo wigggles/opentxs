@@ -18,6 +18,7 @@
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
+#include "util/Container.hpp"
 
 namespace opentxs::blockchain::p2p::bitcoin
 {
@@ -256,8 +257,8 @@ auto convert_service_bit(const bitcoin::Service value) noexcept -> BitVector8
 auto GetCommand(const CommandField& bytes) noexcept -> Command
 {
     try {
-        const std::string raw{reinterpret_cast<const char*>(bytes.data()),
-                              bytes.size()};
+        const std::string raw{
+            reinterpret_cast<const char*>(bytes.data()), bytes.size()};
         const auto command = std::string{raw.c_str()};
 
         return command_reverse_map_.at(command);

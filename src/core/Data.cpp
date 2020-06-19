@@ -12,7 +12,6 @@ extern "C" {
 }
 
 #include <boost/endian/buffers.hpp>
-#include <algorithm>
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>

@@ -119,8 +119,8 @@ public:
         Data& publicKey,
         Secret& privateKey,
         const PasswordPrompt& reason) const noexcept -> bool override;
-    auto Verify(const Data& plaintext, const proto::Signature& sig) const
-        noexcept -> bool final;
+    auto Verify(const Data& plaintext, const proto::Signature& sig)
+        const noexcept -> bool final;
     auto Version() const noexcept -> VersionNumber final { return version_; }
 
     operator bool() const noexcept override;

@@ -124,8 +124,8 @@ auto Blocks::calculate_file_name(
     return path.string();
 }
 
-auto Blocks::check_file(const Lock& lock, const FileCounter position) const
-    noexcept -> void
+auto Blocks::check_file(const Lock& lock, const FileCounter position)
+    const noexcept -> void
 {
     while (files_.size() < (position + 1)) {
         create_or_load(path_prefix_, files_.size(), files_);
@@ -295,9 +295,9 @@ auto Blocks::Store(const Hash& block, const std::size_t bytes) const noexcept
 
     const auto [file, offset] = get_offset(index.position_);
     check_file(lock, file);
-    auto output =
-        BlockWriter{WritableView{files_.at(file).data() + offset, bytes},
-                    block_locks_[block]};
+    auto output = BlockWriter{
+        WritableView{files_.at(file).data() + offset, bytes},
+        block_locks_[block]};
 
     if (replace) { return output; }
 

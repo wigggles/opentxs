@@ -18,11 +18,11 @@
 #include <string_view>
 #include <utility>
 
-#include "internal/api/Api.hpp"
 #include "internal/blockchain/Blockchain.hpp"
 #include "opentxs/Bytes.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/api/Factory.hpp"
+#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/client/blockchain/HD.hpp"
 #include "opentxs/blockchain/block/Header.hpp"
 #include "opentxs/blockchain/block/bitcoin/Block.hpp"

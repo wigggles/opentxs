@@ -11,7 +11,7 @@
 #include <iterator>
 #include <utility>
 
-#include "Factory.hpp"
+#include "2_Factory.hpp"
 #include "internal/api/client/Client.hpp"
 #include "internal/api/client/blockchain/Blockchain.hpp"
 #include "opentxs/Pimpl.hpp"

@@ -12,6 +12,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <map>
+#include <memory>
 #include <set>
 #include <string>
 
@@ -20,6 +21,47 @@
 #include "internal/blockchain/p2p/P2P.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/core/Data.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace client
+{
+class Manager;
+}  // namespace client
+}  // namespace api
+
+namespace blockchain
+{
+namespace client
+{
+namespace internal
+{
+struct IO;
+struct Network;
+struct PeerManager;
+}  // namespace internal
+}  // namespace client
+
+namespace p2p
+{
+namespace bitcoin
+{
+class Header;
+class Message;
+}  // namespace bitcoin
+}  // namespace p2p
+}  // namespace blockchain
+
+namespace network
+{
+namespace zeromq
+{
+class Frame;
+}  // namespace zeromq
+}  // namespace network
+}  // namespace opentxs
 
 namespace be = boost::endian;
 
@@ -245,3 +287,24 @@ auto reverse_nested_map(
     return output;
 }
 }  // namespace opentxs::blockchain::p2p::bitcoin
+
+namespace opentxs::factory
+{
+OPENTXS_EXPORT auto BitcoinP2PHeader(
+    const api::client::Manager& api,
+    const network::zeromq::Frame& bytes) -> blockchain::p2p::bitcoin::Header*;
+OPENTXS_EXPORT auto BitcoinP2PMessage(
+    const api::client::Manager& api,
+    std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
+    const blockchain::p2p::bitcoin::ProtocolVersion version,
+    const void* payload = nullptr,
+    const std::size_t size = 0) -> blockchain::p2p::bitcoin::Message*;
+auto BitcoinP2PPeerLegacy(
+    const api::client::Manager& api,
+    const blockchain::client::internal::Network& network,
+    const blockchain::client::internal::PeerManager& manager,
+    const blockchain::client::internal::IO& io,
+    const int id,
+    std::unique_ptr<blockchain::p2p::internal::Address> address,
+    const std::string& shutdown) -> blockchain::p2p::internal::Peer*;
+}  // namespace opentxs::factory

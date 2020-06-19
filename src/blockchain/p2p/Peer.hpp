@@ -43,10 +43,10 @@ namespace opentxs
 {
 namespace api
 {
-namespace internal
+namespace client
 {
-struct Core;
-}  // namespace internal
+class Manager;
+}  // namespace client
 }  // namespace api
 
 namespace network
@@ -251,7 +251,7 @@ protected:
         const std::set<p2p::Service>& services) noexcept -> void;
 
     Peer(
-        const api::internal::Core& api,
+        const api::client::Manager& api,
         const client::internal::Network& network,
         const client::internal::PeerManager& manager,
         const blockchain::client::internal::IO& io,

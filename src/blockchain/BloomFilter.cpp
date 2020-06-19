@@ -17,10 +17,9 @@
 #include <type_traits>
 #include <vector>
 
-#include "Factory.hpp"
-#include "internal/api/Api.hpp"
 #include "internal/blockchain/Blockchain.hpp"
 #include "opentxs/Pimpl.hpp"
+#include "opentxs/api/Core.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/blockchain/BloomFilter.hpp"
@@ -28,10 +27,10 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 
-namespace opentxs
+namespace opentxs::factory
 {
-auto Factory::BloomFilter(
-    const api::internal::Core& api,
+auto BloomFilter(
+    const api::Core& api,
     const std::uint32_t tweak,
     const blockchain::BloomUpdateFlag update,
     const std::size_t targets,
@@ -42,15 +41,14 @@ auto Factory::BloomFilter(
     return new ReturnType(api, tweak, update, targets, fpRate);
 }
 
-auto Factory::BloomFilter(
-    const api::internal::Core& api,
-    const Data& serialized) -> blockchain::BloomFilter*
+auto BloomFilter(const api::Core& api, const Data& serialized)
+    -> blockchain::BloomFilter*
 {
     using ReturnType = blockchain::implementation::BloomFilter;
     blockchain::internal::SerializedBloomFilter raw{};
 
     if (sizeof(raw) > serialized.size()) {
-        LogOutput("opentxs::Factory::")(__FUNCTION__)(": Input too short")
+        LogOutput("opentxs::factory::")(__FUNCTION__)(": Input too short")
             .Flush();
 
         return nullptr;
@@ -72,7 +70,7 @@ auto Factory::BloomFilter(
         raw.function_count_.value(),
         filter);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::blockchain::implementation
 {
@@ -81,7 +79,7 @@ const std::size_t BloomFilter::max_hash_function_count_ = 50;
 const std::uint32_t BloomFilter::seed_{4221880213};  // 0xFBA4C795
 
 BloomFilter::BloomFilter(
-    const api::internal::Core& api,
+    const api::Core& api,
     const Tweak tweak,
     const BloomUpdateFlag update,
     const std::size_t functionCount,
@@ -96,7 +94,7 @@ BloomFilter::BloomFilter(
 }
 
 BloomFilter::BloomFilter(
-    const api::internal::Core& api,
+    const api::Core& api,
     const Tweak tweak,
     const BloomUpdateFlag update,
     const std::size_t targets,
@@ -126,7 +124,7 @@ BloomFilter::BloomFilter(
 }
 
 BloomFilter::BloomFilter(
-    const api::internal::Core& api,
+    const api::Core& api,
     const Tweak tweak,
     const BloomUpdateFlag update,
     const std::size_t functionCount,
@@ -136,8 +134,9 @@ BloomFilter::BloomFilter(
           tweak,
           update,
           functionCount,
-          Filter{static_cast<const std::uint8_t*>(data.data()),
-                 static_cast<const std::uint8_t*>(data.data()) + data.size()})
+          Filter{
+              static_cast<const std::uint8_t*>(data.data()),
+              static_cast<const std::uint8_t*>(data.data()) + data.size()})
 {
 }
 

@@ -22,10 +22,10 @@ namespace opentxs
 {
 namespace api
 {
-namespace internal
+namespace client
 {
-struct Core;
-}  // namespace internal
+class Manager;
+}  // namespace client
 }  // namespace api
 
 namespace blockchain
@@ -43,8 +43,6 @@ struct Address;
 }  // namespace internal
 }  // namespace p2p
 }  // namespace blockchain
-
-class Factory;
 }  // namespace opentxs
 
 namespace opentxs::blockchain::p2p::bitcoin::message::implementation
@@ -52,6 +50,17 @@ namespace opentxs::blockchain::p2p::bitcoin::message::implementation
 class Addr final : public internal::Addr
 {
 public:
+    struct BitcoinFormat_31402 {
+        TimestampField32 time_;
+        AddressVersion data_;
+
+        BitcoinFormat_31402(
+            const blockchain::Type chain,
+            const ProtocolVersion version,
+            const p2p::internal::Address& address);
+        BitcoinFormat_31402();
+    };
+
     using pAddress = std::unique_ptr<blockchain::p2p::internal::Address>;
     using AddressVector = std::vector<pAddress>;
 
@@ -79,37 +88,25 @@ public:
     }
     auto size() const noexcept -> std::size_t final { return payload_.size(); }
 
+    Addr(
+        const api::client::Manager& api,
+        const blockchain::Type network,
+        const ProtocolVersion version,
+        AddressVector&& addresses) noexcept;
+    Addr(
+        const api::client::Manager& api,
+        std::unique_ptr<Header> header,
+        const ProtocolVersion version,
+        AddressVector&& addresses) noexcept;
+
     ~Addr() final = default;
 
 private:
-    friend opentxs::Factory;
-
-    struct BitcoinFormat_31402 {
-        TimestampField32 time_;
-        AddressVersion data_;
-
-        BitcoinFormat_31402(
-            const blockchain::Type chain,
-            const ProtocolVersion version,
-            const p2p::internal::Address& address);
-        BitcoinFormat_31402();
-    };
-
     const ProtocolVersion version_;
     const AddressVector payload_;
 
     auto payload() const noexcept -> OTData final;
 
-    Addr(
-        const api::internal::Core& api,
-        const blockchain::Type network,
-        const ProtocolVersion version,
-        AddressVector&& addresses) noexcept;
-    Addr(
-        const api::internal::Core& api,
-        std::unique_ptr<Header> header,
-        const ProtocolVersion version,
-        AddressVector&& addresses) noexcept;
     Addr(const Addr&) = delete;
     Addr(Addr&&) = delete;
     auto operator=(const Addr&) -> Addr& = delete;

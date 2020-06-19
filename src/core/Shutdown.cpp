@@ -14,6 +14,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
+#include "util/Work.hpp"
 
 namespace zmq = opentxs::network::zeromq;
 

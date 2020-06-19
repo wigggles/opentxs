@@ -11,6 +11,7 @@
 #include <memory>
 #include <utility>
 
+#include "2_Factory.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"

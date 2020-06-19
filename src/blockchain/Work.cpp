@@ -12,7 +12,7 @@
 #include <utility>
 #include <vector>
 
-#include "Factory.hpp"
+#include "internal/blockchain/Blockchain.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/blockchain/NumericHash.hpp"
 #include "opentxs/blockchain/Work.hpp"
@@ -22,9 +22,9 @@
 
 #define OT_METHOD "opentxs::blockchain::implementation::Work::"
 
-namespace opentxs
+namespace opentxs::factory
 {
-auto Factory::Work(const std::string& hex) -> blockchain::Work*
+auto Work(const std::string& hex) -> blockchain::Work*
 {
     using ReturnType = blockchain::implementation::Work;
     using ValueType = ReturnType::Type;
@@ -41,7 +41,7 @@ auto Factory::Work(const std::string& hex) -> blockchain::Work*
         mp::import_bits(i, bytes->begin(), bytes->end(), 8, true);
         value = ValueType{i};
     } catch (...) {
-        LogOutput("opentxs::Factory::")(__FUNCTION__)(": Failed to decode work")
+        LogOutput("opentxs::factory::")(__FUNCTION__)(": Failed to decode work")
             .Flush();
 
         return new ReturnType();
@@ -50,7 +50,7 @@ auto Factory::Work(const std::string& hex) -> blockchain::Work*
     return new ReturnType(std::move(value));
 }
 
-auto Factory::Work(const blockchain::NumericHash& input) -> blockchain::Work*
+auto Work(const blockchain::NumericHash& input) -> blockchain::Work*
 {
     using ReturnType = blockchain::implementation::Work;
     using TargetType = mp::checked_cpp_int;
@@ -59,12 +59,12 @@ auto Factory::Work(const blockchain::NumericHash& input) -> blockchain::Work*
 
     try {
         const auto maxTarget =
-            Factory::NumericHashNBits(blockchain::NumericHash::MaxTarget);
+            factory::NumericHashNBits(blockchain::NumericHash::MaxTarget);
         const TargetType targetOne{maxTarget->Decimal()};
         const TargetType target{input.Decimal()};
         value = ValueType{targetOne} / ValueType{target};
     } catch (...) {
-        LogOutput("opentxs::Factory::")(__FUNCTION__)(
+        LogOutput("opentxs::factory::")(__FUNCTION__)(
             ": Failed to calculate difficulty")
             .Flush();
 
@@ -73,7 +73,10 @@ auto Factory::Work(const blockchain::NumericHash& input) -> blockchain::Work*
 
     return new ReturnType(std::move(value));
 }
+}  // namespace opentxs::factory
 
+namespace opentxs
+{
 auto operator==(const OTWork& lhs, const blockchain::Work& rhs) noexcept -> bool
 {
     return lhs.get() == rhs;

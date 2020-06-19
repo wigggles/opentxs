@@ -39,6 +39,7 @@ class Nym;
 
 namespace proto
 {
+class Contact;
 class Nym;
 }  // namespace proto
 

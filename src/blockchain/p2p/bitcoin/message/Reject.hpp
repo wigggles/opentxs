@@ -21,10 +21,10 @@ namespace opentxs
 {
 namespace api
 {
-namespace internal
+namespace client
 {
-struct Core;
-}  // namespace internal
+class Manager;
+}  // namespace client
 }  // namespace api
 
 namespace blockchain
@@ -37,8 +37,6 @@ class Header;
 }  // namespace bitcoin
 }  // namespace p2p
 }  // namespace blockchain
-
-class Factory;
 }  // namespace opentxs
 
 namespace opentxs::blockchain::p2p::bitcoin::message
@@ -54,32 +52,31 @@ public:
         return Data::Factory(extra_);
     }
 
-    ~Reject() final = default;
-
-    auto payload() const noexcept -> OTData final;
-
-private:
-    friend opentxs::Factory;
-
-    const std::string message_;
-    const bitcoin::RejectCode code_{};
-    const std::string reason_;
-    const OTData extra_;
-
     Reject(
-        const api::internal::Core& api,
+        const api::client::Manager& api,
         const blockchain::Type network,
         const std::string& message,
         const bitcoin::RejectCode code,
         const std::string& reason,
         const Data& extra) noexcept;
     Reject(
-        const api::internal::Core& api,
+        const api::client::Manager& api,
         std::unique_ptr<Header> header,
         const std::string& message,
         const bitcoin::RejectCode code,
         const std::string& reason,
         const Data& extra) noexcept(false);
+
+    ~Reject() final = default;
+
+private:
+    const std::string message_;
+    const bitcoin::RejectCode code_{};
+    const std::string reason_;
+    const OTData extra_;
+
+    auto payload() const noexcept -> OTData final;
+
     Reject(const Reject&) = delete;
     Reject(Reject&&) = delete;
     auto operator=(const Reject&) -> Reject& = delete;

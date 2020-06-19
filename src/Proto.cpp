@@ -5,6 +5,20 @@
 
 #include "opentxs/Proto.tpp"  // IWYU pragma: associated
 
+namespace opentxs
+{
+auto operator==(const ProtobufType& lhs, const ProtobufType& rhs) noexcept
+    -> bool
+{
+    auto sLeft = std::string{};
+    auto sRight = std::string{};
+    lhs.SerializeToString(&sLeft);
+    rhs.SerializeToString(&sRight);
+
+    return sLeft == sRight;
+}
+}  // namespace opentxs
+
 namespace opentxs::proto
 {
 auto ToString(const ProtobufType& input) -> std::string

@@ -20,10 +20,10 @@ namespace opentxs
 {
 namespace api
 {
-namespace internal
+namespace client
 {
-struct Core;
-}  // namespace internal
+class Manager;
+}  // namespace client
 }  // namespace api
 
 namespace blockchain
@@ -36,13 +36,11 @@ class Header;
 }  // namespace bitcoin
 }  // namespace p2p
 }  // namespace blockchain
-
-class Factory;
 }  // namespace opentxs
 
 namespace opentxs::blockchain::p2p::bitcoin::message::implementation
 {
-class Headers final : virtual internal::Headers
+class Headers final : virtual public internal::Headers
 {
 public:
     auto at(const std::size_t position) const noexcept(false)
@@ -60,23 +58,22 @@ public:
     }
     auto size() const noexcept -> std::size_t final { return payload_.size(); }
 
+    Headers(
+        const api::client::Manager& api,
+        const blockchain::Type network,
+        std::vector<std::unique_ptr<value_type>>&& headers) noexcept;
+    Headers(
+        const api::client::Manager& api,
+        std::unique_ptr<Header> header,
+        std::vector<std::unique_ptr<value_type>>&& headers) noexcept;
+
     ~Headers() final = default;
 
 private:
-    friend opentxs::Factory;
-
     const std::vector<std::unique_ptr<value_type>> payload_;
 
     auto payload() const noexcept -> OTData final;
 
-    Headers(
-        const api::internal::Core& api,
-        const blockchain::Type network,
-        std::vector<std::unique_ptr<value_type>>&& headers) noexcept;
-    Headers(
-        const api::internal::Core& api,
-        std::unique_ptr<Header> header,
-        std::vector<std::unique_ptr<value_type>>&& headers) noexcept;
     Headers(const Headers&) = delete;
     Headers(Headers&&) = delete;
     auto operator=(const Headers&) -> Headers& = delete;

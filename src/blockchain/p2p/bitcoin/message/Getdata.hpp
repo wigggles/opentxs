@@ -20,10 +20,10 @@ namespace opentxs
 {
 namespace api
 {
-namespace internal
+namespace client
 {
-struct Core;
-}  // namespace internal
+class Manager;
+}  // namespace client
 }  // namespace api
 
 namespace blockchain
@@ -36,8 +36,6 @@ class Header;
 }  // namespace bitcoin
 }  // namespace p2p
 }  // namespace blockchain
-
-class Factory;
 }  // namespace opentxs
 
 namespace opentxs::blockchain::p2p::bitcoin::message::implementation
@@ -60,23 +58,22 @@ public:
     }
     auto size() const noexcept -> std::size_t final { return payload_.size(); }
 
+    Getdata(
+        const api::client::Manager& api,
+        const blockchain::Type network,
+        std::vector<value_type>&& payload) noexcept;
+    Getdata(
+        const api::client::Manager& api,
+        std::unique_ptr<Header> header,
+        std::vector<value_type>&& payload) noexcept;
+
     ~Getdata() final = default;
 
 private:
-    friend opentxs::Factory;
-
     const std::vector<value_type> payload_;
 
     auto payload() const noexcept -> OTData final;
 
-    Getdata(
-        const api::internal::Core& api,
-        const blockchain::Type network,
-        std::vector<value_type>&& payload) noexcept;
-    Getdata(
-        const api::internal::Core& api,
-        std::unique_ptr<Header> header,
-        std::vector<value_type>&& payload) noexcept;
     Getdata(const Getdata&) = delete;
     Getdata(Getdata&&) = delete;
     auto operator=(const Getdata&) -> Getdata& = delete;

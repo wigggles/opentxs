@@ -19,7 +19,6 @@
 #include "opentxs/Proto.hpp"
 #include "opentxs/Proto.tpp"
 #include "opentxs/Types.hpp"
-#include "opentxs/Version.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"

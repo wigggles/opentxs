@@ -96,9 +96,8 @@ public:
     {
         return iterator(this, nyms_.size());
     }
-    void Register(
-        const Identifier& id,
-        const identifier::Nym& nym) noexcept final;
+    void Register(const Identifier& id, const identifier::Nym& nym) noexcept
+        final;
     void Unregister(const Identifier& id) noexcept final;
 
     ~Group() final = default;

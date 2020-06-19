@@ -6,6 +6,8 @@
 #ifndef OPENTXS_TYPES_HPP
 #define OPENTXS_TYPES_HPP
 
+#include "opentxs/Forward.hpp"  // IWYU pragma: associated
+
 #if OT_QT
 #include "opentxs/Qt.hpp"
 #endif

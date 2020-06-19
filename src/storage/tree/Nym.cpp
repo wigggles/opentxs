@@ -17,7 +17,6 @@
 #include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/protobuf/Check.hpp"
 #include "opentxs/protobuf/ContactEnums.pb.h"
-#include "opentxs/protobuf/Enums.pb.h"
 #include "opentxs/protobuf/verify/HDAccount.hpp"
 #include "opentxs/protobuf/verify/StorageNym.hpp"
 #include "storage/Plugin.hpp"
@@ -883,8 +882,9 @@ auto Nym::Store(
 auto Nym::Store(const proto::Purse& purse) -> bool
 {
     Lock lock(write_lock_);
-    const PurseID id{identifier::Server::Factory(purse.notary()),
-                     identifier::UnitDefinition::Factory(purse.mint())};
+    const PurseID id{
+        identifier::Server::Factory(purse.notary()),
+        identifier::UnitDefinition::Factory(purse.mint())};
     std::string hash{};
     const auto output = driver_.StoreProto(purse, hash);
 

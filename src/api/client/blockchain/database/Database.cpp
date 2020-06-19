@@ -12,7 +12,7 @@
 #include <stdexcept>
 
 #include "api/client/blockchain/database/Blocks.hpp"
-#include "internal/api/Api.hpp"
+#include "internal/api/client/Client.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/api/Legacy.hpp"
 
@@ -46,7 +46,7 @@ const opentxs::storage::lmdb::TableNames Database::table_names_{
 };
 
 Database::Database(
-    const api::internal::Core& api,
+    const api::client::internal::Manager& api,
     const api::Legacy& legacy,
     const std::string& dataFolder,
     const ArgList& args) noexcept(false)
@@ -196,8 +196,8 @@ auto Database::BlockLoad(const BlockHash& block) const noexcept -> BlockReader
 #endif
 }
 
-auto Database::BlockStore(const BlockHash& block, const std::size_t bytes) const
-    noexcept -> BlockWriter
+auto Database::BlockStore(const BlockHash& block, const std::size_t bytes)
+    const noexcept -> BlockWriter
 {
 #if OPENTXS_BLOCK_STORAGE_ENABLED
     return blocks_.Store(block, bytes);

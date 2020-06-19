@@ -7,7 +7,6 @@
 #include "1_Internal.hpp"     // IWYU pragma: associated
 #include "server/Notary.hpp"  // IWYU pragma: associated
 
-#include <algorithm>
 #include <chrono>
 #include <cstdint>
 #include <list>
@@ -18,7 +17,7 @@
 #include <utility>
 #include <vector>
 
-#include "Factory.hpp"
+#include "2_Factory.hpp"
 #include "internal/api/Api.hpp"
 #include "internal/api/server/Server.hpp"
 #include "opentxs/Exclusive.hpp"

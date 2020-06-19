@@ -3,7 +3,39 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "OTTestEnvironment.hpp"
+#include <gtest/gtest-message.h>
+#include <gtest/gtest-test-part.h>
+#include <gtest/gtest.h>
+#include <memory>
+#include <string>
+#include <utility>
+
+#include "OTTestEnvironment.hpp"  // IWYU pragma: keep
+#include "internal/api/client/Client.hpp"
+#include "internal/api/server/Server.hpp"
+#include "opentxs/OT.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/SharedPimpl.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/Version.hpp"
+#include "opentxs/api/Context.hpp"
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/api/Wallet.hpp"
+#include "opentxs/api/client/Manager.hpp"
+#include "opentxs/api/client/OTX.hpp"
+#include "opentxs/api/server/Manager.hpp"
+#include "opentxs/client/OTAPI_Exec.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/PasswordPrompt.hpp"
+#include "opentxs/core/contract/ServerContract.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/identity/Nym.hpp"
+#include "opentxs/otx/Reply.hpp"
+#include "opentxs/otx/Request.hpp"
+#include "opentxs/protobuf/OTXEnums.pb.h"
 
 using namespace opentxs;
 

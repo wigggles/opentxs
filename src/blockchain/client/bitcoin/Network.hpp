@@ -22,12 +22,9 @@ namespace internal
 {
 struct Blockchain;
 }  // namespace internal
-}  // namespace client
 
-namespace internal
-{
-struct Core;
-}  // namespace internal
+class Manager;
+}  // namespace client
 }  // namespace api
 
 namespace blockchain
@@ -48,7 +45,7 @@ public:
         -> std::unique_ptr<block::Header> final;
 
     Network(
-        const api::internal::Core& api,
+        const api::client::Manager& api,
         const api::client::internal::Blockchain& blockchain,
         const Type type,
         const std::string& seednode,

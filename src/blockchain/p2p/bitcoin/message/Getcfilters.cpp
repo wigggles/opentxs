@@ -11,7 +11,6 @@
 #include <cstring>
 #include <utility>
 
-#include "Factory.hpp"
 #include "blockchain/p2p/bitcoin/Header.hpp"
 #include "blockchain/p2p/bitcoin/Message.hpp"
 #include "internal/blockchain/p2p/bitcoin/Bitcoin.hpp"
@@ -21,10 +20,10 @@
 
 // #define OT_METHOD
 // "opentxs::blockchain::p2p::bitcoin::message::implementation::Getcfilters::"
-namespace opentxs
+namespace opentxs::factory
 {
-auto Factory::BitcoinP2PGetcfilters(
-    const api::internal::Core& api,
+auto BitcoinP2PGetcfilters(
+    const api::client::Manager& api,
     std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
     const blockchain::p2p::bitcoin::ProtocolVersion version,
     const void* payload,
@@ -35,7 +34,7 @@ auto Factory::BitcoinP2PGetcfilters(
     using ReturnType = bitcoin::message::implementation::Getcfilters;
 
     if (false == bool(pHeader)) {
-        LogOutput("opentxs::Factory::")(__FUNCTION__)(": Invalid header")
+        LogOutput("opentxs::factory::")(__FUNCTION__)(": Invalid header")
             .Flush();
 
         return nullptr;
@@ -46,7 +45,7 @@ auto Factory::BitcoinP2PGetcfilters(
     auto expectedSize = sizeof(raw);
 
     if (expectedSize > size) {
-        LogOutput("opentxs::Factory::")(__FUNCTION__)(": Payload too short")
+        LogOutput("opentxs::factory::")(__FUNCTION__)(": Payload too short")
             .Flush();
 
         return nullptr;
@@ -64,8 +63,8 @@ auto Factory::BitcoinP2PGetcfilters(
         raw.Stop());
 }
 
-auto Factory::BitcoinP2PGetcfilters(
-    const api::internal::Core& api,
+auto BitcoinP2PGetcfilters(
+    const api::client::Manager& api,
     const blockchain::Type network,
     const blockchain::filter::Type type,
     const blockchain::block::Height start,
@@ -77,12 +76,12 @@ auto Factory::BitcoinP2PGetcfilters(
 
     return new ReturnType(api, network, type, start, stop);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::blockchain::p2p::bitcoin::message::implementation
 {
 Getcfilters::Getcfilters(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     const blockchain::Type network,
     const filter::Type type,
     const block::Height start,
@@ -96,7 +95,7 @@ Getcfilters::Getcfilters(
 }
 
 Getcfilters::Getcfilters(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     std::unique_ptr<Header> header,
     const filter::Type type,
     const block::Height start,

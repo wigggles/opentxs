@@ -10,7 +10,6 @@
 #include <iosfwd>
 #include <utility>
 
-#include "Factory.hpp"
 #include "blockchain/p2p/bitcoin/Header.hpp"
 #include "blockchain/p2p/bitcoin/Message.hpp"
 #include "internal/blockchain/p2p/bitcoin/Bitcoin.hpp"
@@ -22,10 +21,10 @@
 //#define OT_METHOD "
 // opentxs::blockchain::p2p::bitcoin::message::implementation::Block::"
 
-namespace opentxs
+namespace opentxs::factory
 {
-auto Factory::BitcoinP2PBlock(
-    const api::internal::Core& api,
+auto BitcoinP2PBlock(
+    const api::client::Manager& api,
     std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
     const blockchain::p2p::bitcoin::ProtocolVersion version,
     const void* payload,
@@ -36,7 +35,7 @@ auto Factory::BitcoinP2PBlock(
     using ReturnType = bitcoin::message::implementation::Block;
 
     if (false == bool(pHeader)) {
-        LogOutput("opentxs::Factory::")(__FUNCTION__)(": Invalid header")
+        LogOutput("opentxs::factory::")(__FUNCTION__)(": Invalid header")
             .Flush();
 
         return nullptr;
@@ -47,8 +46,8 @@ auto Factory::BitcoinP2PBlock(
     return new ReturnType(api, std::move(pHeader), raw_block);
 }
 
-auto Factory::BitcoinP2PBlock(
-    const api::internal::Core& api,
+auto BitcoinP2PBlock(
+    const api::client::Manager& api,
     const blockchain::Type network,
     const Data& raw_block)
     -> blockchain::p2p::bitcoin::message::internal::Block*
@@ -58,12 +57,12 @@ auto Factory::BitcoinP2PBlock(
 
     return new ReturnType(api, network, raw_block);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::blockchain::p2p::bitcoin::message::implementation
 {
 Block::Block(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     const blockchain::Type network,
     const Data& block) noexcept
     : Message(api, network, bitcoin::Command::block)
@@ -73,7 +72,7 @@ Block::Block(
 }
 
 Block::Block(
-    const api::internal::Core& api,
+    const api::client::Manager& api,
     std::unique_ptr<Header> header,
     const Data& block) noexcept
     : Message(api, std::move(header))

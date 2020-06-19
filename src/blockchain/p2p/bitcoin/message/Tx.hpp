@@ -20,10 +20,10 @@ namespace opentxs
 {
 namespace api
 {
-namespace internal
+namespace client
 {
-struct Core;
-}  // namespace internal
+class Manager;
+}  // namespace client
 }  // namespace api
 
 namespace blockchain
@@ -36,8 +36,6 @@ class Header;
 }  // namespace bitcoin
 }  // namespace p2p
 }  // namespace blockchain
-
-class Factory;
 }  // namespace opentxs
 
 namespace opentxs::blockchain::p2p::bitcoin::message
@@ -47,21 +45,20 @@ class Tx final : virtual public bitcoin::Message
 public:
     auto getRawTx() const noexcept -> OTData { return Data::Factory(raw_tx_); }
 
+    Tx(const api::client::Manager& api,
+       const blockchain::Type network,
+       const Data& raw_tx) noexcept;
+    Tx(const api::client::Manager& api,
+       std::unique_ptr<Header> header,
+       const Data& raw_tx) noexcept(false);
+
     ~Tx() final = default;
+
+private:
+    const OTData raw_tx_;
 
     auto payload() const noexcept -> OTData final;
 
-private:
-    friend opentxs::Factory;
-
-    const OTData raw_tx_;
-
-    Tx(const api::internal::Core& api,
-       const blockchain::Type network,
-       const Data& raw_tx) noexcept;
-    Tx(const api::internal::Core& api,
-       std::unique_ptr<Header> header,
-       const Data& raw_tx) noexcept(false);
     Tx(const Tx&) = delete;
     Tx(Tx&&) = delete;
     auto operator=(const Tx&) -> Tx& = delete;

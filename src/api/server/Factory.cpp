@@ -7,6 +7,7 @@
 #include "1_Internal.hpp"          // IWYU pragma: associated
 #include "api/server/Factory.hpp"  // IWYU pragma: associated
 
+#include "2_Factory.hpp"
 #include "api/Factory.hpp"
 #include "internal/api/server/Server.hpp"
 #include "opentxs/core/cron/OTCron.hpp"

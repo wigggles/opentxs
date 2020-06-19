@@ -13,6 +13,14 @@ namespace opentxs
 {
 namespace api
 {
+namespace crypto
+{
+namespace internal
+{
+struct Asymmetric;
+}  // namespace internal
+}  // namespace crypto
+
 class Crypto;
 class Endpoints;
 class HDSeed;

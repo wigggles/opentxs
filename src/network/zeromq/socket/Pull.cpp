@@ -7,7 +7,7 @@
 #include "1_Internal.hpp"                  // IWYU pragma: associated
 #include "network/zeromq/socket/Pull.hpp"  // IWYU pragma: associated
 
-#include "Factory.hpp"
+#include "2_Factory.hpp"
 #include "network/zeromq/curve/Server.hpp"
 #include "network/zeromq/socket/Receiver.tpp"
 #include "network/zeromq/socket/Socket.hpp"

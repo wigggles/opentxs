@@ -24,13 +24,13 @@ namespace opentxs
 {
 namespace api
 {
-namespace internal
+namespace client
 {
-struct Core;
-}  // namespace internal
-}  // namespace api
+class Manager;
+}  // namespace client
 
-class Factory;
+class Core;
+}  // namespace api
 }  // namespace opentxs
 
 namespace opentxs::blockchain::p2p::implementation
@@ -39,6 +39,9 @@ class Address final : public internal::Address
 {
 public:
     static const VersionNumber DefaultVersion;
+
+    static auto instantiate_services(const SerializedType& serialized) noexcept
+        -> std::set<Service>;
 
     auto Bytes() const noexcept -> OTData final { return bytes_; }
     auto Chain() const noexcept -> blockchain::Type final { return chain_; }
@@ -83,7 +86,7 @@ public:
     }
 
     Address(
-        const api::internal::Core& api,
+        const api::Core& api,
         const VersionNumber version,
         const Protocol protocol,
         const Network network,
@@ -97,9 +100,7 @@ public:
     ~Address() final = default;
 
 private:
-    friend opentxs::Factory;
-
-    const api::internal::Core& api_;
+    const api::Core& api_;
     const VersionNumber version_;
     const OTIdentifier id_;
     const Protocol protocol_;
@@ -113,15 +114,13 @@ private:
     std::set<Service> services_;
 
     static auto calculate_id(
-        const api::internal::Core& api,
+        const api::Core& api,
         const VersionNumber version,
         const Protocol protocol,
         const Network network,
         const ReadView bytes,
         const std::uint16_t port,
         const blockchain::Type chain) noexcept -> OTIdentifier;
-    static auto instantiate_services(const SerializedType& serialized) noexcept
-        -> std::set<Service>;
     static auto serialize(
         const VersionNumber version,
         const Protocol protocol,

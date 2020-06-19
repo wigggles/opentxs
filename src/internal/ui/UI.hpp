@@ -50,6 +50,7 @@
 #include "opentxs/ui/UnitList.hpp"
 #include "opentxs/ui/UnitListItem.hpp"
 #include "opentxs/ui/Widget.hpp"
+#include "util/Blank.hpp"
 
 namespace opentxs
 {
@@ -412,8 +413,8 @@ struct Row : virtual public ui::ListRow {
 };
 struct AccountActivity : virtual public List,
                          virtual public ui::AccountActivity {
-    virtual auto last(const implementation::AccountActivityRowID& id) const
-        noexcept -> bool = 0;
+    virtual auto last(const implementation::AccountActivityRowID& id)
+        const noexcept -> bool = 0;
 
     ~AccountActivity() override = default;
 };
@@ -438,8 +439,8 @@ struct AccountSummary : virtual public List, virtual public ui::AccountSummary {
         const implementation::AccountSummaryRowID& id,
         const implementation::AccountSummarySortKey& key) const noexcept = 0;
 #endif
-    virtual auto last(const implementation::AccountSummaryRowID& id) const
-        noexcept -> bool = 0;
+    virtual auto last(const implementation::AccountSummaryRowID& id)
+        const noexcept -> bool = 0;
     virtual auto NymID() const -> const identifier::Nym& = 0;
 
     ~AccountSummary() override = default;
@@ -454,8 +455,8 @@ struct AccountSummaryItem : virtual public Row,
 };
 struct ActivitySummary : virtual public List,
                          virtual public ui::ActivitySummary {
-    virtual auto last(const implementation::ActivitySummaryRowID& id) const
-        noexcept -> bool = 0;
+    virtual auto last(const implementation::ActivitySummaryRowID& id)
+        const noexcept -> bool = 0;
 
     ~ActivitySummary() override = default;
 };
@@ -468,8 +469,8 @@ struct ActivitySummaryItem : virtual public Row,
     ~ActivitySummaryItem() override = default;
 };
 struct ActivityThread : virtual public List {
-    virtual auto last(const implementation::ActivityThreadRowID& id) const
-        noexcept -> bool = 0;
+    virtual auto last(const implementation::ActivityThreadRowID& id)
+        const noexcept -> bool = 0;
     // custom
     virtual auto ThreadID() const -> std::string = 0;
 
@@ -533,8 +534,8 @@ struct ContactSection : virtual public List,
         const implementation::ContactSectionRowID& id,
         const implementation::ContactSectionSortKey& key) const noexcept = 0;
 #endif
-    virtual auto last(const implementation::ContactSectionRowID& id) const
-        noexcept -> bool = 0;
+    virtual auto last(const implementation::ContactSectionRowID& id)
+        const noexcept -> bool = 0;
 
     virtual void reindex(
         const implementation::ContactSortKey& key,
@@ -549,8 +550,8 @@ struct ContactSubsection : virtual public List,
         const implementation::ContactSectionSortKey& key,
         const implementation::CustomData& custom) noexcept = 0;
     // List
-    virtual auto last(const implementation::ContactSubsectionRowID& id) const
-        noexcept -> bool = 0;
+    virtual auto last(const implementation::ContactSubsectionRowID& id)
+        const noexcept -> bool = 0;
 
     ~ContactSubsection() override = default;
 };
@@ -601,8 +602,8 @@ struct ProfileSection : virtual public List,
         const implementation::ProfileSectionRowID& id,
         const implementation::ProfileSectionSortKey& key) const noexcept = 0;
 #endif
-    virtual auto last(const implementation::ProfileSectionRowID& id) const
-        noexcept -> bool = 0;
+    virtual auto last(const implementation::ProfileSectionRowID& id)
+        const noexcept -> bool = 0;
     virtual auto NymID() const noexcept -> const identifier::Nym& = 0;
 
     virtual void reindex(
@@ -619,8 +620,8 @@ struct ProfileSubsection : virtual public List,
         const implementation::ProfileSectionSortKey& key,
         const implementation::CustomData& custom) noexcept = 0;
     // List
-    virtual auto last(const implementation::ProfileSubsectionRowID& id) const
-        noexcept -> bool = 0;
+    virtual auto last(const implementation::ProfileSubsectionRowID& id)
+        const noexcept -> bool = 0;
     // custom
     virtual auto NymID() const noexcept -> const identifier::Nym& = 0;
     virtual auto Section() const noexcept -> proto::ContactSectionName = 0;
@@ -972,8 +973,8 @@ struct ProfileSection : public List<
     {
         return false;
     }
-    auto SetValue(const int, const std::string&, const std::string&) const
-        noexcept -> bool final
+    auto SetValue(const int, const std::string&, const std::string&)
+        const noexcept -> bool final
     {
         return false;
     }

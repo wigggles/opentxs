@@ -3,23 +3,43 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include <boost/bind.hpp>
-#include <boost/asio.hpp>
+#include <gtest/gtest-message.h>
+#include <gtest/gtest-test-part.h>
 #include <gtest/gtest.h>
-#include <functional>
+#include <algorithm>
+#include <memory>
+#include <set>
+#include <utility>
 #include <vector>
-#include <thread>
-#include <cstdint>
-#include <cstdlib>
-#include <deque>
-#include <iostream>
-#include <cstdio>
-#include <cstring>
-#include <future>
-#include <mutex>
-#include <chrono>
 
-#include "OTTestEnvironment.hpp"
+#include "OTTestEnvironment.hpp"  // IWYU pragma: keep
+#include "blockchain/bitcoin/CompactSize.hpp"
+#include "blockchain/p2p/bitcoin/Header.hpp"
+#include "blockchain/p2p/bitcoin/Message.hpp"
+#include "blockchain/p2p/bitcoin/message/Getblocks.hpp"
+#include "internal/api/client/Client.hpp"
+#include "internal/blockchain/p2p/bitcoin/Bitcoin.hpp"
+#include "internal/blockchain/p2p/bitcoin/message/Message.hpp"
+#include "opentxs/Forward.hpp"
+#include "opentxs/OT.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/api/Context.hpp"
+#include "opentxs/api/client/Manager.hpp"
+#include "opentxs/core/Data.hpp"
+#include "opentxs/network/zeromq/Context.hpp"
+#include "opentxs/network/zeromq/Message.hpp"
+
+namespace boost
+{
+namespace asio
+{
+namespace ip
+{
+class tcp;
+}  // namespace ip
+}  // namespace asio
+}  // namespace boost
 
 namespace b = ot::blockchain;
 namespace bb = b::bitcoin;
@@ -98,7 +118,7 @@ TEST_F(Test_Message, getblocks)
     stop_hash->Randomize(32);
 
     std::unique_ptr<bitcoin::message::Getblocks> pMessage{
-        ot::Factory::BitcoinP2PGetblocks(
+        ot::factory::BitcoinP2PGetblocks(
             api_,
             ot::blockchain::Type::BitcoinCash,
             version,
@@ -112,11 +132,11 @@ TEST_F(Test_Message, getblocks)
     auto frame = api_.ZeroMQ().Message(serialized_header);
 
     std::unique_ptr<bitcoin::Header> pHeader{
-        ot::Factory::BitcoinP2PHeader(api_, frame->at(0))};
+        ot::factory::BitcoinP2PHeader(api_, frame->at(0))};
 
     if (payload->size() > 0) {
         std::unique_ptr<bitcoin::Message> pLoadedMsg{
-            ot::Factory::BitcoinP2PMessage(
+            ot::factory::BitcoinP2PMessage(
                 api_,
                 std::move(pHeader),
                 70015,
@@ -125,7 +145,7 @@ TEST_F(Test_Message, getblocks)
         ASSERT_TRUE(pMessage->payload() == pLoadedMsg->payload());
     } else {
         std::unique_ptr<bitcoin::Message> pLoadedMsg{
-            ot::Factory::BitcoinP2PMessage(api_, std::move(pHeader), 70015)};
+            ot::factory::BitcoinP2PMessage(api_, std::move(pHeader), 70015)};
         ASSERT_TRUE(pMessage->payload() == pLoadedMsg->payload());
     }
 }

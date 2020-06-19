@@ -18,10 +18,10 @@ namespace opentxs
 {
 namespace api
 {
-namespace internal
+namespace client
 {
-struct Core;
-}  // namespace internal
+class Manager;
+}  // namespace client
 }  // namespace api
 
 namespace blockchain
@@ -45,23 +45,22 @@ class Filteradd final : virtual public internal::Filteradd
 public:
     auto Element() const noexcept -> OTData final { return element_; }
 
+    Filteradd(
+        const api::client::Manager& api,
+        const blockchain::Type network,
+        const Data& element) noexcept;
+    Filteradd(
+        const api::client::Manager& api,
+        std::unique_ptr<Header> header,
+        const Data& element) noexcept;
+
     ~Filteradd() final = default;
 
 private:
-    friend opentxs::Factory;
-
     const OTData element_;
 
     auto payload() const noexcept -> OTData final;
 
-    Filteradd(
-        const api::internal::Core& api,
-        const blockchain::Type network,
-        const Data& element) noexcept;
-    Filteradd(
-        const api::internal::Core& api,
-        std::unique_ptr<Header> header,
-        const Data& element) noexcept;
     Filteradd(const Filteradd&) = delete;
     Filteradd(Filteradd&&) = delete;
     auto operator=(const Filteradd&) -> Filteradd& = delete;

@@ -3,7 +3,16 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#include <gtest/gtest-message.h>
+#include <gtest/gtest-test-part.h>
+#include <gtest/gtest.h>
+#include <string>
+
 #include "OTLowLevelTestEnvironment.hpp"
+#include "opentxs/OT.hpp"
+#include "opentxs/api/Context.hpp"
+#include "opentxs/api/server/Manager.hpp"
+#include "opentxs/core/identifier/Server.hpp"
 
 std::string server_id_{};
 

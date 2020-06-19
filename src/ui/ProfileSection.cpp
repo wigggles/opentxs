@@ -7,7 +7,6 @@
 #include "1_Internal.hpp"         // IWYU pragma: associated
 #include "ui/ProfileSection.hpp"  // IWYU pragma: associated
 
-#include <algorithm>
 #include <map>
 #include <memory>
 #include <set>
@@ -239,12 +238,12 @@ auto ProfileSection::construct_row(
     return it->second.get();
 }
 
-auto ProfileSection::Delete(const int type, const std::string& claimID) const
-    noexcept -> bool
+auto ProfileSection::Delete(const int type, const std::string& claimID)
+    const noexcept -> bool
 {
     Lock lock(lock_);
-    const ProfileSectionRowID key{row_id_,
-                                  static_cast<proto::ContactItemType>(type)};
+    const ProfileSectionRowID key{
+        row_id_, static_cast<proto::ContactItemType>(type)};
     auto& group = find_by_id(lock, key);
 
     if (false == group.Valid()) { return false; }
@@ -300,8 +299,8 @@ auto ProfileSection::SetActive(
     const bool active) const noexcept -> bool
 {
     Lock lock(lock_);
-    const ProfileSectionRowID key{row_id_,
-                                  static_cast<proto::ContactItemType>(type)};
+    const ProfileSectionRowID key{
+        row_id_, static_cast<proto::ContactItemType>(type)};
     auto& group = find_by_id(lock, key);
 
     if (false == group.Valid()) { return false; }
@@ -315,8 +314,8 @@ auto ProfileSection::SetPrimary(
     const bool primary) const noexcept -> bool
 {
     Lock lock(lock_);
-    const ProfileSectionRowID key{row_id_,
-                                  static_cast<proto::ContactItemType>(type)};
+    const ProfileSectionRowID key{
+        row_id_, static_cast<proto::ContactItemType>(type)};
     auto& group = find_by_id(lock, key);
 
     if (false == group.Valid()) { return false; }
@@ -330,8 +329,8 @@ auto ProfileSection::SetValue(
     const std::string& value) const noexcept -> bool
 {
     Lock lock(lock_);
-    const ProfileSectionRowID key{row_id_,
-                                  static_cast<proto::ContactItemType>(type)};
+    const ProfileSectionRowID key{
+        row_id_, static_cast<proto::ContactItemType>(type)};
     auto& group = find_by_id(lock, key);
 
     if (false == group.Valid()) { return false; }
