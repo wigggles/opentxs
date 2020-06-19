@@ -32,7 +32,7 @@ auto ContactSubsectionWidget(
     const network::zeromq::socket::Publish& publisher,
     const ui::implementation::ContactSectionRowID& rowID,
     const ui::implementation::ContactSectionSortKey& key,
-    const ui::implementation::CustomData& custom
+    ui::implementation::CustomData& custom
 #if OT_QT
     ,
     const bool qt
@@ -64,7 +64,7 @@ ContactSubsection::ContactSubsection(
     const network::zeromq::socket::Publish& publisher,
     const ContactSectionRowID& rowID,
     const ContactSectionSortKey& key,
-    const CustomData& custom
+    CustomData& custom
 #if OT_QT
     ,
     const bool qt
@@ -85,7 +85,10 @@ ContactSubsection::ContactSubsection(
       )
 {
     init();
-    startup_.reset(new std::thread(&ContactSubsection::startup, this, custom));
+    startup_.reset(new std::thread(
+        &ContactSubsection::startup,
+        this,
+        extract_custom<opentxs::ContactGroup>(custom)));
 
     OT_ASSERT(startup_)
 }
@@ -93,7 +96,7 @@ ContactSubsection::ContactSubsection(
 auto ContactSubsection::construct_row(
     const ContactSubsectionRowID& id,
     const ContactSubsectionSortKey& index,
-    const CustomData& custom) const noexcept -> void*
+    CustomData& custom) const noexcept -> void*
 {
     OT_ASSERT(1 == custom.size())
 
@@ -132,7 +135,7 @@ auto ContactSubsection::process_group(
 
 void ContactSubsection::reindex(
     const ContactSectionSortKey&,
-    const CustomData& custom) noexcept
+    CustomData& custom) noexcept
 {
     delete_inactive(
         process_group(extract_custom<opentxs::ContactGroup>(custom)));
@@ -144,9 +147,9 @@ auto ContactSubsection::sort_key(const ContactSubsectionRowID) const noexcept
     return static_cast<int>(items_.size());
 }
 
-void ContactSubsection::startup(const CustomData custom) noexcept
+void ContactSubsection::startup(const opentxs::ContactGroup group) noexcept
 {
-    process_group(extract_custom<opentxs::ContactGroup>(custom));
+    process_group(group);
     finish_startup();
 }
 }  // namespace opentxs::ui::implementation

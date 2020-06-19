@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <iterator>
 #include <map>
 #include <stdexcept>
 #include <tuple>
@@ -128,8 +129,15 @@ auto BalanceNode::Element::Contact() const noexcept -> OTIdentifier
 
 auto BalanceNode::Element::Elements() const noexcept -> std::set<OTData>
 {
-    auto output = std::set<OTData>{};
     Lock lock(lock_);
+
+    return elements(lock);
+}
+
+auto BalanceNode::Element::elements(const Lock&) const noexcept
+    -> std::set<OTData>
+{
+    auto output = std::set<OTData>{};
     auto pubkey = api_.API().Factory().Data(key_.PublicKey());
 
     try {
@@ -206,12 +214,14 @@ void BalanceNode::Element::SetContact(const Identifier& contact) noexcept
 {
     Lock lock(lock_);
     contact_ = contact;
+    update_element(lock);
 }
 
 void BalanceNode::Element::SetLabel(const std::string& label) noexcept
 {
     Lock lock(lock_);
     label_ = label;
+    update_element(lock);
 }
 
 void BalanceNode::Element::SetMetadata(
@@ -221,6 +231,24 @@ void BalanceNode::Element::SetMetadata(
     Lock lock(lock_);
     contact_ = contact;
     label_ = label;
+    update_element(lock);
+}
+
+auto BalanceNode::Element::update_element(Lock& lock) const noexcept -> void
+{
+    const auto elements = this->elements(lock);
+    auto hashes = std::vector<ReadView>{};
+    std::transform(
+        std::begin(elements), std::end(elements), std::back_inserter(hashes), [
+        ](const auto& in) -> auto { return in->Bytes(); });
+    lock.unlock();
+    parent_.UpdateElement(hashes);
+}
+
+auto BalanceNode::UpdateElement(
+    std::vector<ReadView>& pubkeyHashes) const noexcept -> void
+{
+    parent_.Parent().Parent().UpdateElement(pubkeyHashes);
 }
 
 auto BalanceNode::AssociateTransaction(
@@ -245,28 +273,6 @@ auto BalanceNode::AssociateTransaction(
     }
 
     return save(lock);
-}
-
-void BalanceNode::claim_element(
-    const Lock& lock,
-    const Data& element,
-    const blockchain::Key key) const noexcept
-{
-    const auto& db = parent_.Parent().Parent().DB();
-    const auto& nymID = parent_.NymID();
-    const auto status = db.Lookup(nymID, element);
-
-    for (const auto& txo : status) {
-        const auto [coin, spent] = txo;
-
-        if (spent) {
-            process_spent(lock, coin, key, 0);
-        } else {
-            process_unspent(lock, coin, key, 0);
-        }
-
-        db.Claim(nymID, coin);
-    }
 }
 
 auto BalanceNode::convert(Activity&& in) noexcept -> proto::BlockchainActivity

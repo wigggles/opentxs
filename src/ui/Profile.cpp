@@ -228,7 +228,7 @@ auto Profile::check_type(const proto::ContactSectionName type) noexcept -> bool
 auto Profile::construct_row(
     const ProfileRowID& id,
     const ContactSortKey& index,
-    const CustomData& custom) const noexcept -> void*
+    CustomData& custom) const noexcept -> void*
 {
     names_.emplace(id, index);
     const auto [it, added] = items_[index].emplace(

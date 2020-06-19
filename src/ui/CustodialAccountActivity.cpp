@@ -109,29 +109,6 @@ CustodialAccountActivity::CustodialAccountActivity(
     OT_ASSERT(startup_)
 }
 
-auto CustodialAccountActivity::construct_row(
-    const AccountActivityRowID& id,
-    const AccountActivitySortKey& index,
-    const CustomData& custom) const noexcept -> void*
-{
-    OT_ASSERT(2 == custom.size())
-
-    names_.emplace(id, index);
-    const auto [it, added] = items_[index].emplace(
-        id,
-        factory::BalanceItem(
-            *this,
-            api_,
-            publisher_,
-            id,
-            index,
-            custom,
-            primary_id_,
-            account_id_));
-
-    return it->second.get();
-}
-
 auto CustodialAccountActivity::DisplayBalance() const noexcept -> std::string
 {
     sLock lock(shared_lock_);
@@ -160,8 +137,7 @@ auto CustodialAccountActivity::extract_event(
     auto& [time, event_p] = output;
 
     for (const auto& event : workflow.event()) {
-        const auto eventTime =
-            std::chrono::system_clock::from_time_t(event.time());
+        const auto eventTime = Clock::from_time_t(event.time());
 
         if (eventType != event.type()) { continue; }
 

@@ -37,7 +37,6 @@ auto CheckProto_4(const StorageNym& input, const bool silent) -> bool
     CHECK_EXCLUDED(paymentworkflow)
     CHECK_EXCLUDED(bip47)
     CHECK_NONE(purse);
-    CHECK_EXCLUDED(txo)
 
     return true;
 }

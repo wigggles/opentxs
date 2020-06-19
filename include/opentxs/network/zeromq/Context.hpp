@@ -117,8 +117,8 @@ public:
     OPENTXS_EXPORT virtual Pimpl<network::zeromq::Frame> Frame(
         const void* input,
         const std::size_t size) const noexcept = 0;
-    OPENTXS_EXPORT virtual Pimpl<network::zeromq::Message> Message() const
-        noexcept = 0;
+    OPENTXS_EXPORT virtual Pimpl<network::zeromq::Message> Message()
+        const noexcept = 0;
     OPENTXS_EXPORT virtual Pimpl<network::zeromq::Message> Message(
         const ProtobufType& input) const noexcept = 0;
     OPENTXS_EXPORT virtual Pimpl<network::zeromq::Message> Message(

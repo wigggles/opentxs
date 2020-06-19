@@ -41,33 +41,33 @@ public:
     OPENTXS_EXPORT const LogSource& operator()() const noexcept;
     OPENTXS_EXPORT const LogSource& operator()(const char* in) const noexcept;
     OPENTXS_EXPORT const LogSource& operator()(char* in) const noexcept;
-    OPENTXS_EXPORT const LogSource& operator()(const std::string& in) const
-        noexcept;
-    OPENTXS_EXPORT const LogSource& operator()(const OTString& in) const
-        noexcept;
-    OPENTXS_EXPORT const LogSource& operator()(const OTStringXML& in) const
-        noexcept;
-    OPENTXS_EXPORT const LogSource& operator()(const OTArmored& in) const
-        noexcept;
+    OPENTXS_EXPORT const LogSource& operator()(
+        const std::string& in) const noexcept;
+    OPENTXS_EXPORT const LogSource& operator()(
+        const OTString& in) const noexcept;
+    OPENTXS_EXPORT const LogSource& operator()(
+        const OTStringXML& in) const noexcept;
+    OPENTXS_EXPORT const LogSource& operator()(
+        const OTArmored& in) const noexcept;
     OPENTXS_EXPORT const LogSource& operator()(const String& in) const noexcept;
-    OPENTXS_EXPORT const LogSource& operator()(const StringXML& in) const
-        noexcept;
-    OPENTXS_EXPORT const LogSource& operator()(const Armored& in) const
-        noexcept;
-    OPENTXS_EXPORT const LogSource& operator()(const OTIdentifier& in) const
-        noexcept;
-    OPENTXS_EXPORT const LogSource& operator()(const Identifier& in) const
-        noexcept;
-    OPENTXS_EXPORT const LogSource& operator()(const OTNymID& in) const
-        noexcept;
-    OPENTXS_EXPORT const LogSource& operator()(const identifier::Nym& in) const
-        noexcept;
-    OPENTXS_EXPORT const LogSource& operator()(const OTServerID& in) const
-        noexcept;
+    OPENTXS_EXPORT const LogSource& operator()(
+        const StringXML& in) const noexcept;
+    OPENTXS_EXPORT const LogSource& operator()(
+        const Armored& in) const noexcept;
+    OPENTXS_EXPORT const LogSource& operator()(
+        const OTIdentifier& in) const noexcept;
+    OPENTXS_EXPORT const LogSource& operator()(
+        const Identifier& in) const noexcept;
+    OPENTXS_EXPORT const LogSource& operator()(
+        const OTNymID& in) const noexcept;
+    OPENTXS_EXPORT const LogSource& operator()(
+        const identifier::Nym& in) const noexcept;
+    OPENTXS_EXPORT const LogSource& operator()(
+        const OTServerID& in) const noexcept;
     OPENTXS_EXPORT const LogSource& operator()(
         const identifier::Server& in) const noexcept;
-    OPENTXS_EXPORT const LogSource& operator()(const OTUnitID& in) const
-        noexcept;
+    OPENTXS_EXPORT const LogSource& operator()(
+        const OTUnitID& in) const noexcept;
     OPENTXS_EXPORT const LogSource& operator()(
         const identifier::UnitDefinition& in) const noexcept;
     OPENTXS_EXPORT const LogSource& operator()(const Time in) const noexcept;

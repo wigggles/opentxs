@@ -41,7 +41,7 @@ ChequeBalanceItem::ChequeBalanceItem(
     const network::zeromq::socket::Publish& publisher,
     const AccountActivityRowID& rowID,
     const AccountActivitySortKey& sortKey,
-    const CustomData& custom,
+    CustomData& custom,
     const identifier::Nym& nymID,
     const Identifier& accountID) noexcept
     : BalanceItem(
@@ -55,7 +55,13 @@ ChequeBalanceItem::ChequeBalanceItem(
           accountID)
     , cheque_(nullptr)
 {
-    startup_.reset(new std::thread(&ChequeBalanceItem::startup, this, custom));
+    OT_ASSERT(2 == custom.size())
+
+    startup_.reset(new std::thread(
+        &ChequeBalanceItem::startup,
+        this,
+        extract_custom<proto::PaymentWorkflow>(custom, 0),
+        extract_custom<proto::PaymentEvent>(custom, 1)));
 
     OT_ASSERT(startup_)
 }
@@ -126,18 +132,20 @@ auto ChequeBalanceItem::Memo() const noexcept -> std::string
 
 void ChequeBalanceItem::reindex(
     const implementation::AccountActivitySortKey& key,
-    const implementation::CustomData& custom) noexcept
-{
-    BalanceItem::reindex(key, custom);
-    startup(custom);
-}
-
-void ChequeBalanceItem::startup(const CustomData& custom) noexcept
+    implementation::CustomData& custom) noexcept
 {
     OT_ASSERT(2 == custom.size())
 
-    const auto workflow = extract_custom<proto::PaymentWorkflow>(custom, 0);
-    const auto event = extract_custom<proto::PaymentEvent>(custom, 1);
+    BalanceItem::reindex(key, custom);
+    startup(
+        extract_custom<proto::PaymentWorkflow>(custom, 0),
+        extract_custom<proto::PaymentEvent>(custom, 1));
+}
+
+void ChequeBalanceItem::startup(
+    const proto::PaymentWorkflow workflow,
+    const proto::PaymentEvent event) noexcept
+{
     eLock lock(shared_lock_);
     cheque_ = api::client::Workflow::InstantiateCheque(api_, workflow).second;
 

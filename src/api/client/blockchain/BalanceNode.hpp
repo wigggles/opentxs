@@ -12,6 +12,7 @@
 #include <vector>
 
 #include "internal/api/client/blockchain/Blockchain.hpp"
+#include "opentxs/Bytes.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/api/client/blockchain/BalanceNode.hpp"
@@ -86,6 +87,8 @@ public:
         const Bip32Index index,
         const std::string& label) noexcept(false) -> bool final;
     auto Type() const noexcept -> BalanceNodeType final { return type_; }
+    auto UpdateElement(std::vector<ReadView>& pubkeyHashes) const noexcept
+        -> void final;
 
     ~BalanceNode() override = default;
 
@@ -103,6 +106,10 @@ protected:
             -> std::set<std::string> final;
         auto Index() const noexcept -> Bip32Index final { return index_; }
         auto Key() const noexcept -> ECKey final;
+        auto KeyID() const noexcept -> blockchain::Key final
+        {
+            return {ID().str(), subchain_, index_};
+        }
         auto Label() const noexcept -> std::string final;
         auto NymID() const noexcept -> const identifier::Nym& final
         {
@@ -118,6 +125,8 @@ protected:
         {
             return subchain_;
         }
+
+        auto elements(const Lock& lock) const noexcept -> std::set<OTData>;
 
         void SetContact(const Identifier& id) noexcept final;
         void SetLabel(const std::string& label) noexcept final;
@@ -160,6 +169,8 @@ protected:
             const proto::AsymmetricKey& serialized) noexcept(false)
             -> std::unique_ptr<opentxs::crypto::key::EllipticCurve>;
 
+        auto update_element(Lock& lock) const noexcept -> void;
+
         Element(
             const internal::BalanceNode& parent,
             const client::internal::Blockchain& api,
@@ -189,10 +200,6 @@ protected:
     static auto convert(const std::vector<Activity>& in) noexcept
         -> internal::ActivityMap;
 
-    void claim_element(
-        const Lock& lock,
-        const Data& element,
-        const blockchain::Key key) const noexcept;
     void process_spent(
         const Lock& lock,
         const Coin& coin,

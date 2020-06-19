@@ -32,6 +32,9 @@ public:
     auto AccountUpdate() const noexcept -> std::string final;
     auto BlockchainBalance() const noexcept -> std::string final;
     auto BlockchainReorg() const noexcept -> std::string final;
+    auto BlockchainTransactions() const noexcept -> std::string final;
+    auto BlockchainTransactions(const identifier::Nym& nym) const noexcept
+        -> std::string final;
     auto ConnectionStatus() const noexcept -> std::string final;
     auto ContactUpdate() const noexcept -> std::string final;
     auto DhtRequestNym() const noexcept -> std::string final;

@@ -74,7 +74,8 @@ auto Thread::Add(
     const std::string& alias,
     const std::string& contents,
     const std::uint64_t index,
-    const std::string& account) -> bool
+    const std::string& account,
+    const std::uint32_t chain) -> bool
 {
     Lock lock(write_lock_);
 
@@ -124,6 +125,11 @@ auto Thread::Add(
     item.set_box(static_cast<std::uint32_t>(box));
     item.set_account(account);
     item.set_unread(unread);
+
+    if (StorageBox::BLOCKCHAIN == box) {
+        item.set_chain(chain);
+        item.set_txid(contents);
+    }
 
     const auto valid = proto::Validate(item, VERBOSE);
 

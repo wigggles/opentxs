@@ -39,7 +39,7 @@ auto PaymentItem(
     const identifier::Nym& nymID,
     const ui::implementation::ActivityThreadRowID& rowID,
     const ui::implementation::ActivityThreadSortKey& sortKey,
-    const ui::implementation::CustomData& custom) noexcept
+    ui::implementation::CustomData& custom) noexcept
     -> std::shared_ptr<ui::implementation::ActivityThreadRowInternal>
 {
     using ReturnType = ui::implementation::PaymentItem;
@@ -58,7 +58,7 @@ PaymentItem::PaymentItem(
     const identifier::Nym& nymID,
     const ActivityThreadRowID& rowID,
     const ActivityThreadSortKey& sortKey,
-    const CustomData& custom) noexcept
+    CustomData& custom) noexcept
     : ActivityThreadItem(
           parent,
           api,

@@ -50,8 +50,8 @@ namespace ui
 class ContactSection : virtual public List, virtual public ListRow
 {
 public:
-    OPENTXS_EXPORT virtual std::string Name(const std::string& lang) const
-        noexcept = 0;
+    OPENTXS_EXPORT virtual std::string Name(
+        const std::string& lang) const noexcept = 0;
     OPENTXS_EXPORT virtual opentxs::SharedPimpl<opentxs::ui::ContactSubsection>
     First() const noexcept = 0;
     OPENTXS_EXPORT virtual opentxs::SharedPimpl<opentxs::ui::ContactSubsection>

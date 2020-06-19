@@ -97,7 +97,7 @@ private:
     auto construct_row(
         const AccountListRowID& id,
         const AccountListSortKey& index,
-        const CustomData& custom) const noexcept -> void* final;
+        CustomData& custom) const noexcept -> void* final;
 
     auto process_account(const Identifier& id) noexcept -> void;
     auto process_account(const Identifier& id, const Amount balance) noexcept

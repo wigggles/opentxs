@@ -121,7 +121,6 @@ set(
   StorageBip47NymAddressIndex.proto
   StorageBlockchainAccountList.proto
   StorageBlockchainTransactions.proto
-  StorageBlockchainTxo.proto
   StorageContactAddressIndex.proto
   StorageContactNymIndex.proto
   StorageContacts.proto
@@ -141,7 +140,6 @@ set(
   StorageServers.proto
   StorageThread.proto
   StorageThreadItem.proto
-  StorageTxoIndex.proto
   StorageUnits.proto
   StorageWorkflowIndex.proto
   StorageWorkflowType.proto

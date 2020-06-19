@@ -8,6 +8,7 @@
 
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
+#include <cstdint>
 #include <set>
 #include <tuple>
 #include <vector>
@@ -20,6 +21,7 @@ namespace opentxs
 {
 namespace blockchain
 {
+using PatternID = std::uint64_t;
 using Hash = Data;
 using pHash = OTData;
 

@@ -96,13 +96,14 @@ private:
     const Flag& running_;
 
     static auto newest_item(
+        const Identifier& id,
         const proto::StorageThread& thread,
         CustomData& custom) noexcept -> const proto::StorageThreadItem&;
 
     auto construct_row(
         const ActivitySummaryRowID& id,
         const ActivitySummarySortKey& index,
-        const CustomData& custom) const noexcept -> void* final;
+        CustomData& custom) const noexcept -> void* final;
     auto display_name(const proto::StorageThread& thread) const noexcept
         -> std::string;
 

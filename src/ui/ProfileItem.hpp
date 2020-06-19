@@ -94,7 +94,7 @@ public:
 
     void reindex(
         const ProfileSubsectionSortKey& key,
-        const CustomData& custom) noexcept final;
+        CustomData& custom) noexcept final;
 
     ProfileItem(
         const ProfileSubsectionInternalInterface& parent,
@@ -102,7 +102,7 @@ public:
         const network::zeromq::socket::Publish& publisher,
         const ProfileSubsectionRowID& rowID,
         const ProfileSubsectionSortKey& sortKey,
-        const CustomData& custom) noexcept;
+        CustomData& custom) noexcept;
     ~ProfileItem() = default;
 
 private:

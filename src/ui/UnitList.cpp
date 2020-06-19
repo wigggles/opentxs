@@ -123,7 +123,7 @@ UnitList::UnitList(
 auto UnitList::construct_row(
     const UnitListRowID& id,
     const UnitListSortKey& index,
-    const CustomData& custom) const noexcept -> void*
+    CustomData& custom) const noexcept -> void*
 {
     names_.emplace(id, index);
     const auto [it, added] = items_[index].emplace(
@@ -186,7 +186,8 @@ auto UnitList::process_blockchain_balance(
 
 auto UnitList::process_unit(const UnitListRowID& id) noexcept -> void
 {
-    add_item(id, proto::TranslateItemType(id), CustomData{});
+    auto custom = CustomData{};
+    add_item(id, proto::TranslateItemType(id), custom);
 }
 
 #if OT_BLOCKCHAIN

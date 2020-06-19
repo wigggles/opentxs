@@ -30,7 +30,6 @@
 #include "storage/tree/PeerRequests.hpp"
 #include "storage/tree/Thread.hpp"  // IWYU pragma: keep
 #include "storage/tree/Threads.hpp"
-#include "storage/tree/Txos.hpp"
 
 #define CURRENT_VERSION 9
 #define BLOCKCHAIN_INDEX_VERSION 1
@@ -130,9 +129,6 @@ Nym::Nym(
     , workflows_lock_()
     , workflows_(nullptr)
     , purse_id_()
-    , txo_lock_{}
-    , txo_{nullptr}
-    , txo_root_{Node::BLANK_HASH}
 {
     if (check_hash(hash)) {
         init(hash);
@@ -362,7 +358,7 @@ void Nym::init(const std::string& hash)
     }
 
     // Fields added in version 9
-    txo_root_ = normalize_hash(serialized->txo().hash());
+    // NOTE txo field is no longer used
 }
 
 auto Nym::issuers() const -> storage::Issuers*
@@ -481,7 +477,6 @@ auto Nym::Migrate(const opentxs::api::storage::Driver& to) const -> bool
     output &= issuers()->Migrate(to);
     output &= workflows()->Migrate(to);
     output &= bip47()->Migrate(to);
-    output &= txos()->Migrate(to);
     output &= migrate(root_, to);
 
     return output;
@@ -571,6 +566,28 @@ auto Nym::mutable_Threads() -> Editor<storage::Threads>
         threads_root_, threads_lock_, &Nym::threads);
 }
 
+auto Nym::mutable_Threads(
+    const Data& txid,
+    const Identifier& contact,
+    const bool add) -> Editor<storage::Threads>
+{
+    auto* threads = this->threads();
+
+    OT_ASSERT(threads);
+
+    if (add) {
+        threads->AddIndex(txid, contact);
+    } else {
+        threads->RemoveIndex(txid, contact);
+    }
+
+    auto cb = [&](storage::Threads* in, Lock& lock) {
+        _save(in, lock, threads_lock_, threads_root_);
+    };
+
+    return Editor<storage::Threads>(write_lock_, threads, cb);
+}
+
 auto Nym::mutable_Contexts() -> Editor<storage::Contexts>
 {
     return editor<storage::Contexts>(
@@ -587,11 +604,6 @@ auto Nym::mutable_PaymentWorkflows() -> Editor<storage::PaymentWorkflows>
 {
     return editor<storage::PaymentWorkflows>(
         workflows_root_, workflows_lock_, &Nym::workflows);
-}
-
-auto Nym::mutable_TXOs() -> Editor<storage::Txos>
-{
-    return editor<storage::Txos>(txo_root_, txo_lock_, &Nym::txos);
 }
 
 auto Nym::PaymentWorkflows() const -> const storage::PaymentWorkflows&
@@ -769,8 +781,6 @@ auto Nym::serialize() const -> proto::StorageNym
         purse.set_unit(unit->str());
         set_hash(purse.version(), unit->str(), hash, *purse.mutable_purse());
     }
-
-    set_hash(version_, nymid_, txo_root_, *serialized.mutable_txo());
 
     return serialized;
 }

@@ -31,7 +31,7 @@ auto MailItem(
     const identifier::Nym& nymID,
     const ui::implementation::ActivityThreadRowID& rowID,
     const ui::implementation::ActivityThreadSortKey& sortKey,
-    const ui::implementation::CustomData& custom,
+    ui::implementation::CustomData& custom,
     const bool loading,
     const bool pending) noexcept
     -> std::shared_ptr<ui::implementation::ActivityThreadRowInternal>
@@ -57,7 +57,7 @@ auto MailItem(
     const identifier::Nym& nymID,
     const ui::implementation::ActivityThreadRowID& rowID,
     const ui::implementation::ActivityThreadSortKey& sortKey,
-    const ui::implementation::CustomData& custom) noexcept
+    ui::implementation::CustomData& custom) noexcept
     -> std::shared_ptr<ui::implementation::ActivityThreadRowInternal>
 {
     using ReturnType = ui::implementation::MailItem;
@@ -76,7 +76,7 @@ MailItem::MailItem(
     const identifier::Nym& nymID,
     const ActivityThreadRowID& rowID,
     const ActivityThreadSortKey& sortKey,
-    const CustomData& custom,
+    CustomData& custom,
     const bool loading,
     const bool pending) noexcept
     : ActivityThreadItem(
@@ -102,7 +102,7 @@ MailItem::MailItem(
     const identifier::Nym& nymID,
     const ActivityThreadRowID& rowID,
     const ActivityThreadSortKey& sortKey,
-    const CustomData& custom) noexcept
+    CustomData& custom) noexcept
     : MailItem(
           parent,
           api,

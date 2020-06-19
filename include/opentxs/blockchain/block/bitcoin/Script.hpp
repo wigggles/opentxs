@@ -18,6 +18,19 @@
 
 namespace opentxs
 {
+namespace api
+{
+namespace client
+{
+class Manager;
+}  // namespace client
+
+class Core;
+}  // namespace api
+}  // namespace opentxs
+
+namespace opentxs
+{
 namespace blockchain
 {
 namespace block
@@ -53,19 +66,24 @@ public:
     OPENTXS_EXPORT virtual auto at(const std::size_t position) const
         noexcept(false) -> const value_type& = 0;
     OPENTXS_EXPORT virtual auto begin() const noexcept -> const_iterator = 0;
+    OPENTXS_EXPORT virtual auto CalculateHash160(
+        const api::Core& api,
+        const AllocateOutput output) const noexcept -> bool = 0;
     OPENTXS_EXPORT virtual auto CalculateSize() const noexcept
         -> std::size_t = 0;
     OPENTXS_EXPORT virtual auto cbegin() const noexcept -> const_iterator = 0;
     OPENTXS_EXPORT virtual auto cend() const noexcept -> const_iterator = 0;
     OPENTXS_EXPORT virtual auto end() const noexcept -> const_iterator = 0;
-    OPENTXS_EXPORT virtual auto ExtractElements(const filter::Type style) const
-        noexcept -> std::vector<Space> = 0;
+    OPENTXS_EXPORT virtual auto ExtractElements(
+        const filter::Type style) const noexcept -> std::vector<Space> = 0;
+    OPENTXS_EXPORT virtual auto ExtractPatterns(const api::client::Manager& api)
+        const noexcept -> std::vector<PatternID> = 0;
     /// Value only present for Multisig patterns
     OPENTXS_EXPORT virtual auto M() const noexcept
         -> std::optional<std::uint8_t> = 0;
     /// Value only present for Multisig patterns, 0 indexed
-    OPENTXS_EXPORT virtual auto MultisigPubkey(const std::size_t position) const
-        noexcept -> std::optional<ReadView> = 0;
+    OPENTXS_EXPORT virtual auto MultisigPubkey(const std::size_t position)
+        const noexcept -> std::optional<ReadView> = 0;
     /// Value only present for Multisig patterns
     OPENTXS_EXPORT virtual auto N() const noexcept
         -> std::optional<std::uint8_t> = 0;

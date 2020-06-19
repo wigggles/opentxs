@@ -28,7 +28,7 @@ auto AccountSummaryItem(
     const network::zeromq::socket::Publish& publisher,
     const ui::implementation::IssuerItemRowID& rowID,
     const ui::implementation::IssuerItemSortKey& sortKey,
-    const ui::implementation::CustomData& custom) noexcept
+    ui::implementation::CustomData& custom) noexcept
     -> std::shared_ptr<ui::implementation::IssuerItemRowInternal>
 {
     using ReturnType = ui::implementation::AccountSummaryItem;
@@ -46,7 +46,7 @@ AccountSummaryItem::AccountSummaryItem(
     const network::zeromq::socket::Publish& publisher,
     const IssuerItemRowID& rowID,
     const IssuerItemSortKey& sortKey,
-    const CustomData& custom) noexcept
+    CustomData& custom) noexcept
     : AccountSummaryItemRow(parent, api, publisher, rowID, true)
     , account_id_(std::get<0>(row_id_).get())
     , currency_(std::get<1>(row_id_))
@@ -139,7 +139,7 @@ auto AccountSummaryItem::qt_data(const int column, int role) const noexcept
 
 auto AccountSummaryItem::reindex(
     const IssuerItemSortKey& key,
-    const CustomData& custom) noexcept -> void
+    CustomData& custom) noexcept -> void
 {
     balance_.store(extract_custom<Amount>(custom));
     eLock lock(shared_lock_);

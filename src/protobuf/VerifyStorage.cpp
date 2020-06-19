@@ -59,32 +59,6 @@ auto StorageBip47ContextsAllowedStorageBip47ChannelList() noexcept
 
     return output;
 }
-auto StorageBlockchainTransactionsAllowedStorageContactNymIndex() noexcept
-    -> const VersionMap&
-{
-    static const auto output = VersionMap{
-        {2, {1, 1}},
-    };
-
-    return output;
-}
-auto StorageBlockchainTransactionsAllowedStorageItemHash() noexcept
-    -> const VersionMap&
-{
-    static const auto output = VersionMap{
-        {1, {1, 2}},
-        {2, {1, 2}},
-    };
-
-    return output;
-}
-auto StorageBlockchainTxoAllowedBlockchainPreviousOutput() noexcept
-    -> const VersionMap&
-{
-    static const auto output = VersionMap{{1, {1, 1}}};
-
-    return output;
-}
 auto StorageContactsAllowedAddress() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
@@ -295,14 +269,6 @@ auto StorageServersAllowedStorageItemHash() noexcept -> const VersionMap&
     return output;
 }
 auto StorageThreadAllowedItem() noexcept -> const VersionMap&
-{
-    static const auto output = VersionMap{
-        {1, {1, 1}},
-    };
-
-    return output;
-}
-auto StorageTxoIndexAllowedStorageBlockchainTxo() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{
         {1, {1, 1}},

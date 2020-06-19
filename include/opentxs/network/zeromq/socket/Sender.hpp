@@ -28,9 +28,8 @@ namespace socket
 class Sender : virtual public Socket
 {
 public:
-    OPENTXS_EXPORT bool Send(
-        opentxs::Pimpl<opentxs::network::zeromq::Message>& message) const
-        noexcept
+    OPENTXS_EXPORT bool Send(opentxs::Pimpl<opentxs::network::zeromq::Message>&
+                                 message) const noexcept
     {
         return send(message.get());
     }

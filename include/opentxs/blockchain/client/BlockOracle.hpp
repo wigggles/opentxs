@@ -26,8 +26,8 @@ public:
     using BitcoinBlock_p = std::shared_ptr<const BitcoinBlock>;
     using BitcoinBlockFuture = std::shared_future<BitcoinBlock_p>;
 
-    OPENTXS_EXPORT virtual auto LoadBitcoin(const block::Hash& block) const
-        noexcept -> BitcoinBlockFuture = 0;
+    OPENTXS_EXPORT virtual auto LoadBitcoin(
+        const block::Hash& block) const noexcept -> BitcoinBlockFuture = 0;
 
     virtual ~BlockOracle() = default;
 

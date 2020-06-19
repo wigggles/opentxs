@@ -72,13 +72,11 @@ public:
     auto Memo() const noexcept -> std::string override { return {}; }
     auto Pending() const noexcept -> bool final { return pending_.get(); }
     auto Text() const noexcept -> std::string final;
-    auto Timestamp() const noexcept
-        -> std::chrono::system_clock::time_point final;
+    auto Timestamp() const noexcept -> Time final;
     auto Type() const noexcept -> StorageBox final { return box_; }
 
-    void reindex(
-        const ActivityThreadSortKey& key,
-        const CustomData& custom) noexcept final;
+    void reindex(const ActivityThreadSortKey& key, CustomData& custom) noexcept
+        final;
 
 #if OT_QT
     QVariant qt_data(const int column, const int role) const noexcept final;
@@ -88,7 +86,7 @@ public:
 
 protected:
     const identifier::Nym& nym_id_;
-    const std::chrono::system_clock::time_point time_;
+    const Time time_;
     const Identifier& item_id_;
     const StorageBox& box_;
     const Identifier& account_id_;
@@ -103,7 +101,7 @@ protected:
         const identifier::Nym& nymID,
         const ActivityThreadRowID& rowID,
         const ActivityThreadSortKey& sortKey,
-        const CustomData& custom,
+        CustomData& custom,
         const bool loading,
         const bool pending) noexcept;
 

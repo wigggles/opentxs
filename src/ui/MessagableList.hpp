@@ -87,7 +87,7 @@ private:
     auto construct_row(
         const MessagableListRowID& id,
         const MessagableListSortKey& index,
-        const CustomData& custom) const noexcept -> void* final;
+        CustomData& custom) const noexcept -> void* final;
     auto last(const MessagableListRowID& id) const noexcept -> bool final
     {
         return MessagableListList::last(id);

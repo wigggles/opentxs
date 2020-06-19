@@ -94,6 +94,7 @@ namespace proto
 class BlockchainTransactionOutput;
 }  // namespace proto
 
+class Data;
 class Factory;
 }  // namespace opentxs
 
@@ -103,6 +104,7 @@ class Database final : virtual public internal::Database
 {
 public:
     auto AddConfirmedTransaction(
+        const blockchain::Type chain,
         const NodeID& balanceNode,
         const Subchain subchain,
         const FilterType type,
@@ -112,6 +114,7 @@ public:
         const VersionNumber version) const noexcept -> bool final
     {
         return wallet_.AddConfirmedTransaction(
+            chain,
             balanceNode,
             subchain,
             type,
@@ -260,6 +263,11 @@ public:
     {
         return headers_.LoadHeader(hash);
     }
+    auto LookupContact(const Data& pubkeyHash) const noexcept
+        -> std::set<OTIdentifier> final
+    {
+        return wallet_.LookupContact(pubkeyHash);
+    }
     auto RecentHashes() const noexcept -> std::vector<block::pHash> final
     {
         return headers_.RecentHashes();
@@ -376,6 +384,11 @@ public:
     {
         return wallet_.SubchainSetLastScanned(
             balanceNode, subchain, type, position);
+    }
+    auto TransactionLoadBitcoin(const ReadView txid) const noexcept
+        -> std::unique_ptr<block::bitcoin::Transaction> final
+    {
+        return wallet_.TransactionLoadBitcoin(txid);
     }
     // Returns null pointer if the header does not exist
     auto TryLoadHeader(const block::Hash& hash) const noexcept

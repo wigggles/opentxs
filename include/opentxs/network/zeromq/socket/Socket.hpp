@@ -62,8 +62,8 @@ public:
         const std::chrono::milliseconds& linger,
         const std::chrono::milliseconds& send,
         const std::chrono::milliseconds& receive) const noexcept = 0;
-    OPENTXS_EXPORT virtual bool Start(const std::string& endpoint) const
-        noexcept = 0;
+    OPENTXS_EXPORT virtual bool Start(
+        const std::string& endpoint) const noexcept = 0;
     OPENTXS_EXPORT virtual SocketType Type() const noexcept = 0;
 
     OPENTXS_EXPORT virtual ~Socket() = default;

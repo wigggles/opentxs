@@ -11,14 +11,29 @@
 #include <optional>
 #include <vector>
 
+#include "internal/blockchain/block/bitcoin/Bitcoin.hpp"
 #include "opentxs/Bytes.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/blockchain/block/bitcoin/Script.hpp"
+#include "opentxs/core/Data.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace client
+{
+class Manager;
+}  // namespace client
+
+class Core;
+}  // namespace api
+}  // namespace opentxs
 
 namespace opentxs::blockchain::block::bitcoin::implementation
 {
-class Script final : public bitcoin::Script
+class Script final : public internal::Script
 {
 public:
     static auto decode(const std::byte in) noexcept(false) -> OP;
@@ -34,6 +49,8 @@ public:
         return elements_.at(position);
     }
     auto begin() const noexcept -> const_iterator final { return cbegin(); }
+    auto CalculateHash160(const api::Core& api, const AllocateOutput output)
+        const noexcept -> bool final;
     auto CalculateSize() const noexcept -> std::size_t final;
     auto cbegin() const noexcept -> const_iterator final
     {
@@ -46,6 +63,10 @@ public:
     auto end() const noexcept -> const_iterator final { return cend(); }
     auto ExtractElements(const filter::Type style) const noexcept
         -> std::vector<Space> final;
+    auto ExtractPatterns(const api::client::Manager& api) const noexcept
+        -> std::vector<PatternID> final;
+    auto LikelyPubkeyHashes(const api::client::Manager& api) const noexcept
+        -> std::vector<OTData> final;
     auto M() const noexcept -> std::optional<std::uint8_t> final;
     auto MultisigPubkey(const std::size_t position) const noexcept
         -> std::optional<ReadView> final;
@@ -55,6 +76,10 @@ public:
     auto RedeemScript() const noexcept
         -> std::unique_ptr<bitcoin::Script> final;
     auto Role() const noexcept -> Position final { return role_; }
+    auto clone() const noexcept -> std::unique_ptr<internal::Script> final
+    {
+        return std::make_unique<Script>(*this);
+    }
     auto ScriptHash() const noexcept -> std::optional<ReadView> final;
     auto Serialize(const AllocateOutput destination) const noexcept
         -> bool final;
@@ -64,12 +89,16 @@ public:
         -> std::optional<ReadView> final;
 
     Script(
+        const blockchain::Type chain,
         const Position role,
         ScriptElements&& elements,
         std::optional<std::size_t> size = {}) noexcept;
+    Script(const Script&) noexcept;
+
     ~Script() final = default;
 
 private:
+    const blockchain::Type chain_;
     const Position role_;
     const ScriptElements elements_;
     const Pattern type_;
@@ -111,7 +140,6 @@ private:
     auto get_opcode(const std::size_t position) const noexcept(false) -> OP;
 
     Script() = delete;
-    Script(const Script&) = delete;
     Script(Script&&) = delete;
     auto operator=(const Script&) -> Script& = delete;
     auto operator=(Script &&) -> Script& = delete;

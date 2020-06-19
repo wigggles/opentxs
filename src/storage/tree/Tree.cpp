@@ -17,7 +17,6 @@
 #include "opentxs/protobuf/verify/StorageItems.hpp"
 #include "storage/Plugin.hpp"
 #include "storage/tree/Accounts.hpp"
-#include "storage/tree/BlockchainTransactions.hpp"
 #include "storage/tree/Contacts.hpp"
 #include "storage/tree/Credentials.hpp"
 #include "storage/tree/Node.hpp"
@@ -39,7 +38,6 @@ Tree::Tree(
     const std::string& hash)
     : Node(storage, hash)
     , account_root_(Node::BLANK_HASH)
-    , blockchain_root_(Node::BLANK_HASH)
     , contact_root_(Node::BLANK_HASH)
     , credential_root_(Node::BLANK_HASH)
     , nym_root_(Node::BLANK_HASH)
@@ -48,8 +46,6 @@ Tree::Tree(
     , unit_root_(Node::BLANK_HASH)
     , account_lock_()
     , account_(nullptr)
-    , blockchain_lock_()
-    , blockchain_(nullptr)
     , contact_lock_()
     , contacts_(nullptr)
     , credential_lock_()
@@ -77,7 +73,6 @@ Tree::Tree(
 Tree::Tree(const Tree& rhs)
     : Node(rhs.driver_, "")
     , account_root_(Node::BLANK_HASH)
-    , blockchain_root_(Node::BLANK_HASH)
     , contact_root_(Node::BLANK_HASH)
     , credential_root_(Node::BLANK_HASH)
     , nym_root_(Node::BLANK_HASH)
@@ -86,8 +81,6 @@ Tree::Tree(const Tree& rhs)
     , unit_root_(Node::BLANK_HASH)
     , account_lock_()
     , account_(nullptr)
-    , blockchain_lock_()
-    , blockchain_(nullptr)
     , contact_lock_()
     , contacts_(nullptr)
     , credential_lock_()
@@ -109,7 +102,6 @@ Tree::Tree(const Tree& rhs)
     version_ = rhs.version_;
     root_ = rhs.root_;
     account_root_ = rhs.account_root_;
-    blockchain_root_ = rhs.blockchain_root_;
     contact_root_ = rhs.contact_root_;
     credential_root_ = rhs.credential_root_;
     notary_root_ = rhs.notary_root_;
@@ -125,18 +117,7 @@ auto Tree::accounts() const -> storage::Accounts*
     return get_child<storage::Accounts>(account_lock_, account_, account_root_);
 }
 
-auto Tree::blockchain() const -> storage::BlockchainTransactions*
-{
-    return get_child<storage::BlockchainTransactions>(
-        blockchain_lock_, blockchain_, blockchain_root_);
-}
-
 auto Tree::Accounts() const -> const storage::Accounts& { return *accounts(); }
-
-auto Tree::Blockchain() const -> const storage::BlockchainTransactions&
-{
-    return *blockchain();
-}
 
 auto Tree::Contacts() const -> const storage::Contacts& { return *contacts(); }
 
@@ -211,7 +192,7 @@ void Tree::init(const std::string& hash)
 
     init_version(TREE_VERSION, *serialized);
     account_root_ = normalize_hash(serialized->accounts());
-    blockchain_root_ = normalize_hash(serialized->blockchaintransactions());
+    // NOTE blockchaintransactions field is no longer used
     contact_root_ = normalize_hash(serialized->contacts());
     credential_root_ = normalize_hash(serialized->creds());
     notary_root_ = normalize_hash(serialized->notary());
@@ -252,7 +233,6 @@ auto Tree::Migrate(const opentxs::api::storage::Driver& to) const -> bool
 {
     bool output{true};
     output &= accounts()->Migrate(to);
-    output &= blockchain()->Migrate(to);
     output &= contacts()->Migrate(to);
     output &= credentials()->Migrate(to);
     output &= notary("")->Migrate(to);
@@ -269,12 +249,6 @@ auto Tree::mutable_Accounts() -> Editor<storage::Accounts>
 {
     return get_editor<storage::Accounts>(
         account_lock_, account_, account_root_);
-}
-
-auto Tree::mutable_Blockchain() -> Editor<storage::BlockchainTransactions>
-{
-    return get_editor<storage::BlockchainTransactions>(
-        blockchain_lock_, blockchain_, blockchain_root_);
 }
 
 auto Tree::mutable_Contacts() -> Editor<storage::Contacts>
@@ -387,10 +361,6 @@ auto Tree::serialize() const -> proto::StorageItems
     Lock accountLock(account_lock_);
     serialized.set_accounts(account_root_);
     accountLock.unlock();
-
-    Lock blockchainLock(blockchain_lock_);
-    serialized.set_blockchaintransactions(blockchain_root_);
-    blockchainLock.unlock();
 
     Lock contactLock(contact_lock_);
     serialized.set_contacts(contact_root_);

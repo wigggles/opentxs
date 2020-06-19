@@ -107,7 +107,7 @@ auto Request::wait(const Lock& lock) const noexcept -> bool
 {
     OT_ASSERT(verify_lock(lock))
 
-    const auto start = std::chrono::system_clock::now();
+    const auto start = Clock::now();
     zmq_pollitem_t poll[1];
     poll[0].socket = socket_;
     poll[0].events = ZMQ_POLLIN;
@@ -119,7 +119,7 @@ auto Request::wait(const Lock& lock) const noexcept -> bool
         if (0 == events) {
             LogVerbose(OT_METHOD)(__FUNCTION__)(": No messages.").Flush();
 
-            const auto now = std::chrono::system_clock::now();
+            const auto now = Clock::now();
 
             if ((now - start) > std::chrono::milliseconds(receive_timeout_)) {
 

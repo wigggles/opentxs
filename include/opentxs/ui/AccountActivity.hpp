@@ -50,10 +50,10 @@ public:
     OPENTXS_EXPORT virtual std::string ContractID() const noexcept = 0;
 #if OT_BLOCKCHAIN
     OPENTXS_EXPORT virtual std::string DepositAddress(
-        const blockchain::Type chain = blockchain::Type::Unknown) const
-        noexcept = 0;
-    OPENTXS_EXPORT virtual std::vector<blockchain::Type> DepositChains() const
-        noexcept = 0;
+        const blockchain::Type chain =
+            blockchain::Type::Unknown) const noexcept = 0;
+    OPENTXS_EXPORT virtual std::vector<blockchain::Type> DepositChains()
+        const noexcept = 0;
 #endif  // OT_BLOCKCHAIN
     OPENTXS_EXPORT virtual std::string DisplayBalance() const noexcept = 0;
     OPENTXS_EXPORT virtual std::string DisplayUnit() const noexcept = 0;

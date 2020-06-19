@@ -76,9 +76,8 @@ private:
     std::string payment_code_;
     const proto::ContactItemType currency_;
 
-    void reindex(
-        const ContactListSortKey& key,
-        const CustomData& custom) noexcept final;
+    void reindex(const ContactListSortKey& key, CustomData& custom) noexcept
+        final;
 
     PayableListItem() = delete;
     PayableListItem(const PayableListItem&) = delete;

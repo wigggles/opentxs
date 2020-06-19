@@ -43,7 +43,7 @@ TransferBalanceItem::TransferBalanceItem(
     const network::zeromq::socket::Publish& publisher,
     const AccountActivityRowID& rowID,
     const AccountActivitySortKey& sortKey,
-    const CustomData& custom,
+    CustomData& custom,
     const identifier::Nym& nymID,
     const Identifier& accountID) noexcept
     : BalanceItem(
@@ -57,8 +57,13 @@ TransferBalanceItem::TransferBalanceItem(
           accountID)
     , transfer_()
 {
-    startup_.reset(
-        new std::thread(&TransferBalanceItem::startup, this, custom));
+    OT_ASSERT(2 == custom.size())
+
+    startup_.reset(new std::thread(
+        &TransferBalanceItem::startup,
+        this,
+        extract_custom<proto::PaymentWorkflow>(custom, 0),
+        extract_custom<proto::PaymentEvent>(custom, 1)));
 
     OT_ASSERT(startup_)
 }
@@ -155,18 +160,20 @@ auto TransferBalanceItem::Memo() const noexcept -> std::string
 
 void TransferBalanceItem::reindex(
     const implementation::AccountActivitySortKey& key,
-    const implementation::CustomData& custom) noexcept
-{
-    BalanceItem::reindex(key, custom);
-    startup(custom);
-}
-
-void TransferBalanceItem::startup(const CustomData& custom) noexcept
+    implementation::CustomData& custom) noexcept
 {
     OT_ASSERT(2 == custom.size())
 
-    const auto workflow = extract_custom<proto::PaymentWorkflow>(custom, 0);
-    const auto event = extract_custom<proto::PaymentEvent>(custom, 1);
+    BalanceItem::reindex(key, custom);
+    startup(
+        extract_custom<proto::PaymentWorkflow>(custom, 0),
+        extract_custom<proto::PaymentEvent>(custom, 1));
+}
+
+void TransferBalanceItem::startup(
+    const proto::PaymentWorkflow workflow,
+    const proto::PaymentEvent event) noexcept
+{
     eLock lock(shared_lock_);
     transfer_ =
         api::client::Workflow::InstantiateTransfer(api_, workflow).second;

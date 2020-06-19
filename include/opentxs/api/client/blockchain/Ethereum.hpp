@@ -26,8 +26,8 @@ public:
     OPENTXS_EXPORT virtual Amount GetBalance() const noexcept = 0;
     OPENTXS_EXPORT virtual Nonce GetNonce() const noexcept = 0;
     OPENTXS_EXPORT virtual Nonce IncrementNonce() const noexcept = 0;
-    OPENTXS_EXPORT virtual void SetBalance(const Amount balance) const
-        noexcept = 0;
+    OPENTXS_EXPORT virtual void SetBalance(
+        const Amount balance) const noexcept = 0;
     OPENTXS_EXPORT virtual void SetNonce(const Nonce nonce) const noexcept = 0;
 
     OPENTXS_EXPORT ~Ethereum() override = default;

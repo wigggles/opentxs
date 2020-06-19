@@ -515,6 +515,7 @@ struct WalletDatabase {
     static const VersionNumber DefaultIndexVersion;
 
     virtual auto AddConfirmedTransaction(
+        const blockchain::Type chain,
         const NodeID& balanceNode,
         const Subchain subchain,
         const FilterType type,
@@ -538,6 +539,8 @@ struct WalletDatabase {
         const ReadView blockID,
         const VersionNumber version = DefaultIndexVersion) const noexcept
         -> Patterns = 0;
+    virtual auto LookupContact(const Data& pubkeyHash) const noexcept
+        -> std::set<OTIdentifier> = 0;
     virtual auto ReorgTo(
         const NodeID& balanceNode,
         const Subchain subchain,
@@ -591,6 +594,8 @@ struct WalletDatabase {
         const Subchain subchain,
         const FilterType type,
         const block::Position& position) const noexcept -> bool = 0;
+    virtual auto TransactionLoadBitcoin(const ReadView txid) const noexcept
+        -> std::unique_ptr<block::bitcoin::Transaction> = 0;
 
     virtual ~WalletDatabase() = default;
 };

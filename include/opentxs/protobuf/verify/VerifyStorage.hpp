@@ -27,12 +27,6 @@ OPENTXS_EXPORT const VersionMap&
 StorageBip47ContextsAllowedStorageItemHash() noexcept;
 OPENTXS_EXPORT const VersionMap&
 StorageBip47ContextsAllowedStorageBip47ChannelList() noexcept;
-OPENTXS_EXPORT const VersionMap&
-StorageBlockchainTransactionsAllowedStorageContactNymIndex() noexcept;
-OPENTXS_EXPORT const VersionMap&
-StorageBlockchainTransactionsAllowedStorageItemHash() noexcept;
-OPENTXS_EXPORT const VersionMap&
-StorageBlockchainTxoAllowedBlockchainPreviousOutput() noexcept;
 OPENTXS_EXPORT const VersionMap& StorageContactsAllowedAddress() noexcept;
 OPENTXS_EXPORT const VersionMap& StorageContactsAllowedList() noexcept;
 OPENTXS_EXPORT const VersionMap&
@@ -67,8 +61,6 @@ OPENTXS_EXPORT const VersionMap& StorageSeedsAllowedStorageItemHash() noexcept;
 OPENTXS_EXPORT const VersionMap&
 StorageServersAllowedStorageItemHash() noexcept;
 OPENTXS_EXPORT const VersionMap& StorageThreadAllowedItem() noexcept;
-OPENTXS_EXPORT const VersionMap&
-StorageTxoIndexAllowedStorageBlockchainTxo() noexcept;
 OPENTXS_EXPORT const VersionMap& StorageUnitsAllowedStorageItemHash() noexcept;
 }  // namespace proto
 }  // namespace opentxs

@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include <iosfwd>
 #include <memory>
 #include <optional>
@@ -13,10 +14,11 @@
 #include <utility>
 #include <vector>
 
-#include "BlockFilter.hpp"
-#include "BlockHeaders.hpp"
-#include "Blocks.hpp"
-#include "Peers.hpp"
+#include "api/client/blockchain/database/BlockFilter.hpp"
+#include "api/client/blockchain/database/BlockHeaders.hpp"
+#include "api/client/blockchain/database/Blocks.hpp"
+#include "api/client/blockchain/database/Peers.hpp"
+#include "api/client/blockchain/database/Wallet.hpp"
 #include "internal/api/client/blockchain/Blockchain.hpp"
 #include "internal/blockchain/Blockchain.hpp"
 #include "internal/blockchain/client/Client.hpp"
@@ -24,6 +26,8 @@
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/core/Data.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/String.hpp"
 #include "util/LMDB.hpp"
 
@@ -59,6 +63,14 @@ namespace internal
 struct GCS;
 }  // namespace internal
 }  // namespace blockchain
+
+namespace proto
+{
+class BlockchainTransaction;
+}  // namespace proto
+
+class Contact;
+class Data;
 }  // namespace opentxs
 
 namespace opentxs::api::client::blockchain::database::implementation
@@ -69,9 +81,13 @@ public:
     enum class Key : std::size_t {
         BlockStoragePolicy = 0,
         NextBlockAddress = 1,
+        SiphashKey = 2,
     };
 
     using BlockHash = opentxs::blockchain::block::Hash;
+    using PatternID = opentxs::blockchain::PatternID;
+    using Txid = opentxs::blockchain::block::Txid;
+    using pTxid = opentxs::blockchain::block::pTxid;
 
     auto AddOrUpdate(Address_p address) const noexcept -> bool
     {
@@ -79,6 +95,12 @@ public:
     }
     auto AllocateStorageFolder(const std::string& dir) const noexcept
         -> std::string;
+    auto AssociateTransaction(
+        const Txid& txid,
+        const std::vector<PatternID>& patterns) const noexcept -> bool
+    {
+        return wallet_.AssociateTransaction(txid, patterns);
+    }
     auto BlockHeaderExists(const BlockHash& hash) const noexcept -> bool
     {
         return headers_.BlockHeaderExists(hash);
@@ -96,6 +118,7 @@ public:
     {
         return peers_.Find(chain, protocol, onNetworks, withServices);
     }
+    auto HashKey() const noexcept { return reader(siphash_key_); }
     auto HaveFilter(const FilterType type, const ReadView blockHash)
         const noexcept -> bool
     {
@@ -134,6 +157,21 @@ public:
     {
         return filters_.LoadFilterHeader(type, blockHash, header);
     }
+    auto LoadTransaction(const ReadView txid) const noexcept
+        -> std::optional<proto::BlockchainTransaction>
+    {
+        return wallet_.LoadTransaction(txid);
+    }
+    auto LookupContact(const Data& pubkeyHash) const noexcept
+        -> std::set<OTIdentifier>
+    {
+        return wallet_.LookupContact(pubkeyHash);
+    }
+    auto LookupTransactions(const PatternID pattern) const noexcept
+        -> std::vector<pTxid>
+    {
+        return wallet_.LookupTransactions(pattern);
+    }
     auto StoreBlockHeader(
         const opentxs::blockchain::block::Header& header) const noexcept -> bool
     {
@@ -154,6 +192,21 @@ public:
     {
         return filters_.StoreFilters(type, filters);
     }
+    auto StoreTransaction(const proto::BlockchainTransaction& tx) const noexcept
+        -> bool
+    {
+        return wallet_.StoreTransaction(tx);
+    }
+    auto UpdateContact(const Contact& contact) const noexcept
+        -> std::vector<pTxid>
+    {
+        return wallet_.UpdateContact(contact);
+    }
+    auto UpdateMergedContact(const Contact& parent, const Contact& child)
+        const noexcept -> std::vector<pTxid>
+    {
+        return wallet_.UpdateMergedContact(parent, child);
+    }
 
     Database(
         const api::client::internal::Manager& api,
@@ -162,6 +215,8 @@ public:
         const ArgList& args) noexcept(false);
 
 private:
+    using SiphashKey = Space;
+
     static const opentxs::storage::lmdb::TableNames table_names_;
 
     const api::client::internal::Manager& api_;
@@ -172,12 +227,14 @@ private:
 #endif  // OPENTXS_BLOCK_STORAGE_ENABLED
     opentxs::storage::lmdb::LMDB lmdb_;
     const BlockStorage block_policy_;
+    const SiphashKey siphash_key_;
     mutable BlockHeader headers_;
     mutable Peers peers_;
     mutable BlockFilter filters_;
 #if OPENTXS_BLOCK_STORAGE_ENABLED
     mutable Blocks blocks_;
 #endif  // OPENTXS_BLOCK_STORAGE_ENABLED
+    mutable Wallet wallet_;
 
     static auto block_storage_enabled() noexcept -> bool;
     static auto block_storage_level(
@@ -196,6 +253,10 @@ private:
     static auto init_storage_path(
         const api::Legacy& legacy,
         const std::string& dataFolder) noexcept(false) -> OTString;
+    static auto siphash_key(opentxs::storage::lmdb::LMDB& db) noexcept
+        -> SiphashKey;
+    static auto siphash_key_configured(
+        opentxs::storage::lmdb::LMDB& db) noexcept -> std::optional<SiphashKey>;
 
     Database() = delete;
     Database(const Database&) = delete;

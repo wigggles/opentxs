@@ -22,7 +22,7 @@
 %extend opentxs::ui::BalanceItem {
     int Timestamp() const noexcept
     {
-        return std::chrono::system_clock::to_time_t($self->Timestamp());
+        return Clock::to_time_t($self->Timestamp());
     }
 }
 %ignore opentxs::ui::BalanceItem::Timestamp;
@@ -51,14 +51,13 @@ class BalanceItem : virtual public ListRow
 {
 public:
     OPENTXS_EXPORT virtual opentxs::Amount Amount() const noexcept = 0;
-    OPENTXS_EXPORT virtual std::vector<std::string> Contacts() const
-        noexcept = 0;
+    OPENTXS_EXPORT virtual std::vector<std::string> Contacts()
+        const noexcept = 0;
     OPENTXS_EXPORT virtual std::string DisplayAmount() const noexcept = 0;
     OPENTXS_EXPORT virtual std::string Memo() const noexcept = 0;
     OPENTXS_EXPORT virtual std::string Workflow() const noexcept = 0;
     OPENTXS_EXPORT virtual std::string Text() const noexcept = 0;
-    OPENTXS_EXPORT virtual std::chrono::system_clock::time_point Timestamp()
-        const noexcept = 0;
+    OPENTXS_EXPORT virtual Time Timestamp() const noexcept = 0;
     OPENTXS_EXPORT virtual StorageBox Type() const noexcept = 0;
     OPENTXS_EXPORT virtual std::string UUID() const noexcept = 0;
 

@@ -68,24 +68,23 @@ using BalanceItemRow =
 class BalanceItem : public BalanceItemRow
 {
 public:
-    static auto recover_event(const CustomData& custom) noexcept
+    static auto recover_event(CustomData& custom) noexcept
         -> const proto::PaymentEvent&;
-    static auto recover_workflow(const CustomData& custom) noexcept
+    static auto recover_workflow(CustomData& custom) noexcept
         -> const proto::PaymentWorkflow&;
 
-    auto Contacts() const noexcept -> std::vector<std::string> final
+    auto Contacts() const noexcept -> std::vector<std::string> override
     {
         return contacts_;
     }
-    auto DisplayAmount() const noexcept -> std::string final;
-    auto Text() const noexcept -> std::string final;
-    auto Timestamp() const noexcept
-        -> std::chrono::system_clock::time_point final;
-    auto Type() const noexcept -> StorageBox final { return type_; }
+    auto DisplayAmount() const noexcept -> std::string override;
+    auto Text() const noexcept -> std::string override;
+    auto Timestamp() const noexcept -> Time final;
+    auto Type() const noexcept -> StorageBox override { return type_; }
 
     void reindex(
         const implementation::AccountActivitySortKey& key,
-        const implementation::CustomData& custom) noexcept override;
+        implementation::CustomData& custom) noexcept override;
 
 #if OT_QT
     QVariant qt_data(const int column, const int role) const noexcept final;
@@ -98,7 +97,7 @@ protected:
     const std::string workflow_;
     const StorageBox type_;
     std::string text_;
-    std::chrono::system_clock::time_point time_;
+    Time time_;
     mutable OTUnitDefinition contract_;
     std::unique_ptr<std::thread> startup_;
 
@@ -114,9 +113,10 @@ protected:
         const network::zeromq::socket::Publish& publisher,
         const AccountActivityRowID& rowID,
         const AccountActivitySortKey& sortKey,
-        const CustomData& custom,
+        CustomData& custom,
         const identifier::Nym& nymID,
-        const Identifier& accountID) noexcept;
+        const Identifier& accountID,
+        const std::string& text = {}) noexcept;
 
 private:
     const OTIdentifier account_id_;

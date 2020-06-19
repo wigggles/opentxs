@@ -118,7 +118,7 @@ MessagableList::MessagableList(
 auto MessagableList::construct_row(
     const MessagableListRowID& id,
     const MessagableListSortKey& index,
-    const CustomData&) const noexcept -> void*
+    CustomData&) const noexcept -> void*
 {
     names_.emplace(id, index);
     const auto [it, added] = items_[index].emplace(
@@ -155,7 +155,8 @@ void MessagableList::process_contact(
             LogDetail(OT_METHOD)(__FUNCTION__)(": Messagable contact ")(id)(
                 " (")(key)(")")
                 .Flush();
-            add_item(id, key, {});
+            auto custom = CustomData{};
+            add_item(id, key, custom);
         } break;
         case Messagability::MISSING_SENDER:
         case Messagability::INVALID_SENDER:

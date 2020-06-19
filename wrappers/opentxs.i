@@ -19,6 +19,8 @@
 #include "opentxs/network/zeromq/ListenCallbackSwig.hpp"
 #include "opentxs/network/zeromq/PairEventCallbackSwig.hpp"
 #include "opentxs/opentxs.hpp"
+
+using Clock = opentxs::Clock;
 %}
 
 /* Parse the header file to generate wrappers */

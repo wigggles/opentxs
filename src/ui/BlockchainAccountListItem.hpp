@@ -91,9 +91,8 @@ public:
     {
         return blockchain::internal::DisplayString(chain_);
     }
-    auto reindex(
-        const AccountListSortKey& key,
-        const CustomData& custom) noexcept -> void final
+    auto reindex(const AccountListSortKey& key, CustomData& custom) noexcept
+        -> void final
     {
     }
     auto Type() const noexcept -> AccountType final { return type_; }
@@ -110,7 +109,7 @@ public:
         const network::zeromq::socket::Publish& publisher,
         const AccountListRowID& rowID,
         const AccountListSortKey& sortKey,
-        const CustomData& custom) noexcept;
+        CustomData& custom) noexcept;
 
     ~BlockchainAccountListItem() = default;
 

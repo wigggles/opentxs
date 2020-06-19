@@ -78,7 +78,7 @@ QVariant PayableListItem::qt_data(const int column, int role) const noexcept
 
 void PayableListItem::reindex(
     const ContactListSortKey& key,
-    const CustomData& custom) noexcept
+    CustomData& custom) noexcept
 {
     ot_super::reindex(key, custom);
     const auto contact = api_.Contacts().Contact(row_id_);

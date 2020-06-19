@@ -126,7 +126,7 @@ private:
     auto construct_row(
         const ContactListRowID& id,
         const ContactListSortKey& index,
-        const CustomData& custom) const noexcept -> void* final;
+        CustomData& custom) const noexcept -> void* final;
     auto first(const Lock& lock) const noexcept
         -> std::shared_ptr<const ContactListRowInternal> final;
     auto last(const ContactListRowID& id) const noexcept -> bool final
@@ -137,7 +137,7 @@ private:
     void add_item(
         const ContactListRowID& id,
         const ContactListSortKey& index,
-        const CustomData& custom) noexcept final;
+        CustomData& custom) noexcept final;
     void process_contact(const network::zeromq::Message& message) noexcept;
 
     void startup() noexcept;

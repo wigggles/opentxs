@@ -146,7 +146,7 @@ private:
     auto construct_row(
         const ProfileRowID& id,
         const ProfileSortKey& index,
-        const CustomData& custom) const noexcept -> void* final;
+        CustomData& custom) const noexcept -> void* final;
 
     auto last(const ProfileRowID& id) const noexcept -> bool final
     {

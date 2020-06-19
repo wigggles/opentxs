@@ -51,7 +51,10 @@ struct Core;
 class ContactGroup;
 class ContactItem;
 class PaymentCode;
+}  // namespace opentxs
 
+namespace opentxs
+{
 class Contact
 {
 public:

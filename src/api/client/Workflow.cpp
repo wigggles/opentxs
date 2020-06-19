@@ -718,7 +718,7 @@ auto Workflow::add_cheque_event(
     const VersionNumber version,
     const identifier::Nym& recipientNymID,
     const OTTransaction& receipt,
-    const std::chrono::time_point<std::chrono::system_clock> time) const -> bool
+    const Time time) const -> bool
 {
     auto message = String::Factory();
     receipt.SaveContractRaw(message);
@@ -727,7 +727,7 @@ auto Workflow::add_cheque_event(
     event.set_version(version);
     event.set_type(newEventType);
     event.add_item(message->Get());
-    event.set_time(std::chrono::system_clock::to_time_t(time));
+    event.set_time(Clock::to_time_t(time));
     event.set_method(proto::TRANSPORTMETHOD_OT);
     event.set_transport(receipt.GetRealNotaryID().str());
     event.set_nym(recipientNymID.str());
@@ -1873,7 +1873,7 @@ auto Workflow::DepositCheque(
             workflow->id(),
             cheque.GetAmount(),
             0,
-            std::chrono::system_clock::from_time_t(reply->m_lTime),
+            Clock::from_time_t(reply->m_lTime),
             cheque.GetMemo().Get());
     }
 
@@ -1945,14 +1945,11 @@ auto Workflow::ExportCheque(const opentxs::Cheque& cheque) const -> bool
 }
 
 auto Workflow::extract_conveyed_time(const proto::PaymentWorkflow& workflow)
-    -> std::chrono::time_point<std::chrono::system_clock>
+    -> Time
 {
     for (const auto& event : workflow.event()) {
         if (proto::PAYMENTEVENTTYPE_CONVEY == event.type()) {
-            if (event.success()) {
-
-                return std::chrono::system_clock::from_time_t(event.time());
-            }
+            if (event.success()) { return Clock::from_time_t(event.time()); }
         }
     }
 
@@ -2719,7 +2716,7 @@ auto Workflow::update_activity(
     const Identifier& sourceID,
     const Identifier& workflowID,
     const StorageBox type,
-    std::chrono::time_point<std::chrono::system_clock> time) const -> bool
+    Time time) const -> bool
 {
     const auto contactID = contact_.ContactID(remoteNymID);
 
@@ -2757,7 +2754,7 @@ void Workflow::update_rpc(
     const std::string& workflowID,
     const Amount amount,
     const Amount pending,
-    const std::chrono::time_point<std::chrono::system_clock> time,
+    const Time time,
     const std::string& memo) const
 {
     proto::RPCPush push{};
@@ -2778,7 +2775,7 @@ void Workflow::update_rpc(
     event.set_workflow(workflowID);
     event.set_amount(amount);
     event.set_pendingamount(pending);
-    event.set_timestamp(std::chrono::system_clock::to_time_t(time));
+    event.set_timestamp(Clock::to_time_t(time));
     event.set_memo(memo);
 
     OT_ASSERT(proto::Validate(push, VERBOSE));
@@ -2870,8 +2867,7 @@ auto Workflow::WriteCheque(const opentxs::Cheque& cheque) const -> OTIdentifier
         cheque.GetSenderAcctID().str());
     global.unlock();
     const bool haveWorkflow = (false == workflowID->empty());
-    const auto time{
-        std::chrono::system_clock::from_time_t(workflow.event(0).time())};
+    const auto time{Clock::from_time_t(workflow.event(0).time())};
 
     if (haveWorkflow && cheque.HasRecipient()) {
         update_activity(

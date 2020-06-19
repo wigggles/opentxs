@@ -141,11 +141,11 @@ AccountList::AccountList(
 auto AccountList::construct_row(
     const AccountListRowID& id,
     const AccountListSortKey& index,
-    const CustomData& custom) const noexcept -> void*
+    CustomData& custom) const noexcept -> void*
 {
     names_.emplace(id, index);
 #if OT_BLOCKCHAIN
-    const auto blockchain = extract_custom<bool>(custom, 0);
+    const auto blockchain{extract_custom<bool>(custom, 0)};
 #endif  // OT_BLOCKCHAIN
     const auto [it, added] = items_[index].emplace(
         id,

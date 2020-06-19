@@ -11,6 +11,7 @@
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
@@ -32,11 +33,12 @@ public:
         OPENTXS_EXPORT virtual OTIdentifier Contact() const noexcept = 0;
         OPENTXS_EXPORT virtual Bip32Index Index() const noexcept = 0;
         OPENTXS_EXPORT virtual ECKey Key() const noexcept = 0;
+        OPENTXS_EXPORT virtual blockchain::Key KeyID() const noexcept = 0;
         OPENTXS_EXPORT virtual std::string Label() const noexcept = 0;
         OPENTXS_EXPORT virtual const BalanceNode& Parent() const noexcept = 0;
         OPENTXS_EXPORT virtual OTData PubkeyHash() const noexcept = 0;
-        OPENTXS_EXPORT virtual blockchain::Subchain Subchain() const
-            noexcept = 0;
+        OPENTXS_EXPORT virtual blockchain::Subchain Subchain()
+            const noexcept = 0;
 
         virtual ~Element() = default;
 

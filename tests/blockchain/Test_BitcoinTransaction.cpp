@@ -30,7 +30,6 @@
 #include "opentxs/blockchain/block/bitcoin/Output.hpp"
 #include "opentxs/blockchain/block/bitcoin/Outputs.hpp"
 #include "opentxs/blockchain/block/bitcoin/Script.hpp"
-#include "opentxs/blockchain/block/bitcoin/Transaction.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/protobuf/BlockchainTransaction.pb.h"
 #include "opentxs/protobuf/Enums.pb.h"
@@ -136,6 +135,7 @@ TEST_F(Test_BitcoinTransaction, serialization)
         api_,
         ot::blockchain::Type::Bitcoin,
         false,
+        ot::Clock::now(),
         ot::blockchain::bitcoin::EncodedTransaction::Deserialize(
             api_, ot::blockchain::Type::Bitcoin, tx_bytes_->Bytes()));
 
@@ -294,7 +294,7 @@ TEST_F(Test_BitcoinTransaction, serialization)
     ASSERT_TRUE(serialized.has_value());
 
     auto transaction2 =
-        ot::factory::BitcoinTransaction(api_, false, serialized.value());
+        ot::factory::BitcoinTransaction(api_, serialized.value());
 
     ASSERT_TRUE(transaction2);
     EXPECT_EQ(transaction2->Locktime(), 0);
@@ -463,12 +463,14 @@ TEST_F(Test_BitcoinTransaction, normalized_id)
         api_,
         ot::blockchain::Type::Bitcoin,
         false,
+        ot::Clock::now(),
         ot::blockchain::bitcoin::EncodedTransaction::Deserialize(
             api_, ot::blockchain::Type::Bitcoin, tx_bytes_->Bytes()));
     const auto transaction2 = ot::factory::BitcoinTransaction(
         api_,
         ot::blockchain::Type::Bitcoin,
         false,
+        ot::Clock::now(),
         ot::blockchain::bitcoin::EncodedTransaction::Deserialize(
             api_, ot::blockchain::Type::Bitcoin, mutated_bytes_->Bytes()));
 

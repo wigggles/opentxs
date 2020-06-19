@@ -28,21 +28,21 @@ public:
         String& out,
         const String& base,
         const String& folder) const noexcept = 0;
-    OPENTXS_EXPORT virtual bool BuildFolderPath(const String& path) const
-        noexcept = 0;
-    OPENTXS_EXPORT virtual bool BuildFilePath(const String& path) const
-        noexcept = 0;
+    OPENTXS_EXPORT virtual bool BuildFolderPath(
+        const String& path) const noexcept = 0;
+    OPENTXS_EXPORT virtual bool BuildFilePath(
+        const String& path) const noexcept = 0;
     OPENTXS_EXPORT virtual std::string ClientConfigFilePath(
         const int instance) const noexcept = 0;
     OPENTXS_EXPORT virtual std::string ClientDataFolder(
         const int instance) const noexcept = 0;
     OPENTXS_EXPORT virtual const char* Common() const noexcept = 0;
-    OPENTXS_EXPORT virtual bool ConfirmCreateFolder(const String& path) const
-        noexcept = 0;
+    OPENTXS_EXPORT virtual bool ConfirmCreateFolder(
+        const String& path) const noexcept = 0;
     OPENTXS_EXPORT virtual const char* Contract() const noexcept = 0;
     OPENTXS_EXPORT virtual const char* Cron() const noexcept = 0;
-    OPENTXS_EXPORT virtual std::string CryptoConfigFilePath() const
-        noexcept = 0;
+    OPENTXS_EXPORT virtual std::string CryptoConfigFilePath()
+        const noexcept = 0;
     OPENTXS_EXPORT virtual const char* ExpiredBox() const noexcept = 0;
     OPENTXS_EXPORT virtual bool FileExists(
         const String& path,
@@ -54,8 +54,8 @@ public:
     OPENTXS_EXPORT virtual const char* Nym() const noexcept = 0;
     OPENTXS_EXPORT virtual const char* Nymbox() const noexcept = 0;
     OPENTXS_EXPORT virtual const char* Outbox() const noexcept = 0;
-    OPENTXS_EXPORT virtual bool PathExists(const String& path) const
-        noexcept = 0;
+    OPENTXS_EXPORT virtual bool PathExists(
+        const String& path) const noexcept = 0;
     OPENTXS_EXPORT virtual std::string PIDFilePath() const noexcept = 0;
     OPENTXS_EXPORT virtual const char* PaymentInbox() const noexcept = 0;
     OPENTXS_EXPORT virtual const char* Receipt() const noexcept = 0;

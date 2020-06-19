@@ -7,7 +7,6 @@ set(
   cxx-sources
   Accounts.cpp
   Bip47Channels.cpp
-  BlockchainTransactions.cpp
   Contacts.cpp
   Contexts.cpp
   Credentials.cpp
@@ -26,7 +25,6 @@ set(
   Thread.cpp
   Threads.cpp
   Tree.cpp
-  Txos.cpp
   Units.cpp
 )
 set(cxx-install-headers "")
@@ -35,7 +33,6 @@ set(
   ${cxx-install-headers}
   Accounts.hpp
   Bip47Channels.hpp
-  BlockchainTransactions.hpp
   Contacts.hpp
   Contexts.hpp
   Credentials.hpp
@@ -54,7 +51,6 @@ set(
   Thread.hpp
   Threads.hpp
   Tree.hpp
-  Txos.hpp
   Units.hpp
 )
 

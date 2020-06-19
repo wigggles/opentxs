@@ -12,6 +12,8 @@ option optimize_for = LITE_RUNTIME;
 
 import public "BlockchainInputWitness.proto";
 import public "BlockchainPreviousOutput.proto";
+import public "BlockchainTransactionOutput.proto";
+import public "BlockchainWalletKey.proto";
 
 message BlockchainTransactionInput {
     optional uint32 version = 1;
@@ -20,4 +22,9 @@ message BlockchainTransactionInput {
     optional uint32 sequence = 4;
     optional BlockchainPreviousOutput previous = 5;
     optional BlockchainInputWitness witness = 6;
+    repeated BlockchainWalletKey key = 7;
+    repeated uint64 pubkey_hash = 8;
+    optional uint64 script_hash = 9;
+    optional bool indexed = 10;
+    optional BlockchainTransactionOutput spends = 11;
 }

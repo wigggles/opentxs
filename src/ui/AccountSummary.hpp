@@ -105,7 +105,7 @@ private:
     auto construct_row(
         const AccountSummaryRowID& id,
         const AccountSummarySortKey& index,
-        const CustomData& custom) const noexcept -> void* final;
+        CustomData& custom) const noexcept -> void* final;
 
     auto extract_key(
         const identifier::Nym& nymID,

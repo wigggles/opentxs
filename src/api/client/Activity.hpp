@@ -17,11 +17,13 @@
 
 #include "internal/api/client/Client.hpp"
 #include "opentxs/Types.hpp"
+#include "opentxs/Version.hpp"
 #include "opentxs/api/client/Activity.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/PasswordPrompt.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/network/zeromq/socket/Publish.hpp"
 
 namespace opentxs
@@ -58,185 +60,77 @@ namespace opentxs::api::client::implementation
 class Activity final : virtual public api::client::internal::Activity, Lockable
 {
 public:
+#if OT_BLOCKCHAIN
     auto AddBlockchainTransaction(
-        const identifier::Nym& nymID,
-        const Identifier& threadID,
-        const std::string& txid,
-        const Time time) const -> bool final;
-
+        const BlockchainTransaction& transaction) const noexcept -> bool final;
+#endif  // OT_BLOCKCHAIN
     auto AddPaymentEvent(
         const identifier::Nym& nymID,
         const Identifier& threadID,
         const StorageBox type,
         const Identifier& itemID,
         const Identifier& workflowID,
-        std::chrono::time_point<std::chrono::system_clock> time) const
-        -> bool final;
-
-    auto MoveIncomingBlockchainTransaction(
-        const identifier::Nym& nymID,
-        const Identifier& fromThreadID,
-        const Identifier& toThreadID,
-        const std::string& txid) const -> bool final;
-
-    auto UnassignBlockchainTransaction(
-        const identifier::Nym& nymID,
-        const Identifier& fromThreadID,
-        const std::string& txid) const -> bool final;
-
-    /**   Load a mail object
-     *
-     *    \param[in] nym the identifier of the nym who owns the mail box
-     *    \param[in] id the identifier of the mail object
-     *    \param[in] box the box from which to retrieve the mail object
-     *    \returns A smart pointer to the object. The smart pointer will not be
-     *             instantiated if the object does not exist or is invalid.
-     */
+        Time time) const noexcept -> bool final;
     auto Mail(
         const identifier::Nym& nym,
         const Identifier& id,
-        const StorageBox& box) const -> std::unique_ptr<Message> final;
-
-    /**   Store a mail object
-     *
-     *    \param[in] nym the identifier of the nym who owns the mail box
-     *    \param[in] mail the mail object to be stored
-     *    \param[in] box the box from which to retrieve the mail object
-     *    \returns The id of the stored message. The string will be empty if
-     *             the mail object can not be stored.
-     */
+        const StorageBox& box) const noexcept -> std::unique_ptr<Message> final;
     auto Mail(
         const identifier::Nym& nym,
         const Message& mail,
         const StorageBox box,
-        const PasswordPrompt& reason) const -> std::string final;
-
-    /**   Obtain a list of mail objects in a specified box
-     *
-     *    \param[in] nym the identifier of the nym who owns the mail box
-     *    \param[in] box the box to be listed
-     */
-    auto Mail(const identifier::Nym& nym, const StorageBox box) const
+        const PasswordPrompt& reason) const noexcept -> std::string final;
+    auto Mail(const identifier::Nym& nym, const StorageBox box) const noexcept
         -> ObjectList final;
-
-    /**   Delete a mail object
-     *
-     *    \param[in] nym the identifier of the nym who owns the mail box
-     *    \param[in] mail the mail object to be stored
-     *    \param[in] box the box from which to retrieve the mail object
-     *    \returns The id of the stored message. The string will be empty if
-     *             the mail object can not be stored.
-     */
     auto MailRemove(
         const identifier::Nym& nym,
         const Identifier& id,
-        const StorageBox box) const -> bool final;
-
-    /**   Retrieve the text from a message
-     *
-     *    \param[in] nym the identifier of the nym who owns the mail box
-     *    \param[in] id the identifier of the mail object
-     *    \param[in] box the box from which to retrieve the mail object
-     *    \returns A smart pointer to the object. The smart pointer will not be
-     *             instantiated if the object does not exist or is invalid.
-     */
+        const StorageBox box) const noexcept -> bool final;
     auto MailText(
         const identifier::Nym& nym,
         const Identifier& id,
         const StorageBox& box,
-        const PasswordPrompt& reason) const
+        const PasswordPrompt& reason) const noexcept
         -> std::shared_ptr<const std::string> final;
-
-    /**   Mark a thread item as read
-     *
-     *    \param[in] nymId the identifier of the nym who owns the thread
-     *    \param[in] threadId the thread containing the item to be marked
-     *    \param[in] itemId the identifier of the item to be marked read
-     *    \returns False if the nym, thread, or item does not exist
-     */
     auto MarkRead(
         const identifier::Nym& nymId,
         const Identifier& threadId,
-        const Identifier& itemId) const -> bool final;
-
-    /**   Mark a thread item as unread
-     *
-     *    \param[in] nymId the identifier of the nym who owns the thread
-     *    \param[in] threadId the thread containing the item to be marked
-     *    \param[in] itemId the identifier of the item to be marked unread
-     *    \returns False if the nym, thread, or item does not exist
-     */
+        const Identifier& itemId) const noexcept -> bool final;
     auto MarkUnread(
         const identifier::Nym& nymId,
         const Identifier& threadId,
-        const Identifier& itemId) const -> bool final;
-
+        const Identifier& itemId) const noexcept -> bool final;
     auto Cheque(
         const identifier::Nym& nym,
         const std::string& id,
-        const std::string& workflow) const -> ChequeData final;
-
+        const std::string& workflow) const noexcept -> ChequeData final;
     auto Transfer(
         const identifier::Nym& nym,
         const std::string& id,
-        const std::string& workflow) const -> TransferData final;
-
-    /**   Summarize a payment workflow event in human-friendly test form
-     *
-     *    \param[in] nym the identifier of the nym who owns the thread
-     *    \param[in] id the identifier of the payment item
-     *    \param[in] workflow the identifier of the payment workflow
-     *    \returns A smart pointer to the object. The smart pointer will not be
-     *             instantiated if the object does not exist or is invalid.
-     */
+        const std::string& workflow) const noexcept -> TransferData final;
     auto PaymentText(
         const identifier::Nym& nym,
         const std::string& id,
-        const std::string& workflow) const
+        const std::string& workflow) const noexcept
         -> std::shared_ptr<const std::string> final;
-
-    /**   Asynchronously cache the most recent items in each of a nym's threads
-     *
-     *    \param[in] nymID the identifier of the nym who owns the thread
-     *    \param[in] count the number of items to preload in each thread
-     */
     void PreloadActivity(
         const identifier::Nym& nymID,
         const std::size_t count,
-        const PasswordPrompt& reason) const final;
-
-    /**   Asynchronously cache the items in an activity thread
-     *
-     *    \param[in] nymID the identifier of the nym who owns the thread
-     *    \param[in] threadID the thread containing the items to be cached
-     *    \param[in] start the first item to be cached
-     *    \param[in] count the number of items to cache
-     */
+        const PasswordPrompt& reason) const noexcept final;
     void PreloadThread(
         const identifier::Nym& nymID,
         const Identifier& threadID,
         const std::size_t start,
         const std::size_t count,
-        const PasswordPrompt& reason) const final;
-
-    auto Thread(const identifier::Nym& nymID, const Identifier& threadID) const
-        -> std::shared_ptr<proto::StorageThread> final;
-
-    /**   Obtain a list of thread ids for the specified nym
-     *
-     *    \param[in] nym the identifier of the nym
-     *    \param[in] unreadOnly if true, only return threads with unread items
-     */
+        const PasswordPrompt& reason) const noexcept final;
+    auto Thread(const identifier::Nym& nymID, const Identifier& threadID)
+        const noexcept -> std::shared_ptr<proto::StorageThread> final;
     auto Threads(const identifier::Nym& nym, const bool unreadOnly = false)
-        const -> ObjectList final;
-
-    /**   Return the total number of unread thread items for a nym
-     *
-     *    \param[in] nymId
-     */
-    auto UnreadCount(const identifier::Nym& nym) const -> std::size_t final;
-
-    auto ThreadPublisher(const identifier::Nym& nym) const -> std::string final;
+        const noexcept -> ObjectList final;
+    auto UnreadCount(const identifier::Nym& nym) const noexcept
+        -> std::size_t final;
+    auto ThreadPublisher(const identifier::Nym& nym) const noexcept
+        -> std::string final;
 
     ~Activity() = default;
 
@@ -252,38 +146,57 @@ private:
     mutable MailCache mail_cache_;
     mutable std::mutex publisher_lock_;
     mutable std::map<OTIdentifier, OTZMQPublishSocket> thread_publishers_;
+#if OT_BLOCKCHAIN
+    mutable std::map<OTNymID, OTZMQPublishSocket> blockchain_publishers_;
+#endif  // OT_BLOCKCHAIN
 
     /**   Migrate nym-based thread IDs to contact-based thread IDs
      *
      *    This method should only be called by the Contacts on startup
      */
-    void MigrateLegacyThreads() const final;
+    void MigrateLegacyThreads() const noexcept final;
     void activity_preload_thread(
         OTPasswordPrompt reason,
         const OTIdentifier nymID,
-        const std::size_t count) const;
+        const std::size_t count) const noexcept;
     void preload(
         OTPasswordPrompt reason,
         const identifier::Nym& nym,
         const Identifier& id,
-        const StorageBox box) const;
+        const StorageBox box) const noexcept;
     void thread_preload_thread(
         OTPasswordPrompt reason,
         const std::string nymID,
         const std::string threadID,
         const std::size_t start,
-        const std::size_t count) const;
+        const std::size_t count) const noexcept;
 
-    auto nym_to_contact(const std::string& nymID) const
+#if OT_BLOCKCHAIN
+    auto add_blockchain_transaction(
+        const eLock& lock,
+        const identifier::Nym& nym,
+        const BlockchainTransaction& transaction) const noexcept -> bool;
+#endif  // OT_BLOCKCHAIN
+    auto nym_to_contact(const std::string& nymID) const noexcept
         -> std::shared_ptr<const Contact>;
-    auto get_publisher(const identifier::Nym& nymID) const
+#if OT_BLOCKCHAIN
+    auto get_blockchain(const eLock&, const identifier::Nym& nymID)
+        const noexcept -> const opentxs::network::zeromq::socket::Publish&;
+#endif  // OT_BLOCKCHAIN
+    auto get_publisher(const identifier::Nym& nymID) const noexcept
         -> const opentxs::network::zeromq::socket::Publish&;
     auto get_publisher(const identifier::Nym& nymID, std::string& endpoint)
-        const -> const opentxs::network::zeromq::socket::Publish&;
+        const noexcept -> const opentxs::network::zeromq::socket::Publish&;
     void publish(const identifier::Nym& nymID, const std::string& threadID)
-        const;
+        const noexcept;
+    auto start_publisher(const std::string& endpoint) const noexcept
+        -> OTZMQPublishSocket;
+    auto verify_thread_exists(const std::string& nym, const std::string& thread)
+        const noexcept -> bool;
 
-    Activity(const api::internal::Core& api, const client::Contacts& contact);
+    Activity(
+        const api::internal::Core& api,
+        const client::Contacts& contact) noexcept;
     Activity() = delete;
     Activity(const Activity&) = delete;
     Activity(Activity&&) = delete;

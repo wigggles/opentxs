@@ -130,7 +130,7 @@ private:
         proto::AddressType type,
         std::string hostname,
         std::uint32_t port) const -> std::string;
-    auto get_timeout() -> std::chrono::time_point<std::chrono::system_clock>;
+    auto get_timeout() -> Time;
     void publish() const;
     void set_curve(const Lock& lock, zeromq::curve::Client& socket) const;
     void set_proxy(const Lock& lock, zeromq::socket::Dealer& socket) const;

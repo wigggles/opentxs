@@ -11,7 +11,17 @@
 namespace opentxs
 {
 template <typename T>
-void dedup(std::vector<T>& vector) noexcept
+auto contains(const std::vector<T>& vector, const T& value) noexcept -> bool
+{
+    for (const auto& item : vector) {
+        if (item == value) { return true; }
+    }
+
+    return false;
+}
+
+template <typename T>
+auto dedup(std::vector<T>& vector) noexcept -> void
 {
     std::sort(vector.begin(), vector.end());
     vector.erase(std::unique(vector.begin(), vector.end()), vector.end());

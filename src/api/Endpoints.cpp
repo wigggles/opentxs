@@ -11,6 +11,7 @@
 #include <memory>
 
 #include "internal/api/Api.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 
 #define ENDPOINT_VERSION_1 1
@@ -21,6 +22,7 @@
 #define BLOCKCHAIN_FILTER_UPDATED "blockchain/filter/"
 #define BLOCKCHAIN_REORG_ENDPOINT "blockchain/reorg"
 #define BLOCKCHAIN_THREAD_POOL_ENDPOINT "blockchain/thread_pool"
+#define BLOCKCHAIN_TRANSACTIONS_ENDPOINT "blockchain/transactions"
 #define CONNECTION_STATUS_ENDPOINT "connectionstatus"
 #define CONTACT_UPDATE_ENDPOINT "contactupdate"
 #define DHT_NYM_REQUEST_ENDPOINT "dht/requestnym"
@@ -97,6 +99,20 @@ auto Endpoints::BlockchainBalance() const noexcept -> std::string
 auto Endpoints::BlockchainReorg() const noexcept -> std::string
 {
     return build_inproc_path(BLOCKCHAIN_REORG_ENDPOINT, ENDPOINT_VERSION_1);
+}
+
+auto Endpoints::BlockchainTransactions() const noexcept -> std::string
+{
+    return build_inproc_path(
+        BLOCKCHAIN_TRANSACTIONS_ENDPOINT, ENDPOINT_VERSION_1);
+}
+
+auto Endpoints::BlockchainTransactions(
+    const identifier::Nym& nym) const noexcept -> std::string
+{
+    auto path = std::string{BLOCKCHAIN_TRANSACTIONS_ENDPOINT} + '/' + nym.str();
+
+    return build_inproc_path(path, ENDPOINT_VERSION_1);
 }
 
 auto Endpoints::ConnectionStatus() const noexcept -> std::string

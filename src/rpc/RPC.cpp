@@ -804,7 +804,7 @@ auto RPC::get_account_activity(const proto::RPCCommand& command) const
             accountevent.set_amount(balanceitem->Amount());
             accountevent.set_pendingamount(balanceitem->Amount());
             accountevent.set_timestamp(
-                std::chrono::system_clock::to_time_t(balanceitem->Timestamp()));
+                Clock::to_time_t(balanceitem->Timestamp()));
             accountevent.set_memo(balanceitem->Memo());
             accountevent.set_uuid(balanceitem->UUID());
             auto workflow = client.Workflow().LoadWorkflow(
@@ -1862,9 +1862,8 @@ auto RPC::send_payment(const proto::RPCCommand& command) const
                 contactid,
                 sendpayment.amount(),
                 sendpayment.memo(),
-                std::chrono::system_clock::now(),
-                std::chrono::system_clock::now() +
-                    std::chrono::hours(OT_CHEQUE_HOURS));
+                Clock::now(),
+                Clock::now() + std::chrono::hours(OT_CHEQUE_HOURS));
 
             if (false == ready) {
                 add_output_status(output, proto::RPCRESPONSE_ERROR);

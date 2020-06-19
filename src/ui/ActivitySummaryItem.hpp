@@ -20,6 +20,7 @@
 #include "opentxs/SharedPimpl.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/Version.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/UniqueQueue.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/ui/ActivitySummaryItem.hpp"
@@ -73,17 +74,20 @@ using ActivitySummaryItemRow =
 class ActivitySummaryItem final : public ActivitySummaryItemRow
 {
 public:
+    static auto LoadItemText(
+        const api::client::Manager& api,
+        const identifier::Nym& nym,
+        const CustomData& custom) noexcept -> std::string;
+
     auto DisplayName() const noexcept -> std::string final;
     auto ImageURI() const noexcept -> std::string final;
     auto Text() const noexcept -> std::string final;
     auto ThreadID() const noexcept -> std::string final;
-    auto Timestamp() const noexcept
-        -> std::chrono::system_clock::time_point final;
+    auto Timestamp() const noexcept -> Time final;
     auto Type() const noexcept -> StorageBox final;
 
-    void reindex(
-        const ActivitySummarySortKey& key,
-        const CustomData& custom) noexcept final;
+    void reindex(const ActivitySummarySortKey& key, CustomData& custom) noexcept
+        final;
 
 #if OT_QT
     QVariant qt_data(const int column, const int role) const noexcept final;
@@ -96,23 +100,24 @@ public:
         const identifier::Nym& nymID,
         const ActivitySummaryRowID& rowID,
         const ActivitySummarySortKey& sortKey,
-        const CustomData& custom,
-        const Flag& running) noexcept;
+        CustomData& custom,
+        const Flag& running,
+        std::string text) noexcept;
 
     ~ActivitySummaryItem() final;
 
 private:
-    // id, box, account
-    using ItemLocator = std::tuple<std::string, StorageBox, std::string>;
+    // id, box, account, thread
+    using ItemLocator =
+        std::tuple<std::string, StorageBox, std::string, OTIdentifier>;
 
     const Flag& running_;
     const OTNymID nym_id_;
     ActivitySummarySortKey key_;
-    std::shared_ptr<proto::StorageThread> thread_;
     std::string& display_name_;
-    std::string text_{""};
-    StorageBox type_{StorageBox::UNKNOWN};
-    std::chrono::system_clock::time_point time_;
+    std::string text_;
+    StorageBox type_;
+    Time time_;
     std::unique_ptr<std::thread> newest_item_thread_;
     UniqueQueue<ItemLocator> newest_item_;
     std::atomic<int> next_task_id_;
@@ -122,9 +127,7 @@ private:
         const noexcept -> std::string;
 
     void get_text() noexcept;
-    void startup(
-        const CustomData& custom,
-        UniqueQueue<ItemLocator>& queue) noexcept;
+    void startup(CustomData& custom) noexcept;
 
     ActivitySummaryItem(const ActivitySummaryItem&) = delete;
     ActivitySummaryItem(ActivitySummaryItem&&) = delete;

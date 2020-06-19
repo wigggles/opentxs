@@ -10,10 +10,14 @@
 #include <optional>
 #include <vector>
 
+#include "internal/blockchain/block/bitcoin/Bitcoin.hpp"
 #include "opentxs/Bytes.hpp"
 #include "opentxs/Types.hpp"
+#include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/blockchain/block/bitcoin/Input.hpp"
 #include "opentxs/blockchain/block/bitcoin/Inputs.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
 
 namespace opentxs
 {
@@ -25,9 +29,15 @@ class BlockchainTransaction;
 
 namespace opentxs::blockchain::block::bitcoin::implementation
 {
-class Inputs final : public bitcoin::Inputs
+class Inputs final : public internal::Inputs
 {
 public:
+    using InputList = std::vector<std::unique_ptr<internal::Input>>;
+
+    auto AssociatedLocalNyms(std::vector<OTNymID>& output) const noexcept
+        -> void final;
+    auto AssociatedRemoteContacts(
+        std::vector<OTIdentifier>& output) const noexcept -> void final;
     auto at(const std::size_t position) const noexcept(false)
         -> const value_type& final
     {
@@ -44,6 +54,10 @@ public:
     {
         return const_iterator(this, inputs_.size());
     }
+    auto clone() const noexcept -> std::unique_ptr<internal::Inputs> final
+    {
+        return std::make_unique<Inputs>(*this);
+    }
     auto end() const noexcept -> const_iterator final { return cend(); }
     auto ExtractElements(const filter::Type style) const noexcept
         -> std::vector<Space> final;
@@ -52,6 +66,9 @@ public:
         const FilterType type,
         const Patterns& txos,
         const Patterns& elements) const noexcept -> Matches final;
+    auto GetPatterns() const noexcept -> std::vector<PatternID> final;
+    auto NetBalanceChange(const identifier::Nym& nym) const noexcept
+        -> opentxs::Amount final;
     auto Serialize(const AllocateOutput destination) const noexcept
         -> std::optional<std::size_t> final;
     auto Serialize(proto::BlockchainTransaction& destination) const noexcept
@@ -60,21 +77,33 @@ public:
         -> std::optional<std::size_t> final;
     auto size() const noexcept -> std::size_t final { return inputs_.size(); }
 
-    Inputs(
-        std::vector<std::unique_ptr<bitcoin::Input>>&& inputs,
-        std::optional<std::size_t> size = {}) noexcept(false);
+    auto at(const std::size_t position) noexcept(false) -> value_type& final
+    {
+        return *inputs_.at(position);
+    }
+    auto MergeMetadata(const Input::SerializeType& rhs) noexcept(false)
+        -> void final
+    {
+        inputs_.at(rhs.index())->MergeMetadata(rhs);
+    }
+
+    Inputs(InputList&& inputs, std::optional<std::size_t> size = {}) noexcept(
+        false);
+    Inputs(const Inputs&) noexcept;
+
     ~Inputs() final = default;
 
 private:
-    const std::vector<std::unique_ptr<bitcoin::Input>> inputs_;
+    const InputList inputs_;
     mutable std::optional<std::size_t> size_;
     mutable std::optional<std::size_t> normalized_size_;
+
+    static auto clone(const InputList& rhs) noexcept -> InputList;
 
     auto serialize(const AllocateOutput destination, const bool normalize)
         const noexcept -> std::optional<std::size_t>;
 
     Inputs() = delete;
-    Inputs(const Inputs&) = delete;
     Inputs(Inputs&&) = delete;
     auto operator=(const Inputs&) -> Inputs& = delete;
     auto operator=(Inputs &&) -> Inputs& = delete;

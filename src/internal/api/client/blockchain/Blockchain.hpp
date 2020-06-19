@@ -8,6 +8,7 @@
 #include <optional>
 
 #include "internal/blockchain/client/Client.hpp"
+#include "opentxs/Types.hpp"
 #include "opentxs/api/client/blockchain/BalanceList.hpp"
 #include "opentxs/api/client/blockchain/BalanceNode.hpp"
 #include "opentxs/api/client/blockchain/BalanceTree.hpp"
@@ -15,6 +16,7 @@
 #include "opentxs/api/client/blockchain/HD.hpp"
 #include "opentxs/api/client/blockchain/Imported.hpp"
 #include "opentxs/api/client/blockchain/PaymentCode.hpp"
+#include "opentxs/core/Identifier.hpp"
 
 namespace std
 {
@@ -69,7 +71,19 @@ struct PaymentCode;
 }  // namespace internal
 }  // namespace blockchain
 }  // namespace client
+
+class Crypto;
 }  // namespace api
+
+class Identifier;
+}  // namespace opentxs
+
+namespace opentxs
+{
+auto blockchain_thread_item_id(
+    const api::Crypto& crypto,
+    const opentxs::blockchain::Type chain,
+    const Data& txid) noexcept -> OTIdentifier;
 }  // namespace opentxs
 
 #if OT_BLOCKCHAIN
@@ -162,6 +176,8 @@ struct BalanceNode : virtual public blockchain::BalanceNode {
         const Subchain type,
         const Bip32Index index,
         const std::string& label) noexcept(false) -> bool = 0;
+    virtual auto UpdateElement(
+        std::vector<ReadView>& pubkeyHashes) const noexcept -> void = 0;
 };
 
 struct BalanceTree : virtual public blockchain::BalanceTree {

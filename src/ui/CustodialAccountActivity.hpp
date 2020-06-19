@@ -132,11 +132,6 @@ private:
     static auto load_unit(const api::Core& api, const Identifier& account)
         -> OTUnitDefinition;
 
-    auto construct_row(
-        const AccountActivityRowID& id,
-        const AccountActivitySortKey& index,
-        const CustomData& custom) const noexcept -> void* final;
-
     void process_balance(const network::zeromq::Message& message) noexcept;
     void process_workflow(
         const Identifier& workflowID,

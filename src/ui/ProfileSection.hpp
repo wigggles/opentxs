@@ -112,8 +112,7 @@ public:
         return row_id_;
     }
 
-    void reindex(const ProfileSortKey& key, const CustomData& custom) noexcept
-        final;
+    void reindex(const ProfileSortKey& key, CustomData& custom) noexcept final;
 
     ProfileSection(
         const ProfileInternalInterface& parent,
@@ -121,7 +120,7 @@ public:
         const network::zeromq::socket::Publish& publisher,
         const ProfileRowID& rowID,
         const ProfileSortKey& key,
-        const CustomData& custom
+        CustomData& custom
 #if OT_QT
         ,
         const bool qt
@@ -136,7 +135,7 @@ private:
     auto construct_row(
         const ProfileSectionRowID& id,
         const ProfileSectionSortKey& index,
-        const CustomData& custom) const noexcept -> void* final;
+        CustomData& custom) const noexcept -> void* final;
 
     auto last(const ProfileSectionRowID& id) const noexcept -> bool final
     {
@@ -144,7 +143,7 @@ private:
     }
     auto process_section(const opentxs::ContactSection& section) noexcept
         -> std::set<ProfileSectionRowID>;
-    void startup(const CustomData& custom) noexcept;
+    void startup(const opentxs::ContactSection section) noexcept;
 
     ProfileSection() = delete;
     ProfileSection(const ProfileSection&) = delete;

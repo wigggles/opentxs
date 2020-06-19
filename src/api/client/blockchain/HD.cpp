@@ -311,12 +311,6 @@ auto HD::generate_next(
 
     if (false == added) { throw std::runtime_error("Failed to add key"); }
 
-    const auto elements = it->second.Elements();
-
-    for (const auto& element : elements) {
-        claim_element(lock, element, {id_->str(), type, index});
-    }
-
     return index++;
 }
 #endif  // OT_CRYPTO_WITH_BIP32

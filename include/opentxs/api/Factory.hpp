@@ -247,7 +247,7 @@ public:
     OPENTXS_EXPORT virtual OTData Data(const std::uint8_t input) const = 0;
     OPENTXS_EXPORT virtual OTData Data(const std::uint32_t input) const = 0;
     OPENTXS_EXPORT virtual OTData Data(
-        const std::string input,
+        const std::string& input,
         const StringStyle mode) const = 0;
     OPENTXS_EXPORT virtual OTData Data(
         const std::vector<unsigned char>& input) const = 0;

@@ -97,7 +97,7 @@ private:
     auto construct_row(
         const UnitListRowID& id,
         const UnitListSortKey& index,
-        const CustomData& custom) const noexcept -> void* final;
+        CustomData& custom) const noexcept -> void* final;
 
     auto process_account(const network::zeromq::Message& message) noexcept
         -> void;

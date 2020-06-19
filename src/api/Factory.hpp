@@ -338,7 +338,7 @@ public:
         -> OTData final;
     auto Data(const std::uint8_t input) const -> OTData final;
     auto Data(const std::uint32_t input) const -> OTData final;
-    auto Data(const std::string input, const StringStyle mode) const
+    auto Data(const std::string& input, const StringStyle mode) const
         -> OTData final;
     auto Data(const std::vector<unsigned char>& input) const -> OTData final;
     auto Data(const std::vector<std::byte>& input) const -> OTData final;

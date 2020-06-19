@@ -29,7 +29,7 @@ ActivityThreadItem::ActivityThreadItem(
     const identifier::Nym& nymID,
     const ActivityThreadRowID& rowID,
     const ActivityThreadSortKey& sortKey,
-    const CustomData& custom,
+    CustomData& custom,
     const bool loading,
     const bool pending) noexcept
     : ActivityThreadItemRow(parent, api, publisher, rowID, true)
@@ -67,8 +67,7 @@ QVariant ActivityThreadItem::qt_data(const int column, int role) const noexcept
                 }
                 case ActivityThreadQt::TimeColumn: {
                     QDateTime qdatetime;
-                    qdatetime.setSecsSinceEpoch(
-                        std::chrono::system_clock::to_time_t(Timestamp()));
+                    qdatetime.setSecsSinceEpoch(Clock::to_time_t(Timestamp()));
                     return qdatetime;
                 }
                 default: {
@@ -105,7 +104,7 @@ QVariant ActivityThreadItem::qt_data(const int column, int role) const noexcept
 
 void ActivityThreadItem::reindex(
     const ActivityThreadSortKey&,
-    const CustomData& custom) noexcept
+    CustomData& custom) noexcept
 {
     const auto text = extract_custom<std::string>(custom);
 
@@ -122,8 +121,7 @@ auto ActivityThreadItem::Text() const noexcept -> std::string
     return text_;
 }
 
-auto ActivityThreadItem::Timestamp() const noexcept
-    -> std::chrono::system_clock::time_point
+auto ActivityThreadItem::Timestamp() const noexcept -> Time
 {
     sLock lock(shared_lock_);
 

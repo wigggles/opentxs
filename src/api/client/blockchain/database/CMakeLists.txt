@@ -10,6 +10,7 @@ set(
   Blocks.cpp
   Database.cpp
   Peers.cpp
+  Wallet.cpp
 )
 set(
   cxx-headers
@@ -18,13 +19,14 @@ set(
   Blocks.hpp
   Database.hpp
   Peers.hpp
+  Wallet.hpp
 )
 
 add_library(opentxs-api-client-blockchain-database OBJECT ${cxx-sources}
                                                           ${cxx-headers})
 target_include_directories(
   opentxs-api-client-blockchain-database SYSTEM
-  PRIVATE ${LMDB_INCLUDE_DIR}
+  PRIVATE "${LMDB_INCLUDE_DIR}" "${sodium_INCLUDE_DIR}"
 )
 target_link_libraries(
   opentxs-api-client-blockchain-database

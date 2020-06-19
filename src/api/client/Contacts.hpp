@@ -17,6 +17,7 @@
 #include "internal/api/client/Client.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
+#include "opentxs/Version.hpp"
 #include "opentxs/api/Editor.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/network/zeromq/socket/Publish.hpp"
@@ -53,10 +54,6 @@ namespace opentxs::api::client::implementation
 class Contacts final : public client::internal::Contacts
 {
 public:
-    auto BlockchainAddressToContact(
-        const std::string& address,
-        const proto::ContactItemType currency = proto::CITEMTYPE_BTC) const
-        -> OTIdentifier final;
     auto Contact(const Identifier& id) const
         -> std::shared_ptr<const opentxs::Contact> final;
     auto ContactID(const identifier::Nym& nymID) const -> OTIdentifier final;
@@ -73,11 +70,13 @@ public:
         const identifier::Nym& nymID,
         const PaymentCode& paymentCode) const
         -> std::shared_ptr<const opentxs::Contact> final;
+#if OT_BLOCKCHAIN
     auto NewContactFromAddress(
         const std::string& address,
         const std::string& label,
         const proto::ContactItemType currency) const
         -> std::shared_ptr<const opentxs::Contact> final;
+#endif  // OT_BLOCKCHAIN
     auto NymToContact(const identifier::Nym& nymID) const -> OTIdentifier final;
     auto Update(const proto::Nym& nym) const
         -> std::shared_ptr<const opentxs::Contact> final;
@@ -113,10 +112,6 @@ private:
     // takes ownership
     auto add_contact(const rLock& lock, opentxs::Contact* contact) const
         -> ContactMap::iterator;
-    auto address_to_contact(
-        const rLock& lock,
-        const std::string& address,
-        const proto::ContactItemType currency) const -> OTIdentifier;
     auto contact(const rLock& lock, const std::string& label) const
         -> std::shared_ptr<const opentxs::Contact>;
     auto contact(const rLock& lock, const Identifier& id) const

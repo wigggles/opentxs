@@ -17,10 +17,10 @@ namespace api
 class Primitives
 {
 public:
-    OPENTXS_EXPORT virtual OTSecret Secret(const std::size_t bytes) const
-        noexcept = 0;
-    OPENTXS_EXPORT virtual OTSecret SecretFromBytes(const ReadView bytes) const
-        noexcept = 0;
+    OPENTXS_EXPORT virtual OTSecret Secret(
+        const std::size_t bytes) const noexcept = 0;
+    OPENTXS_EXPORT virtual OTSecret SecretFromBytes(
+        const ReadView bytes) const noexcept = 0;
     OPENTXS_EXPORT virtual OTSecret SecretFromText(
         const std::string_view text) const noexcept = 0;
 

@@ -40,8 +40,8 @@ public:
         const std::string& clientPublic) const noexcept = 0;
     OPENTXS_EXPORT virtual bool SetServerPubkey(
         const contract::Server& contract) const noexcept = 0;
-    OPENTXS_EXPORT virtual bool SetServerPubkey(const Data& key) const
-        noexcept = 0;
+    OPENTXS_EXPORT virtual bool SetServerPubkey(
+        const Data& key) const noexcept = 0;
 
     OPENTXS_EXPORT ~Client() override = default;
 

@@ -46,6 +46,12 @@ class Publish;
 }  // namespace zeromq
 }  // namespace network
 
+namespace proto
+{
+class PaymentEvent;
+class PaymentWorkflow;
+}  // namespace proto
+
 class Identifier;
 }  // namespace opentxs
 
@@ -64,7 +70,7 @@ public:
 
     void reindex(
         const implementation::AccountActivitySortKey& key,
-        const implementation::CustomData& custom) noexcept final;
+        implementation::CustomData& custom) noexcept final;
 
     TransferBalanceItem(
         const AccountActivityInternalInterface& parent,
@@ -72,7 +78,7 @@ public:
         const network::zeromq::socket::Publish& publisher,
         const AccountActivityRowID& rowID,
         const AccountActivitySortKey& sortKey,
-        const CustomData& custom,
+        CustomData& custom,
         const identifier::Nym& nymID,
         const Identifier& accountID) noexcept;
     ~TransferBalanceItem() = default;
@@ -83,7 +89,9 @@ private:
     auto effective_amount() const noexcept -> opentxs::Amount final;
     auto get_contract() const noexcept -> bool final;
 
-    void startup(const CustomData& custom) noexcept;
+    void startup(
+        const proto::PaymentWorkflow workflow,
+        const proto::PaymentEvent event) noexcept;
 
     TransferBalanceItem() = delete;
     TransferBalanceItem(const TransferBalanceItem&) = delete;
