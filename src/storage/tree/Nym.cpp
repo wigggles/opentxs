@@ -17,7 +17,6 @@
 #include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/protobuf/Check.hpp"
 #include "opentxs/protobuf/ContactEnums.pb.h"
-#include "opentxs/protobuf/Enums.pb.h"
 #include "opentxs/protobuf/verify/HDAccount.hpp"
 #include "opentxs/protobuf/verify/StorageNym.hpp"
 #include "storage/Plugin.hpp"

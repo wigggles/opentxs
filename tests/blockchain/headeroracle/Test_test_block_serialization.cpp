@@ -3,7 +3,18 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#include <gtest/gtest-message.h>
+#include <gtest/gtest-test-part.h>
+#include <gtest/gtest.h>
+#include <memory>
+
 #include "Helpers.hpp"
+#include "internal/api/client/Client.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/blockchain/block/Header.hpp"
+#include "opentxs/core/Data.hpp"
+#include "opentxs/protobuf/BlockchainBlockHeader.pb.h"
 
 TEST_F(Test_HeaderOracle, test_block_serialization)
 {

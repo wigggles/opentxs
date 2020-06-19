@@ -387,6 +387,16 @@ auto Input::FindMatches(
     return output;
 }
 
+auto Input::Keys() const noexcept -> std::vector<KeyID>
+{
+    auto output = std::vector<KeyID>{};
+    std::transform(
+        std::begin(keys_), std::end(keys_), std::back_inserter(output), [
+        ](const auto& key) -> auto { return key; });
+
+    return output;
+}
+
 auto Input::serialize(const AllocateOutput destination, const bool normalized)
     const noexcept -> std::optional<std::size_t>
 {

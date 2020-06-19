@@ -3,8 +3,30 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "OTTestEnvironment.hpp"
+#include <gtest/gtest-message.h>
+#include <gtest/gtest-test-part.h>
+#include <gtest/gtest.h>
+#include <cstdint>
+#include <memory>
+#include <string>
+#include <type_traits>
+
+#include "OTTestEnvironment.hpp"  // IWYU pragma: keep
+#include "internal/api/client/Client.hpp"
 #include "internal/blockchain/block/Block.hpp"
+#include "opentxs/Forward.hpp"
+#include "opentxs/OT.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/api/Context.hpp"
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/api/client/Manager.hpp"
+#include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/blockchain/NumericHash.hpp"
+#include "opentxs/blockchain/block/Header.hpp"
+#include "opentxs/blockchain/client/HeaderOracle.hpp"
+#include "opentxs/core/Data.hpp"
 
 #define BTC_GENESIS_HASH_NUMERIC                                               \
     "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"

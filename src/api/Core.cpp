@@ -34,7 +34,6 @@
 #include "opentxs/core/Secret.hpp"
 #include "opentxs/core/crypto/OTCaller.hpp"
 #include "opentxs/crypto/key/Symmetric.hpp"
-#include "opentxs/protobuf/Enums.pb.h"
 #include "util/ScopeGuard.hpp"
 
 //#define OT_METHOD "opentxs::api::implementation::Core::"

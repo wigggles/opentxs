@@ -48,7 +48,6 @@
 #endif  // OT_BLOCKCHAIN
 #include "opentxs/protobuf/BlockchainEnums.pb.h"
 #include "opentxs/protobuf/ContactEnums.pb.h"
-#include "opentxs/protobuf/Enums.pb.h"
 #include "util/Container.hpp"
 #if OT_BLOCKCHAIN
 #include "util/ScopeGuard.hpp"

@@ -4,9 +4,22 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include <boost/endian/buffers.hpp>
+#include <gtest/gtest-message.h>
+#include <gtest/gtest-test-part.h>
+#include <gtest/gtest.h>
+#include <cstdint>
+#include <string>
 
-#include "OTTestEnvironment.hpp"
+#include "OTTestEnvironment.hpp"  // IWYU pragma: keep
+#include "internal/api/client/Client.hpp"
 #include "internal/blockchain/Blockchain.hpp"
+#include "opentxs/OT.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/api/Context.hpp"
+#include "opentxs/api/client/Manager.hpp"
+#include "opentxs/blockchain/NumericHash.hpp"
+#include "opentxs/blockchain/Work.hpp"
+#include "opentxs/core/Data.hpp"
 
 namespace be = boost::endian;
 

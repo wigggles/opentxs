@@ -3,8 +3,45 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "OTTestEnvironment.hpp"
+#include <gtest/gtest-message.h>
+#include <gtest/gtest-test-part.h>
+#include <gtest/gtest.h>
+#include <future>
+#include <map>
+#include <string>
+#include <utility>
+
+#include "OTTestEnvironment.hpp"  // IWYU pragma: keep
 #include "integration/Helpers.hpp"
+#include "opentxs/OT.hpp"
+#include "opentxs/SharedPimpl.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/api/Context.hpp"
+#include "opentxs/api/Endpoints.hpp"
+#include "opentxs/api/client/Manager.hpp"
+#include "opentxs/api/client/OTX.hpp"
+#include "opentxs/api/client/UI.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/network/zeromq/Context.hpp"
+#include "opentxs/network/zeromq/ListenCallback.hpp"
+#include "opentxs/network/zeromq/socket/Subscribe.hpp"
+#include "opentxs/protobuf/ConsensusEnums.pb.h"
+#include "opentxs/ui/ContactList.hpp"
+#include "opentxs/ui/ContactListItem.hpp"
+#include "opentxs/ui/MessagableList.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace server
+{
+class Manager;
+}  // namespace server
+}  // namespace api
+}  // namespace opentxs
 
 namespace
 {

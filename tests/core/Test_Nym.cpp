@@ -3,7 +3,31 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "OTTestEnvironment.hpp"
+#include <gtest/gtest-message.h>
+#include <gtest/gtest-test-part.h>
+#include <gtest/gtest.h>
+#include <memory>
+#include <optional>
+#include <string>
+
+#include "OTTestEnvironment.hpp"  // IWYU pragma: keep
+#include "opentxs/Bytes.hpp"
+#include "opentxs/OT.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/api/Context.hpp"
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/api/Wallet.hpp"
+#include "opentxs/api/client/Manager.hpp"
+#include "opentxs/api/crypto/Symmetric.hpp"
+#include "opentxs/client/OTAPI_Exec.hpp"
+#include "opentxs/core/PasswordPrompt.hpp"
+#include "opentxs/core/Secret.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/crypto/key/Symmetric.hpp"
+#include "opentxs/identity/Nym.hpp"
+#include "opentxs/protobuf/Ciphertext.pb.h"
+#include "opentxs/protobuf/Enums.pb.h"
 
 #define TEST_MASTER_PASSWORD "test password"
 #define TEST_PLAINTEXT "The quick brown fox jumped over the lazy dog."

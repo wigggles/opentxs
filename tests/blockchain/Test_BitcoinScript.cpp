@@ -3,8 +3,26 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "OTTestEnvironment.hpp"
+#include <gtest/gtest-message.h>
+#include <gtest/gtest-test-part.h>
+#include <gtest/gtest.h>
+#include <algorithm>
+#include <cstddef>
+#include <cstdint>
+#include <cstring>
+#include <memory>
+#include <optional>
+#include <string>
+#include <string_view>
+#include <utility>
+#include <vector>
+
+#include "OTTestEnvironment.hpp"  // IWYU pragma: keep
 #include "internal/blockchain/block/bitcoin/Bitcoin.hpp"
+#include "opentxs/Bytes.hpp"
+#include "opentxs/Forward.hpp"
+#include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/blockchain/block/bitcoin/Script.hpp"
 
 namespace b = ot::blockchain::block::bitcoin;
 

@@ -3,7 +3,51 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "OTTestEnvironment.hpp"
+#include <gtest/gtest-message.h>
+#include <gtest/gtest-test-part.h>
+#include <gtest/gtest.h>
+#include <cstdint>
+#include <iosfwd>
+#include <list>
+#include <map>
+#include <memory>
+#include <optional>
+#include <set>
+#include <string>
+#include <tuple>
+#include <type_traits>
+#include <utility>
+#include <vector>
+
+#include "OTTestEnvironment.hpp"  // IWYU pragma: keep
+#include "opentxs/OT.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/Version.hpp"
+#include "opentxs/api/Context.hpp"
+#include "opentxs/api/Editor.hpp"
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/api/HDSeed.hpp"
+#include "opentxs/api/Wallet.hpp"
+#include "opentxs/api/client/Activity.hpp"
+#include "opentxs/api/client/Blockchain.hpp"
+#include "opentxs/api/client/Contacts.hpp"
+#include "opentxs/api/client/Manager.hpp"
+#include "opentxs/api/client/blockchain/BalanceNode.hpp"
+#include "opentxs/api/client/blockchain/BalanceTree.hpp"
+#include "opentxs/api/client/blockchain/HD.hpp"
+#include "opentxs/api/storage/Storage.hpp"
+#include "opentxs/client/OTAPI_Exec.hpp"
+#include "opentxs/contact/Contact.hpp"
+#include "opentxs/core/Data.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/PasswordPrompt.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/crypto/key/HD.hpp"
+#include "opentxs/identity/Nym.hpp"
+#include "opentxs/protobuf/BlockchainEnums.pb.h"
+#include "opentxs/protobuf/ContactEnums.pb.h"
 
 #if OT_CRYPTO_WITH_BIP32
 namespace ot = opentxs;

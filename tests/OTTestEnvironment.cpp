@@ -4,8 +4,10 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include <boost/filesystem.hpp>
+#include <cassert>
 
-#include "OTTestEnvironment.hpp"
+#include "OTTestEnvironment.hpp"  // IWYU pragma: keep
+#include "opentxs/OT.hpp"
 
 const ot::ArgList OTTestEnvironment::test_args_{
     {OPENTXS_ARG_HOME, {OTTestEnvironment::random_path()}},

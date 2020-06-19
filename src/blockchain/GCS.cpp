@@ -34,7 +34,6 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
-#include "opentxs/protobuf/Enums.pb.h"
 #include "util/Container.hpp"
 
 //#define OT_METHOD "opentxs::blockchain::implementation::GCS::"

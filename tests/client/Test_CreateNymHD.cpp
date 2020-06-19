@@ -3,7 +3,25 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "OTTestEnvironment.hpp"
+#include <gtest/gtest-message.h>
+#include <gtest/gtest-test-part.h>
+#include <gtest/gtest.h>
+#include <memory>
+#include <string>
+
+#include "OTTestEnvironment.hpp"  // IWYU pragma: keep
+#include "opentxs/OT.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/Version.hpp"
+#include "opentxs/api/Context.hpp"
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/api/Wallet.hpp"
+#include "opentxs/api/client/Manager.hpp"
+#include "opentxs/client/OTAPI_Exec.hpp"
+#include "opentxs/core/PasswordPrompt.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/identity/Nym.hpp"
+#include "opentxs/protobuf/HDPath.pb.h"
 
 using namespace opentxs;
 
