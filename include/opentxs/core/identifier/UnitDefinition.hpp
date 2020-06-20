@@ -42,22 +42,22 @@ using OTUnitID = Pimpl<identifier::UnitDefinition>;
 #ifndef SWIG
 OPENTXS_EXPORT bool operator==(
     const OTUnitID& lhs,
-    const opentxs::Identifier& rhs);
+    const opentxs::Identifier& rhs) noexcept;
 OPENTXS_EXPORT bool operator!=(
     const OTUnitID& lhs,
-    const opentxs::Identifier& rhs);
+    const opentxs::Identifier& rhs) noexcept;
 OPENTXS_EXPORT bool operator<(
     const OTUnitID& lhs,
-    const opentxs::Identifier& rhs);
+    const opentxs::Identifier& rhs) noexcept;
 OPENTXS_EXPORT bool operator>(
     const OTUnitID& lhs,
-    const opentxs::Identifier& rhs);
+    const opentxs::Identifier& rhs) noexcept;
 OPENTXS_EXPORT bool operator<=(
     const OTUnitID& lhs,
-    const opentxs::Identifier& rhs);
+    const opentxs::Identifier& rhs) noexcept;
 OPENTXS_EXPORT bool operator>=(
     const OTUnitID& lhs,
-    const opentxs::Identifier& rhs);
+    const opentxs::Identifier& rhs) noexcept;
 #endif
 }  // namespace opentxs
 

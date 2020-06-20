@@ -52,122 +52,146 @@ auto less<opentxs::Pimpl<opentxs::Identifier>>::operator()(
 
 namespace opentxs
 {
-auto operator==(const OTIdentifier& lhs, const Identifier& rhs) -> bool
+auto operator==(const OTIdentifier& lhs, const Identifier& rhs) noexcept -> bool
 {
     return lhs.get().operator==(rhs);
 }
 
-auto operator==(const OTNymID& lhs, const opentxs::Identifier& rhs) -> bool
+auto operator==(const OTNymID& lhs, const opentxs::Identifier& rhs) noexcept
+    -> bool
 {
     return lhs.get().operator==(rhs);
 }
 
-auto operator==(const OTServerID& lhs, const opentxs::Identifier& rhs) -> bool
+auto operator==(const OTServerID& lhs, const opentxs::Identifier& rhs) noexcept
+    -> bool
 {
     return lhs.get().operator==(rhs);
 }
 
-auto operator==(const OTUnitID& lhs, const opentxs::Identifier& rhs) -> bool
+auto operator==(const OTUnitID& lhs, const opentxs::Identifier& rhs) noexcept
+    -> bool
 {
     return lhs.get().operator==(rhs);
 }
 
-auto operator!=(const OTIdentifier& lhs, const Identifier& rhs) -> bool
+auto operator!=(const OTIdentifier& lhs, const Identifier& rhs) noexcept -> bool
 {
     return lhs.get().operator!=(rhs);
 }
 
-auto operator!=(const OTNymID& lhs, const opentxs::Identifier& rhs) -> bool
+auto operator!=(const OTNymID& lhs, const opentxs::Identifier& rhs) noexcept
+    -> bool
 {
     return lhs.get().operator!=(rhs);
 }
 
-auto operator!=(const OTServerID& lhs, const opentxs::Identifier& rhs) -> bool
+auto operator!=(const OTServerID& lhs, const opentxs::Identifier& rhs) noexcept
+    -> bool
 {
     return lhs.get().operator!=(rhs);
 }
 
-auto operator!=(const OTUnitID& lhs, const opentxs::Identifier& rhs) -> bool
+auto operator!=(const OTUnitID& lhs, const opentxs::Identifier& rhs) noexcept
+    -> bool
 {
     return lhs.get().operator!=(rhs);
 }
 
-auto operator<(const OTIdentifier& lhs, const opentxs::Identifier& rhs) -> bool
+auto operator<(const OTIdentifier& lhs, const opentxs::Identifier& rhs) noexcept
+    -> bool
 {
     return lhs.get().operator<(rhs);
 }
 
-auto operator<(const OTNymID& lhs, const opentxs::Identifier& rhs) -> bool
+auto operator<(const OTNymID& lhs, const opentxs::Identifier& rhs) noexcept
+    -> bool
 {
     return lhs.get().operator<(rhs);
 }
 
-auto operator<(const OTServerID& lhs, const opentxs::Identifier& rhs) -> bool
+auto operator<(const OTServerID& lhs, const opentxs::Identifier& rhs) noexcept
+    -> bool
 {
     return lhs.get().operator<(rhs);
 }
 
-auto operator<(const OTUnitID& lhs, const opentxs::Identifier& rhs) -> bool
+auto operator<(const OTUnitID& lhs, const opentxs::Identifier& rhs) noexcept
+    -> bool
 {
     return lhs.get().operator<(rhs);
 }
 
-auto operator>(const OTIdentifier& lhs, const opentxs::Identifier& rhs) -> bool
+auto operator>(const OTIdentifier& lhs, const opentxs::Identifier& rhs) noexcept
+    -> bool
 {
     return lhs.get().operator>(rhs);
 }
 
-auto operator>(const OTNymID& lhs, const opentxs::Identifier& rhs) -> bool
+auto operator>(const OTNymID& lhs, const opentxs::Identifier& rhs) noexcept
+    -> bool
 {
     return lhs.get().operator>(rhs);
 }
 
-auto operator>(const OTServerID& lhs, const opentxs::Identifier& rhs) -> bool
+auto operator>(const OTServerID& lhs, const opentxs::Identifier& rhs) noexcept
+    -> bool
 {
     return lhs.get().operator>(rhs);
 }
 
-auto operator>(const OTUnitID& lhs, const opentxs::Identifier& rhs) -> bool
+auto operator>(const OTUnitID& lhs, const opentxs::Identifier& rhs) noexcept
+    -> bool
 {
     return lhs.get().operator>(rhs);
 }
 
-auto operator<=(const OTIdentifier& lhs, const opentxs::Identifier& rhs) -> bool
+auto operator<=(
+    const OTIdentifier& lhs,
+    const opentxs::Identifier& rhs) noexcept -> bool
 {
     return lhs.get().operator<=(rhs);
 }
 
-auto operator<=(const OTNymID& lhs, const opentxs::Identifier& rhs) -> bool
+auto operator<=(const OTNymID& lhs, const opentxs::Identifier& rhs) noexcept
+    -> bool
 {
     return lhs.get().operator<=(rhs);
 }
 
-auto operator<=(const OTServerID& lhs, const opentxs::Identifier& rhs) -> bool
+auto operator<=(const OTServerID& lhs, const opentxs::Identifier& rhs) noexcept
+    -> bool
 {
     return lhs.get().operator<=(rhs);
 }
 
-auto operator<=(const OTUnitID& lhs, const opentxs::Identifier& rhs) -> bool
+auto operator<=(const OTUnitID& lhs, const opentxs::Identifier& rhs) noexcept
+    -> bool
 {
     return lhs.get().operator<=(rhs);
 }
 
-auto operator>=(const OTIdentifier& lhs, const opentxs::Identifier& rhs) -> bool
+auto operator>=(
+    const OTIdentifier& lhs,
+    const opentxs::Identifier& rhs) noexcept -> bool
 {
     return lhs.get().operator>=(rhs);
 }
 
-auto operator>=(const OTNymID& lhs, const opentxs::Identifier& rhs) -> bool
+auto operator>=(const OTNymID& lhs, const opentxs::Identifier& rhs) noexcept
+    -> bool
 {
     return lhs.get().operator>=(rhs);
 }
 
-auto operator>=(const OTServerID& lhs, const opentxs::Identifier& rhs) -> bool
+auto operator>=(const OTServerID& lhs, const opentxs::Identifier& rhs) noexcept
+    -> bool
 {
     return lhs.get().operator>=(rhs);
 }
 
-auto operator>=(const OTUnitID& lhs, const opentxs::Identifier& rhs) -> bool
+auto operator>=(const OTUnitID& lhs, const opentxs::Identifier& rhs) noexcept
+    -> bool
 {
     return lhs.get().operator>=(rhs);
 }
@@ -345,42 +369,6 @@ Identifier::Identifier(
     : ot_super()
 {
     CalculateDigest(path_to_data(type, path)->Bytes(), DefaultType);
-}
-
-auto Identifier::operator==(const opentxs::Identifier& s2) const -> bool
-{
-    const auto ots1 = String::Factory(*this), ots2 = String::Factory(s2);
-    return ots1->Compare(ots2);
-}
-
-auto Identifier::operator!=(const opentxs::Identifier& s2) const -> bool
-{
-    const auto ots1 = String::Factory(*this), ots2 = String::Factory(s2);
-    return !(ots1->Compare(ots2));
-}
-
-auto Identifier::operator>(const opentxs::Identifier& s2) const -> bool
-{
-    const auto ots1 = String::Factory(*this), ots2 = String::Factory(s2);
-    return ots1->operator>(ots2);
-}
-
-auto Identifier::operator<(const opentxs::Identifier& s2) const -> bool
-{
-    const auto ots1 = String::Factory(*this), ots2 = String::Factory(s2);
-    return ots1->operator<(ots2);
-}
-
-auto Identifier::operator<=(const opentxs::Identifier& s2) const -> bool
-{
-    const auto ots1 = String::Factory(*this), ots2 = String::Factory(s2);
-    return ots1->operator<=(ots2);
-}
-
-auto Identifier::operator>=(const opentxs::Identifier& s2) const -> bool
-{
-    const auto ots1 = String::Factory(*this), ots2 = String::Factory(s2);
-    return ots1->operator>=(ots2);
 }
 
 auto Identifier::CalculateDigest(const ReadView bytes, const ID type) -> bool

@@ -59,8 +59,15 @@ Headers::Headers(
     , lock_()
 {
     import_genesis(type);
+    const auto best = this->best();
 
-    OT_ASSERT(HeaderExists(best().second));
+    OT_ASSERT(0 <= best.first);
+    OT_ASSERT(HeaderExists(best.second));
+
+    const auto header = CurrentBest();
+
+    OT_ASSERT(header);
+    OT_ASSERT(0 <= header->Position().first);
 }
 
 auto Headers::ApplyUpdate(const client::UpdateTransaction& update) noexcept

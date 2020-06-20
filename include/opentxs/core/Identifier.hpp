@@ -43,22 +43,22 @@ using OTIdentifier = Pimpl<Identifier>;
 #ifndef SWIG
 OPENTXS_EXPORT bool operator==(
     const opentxs::Pimpl<opentxs::Identifier>& lhs,
-    const opentxs::Identifier& rhs);
+    const opentxs::Identifier& rhs) noexcept;
 OPENTXS_EXPORT bool operator!=(
     const opentxs::Pimpl<opentxs::Identifier>& lhs,
-    const opentxs::Identifier& rhs);
+    const opentxs::Identifier& rhs) noexcept;
 OPENTXS_EXPORT bool operator<(
     const opentxs::Pimpl<opentxs::Identifier>& lhs,
-    const opentxs::Identifier& rhs);
+    const opentxs::Identifier& rhs) noexcept;
 OPENTXS_EXPORT bool operator>(
     const opentxs::Pimpl<opentxs::Identifier>& lhs,
-    const opentxs::Identifier& rhs);
+    const opentxs::Identifier& rhs) noexcept;
 OPENTXS_EXPORT bool operator<=(
     const opentxs::Pimpl<opentxs::Identifier>& lhs,
-    const opentxs::Identifier& rhs);
+    const opentxs::Identifier& rhs) noexcept;
 OPENTXS_EXPORT bool operator>=(
     const opentxs::Pimpl<opentxs::Identifier>& lhs,
-    const opentxs::Identifier& rhs);
+    const opentxs::Identifier& rhs) noexcept;
 #endif
 }  // namespace opentxs
 
@@ -95,17 +95,23 @@ public:
     OPENTXS_EXPORT static bool Validate(const std::string& id);
 
     using ot_super::operator==;
-    OPENTXS_EXPORT virtual bool operator==(const Identifier& rhs) const = 0;
+    OPENTXS_EXPORT virtual bool operator==(
+        const Identifier& rhs) const noexcept = 0;
     using ot_super::operator!=;
-    OPENTXS_EXPORT virtual bool operator!=(const Identifier& rhs) const = 0;
+    OPENTXS_EXPORT virtual bool operator!=(
+        const Identifier& rhs) const noexcept = 0;
     using ot_super::operator>;
-    OPENTXS_EXPORT virtual bool operator>(const Identifier& rhs) const = 0;
+    OPENTXS_EXPORT virtual bool operator>(
+        const Identifier& rhs) const noexcept = 0;
     using ot_super::operator<;
-    OPENTXS_EXPORT virtual bool operator<(const Identifier& rhs) const = 0;
+    OPENTXS_EXPORT virtual bool operator<(
+        const Identifier& rhs) const noexcept = 0;
     using ot_super::operator<=;
-    OPENTXS_EXPORT virtual bool operator<=(const Identifier& rhs) const = 0;
+    OPENTXS_EXPORT virtual bool operator<=(
+        const Identifier& rhs) const noexcept = 0;
     using ot_super::operator>=;
-    OPENTXS_EXPORT virtual bool operator>=(const Identifier& rhs) const = 0;
+    OPENTXS_EXPORT virtual bool operator>=(
+        const Identifier& rhs) const noexcept = 0;
 
 #ifndef SWIG
     OPENTXS_EXPORT virtual void GetString(String& theStr) const = 0;

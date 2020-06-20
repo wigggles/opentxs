@@ -364,6 +364,9 @@ void FilterOracle::check_filters(
 
     if (0 > (stopHeight - begin)) { return; }
 
+    OT_ASSERT(0 < stopHeight);
+    OT_ASSERT(stopHeight >= begin);
+
     LogNormal("Requesting ")(blockchain::internal::DisplayString(
         network_.Chain()))(" filters from ")(begin)(" to ")(stopHeight)
         .Flush();
@@ -396,6 +399,9 @@ void FilterOracle::check_headers(
     const auto stopHash = headers.BestHash(stopHeight);
 
     if (header_requests_.IsRunning(stopHash)) { return; }
+
+    OT_ASSERT(0 < stopHeight);
+    OT_ASSERT(stopHeight >= begin);
 
     LogNormal("Requesting ")(blockchain::internal::DisplayString(
         network_.Chain()))(" filter headers from ")(begin)(" to ")(stopHeight)

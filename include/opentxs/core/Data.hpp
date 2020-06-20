@@ -47,12 +47,12 @@ class Data;
 
 using OTData = Pimpl<Data>;
 
-OPENTXS_EXPORT bool operator==(const OTData& lhs, const Data& rhs);
-OPENTXS_EXPORT bool operator!=(const OTData& lhs, const Data& rhs);
-OPENTXS_EXPORT bool operator<(const OTData& lhs, const Data& rhs);
-OPENTXS_EXPORT bool operator>(const OTData& lhs, const Data& rhs);
-OPENTXS_EXPORT bool operator<=(const OTData& lhs, const Data& rhs);
-OPENTXS_EXPORT bool operator>=(const OTData& lhs, const Data& rhs);
+OPENTXS_EXPORT bool operator==(const OTData& lhs, const Data& rhs) noexcept;
+OPENTXS_EXPORT bool operator!=(const OTData& lhs, const Data& rhs) noexcept;
+OPENTXS_EXPORT bool operator<(const OTData& lhs, const Data& rhs) noexcept;
+OPENTXS_EXPORT bool operator>(const OTData& lhs, const Data& rhs) noexcept;
+OPENTXS_EXPORT bool operator<=(const OTData& lhs, const Data& rhs) noexcept;
+OPENTXS_EXPORT bool operator>=(const OTData& lhs, const Data& rhs) noexcept;
 OPENTXS_EXPORT OTData& operator+=(OTData& lhs, const OTData& rhs);
 OPENTXS_EXPORT OTData& operator+=(OTData& lhs, const std::uint8_t rhs);
 OPENTXS_EXPORT OTData& operator+=(OTData& lhs, const std::uint16_t rhs);
@@ -92,12 +92,12 @@ public:
     OPENTXS_EXPORT static OTData Factory(const std::string in, const Mode mode);
 #endif
 
-    OPENTXS_EXPORT virtual bool operator==(const Data& rhs) const = 0;
-    OPENTXS_EXPORT virtual bool operator!=(const Data& rhs) const = 0;
-    OPENTXS_EXPORT virtual bool operator<(const Data& rhs) const = 0;
-    OPENTXS_EXPORT virtual bool operator>(const Data& rhs) const = 0;
-    OPENTXS_EXPORT virtual bool operator<=(const Data& rhs) const = 0;
-    OPENTXS_EXPORT virtual bool operator>=(const Data& rhs) const = 0;
+    OPENTXS_EXPORT virtual bool operator==(const Data& rhs) const noexcept = 0;
+    OPENTXS_EXPORT virtual bool operator!=(const Data& rhs) const noexcept = 0;
+    OPENTXS_EXPORT virtual bool operator<(const Data& rhs) const noexcept = 0;
+    OPENTXS_EXPORT virtual bool operator>(const Data& rhs) const noexcept = 0;
+    OPENTXS_EXPORT virtual bool operator<=(const Data& rhs) const noexcept = 0;
+    OPENTXS_EXPORT virtual bool operator>=(const Data& rhs) const noexcept = 0;
     OPENTXS_EXPORT virtual std::string asHex() const = 0;
     OPENTXS_EXPORT virtual const std::byte& at(
         const std::size_t position) const = 0;

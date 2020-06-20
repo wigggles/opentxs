@@ -128,7 +128,9 @@ Header::Header(
           chain,
           hash,
           previous,
-          make_blank<block::Height>::value(api),
+          ((client::HeaderOracle::GenesisBlockHash(chain) == hash)
+               ? 0
+               : make_blank<block::Height>::value(api)),
           calculate_work(nbits))
     , subversion_(subversion)
     , block_version_(version)
