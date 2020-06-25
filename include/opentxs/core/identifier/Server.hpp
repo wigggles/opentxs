@@ -42,22 +42,22 @@ using OTServerID = Pimpl<identifier::Server>;
 #ifndef SWIG
 OPENTXS_EXPORT bool operator==(
     const OTServerID& lhs,
-    const opentxs::Identifier& rhs);
+    const opentxs::Identifier& rhs) noexcept;
 OPENTXS_EXPORT bool operator!=(
     const OTServerID& lhs,
-    const opentxs::Identifier& rhs);
+    const opentxs::Identifier& rhs) noexcept;
 OPENTXS_EXPORT bool operator<(
     const OTServerID& lhs,
-    const opentxs::Identifier& rhs);
+    const opentxs::Identifier& rhs) noexcept;
 OPENTXS_EXPORT bool operator>(
     const OTServerID& lhs,
-    const opentxs::Identifier& rhs);
+    const opentxs::Identifier& rhs) noexcept;
 OPENTXS_EXPORT bool operator<=(
     const OTServerID& lhs,
-    const opentxs::Identifier& rhs);
+    const opentxs::Identifier& rhs) noexcept;
 OPENTXS_EXPORT bool operator>=(
     const OTServerID& lhs,
-    const opentxs::Identifier& rhs);
+    const opentxs::Identifier& rhs) noexcept;
 #endif
 }  // namespace opentxs
 

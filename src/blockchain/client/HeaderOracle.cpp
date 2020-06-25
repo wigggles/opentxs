@@ -117,6 +117,10 @@ HeaderOracle::HeaderOracle(
     , chain_(type)
     , lock_()
 {
+    Lock lock(lock_);
+    const auto best = best_chain(lock);
+
+    OT_ASSERT(0 <= best.first);
 }
 
 auto HeaderOracle::AddCheckpoint(

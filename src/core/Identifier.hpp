@@ -51,17 +51,35 @@ public:
     using ot_super = Data;
 
     using ot_super::operator==;
-    auto operator==(const opentxs::Identifier& rhs) const -> bool final;
+    auto operator==(const opentxs::Identifier& rhs) const noexcept -> bool final
+    {
+        return Data::operator==(rhs);
+    }
     using ot_super::operator!=;
-    auto operator!=(const opentxs::Identifier& rhs) const -> bool final;
+    auto operator!=(const opentxs::Identifier& rhs) const noexcept -> bool final
+    {
+        return Data::operator!=(rhs);
+    }
     using ot_super::operator>;
-    auto operator>(const opentxs::Identifier& rhs) const -> bool final;
+    auto operator>(const opentxs::Identifier& rhs) const noexcept -> bool final
+    {
+        return Data::operator>(rhs);
+    }
     using ot_super::operator<;
-    auto operator<(const opentxs::Identifier& rhs) const -> bool final;
+    auto operator<(const opentxs::Identifier& rhs) const noexcept -> bool final
+    {
+        return Data::operator<(rhs);
+    }
     using ot_super::operator<=;
-    auto operator<=(const opentxs::Identifier& rhs) const -> bool final;
+    auto operator<=(const opentxs::Identifier& rhs) const noexcept -> bool final
+    {
+        return Data::operator<=(rhs);
+    }
     using ot_super::operator>=;
-    auto operator>=(const opentxs::Identifier& rhs) const -> bool final;
+    auto operator>=(const opentxs::Identifier& rhs) const noexcept -> bool final
+    {
+        return Data::operator>=(rhs);
+    }
 
     void GetString(String& theStr) const final;
     auto str() const -> std::string final;

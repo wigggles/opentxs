@@ -23,12 +23,12 @@ namespace opentxs::implementation
 class Data : virtual public opentxs::Data
 {
 public:
-    auto operator==(const opentxs::Data& rhs) const -> bool final;
-    auto operator!=(const opentxs::Data& rhs) const -> bool final;
-    auto operator<(const opentxs::Data& rhs) const -> bool final;
-    auto operator>(const opentxs::Data& rhs) const -> bool final;
-    auto operator<=(const opentxs::Data& rhs) const -> bool final;
-    auto operator>=(const opentxs::Data& rhs) const -> bool final;
+    auto operator==(const opentxs::Data& rhs) const noexcept -> bool final;
+    auto operator!=(const opentxs::Data& rhs) const noexcept -> bool final;
+    auto operator<(const opentxs::Data& rhs) const noexcept -> bool final;
+    auto operator>(const opentxs::Data& rhs) const noexcept -> bool final;
+    auto operator<=(const opentxs::Data& rhs) const noexcept -> bool final;
+    auto operator>=(const opentxs::Data& rhs) const noexcept -> bool final;
     auto operator+=(const opentxs::Data& rhs) -> Data& final;
     auto operator+=(const std::uint8_t rhs) -> Data& final;
     auto operator+=(const std::uint16_t rhs) -> Data& final;

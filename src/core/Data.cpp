@@ -39,32 +39,32 @@ auto less<opentxs::Pimpl<opentxs::Data>>::operator()(
 
 namespace opentxs
 {
-auto operator==(const OTData& lhs, const Data& rhs) -> bool
+auto operator==(const OTData& lhs, const Data& rhs) noexcept -> bool
 {
     return lhs.get() == rhs;
 }
 
-auto operator!=(const OTData& lhs, const Data& rhs) -> bool
+auto operator!=(const OTData& lhs, const Data& rhs) noexcept -> bool
 {
     return lhs.get() != rhs;
 }
 
-auto operator<(const OTData& lhs, const Data& rhs) -> bool
+auto operator<(const OTData& lhs, const Data& rhs) noexcept -> bool
 {
     return lhs.get() < rhs;
 }
 
-auto operator>(const OTData& lhs, const Data& rhs) -> bool
+auto operator>(const OTData& lhs, const Data& rhs) noexcept -> bool
 {
     return lhs.get() > rhs;
 }
 
-auto operator<=(const OTData& lhs, const Data& rhs) -> bool
+auto operator<=(const OTData& lhs, const Data& rhs) noexcept -> bool
 {
     return lhs.get() <= rhs;
 }
 
-auto operator>=(const OTData& lhs, const Data& rhs) -> bool
+auto operator>=(const OTData& lhs, const Data& rhs) noexcept -> bool
 {
     return lhs.get() >= rhs;
 }
@@ -199,116 +199,54 @@ Data::Data(const std::vector<std::byte>& sourceVector)
     Assign(sourceVector.data(), sourceVector.size());
 }
 
-auto Data::operator==(const opentxs::Data& in) const -> bool
+auto Data::operator==(const opentxs::Data& rhs) const noexcept -> bool
 {
-    if (data_.size() != in.size()) { return false; }
+    if (data_.size() != rhs.size()) { return false; }
 
-    std::size_t x{0};
+    if (0 == data_.size()) { return true; }
 
-    for (auto i = data_.begin(); i != data_.end(); ++x, ++i) {
-        const auto& lhs = *i;
-        const auto rhs = std::to_integer<std::uint8_t>(in.at(x));
-
-        if (lhs != rhs) { return false; }
-    }
-
-    return true;
+    return 0 == std::memcmp(data_.data(), rhs.data(), data_.size());
 }
 
-auto Data::operator!=(const opentxs::Data& in) const -> bool
+auto Data::operator!=(const opentxs::Data& rhs) const noexcept -> bool
 {
-    if (data_.size() != in.size()) { return true; }
-
-    std::size_t x{0};
-
-    for (auto i = data_.begin(); i != data_.end(); ++x, ++i) {
-        const auto& lhs = *i;
-        const auto rhs = std::to_integer<std::uint8_t>(in.at(x));
-
-        if (lhs != rhs) { return true; }
-    }
-
-    return false;
+    return !operator==(rhs);
 }
 
-auto Data::operator<(const opentxs::Data& in) const -> bool
+auto Data::operator<(const opentxs::Data& rhs) const noexcept -> bool
 {
-    if (data_.size() < in.size()) { return true; }
+    if (data_.size() < rhs.size()) { return true; }
 
-    if (data_.size() > in.size()) { return false; }
+    if (data_.size() > rhs.size()) { return false; }
 
-    std::size_t x{0};
-
-    for (auto i = data_.begin(); i != data_.end(); ++x, ++i) {
-        const auto& lhs = *i;
-        const auto rhs = std::to_integer<std::uint8_t>(in.at(x));
-
-        if (lhs < rhs) { return true; }
-        if (lhs > rhs) { return false; }
-    }
-
-    --x;
-
-    return at(x) < in.at(x);
+    return 0 > std::memcmp(data_.data(), rhs.data(), data_.size());
 }
 
-auto Data::operator>(const opentxs::Data& in) const -> bool
+auto Data::operator>(const opentxs::Data& rhs) const noexcept -> bool
 {
-    if (data_.size() < in.size()) { return false; }
+    if (data_.size() < rhs.size()) { return false; }
 
-    if (data_.size() > in.size()) { return true; }
+    if (data_.size() > rhs.size()) { return true; }
 
-    std::size_t x{0};
-
-    for (auto i = data_.begin(); i != data_.end(); ++x, ++i) {
-        const auto& lhs = *i;
-        const auto rhs = std::to_integer<std::uint8_t>(in.at(x));
-
-        if (lhs > rhs) { return true; }
-        if (lhs < rhs) { return false; }
-    }
-
-    --x;
-
-    return at(x) > in.at(x);
+    return 0 < std::memcmp(data_.data(), rhs.data(), data_.size());
 }
 
-auto Data::operator<=(const opentxs::Data& in) const -> bool
+auto Data::operator<=(const opentxs::Data& rhs) const noexcept -> bool
 {
-    if (data_.size() < in.size()) { return true; }
+    if (data_.size() < rhs.size()) { return true; }
 
-    if (data_.size() > in.size()) { return false; }
+    if (data_.size() > rhs.size()) { return false; }
 
-    std::size_t x{0};
-
-    for (auto i = data_.begin(); i != data_.end(); ++x, ++i) {
-        const auto& lhs = *i;
-        const auto rhs = std::to_integer<std::uint8_t>(in.at(x));
-
-        if (lhs < rhs) { return true; }
-        if (lhs > rhs) { return false; }
-    }
-
-    return true;
+    return 0 >= std::memcmp(data_.data(), rhs.data(), data_.size());
 }
 
-auto Data::operator>=(const opentxs::Data& in) const -> bool
+auto Data::operator>=(const opentxs::Data& rhs) const noexcept -> bool
 {
-    if (data_.size() < in.size()) { return false; }
+    if (data_.size() < rhs.size()) { return false; }
 
-    if (data_.size() > in.size()) { return true; }
+    if (data_.size() > rhs.size()) { return true; }
 
-    std::size_t x{0};
-
-    for (auto i = data_.begin(); i != data_.end(); ++x, ++i) {
-        const auto& lhs = *i;
-        const auto rhs = std::to_integer<std::uint8_t>(in.at(x));
-
-        if (lhs > rhs) { return true; }
-        if (lhs < rhs) { return false; }
-    }
-
-    return true;
+    return 0 <= std::memcmp(data_.data(), rhs.data(), data_.size());
 }
 
 auto Data::operator+=(const opentxs::Data& rhs) -> Data&
