@@ -86,10 +86,10 @@ public:
     OPENTXS_EXPORT virtual std::string GetDepositAddress(
         const Identifier& contact,
         const std::string& memo = "") const noexcept = 0;
-    OPENTXS_EXPORT virtual const ImportedAccounts& GetImported() const
-        noexcept = 0;
-    OPENTXS_EXPORT virtual const PaymentCodeAccounts& GetPaymentCode() const
-        noexcept = 0;
+    OPENTXS_EXPORT virtual const ImportedAccounts& GetImported()
+        const noexcept = 0;
+    OPENTXS_EXPORT virtual const PaymentCodeAccounts& GetPaymentCode()
+        const noexcept = 0;
     OPENTXS_EXPORT virtual const identifier::Nym& NymID() const noexcept = 0;
     OPENTXS_EXPORT virtual const BalanceList& Parent() const noexcept = 0;
 

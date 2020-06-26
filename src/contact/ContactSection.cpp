@@ -37,12 +37,21 @@ ContactSection::ContactSection(
 {
 }
 
-ContactSection::ContactSection(const ContactSection& rhs)
+ContactSection::ContactSection(const ContactSection& rhs) noexcept
     : api_(rhs.api_)
     , version_(rhs.version_)
     , nym_(rhs.nym_)
     , section_(rhs.section_)
     , groups_(rhs.groups_)
+{
+}
+
+ContactSection::ContactSection(ContactSection&& rhs) noexcept
+    : api_(rhs.api_)
+    , version_(rhs.version_)
+    , nym_(std::move(const_cast<std::string&>(rhs.nym_)))
+    , section_(rhs.section_)
+    , groups_(std::move(const_cast<GroupMap&>(rhs.groups_)))
 {
 }
 

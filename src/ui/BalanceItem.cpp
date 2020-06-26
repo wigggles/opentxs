@@ -17,11 +17,15 @@
 #include "opentxs/Proto.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/client/Contacts.hpp"
+#if OT_BLOCKCHAIN
+#include "opentxs/blockchain/block/bitcoin/Transaction.hpp"
+#endif  // OT_BLOCKCHAIN
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/protobuf/PaymentWorkflowEnums.pb.h"
+#include "ui/BlockchainBalanceItem.hpp"
 #include "ui/ChequeBalanceItem.hpp"
 #include "ui/TransferBalanceItem.hpp"
 #if OT_QT
@@ -38,47 +42,91 @@ auto BalanceItem(
     const network::zeromq::socket::Publish& publisher,
     const ui::implementation::AccountActivityRowID& rowID,
     const ui::implementation::AccountActivitySortKey& sortKey,
-    const ui::implementation::CustomData& custom,
+    ui::implementation::CustomData& custom,
     const identifier::Nym& nymID,
     const Identifier& accountID) noexcept
     -> std::shared_ptr<ui::implementation::AccountActivityRowInternal>
 {
-    const auto type =
-        ui::implementation::BalanceItem::recover_workflow(custom).type();
+    if (2 < custom.size()) {
+#if OT_BLOCKCHAIN
+        using Transaction = opentxs::blockchain::block::bitcoin::Transaction;
 
-    switch (type) {
-        case proto::PAYMENTWORKFLOWTYPE_OUTGOINGCHEQUE:
-        case proto::PAYMENTWORKFLOWTYPE_INCOMINGCHEQUE:
-        case proto::PAYMENTWORKFLOWTYPE_OUTGOINGINVOICE:
-        case proto::PAYMENTWORKFLOWTYPE_INCOMINGINVOICE: {
-            return std::make_shared<ui::implementation::ChequeBalanceItem>(
-                parent,
-                api,
-                publisher,
-                rowID,
-                sortKey,
-                custom,
-                nymID,
-                accountID);
-        }
-        case proto::PAYMENTWORKFLOWTYPE_OUTGOINGTRANSFER:
-        case proto::PAYMENTWORKFLOWTYPE_INCOMINGTRANSFER:
-        case proto::PAYMENTWORKFLOWTYPE_INTERNALTRANSFER: {
-            return std::make_shared<ui::implementation::TransferBalanceItem>(
-                parent,
-                api,
-                publisher,
-                rowID,
-                sortKey,
-                custom,
-                nymID,
-                accountID);
-        }
-        case proto::PAYMENTWORKFLOWTYPE_ERROR:
-        default: {
-            LogOutput(OT_METHOD)(__FUNCTION__)(": Unhandled workflow type (")(
-                type)(")")
-                .Flush();
+        auto pTx = std::unique_ptr<Transaction>{
+            static_cast<Transaction*>(custom.at(2))};
+
+        OT_ASSERT(pTx);
+
+        const auto& tx = *pTx;
+
+        return std::make_shared<ui::implementation::BlockchainBalanceItem>(
+            parent,
+            api,
+            publisher,
+            rowID,
+            sortKey,
+            custom,
+            nymID,
+            accountID,
+            ui::implementation::extract_custom<blockchain::Type>(custom, 3),
+            ui::implementation::extract_custom<OTData>(custom, 5),
+            tx.NetBalanceChange(nymID),
+            tx.Memo(),
+            ui::implementation::extract_custom<std::string>(custom, 4));
+#else
+        return std::make_shared<ui::implementation::BlockchainBalanceItem>(
+            parent,
+            api,
+            publisher,
+            rowID,
+            sortKey,
+            custom,
+            nymID,
+            accountID,
+            ui::implementation::extract_custom<blockchain::Type>(custom, 3),
+            ui::implementation::extract_custom<OTData>(custom, 5),
+            0,
+            "",
+            ui::implementation::extract_custom<std::string>(custom, 4));
+#endif  // OT_BLOCKCHAIN
+    } else {
+        const auto type =
+            ui::implementation::BalanceItem::recover_workflow(custom).type();
+
+        switch (type) {
+            case proto::PAYMENTWORKFLOWTYPE_OUTGOINGCHEQUE:
+            case proto::PAYMENTWORKFLOWTYPE_INCOMINGCHEQUE:
+            case proto::PAYMENTWORKFLOWTYPE_OUTGOINGINVOICE:
+            case proto::PAYMENTWORKFLOWTYPE_INCOMINGINVOICE: {
+                return std::make_shared<ui::implementation::ChequeBalanceItem>(
+                    parent,
+                    api,
+                    publisher,
+                    rowID,
+                    sortKey,
+                    custom,
+                    nymID,
+                    accountID);
+            }
+            case proto::PAYMENTWORKFLOWTYPE_OUTGOINGTRANSFER:
+            case proto::PAYMENTWORKFLOWTYPE_INCOMINGTRANSFER:
+            case proto::PAYMENTWORKFLOWTYPE_INTERNALTRANSFER: {
+                return std::make_shared<
+                    ui::implementation::TransferBalanceItem>(
+                    parent,
+                    api,
+                    publisher,
+                    rowID,
+                    sortKey,
+                    custom,
+                    nymID,
+                    accountID);
+            }
+            case proto::PAYMENTWORKFLOWTYPE_ERROR:
+            default: {
+                LogOutput(OT_METHOD)(__FUNCTION__)(
+                    ": Unhandled workflow type (")(type)(")")
+                    .Flush();
+            }
         }
     }
 
@@ -94,14 +142,15 @@ BalanceItem::BalanceItem(
     const network::zeromq::socket::Publish& publisher,
     const AccountActivityRowID& rowID,
     const AccountActivitySortKey& sortKey,
-    const CustomData& custom,
+    CustomData& custom,
     const identifier::Nym& nymID,
-    const Identifier& accountID) noexcept
+    const Identifier& accountID,
+    const std::string& text) noexcept
     : BalanceItemRow(parent, api, publisher, rowID, true)
     , nym_id_(nymID)
     , workflow_(recover_workflow(custom).id())
     , type_(extract_type(recover_workflow(custom)))
-    , text_("")
+    , text_(text)
     , time_(sortKey)
     , contract_(api.Factory().UnitDefinition())
     , startup_(nullptr)
@@ -209,8 +258,7 @@ QVariant BalanceItem::qt_data(const int column, int role) const noexcept
                 }
                 case AccountActivityQt::TimeColumn: {
                     auto qdatetime = QDateTime{};
-                    qdatetime.setSecsSinceEpoch(
-                        std::chrono::system_clock::to_time_t(Timestamp()));
+                    qdatetime.setSecsSinceEpoch(Clock::to_time_t(Timestamp()));
 
                     return qdatetime;
                 }
@@ -251,10 +299,10 @@ QVariant BalanceItem::qt_data(const int column, int role) const noexcept
 }
 #endif
 
-auto BalanceItem::recover_event(const CustomData& custom) noexcept
+auto BalanceItem::recover_event(CustomData& custom) noexcept
     -> const proto::PaymentEvent&
 {
-    OT_ASSERT(2 == custom.size())
+    OT_ASSERT(2 <= custom.size())
 
     const auto& input = custom.at(1);
 
@@ -263,10 +311,10 @@ auto BalanceItem::recover_event(const CustomData& custom) noexcept
     return *static_cast<const proto::PaymentEvent*>(input);
 }
 
-auto BalanceItem::recover_workflow(const CustomData& custom) noexcept
+auto BalanceItem::recover_workflow(CustomData& custom) noexcept
     -> const proto::PaymentWorkflow&
 {
-    OT_ASSERT(2 == custom.size())
+    OT_ASSERT(2 <= custom.size())
 
     const auto& input = custom.at(0);
 
@@ -277,7 +325,7 @@ auto BalanceItem::recover_workflow(const CustomData& custom) noexcept
 
 void BalanceItem::reindex(
     const implementation::AccountActivitySortKey& key,
-    const implementation::CustomData&) noexcept
+    implementation::CustomData&) noexcept
 {
     eLock lock(shared_lock_);
     time_ = key;
@@ -291,8 +339,7 @@ auto BalanceItem::Text() const noexcept -> std::string
     return text_;
 }
 
-auto BalanceItem::Timestamp() const noexcept
-    -> std::chrono::system_clock::time_point
+auto BalanceItem::Timestamp() const noexcept -> Time
 {
     sLock lock(shared_lock_);
 

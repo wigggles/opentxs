@@ -19,13 +19,12 @@
 #include "blockchain/bitcoin/CompactSize.hpp"
 #include "internal/api/client/Client.hpp"
 #include "internal/blockchain/bitcoin/Bitcoin.hpp"
-#include "internal/blockchain/block/bitcoin/Bitcoin.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/api/Factory.hpp"
+#include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/api/client/Manager.hpp"
 #include "opentxs/blockchain/block/bitcoin/Input.hpp"
-#include "opentxs/blockchain/block/bitcoin/Inputs.hpp"
 #include "opentxs/blockchain/block/bitcoin/Output.hpp"
 #include "opentxs/blockchain/block/bitcoin/Outputs.hpp"
 #include "opentxs/blockchain/block/bitcoin/Transaction.hpp"
@@ -34,6 +33,8 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/iterator/Bidirectional.hpp"
+#include "opentxs/protobuf/ContactEnums.pb.h"
+#include "util/Container.hpp"
 
 namespace be = boost::endian;
 
@@ -48,13 +49,14 @@ auto BitcoinTransaction(
     const api::client::Manager& api,
     const blockchain::Type chain,
     const bool isGeneration,
+    const Time& time,
     blockchain::bitcoin::EncodedTransaction&& parsed) noexcept
-    -> std::shared_ptr<blockchain::block::bitcoin::Transaction>
+    -> std::unique_ptr<blockchain::block::bitcoin::internal::Transaction>
 {
     try {
         auto inputBytes = std::size_t{};
-        auto instantiatedInputs =
-            std::vector<std::unique_ptr<blockchain::block::bitcoin::Input>>{};
+        auto instantiatedInputs = std::vector<
+            std::unique_ptr<blockchain::block::bitcoin::internal::Input>>{};
         {
             auto counter = int{0};
             const auto& inputs = parsed.inputs_;
@@ -77,6 +79,7 @@ auto BitcoinTransaction(
                 instantiatedInputs.emplace_back(
                     factory::BitcoinTransactionInput(
                         api,
+                        chain,
                         ReadView{
                             reinterpret_cast<const char*>(&op), sizeof(op)},
                         input.cs_,
@@ -95,8 +98,8 @@ auto BitcoinTransaction(
         }
 
         auto outputBytes = std::size_t{};
-        auto instantiatedOutputs =
-            std::vector<std::unique_ptr<blockchain::block::bitcoin::Output>>{};
+        auto instantiatedOutputs = std::vector<
+            std::unique_ptr<blockchain::block::bitcoin::internal::Output>>{};
         {
             instantiatedOutputs.reserve(parsed.outputs_.size());
             auto counter = std::uint32_t{0};
@@ -105,6 +108,7 @@ auto BitcoinTransaction(
                 instantiatedOutputs.emplace_back(
                     factory::BitcoinTransactionOutput(
                         api,
+                        chain,
                         counter++,
                         output.value_.value(),
                         output.cs_,
@@ -121,19 +125,22 @@ auto BitcoinTransaction(
         auto outputs =
             std::unique_ptr<const blockchain::block::bitcoin::Outputs>{};
 
-        return std::make_shared<ReturnType>(
+        return std::make_unique<ReturnType>(
             api,
             ReturnType::default_version_,
-            chain,
+            isGeneration,
             parsed.version_.value(),
             parsed.segwit_flag_.value_or(std::byte{0x0}),
             parsed.lock_time_.value(),
             api.Factory().Data(parsed.txid_),
             api.Factory().Data(parsed.wtxid_),
+            time,
+            std::string{},
             factory::BitcoinTransactionInputs(
                 std::move(instantiatedInputs), inputBytes),
             factory::BitcoinTransactionOutputs(
-                std::move(instantiatedOutputs), outputBytes));
+                std::move(instantiatedOutputs), outputBytes),
+            std::vector<blockchain::Type>{chain});
     } catch (const std::exception& e) {
         LogOutput("opentxs::factory::")(__FUNCTION__)(": ")(e.what()).Flush();
 
@@ -143,25 +150,45 @@ auto BitcoinTransaction(
 
 auto BitcoinTransaction(
     const api::client::Manager& api,
-    const bool isGeneration,
     const proto::BlockchainTransaction& in) noexcept
-    -> std::shared_ptr<blockchain::block::bitcoin::Transaction>
+    -> std::unique_ptr<blockchain::block::bitcoin::internal::Transaction>
 {
+    auto chains = std::vector<blockchain::Type>{};
+    std::transform(
+        std::begin(in.chain()),
+        std::end(in.chain()),
+        std::back_inserter(chains),
+        [](const auto& type) -> auto {
+            return Translate(static_cast<proto::ContactItemType>(type));
+        });
+
+    if (0 == chains.size()) {
+        LogOutput("opentxs::factory::")(__FUNCTION__)(": Invalid chains")
+            .Flush();
+
+        return {};
+    }
+
+    const auto& chain = chains.at(0);
+
     try {
-        auto inputs =
-            std::vector<std::unique_ptr<blockchain::block::bitcoin::Input>>{};
+        auto inputs = std::vector<
+            std::unique_ptr<blockchain::block::bitcoin::internal::Input>>{};
 
         {
             auto map = std::map<
                 std::uint32_t,
-                std::unique_ptr<blockchain::block::bitcoin::Input>>{};
+                std::unique_ptr<blockchain::block::bitcoin::internal::Input>>{};
 
             for (const auto& input : in.input()) {
                 const auto index = input.index();
                 map.emplace(
                     index,
                     factory::BitcoinTransactionInput(
-                        api, input, (0u == index) && isGeneration));
+                        api,
+                        chain,
+                        input,
+                        (0u == index) && in.is_generation()));
             }
 
             std::transform(
@@ -169,18 +196,20 @@ auto BitcoinTransaction(
                 ](auto& in) -> auto { return std::move(in.second); });
         }
 
-        auto outputs =
-            std::vector<std::unique_ptr<blockchain::block::bitcoin::Output>>{};
+        auto outputs = std::vector<
+            std::unique_ptr<blockchain::block::bitcoin::internal::Output>>{};
 
         {
             auto map = std::map<
                 std::uint32_t,
-                std::unique_ptr<blockchain::block::bitcoin::Output>>{};
+                std::unique_ptr<
+                    blockchain::block::bitcoin::internal::Output>>{};
 
             for (const auto& output : in.output()) {
                 const auto index = output.index();
                 map.emplace(
-                    index, factory::BitcoinTransactionOutput(api, output));
+                    index,
+                    factory::BitcoinTransactionOutput(api, chain, output));
             }
 
             std::transform(
@@ -188,17 +217,20 @@ auto BitcoinTransaction(
                 ](auto& in) -> auto { return std::move(in.second); });
         }
 
-        return std::make_shared<ReturnType>(
+        return std::make_unique<ReturnType>(
             api,
             in.version(),
-            Translate(in.chain()),
+            in.is_generation(),
             static_cast<std::int32_t>(in.txversion()),
             std::byte{static_cast<std::uint8_t>(in.segwit_flag())},
             in.locktime(),
             api.Factory().Data(in.txid(), StringStyle::Raw),
             api.Factory().Data(in.wtxid(), StringStyle::Raw),
+            Clock::from_time_t(in.time()),
+            in.memo(),
             factory::BitcoinTransactionInputs(std::move(inputs)),
-            factory::BitcoinTransactionOutputs(std::move(outputs)));
+            factory::BitcoinTransactionOutputs(std::move(outputs)),
+            std::move(chains));
     } catch (const std::exception& e) {
         LogOutput("opentxs::factory::")(__FUNCTION__)(": ")(e.what()).Flush();
 
@@ -214,33 +246,86 @@ const VersionNumber Transaction::default_version_{1};
 Transaction::Transaction(
     const api::client::Manager& api,
     const VersionNumber serializeVersion,
-    const blockchain::Type chain,
+    const bool isGeneration,
     const std::int32_t version,
     const std::byte segwit,
     const std::uint32_t lockTime,
     const pTxid&& txid,
     const pTxid&& wtxid,
-    std::unique_ptr<const bitcoin::Inputs> inputs,
-    std::unique_ptr<const bitcoin::Outputs> outputs) noexcept(false)
+    const Time& time,
+    const std::string& memo,
+    std::unique_ptr<internal::Inputs> inputs,
+    std::unique_ptr<internal::Outputs> outputs,
+    std::vector<blockchain::Type>&& chains) noexcept(false)
     : api_(api)
-    , chain_(chain)
     , serialize_version_(serializeVersion)
+    , is_generation_(isGeneration)
     , version_(version)
     , segwit_flag_(segwit)
     , lock_time_(lockTime)
     , txid_(std::move(txid))
     , wtxid_(std::move(wtxid))
+    , time_(time)
     , inputs_(std::move(inputs))
     , outputs_(std::move(outputs))
     , normalized_id_()
     , size_()
     , normalized_size_()
+    , memo_(memo)
+    , chains_(std::move(chains))
 {
+    if (0 == chains_.size()) { throw std::runtime_error("missing chains"); }
+
     if (false == bool(inputs_)) { throw std::runtime_error("invalid inputs"); }
 
     if (false == bool(outputs_)) {
         throw std::runtime_error("invalid outputs");
     }
+
+    dedup(chains_);
+}
+
+Transaction::Transaction(const Transaction& rhs) noexcept
+    : api_(rhs.api_)
+    , serialize_version_(rhs.serialize_version_)
+    , is_generation_(rhs.is_generation_)
+    , version_(rhs.version_)
+    , segwit_flag_(rhs.segwit_flag_)
+    , lock_time_(rhs.lock_time_)
+    , txid_(rhs.txid_)
+    , wtxid_(rhs.wtxid_)
+    , time_(rhs.time_)
+    , inputs_(rhs.inputs_->clone())
+    , outputs_(rhs.outputs_->clone())
+    , normalized_id_(rhs.normalized_id_)
+    , size_(rhs.size_)
+    , normalized_size_(rhs.normalized_size_)
+    , memo_(rhs.memo_)
+    , chains_(rhs.chains_)
+{
+}
+
+auto Transaction::AssociatedLocalNyms() const noexcept -> std::vector<OTNymID>
+{
+    auto output = std::vector<OTNymID>{};
+    inputs_->AssociatedLocalNyms(output);
+    outputs_->AssociatedLocalNyms(output);
+    dedup(output);
+
+    return output;
+}
+
+auto Transaction::AssociatedRemoteContacts(
+    const identifier::Nym& nym) const noexcept -> std::vector<OTIdentifier>
+{
+    auto output = std::vector<OTIdentifier>{};
+    inputs_->AssociatedRemoteContacts(output);
+    outputs_->AssociatedRemoteContacts(output);
+    dedup(output);
+    const auto mask = api_.Contacts().ContactID(nym);
+    output.erase(std::remove(output.begin(), output.end(), mask), output.end());
+
+    return output;
 }
 
 auto Transaction::calculate_size(const bool normalize) const noexcept
@@ -344,9 +429,81 @@ auto Transaction::FindMatches(
     return output;
 }
 
-auto Transaction::MergeMetadata(const SerializeType& rhs) const noexcept -> void
+auto Transaction::GetPatterns() const noexcept -> std::vector<PatternID>
 {
-    // TODO
+    auto output = inputs_->GetPatterns();
+    const auto oPatterns = outputs_->GetPatterns();
+    output.reserve(output.size() + oPatterns.size());
+    output.insert(output.end(), oPatterns.begin(), oPatterns.end());
+    dedup(output);
+
+    return output;
+}
+
+auto Transaction::Memo() const noexcept -> std::string
+{
+    if (false == memo_.empty()) { return memo_; }
+
+    for (const auto& output : *outputs_) {
+        auto note = output.Note();
+
+        if (false == note.empty()) { return note; }
+    }
+
+    return {};
+}
+
+auto Transaction::MergeMetadata(
+    const blockchain::Type chain,
+    const SerializeType& rhs) noexcept -> void
+{
+    if (txid_->asHex() != rhs.txid()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Wrong transaction").Flush();
+
+        return;
+    }
+
+    if (static_cast<std::size_t>(rhs.input().size()) != inputs_->size()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Wrong number of inputs").Flush();
+
+        return;
+    }
+
+    if (static_cast<std::size_t>(rhs.output().size()) != outputs_->size()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Wrong number of outputs").Flush();
+
+        return;
+    }
+
+    memo_ = rhs.memo();
+    chains_.emplace_back(chain);
+    dedup(chains_);
+
+    for (const auto& input : rhs.input()) {
+        try {
+            inputs_->MergeMetadata(input);
+        } catch (...) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid input").Flush();
+
+            return;
+        }
+    }
+
+    for (const auto& output : rhs.output()) {
+        try {
+            outputs_->MergeMetadata(output);
+        } catch (...) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid output").Flush();
+
+            return;
+        }
+    }
+}
+
+auto Transaction::NetBalanceChange(const identifier::Nym& nym) const noexcept
+    -> opentxs::Amount
+{
+    return inputs_->NetBalanceChange(nym) + outputs_->NetBalanceChange(nym);
 }
 
 auto Transaction::serialize(
@@ -356,14 +513,8 @@ auto Transaction::serialize(
     if (!destination) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid output allocator")
             .Flush();
-#ifndef _MSC_VER
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
-#endif
-        return {};
-#ifndef _MSC_VER
-#pragma GCC diagnostic pop
-#endif
+
+        return std::nullopt;
     }
 
     const auto size = calculate_size(normalize);
@@ -372,14 +523,8 @@ auto Transaction::serialize(
     if (false == output.valid(size)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to allocate output bytes")
             .Flush();
-#ifndef _MSC_VER
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
-#endif
-        return {};
-#ifndef _MSC_VER
-#pragma GCC diagnostic pop
-#endif
+
+        return std::nullopt;
     }
 
     const auto version = be::little_int32_buf_t{version_};
@@ -392,14 +537,8 @@ auto Transaction::serialize(
             ": Failed to serialize version. Need at least ")(sizeof(version))(
             " bytes but only have ")(remaining)
             .Flush();
-#ifndef _MSC_VER
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
-#endif
-        return {};
-#ifndef _MSC_VER
-#pragma GCC diagnostic pop
-#endif
+
+        return std::nullopt;
     }
 
     std::memcpy(static_cast<void*>(it), &version, sizeof(version));
@@ -414,14 +553,8 @@ auto Transaction::serialize(
                 ": Failed to serialize marker byte. Need at least ")(
                 sizeof(std::byte))(" bytes but only have ")(remaining)
                 .Flush();
-#ifndef _MSC_VER
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
-#endif
-            return {};
-#ifndef _MSC_VER
-#pragma GCC diagnostic pop
-#endif
+
+            return std::nullopt;
         }
 
         *it = std::byte{0x00};
@@ -433,14 +566,8 @@ auto Transaction::serialize(
                 ": Failed to serialize segwit flag. Need at least ")(
                 sizeof(segwit_flag_))(" bytes but only have ")(remaining)
                 .Flush();
-#ifndef _MSC_VER
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
-#endif
-            return {};
-#ifndef _MSC_VER
-#pragma GCC diagnostic pop
-#endif
+
+            return std::nullopt;
         }
 
         *it = segwit_flag_;
@@ -458,14 +585,8 @@ auto Transaction::serialize(
     } else {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to serialize inputs")
             .Flush();
-#ifndef _MSC_VER
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
-#endif
-        return {};
-#ifndef _MSC_VER
-#pragma GCC diagnostic pop
-#endif
+
+        return std::nullopt;
     }
 
     const auto outputs = outputs_->Serialize(preallocated(remaining, it));
@@ -476,14 +597,8 @@ auto Transaction::serialize(
     } else {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to serialize outputs")
             .Flush();
-#ifndef _MSC_VER
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
-#endif
-        return {};
-#ifndef _MSC_VER
-#pragma GCC diagnostic pop
-#endif
+
+        return std::nullopt;
     }
 
     if (isSegwit) {
@@ -496,14 +611,8 @@ auto Transaction::serialize(
                 LogOutput(OT_METHOD)(__FUNCTION__)(
                     ": Failed to serialize push count")
                     .Flush();
-#ifndef _MSC_VER
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
-#endif
-                return {};
-#ifndef _MSC_VER
-#pragma GCC diagnostic pop
-#endif
+
+                return std::nullopt;
             }
 
             std::advance(it, pushCount.Size());
@@ -517,14 +626,8 @@ auto Transaction::serialize(
                     LogOutput(OT_METHOD)(__FUNCTION__)(
                         ": Failed to serialize push size")
                         .Flush();
-#ifndef _MSC_VER
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
-#endif
-                    return {};
-#ifndef _MSC_VER
-#pragma GCC diagnostic pop
-#endif
+
+                    return std::nullopt;
                 }
 
                 std::advance(it, pushSize.Size());
@@ -535,14 +638,8 @@ auto Transaction::serialize(
                         ": Failed to serialize witness push. Need at least ")(
                         push.size())(" bytes but only have ")(remaining)
                         .Flush();
-#ifndef _MSC_VER
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
-#endif
-                    return {};
-#ifndef _MSC_VER
-#pragma GCC diagnostic pop
-#endif
+
+                    return std::nullopt;
                 }
 
                 std::memcpy(it, push.data(), push.size());
@@ -557,14 +654,8 @@ auto Transaction::serialize(
             ": Failed to serialize lock time. Need exactly ")(sizeof(lockTime))(
             " bytes but have ")(remaining)
             .Flush();
-#ifndef _MSC_VER
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
-#endif
-        return {};
-#ifndef _MSC_VER
-#pragma GCC diagnostic pop
-#endif
+
+        return std::nullopt;
     }
 
     std::memcpy(static_cast<void*>(it), &lockTime, sizeof(lockTime));
@@ -584,7 +675,10 @@ auto Transaction::Serialize() const noexcept -> std::optional<SerializeType>
 {
     auto output = SerializeType{};
     output.set_version(std::max(default_version_, serialize_version_));
-    output.set_chain(Translate(chain_));
+    std::for_each(
+        std::begin(chains_), std::end(chains_), [&](const auto& chain) {
+            output.add_chain(Translate(chain));
+        });
     output.set_txid(txid_->str());
     output.set_txversion(version_);
     output.set_locktime(lock_time_);
@@ -599,9 +693,12 @@ auto Transaction::Serialize() const noexcept -> std::optional<SerializeType>
     // TODO optional string blockhash = 10;
     // TODO optional uint32 blockindex = 11;
     // TODO optional uint64 fee = 12;
-    // TODO optional int64 time = 13;
+    output.set_time(Clock::to_time_t(time_));
     // TODO repeated string conflicts = 14;
-    // TODO optional string memo = 15;
+    output.set_memo(memo_);
+    output.set_segwit_flag(std::to_integer<std::uint32_t>(segwit_flag_));
+    output.set_wtxid(wtxid_->str());
+    output.set_is_generation(is_generation_);
 
     return std::move(output);
 }

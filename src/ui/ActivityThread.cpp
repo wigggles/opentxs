@@ -20,11 +20,13 @@
 #include "opentxs/Forward.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/api/client/Activity.hpp"
 #include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/contact/Contact.hpp"
+#include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
@@ -209,7 +211,7 @@ auto ActivityThread::comma(const std::set<std::string>& list) const noexcept
 auto ActivityThread::construct_row(
     const ActivityThreadRowID& id,
     const ActivityThreadSortKey& index,
-    const CustomData& custom) const noexcept -> void*
+    CustomData& custom) const noexcept -> void*
 {
     names_.emplace(id, index);
     const auto& box = std::get<1>(id);
@@ -257,6 +259,14 @@ auto ActivityThread::construct_row(
 
             return it->second.get();
         }
+        case StorageBox::BLOCKCHAIN: {
+            const auto [it, added] = items_[index].emplace(
+                id,
+                factory::BlockchainActivityThreadItem(
+                    *this, api_, publisher_, primary_id_, id, index, custom));
+
+            return it->second.get();
+        }
         case StorageBox::SENTPEERREQUEST:
         case StorageBox::INCOMINGPEERREQUEST:
         case StorageBox::SENTPEERREPLY:
@@ -265,7 +275,6 @@ auto ActivityThread::construct_row(
         case StorageBox::FINISHEDPEERREPLY:
         case StorageBox::PROCESSEDPEERREQUEST:
         case StorageBox::PROCESSEDPEERREPLY:
-        case StorageBox::BLOCKCHAIN:
         case StorageBox::UNKNOWN:
         default: {
             OT_FAIL
@@ -464,13 +473,26 @@ auto ActivityThread::process_drafts() noexcept -> bool
 auto ActivityThread::process_item(const proto::StorageThreadItem& item) noexcept
     -> ActivityThreadRowID
 {
-    const ActivityThreadRowID id{
-        Identifier::Factory(item.id()),
+    const auto id = ActivityThreadRowID{
+        api_.Factory().Identifier(item.id()),
         static_cast<StorageBox>(item.box()),
-        Identifier::Factory(item.account())};
-    const ActivityThreadSortKey key{
-        std::chrono::seconds(item.time()), item.index()};
-    const CustomData custom{new std::string};
+        api_.Factory().Identifier(item.account())};
+    auto& [itemID, box, account] = id;
+    const auto key =
+        ActivityThreadSortKey{std::chrono::seconds(item.time()), item.index()};
+    auto custom = CustomData{new std::string};
+
+    switch (box) {
+        case StorageBox::BLOCKCHAIN: {
+            auto txid = api_.Factory().Data(item.txid(), StringStyle::Raw);
+            const auto chain = static_cast<blockchain::Type>(item.chain());
+            custom.emplace_back(new blockchain::Type{chain});
+            custom.emplace_back(new OTData{std::move(txid)});
+        } break;
+        default: {
+        }
+    }
+
     add_item(id, key, custom);
 
     return id;
@@ -575,8 +597,8 @@ auto ActivityThread::send_cheque(
     Lock draftLock(decision_lock_);
     id = ActivityThreadRowID{
         Identifier::Random(), StorageBox::PENDING_SEND, Identifier::Factory()};
-    const ActivityThreadSortKey key{std::chrono::system_clock::now(), 0};
-    const CustomData custom{
+    const ActivityThreadSortKey key{Clock::now(), 0};
+    CustomData custom{
         new std::string{"Sending cheque"},
         new Amount{amount},
         new std::string{displayAmount},
@@ -633,8 +655,8 @@ auto ActivityThread::SendDraft() const noexcept -> bool
 
     id = ActivityThreadRowID{
         Identifier::Random(), StorageBox::DRAFT, Identifier::Factory()};
-    const ActivityThreadSortKey key{std::chrono::system_clock::now(), 0};
-    const CustomData custom{new std::string(draft_)};
+    const ActivityThreadSortKey key{Clock::now(), 0};
+    CustomData custom{new std::string(draft_)};
     const_cast<ActivityThread&>(*this).add_item(id, key, custom);
 
     OT_ASSERT(1 == items_.count(key));

@@ -11,7 +11,6 @@
 #include <string>
 
 #include "internal/blockchain/Blockchain.hpp"
-#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/core/Log.hpp"
 #include "util/LMDB.hpp"
 
@@ -82,7 +81,7 @@ Database::Database(
     , blocks_(api, common_, type)
     , filters_(api, common_, lmdb_, type)
     , headers_(api, network, common_, lmdb_, type)
-    , wallet_(api, blockchain, chain_)
+    , wallet_(api, blockchain, common_, chain_)
 {
     init_db();
 }

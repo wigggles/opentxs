@@ -50,16 +50,19 @@ public:
     using Match = Transaction::Match;
     using Matches = Transaction::Matches;
     using Patterns = Transaction::Patterns;
+    using SerializeType = proto::BlockchainTransactionInput;
 
     OPENTXS_EXPORT virtual auto CalculateSize(
         const bool normalized = false) const noexcept -> std::size_t = 0;
-    OPENTXS_EXPORT virtual auto ExtractElements(const filter::Type style) const
-        noexcept -> std::vector<Space> = 0;
+    OPENTXS_EXPORT virtual auto ExtractElements(
+        const filter::Type style) const noexcept -> std::vector<Space> = 0;
     OPENTXS_EXPORT virtual auto FindMatches(
         const ReadView txid,
         const FilterType type,
         const Patterns& txos,
         const Patterns& elements) const noexcept -> Matches = 0;
+    OPENTXS_EXPORT virtual auto GetPatterns() const noexcept
+        -> std::vector<PatternID> = 0;
     OPENTXS_EXPORT virtual auto Keys() const noexcept -> std::vector<KeyID> = 0;
     OPENTXS_EXPORT virtual auto PreviousOutput() const noexcept
         -> const Outpoint& = 0;
@@ -67,8 +70,7 @@ public:
         const noexcept -> std::optional<std::size_t> = 0;
     OPENTXS_EXPORT virtual auto Serialize(
         const std::uint32_t index,
-        proto::BlockchainTransactionInput& destination) const noexcept
-        -> bool = 0;
+        SerializeType& destination) const noexcept -> bool = 0;
     OPENTXS_EXPORT virtual auto SerializeNormalized(
         const AllocateOutput destination) const noexcept
         -> std::optional<std::size_t> = 0;

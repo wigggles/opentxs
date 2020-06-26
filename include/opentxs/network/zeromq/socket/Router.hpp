@@ -53,8 +53,8 @@ class Router : virtual public curve::Server,
                virtual public Sender
 {
 public:
-    OPENTXS_EXPORT virtual bool SetSocksProxy(const std::string& proxy) const
-        noexcept = 0;
+    OPENTXS_EXPORT virtual bool SetSocksProxy(
+        const std::string& proxy) const noexcept = 0;
 
     OPENTXS_EXPORT ~Router() override = default;
 

@@ -227,7 +227,7 @@ private:
         -> bool;
     static auto cheque_deposit_success(const Message* message) -> bool;
     static auto extract_conveyed_time(const proto::PaymentWorkflow& workflow)
-        -> std::chrono::time_point<std::chrono::system_clock>;
+        -> Time;
     static auto isCheque(const opentxs::Cheque& cheque) -> bool;
     static auto isTransfer(const Item& item) -> bool;
     static auto validate_recipient(
@@ -373,7 +373,7 @@ private:
         const Identifier& sourceID,
         const Identifier& workflowID,
         const StorageBox type,
-        std::chrono::time_point<std::chrono::system_clock> time) const -> bool;
+        Time time) const -> bool;
     void update_rpc(
         const std::string& localNymID,
         const std::string& remoteNymID,
@@ -382,7 +382,7 @@ private:
         const std::string& workflowID,
         const Amount amount,
         const Amount pending,
-        const std::chrono::time_point<std::chrono::system_clock> time,
+        const Time time,
         const std::string& memo) const;
 
     Workflow(

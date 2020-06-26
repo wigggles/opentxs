@@ -11,8 +11,9 @@ set(
   cxx-sources
   BalanceList.cpp
   BalanceNode.cpp
-  BalanceTree.tpp
   BalanceTree.cpp
+  BalanceTree.tpp
+  Blockchain.cpp
   Deterministic.cpp
   HD.cpp
 )

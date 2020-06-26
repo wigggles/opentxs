@@ -91,7 +91,7 @@ private:
     auto construct_row(
         const PayableListRowID& id,
         const PayableListSortKey& index,
-        const CustomData& custom) const noexcept -> void* final;
+        CustomData& custom) const noexcept -> void* final;
     auto last(const PayableListRowID& id) const noexcept -> bool final
     {
         return PayableListList::last(id);

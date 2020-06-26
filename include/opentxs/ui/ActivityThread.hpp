@@ -77,8 +77,8 @@ public:
     OPENTXS_EXPORT virtual std::string PaymentCode(
         const proto::ContactItemType currency) const noexcept = 0;
     OPENTXS_EXPORT virtual bool SendDraft() const noexcept = 0;
-    OPENTXS_EXPORT virtual bool SetDraft(const std::string& draft) const
-        noexcept = 0;
+    OPENTXS_EXPORT virtual bool SetDraft(
+        const std::string& draft) const noexcept = 0;
     OPENTXS_EXPORT virtual std::string ThreadID() const noexcept = 0;
 
     OPENTXS_EXPORT ~ActivityThread() override = default;
@@ -131,11 +131,11 @@ public:
         const QString& amount,
         const QString& sourceAccount,
         const QString& memo = "") const noexcept;
-    OPENTXS_EXPORT Q_INVOKABLE QString paymentCode(const int currency) const
-        noexcept;
+    OPENTXS_EXPORT Q_INVOKABLE QString
+    paymentCode(const int currency) const noexcept;
     OPENTXS_EXPORT Q_INVOKABLE bool sendDraft() const noexcept;
-    OPENTXS_EXPORT Q_INVOKABLE bool setDraft(const QString& draft) const
-        noexcept;
+    OPENTXS_EXPORT Q_INVOKABLE bool setDraft(
+        const QString& draft) const noexcept;
 
     ActivityThreadQt(implementation::ActivityThread& parent) noexcept;
 

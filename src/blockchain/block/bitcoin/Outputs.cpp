@@ -7,6 +7,7 @@
 #include "1_Internal.hpp"                        // IWYU pragma: associated
 #include "blockchain/block/bitcoin/Outputs.hpp"  // IWYU pragma: associated
 
+#include <algorithm>
 #include <cstddef>
 #include <cstring>
 #include <iterator>
@@ -17,12 +18,12 @@
 #include <vector>
 
 #include "blockchain/bitcoin/CompactSize.hpp"
-#include "internal/blockchain/block/bitcoin/Bitcoin.hpp"
 #include "opentxs/blockchain/block/bitcoin/Output.hpp"
 #include "opentxs/blockchain/block/bitcoin/Outputs.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/protobuf/BlockchainTransaction.pb.h"
+#include "util/Container.hpp"
 
 #define OT_METHOD                                                              \
     "opentxs::blockchain::block::bitcoin::implementation::Outputs::"
@@ -32,9 +33,10 @@ namespace opentxs::factory
 using ReturnType = blockchain::block::bitcoin::implementation::Outputs;
 
 auto BitcoinTransactionOutputs(
-    std::vector<std::unique_ptr<blockchain::block::bitcoin::Output>>&& outputs,
+    std::vector<std::unique_ptr<blockchain::block::bitcoin::internal::Output>>&&
+        outputs,
     std::optional<std::size_t> size) noexcept
-    -> std::unique_ptr<blockchain::block::bitcoin::Outputs>
+    -> std::unique_ptr<blockchain::block::bitcoin::internal::Outputs>
 {
     try {
 
@@ -50,7 +52,7 @@ auto BitcoinTransactionOutputs(
 namespace opentxs::blockchain::block::bitcoin::implementation
 {
 Outputs::Outputs(
-    std::vector<std::unique_ptr<bitcoin::Output>>&& outputs,
+    OutputList&& outputs,
     std::optional<std::size_t> size) noexcept(false)
     : outputs_(std::move(outputs))
     , size_(size)
@@ -60,6 +62,30 @@ Outputs::Outputs(
             throw std::runtime_error("invalid output");
         }
     }
+}
+
+Outputs::Outputs(const Outputs& rhs) noexcept
+    : outputs_(clone(rhs.outputs_))
+    , size_(rhs.size_)
+{
+}
+
+auto Outputs::AssociatedLocalNyms(std::vector<OTNymID>& output) const noexcept
+    -> void
+{
+    std::for_each(
+        std::begin(outputs_), std::end(outputs_), [&](const auto& item) {
+            item->AssociatedLocalNyms(output);
+        });
+}
+
+auto Outputs::AssociatedRemoteContacts(
+    std::vector<OTIdentifier>& output) const noexcept -> void
+{
+    std::for_each(
+        std::begin(outputs_), std::end(outputs_), [&](const auto& item) {
+            item->AssociatedRemoteContacts(output);
+        });
 }
 
 auto Outputs::CalculateSize() const noexcept -> std::size_t
@@ -76,6 +102,18 @@ auto Outputs::CalculateSize() const noexcept -> std::size_t
     }
 
     return size_.value();
+}
+
+auto Outputs::clone(const OutputList& rhs) noexcept -> OutputList
+{
+    auto output = OutputList{};
+    std::transform(
+        std::begin(rhs),
+        std::end(rhs),
+        std::back_inserter(output),
+        [](const auto& in) { return in->clone(); });
+
+    return output;
 }
 
 auto Outputs::ExtractElements(const filter::Type style) const noexcept
@@ -116,6 +154,46 @@ auto Outputs::FindMatches(
     }
 
     return output;
+}
+
+auto Outputs::ForTestingOnlyAddKey(
+    const std::size_t index,
+    const api::client::blockchain::Key& key) noexcept -> bool
+{
+    try {
+        outputs_.at(index)->ForTestingOnlyAddKey(key);
+
+        return true;
+    } catch (...) {
+
+        return false;
+    }
+}
+
+auto Outputs::GetPatterns() const noexcept -> std::vector<PatternID>
+{
+    auto output = std::vector<PatternID>{};
+    std::for_each(
+        std::begin(outputs_), std::end(outputs_), [&](const auto& txout) {
+            const auto patterns = txout->GetPatterns();
+            output.insert(output.end(), patterns.begin(), patterns.end());
+        });
+
+    dedup(output);
+
+    return output;
+}
+
+auto Outputs::NetBalanceChange(const identifier::Nym& nym) const noexcept
+    -> opentxs::Amount
+{
+    return std::accumulate(
+        std::begin(outputs_),
+        std::end(outputs_),
+        opentxs::Amount{0},
+        [&](const auto prev, const auto& output) -> auto {
+            return prev + output->NetBalanceChange(nym);
+        });
 }
 
 auto Outputs::Serialize(const AllocateOutput destination) const noexcept

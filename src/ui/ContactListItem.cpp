@@ -92,7 +92,7 @@ QVariant ContactListItem::qt_data([[maybe_unused]] const int column, int role)
 
 void ContactListItem::reindex(
     const ContactListSortKey& key,
-    const CustomData&) noexcept
+    CustomData&) noexcept
 {
     Lock lock(lock_);
     key_ = key;

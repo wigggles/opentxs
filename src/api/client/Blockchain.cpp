@@ -10,9 +10,9 @@
 #include <algorithm>
 #include <cstdint>
 #include <iterator>
-#include <list>
 #include <map>
 #include <set>
+#include <sstream>
 #include <stdexcept>
 #include <thread>
 #include <type_traits>
@@ -20,6 +20,10 @@
 #include "2_Factory.hpp"
 #include "internal/api/client/Client.hpp"
 #include "internal/api/client/blockchain/Blockchain.hpp"
+#if OT_BLOCKCHAIN
+#include "internal/blockchain/Blockchain.hpp"
+#include "internal/blockchain/block/bitcoin/Bitcoin.hpp"
+#endif  // OT_BLOCKCHAIN
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/api/Core.hpp"
@@ -33,7 +37,9 @@
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/api/storage/Storage.hpp"
+#if OT_BLOCKCHAIN
 #include "opentxs/blockchain/Blockchain.hpp"
+#endif  // OT_BLOCKCHAIN
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
@@ -44,9 +50,9 @@
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/network/zeromq/socket/Sender.tpp"  // IWYU pragma: keep
 #include "opentxs/network/zeromq/socket/Socket.hpp"
 #endif  // OT_BLOCKCHAIN
-#include "opentxs/protobuf/BlockchainEnums.pb.h"
 #include "opentxs/protobuf/ContactEnums.pb.h"
 #include "util/Container.hpp"
 #if OT_BLOCKCHAIN
@@ -123,12 +129,12 @@ Blockchain::Blockchain(
     , nym_lock_()
     , accounts_(api_)
     , balance_lists_(*this)
-    , txo_db_(*this)
 #if OT_BLOCKCHAIN
     , thread_pool_(api)
     , io_(api)
     , db_(api, legacy, dataFolder, args)
     , reorg_(api_.ZeroMQ().PublishSocket())
+    , transaction_updates_(api_.ZeroMQ().PublishSocket())
     , networks_()
     , balances_(*this, api)
 #endif  // OT_BLOCKCHAIN
@@ -136,6 +142,11 @@ Blockchain::Blockchain(
     // WARNING: do not access api_.Wallet() during construction
 #if OT_BLOCKCHAIN
     auto listen = reorg_->Start(api_.Endpoints().BlockchainReorg());
+
+    OT_ASSERT(listen);
+
+    listen =
+        transaction_updates_->Start(api_.Endpoints().BlockchainTransactions());
 
     OT_ASSERT(listen);
 #endif  // OT_BLOCKCHAIN
@@ -146,6 +157,7 @@ Blockchain::AccountCache::AccountCache(const api::Core& api) noexcept
     , lock_()
     , account_map_()
     , account_index_()
+    , account_type_()
 {
 }
 
@@ -191,39 +203,6 @@ Blockchain::ThreadPoolManager::ThreadPoolManager(const api::Core& api) noexcept
 }
 #endif  // OT_BLOCKCHAIN
 
-Blockchain::Txo::Txo(api::client::internal::Blockchain& parent)
-    : parent_(parent)
-    , lock_()
-{
-}
-
-auto Blockchain::AccountCache::AccountList(
-    const identifier::Nym& nymID,
-    const Chain chain) const noexcept -> std::set<OTIdentifier>
-{
-    Lock lock(lock_);
-    const auto& map = get_account_map(lock, chain);
-    auto it = map.find(nymID);
-
-    if (map.end() == it) { return {}; }
-
-    return it->second;
-}
-
-auto Blockchain::AccountCache::AccountOwner(
-    const Identifier& accountID) const noexcept -> const identifier::Nym&
-{
-    static const auto blank = api_.Factory().NymID();
-
-    try {
-
-        return account_index_.at(accountID);
-    } catch (...) {
-
-        return blank;
-    }
-}
-
 auto Blockchain::AccountCache::build_account_map(
     const Lock&,
     const Chain chain,
@@ -243,6 +222,7 @@ auto Blockchain::AccountCache::build_account_map(
                 auto& set = output[nym];
                 auto accountID = api_.Factory().Identifier(account);
                 account_index_.emplace(accountID, nym);
+                account_type_.emplace(accountID, AccountType::HD);
                 set.emplace(std::move(accountID));
             });
     });
@@ -261,7 +241,20 @@ auto Blockchain::AccountCache::get_account_map(
     return map.value();
 }
 
-auto Blockchain::AccountCache::NewAccount(
+auto Blockchain::AccountCache::List(
+    const identifier::Nym& nymID,
+    const Chain chain) const noexcept -> std::set<OTIdentifier>
+{
+    Lock lock(lock_);
+    const auto& map = get_account_map(lock, chain);
+    auto it = map.find(nymID);
+
+    if (map.end() == it) { return {}; }
+
+    return it->second;
+}
+
+auto Blockchain::AccountCache::New(
     const Chain chain,
     const Identifier& account,
     const identifier::Nym& owner) const noexcept -> void
@@ -269,6 +262,35 @@ auto Blockchain::AccountCache::NewAccount(
     Lock lock(lock_);
     get_account_map(lock, chain)[owner].emplace(account);
     account_index_.emplace(account, owner);
+    account_type_.emplace(account, AccountType::HD);
+}
+
+auto Blockchain::AccountCache::Owner(const Identifier& accountID) const noexcept
+    -> const identifier::Nym&
+{
+    static const auto blank = api_.Factory().NymID();
+
+    try {
+
+        return account_index_.at(accountID);
+    } catch (...) {
+
+        return blank;
+    }
+}
+
+auto Blockchain::AccountCache::Type(const Identifier& accountID) const noexcept
+    -> AccountType
+{
+    static const auto blank = api_.Factory().NymID();
+
+    try {
+
+        return account_type_.at(accountID);
+    } catch (...) {
+
+        return AccountType::Error;
+    }
 }
 
 auto Blockchain::BalanceLists::Get(const Chain chain) noexcept
@@ -488,92 +510,76 @@ auto Blockchain::ThreadPoolManager::Stop(const Chain chain) const noexcept
 }
 #endif  // OT_BLOCKCHAIN
 
-auto Blockchain::Txo::AddSpent(
+auto Blockchain::ActivityDescription(
     const identifier::Nym& nym,
-    const blockchain::Coin txo,
-    const std::string txid) const noexcept -> bool
+    const Identifier& thread,
+    const std::string& threadItemID) const noexcept -> std::string
 {
-    Lock lock(lock_);
-    const auto& storage = parent_.API().Storage();
-    auto pData = std::make_shared<proto::StorageBlockchainTxo>();
-    const auto loaded = storage.Load(nym, txo, pData, true);
+#if OT_BLOCKCHAIN
+    auto pThread = std::shared_ptr<proto::StorageThread>{};
+    api_.Storage().Load(nym.str(), thread.str(), pThread);
 
-    OT_ASSERT(pData);
+    if (false == bool(pThread)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": thread ")(thread.str())(
+            " does not exist for nym ")(nym.str())
+            .Flush();
 
-    auto& data = *pData;
-
-    if (false == loaded) {
-        data.set_version(1);
-        auto& output = *data.mutable_output();
-        output.set_version(1);
-        output.set_txid(txo.first);
-        output.set_index(txo.second);
+        return {};
     }
 
-    data.set_spent(true);
-    data.add_txid(txid);
+    const auto& data = *pThread;
 
-    return parent_.API().Storage().Store(nym, data);
-}
+    for (const auto& item : data.item()) {
+        if (item.id() != threadItemID) { continue; }
 
-auto Blockchain::Txo::AddUnspent(
-    const identifier::Nym& nym,
-    const blockchain::Coin txo,
-    const std::vector<OTData>& elements) const noexcept -> bool
-{
-    Lock lock(lock_);
-    const auto& storage = parent_.API().Storage();
-    auto pData = std::make_shared<proto::StorageBlockchainTxo>();
-    const auto loaded = storage.Load(nym, txo, pData, true);
+        const auto txid = api_.Factory().Data(item.txid(), StringStyle::Raw);
+        const auto chain = static_cast<opentxs::blockchain::Type>(item.chain());
+        const auto pTx = LoadTransactionBitcoin(txid);
 
-    OT_ASSERT(pData);
+        if (false == bool(pTx)) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": failed to load transaction ")(
+                txid->asHex())
+                .Flush();
 
-    auto& data = *pData;
+            return {};
+        }
 
-    if (false == loaded) {
-        data.set_version(1);
-        data.set_spent(false);
-        auto& output = *data.mutable_output();
-        output.set_version(1);
-        output.set_txid(txo.first);
-        output.set_index(txo.second);
+        const auto& tx = *pTx;
+
+        return this->ActivityDescription(nym, chain, tx);
     }
 
-    for (const auto& element : elements) { data.add_element(element->str()); }
+    LogOutput(OT_METHOD)(__FUNCTION__)(": item ")(threadItemID)(" not found ")
+        .Flush();
+#endif  // OT_BLOCKCHAIN
 
-    return parent_.API().Storage().Store(nym, data);
+    return {};
 }
 
-auto Blockchain::Txo::Claim(
+#if OT_BLOCKCHAIN
+auto Blockchain::ActivityDescription(
     const identifier::Nym& nym,
-    const blockchain::Coin txo) const noexcept -> bool
+    const Chain chain,
+    const Tx& transaction) const noexcept -> std::string
 {
-    Lock lock(lock_);
+    auto output = std::stringstream{};
+    const auto amount = transaction.NetBalanceChange(nym);
+    const auto memo = transaction.Memo();
 
-    return parent_.API().Storage().RemoveTxo(nym, txo);
-}
-
-auto Blockchain::Txo::Lookup(const identifier::Nym& nym, const Data& element)
-    const noexcept -> std::vector<Blockchain::Txo::Status>
-{
-    Lock lock(lock_);
-    auto output = std::vector<Status>{};
-    const auto& storage = parent_.API().Storage();
-    const auto transactions = storage.LookupElement(nym, element);
-
-    for (const auto& coin : transactions) {
-        auto pData = std::make_shared<proto::StorageBlockchainTxo>();
-        const auto loaded = storage.Load(nym, coin, pData, false);
-
-        OT_ASSERT(pData);
-
-        auto& data = *pData;
-
-        if (loaded) { output.emplace_back(Status{coin, data.spent()}); }
+    if (0 < amount) {
+        output << "Incoming ";
+    } else if (0 > amount) {
+        output << "Outgoing ";
     }
 
-    return output;
+    output << opentxs::blockchain::internal::DisplayString(chain);
+    output << " transaction";
+
+    if (false == memo.empty()) { output << ": " << memo; }
+
+    return output.str();
 }
+#endif  // OT_BLOCKCHAIN
 
 auto Blockchain::address_prefix(const Style style, const Chain chain) const
     noexcept(false) -> OTData
@@ -581,101 +587,6 @@ auto Blockchain::address_prefix(const Style style, const Chain chain) const
     return api_.Factory().Data(
         address_prefix_map_.at(address_style_map_.at({style, chain})),
         StringStyle::Hex);
-}
-
-auto Blockchain::assign_transactions(
-    const blockchain::internal::BalanceElement& element) const noexcept -> bool
-{
-    auto map = std::
-        map<std::string, std::shared_ptr<const proto::BlockchainTransaction>>{};
-
-    for (const auto& txid : element.IncomingTransactions()) {
-        auto pTransaction = Transaction(txid);
-
-        if (false == bool(pTransaction)) {
-            LogOutput(OT_METHOD)(__FUNCTION__)(
-                ": Failed to load transaction (")(txid)(")")
-                .Flush();
-
-            return false;
-        }
-
-        map.emplace(txid, pTransaction);
-    }
-
-    return assign_transactions(element.NymID(), element.Contact(), map);
-}
-
-auto Blockchain::assign_transactions(
-    const identifier::Nym& nymID,
-    const std::set<OTIdentifier> contacts,
-    const TransactionMap& transactions) const noexcept -> bool
-{
-    auto output{true};
-
-    for (const auto& contact : contacts) {
-        output &= assign_transactions(nymID, contact, transactions);
-    }
-
-    return output;
-}
-
-auto Blockchain::assign_transactions(
-    const identifier::Nym& nymID,
-    const Identifier& contactID,
-    const TransactionMap& transactions) const noexcept -> bool
-{
-    auto thread = std::make_shared<proto::StorageThread>();
-    auto threadExists{false};
-    const auto threadList = api_.Storage().ThreadList(nymID.str(), false);
-
-    for (const auto& it : threadList) {
-        const auto& id = it.first;
-
-        if (id == contactID.str()) { threadExists = true; }
-    }
-
-    if (threadExists) {
-        thread = activity_.Thread(nymID, contactID);
-
-        if (false == bool(thread)) {
-            LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to load thread")
-                .Flush();
-
-            return false;
-        }
-    }
-
-    auto success{true};
-
-    for (const auto& [txid, pTransaction] : transactions) {
-        if (false == bool(pTransaction)) {
-            LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid transaction.")
-                .Flush();
-
-            return false;
-        }
-
-        const auto& transaction = *pTransaction;
-        auto exists{false};
-
-        if (thread) {
-            for (const auto& activity : thread->item()) {
-                if (txid.compare(activity.id()) == 0) { exists = true; }
-            }
-        }
-
-        if (false == exists) {
-            success &= activity_.AddBlockchainTransaction(
-                nymID, contactID, txid, Clock::from_time_t(transaction.time()));
-        } else {
-            LogTrace(OT_METHOD)(__FUNCTION__)(": Transaction ")(txid)(
-                " already exists in thread")
-                .Flush();
-        }
-    }
-
-    return success;
 }
 
 auto Blockchain::AssignContact(
@@ -703,18 +614,7 @@ auto Blockchain::AssignContact(
 
             if (contactID == existing) { return true; }
 
-            if (false == node.SetContact(subchain, index, contactID)) {
-
-                return false;
-            }
-
-            if (existing->empty()) {
-
-                return assign_transactions(element);
-            } else {
-
-                return move_transactions(element, existing);
-            }
+            return node.SetContact(subchain, index, contactID);
         } catch (...) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
                 ": Failed to load balance element")
@@ -767,6 +667,30 @@ auto Blockchain::AssignLabel(
         return false;
     }
 }
+
+#if OT_BLOCKCHAIN
+auto Blockchain::AssignTransactionMemo(
+    const TxidHex& id,
+    const std::string& label) const noexcept -> bool
+{
+    Lock lock(lock_);
+    auto pTransaction = load_transaction(lock, id);
+
+    if (false == bool(pTransaction)) { return false; }
+
+    auto& transaction = *pTransaction;
+    transaction.SetMemo(label);
+    const auto serialized = transaction.Serialize();
+
+    OT_ASSERT(serialized.has_value());
+
+    if (false == db_.StoreTransaction(serialized.value())) { return false; }
+
+    broadcast_update_signal(transaction);
+
+    return true;
+}
+#endif  // OT_BLOCKCHAIN
 
 auto Blockchain::BalanceTree(const identifier::Nym& nymID, const Chain chain)
     const noexcept(false) -> const blockchain::internal::BalanceTree&
@@ -827,6 +751,41 @@ auto Blockchain::bip44_type(const proto::ContactItemType type) const noexcept
         }
     }
 }
+
+#if OT_BLOCKCHAIN
+auto Blockchain::broadcast_update_signal(
+    const std::vector<pTxid>& transactions) const noexcept -> void
+{
+    std::for_each(
+        std::begin(transactions),
+        std::end(transactions),
+        [this](const auto& txid) {
+            const auto data = db_.LoadTransaction(txid->Bytes());
+
+            OT_ASSERT(data.has_value());
+
+            const auto tx = factory::BitcoinTransaction(api_, data.value());
+
+            OT_ASSERT(tx);
+
+            broadcast_update_signal(*tx);
+        });
+}
+
+auto Blockchain::broadcast_update_signal(
+    const opentxs::blockchain::block::bitcoin::internal::Transaction& tx)
+    const noexcept -> void
+{
+    const auto chains = tx.Chains();
+    std::for_each(std::begin(chains), std::end(chains), [&](const auto& chain) {
+        auto out = api_.ZeroMQ().Message();
+        out->AddFrame();
+        out->AddFrame(tx.ID());
+        out->AddFrame(chain);
+        transaction_updates_->Send(out);
+    });
+}
+#endif  // OT_BLOCKCHAIN
 
 auto Blockchain::CalculateAddress(
     const Chain chain,
@@ -933,6 +892,28 @@ auto Blockchain::GetChain(const Chain type) const noexcept(false)
 }
 #endif  // OT_BLOCKCHAIN
 
+auto Blockchain::GetKey(const blockchain::Key& id) const noexcept(false)
+    -> const blockchain::BalanceNode::Element&
+{
+    const auto [str, subchain, index] = id;
+    const auto account = api_.Factory().Identifier(str);
+
+    switch (accounts_.Type(account)) {
+        case AccountType::HD: {
+            const auto& hd = HDSubaccount(accounts_.Owner(account), account);
+
+            return hd.BalanceElement(subchain, index);
+        }
+        case AccountType::Error:
+        case AccountType::Imported:
+        case AccountType::PaymentCode:
+        default: {
+        }
+    }
+
+    throw std::out_of_range("key not found");
+}
+
 auto Blockchain::HDSubaccount(
     const identifier::Nym& nymID,
     const Identifier& accountID) const noexcept(false) -> const blockchain::HD&
@@ -949,6 +930,22 @@ auto Blockchain::HDSubaccount(
 
     return nym.HDChain(accountID);
 }
+
+#if OT_BLOCKCHAIN
+auto Blockchain::IndexItem(const ReadView bytes) const noexcept -> PatternID
+{
+    auto output = PatternID{};
+    const auto hashed = api_.Crypto().Hash().HMAC(
+        proto::HASHTYPE_SIPHASH24,
+        db_.HashKey(),
+        bytes,
+        preallocated(sizeof(output), &output));
+
+    OT_ASSERT(hashed);
+
+    return output;
+}
+#endif  // OT_BLOCKCHAIN
 
 auto Blockchain::init_path(
     const std::string& root,
@@ -976,48 +973,61 @@ auto Blockchain::init_path(
     }
 }
 
-auto Blockchain::move_transactions(
-    const blockchain::internal::BalanceElement& element,
-    const Identifier& fromContact) const noexcept -> bool
+#if OT_BLOCKCHAIN
+auto Blockchain::load_transaction(const Lock& lock, const TxidHex& txid)
+    const noexcept -> std::unique_ptr<
+        opentxs::blockchain::block::bitcoin::internal::Transaction>
 {
-    OT_ASSERT(false == fromContact.empty());
-
-    bool output{true};
-    const auto toContact = element.Contact();
-
-    if (toContact->empty()) {
-        for (const auto& txid : element.IncomingTransactions()) {
-            output &= activity_.UnassignBlockchainTransaction(
-                element.NymID(), fromContact, txid);
-        }
-
-        return output;
-    }
-
-    auto thread = std::make_shared<proto::StorageThread>();
-    const auto exists =
-        api_.Storage().Load(element.NymID().str(), toContact->str(), thread);
-
-    if (false == exists) {
-        const auto created = api_.Storage().CreateThread(
-            element.NymID().str(), toContact->str(), {toContact->str()});
-
-        if (false == created) {
-            LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to create thread (")(
-                toContact)(")")
-                .Flush();
-
-            return false;
-        }
-    }
-
-    for (const auto& txid : element.IncomingTransactions()) {
-        output &= activity_.MoveIncomingBlockchainTransaction(
-            element.NymID(), fromContact, toContact, txid);
-    }
-
-    return output;
+    return load_transaction(lock, api_.Factory().Data(txid, StringStyle::Hex));
 }
+
+auto Blockchain::load_transaction(const Lock& lock, const Txid& txid)
+    const noexcept -> std::unique_ptr<
+        opentxs::blockchain::block::bitcoin::internal::Transaction>
+{
+    const auto serialized = db_.LoadTransaction(txid.Bytes());
+
+    if (false == serialized.has_value()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Transaction ")(txid.asHex())(
+            " not found")
+            .Flush();
+
+        return {};
+    }
+
+    return factory::BitcoinTransaction(api_, serialized.value());
+}
+
+auto Blockchain::LoadTransactionBitcoin(const TxidHex& txid) const noexcept
+    -> std::unique_ptr<const Tx>
+{
+    Lock lock(lock_);
+
+    return load_transaction(lock, txid);
+}
+
+auto Blockchain::LoadTransactionBitcoin(const Txid& txid) const noexcept
+    -> std::unique_ptr<const Tx>
+{
+    Lock lock(lock_);
+
+    return load_transaction(lock, txid);
+}
+
+auto Blockchain::LookupContacts(const std::string& address) const noexcept
+    -> ContactList
+{
+    const auto [pubkeyHash, style, chain] = DecodeAddress(address);
+
+    return LookupContacts(pubkeyHash);
+}
+
+auto Blockchain::LookupContacts(const Data& pubkeyHash) const noexcept
+    -> ContactList
+{
+    return db_.LookupContact(pubkeyHash);
+}
+#endif  // OT_BLOCKCHAIN
 
 auto Blockchain::NewHDSubaccount(
     const identifier::Nym& nymID,
@@ -1073,7 +1083,7 @@ auto Blockchain::NewHDSubaccount(
         auto accountID = Identifier::Factory();
         auto& tree = balance_lists_.Get(chain).Nym(nymID);
         tree.AddHDNode(accountPath, accountID);
-        accounts_.NewAccount(chain, accountID, nymID);
+        accounts_.New(chain, accountID, nymID);
 #if OT_BLOCKCHAIN
         balances_.UpdateBalance(chain, {});
 #endif  // OT_BLOCKCHAIN
@@ -1131,90 +1141,59 @@ auto Blockchain::p2sh(const Chain chain, const Data& pubkeyHash) const noexcept
     }
 }
 
-auto Blockchain::parse_transaction(
-    const identifier::Nym& nym,
-    const proto::BlockchainTransaction& tx,
-    const blockchain::internal::BalanceTree& tree,
-    std::set<OTIdentifier>& contacts) const noexcept
-    -> Blockchain::ParsedTransaction
+#if OT_BLOCKCHAIN
+auto Blockchain::ProcessContact(const Contact& contact) const noexcept -> bool
 {
-    auto output = ParsedTransaction{};
-    auto& [unspent, spent] = output;
-    const auto& txid = tx.txid();
+    broadcast_update_signal(db_.UpdateContact(contact));
 
-    for (const auto& input : tx.input()) {
-        const auto& previous = input.previous();
-        const auto coin = blockchain::Coin{previous.txid(), previous.index()};
-        const auto lookup = tree.LookupUTXO(coin);
-
-        if (lookup) {
-            const auto& [key, value] = lookup.value();
-            spent.emplace_back(blockchain::Activity{coin, key, value});
-        } else {
-            txo_db_.AddSpent(nym, coin, txid);
-        }
-    }
-
-    for (const auto& txout : tx.output()) {
-        const auto& sKey = txout.key();
-        const auto coin = blockchain::Coin{txid, txout.index()};
-
-        if (txout.has_key()) {
-            const auto key = blockchain::Key{
-                sKey.subaccount(),
-                static_cast<blockchain::Subchain>(sKey.subchain()),
-                sKey.index()};
-            unspent.emplace_back(
-                blockchain::Activity{coin, key, txout.value()});
-        } else {
-            const auto& external = txout.external();
-
-            switch (external.type()) {
-                case proto::BTOUTPUT_P2PK:
-                case proto::BTOUTPUT_P2PKH:
-                case proto::BTOUTPUT_P2SH:
-                case proto::BTOUTPUT_P2WPKH:
-                case proto::BTOUTPUT_P2WSH: {
-                    OT_ASSERT(1 == external.data_size());
-
-                    const auto& bytes = external.data(0);
-                    const auto hash =
-                        api_.Factory().Data(bytes, StringStyle::Raw);
-                    auto contact = api_.Factory().Identifier(
-                        api_.Storage().BlockchainAddressOwner(
-                            tx.chain(), hash->asHex()));
-
-                    if (false == contact->empty()) {
-                        LogTrace(OT_METHOD)(__FUNCTION__)(": Contact ")(
-                            contact)(" owns item (0x")(hash->asHex())(")")
-                            .Flush();
-                        contacts.emplace(std::move(contact));
-
-                        break;
-                    }
-
-                    LogTrace(OT_METHOD)(__FUNCTION__)(
-                        ": No contact associated with item (0x")(hash->asHex())(
-                        ")")
-                        .Flush();
-                    [[fallthrough]];
-                }
-                default: {
-                    auto elements = std::vector<OTData>{};
-
-                    for (const auto& bytes : external.data()) {
-                        elements.emplace_back(
-                            api_.Factory().Data(bytes, StringStyle::Raw));
-                    }
-
-                    txo_db_.AddUnspent(nym, coin, elements);
-                }
-            }
-        }
-    }
-
-    return output;
+    return true;
 }
+
+auto Blockchain::ProcessMergedContact(
+    const Contact& parent,
+    const Contact& child) const noexcept -> bool
+{
+    broadcast_update_signal(db_.UpdateMergedContact(parent, child));
+
+    return true;
+}
+auto Blockchain::ProcessTransaction(
+    const Chain chain,
+    const Tx& in,
+    const PasswordPrompt& reason) const noexcept -> bool
+{
+    Lock lock(lock_);
+    auto pTransaction = in.clone();
+
+    OT_ASSERT(pTransaction);
+
+    auto& transaction = *pTransaction;
+    const auto& id = transaction.ID();
+    const auto txid = id.Bytes();
+
+    if (const auto tx = db_.LoadTransaction(txid); tx.has_value()) {
+        transaction.MergeMetadata(chain, tx.value());
+        auto updated = transaction.Serialize();
+
+        OT_ASSERT(updated.has_value());
+
+        if (false == db_.StoreTransaction(updated.value())) { return false; }
+    } else {
+        auto serialized = transaction.Serialize();
+
+        OT_ASSERT(serialized.has_value());
+
+        if (false == db_.StoreTransaction(serialized.value())) { return false; }
+    }
+
+    if (false == db_.AssociateTransaction(id, transaction.GetPatterns())) {
+        return false;
+    }
+
+    return reconcile_activity_threads(lock, transaction);
+}
+
+#endif  // OT_BLOCKCHAIN
 
 auto Blockchain::PubkeyHash(
     [[maybe_unused]] const Chain chain,
@@ -1238,6 +1217,28 @@ auto Blockchain::PubkeyHash(
 }
 
 #if OT_BLOCKCHAIN
+auto Blockchain::reconcile_activity_threads(const Lock& lock, const Txid& txid)
+    const noexcept -> bool
+{
+    const auto tx = load_transaction(lock, txid);
+
+    if (false == bool(tx)) { return false; }
+
+    return reconcile_activity_threads(lock, *tx);
+}
+
+auto Blockchain::reconcile_activity_threads(
+    const Lock& lock,
+    const opentxs::blockchain::block::bitcoin::internal::Transaction& tx)
+    const noexcept -> bool
+{
+    if (false == activity_.AddBlockchainTransaction(tx)) { return false; }
+
+    broadcast_update_signal(tx);
+
+    return true;
+}
+
 auto Blockchain::Start(const Chain type, const std::string& seednode)
     const noexcept -> bool
 {
@@ -1293,102 +1294,36 @@ auto Blockchain::Stop(const Chain type) const noexcept -> bool
 }
 #endif  // OT_BLOCKCHAIN
 
-auto Blockchain::StoreTransaction(
-    const identifier::Nym& nymID,
-    const Chain chain,
-    const proto::BlockchainTransaction& transaction,
-    const PasswordPrompt& reason) const noexcept -> bool
+auto Blockchain::UpdateElement([
+    [maybe_unused]] std::vector<ReadView>& pubkeyHashes) const noexcept -> void
 {
-    if (false == validate_nym(nymID)) { return false; }
-
-    LOCK_NYM()
-
-    auto contacts = std::set<OTIdentifier>{};
-    const auto& tree = balance_lists_.Get(chain).Nym(nymID);
-    const auto parsed = parse_transaction(nymID, transaction, tree, contacts);
-    const auto& [unspent, spent] = parsed;
-    const auto associated =
-        tree.AssociateTransaction(unspent, spent, contacts, reason);
-
-    if (false == associated) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid transaction.").Flush();
-
-        return false;
-    }
-
-    const auto success = assign_transactions(
-        nymID,
-        contacts,
-        {{transaction.txid(),
-          std::make_shared<const proto::BlockchainTransaction>(transaction)}});
-
-    return success && api_.Storage().Store(nymID, transaction);
-}
-
-auto Blockchain::Transaction(const std::string& txid) const noexcept
-    -> std::shared_ptr<proto::BlockchainTransaction>
-{
-    auto output = std::shared_ptr<proto::BlockchainTransaction>{};
-
-    if (false == api_.Storage().Load(txid, output, false)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to load transaction.")
-            .Flush();
-    }
-
-    return output;
-}
-
-auto Blockchain::update_transactions(
-    const Lock& lock,
-    const identifier::Nym& nym,
-    const TransactionContactMap& transactions) const noexcept -> bool
-{
-    Lock nymLock(nym_lock_[nym]);
-    auto output{true};
-
-    for (const auto& it : transactions) {
-        const auto& txid = it.first;
-        const auto contacts = it.second;
-        const auto pTransaction = Transaction(txid);
-
-        if (false == bool(pTransaction)) {
-            LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to load transaction.")
-                .Flush();
-
-            return false;
-        }
-
-        output &= assign_transactions(nym, contacts, {{txid, pTransaction}});
-    }
-
-    return output;
-}
-
-auto Blockchain::UpdateTransactions(
-    const std::map<OTData, OTIdentifier>& changed) const noexcept -> bool
-{
+#if OT_BLOCKCHAIN
+    auto patterns = std::vector<PatternID>{};
+    std::for_each(
+        std::begin(pubkeyHashes),
+        std::end(pubkeyHashes),
+        [&](const auto& bytes) { patterns.emplace_back(IndexItem(bytes)); });
+    LogTrace(OT_METHOD)(__FUNCTION__)(": ")(patterns.size())(
+        " pubkey hashes have changed:")
+        .Flush();
+    auto transactions = std::vector<pTxid>{};
+    std::for_each(
+        std::begin(patterns), std::end(patterns), [&](const auto& pattern) {
+            LogTrace("    * ")(pattern).Flush();
+            auto matches = db_.LookupTransactions(pattern);
+            transactions.reserve(transactions.size() + matches.size());
+            std::move(
+                std::begin(matches),
+                std::end(matches),
+                std::back_inserter(transactions));
+        });
+    dedup(transactions);
     Lock lock(lock_);
-
-    auto transactions = NymTransactionMap{};
-
-    for (const auto& [bytes, contactID] : changed) {
-        for (const auto& nym : api_.Wallet().LocalNyms()) {
-            const auto coins = txo_db_.Lookup(nym, bytes);
-
-            for (const auto& coin : coins) {
-                const auto& txid = coin.first.first;
-                transactions[nym][txid].emplace(contactID);
-            }
-        }
-    }
-
-    auto output{true};
-
-    for (const auto& [nymID, map] : transactions) {
-        output &= update_transactions(lock, nymID, map);
-    }
-
-    return output;
+    std::for_each(
+        std::begin(transactions),
+        std::end(transactions),
+        [&](const auto& txid) { reconcile_activity_threads(lock, txid); });
+#endif  // OT_BLOCKCHAIN
 }
 
 auto Blockchain::validate_nym(const identifier::Nym& nymID) const noexcept

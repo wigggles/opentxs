@@ -33,12 +33,12 @@ namespace curve
 class Server : virtual public socket::Socket
 {
 public:
-    OPENTXS_EXPORT virtual bool SetDomain(const std::string& domain) const
-        noexcept = 0;
-    OPENTXS_EXPORT virtual bool SetPrivateKey(const Secret& key) const
-        noexcept = 0;
-    OPENTXS_EXPORT virtual bool SetPrivateKey(const std::string& z85) const
-        noexcept = 0;
+    OPENTXS_EXPORT virtual bool SetDomain(
+        const std::string& domain) const noexcept = 0;
+    OPENTXS_EXPORT virtual bool SetPrivateKey(
+        const Secret& key) const noexcept = 0;
+    OPENTXS_EXPORT virtual bool SetPrivateKey(
+        const std::string& z85) const noexcept = 0;
 
     OPENTXS_EXPORT ~Server() override = default;
 

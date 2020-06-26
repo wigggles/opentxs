@@ -50,17 +50,18 @@ class Publish;
 namespace opentxs::ui::implementation
 {
 template <typename T>
-auto extract_custom(
-    const CustomData& custom,
-    const std::size_t index = 0) noexcept -> T
+auto extract_custom(CustomData& custom, const std::size_t index = 0) noexcept
+    -> T
 {
     OT_ASSERT((index + 1) <= custom.size())
 
-    std::unique_ptr<const T> output{static_cast<const T*>(custom.at(index))};
+    auto ptr = std::unique_ptr<T>{static_cast<T*>(custom.at(index))};
 
-    OT_ASSERT(output)
+    OT_ASSERT(ptr)
 
-    return *output;
+    auto output = T{std::move(*ptr)};
+
+    return output;
 }
 
 class Widget : virtual public opentxs::ui::Widget

@@ -8,16 +8,19 @@
 #include "ui/ActivitySummaryItem.hpp"  // IWYU pragma: associated
 
 #include <atomic>
+#include <chrono>
 #include <memory>
 #include <mutex>
 #include <string>
 #include <thread>
+#include <type_traits>
 #include <utility>
 
 #include "internal/api/client/Client.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/client/Activity.hpp"
+#include "opentxs/api/client/Blockchain.hpp"
 #include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -40,14 +43,22 @@ auto ActivitySummaryItem(
     const identifier::Nym& nymID,
     const ui::implementation::ActivitySummaryRowID& rowID,
     const ui::implementation::ActivitySummarySortKey& sortKey,
-    const ui::implementation::CustomData& custom,
+    ui::implementation::CustomData& custom,
     const Flag& running) noexcept
     -> std::shared_ptr<ui::implementation::ActivitySummaryRowInternal>
 {
     using ReturnType = ui::implementation::ActivitySummaryItem;
 
     return std::make_shared<ReturnType>(
-        parent, api, publisher, nymID, rowID, sortKey, custom, running);
+        parent,
+        api,
+        publisher,
+        nymID,
+        rowID,
+        sortKey,
+        custom,
+        running,
+        ReturnType::LoadItemText(api, nymID, custom));
 }
 }  // namespace opentxs::factory
 
@@ -60,15 +71,15 @@ ActivitySummaryItem::ActivitySummaryItem(
     const identifier::Nym& nymID,
     const ActivitySummaryRowID& rowID,
     const ActivitySummarySortKey& sortKey,
-    const CustomData& custom,
-    const Flag& running) noexcept
+    CustomData& custom,
+    const Flag& running,
+    std::string text) noexcept
     : ActivitySummaryItemRow(parent, api, publisher, rowID, true)
     , running_(running)
     , nym_id_(nymID)
-    , key_{sortKey}
-    , thread_()
-    , display_name_{std::get<1>(key_)}
-    , text_("")
+    , key_(sortKey)
+    , display_name_(std::get<1>(key_))
+    , text_(text)
     , type_(extract_custom<StorageBox>(custom, 1))
     , time_(extract_custom<Time>(custom, 3))
     , newest_item_thread_(nullptr)
@@ -76,7 +87,7 @@ ActivitySummaryItem::ActivitySummaryItem(
     , next_task_id_(0)
     , break_(false)
 {
-    startup(custom, newest_item_);
+    startup(custom);
     newest_item_thread_.reset(
         new std::thread(&ActivitySummaryItem::get_text, this));
 
@@ -96,7 +107,7 @@ auto ActivitySummaryItem::find_text(
     const PasswordPrompt& reason,
     const ItemLocator& locator) const noexcept -> std::string
 {
-    const auto& [itemID, box, accountID] = locator;
+    const auto& [itemID, box, accountID, thread] = locator;
 
     switch (box) {
         case StorageBox::MAILINBOX:
@@ -126,6 +137,10 @@ auto ActivitySummaryItem::find_text(
                     .Flush();
             }
         } break;
+        case StorageBox::BLOCKCHAIN: {
+            return api_.Blockchain().ActivityDescription(
+                nym_id_, thread, itemID);
+        }
         default: {
             OT_FAIL
         }
@@ -137,8 +152,8 @@ auto ActivitySummaryItem::find_text(
 void ActivitySummaryItem::get_text() noexcept
 {
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
-    sLock lock(shared_lock_, std::defer_lock);
-    ItemLocator locator{};
+    eLock lock(shared_lock_, std::defer_lock);
+    auto locator = ItemLocator{"", {}, "", api_.Factory().Identifier()};
 
     while (running_) {
         if (break_.load()) { return; }
@@ -164,6 +179,22 @@ auto ActivitySummaryItem::ImageURI() const noexcept -> std::string
     return {};
 }
 
+auto ActivitySummaryItem::LoadItemText(
+    const api::client::Manager& api,
+    const identifier::Nym& nym,
+    const CustomData& custom) noexcept -> std::string
+{
+    const auto& box = *static_cast<const StorageBox*>(custom.at(1));
+    const auto& thread = *static_cast<const OTIdentifier*>(custom.at(4));
+    const auto& itemID = *static_cast<const std::string*>(custom.at(0));
+
+    if (StorageBox::BLOCKCHAIN == box) {
+        return api.Blockchain().ActivityDescription(nym, thread, itemID);
+    }
+
+    return {};
+}
+
 #if OT_QT
 QVariant ActivitySummaryItem::qt_data(const int column, int role) const noexcept
 {
@@ -182,8 +213,7 @@ QVariant ActivitySummaryItem::qt_data(const int column, int role) const noexcept
         }
         case 4: {
             QDateTime qdatetime;
-            qdatetime.setSecsSinceEpoch(
-                std::chrono::system_clock::to_time_t(Timestamp()));
+            qdatetime.setSecsSinceEpoch(Clock::to_time_t(Timestamp()));
             return qdatetime;
         }
         case 5: {
@@ -198,22 +228,22 @@ QVariant ActivitySummaryItem::qt_data(const int column, int role) const noexcept
 
 void ActivitySummaryItem::reindex(
     const ActivitySummarySortKey& key,
-    const CustomData& custom) noexcept
+    CustomData& custom) noexcept
 {
     eLock lock(shared_lock_);
     key_ = key;
     lock.unlock();
-    startup(custom, newest_item_);
+    startup(custom);
 }
 
-void ActivitySummaryItem::startup(
-    const CustomData& custom,
-    UniqueQueue<ItemLocator>& queue) noexcept
+void ActivitySummaryItem::startup(CustomData& custom) noexcept
 {
-    const auto id = extract_custom<std::string>(custom, 0);
-    const auto account = extract_custom<std::string>(custom, 2);
-    ItemLocator locator{id, type_, account};
-    queue.Push(++next_task_id_, locator);
+    auto locator = ItemLocator{
+        extract_custom<std::string>(custom, 0),
+        type_,
+        extract_custom<std::string>(custom, 2),
+        extract_custom<OTIdentifier>(custom, 4)};
+    newest_item_.Push(++next_task_id_, std::move(locator));
 }
 
 auto ActivitySummaryItem::Text() const noexcept -> std::string
@@ -228,8 +258,7 @@ auto ActivitySummaryItem::ThreadID() const noexcept -> std::string
     return row_id_->str();
 }
 
-auto ActivitySummaryItem::Timestamp() const noexcept
-    -> std::chrono::system_clock::time_point
+auto ActivitySummaryItem::Timestamp() const noexcept -> Time
 {
     sLock lock(shared_lock_);
 

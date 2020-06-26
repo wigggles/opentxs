@@ -37,8 +37,8 @@ public:
     OPENTXS_EXPORT virtual const Identifier& ClaimID() const noexcept = 0;
     OPENTXS_EXPORT virtual Time End() const noexcept = 0;
     OPENTXS_EXPORT virtual const Identifier& ID() const noexcept = 0;
-    OPENTXS_EXPORT virtual const proto::Signature& Signature() const
-        noexcept = 0;
+    OPENTXS_EXPORT virtual const proto::Signature& Signature()
+        const noexcept = 0;
     OPENTXS_EXPORT virtual Validity Valid() const noexcept = 0;
     OPENTXS_EXPORT virtual Type Value() const noexcept = 0;
     OPENTXS_EXPORT virtual VersionNumber Version() const noexcept = 0;

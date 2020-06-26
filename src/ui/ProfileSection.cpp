@@ -39,7 +39,7 @@ auto ProfileSectionWidget(
     const network::zeromq::socket::Publish& publisher,
     const ui::implementation::ProfileRowID& rowID,
     const ui::implementation::ProfileSortKey& key,
-    const ui::implementation::CustomData& custom
+    ui::implementation::CustomData& custom
 #if OT_QT
     ,
     const bool qt
@@ -169,7 +169,7 @@ ProfileSection::ProfileSection(
     const network::zeromq::socket::Publish& publisher,
     const ProfileRowID& rowID,
     const ProfileSortKey& key,
-    const CustomData& custom
+    CustomData& custom
 #if OT_QT
     ,
     const bool qt
@@ -190,7 +190,10 @@ ProfileSection::ProfileSection(
       )
 {
     init();
-    startup_.reset(new std::thread(&ProfileSection::startup, this, custom));
+    startup_.reset(new std::thread(
+        &ProfileSection::startup,
+        this,
+        extract_custom<opentxs::ContactSection>(custom)));
 
     OT_ASSERT(startup_)
 }
@@ -217,7 +220,7 @@ auto ProfileSection::check_type(const ProfileSectionRowID type) noexcept -> bool
 auto ProfileSection::construct_row(
     const ProfileSectionRowID& id,
     const ProfileSectionSortKey& index,
-    const CustomData& custom) const noexcept -> void*
+    CustomData& custom) const noexcept -> void*
 {
     names_.emplace(id, index);
     const auto [it, added] = items_[index].emplace(
@@ -285,9 +288,7 @@ auto ProfileSection::process_section(
     return active;
 }
 
-void ProfileSection::reindex(
-    const ProfileSortKey&,
-    const CustomData& custom) noexcept
+void ProfileSection::reindex(const ProfileSortKey&, CustomData& custom) noexcept
 {
     delete_inactive(
         process_section(extract_custom<opentxs::ContactSection>(custom)));
@@ -343,9 +344,9 @@ auto ProfileSection::sort_key(const ProfileSectionRowID type) noexcept -> int
     return sort_keys_.at(type.first).at(type.second);
 }
 
-void ProfileSection::startup(const CustomData& custom) noexcept
+void ProfileSection::startup(const opentxs::ContactSection section) noexcept
 {
-    process_section(extract_custom<opentxs::ContactSection>(custom));
+    process_section(section);
     finish_startup();
 }
 }  // namespace opentxs::ui::implementation

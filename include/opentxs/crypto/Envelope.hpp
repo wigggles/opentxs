@@ -36,8 +36,8 @@ public:
     using Recipients = std::set<Nym_p>;
     using SerializedType = proto::Envelope;
 
-    OPENTXS_EXPORT virtual bool Armored(opentxs::Armored& ciphertext) const
-        noexcept = 0;
+    OPENTXS_EXPORT virtual bool Armored(
+        opentxs::Armored& ciphertext) const noexcept = 0;
     OPENTXS_EXPORT virtual bool Open(
         const identity::Nym& recipient,
         const AllocateOutput plaintext,

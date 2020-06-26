@@ -11,7 +11,14 @@
 
 #include "opentxs/Bytes.hpp"
 #include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/blockchain/block/bitcoin/Input.hpp"
+#include "opentxs/blockchain/block/bitcoin/Inputs.hpp"
+#include "opentxs/blockchain/block/bitcoin/Output.hpp"
+#include "opentxs/blockchain/block/bitcoin/Outputs.hpp"
+#include "opentxs/blockchain/block/bitcoin/Script.hpp"
+#include "opentxs/blockchain/block/bitcoin/Transaction.hpp"
 
 namespace opentxs
 {
@@ -57,6 +64,86 @@ class Transaction;
 }  // namespace blockchain
 }  // namespace opentxs
 
+namespace opentxs::blockchain::block::bitcoin::internal
+{
+struct Input : virtual public bitcoin::Input {
+    virtual auto AssociatedLocalNyms(
+        std::vector<OTNymID>& output) const noexcept -> void = 0;
+    virtual auto AssociatedRemoteContacts(
+        std::vector<OTIdentifier>& output) const noexcept -> void = 0;
+    virtual auto clone() const noexcept -> std::unique_ptr<Input> = 0;
+    virtual auto NetBalanceChange(const identifier::Nym& nym) const noexcept
+        -> opentxs::Amount = 0;
+
+    virtual auto MergeMetadata(const SerializeType& rhs) noexcept -> void = 0;
+
+    virtual ~Input() = default;
+};
+struct Inputs : virtual public bitcoin::Inputs {
+    virtual auto AssociatedLocalNyms(
+        std::vector<OTNymID>& output) const noexcept -> void = 0;
+    virtual auto AssociatedRemoteContacts(
+        std::vector<OTIdentifier>& output) const noexcept -> void = 0;
+    virtual auto clone() const noexcept -> std::unique_ptr<Inputs> = 0;
+    virtual auto NetBalanceChange(const identifier::Nym& nym) const noexcept
+        -> opentxs::Amount = 0;
+
+    virtual auto MergeMetadata(const Input::SerializeType& rhs) noexcept(false)
+        -> void = 0;
+
+    virtual ~Inputs() = default;
+};
+struct Output : virtual public bitcoin::Output {
+    virtual auto AssociatedLocalNyms(
+        std::vector<OTNymID>& output) const noexcept -> void = 0;
+    virtual auto AssociatedRemoteContacts(
+        std::vector<OTIdentifier>& output) const noexcept -> void = 0;
+    virtual auto clone() const noexcept -> std::unique_ptr<Output> = 0;
+    virtual auto NetBalanceChange(const identifier::Nym& nym) const noexcept
+        -> opentxs::Amount = 0;
+
+    virtual auto ForTestingOnlyAddKey(const KeyID& key) noexcept -> void = 0;
+    virtual auto MergeMetadata(const SerializeType& rhs) noexcept -> void = 0;
+
+    virtual ~Output() = default;
+};
+struct Outputs : virtual public bitcoin::Outputs {
+    virtual auto AssociatedLocalNyms(
+        std::vector<OTNymID>& output) const noexcept -> void = 0;
+    virtual auto AssociatedRemoteContacts(
+        std::vector<OTIdentifier>& output) const noexcept -> void = 0;
+    virtual auto clone() const noexcept -> std::unique_ptr<Outputs> = 0;
+    virtual auto NetBalanceChange(const identifier::Nym& nym) const noexcept
+        -> opentxs::Amount = 0;
+
+    virtual auto ForTestingOnlyAddKey(
+        const std::size_t index,
+        const api::client::blockchain::Key& key) noexcept -> bool = 0;
+    virtual auto MergeMetadata(const Output::SerializeType& rhs) noexcept(false)
+        -> void = 0;
+
+    virtual ~Outputs() = default;
+};
+struct Script : virtual public bitcoin::Script {
+    virtual auto clone() const noexcept -> std::unique_ptr<Script> = 0;
+    virtual auto LikelyPubkeyHashes(const api::client::Manager& api)
+        const noexcept -> std::vector<OTData> = 0;
+
+    virtual ~Script() = default;
+};
+struct Transaction : virtual public bitcoin::Transaction {
+    OPENTXS_EXPORT virtual auto ForTestingOnlyAddKey(
+        const std::size_t index,
+        const api::client::blockchain::Key& key) noexcept -> bool = 0;
+    virtual auto MergeMetadata(
+        const blockchain::Type chain,
+        const SerializeType& rhs) noexcept -> void = 0;
+    virtual auto SetMemo(const std::string& memo) noexcept -> void = 0;
+
+    virtual ~Transaction() = default;
+};
+}  // namespace opentxs::blockchain::block::bitcoin::internal
+
 namespace opentxs::factory
 {
 #if OT_BLOCKCHAIN
@@ -82,59 +169,67 @@ auto BitcoinBlockHeader(
     const blockchain::block::Height height) noexcept
     -> std::unique_ptr<blockchain::block::bitcoin::internal::Header>;
 OPENTXS_EXPORT auto BitcoinScript(
+    const blockchain::Type chain,
     const ReadView bytes,
     const bool outputScript = true,
     const bool isGeneration = false,
     const bool allowInvalidOpcodes = true) noexcept
-    -> std::unique_ptr<blockchain::block::bitcoin::Script>;
+    -> std::unique_ptr<blockchain::block::bitcoin::internal::Script>;
 OPENTXS_EXPORT auto BitcoinScript(
+    const blockchain::Type chain,
     blockchain::block::bitcoin::ScriptElements&& elements,
     const bool outputScript = true,
     const bool isGeneration = false) noexcept
-    -> std::unique_ptr<blockchain::block::bitcoin::Script>;
+    -> std::unique_ptr<blockchain::block::bitcoin::internal::Script>;
 OPENTXS_EXPORT auto BitcoinTransaction(
     const api::client::Manager& api,
     const blockchain::Type chain,
     const bool isGeneration,
+    const Time& time,
     blockchain::bitcoin::EncodedTransaction&& parsed) noexcept
-    -> std::shared_ptr<blockchain::block::bitcoin::Transaction>;
+    -> std::unique_ptr<blockchain::block::bitcoin::internal::Transaction>;
 OPENTXS_EXPORT auto BitcoinTransaction(
     const api::client::Manager& api,
-    const bool isGeneration,
     const proto::BlockchainTransaction& serialized) noexcept
-    -> std::shared_ptr<blockchain::block::bitcoin::Transaction>;
+    -> std::unique_ptr<blockchain::block::bitcoin::internal::Transaction>;
 OPENTXS_EXPORT auto BitcoinTransactionInput(
     const api::client::Manager& api,
+    const blockchain::Type chain,
     const ReadView outpoint,
     const blockchain::bitcoin::CompactSize& cs,
     const ReadView script,
     const ReadView sequence,
     const bool isGeneration,
     std::vector<Space>&& witness) noexcept
-    -> std::unique_ptr<blockchain::block::bitcoin::Input>;
+    -> std::unique_ptr<blockchain::block::bitcoin::internal::Input>;
 OPENTXS_EXPORT auto BitcoinTransactionInput(
     const api::client::Manager& api,
+    const blockchain::Type chain,
     const proto::BlockchainTransactionInput,
     const bool isGeneration) noexcept
-    -> std::unique_ptr<blockchain::block::bitcoin::Input>;
+    -> std::unique_ptr<blockchain::block::bitcoin::internal::Input>;
 auto BitcoinTransactionInputs(
-    std::vector<std::unique_ptr<blockchain::block::bitcoin::Input>>&& inputs,
+    std::vector<std::unique_ptr<blockchain::block::bitcoin::internal::Input>>&&
+        inputs,
     std::optional<std::size_t> size = {}) noexcept
-    -> std::unique_ptr<blockchain::block::bitcoin::Inputs>;
+    -> std::unique_ptr<blockchain::block::bitcoin::internal::Inputs>;
 OPENTXS_EXPORT auto BitcoinTransactionOutput(
     const api::client::Manager& api,
+    const blockchain::Type chain,
     const std::uint32_t index,
     const std::int64_t value,
     const blockchain::bitcoin::CompactSize& cs,
     const ReadView script) noexcept
-    -> std::unique_ptr<blockchain::block::bitcoin::Output>;
+    -> std::unique_ptr<blockchain::block::bitcoin::internal::Output>;
 OPENTXS_EXPORT auto BitcoinTransactionOutput(
     const api::client::Manager& api,
+    const blockchain::Type chain,
     const proto::BlockchainTransactionOutput) noexcept
-    -> std::unique_ptr<blockchain::block::bitcoin::Output>;
+    -> std::unique_ptr<blockchain::block::bitcoin::internal::Output>;
 auto BitcoinTransactionOutputs(
-    std::vector<std::unique_ptr<blockchain::block::bitcoin::Output>>&& outputs,
+    std::vector<std::unique_ptr<blockchain::block::bitcoin::internal::Output>>&&
+        outputs,
     std::optional<std::size_t> size = {}) noexcept
-    -> std::unique_ptr<blockchain::block::bitcoin::Outputs>;
+    -> std::unique_ptr<blockchain::block::bitcoin::internal::Outputs>;
 #endif  // OT_BLOCKCHAIN
 }  // namespace opentxs::factory

@@ -88,7 +88,7 @@ public:
 
     void reindex(
         const ContactSubsectionSortKey& key,
-        const CustomData& custom) noexcept final;
+        CustomData& custom) noexcept final;
 
     ContactItem(
         const ContactSubsectionInternalInterface& parent,
@@ -96,7 +96,7 @@ public:
         const network::zeromq::socket::Publish& publisher,
         const ContactSubsectionRowID& rowID,
         const ContactSubsectionSortKey& sortKey,
-        const CustomData& custom) noexcept;
+        CustomData& custom) noexcept;
     ~ContactItem() = default;
 
 private:

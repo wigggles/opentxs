@@ -11,10 +11,13 @@
 #include <set>
 #include <string>
 #include <tuple>
+#include <vector>
 
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/api/Editor.hpp"
+#include "opentxs/core/Data.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "storage/tree/Node.hpp"
 
 namespace opentxs
@@ -41,13 +44,43 @@ namespace storage
 {
 class Threads final : public Node
 {
-private:
     using ot_super = Node;
+
+public:
+    auto BlockchainThreadMap(const Data& txid) const noexcept
+        -> std::vector<OTIdentifier>;
+    auto BlockchainTransactionList() const noexcept -> std::vector<OTData>;
+    auto Exists(const std::string& id) const -> bool;
+    using ot_super::List;
+    auto List(const bool unreadOnly) const -> ObjectList;
+    auto Migrate(const opentxs::api::storage::Driver& to) const -> bool final;
+    auto Thread(const std::string& id) const -> const storage::Thread&;
+
+    auto AddIndex(const Data& txid, const Identifier& thread) noexcept -> void;
+    auto Create(
+        const std::string& id,
+        const std::set<std::string>& participants) -> std::string;
+    auto FindAndDeleteItem(const std::string& itemID) -> bool;
+    auto mutable_Thread(const std::string& id) -> Editor<storage::Thread>;
+    auto RemoveIndex(const Data& txid, const Identifier& thread) noexcept
+        -> void;
+    auto Rename(const std::string& existingID, const std::string& newID)
+        -> bool;
+
+    ~Threads() final = default;
+
+private:
     friend Nym;
+
+    struct BlockchainThreadIndex {
+        mutable std::mutex lock_{};
+        std::map<OTData, std::set<OTIdentifier>> map_{};
+    };
 
     mutable std::map<std::string, std::unique_ptr<storage::Thread>> threads_;
     Mailbox& mail_inbox_;
     Mailbox& mail_outbox_;
+    BlockchainThreadIndex blockchain_;
 
     auto save(const std::unique_lock<std::mutex>& lock) const -> bool final;
     auto serialize() const -> proto::StorageNymList;
@@ -75,23 +108,6 @@ private:
     Threads(Threads&&) = delete;
     auto operator=(const Threads&) -> Threads = delete;
     auto operator=(Threads &&) -> Threads = delete;
-
-public:
-    auto Exists(const std::string& id) const -> bool;
-    using ot_super::List;
-    auto List(const bool unreadOnly) const -> ObjectList;
-    auto Migrate(const opentxs::api::storage::Driver& to) const -> bool final;
-    auto Thread(const std::string& id) const -> const storage::Thread&;
-
-    auto Create(
-        const std::string& id,
-        const std::set<std::string>& participants) -> std::string;
-    auto FindAndDeleteItem(const std::string& itemID) -> bool;
-    auto mutable_Thread(const std::string& id) -> Editor<storage::Thread>;
-    auto Rename(const std::string& existingID, const std::string& newID)
-        -> bool;
-
-    ~Threads() final = default;
 };
 }  // namespace storage
 }  // namespace opentxs

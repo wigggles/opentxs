@@ -7,6 +7,7 @@
 #include "1_Internal.hpp"                       // IWYU pragma: associated
 #include "blockchain/block/bitcoin/Inputs.hpp"  // IWYU pragma: associated
 
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
@@ -16,12 +17,12 @@
 #include <utility>
 
 #include "blockchain/bitcoin/CompactSize.hpp"
-#include "internal/blockchain/block/bitcoin/Bitcoin.hpp"
 #include "opentxs/blockchain/block/bitcoin/Input.hpp"
 #include "opentxs/blockchain/block/bitcoin/Inputs.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/protobuf/BlockchainTransaction.pb.h"
+#include "util/Container.hpp"
 
 #define OT_METHOD                                                              \
     "opentxs::blockchain::block::bitcoin::implementation::Inputs::"
@@ -31,9 +32,10 @@ namespace opentxs::factory
 using ReturnType = blockchain::block::bitcoin::implementation::Inputs;
 
 auto BitcoinTransactionInputs(
-    std::vector<std::unique_ptr<blockchain::block::bitcoin::Input>>&& inputs,
+    std::vector<std::unique_ptr<blockchain::block::bitcoin::internal::Input>>&&
+        inputs,
     std::optional<std::size_t> size) noexcept
-    -> std::unique_ptr<blockchain::block::bitcoin::Inputs>
+    -> std::unique_ptr<blockchain::block::bitcoin::internal::Inputs>
 {
     try {
 
@@ -48,9 +50,8 @@ auto BitcoinTransactionInputs(
 
 namespace opentxs::blockchain::block::bitcoin::implementation
 {
-Inputs::Inputs(
-    std::vector<std::unique_ptr<bitcoin::Input>>&& inputs,
-    std::optional<std::size_t> size) noexcept(false)
+Inputs::Inputs(InputList&& inputs, std::optional<std::size_t> size) noexcept(
+    false)
     : inputs_(std::move(inputs))
     , size_(size)
     , normalized_size_()
@@ -58,6 +59,31 @@ Inputs::Inputs(
     for (const auto& input : inputs_) {
         if (false == bool(input)) { throw std::runtime_error("invalid input"); }
     }
+}
+
+Inputs::Inputs(const Inputs& rhs) noexcept
+    : inputs_(clone(rhs.inputs_))
+    , size_(rhs.size_)
+    , normalized_size_(rhs.normalized_size_)
+{
+}
+
+auto Inputs::AssociatedLocalNyms(std::vector<OTNymID>& output) const noexcept
+    -> void
+{
+    std::for_each(
+        std::begin(inputs_), std::end(inputs_), [&](const auto& item) {
+            item->AssociatedLocalNyms(output);
+        });
+}
+
+auto Inputs::AssociatedRemoteContacts(
+    std::vector<OTIdentifier>& output) const noexcept -> void
+{
+    std::for_each(
+        std::begin(inputs_), std::end(inputs_), [&](const auto& item) {
+            item->AssociatedRemoteContacts(output);
+        });
 }
 
 auto Inputs::CalculateSize(const bool normalized) const noexcept -> std::size_t
@@ -76,6 +102,18 @@ auto Inputs::CalculateSize(const bool normalized) const noexcept -> std::size_t
     }
 
     return output.value();
+}
+
+auto Inputs::clone(const InputList& rhs) noexcept -> InputList
+{
+    auto output = InputList{};
+    std::transform(
+        std::begin(rhs),
+        std::end(rhs),
+        std::back_inserter(output),
+        [](const auto& in) { return in->clone(); });
+
+    return output;
 }
 
 auto Inputs::ExtractElements(const filter::Type style) const noexcept
@@ -117,6 +155,32 @@ auto Inputs::FindMatches(
     }
 
     return output;
+}
+
+auto Inputs::GetPatterns() const noexcept -> std::vector<PatternID>
+{
+    auto output = std::vector<PatternID>{};
+    std::for_each(
+        std::begin(inputs_), std::end(inputs_), [&](const auto& txin) {
+            const auto patterns = txin->GetPatterns();
+            output.insert(output.end(), patterns.begin(), patterns.end());
+        });
+
+    dedup(output);
+
+    return output;
+}
+
+auto Inputs::NetBalanceChange(const identifier::Nym& nym) const noexcept
+    -> opentxs::Amount
+{
+    return std::accumulate(
+        std::begin(inputs_),
+        std::end(inputs_),
+        opentxs::Amount{0},
+        [&](const auto prev, const auto& input) -> auto {
+            return prev + input->NetBalanceChange(nym);
+        });
 }
 
 auto Inputs::serialize(const AllocateOutput destination, const bool normalize)

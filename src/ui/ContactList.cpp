@@ -228,7 +228,7 @@ auto ContactList::AddContact(
 void ContactList::add_item(
     const ContactListRowID& id,
     const ContactListSortKey& index,
-    const CustomData& custom) noexcept
+    CustomData& custom) noexcept
 {
     LogVerbose(OT_METHOD)(__FUNCTION__)(": Widget ID: ")(WidgetID()).Flush();
 
@@ -245,7 +245,7 @@ void ContactList::add_item(
 auto ContactList::construct_row(
     const ContactListRowID& id,
     const ContactListSortKey& index,
-    const CustomData&) const noexcept -> void*
+    CustomData&) const noexcept -> void*
 {
     names_.emplace(id, index);
     const auto [it, added] = items_[index].emplace(
@@ -297,7 +297,8 @@ void ContactList::process_contact(
     OT_ASSERT(false == contactID->empty())
 
     const auto name = api_.Contacts().ContactName(contactID);
-    add_item(contactID, name, {});
+    auto custom = CustomData{};
+    add_item(contactID, name, custom);
 }
 
 void ContactList::startup() noexcept
@@ -308,7 +309,8 @@ void ContactList::startup() noexcept
         .Flush();
 
     for (const auto& [id, alias] : contacts) {
-        add_item(Identifier::Factory(id), alias, {});
+        auto custom = CustomData{};
+        add_item(Identifier::Factory(id), alias, custom);
     }
 
     finish_startup();

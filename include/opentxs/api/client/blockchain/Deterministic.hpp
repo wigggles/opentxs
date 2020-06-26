@@ -39,8 +39,8 @@ public:
         const Subchain type) const noexcept = 0;
     OPENTXS_EXPORT virtual proto::HDPath Path() const noexcept = 0;
 #if OT_CRYPTO_WITH_BIP32
-    OPENTXS_EXPORT virtual HDKey RootNode(const PasswordPrompt& reason) const
-        noexcept = 0;
+    OPENTXS_EXPORT virtual HDKey RootNode(
+        const PasswordPrompt& reason) const noexcept = 0;
     OPENTXS_EXPORT virtual std::optional<Bip32Index> UseNext(
         const Subchain type,
         const PasswordPrompt& reason,

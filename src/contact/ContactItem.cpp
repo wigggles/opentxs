@@ -9,6 +9,7 @@
 
 #include <memory>
 #include <tuple>
+#include <utility>
 
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -55,7 +56,7 @@ ContactItem::ContactItem(
     }
 }
 
-ContactItem::ContactItem(const ContactItem& rhs)
+ContactItem::ContactItem(const ContactItem& rhs) noexcept
     : api_(rhs.api_)
     , version_(rhs.version_)
     , nym_(rhs.nym_)
@@ -67,6 +68,22 @@ ContactItem::ContactItem(const ContactItem& rhs)
     , attributes_(rhs.attributes_)
     , id_(rhs.id_)
     , subtype_(rhs.subtype_)
+{
+}
+
+ContactItem::ContactItem(ContactItem&& rhs) noexcept
+    : api_(rhs.api_)
+    , version_(rhs.version_)
+    , nym_(std::move(const_cast<std::string&>(rhs.nym_)))
+    , section_(rhs.section_)
+    , type_(rhs.type_)
+    , value_(std::move(const_cast<std::string&>(rhs.value_)))
+    , start_(rhs.start_)
+    , end_(rhs.end_)
+    , attributes_(std::move(
+          const_cast<std::set<proto::ContactItemAttribute>&>(rhs.attributes_)))
+    , id_(std::move(const_cast<OTIdentifier&>(rhs.id_)))
+    , subtype_(std::move(const_cast<std::string&>(rhs.subtype_)))
 {
 }
 

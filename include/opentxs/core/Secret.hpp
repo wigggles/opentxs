@@ -54,28 +54,28 @@ class Secret
 public:
     enum class Mode : bool { Mem = true, Text = false };
 
-    OPENTXS_EXPORT virtual bool operator==(const Secret& rhs) const
-        noexcept = 0;
-    OPENTXS_EXPORT virtual bool operator==(const ReadView rhs) const
-        noexcept = 0;
-    OPENTXS_EXPORT virtual bool operator!=(const Secret& rhs) const
-        noexcept = 0;
-    OPENTXS_EXPORT virtual bool operator!=(const ReadView rhs) const
-        noexcept = 0;
+    OPENTXS_EXPORT virtual bool operator==(
+        const Secret& rhs) const noexcept = 0;
+    OPENTXS_EXPORT virtual bool operator==(
+        const ReadView rhs) const noexcept = 0;
+    OPENTXS_EXPORT virtual bool operator!=(
+        const Secret& rhs) const noexcept = 0;
+    OPENTXS_EXPORT virtual bool operator!=(
+        const ReadView rhs) const noexcept = 0;
     OPENTXS_EXPORT virtual bool operator<(const Secret& rhs) const noexcept = 0;
-    OPENTXS_EXPORT virtual bool operator<(const ReadView rhs) const
-        noexcept = 0;
+    OPENTXS_EXPORT virtual bool operator<(
+        const ReadView rhs) const noexcept = 0;
     OPENTXS_EXPORT virtual bool operator>(const Secret& rhs) const noexcept = 0;
-    OPENTXS_EXPORT virtual bool operator>(const ReadView rhs) const
-        noexcept = 0;
-    OPENTXS_EXPORT virtual bool operator<=(const Secret& rhs) const
-        noexcept = 0;
-    OPENTXS_EXPORT virtual bool operator<=(const ReadView& rhs) const
-        noexcept = 0;
-    OPENTXS_EXPORT virtual bool operator>=(const Secret& rhs) const
-        noexcept = 0;
-    OPENTXS_EXPORT virtual bool operator>=(const ReadView& rhs) const
-        noexcept = 0;
+    OPENTXS_EXPORT virtual bool operator>(
+        const ReadView rhs) const noexcept = 0;
+    OPENTXS_EXPORT virtual bool operator<=(
+        const Secret& rhs) const noexcept = 0;
+    OPENTXS_EXPORT virtual bool operator<=(
+        const ReadView& rhs) const noexcept = 0;
+    OPENTXS_EXPORT virtual bool operator>=(
+        const Secret& rhs) const noexcept = 0;
+    OPENTXS_EXPORT virtual bool operator>=(
+        const ReadView& rhs) const noexcept = 0;
     OPENTXS_EXPORT virtual ReadView Bytes() const noexcept = 0;
     OPENTXS_EXPORT virtual const std::byte* data() const noexcept = 0;
     OPENTXS_EXPORT virtual bool empty() const noexcept = 0;

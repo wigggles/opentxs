@@ -132,7 +132,7 @@ AccountSummary::AccountSummary(
 auto AccountSummary::construct_row(
     const AccountSummaryRowID& id,
     const AccountSummarySortKey& index,
-    const CustomData& custom) const noexcept -> void*
+    CustomData& custom) const noexcept -> void*
 {
     names_.emplace(id, index);
     const auto [it, added] = items_[index].emplace(
@@ -207,7 +207,7 @@ void AccountSummary::process_connection(
 void AccountSummary::process_issuer(const identifier::Nym& issuerID) noexcept
 {
     issuers_.emplace(issuerID);
-    const CustomData custom{};
+    CustomData custom{};
     add_item(issuerID, extract_key(primary_id_, issuerID), custom);
 }
 
@@ -274,7 +274,7 @@ void AccountSummary::process_server(const identifier::Server& serverID) noexcept
 
     const auto issuerID = it->second;
     lock.unlock();
-    const CustomData custom{};
+    CustomData custom{};
     add_item(issuerID, extract_key(primary_id_, issuerID), custom);
 }
 

@@ -40,17 +40,22 @@ public:
     OPENTXS_EXPORT virtual auto cbegin() const noexcept -> const_iterator = 0;
     OPENTXS_EXPORT virtual auto cend() const noexcept -> const_iterator = 0;
     OPENTXS_EXPORT virtual auto end() const noexcept -> const_iterator = 0;
-    OPENTXS_EXPORT virtual auto ExtractElements(const filter::Type style) const
-        noexcept -> std::vector<Space> = 0;
+    OPENTXS_EXPORT virtual auto ExtractElements(
+        const filter::Type style) const noexcept -> std::vector<Space> = 0;
     OPENTXS_EXPORT virtual auto FindMatches(
         const ReadView txid,
         const FilterType type,
         const Patterns& elements) const noexcept -> Matches = 0;
+    OPENTXS_EXPORT virtual auto GetPatterns() const noexcept
+        -> std::vector<PatternID> = 0;
     OPENTXS_EXPORT virtual auto Serialize(const AllocateOutput destination)
         const noexcept -> std::optional<std::size_t> = 0;
     OPENTXS_EXPORT virtual auto Serialize(
         proto::BlockchainTransaction& destination) const noexcept -> bool = 0;
     OPENTXS_EXPORT virtual auto size() const noexcept -> std::size_t = 0;
+
+    virtual auto at(const std::size_t position) noexcept(false)
+        -> value_type& = 0;
 
     virtual ~Outputs() = default;
 

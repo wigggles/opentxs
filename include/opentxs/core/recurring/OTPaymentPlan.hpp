@@ -144,8 +144,8 @@ public:
 
     OPENTXS_EXPORT bool SetPaymentPlan(
         const Amount lPaymentAmount,
-        const std::chrono::seconds tTimeUntilPlanStart = std::chrono::hours{24 *
-                                                                            30},
+        const std::chrono::seconds tTimeUntilPlanStart =
+            std::chrono::hours{24 * 30},
         const std::chrono::seconds tBetweenPayments =
             std::chrono::hours{24 * 30},  // Default: 30
                                           // days.

@@ -16,10 +16,11 @@
 #include <tuple>
 
 #include "internal/api/client/Client.hpp"
+#include "internal/blockchain/block/bitcoin/Bitcoin.hpp"
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/Proto.hpp"
-#include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
+#include "opentxs/api/client/Blockchain.hpp"
+#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/blockchain/block/bitcoin/Input.hpp"
 #include "opentxs/blockchain/block/bitcoin/Inputs.hpp"
@@ -55,11 +56,13 @@ auto delete_from_vector(std::vector<Key>& vector, const Key& key) noexcept
 namespace opentxs::blockchain::database
 {
 Wallet::Wallet(
-    const api::Core& api,
+    const api::client::Manager& api,
     const api::client::internal::Blockchain& blockchain,
+    const Common& common,
     const blockchain::Type chain) noexcept
     : api_(api)
     , blockchain_(blockchain)
+    , common_(common)
     , chain_(chain)
     , lock_()
     , patterns_()
@@ -73,7 +76,6 @@ Wallet::Wallet(
     , output_positions_()
     , output_states_()
     , output_subchain_()
-    , transactions_()
     , tx_to_block_()
     , block_to_tx_()
     , tx_history_()
@@ -82,27 +84,11 @@ Wallet::Wallet(
 
 auto Wallet::add_transaction(
     const Lock& lock,
+    const blockchain::Type chain,
     const block::Position& block,
     const block::bitcoin::Transaction& transaction) const noexcept -> bool
 {
     const auto& [height, blockHash] = block;
-
-    if (auto it = transactions_.find(transaction.ID());
-        transactions_.end() != it) {
-        auto& serialized = it->second;
-        transaction.MergeMetadata(serialized);
-        auto updated = transaction.Serialize();
-
-        OT_ASSERT(updated.has_value());
-
-        serialized = std::move(updated.value());
-    } else {
-        auto serialized = transaction.Serialize();
-
-        OT_ASSERT(serialized.has_value());
-
-        transactions_.emplace(transaction.ID(), std::move(serialized.value()));
-    }
 
     {
         auto& index = tx_to_block_[transaction.ID()];
@@ -122,10 +108,14 @@ auto Wallet::add_transaction(
         dedup(index);
     }
 
-    return true;
+    const auto reason =
+        api_.Factory().PasswordPrompt("Save a received blockchain transaction");
+
+    return api_.Blockchain().ProcessTransaction(chain, transaction, reason);
 }
 
 auto Wallet::AddConfirmedTransaction(
+    const blockchain::Type chain,
     const NodeID& balanceNode,
     const Subchain subchain,
     const FilterType type,
@@ -136,7 +126,7 @@ auto Wallet::AddConfirmedTransaction(
 {
     Lock lock(lock_);
 
-    if (false == add_transaction(lock, block, transaction)) {
+    if (false == add_transaction(lock, chain, block, transaction)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Error adding transaction to database")
             .Flush();
@@ -805,5 +795,15 @@ auto Wallet::subchain_id(
     output->CalculateDigest(preimage->Bytes());
 
     return output;
+}
+
+auto Wallet::TransactionLoadBitcoin(const ReadView txid) const noexcept
+    -> std::unique_ptr<block::bitcoin::Transaction>
+{
+    const auto serialized = common_.LoadTransaction(txid);
+
+    if (false == serialized.has_value()) { return {}; }
+
+    return factory::BitcoinTransaction(api_, serialized.value());
 }
 }  // namespace opentxs::blockchain::database

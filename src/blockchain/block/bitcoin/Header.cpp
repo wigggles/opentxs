@@ -24,6 +24,7 @@
 #include "opentxs/blockchain/NumericHash.hpp"
 #include "opentxs/blockchain/Work.hpp"
 #include "opentxs/blockchain/block/bitcoin/Header.hpp"
+#include "opentxs/blockchain/client/HeaderOracle.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"

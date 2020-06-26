@@ -196,7 +196,7 @@ private:
     auto construct_row(
         const ActivityThreadRowID& id,
         const ActivityThreadSortKey& index,
-        const CustomData& custom) const noexcept -> void* final;
+        CustomData& custom) const noexcept -> void* final;
     auto send_cheque(
         const Amount amount,
         const Identifier& sourceAccount,

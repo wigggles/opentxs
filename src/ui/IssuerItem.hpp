@@ -91,9 +91,8 @@ public:
     QVariant qt_data(const int column, const int role) const noexcept final;
 #endif
 
-    void reindex(
-        const AccountSummarySortKey& key,
-        const CustomData& custom) noexcept final;
+    void reindex(const AccountSummarySortKey& key, CustomData& custom) noexcept
+        final;
 
     IssuerItem(
         const AccountSummaryInternalInterface& parent,
@@ -101,7 +100,7 @@ public:
         const network::zeromq::socket::Publish& publisher,
         const AccountSummaryRowID& rowID,
         const AccountSummarySortKey& sortKey,
-        const CustomData& custom,
+        CustomData& custom,
         const proto::ContactItemType currency
 #if OT_QT
         ,
@@ -120,7 +119,7 @@ private:
     auto construct_row(
         const IssuerItemRowID& id,
         const IssuerItemSortKey& index,
-        const CustomData& custom) const noexcept -> void* final;
+        CustomData& custom) const noexcept -> void* final;
 
     void process_account(const Identifier& accountID) noexcept;
     void process_account(const network::zeromq::Message& message) noexcept;

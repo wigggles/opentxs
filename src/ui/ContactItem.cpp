@@ -19,7 +19,7 @@ auto ContactItemWidget(
     const network::zeromq::socket::Publish& publisher,
     const ui::implementation::ContactSubsectionRowID& rowID,
     const ui::implementation::ContactSubsectionSortKey& sortKey,
-    const ui::implementation::CustomData& custom) noexcept
+    ui::implementation::CustomData& custom) noexcept
     -> std::shared_ptr<ui::implementation::ContactSubsectionRowInternal>
 {
     using ReturnType = ui::implementation::ContactItem;
@@ -37,7 +37,7 @@ ContactItem::ContactItem(
     const network::zeromq::socket::Publish& publisher,
     const ContactSubsectionRowID& rowID,
     const ContactSubsectionSortKey& sortKey,
-    const CustomData& custom) noexcept
+    CustomData& custom) noexcept
     : ContactItemRow(parent, api, publisher, rowID, true)
     , item_{new opentxs::ContactItem(
           extract_custom<opentxs::ContactItem>(custom))}
@@ -47,7 +47,7 @@ ContactItem::ContactItem(
 
 void ContactItem::reindex(
     const ContactSubsectionSortKey&,
-    const CustomData& custom) noexcept
+    CustomData& custom) noexcept
 {
     eLock lock(shared_lock_);
     item_.reset(

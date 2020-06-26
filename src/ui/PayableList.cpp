@@ -121,7 +121,7 @@ PayableList::PayableList(
 auto PayableList::construct_row(
     const PayableListRowID& id,
     const PayableListSortKey& index,
-    const CustomData& custom) const noexcept -> void*
+    CustomData& custom) const noexcept -> void*
 {
     OT_ASSERT(1 == custom.size())
 
@@ -166,8 +166,8 @@ void PayableList::process_contact(
     OT_ASSERT(paymentCode);
 
     if (!paymentCode->empty()) {
-
-        add_item(id, key, {paymentCode.release()});
+        auto custom = CustomData{paymentCode.release()};
+        add_item(id, key, custom);
     } else {
         LogDetail(OT_METHOD)(__FUNCTION__)(": Skipping unpayable contact ")(id)
             .Flush();

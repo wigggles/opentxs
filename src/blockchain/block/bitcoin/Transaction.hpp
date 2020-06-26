@@ -9,8 +9,10 @@
 #include <cstdint>
 #include <memory>
 #include <optional>
+#include <string>
 #include <vector>
 
+#include "internal/blockchain/block/bitcoin/Bitcoin.hpp"
 #include "opentxs/Bytes.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
@@ -18,6 +20,7 @@
 #include "opentxs/blockchain/block/bitcoin/Outputs.hpp"
 #include "opentxs/blockchain/block/bitcoin/Transaction.hpp"
 #include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
 
 namespace opentxs
 {
@@ -32,14 +35,25 @@ class Manager;
 
 namespace opentxs::blockchain::block::bitcoin::implementation
 {
-class Transaction final : public bitcoin::Transaction
+class Transaction final : public internal::Transaction
 {
 public:
     static const VersionNumber default_version_;
 
+    auto AssociatedLocalNyms() const noexcept -> std::vector<OTNymID> final;
+    auto AssociatedRemoteContacts(const identifier::Nym& nym) const noexcept
+        -> std::vector<OTIdentifier> final;
     auto CalculateSize() const noexcept -> std::size_t final
     {
         return calculate_size(false);
+    }
+    auto Chains() const noexcept -> std::vector<blockchain::Type> final
+    {
+        return chains_;
+    }
+    auto clone() const noexcept -> std::unique_ptr<internal::Transaction> final
+    {
+        return std::make_unique<Transaction>(*this);
     }
     auto ExtractElements(const filter::Type style) const noexcept
         -> std::vector<Space> final;
@@ -47,6 +61,7 @@ public:
         const FilterType type,
         const Patterns& txos,
         const Patterns& elements) const noexcept -> Matches final;
+    auto GetPatterns() const noexcept -> std::vector<PatternID> final;
     auto ID() const noexcept -> const Txid& final { return txid_; }
     auto IDNormalized() const noexcept -> const Identifier&;
     auto Inputs() const noexcept -> const bitcoin::Inputs& final
@@ -54,7 +69,9 @@ public:
         return *inputs_;
     }
     auto Locktime() const noexcept -> std::uint32_t final { return lock_time_; }
-    auto MergeMetadata(const SerializeType& rhs) const noexcept -> void final;
+    auto Memo() const noexcept -> std::string final;
+    auto NetBalanceChange(const identifier::Nym& nym) const noexcept
+        -> opentxs::Amount final;
     auto Outputs() const noexcept -> const bitcoin::Outputs& final
     {
         return *outputs_;
@@ -63,36 +80,59 @@ public:
     auto Serialize(const AllocateOutput destination) const noexcept
         -> std::optional<std::size_t> final;
     auto Serialize() const noexcept -> std::optional<SerializeType> final;
+    auto Timestamp() const noexcept -> Time final { return time_; }
     auto Version() const noexcept -> std::int32_t final { return version_; }
     auto WTXID() const noexcept -> const Txid& final { return wtxid_; }
+
+    auto ForTestingOnlyAddKey(
+        const std::size_t index,
+        const api::client::blockchain::Key& key) noexcept -> bool final
+    {
+        return outputs_->ForTestingOnlyAddKey(index, key);
+    }
+    auto MergeMetadata(
+        const blockchain::Type chain,
+        const SerializeType& rhs) noexcept -> void final;
+    auto SetMemo(const std::string& memo) noexcept -> void final
+    {
+        memo_ = memo;
+    }
 
     Transaction(
         const api::client::Manager& api,
         const VersionNumber serializeVersion,
-        const blockchain::Type chain,
+        const bool isGeneration,
         const std::int32_t version,
         const std::byte segwit,
         const std::uint32_t lockTime,
         const pTxid&& txid,
         const pTxid&& wtxid,
-        std::unique_ptr<const bitcoin::Inputs> inputs,
-        std::unique_ptr<const bitcoin::Outputs> outputs) noexcept(false);
+        const Time& time,
+        const std::string& memo,
+        std::unique_ptr<internal::Inputs> inputs,
+        std::unique_ptr<internal::Outputs> outputs,
+        std::vector<blockchain::Type>&& chains) noexcept(false);
+    Transaction(const Transaction&) noexcept;
+
     ~Transaction() final = default;
 
 private:
     const api::client::Manager& api_;
-    const blockchain::Type chain_;
     const VersionNumber serialize_version_;
+    const bool is_generation_;
     const std::int32_t version_;
     const std::byte segwit_flag_;
     const std::uint32_t lock_time_;
     const pTxid txid_;
     const pTxid wtxid_;
-    const std::unique_ptr<const bitcoin::Inputs> inputs_;
-    const std::unique_ptr<const bitcoin::Outputs> outputs_;
+    const Time time_;
+    const std::unique_ptr<internal::Inputs> inputs_;
+    const std::unique_ptr<internal::Outputs> outputs_;
     mutable std::optional<OTIdentifier> normalized_id_;
     mutable std::optional<std::size_t> size_;
     mutable std::optional<std::size_t> normalized_size_;
+    std::string memo_;
+    std::vector<blockchain::Type> chains_;
 
     static auto calculate_witness_size(const Space& witness) noexcept
         -> std::size_t;
@@ -105,7 +145,6 @@ private:
         const noexcept -> std::optional<std::size_t>;
 
     Transaction() = delete;
-    Transaction(const Transaction&) = delete;
     Transaction(Transaction&&) = delete;
     auto operator=(const Transaction&) -> Transaction& = delete;
     auto operator=(Transaction &&) -> Transaction& = delete;

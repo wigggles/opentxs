@@ -12,7 +12,6 @@
 #include <ctime>
 #include <functional>
 #include <limits>
-#include <map>
 #include <stdexcept>
 #include <string_view>
 #include <thread>
@@ -20,6 +19,7 @@
 #include <vector>
 
 #include "2_Factory.hpp"
+#include "internal/api/client/blockchain/Blockchain.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/api/Editor.hpp"
@@ -29,6 +29,7 @@
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/api/storage/Multiplex.hpp"
+#include "opentxs/core/Data.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
@@ -42,7 +43,6 @@
 #include "storage/StorageConfig.hpp"
 #include "storage/tree/Accounts.hpp"
 #include "storage/tree/Bip47Channels.hpp"
-#include "storage/tree/BlockchainTransactions.hpp"
 #include "storage/tree/Contacts.hpp"
 #include "storage/tree/Contexts.hpp"
 #include "storage/tree/Credentials.hpp"
@@ -60,7 +60,6 @@
 #include "storage/tree/Thread.hpp"
 #include "storage/tree/Threads.hpp"
 #include "storage/tree/Tree.hpp"
-#include "storage/tree/Txos.hpp"
 #include "storage/tree/Units.hpp"
 
 #define STORAGE_CONFIG_KEY "storage"
@@ -329,7 +328,14 @@ auto Factory::Storage(
     config.Save();
 
     return new api::storage::implementation::Storage(
-        running, storageConfig, defaultPlugin, migrate, old, hash, random);
+        crypto,
+        running,
+        storageConfig,
+        defaultPlugin,
+        migrate,
+        old,
+        hash,
+        random);
 }
 }  // namespace opentxs
 
@@ -338,6 +344,7 @@ namespace opentxs::api::storage::implementation
 const std::uint32_t Storage::HASH_TYPE = 2;  // BTC160
 
 Storage::Storage(
+    const api::Crypto& crypto,
     const Flag& running,
     const StorageConfig& config,
     const String& primary,
@@ -345,7 +352,8 @@ Storage::Storage(
     const String& previous,
     const Digest& hash,
     const Random& random)
-    : running_(running)
+    : crypto_(crypto)
+    , running_(running)
     , gc_interval_(config.gc_interval_)
     , write_lock_()
     , root_(nullptr)
@@ -641,6 +649,13 @@ auto Storage::Bip47RemotePaymentCode(
         .RemotePaymentCode(channelID);
 }
 
+auto Storage::blockchain_thread_item_id(
+    const opentxs::blockchain::Type chain,
+    const Data& txid) const noexcept -> std::string
+{
+    return opentxs::blockchain_thread_item_id(crypto_, chain, txid)->str();
+}
+
 auto Storage::BlockchainAccountList(
     const std::string& nymID,
     const proto::ContactItemType type) const -> std::set<std::string>
@@ -655,17 +670,34 @@ auto Storage::BlockchainAccountType(
     return Root().Tree().Nyms().Nym(nymID).BlockchainAccountType(accountID);
 }
 
-auto Storage::BlockchainAddressOwner(
-    proto::ContactItemType chain,
-    std::string address) const -> std::string
+auto Storage::BlockchainThreadMap(const identifier::Nym& nym, const Data& txid)
+    const noexcept -> std::vector<OTIdentifier>
 {
-    return Root().Tree().Contacts().AddressOwner(chain, address);
+    const auto& nyms = Root().Tree().Nyms();
+
+    if (false == nyms.Exists(nym.str())) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Nym ")(nym)(" does not exist.")
+            .Flush();
+
+        return {};
+    }
+
+    return nyms.Nym(nym.str()).Threads().BlockchainThreadMap(txid);
 }
 
-auto Storage::BlockchainTransactionList() const -> ObjectList
+auto Storage::BlockchainTransactionList(
+    const identifier::Nym& nym) const noexcept -> std::vector<OTData>
 {
+    const auto& nyms = Root().Tree().Nyms();
 
-    return Root().Tree().Blockchain().List();
+    if (false == nyms.Exists(nym.str())) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Nym ")(nym)(" does not exist.")
+            .Flush();
+
+        return {};
+    }
+
+    return nyms.Nym(nym.str()).Threads().BlockchainTransactionList();
 }
 
 #if OT_CASH
@@ -875,14 +907,6 @@ auto Storage::Load(
         .Nym(nymID.str())
         .Bip47Channels()
         .Load(channelID, output, checking);
-}
-
-auto Storage::Load(
-    const std::string& id,
-    std::shared_ptr<proto::BlockchainTransaction>& transaction,
-    const bool checking) const -> bool
-{
-    return Root().Tree().Blockchain().Load(id, transaction, checking);
 }
 
 auto Storage::Load(
@@ -1135,19 +1159,6 @@ auto Storage::Load(
 }
 
 auto Storage::Load(
-    const identifier::Nym& nym,
-    const api::client::blockchain::Coin& id,
-    std::shared_ptr<proto::StorageBlockchainTxo>& output,
-    const bool checking) const -> bool
-{
-    const auto& nyms = Root().Tree().Nyms();
-
-    if (false == nyms.Exists(nym.str())) { return false; }
-
-    return nyms.Nym(nym.str()).TXOs().Load(id, output, checking);
-}
-
-auto Storage::Load(
     const std::string& nymId,
     const std::string& threadId,
     std::shared_ptr<proto::StorageThread>& thread) const -> bool
@@ -1196,32 +1207,6 @@ auto Storage::Load(
 auto Storage::LocalNyms() const -> const std::set<std::string>
 {
     return Root().Tree().Nyms().LocalNyms();
-}
-
-auto Storage::LookupBlockchainTransaction(const std::string& txid) const
-    -> std::set<OTNymID>
-{
-    return Root().Tree().Blockchain().LookupNyms(txid);
-}
-
-auto Storage::LookupElement(const identifier::Nym& nym, const Data& element)
-    const noexcept -> std::set<api::client::blockchain::Coin>
-{
-    const auto& nyms = Root().Tree().Nyms();
-
-    if (false == nyms.Exists(nym.str())) { return {}; }
-
-    return nyms.Nym(nym.str()).TXOs().LookupElement(element);
-}
-
-auto Storage::LookupTxid(const identifier::Nym& nym, const std::string& txid)
-    const noexcept -> std::set<api::client::blockchain::Coin>
-{
-    const auto& nyms = Root().Tree().Nyms();
-
-    if (false == nyms.Exists(nym.str())) { return {}; }
-
-    return nyms.Nym(nym.str()).TXOs().LookupTxid(txid);
 }
 
 // Applies a lambda to all public nyms in the database in a detached thread.
@@ -1523,6 +1508,70 @@ auto Storage::RelabelThread(
         .RelabelThread(threadID, label);
 }
 
+auto Storage::RemoveBlockchainThreadItem(
+    const identifier::Nym& nym,
+    const Identifier& threadID,
+    const opentxs::blockchain::Type chain,
+    const Data& txid) const noexcept -> bool
+{
+    const auto& nyms = Root().Tree().Nyms();
+
+    if (false == nyms.Exists(nym.str())) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Nym ")(nym)(" does not exist.")
+            .Flush();
+
+        return false;
+    }
+
+    const auto& threads = nyms.Nym(nym.str()).Threads();
+
+    if (false == threads.Exists(threadID.str())) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Thread ")(threadID)(
+            " does not exist.")
+            .Flush();
+
+        return false;
+    }
+
+    auto& fromThread = mutable_Root()
+                           .get()
+                           .mutable_Tree()
+                           .get()
+                           .mutable_Nyms()
+                           .get()
+                           .mutable_Nym(nym.str())
+                           .get()
+                           .mutable_Threads(txid, threadID, false)
+                           .get()
+                           .mutable_Thread(threadID.str())
+                           .get();
+    const auto thread = fromThread.Items();
+    auto found{false};
+    const auto id = blockchain_thread_item_id(chain, txid);
+
+    for (const auto& item : thread.item()) {
+        if (item.id() == id) {
+            found = true;
+
+            break;
+        }
+    }
+
+    if (false == found) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Item does not exist.").Flush();
+
+        return false;
+    }
+
+    if (false == fromThread.Remove(id)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to remove item.").Flush();
+
+        return false;
+    }
+
+    return true;
+}
+
 auto Storage::RemoveNymBoxItem(
     const std::string& nymID,
     const StorageBox box,
@@ -1770,27 +1819,6 @@ auto Storage::RemoveThreadItem(
     }
 
     return true;
-}
-
-auto Storage::RemoveTxo(
-    const identifier::Nym& nym,
-    const api::client::blockchain::Coin& id) const -> bool
-{
-    const auto exists = Root().Tree().Nyms().Exists(nym.str());
-
-    if (false == exists) { return false; }
-
-    return mutable_Root()
-        .get()
-        .mutable_Tree()
-        .get()
-        .mutable_Nyms()
-        .get()
-        .mutable_Nym(nym.str())
-        .get()
-        .mutable_TXOs()
-        .get()
-        .Delete(id);
 }
 
 auto Storage::RemoveUnitDefinition(const std::string& id) const -> bool
@@ -2159,22 +2187,7 @@ auto Storage::Store(
         .Store(data, channelID);
 }
 
-auto Storage::Store(
-    const identifier::Nym& nym,
-    const proto::BlockchainTransaction& data) const -> bool
-{
-    return mutable_Root()
-        .get()
-        .mutable_Tree()
-        .get()
-        .mutable_Blockchain()
-        .get()
-        .Store(nym, data);
-}
-
-auto Storage::Store(
-    const proto::Contact& data,
-    std::map<OTData, OTIdentifier>& changed) const -> bool
+auto Storage::Store(const proto::Contact& data) const -> bool
 {
     return mutable_Root()
         .get()
@@ -2182,7 +2195,7 @@ auto Storage::Store(
         .get()
         .mutable_Contacts()
         .get()
-        .Store(data, data.label(), changed);
+        .Store(data, data.label());
 }
 
 auto Storage::Store(const proto::Context& data) const -> bool
@@ -2316,6 +2329,40 @@ auto Storage::Store(
         .mutable_Thread(threadid)
         .get()
         .Add(itemid, time, box, alias, data, 0, account);
+}
+
+auto Storage::Store(
+    const identifier::Nym& nym,
+    const Identifier& thread,
+    const opentxs::blockchain::Type chain,
+    const Data& txid,
+    const Time time) const noexcept -> bool
+{
+    const auto alias = std::string{};
+    const auto account = std::string{};
+    const auto id = blockchain_thread_item_id(chain, txid);
+
+    return mutable_Root()
+        .get()
+        .mutable_Tree()
+        .get()
+        .mutable_Nyms()
+        .get()
+        .mutable_Nym(nym.str())
+        .get()
+        .mutable_Threads(txid, thread, true)
+        .get()
+        .mutable_Thread(thread.str())
+        .get()
+        .Add(
+            id,
+            Clock::to_time_t(time),
+            StorageBox::BLOCKCHAIN,
+            alias,
+            txid.str(),
+            0,
+            account,
+            static_cast<std::uint32_t>(chain));
 }
 
 auto Storage::Store(
@@ -2496,27 +2543,6 @@ auto Storage::Store(const proto::ServerContract& data, const std::string& alias)
     }
 
     return false;
-}
-
-auto Storage::Store(
-    const identifier::Nym& nym,
-    const proto::StorageBlockchainTxo& data) const -> bool
-{
-    const auto exists = Root().Tree().Nyms().Exists(nym.str());
-
-    if (false == exists) { return false; }
-
-    return mutable_Root()
-        .get()
-        .mutable_Tree()
-        .get()
-        .mutable_Nyms()
-        .get()
-        .mutable_Nym(nym.str())
-        .get()
-        .mutable_TXOs()
-        .get()
-        .Store(data);
 }
 
 auto Storage::Store(const proto::Ciphertext& serialized) const -> bool

@@ -20,4 +20,6 @@ message StorageThreadItem {
     optional uint32 box = 5;
     optional string account = 6;
     optional bool unread = 7;
+    optional uint32 chain = 8;
+    optional string txid = 9;
 }

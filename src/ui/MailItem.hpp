@@ -57,7 +57,7 @@ public:
         const identifier::Nym& nymID,
         const ActivityThreadRowID& rowID,
         const ActivityThreadSortKey& sortKey,
-        const CustomData& custom,
+        CustomData& custom,
         const bool loading,
         const bool pending) noexcept;
     MailItem(
@@ -67,7 +67,7 @@ public:
         const identifier::Nym& nymID,
         const ActivityThreadRowID& rowID,
         const ActivityThreadSortKey& sortKey,
-        const CustomData& custom) noexcept;
+        CustomData& custom) noexcept;
     ~MailItem();
 
 private:

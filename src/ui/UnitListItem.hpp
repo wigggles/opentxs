@@ -74,7 +74,7 @@ public:
     QVariant qt_data(const int column, const int role) const noexcept final;
 #endif
 
-    void reindex(const UnitListSortKey&, const CustomData&) noexcept final {}
+    void reindex(const UnitListSortKey&, CustomData&) noexcept final {}
 
     UnitListItem(
         const UnitListInternalInterface& parent,
@@ -82,7 +82,7 @@ public:
         const network::zeromq::socket::Publish& publisher,
         const UnitListRowID& rowID,
         const UnitListSortKey& sortKey,
-        const CustomData& custom) noexcept;
+        CustomData& custom) noexcept;
 
     ~UnitListItem() = default;
 

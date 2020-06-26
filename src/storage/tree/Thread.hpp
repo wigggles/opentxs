@@ -96,7 +96,8 @@ public:
         const std::string& alias,
         const std::string& contents,
         const std::uint64_t index = 0,
-        const std::string& account = std::string("")) -> bool;
+        const std::string& account = {},
+        const std::uint32_t chain = {}) -> bool;
     auto Read(const std::string& id, const bool unread) -> bool;
     auto Rename(const std::string& newID) -> bool;
     auto Remove(const std::string& id) -> bool;

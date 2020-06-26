@@ -7,13 +7,16 @@
 #include "1_Internal.hpp"            // IWYU pragma: associated
 #include "storage/tree/Threads.hpp"  // IWYU pragma: associated
 
+#include <algorithm>
 #include <cstdlib>
 #include <functional>
 #include <iostream>
+#include <iterator>
 #include <map>
 #include <memory>
 #include <string>
 #include <tuple>
+#include <type_traits>
 #include <utility>
 
 #include "opentxs/Proto.hpp"
@@ -21,6 +24,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/protobuf/Check.hpp"
+#include "opentxs/protobuf/verify/StorageBlockchainTransactions.hpp"
 #include "opentxs/protobuf/verify/StorageNymList.hpp"
 #include "storage/Plugin.hpp"
 #include "storage/tree/Node.hpp"
@@ -49,12 +53,48 @@ Threads::Threads(
     , threads_()
     , mail_inbox_(mailInbox)
     , mail_outbox_(mailOutbox)
+    , blockchain_()
 {
     if (check_hash(hash)) {
         init(hash);
     } else {
-        blank(2);
+        blank(3);
     }
+}
+
+auto Threads::AddIndex(const Data& txid, const Identifier& thread) noexcept
+    -> void
+{
+    Lock lock(blockchain_.lock_);
+    blockchain_.map_[txid].emplace(thread);
+}
+
+auto Threads::BlockchainThreadMap(const Data& txid) const noexcept
+    -> std::vector<OTIdentifier>
+{
+    auto output = std::vector<OTIdentifier>{};
+    Lock lock(blockchain_.lock_);
+
+    try {
+        const auto& data = blockchain_.map_.at(txid);
+        std::copy(std::begin(data), std::end(data), std::back_inserter(output));
+    } catch (...) {
+    }
+
+    return output;
+}
+
+auto Threads::BlockchainTransactionList() const noexcept -> std::vector<OTData>
+{
+    auto output = std::vector<OTData>{};
+    Lock lock(blockchain_.lock_);
+    std::transform(
+        std::begin(blockchain_.map_),
+        std::end(blockchain_.map_),
+        std::back_inserter(output),
+        [&](const auto& in) -> auto { return in.first; });
+
+    return output;
 }
 
 auto Threads::create(
@@ -130,20 +170,36 @@ auto Threads::FindAndDeleteItem(const std::string& itemID) -> bool
 
 void Threads::init(const std::string& hash)
 {
-    std::shared_ptr<proto::StorageNymList> serialized;
-    driver_.LoadProto(hash, serialized);
+    auto input = std::shared_ptr<proto::StorageNymList>{};
+    driver_.LoadProto(hash, input);
 
-    if (!serialized) {
+    if (!input) {
         std::cerr << __FUNCTION__ << ": Failed to load thread list index file."
                   << std::endl;
         abort();
     }
 
-    init_version(2, *serialized);
+    init_version(3, *input);
 
-    for (const auto& it : serialized->nym()) {
+    for (const auto& it : input->nym()) {
         item_map_.emplace(
             it.itemid(), Metadata{it.hash(), it.alias(), 0, false});
+    }
+
+    Lock lock(blockchain_.lock_);
+
+    for (const auto& hash : input->localnymid()) {
+        auto index = std::shared_ptr<proto::StorageBlockchainTransactions>{};
+        auto loaded = driver_.LoadProto(hash, index, false);
+
+        OT_ASSERT(loaded && index);
+
+        auto& data =
+            blockchain_.map_[Data::Factory(index->txid(), Data::Mode::Raw)];
+
+        for (const auto& thread : index->thread()) {
+            data.emplace(Identifier::Factory(thread));
+        }
     }
 }
 
@@ -280,6 +336,20 @@ auto Threads::Rename(const std::string& existingID, const std::string& newID)
     return save(lock);
 }
 
+auto Threads::RemoveIndex(const Data& txid, const Identifier& thread) noexcept
+    -> void
+{
+    Lock lock(blockchain_.lock_);
+    auto it = blockchain_.map_.find(txid);
+
+    if (blockchain_.map_.end() != it) {
+        auto& data = it->second;
+        data.erase(thread);
+
+        if (data.empty()) { blockchain_.map_.erase(it); }
+    }
+}
+
 auto Threads::save(const std::unique_lock<std::mutex>& lock) const -> bool
 {
     if (!verify_write_lock(lock)) {
@@ -323,8 +393,8 @@ void Threads::save(
 
 auto Threads::serialize() const -> proto::StorageNymList
 {
-    proto::StorageNymList serialized;
-    serialized.set_version(version_);
+    auto output = proto::StorageNymList{};
+    output.set_version(version_);
 
     for (const auto& item : item_map_) {
         const bool goodID = !item.first.empty();
@@ -333,11 +403,37 @@ auto Threads::serialize() const -> proto::StorageNymList
 
         if (good) {
             serialize_index(
-                version_, item.first, item.second, *serialized.add_nym());
+                version_, item.first, item.second, *output.add_nym());
         }
     }
 
-    return serialized;
+    Lock lock(blockchain_.lock_);
+
+    for (const auto& [txid, data] : blockchain_.map_) {
+        if (data.empty()) { continue; }
+
+        auto index = proto::StorageBlockchainTransactions{};
+        index.set_version(1);
+        index.set_txid(txid->str());
+        std::for_each(std::begin(data), std::end(data), [&](const auto& id) {
+            index.add_thread(id->str());
+        });
+
+        OT_ASSERT(static_cast<std::size_t>(index.thread_size()) == data.size());
+
+        auto success = proto::Validate(index, VERBOSE);
+
+        OT_ASSERT(success);
+
+        auto hash = std::string{};
+        success = driver_.StoreProto(index, hash);
+
+        OT_ASSERT(success);
+
+        output.add_localnymid(hash);
+    }
+
+    return output;
 }
 }  // namespace storage
 }  // namespace opentxs

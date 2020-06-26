@@ -25,8 +25,8 @@ public:
     OPENTXS_EXPORT static const VersionNumber DefaultVersion;
     OPENTXS_EXPORT static const VersionNumber MaxVersion;
 
-    OPENTXS_EXPORT virtual std::unique_ptr<EllipticCurve> asPublicEC() const
-        noexcept = 0;
+    OPENTXS_EXPORT virtual std::unique_ptr<EllipticCurve> asPublicEC()
+        const noexcept = 0;
 
     OPENTXS_EXPORT ~EllipticCurve() override = default;
 

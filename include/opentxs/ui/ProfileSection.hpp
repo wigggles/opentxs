@@ -120,10 +120,10 @@ public:
     OPENTXS_EXPORT virtual bool Delete(
         const int type,
         const std::string& claimID) const noexcept = 0;
-    OPENTXS_EXPORT virtual ItemTypeList Items(const std::string& lang) const
-        noexcept = 0;
-    OPENTXS_EXPORT virtual std::string Name(const std::string& lang) const
-        noexcept = 0;
+    OPENTXS_EXPORT virtual ItemTypeList Items(
+        const std::string& lang) const noexcept = 0;
+    OPENTXS_EXPORT virtual std::string Name(
+        const std::string& lang) const noexcept = 0;
     OPENTXS_EXPORT virtual opentxs::SharedPimpl<opentxs::ui::ProfileSubsection>
     First() const noexcept = 0;
     OPENTXS_EXPORT virtual opentxs::SharedPimpl<opentxs::ui::ProfileSubsection>

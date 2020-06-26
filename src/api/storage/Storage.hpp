@@ -46,6 +46,8 @@ namespace storage
 {
 class Multiplex;
 }  // namespace storage
+
+class Crypto;
 }  // namespace api
 
 namespace crypto
@@ -59,7 +61,6 @@ class Symmetric;
 namespace proto
 {
 class Bip47Channel;
-class BlockchainTransaction;
 class Ciphertext;
 class Contact;
 class Context;
@@ -73,7 +74,6 @@ class PeerRequest;
 class Purse;
 class Seed;
 class ServerContract;
-class StorageBlockchainTxo;
 class StorageThread;
 class UnitDefinition;
 }  // namespace proto
@@ -83,6 +83,7 @@ namespace storage
 class Root;
 }  // namespace storage
 
+class Data;
 class Factory;
 class String;
 }  // namespace opentxs
@@ -165,10 +166,10 @@ public:
     auto BlockchainAccountType(
         const std::string& nymID,
         const std::string& accountID) const -> proto::ContactItemType final;
-    auto BlockchainAddressOwner(
-        proto::ContactItemType chain,
-        std::string address) const -> std::string final;
-    auto BlockchainTransactionList() const -> ObjectList final;
+    auto BlockchainThreadMap(const identifier::Nym& nym, const Data& txid)
+        const noexcept -> std::vector<OTIdentifier> final;
+    auto BlockchainTransactionList(const identifier::Nym& nym) const noexcept
+        -> std::vector<OTData> final;
 #if OT_CASH
     auto CheckTokenSpent(
         const identifier::Server& notary,
@@ -208,10 +209,6 @@ public:
         const identifier::Nym& nymID,
         const Identifier& channelID,
         std::shared_ptr<proto::Bip47Channel>& output,
-        const bool checking = false) const -> bool final;
-    auto Load(
-        const std::string& id,
-        std::shared_ptr<proto::BlockchainTransaction>& transaction,
         const bool checking = false) const -> bool final;
     auto Load(
         const std::string& id,
@@ -295,11 +292,6 @@ public:
         std::string& alias,
         const bool checking = false) const -> bool final;
     auto Load(
-        const identifier::Nym& nym,
-        const api::client::blockchain::Coin& id,
-        std::shared_ptr<proto::StorageBlockchainTxo>& output,
-        const bool checking = false) const -> bool final;
-    auto Load(
         const std::string& nymId,
         const std::string& threadId,
         std::shared_ptr<proto::StorageThread>& thread) const -> bool final;
@@ -316,12 +308,6 @@ public:
         std::string& alias,
         const bool checking = false) const -> bool final;
     auto LocalNyms() const -> const std::set<std::string> final;
-    auto LookupBlockchainTransaction(const std::string& txid) const
-        -> std::set<OTNymID> final;
-    auto LookupElement(const identifier::Nym& nym, const Data& element)
-        const noexcept -> std::set<api::client::blockchain::Coin> final;
-    auto LookupTxid(const identifier::Nym& nym, const std::string& txid)
-        const noexcept -> std::set<api::client::blockchain::Coin> final;
     void MapPublicNyms(NymLambda& lambda) const final;
     void MapServers(ServerLambda& lambda) const final;
     void MapUnitDefinitions(UnitLambda& lambda) const final;
@@ -362,6 +348,11 @@ public:
         pair<proto::PaymentWorkflowType, proto::PaymentWorkflowState> final;
     auto RelabelThread(const std::string& threadID, const std::string& label)
         const -> bool final;
+    auto RemoveBlockchainThreadItem(
+        const identifier::Nym& nym,
+        const Identifier& thread,
+        const opentxs::blockchain::Type chain,
+        const Data& txid) const noexcept -> bool final;
     auto RemoveNymBoxItem(
         const std::string& nymID,
         const StorageBox box,
@@ -371,9 +362,6 @@ public:
         const identifier::Nym& nym,
         const Identifier& thread,
         const std::string& id) const -> bool final;
-    auto RemoveTxo(
-        const identifier::Nym& nym,
-        const api::client::blockchain::Coin& id) const -> bool final;
     auto RemoveUnitDefinition(const std::string& id) const -> bool final;
     auto RenameThread(
         const std::string& nymId,
@@ -427,12 +415,7 @@ public:
         const identifier::Nym& nymID,
         const proto::Bip47Channel& data,
         Identifier& channelID) const -> bool final;
-    auto Store(
-        const identifier::Nym& nym,
-        const proto::BlockchainTransaction& data) const -> bool final;
-    auto Store(
-        const proto::Contact& data,
-        std::map<OTData, OTIdentifier>& changed) const -> bool final;
+    auto Store(const proto::Contact& data) const -> bool final;
     auto Store(const proto::Context& data) const -> bool final;
     auto Store(const proto::Credential& data) const -> bool final;
     auto Store(
@@ -452,6 +435,12 @@ public:
         const StorageBox box,
         const std::string& account = std::string("")) const -> bool final;
     auto Store(
+        const identifier::Nym& nym,
+        const Identifier& thread,
+        const opentxs::blockchain::Type chain,
+        const Data& txid,
+        const Time time) const noexcept -> bool;
+    auto Store(
         const proto::PeerReply& data,
         const std::string& nymid,
         const StorageBox box) const -> bool final;
@@ -467,9 +456,6 @@ public:
     auto Store(
         const proto::ServerContract& data,
         const std::string& alias = std::string("")) const -> bool final;
-    auto Store(
-        const identifier::Nym& nym,
-        const proto::StorageBlockchainTxo& data) const -> bool final;
     auto Store(const proto::Ciphertext& serialized) const -> bool final;
     auto Store(
         const proto::UnitDefinition& data,
@@ -491,6 +477,7 @@ private:
 
     static const std::uint32_t HASH_TYPE;
 
+    const api::Crypto& crypto_;
     const Flag& running_;
     std::int64_t gc_interval_{std::numeric_limits<std::int64_t>::max()};
     mutable std::mutex write_lock_;
@@ -505,6 +492,9 @@ private:
     auto Root() const -> const opentxs::storage::Root&;
     auto verify_write_lock(const Lock& lock) const -> bool;
 
+    auto blockchain_thread_item_id(
+        const opentxs::blockchain::Type chain,
+        const Data& txid) const noexcept -> std::string;
     void Cleanup();
     void Cleanup_Storage();
     void CollectGarbage() const;
@@ -519,6 +509,7 @@ private:
     void start() final;
 
     Storage(
+        const api::Crypto& crypto,
         const Flag& running,
         const StorageConfig& config,
         const String& primary,

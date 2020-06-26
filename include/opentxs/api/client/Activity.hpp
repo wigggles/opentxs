@@ -21,6 +21,20 @@
 
 namespace opentxs
 {
+namespace blockchain
+{
+namespace block
+{
+namespace bitcoin
+{
+class Transaction;
+}  // namespace bitcoin
+}  // namespace block
+}  // namespace blockchain
+}  // namespace opentxs
+
+namespace opentxs
+{
 namespace api
 {
 namespace client
@@ -32,28 +46,20 @@ public:
         std::pair<std::unique_ptr<const opentxs::Cheque>, OTUnitDefinition>;
     using TransferData =
         std::pair<std::unique_ptr<const opentxs::Item>, OTUnitDefinition>;
+    using BlockchainTransaction =
+        opentxs::blockchain::block::bitcoin::Transaction;
 
+#if OT_BLOCKCHAIN
     OPENTXS_EXPORT virtual bool AddBlockchainTransaction(
-        const identifier::Nym& nymID,
-        const Identifier& threadID,
-        const std::string& txid,
-        const Time time) const = 0;
+        const BlockchainTransaction& transaction) const noexcept = 0;
+#endif  // OT_BLOCKCHAIN
     OPENTXS_EXPORT virtual bool AddPaymentEvent(
         const identifier::Nym& nymID,
         const Identifier& threadID,
         const StorageBox type,
         const Identifier& itemID,
         const Identifier& workflowID,
-        std::chrono::time_point<std::chrono::system_clock> time) const = 0;
-    OPENTXS_EXPORT virtual bool MoveIncomingBlockchainTransaction(
-        const identifier::Nym& nymID,
-        const Identifier& fromThreadID,
-        const Identifier& toThreadID,
-        const std::string& txid) const = 0;
-    OPENTXS_EXPORT virtual bool UnassignBlockchainTransaction(
-        const identifier::Nym& nymID,
-        const Identifier& fromThreadID,
-        const std::string& txid) const = 0;
+        Time time) const noexcept = 0;
     /**   Load a mail object
      *
      *    \param[in] nym the identifier of the nym who owns the mail box
@@ -65,7 +71,7 @@ public:
     OPENTXS_EXPORT virtual std::unique_ptr<Message> Mail(
         const identifier::Nym& nym,
         const Identifier& id,
-        const StorageBox& box) const = 0;
+        const StorageBox& box) const noexcept = 0;
     /**   Store a mail object
      *
      *    \param[in] nym the identifier of the nym who owns the mail box
@@ -78,7 +84,7 @@ public:
         const identifier::Nym& nym,
         const Message& mail,
         const StorageBox box,
-        const PasswordPrompt& reason) const = 0;
+        const PasswordPrompt& reason) const noexcept = 0;
     /**   Obtain a list of mail objects in a specified box
      *
      *    \param[in] nym the identifier of the nym who owns the mail box
@@ -86,7 +92,7 @@ public:
      */
     OPENTXS_EXPORT virtual ObjectList Mail(
         const identifier::Nym& nym,
-        const StorageBox box) const = 0;
+        const StorageBox box) const noexcept = 0;
     /**   Delete a mail object
      *
      *    \param[in] nym the identifier of the nym who owns the mail box
@@ -98,7 +104,7 @@ public:
     OPENTXS_EXPORT virtual bool MailRemove(
         const identifier::Nym& nym,
         const Identifier& id,
-        const StorageBox box) const = 0;
+        const StorageBox box) const noexcept = 0;
     /**   Retrieve the text from a message
      *
      *    \param[in] nym the identifier of the nym who owns the mail box
@@ -111,7 +117,7 @@ public:
         const identifier::Nym& nym,
         const Identifier& id,
         const StorageBox& box,
-        const PasswordPrompt& reason) const = 0;
+        const PasswordPrompt& reason) const noexcept = 0;
     /**   Mark a thread item as read
      *
      *    \param[in] nymId the identifier of the nym who owns the thread
@@ -122,7 +128,7 @@ public:
     OPENTXS_EXPORT virtual bool MarkRead(
         const identifier::Nym& nymId,
         const Identifier& threadId,
-        const Identifier& itemId) const = 0;
+        const Identifier& itemId) const noexcept = 0;
     /**   Mark a thread item as unread
      *
      *    \param[in] nymId the identifier of the nym who owns the thread
@@ -133,17 +139,17 @@ public:
     OPENTXS_EXPORT virtual bool MarkUnread(
         const identifier::Nym& nymId,
         const Identifier& threadId,
-        const Identifier& itemId) const = 0;
+        const Identifier& itemId) const noexcept = 0;
 
     OPENTXS_EXPORT virtual ChequeData Cheque(
         const identifier::Nym& nym,
         const std::string& id,
-        const std::string& workflow) const = 0;
+        const std::string& workflow) const noexcept = 0;
 
     OPENTXS_EXPORT virtual TransferData Transfer(
         const identifier::Nym& nym,
         const std::string& id,
-        const std::string& workflow) const = 0;
+        const std::string& workflow) const noexcept = 0;
 
     /**   Summarize a payment workflow event in human-friendly test form
      *
@@ -156,7 +162,7 @@ public:
     OPENTXS_EXPORT virtual std::shared_ptr<const std::string> PaymentText(
         const identifier::Nym& nym,
         const std::string& id,
-        const std::string& workflow) const = 0;
+        const std::string& workflow) const noexcept = 0;
 
     /**   Asynchronously cache the most recent items in each of a nym's threads
      *
@@ -166,7 +172,7 @@ public:
     OPENTXS_EXPORT virtual void PreloadActivity(
         const identifier::Nym& nymID,
         const std::size_t count,
-        const PasswordPrompt& reason) const = 0;
+        const PasswordPrompt& reason) const noexcept = 0;
     /**   Asynchronously cache the items in an activity thread
      *
      *    \param[in] nymID the identifier of the nym who owns the thread
@@ -179,10 +185,10 @@ public:
         const Identifier& threadID,
         const std::size_t start,
         const std::size_t count,
-        const PasswordPrompt& reason) const = 0;
+        const PasswordPrompt& reason) const noexcept = 0;
     OPENTXS_EXPORT virtual std::shared_ptr<proto::StorageThread> Thread(
         const identifier::Nym& nymID,
-        const Identifier& threadID) const = 0;
+        const Identifier& threadID) const noexcept = 0;
     /**   Obtain a list of thread ids for the specified nym
      *
      *    \param[in] nym the identifier of the nym
@@ -190,16 +196,16 @@ public:
      */
     OPENTXS_EXPORT virtual ObjectList Threads(
         const identifier::Nym& nym,
-        const bool unreadOnly = false) const = 0;
+        const bool unreadOnly = false) const noexcept = 0;
     /**   Return the total number of unread thread items for a nym
      *
      *    \param[in] nymId
      */
     OPENTXS_EXPORT virtual std::size_t UnreadCount(
-        const identifier::Nym& nym) const = 0;
+        const identifier::Nym& nym) const noexcept = 0;
 
     OPENTXS_EXPORT virtual std::string ThreadPublisher(
-        const identifier::Nym& nym) const = 0;
+        const identifier::Nym& nym) const noexcept = 0;
 
     virtual ~Activity() = default;
 

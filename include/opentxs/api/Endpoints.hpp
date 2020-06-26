@@ -18,6 +18,14 @@
 
 namespace opentxs
 {
+namespace identifier
+{
+class Nym;
+}  // namespace identifier
+}  // namespace opentxs
+
+namespace opentxs
+{
 namespace api
 {
 class Endpoints
@@ -66,6 +74,36 @@ public:
      *  This endpoint is active for client sessions only.
      */
     OPENTXS_EXPORT virtual std::string BlockchainReorg() const noexcept = 0;
+
+    /** Blockchain transaction notifications
+     *
+     *  A subscribe socket can connect to this endpoint to be notified when
+     *  any blockchain transaction is added to the wallet or has updated
+     *  metadata.
+     *
+     *  Messages bodies consist of two frame:
+     *   * The first frame contains the txid as a sequence of bytes
+     *   * The second frame contains the chain as an blockchain::Type
+     *
+     *  This endpoint is active for client sessions only.
+     */
+    OPENTXS_EXPORT virtual std::string BlockchainTransactions()
+        const noexcept = 0;
+
+    /** Blockchain transaction notifications
+     *
+     *  A subscribe socket can connect to this endpoint to be notified when
+     *  a blockchain transaction is added or removed from a specific nym's
+     *  activity threads
+     *
+     *  Messages bodies consist of two frame:
+     *   * The first frame contains the txid as a sequence of bytes
+     *   * The second frame contains the chain as an blockchain::Type
+     *
+     *  This endpoint is active for client sessions only.
+     */
+    OPENTXS_EXPORT virtual std::string BlockchainTransactions(
+        const identifier::Nym& nym) const noexcept = 0;
 
     /** Connection state notifications
      *
@@ -408,8 +446,8 @@ public:
      *
      *  This endpoint is active for client sessions only.
      */
-    OPENTXS_EXPORT virtual std::string WorkflowAccountUpdate() const
-        noexcept = 0;
+    OPENTXS_EXPORT virtual std::string WorkflowAccountUpdate()
+        const noexcept = 0;
 
     OPENTXS_EXPORT virtual ~Endpoints() = default;
 

@@ -5,11 +5,11 @@
 
 #include "opentxs/Proto.hpp"  // IWYU pragma: associated
 
-#include <chrono>
 #include <cstdint>
 #include <set>
 #include <string>
 
+#include "opentxs/Types.hpp"
 #include "opentxs/protobuf/Basic.hpp"
 #include "opentxs/protobuf/CashEnums.pb.h"
 #include "opentxs/protobuf/verify/Purse.hpp"
@@ -42,10 +42,8 @@ auto CheckProto_1(const Purse& input, const bool silent, std::int64_t& value)
     }
 
     auto allowedStates = std::set<TokenState>{};
-    auto validFrom = std::int64_t{std::chrono::system_clock::to_time_t(
-        std::chrono::system_clock::time_point::min())};
-    auto validTo = std::int64_t{std::chrono::system_clock::to_time_t(
-        std::chrono::system_clock::time_point::max())};
+    auto validFrom = std::int64_t{Clock::to_time_t(Time::min())};
+    auto validTo = std::int64_t{Clock::to_time_t(Time::max())};
 
     switch (input.state()) {
         case PURSETYPE_REQUEST: {

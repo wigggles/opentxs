@@ -42,12 +42,12 @@ public:
     OPENTXS_EXPORT virtual bool Delete() const noexcept = 0;
     OPENTXS_EXPORT virtual bool IsActive() const noexcept = 0;
     OPENTXS_EXPORT virtual bool IsPrimary() const noexcept = 0;
-    OPENTXS_EXPORT virtual bool SetActive(const bool& active) const
-        noexcept = 0;
-    OPENTXS_EXPORT virtual bool SetPrimary(const bool& primary) const
-        noexcept = 0;
-    OPENTXS_EXPORT virtual bool SetValue(const std::string& value) const
-        noexcept = 0;
+    OPENTXS_EXPORT virtual bool SetActive(
+        const bool& active) const noexcept = 0;
+    OPENTXS_EXPORT virtual bool SetPrimary(
+        const bool& primary) const noexcept = 0;
+    OPENTXS_EXPORT virtual bool SetValue(
+        const std::string& value) const noexcept = 0;
     OPENTXS_EXPORT virtual std::string Value() const noexcept = 0;
 
     OPENTXS_EXPORT ~ProfileItem() override = default;

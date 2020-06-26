@@ -4,6 +4,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 if(OT_BLOCKCHAIN_EXPORT)
+  add_subdirectory(activity)
   add_subdirectory(headeroracle)
   add_subdirectory(startstop)
 endif()

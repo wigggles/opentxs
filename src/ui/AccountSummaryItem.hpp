@@ -75,9 +75,8 @@ public:
     QVariant qt_data(const int column, const int role) const noexcept override;
 #endif
 
-    void reindex(
-        const IssuerItemSortKey& key,
-        const CustomData& custom) noexcept final;
+    void reindex(const IssuerItemSortKey& key, CustomData& custom) noexcept
+        final;
 
     AccountSummaryItem(
         const IssuerItemInternalInterface& parent,
@@ -85,7 +84,7 @@ public:
         const network::zeromq::socket::Publish& publisher,
         const IssuerItemRowID& rowID,
         const IssuerItemSortKey& sortKey,
-        const CustomData& custom) noexcept;
+        CustomData& custom) noexcept;
 
     ~AccountSummaryItem() final = default;
 

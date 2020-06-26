@@ -117,7 +117,7 @@ ActivitySummary::ActivitySummary(
 auto ActivitySummary::construct_row(
     const ActivitySummaryRowID& id,
     const ActivitySummarySortKey& index,
-    const CustomData& custom) const noexcept -> void*
+    CustomData& custom) const noexcept -> void*
 {
     names_.emplace(id, index);
     const auto [it, added] = items_[index].emplace(
@@ -158,6 +158,7 @@ auto ActivitySummary::display_name(
 }
 
 auto ActivitySummary::newest_item(
+    const Identifier& id,
     const proto::StorageThread& thread,
     CustomData& custom) noexcept -> const proto::StorageThreadItem&
 {
@@ -188,6 +189,7 @@ auto ActivitySummary::newest_item(
     custom.emplace_back(new StorageBox(static_cast<StorageBox>(output->box())));
     custom.emplace_back(new std::string(output->account()));
     custom.emplace_back(time);
+    custom.emplace_back(new OTIdentifier{id});
 
     return *output;
 }
@@ -199,10 +201,10 @@ void ActivitySummary::process_thread(const std::string& id) noexcept
 
     OT_ASSERT(thread);
 
-    CustomData custom{};
+    auto custom = CustomData{};
     const auto name = display_name(*thread);
-    const auto time = std::chrono::system_clock::time_point(
-        std::chrono::seconds(newest_item(*thread, custom).time()));
+    const auto time = Time(
+        std::chrono::seconds(newest_item(threadID, *thread, custom).time()));
     const ActivitySummarySortKey index{time, name};
     add_item(threadID, index, custom);
 }

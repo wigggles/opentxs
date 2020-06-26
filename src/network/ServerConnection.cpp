@@ -263,10 +263,9 @@ auto ServerConnection::get_sync(const Lock& lock) -> zeromq::socket::Request&
     return socket_;
 }
 
-auto ServerConnection::get_timeout()
-    -> std::chrono::time_point<std::chrono::system_clock>
+auto ServerConnection::get_timeout() -> Time
 {
-    return std::chrono::system_clock::now() + zmq_.SendTimeout();
+    return Clock::now() + zmq_.SendTimeout();
 }
 
 void ServerConnection::process_incoming(const proto::ServerReply& in)

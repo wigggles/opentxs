@@ -39,7 +39,6 @@ auto CheckProto_8(const StorageNym& input, const bool silent) -> bool
     OPTIONAL_IDENTIFIER(paymentworkflow);
     OPTIONAL_IDENTIFIER(bip47);
     OPTIONAL_SUBOBJECTS(purse, StorageNymAllowedStoragePurse());
-    CHECK_EXCLUDED(txo);
 
     return true;
 }

@@ -108,7 +108,16 @@ auto BlockchainTransactionInputAllowedBlockchainPreviousOutput() noexcept
 
     return output;
 }
-auto BlockchainTransactionOutputAllowedBlockchainExternalAddress() noexcept
+auto BlockchainTransactionInputAllowedBlockchainTransactionOutput() noexcept
+    -> const VersionMap&
+{
+    static const auto output = VersionMap{
+        {1, {1, 1}},
+    };
+
+    return output;
+}
+auto BlockchainTransactionInputAllowedBlockchainWalletKey() noexcept
     -> const VersionMap&
 {
     static const auto output = VersionMap{

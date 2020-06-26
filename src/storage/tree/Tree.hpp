@@ -39,7 +39,6 @@ class Ciphertext;
 namespace storage
 {
 class Accounts;
-class BlockchainTransactions;
 class Contacts;
 class Credentials;
 class Notary;
@@ -57,7 +56,6 @@ class Tree final : public Node
 {
 public:
     auto Accounts() const -> const storage::Accounts&;
-    auto Blockchain() const -> const storage::BlockchainTransactions&;
     auto Contacts() const -> const storage::Contacts&;
     auto Credentials() const -> const storage::Credentials&;
     auto Notary(const std::string& id) const -> const storage::Notary&;
@@ -67,7 +65,6 @@ public:
     auto Units() const -> const storage::Units&;
 
     auto mutable_Accounts() -> Editor<storage::Accounts>;
-    auto mutable_Blockchain() -> Editor<storage::BlockchainTransactions>;
     auto mutable_Contacts() -> Editor<storage::Contacts>;
     auto mutable_Credentials() -> Editor<storage::Credentials>;
     auto mutable_Notary(const std::string& id) -> Editor<storage::Notary>;
@@ -90,7 +87,6 @@ private:
     friend storage::Root;
 
     std::string account_root_{Node::BLANK_HASH};
-    std::string blockchain_root_{Node::BLANK_HASH};
     std::string contact_root_{Node::BLANK_HASH};
     std::string credential_root_{Node::BLANK_HASH};
     std::string notary_root_{Node::BLANK_HASH};
@@ -101,8 +97,6 @@ private:
 
     mutable std::mutex account_lock_;
     mutable std::unique_ptr<storage::Accounts> account_;
-    mutable std::mutex blockchain_lock_;
-    mutable std::unique_ptr<storage::BlockchainTransactions> blockchain_;
     mutable std::mutex contact_lock_;
     mutable std::unique_ptr<storage::Contacts> contacts_;
     mutable std::mutex credential_lock_;
@@ -133,7 +127,6 @@ private:
         std::string& hash,
         Args&&... params) const -> Editor<T>;
     auto accounts() const -> storage::Accounts*;
-    auto blockchain() const -> storage::BlockchainTransactions*;
     auto contacts() const -> storage::Contacts*;
     auto credentials() const -> storage::Credentials*;
     auto notary(const std::string& id) const -> storage::Notary*;

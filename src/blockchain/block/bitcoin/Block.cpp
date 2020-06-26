@@ -77,6 +77,7 @@ auto BitcoinBlock(
             throw std::runtime_error("Invalid block header");
         }
 
+        const auto& header = *pHeader;
         std::advance(it, ReturnType::header_bytes_);
         expectedSize += 1;
 
@@ -116,7 +117,11 @@ auto BitcoinBlock(
             transactions.emplace(
                 reader(txid),
                 BitcoinTransaction(
-                    api, chain, (0 == ++counter), std::move(data)));
+                    api,
+                    chain,
+                    (0 == ++counter),
+                    header.Timestamp(),
+                    std::move(data)));
         }
 
         return std::make_shared<ReturnType>(

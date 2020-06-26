@@ -141,7 +141,6 @@ set(
   storagebip47nymaddressindex/StorageBip47NymAddressIndex_1.cpp
   storageblockchainaccountlist/StorageBlockchainAccountList_1.cpp
   storageblockchaintransactions/StorageBlockchainTransactions_1.cpp
-  storageblockchaintxo/StorageBlockchainTxo_1.cpp
   storagecontactaddressindex/StorageContactAddressIndex_1.cpp
   storagecontactnymindex/StorageContactNymIndex_1.cpp
   storagecontacts/StorageContacts_1.cpp
@@ -176,7 +175,6 @@ set(
   storageservers/StorageServers_1.cpp
   storagethread/StorageThread_1.cpp
   storagethreaditem/StorageThreadItem_1.cpp
-  storagetxoindex/StorageTxoIndex_1.cpp
   storageunits/StorageUnits_1.cpp
   storageworkflowindex/StorageWorkflowIndex_1.cpp
   storageworkflowtype/StorageWorkflowType_1.cpp

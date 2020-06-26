@@ -83,9 +83,8 @@ public:
         return row_id_.second;
     }
 
-    void reindex(
-        const ContactSectionSortKey& key,
-        const CustomData& custom) noexcept final;
+    void reindex(const ContactSectionSortKey& key, CustomData& custom) noexcept
+        final;
 
     ContactSubsection(
         const ContactSectionInternalInterface& parent,
@@ -93,7 +92,7 @@ public:
         const network::zeromq::socket::Publish& publisher,
         const ContactSectionRowID& rowID,
         const ContactSectionSortKey& key,
-        const CustomData& custom
+        CustomData& custom
 #if OT_QT
         ,
         const bool qt
@@ -107,7 +106,7 @@ private:
     auto construct_row(
         const ContactSubsectionRowID& id,
         const ContactSubsectionSortKey& index,
-        const CustomData& custom) const noexcept -> void* final;
+        CustomData& custom) const noexcept -> void* final;
 
     auto last(const ContactSubsectionRowID& id) const noexcept -> bool final
     {
@@ -116,7 +115,7 @@ private:
     auto process_group(const opentxs::ContactGroup& group) noexcept
         -> std::set<ContactSubsectionRowID>;
     auto sort_key(const ContactSubsectionRowID type) const noexcept -> int;
-    void startup(const CustomData custom) noexcept;
+    void startup(const opentxs::ContactGroup group) noexcept;
 
     ContactSubsection() = delete;
     ContactSubsection(const ContactSubsection&) = delete;

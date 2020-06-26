@@ -5,9 +5,7 @@
 
 #include "opentxs/Proto.hpp"  // IWYU pragma: associated
 
-#include "opentxs/protobuf/Basic.hpp"
 #include "opentxs/protobuf/verify/StorageBlockchainTransactions.hpp"
-#include "opentxs/protobuf/verify/VerifyStorage.hpp"
 #include "protobuf/Check.hpp"
 
 #define PROTO_NAME "storage blockchain transactions"
@@ -20,9 +18,8 @@ namespace proto
 auto CheckProto_1(const StorageBlockchainTransactions& input, const bool silent)
     -> bool
 {
-    OPTIONAL_SUBOBJECTS(
-        transaction, StorageBlockchainTransactionsAllowedStorageItemHash())
-    CHECK_NONE(nymindex)
+    CHECK_IDENTIFIER(txid);
+    OPTIONAL_IDENTIFIERS(thread);
 
     return true;
 }
@@ -30,12 +27,7 @@ auto CheckProto_1(const StorageBlockchainTransactions& input, const bool silent)
 auto CheckProto_2(const StorageBlockchainTransactions& input, const bool silent)
     -> bool
 {
-    OPTIONAL_SUBOBJECTS(
-        transaction, StorageBlockchainTransactionsAllowedStorageItemHash())
-    OPTIONAL_SUBOBJECTS(
-        nymindex, StorageBlockchainTransactionsAllowedStorageContactNymIndex())
-
-    return true;
+    UNDEFINED_VERSION(2)
 }
 
 auto CheckProto_3(const StorageBlockchainTransactions& input, const bool silent)

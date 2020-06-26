@@ -65,7 +65,7 @@ public:
         const identifier::Nym& nymID,
         const ActivityThreadRowID& rowID,
         const ActivityThreadSortKey& sortKey,
-        const CustomData& custom) noexcept;
+        CustomData& custom) noexcept;
     ~PendingSend() = default;
 
 private:

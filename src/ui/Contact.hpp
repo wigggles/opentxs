@@ -104,14 +104,13 @@ private:
     auto construct_row(
         const ContactRowID& id,
         const ContactSortKey& index,
-        const CustomData& custom) const noexcept -> void* final;
+        CustomData& custom) const noexcept -> void* final;
 
     auto last(const ContactRowID& id) const noexcept -> bool final
     {
         return ContactType::last(id);
     }
-    void update(ContactRowInterface& row, const CustomData& custom)
-        const noexcept;
+    void update(ContactRowInterface& row, CustomData& custom) const noexcept;
 
     void process_contact(const opentxs::Contact& contact) noexcept;
     void process_contact(const network::zeromq::Message& message) noexcept;

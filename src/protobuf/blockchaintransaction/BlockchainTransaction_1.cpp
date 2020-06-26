@@ -27,13 +27,14 @@ namespace opentxs
 {
 namespace proto
 {
-
 auto CheckProto_1(const BlockchainTransaction& input, const bool silent) -> bool
 {
-    const bool validChain =
-        ValidContactItemType({6, CONTACTSECTION_CONTRACT}, input.chain());
+    for (const auto& chain : input.chain()) {
+        const bool validChain = ValidContactItemType(
+            {6, CONTACTSECTION_CONTRACT}, static_cast<ContactItemType>(chain));
 
-    if (false == validChain) { FAIL_1("invalid chain") }
+        if (false == validChain) { FAIL_1("invalid chain") }
+    }
 
     if (MIN_PLAUSIBLE_IDENTIFIER > input.txid().size()) {
         FAIL_1("invalid txid")

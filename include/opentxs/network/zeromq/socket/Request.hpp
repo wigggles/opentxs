@@ -53,8 +53,8 @@ public:
     OPENTXS_EXPORT std::pair<
         opentxs::SendResult,
         opentxs::Pimpl<opentxs::network::zeromq::Message>>
-    Send(opentxs::Pimpl<opentxs::network::zeromq::Message>& message) const
-        noexcept
+    Send(opentxs::Pimpl<opentxs::network::zeromq::Message>& message)
+        const noexcept
     {
         return send_request(message.get());
     }
@@ -70,8 +70,8 @@ public:
         opentxs::SendResult,
         opentxs::Pimpl<opentxs::network::zeromq::Message>>
     Send(const Input& data) const noexcept;
-    OPENTXS_EXPORT virtual bool SetSocksProxy(const std::string& proxy) const
-        noexcept = 0;
+    OPENTXS_EXPORT virtual bool SetSocksProxy(
+        const std::string& proxy) const noexcept = 0;
 
     OPENTXS_EXPORT ~Request() override = default;
 

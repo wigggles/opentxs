@@ -97,6 +97,29 @@ AccountActivity::AccountActivity(
     setup_listeners(listeners_);
 }
 
+auto AccountActivity::construct_row(
+    const AccountActivityRowID& id,
+    const AccountActivitySortKey& index,
+    CustomData& custom) const noexcept -> void*
+{
+    OT_ASSERT(2 <= custom.size())
+
+    names_.emplace(id, index);
+    const auto [it, added] = items_[index].emplace(
+        id,
+        factory::BalanceItem(
+            *this,
+            api_,
+            publisher_,
+            id,
+            index,
+            custom,
+            primary_id_,
+            account_id_));
+
+    return it->second.get();
+}
+
 AccountActivity::~AccountActivity()
 {
     for (auto& it : listeners_) { delete it.second; }

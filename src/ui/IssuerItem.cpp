@@ -45,7 +45,7 @@ auto IssuerItem(
     const network::zeromq::socket::Publish& publisher,
     const ui::implementation::AccountSummaryRowID& rowID,
     const ui::implementation::AccountSummarySortKey& sortKey,
-    const ui::implementation::CustomData& custom,
+    ui::implementation::CustomData& custom,
     const proto::ContactItemType currency
 #if OT_QT
     ,
@@ -79,7 +79,7 @@ IssuerItem::IssuerItem(
     const network::zeromq::socket::Publish& publisher,
     const AccountSummaryRowID& rowID,
     const AccountSummarySortKey& key,
-    [[maybe_unused]] const CustomData& custom,
+    [[maybe_unused]] CustomData& custom,
     const proto::ContactItemType currency
 #if OT_QT
     ,
@@ -127,7 +127,7 @@ auto IssuerItem::Debug() const noexcept -> std::string
 auto IssuerItem::construct_row(
     const IssuerItemRowID& id,
     const IssuerItemSortKey& index,
-    const CustomData& custom) const noexcept -> void*
+    CustomData& custom) const noexcept -> void*
 {
     names_.emplace(id, index);
     const auto [it, added] = items_[index].emplace(
@@ -241,9 +241,7 @@ void IssuerItem::refresh_accounts() noexcept
     delete_inactive(active);
 }
 
-void IssuerItem::reindex(
-    const AccountSummarySortKey& key,
-    const CustomData&) noexcept
+void IssuerItem::reindex(const AccountSummarySortKey& key, CustomData&) noexcept
 {
     eLock lock(shared_lock_);
     key_ = key;

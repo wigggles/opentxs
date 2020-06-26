@@ -33,11 +33,11 @@ public:
 
     OPENTXS_EXPORT static const VersionNumber DefaultVersion;
 
-    OPENTXS_EXPORT virtual operator const crypto::key::Asymmetric&() const
-        noexcept = 0;
+    OPENTXS_EXPORT virtual operator const crypto::key::Asymmetric &()
+        const noexcept = 0;
 
-    OPENTXS_EXPORT virtual bool operator==(const proto::PaymentCode& rhs) const
-        noexcept = 0;
+    OPENTXS_EXPORT virtual bool operator==(
+        const proto::PaymentCode& rhs) const noexcept = 0;
 
     OPENTXS_EXPORT virtual const identifier::Nym& ID() const noexcept = 0;
     OPENTXS_EXPORT virtual std::string asBase58() const noexcept = 0;

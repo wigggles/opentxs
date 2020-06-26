@@ -39,15 +39,17 @@ namespace opentxs
 {
 namespace api
 {
-class Core;
-
 namespace client
 {
 namespace internal
 {
 struct Blockchain;
 }  // namespace internal
+
+class Manager;
 }  // namespace client
+
+class Core;
 }  // namespace api
 
 namespace blockchain
@@ -61,6 +63,11 @@ class Transaction;
 }  // namespace bitcoin
 }  // namespace block
 }  // namespace blockchain
+
+namespace proto
+{
+class BlockchainTransactionOutput;
+}  // namespace proto
 }  // namespace opentxs
 
 namespace opentxs::blockchain::database
@@ -82,6 +89,7 @@ public:
     using UTXO = Parent::UTXO;
 
     auto AddConfirmedTransaction(
+        const blockchain::Type chain,
         const NodeID& balanceNode,
         const Subchain subchain,
         const FilterType type,
@@ -89,6 +97,11 @@ public:
         const block::Position& block,
         const std::vector<std::uint32_t> outputIndices,
         const block::bitcoin::Transaction& transaction) const noexcept -> bool;
+    auto LookupContact(const Data& pubkeyHash) const noexcept
+        -> std::set<OTIdentifier>
+    {
+        return common_.LookupContact(pubkeyHash);
+    }
     auto GetBalance() const noexcept -> Balance;
     auto GetPatterns(
         const NodeID& balanceNode,
@@ -153,10 +166,13 @@ public:
         const Subchain subchain,
         const FilterType type,
         const block::Position& position) const noexcept -> bool;
+    auto TransactionLoadBitcoin(const ReadView txid) const noexcept
+        -> std::unique_ptr<block::bitcoin::Transaction>;
 
     Wallet(
-        const api::Core& api,
+        const api::client::Manager& api,
         const api::client::internal::Blockchain& blockchain,
+        const Common& common,
         const blockchain::Type chain) noexcept;
 
 private:
@@ -190,7 +206,6 @@ private:
         std::map<State, std::vector<block::bitcoin::Outpoint>>;
     using OutputSubchainIndex =
         std::map<pSubchainID, std::vector<block::bitcoin::Outpoint>>;
-    using TransactionMap = std::map<block::pTxid, proto::BlockchainTransaction>;
     using TransactionBlockMap =
         std::map<block::pTxid, std::vector<block::pHash>>;
     using BlockTransactionMap =
@@ -198,8 +213,9 @@ private:
     using TransactionHistory =
         std::map<block::Height, std::vector<block::pTxid>>;
 
-    const api::Core& api_;
+    const api::client::Manager& api_;
     const api::client::internal::Blockchain& blockchain_;
+    const Common& common_;
     const blockchain::Type chain_;
     mutable std::mutex lock_;
     mutable PatternMap patterns_;
@@ -213,7 +229,6 @@ private:
     mutable OutputPositionIndex output_positions_;
     mutable OutputStateIndex output_states_;
     mutable OutputSubchainIndex output_subchain_;
-    mutable TransactionMap transactions_;
     mutable TransactionBlockMap tx_to_block_;
     mutable BlockTransactionMap block_to_tx_;
     mutable TransactionHistory tx_history_;
@@ -257,6 +272,7 @@ private:
 
     auto add_transaction(
         const Lock& lock,
+        const blockchain::Type chain,
         const block::Position& block,
         const block::bitcoin::Transaction& transaction) const noexcept -> bool;
     auto change_state(

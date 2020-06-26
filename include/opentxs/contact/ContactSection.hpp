@@ -67,7 +67,8 @@ public:
         const std::string& nym,
         const VersionNumber parentVersion,
         const proto::ContactSection& serialized);
-    OPENTXS_EXPORT ContactSection(const ContactSection&);
+    OPENTXS_EXPORT ContactSection(const ContactSection&) noexcept;
+    OPENTXS_EXPORT ContactSection(ContactSection&&) noexcept;
 
     OPENTXS_EXPORT ContactSection operator+(const ContactSection& rhs) const;
 
@@ -92,10 +93,10 @@ public:
 
 private:
     const api::internal::Core& api_;
-    const VersionNumber version_{0};
-    const std::string nym_{};
-    const proto::ContactSectionName section_{proto::CONTACTSECTION_ERROR};
-    const GroupMap groups_{};
+    const VersionNumber version_;
+    const std::string nym_;
+    const proto::ContactSectionName section_;
+    const GroupMap groups_;
 
     static VersionNumber check_version(
         const VersionNumber in,
@@ -113,7 +114,6 @@ private:
     ContactSection add_scope(const std::shared_ptr<ContactItem>& item) const;
 
     ContactSection() = delete;
-    ContactSection(ContactSection&&) = delete;
     ContactSection& operator=(const ContactSection&) = delete;
     ContactSection& operator=(ContactSection&&) = delete;
 };

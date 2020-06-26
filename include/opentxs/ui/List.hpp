@@ -49,8 +49,8 @@ struct BlankModel final : public QAbstractItemModel {
     Q_OBJECT
 
 public:
-    OPENTXS_EXPORT int columnCount(const QModelIndex& = QModelIndex()) const
-        noexcept final
+    OPENTXS_EXPORT int columnCount(
+        const QModelIndex& = QModelIndex()) const noexcept final
     {
         return columns_;
     }
@@ -68,8 +68,8 @@ public:
     {
         return {};
     }
-    OPENTXS_EXPORT int rowCount(const QModelIndex& = QModelIndex()) const
-        noexcept final
+    OPENTXS_EXPORT int rowCount(
+        const QModelIndex& = QModelIndex()) const noexcept final
     {
         return 0;
     }

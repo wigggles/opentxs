@@ -20,7 +20,7 @@
 %extend opentxs::ui::ActivitySummaryItem {
     int Timestamp() const noexcept
     {
-        return std::chrono::system_clock::to_time_t($self->Timestamp());
+        return Clock::to_time_t($self->Timestamp());
     }
 }
 %ignore opentxs::ui::ActivitySummaryItem::Timestamp;
@@ -50,8 +50,7 @@ public:
     OPENTXS_EXPORT virtual std::string ImageURI() const noexcept = 0;
     OPENTXS_EXPORT virtual std::string Text() const noexcept = 0;
     OPENTXS_EXPORT virtual std::string ThreadID() const noexcept = 0;
-    OPENTXS_EXPORT virtual std::chrono::system_clock::time_point Timestamp()
-        const noexcept = 0;
+    OPENTXS_EXPORT virtual Time Timestamp() const noexcept = 0;
     OPENTXS_EXPORT virtual StorageBox Type() const noexcept = 0;
 
     OPENTXS_EXPORT ~ActivitySummaryItem() override = default;

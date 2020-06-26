@@ -10,6 +10,7 @@
 
 #include <cstdint>
 #include <optional>
+#include <string>
 #include <vector>
 
 #include "opentxs/blockchain/block/bitcoin/Transaction.hpp"
@@ -35,21 +36,22 @@ public:
 
     OPENTXS_EXPORT virtual auto CalculateSize() const noexcept
         -> std::size_t = 0;
-    OPENTXS_EXPORT virtual auto ExtractElements(const filter::Type style) const
-        noexcept -> std::vector<Space> = 0;
+    OPENTXS_EXPORT virtual auto ExtractElements(
+        const filter::Type style) const noexcept -> std::vector<Space> = 0;
     OPENTXS_EXPORT virtual auto FindMatches(
         const ReadView txid,
         const FilterType type,
         const Patterns& elements) const noexcept -> Matches = 0;
+    OPENTXS_EXPORT virtual auto GetPatterns() const noexcept
+        -> std::vector<PatternID> = 0;
+    OPENTXS_EXPORT virtual auto Note() const noexcept -> std::string = 0;
     OPENTXS_EXPORT virtual auto Keys() const noexcept -> std::vector<KeyID> = 0;
-    OPENTXS_EXPORT virtual auto MergeMetadata(const SerializeType& rhs) const
-        noexcept -> void = 0;
     OPENTXS_EXPORT virtual auto Payee() const noexcept -> ContactID = 0;
     OPENTXS_EXPORT virtual auto Payer() const noexcept -> ContactID = 0;
     OPENTXS_EXPORT virtual auto Serialize(const AllocateOutput destination)
         const noexcept -> std::optional<std::size_t> = 0;
-    OPENTXS_EXPORT virtual auto Serialize(SerializeType& destination) const
-        noexcept -> bool = 0;
+    OPENTXS_EXPORT virtual auto Serialize(
+        SerializeType& destination) const noexcept -> bool = 0;
     OPENTXS_EXPORT virtual auto Script() const noexcept
         -> const bitcoin::Script& = 0;
     OPENTXS_EXPORT virtual auto Value() const noexcept -> std::int64_t = 0;

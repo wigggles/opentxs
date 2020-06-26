@@ -28,7 +28,7 @@ auto ProfileItemWidget(
     const network::zeromq::socket::Publish& publisher,
     const ui::implementation::ProfileSubsectionRowID& rowID,
     const ui::implementation::ProfileSubsectionSortKey& sortKey,
-    const ui::implementation::CustomData& custom) noexcept
+    ui::implementation::CustomData& custom) noexcept
     -> std::shared_ptr<ui::implementation::ProfileSubsectionRowInternal>
 {
     using ReturnType = ui::implementation::ProfileItem;
@@ -46,7 +46,7 @@ ProfileItem::ProfileItem(
     const network::zeromq::socket::Publish& publisher,
     const ProfileSubsectionRowID& rowID,
     const ProfileSubsectionSortKey& sortKey,
-    const CustomData& custom) noexcept
+    CustomData& custom) noexcept
     : ProfileItemRow(parent, api, publisher, rowID, true)
     , item_{new opentxs::ContactItem(
           extract_custom<opentxs::ContactItem>(custom))}
@@ -94,7 +94,7 @@ auto ProfileItem::Delete() const noexcept -> bool
 
 void ProfileItem::reindex(
     const ProfileSubsectionSortKey&,
-    const CustomData& custom) noexcept
+    CustomData& custom) noexcept
 {
     eLock lock(shared_lock_);
     item_.reset(

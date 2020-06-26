@@ -38,5 +38,4 @@ message StorageNym {
     optional string PaymentWorkflow = 20;
     optional string bip47 = 21;
     repeated StoragePurse purse = 22;
-    optional StorageItemHash txo = 23;
 }

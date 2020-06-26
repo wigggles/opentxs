@@ -27,7 +27,6 @@
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
-#include "opentxs/network/zeromq/socket/Dealer.hpp"
 #include "opentxs/protobuf/ContactEnums.pb.h"
 #include "opentxs/protobuf/PaymentWorkflowEnums.pb.h"
 #include "opentxs/ui/AccountActivity.hpp"
@@ -127,18 +126,9 @@ public:
 
 private:
     const blockchain::Type chain_;
-    OTZMQListenCallback balance_cb_;
-    OTZMQDealerSocket balance_listener_;
 
-    auto construct_row(
-        const AccountActivityRowID& id,
-        const AccountActivitySortKey& index,
-        const CustomData& custom) const noexcept -> void* final;
-
-    auto process_balance(const network::zeromq::Message& message) noexcept
-        -> void;
-    auto setup_listeners(const ListenerDefinitions& definitions) noexcept
-        -> void final;
+    auto load_thread() noexcept -> void;
+    auto process_txid(const network::zeromq::Message& in) noexcept -> void;
     auto startup() noexcept -> void final;
 
     BlockchainAccountActivity() = delete;

@@ -14,6 +14,7 @@
 #include "internal/api/Api.hpp"
 #include "internal/core/Core.hpp"
 #include "internal/core/identifier/Identifier.hpp"
+#include "opentxs/Bytes.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/Version.hpp"
 #include "opentxs/api/client/Activity.hpp"
@@ -104,26 +105,6 @@ struct Activity : virtual public api::client::Activity {
     virtual ~Activity() = default;
 };
 struct Blockchain : virtual public api::client::Blockchain {
-    struct TxoDB {
-        using Status = std::pair<blockchain::Coin, bool>;
-
-        virtual auto AddSpent(
-            const identifier::Nym& nym,
-            const blockchain::Coin txo,
-            const std::string txid) const noexcept -> bool = 0;
-        virtual auto AddUnspent(
-            const identifier::Nym& nym,
-            const blockchain::Coin txo,
-            const std::vector<OTData>& elements) const noexcept -> bool = 0;
-        virtual auto Claim(
-            const identifier::Nym& nym,
-            const blockchain::Coin txo) const noexcept -> bool = 0;
-        virtual auto Lookup(const identifier::Nym& nym, const Data& element)
-            const noexcept -> std::vector<Status> = 0;
-
-        virtual ~TxoDB() = default;
-    };
-
     virtual auto API() const noexcept -> const api::internal::Core& = 0;
     /// Throws std::runtime_error if type is invalid
     OPENTXS_EXPORT virtual auto BalanceTree(
@@ -139,7 +120,6 @@ struct Blockchain : virtual public api::client::Blockchain {
         const blockchain::AddressStyle format,
         const Data& pubkey) const noexcept -> std::string = 0;
     virtual auto Contacts() const noexcept -> const api::client::Contacts& = 0;
-    virtual auto DB() const noexcept -> const TxoDB& = 0;
 #if OT_BLOCKCHAIN
     virtual auto IO() const noexcept
         -> const opentxs::blockchain::client::internal::IO& = 0;
@@ -156,6 +136,8 @@ struct Blockchain : virtual public api::client::Blockchain {
         const opentxs::blockchain::Type chain,
         const opentxs::blockchain::Balance balance) const noexcept -> void = 0;
 #endif  // OT_BLOCKCHAIN
+    virtual auto UpdateElement(
+        std::vector<ReadView>& pubkeyHashes) const noexcept -> void = 0;
 
     virtual ~Blockchain() = default;
 };

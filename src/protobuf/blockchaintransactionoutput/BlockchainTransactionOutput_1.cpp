@@ -16,23 +16,12 @@ namespace opentxs
 {
 namespace proto
 {
-
 auto CheckProto_1(const BlockchainTransactionOutput& input, const bool silent)
     -> bool
 {
     CHECK_SCRIPT(script);
-
-    if (input.has_key()) {
-        CHECK_SUBOBJECT(
-            key, BlockchainTransactionOutputAllowedBlockchainWalletKey());
-    } else if (input.has_external()) {
-        CHECK_SUBOBJECT(
-            external,
-            BlockchainTransactionOutputAllowedBlockchainExternalAddress());
-    } else {
-        FAIL_1("Missing destination");
-    }
-
+    OPTIONAL_SUBOBJECTS(
+        key, BlockchainTransactionOutputAllowedBlockchainWalletKey());
     OPTIONAL_IDENTIFIER(confirmedspend);
     OPTIONAL_IDENTIFIERS(orphanedspend);
 

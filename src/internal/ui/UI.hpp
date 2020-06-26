@@ -169,7 +169,7 @@ auto UnitID(const api::Core& api, const blockchain::Type chain) noexcept
 
 namespace opentxs::ui::implementation
 {
-using CustomData = std::vector<const void*>;
+using CustomData = std::vector<void*>;
 
 // Account activity
 using AccountActivityPrimaryID = OTNymID;
@@ -180,7 +180,7 @@ using AccountActivityRowID = std::pair<OTIdentifier, proto::PaymentEventType>;
 using AccountActivityRowInterface = ui::BalanceItem;
 using AccountActivityRowInternal = ui::internal::BalanceItem;
 using AccountActivityRowBlank = ui::internal::blank::BalanceItem;
-using AccountActivitySortKey = std::chrono::system_clock::time_point;
+using AccountActivitySortKey = Time;
 
 // Account list
 using AccountListPrimaryID = OTNymID;
@@ -220,8 +220,7 @@ using ActivitySummaryRowID = OTIdentifier;
 using ActivitySummaryRowInterface = ui::ActivitySummaryItem;
 using ActivitySummaryRowInternal = ui::internal::ActivitySummaryItem;
 using ActivitySummaryRowBlank = ui::internal::blank::ActivitySummaryItem;
-using ActivitySummarySortKey =
-    std::pair<std::chrono::system_clock::time_point, std::string>;
+using ActivitySummarySortKey = std::pair<Time, std::string>;
 
 // Activity thread
 using ActivityThreadPrimaryID = OTNymID;
@@ -233,8 +232,7 @@ using ActivityThreadRowInterface = ui::ActivityThreadItem;
 using ActivityThreadRowInternal = ui::internal::ActivityThreadItem;
 using ActivityThreadRowBlank = ui::internal::blank::ActivityThreadItem;
 /** timestamp, index */
-using ActivityThreadSortKey =
-    std::pair<std::chrono::system_clock::time_point, std::uint64_t>;
+using ActivityThreadSortKey = std::pair<Time, std::uint64_t>;
 
 // Contact
 using ContactPrimaryID = OTIdentifier;
@@ -428,7 +426,7 @@ struct AccountListItem : virtual public Row,
                          virtual public ui::AccountListItem {
     virtual void reindex(
         const implementation::AccountListSortKey& key,
-        const implementation::CustomData& custom) noexcept = 0;
+        implementation::CustomData& custom) noexcept = 0;
 
     ~AccountListItem() override = default;
 };
@@ -449,7 +447,7 @@ struct AccountSummaryItem : virtual public Row,
                             virtual public ui::AccountSummaryItem {
     virtual void reindex(
         const implementation::IssuerItemSortKey& key,
-        const implementation::CustomData& custom) noexcept = 0;
+        implementation::CustomData& custom) noexcept = 0;
 
     ~AccountSummaryItem() override = default;
 };
@@ -464,7 +462,7 @@ struct ActivitySummaryItem : virtual public Row,
                              virtual public ui::ActivitySummaryItem {
     virtual void reindex(
         const implementation::ActivitySummarySortKey& key,
-        const implementation::CustomData& custom) noexcept = 0;
+        implementation::CustomData& custom) noexcept = 0;
 
     ~ActivitySummaryItem() override = default;
 };
@@ -480,14 +478,14 @@ struct ActivityThreadItem : virtual public Row,
                             virtual public ui::ActivityThreadItem {
     virtual void reindex(
         const implementation::ActivityThreadSortKey& key,
-        const implementation::CustomData& custom) noexcept = 0;
+        implementation::CustomData& custom) noexcept = 0;
 
     ~ActivityThreadItem() override = default;
 };
 struct BalanceItem : virtual public Row, virtual public ui::BalanceItem {
     virtual void reindex(
         const implementation::AccountActivitySortKey& key,
-        const implementation::CustomData& custom) noexcept = 0;
+        implementation::CustomData& custom) noexcept = 0;
 
     ~BalanceItem() override = default;
 };
@@ -505,7 +503,7 @@ struct Contact : virtual public List, virtual public ui::Contact {
 struct ContactItem : virtual public Row, virtual public ui::ContactItem {
     virtual void reindex(
         const implementation::ContactSubsectionSortKey& key,
-        const implementation::CustomData& custom) noexcept = 0;
+        implementation::CustomData& custom) noexcept = 0;
 
     ~ContactItem() override = default;
 };
@@ -521,7 +519,7 @@ struct ContactListItem : virtual public Row,
                          virtual public ui::ContactListItem {
     virtual void reindex(
         const implementation::ContactListSortKey& key,
-        const implementation::CustomData& custom) noexcept = 0;
+        implementation::CustomData& custom) noexcept = 0;
 
     ~ContactListItem() override = default;
 };
@@ -539,7 +537,7 @@ struct ContactSection : virtual public List,
 
     virtual void reindex(
         const implementation::ContactSortKey& key,
-        const implementation::CustomData& custom) noexcept = 0;
+        implementation::CustomData& custom) noexcept = 0;
 
     ~ContactSection() override = default;
 };
@@ -548,7 +546,7 @@ struct ContactSubsection : virtual public List,
                            virtual public ui::ContactSubsection {
     virtual void reindex(
         const implementation::ContactSectionSortKey& key,
-        const implementation::CustomData& custom) noexcept = 0;
+        implementation::CustomData& custom) noexcept = 0;
     // List
     virtual auto last(const implementation::ContactSubsectionRowID& id)
         const noexcept -> bool = 0;
@@ -561,7 +559,7 @@ struct IssuerItem : virtual public List,
     // Row
     virtual void reindex(
         const implementation::AccountSummarySortKey& key,
-        const implementation::CustomData& custom) noexcept = 0;
+        implementation::CustomData& custom) noexcept = 0;
     // List
     virtual auto last(const implementation::IssuerItemRowID& id) const noexcept
         -> bool = 0;
@@ -578,7 +576,7 @@ struct PayableListItem : virtual public Row,
                          virtual public ui::PayableListItem {
     virtual void reindex(
         const implementation::PayableListSortKey& key,
-        const implementation::CustomData& custom) noexcept = 0;
+        implementation::CustomData& custom) noexcept = 0;
 
     ~PayableListItem() override = default;
 };
@@ -608,7 +606,7 @@ struct ProfileSection : virtual public List,
 
     virtual void reindex(
         const implementation::ProfileSortKey& key,
-        const implementation::CustomData& custom) noexcept = 0;
+        implementation::CustomData& custom) noexcept = 0;
 
     ~ProfileSection() override = default;
 };
@@ -618,7 +616,7 @@ struct ProfileSubsection : virtual public List,
     // Row
     virtual void reindex(
         const implementation::ProfileSectionSortKey& key,
-        const implementation::CustomData& custom) noexcept = 0;
+        implementation::CustomData& custom) noexcept = 0;
     // List
     virtual auto last(const implementation::ProfileSubsectionRowID& id)
         const noexcept -> bool = 0;
@@ -631,7 +629,7 @@ struct ProfileSubsection : virtual public List,
 struct ProfileItem : virtual public Row, virtual public ui::ProfileItem {
     virtual void reindex(
         const implementation::ProfileSubsectionSortKey& key,
-        const implementation::CustomData& custom) noexcept = 0;
+        implementation::CustomData& custom) noexcept = 0;
 
     ~ProfileItem() override = default;
 };
@@ -644,7 +642,7 @@ struct UnitList : virtual public List, virtual public ui::UnitList {
 struct UnitListItem : virtual public Row, virtual public ui::UnitListItem {
     virtual void reindex(
         const implementation::UnitListSortKey& key,
-        const implementation::CustomData& custom) noexcept = 0;
+        implementation::CustomData& custom) noexcept = 0;
 
     ~UnitListItem() override = default;
 };
@@ -718,7 +716,7 @@ struct AccountListItem final : virtual public Row,
 
     void reindex(
         const implementation::AccountListSortKey&,
-        const implementation::CustomData&) noexcept final
+        implementation::CustomData&) noexcept final
     {
     }
 };
@@ -731,7 +729,7 @@ struct AccountSummaryItem final : public Row,
 
     void reindex(
         const implementation::IssuerItemSortKey&,
-        const implementation::CustomData&) noexcept final
+        implementation::CustomData&) noexcept final
     {
     }
 };
@@ -742,11 +740,7 @@ struct ActivitySummaryItem final
     auto ImageURI() const noexcept -> std::string final { return {}; }
     auto Text() const noexcept -> std::string final { return {}; }
     auto ThreadID() const noexcept -> std::string final { return {}; }
-    auto Timestamp() const noexcept
-        -> std::chrono::system_clock::time_point final
-    {
-        return {};
-    }
+    auto Timestamp() const noexcept -> Time final { return {}; }
     auto Type() const noexcept -> StorageBox final
     {
         return StorageBox::UNKNOWN;
@@ -754,7 +748,7 @@ struct ActivitySummaryItem final
 
     void reindex(
         const implementation::ActivitySummarySortKey&,
-        const implementation::CustomData&) noexcept final
+        implementation::CustomData&) noexcept final
     {
     }
 };
@@ -768,11 +762,7 @@ struct ActivityThreadItem final : public Row,
     auto Memo() const noexcept -> std::string final { return {}; }
     auto Pending() const noexcept -> bool final { return false; }
     auto Text() const noexcept -> std::string final { return {}; }
-    auto Timestamp() const noexcept
-        -> std::chrono::system_clock::time_point final
-    {
-        return {};
-    }
+    auto Timestamp() const noexcept -> Time final { return {}; }
     auto Type() const noexcept -> StorageBox final
     {
         return StorageBox::UNKNOWN;
@@ -780,7 +770,7 @@ struct ActivityThreadItem final : public Row,
 
     void reindex(
         const implementation::ActivityThreadSortKey&,
-        const implementation::CustomData&) noexcept final
+        implementation::CustomData&) noexcept final
     {
     }
 };
@@ -794,11 +784,7 @@ struct BalanceItem final : public Row, public internal::BalanceItem {
     auto Memo() const noexcept -> std::string final { return {}; }
     auto Workflow() const noexcept -> std::string final { return {}; }
     auto Text() const noexcept -> std::string final { return {}; }
-    auto Timestamp() const noexcept
-        -> std::chrono::system_clock::time_point final
-    {
-        return {};
-    }
+    auto Timestamp() const noexcept -> Time final { return {}; }
     auto Type() const noexcept -> StorageBox final
     {
         return StorageBox::UNKNOWN;
@@ -807,7 +793,7 @@ struct BalanceItem final : public Row, public internal::BalanceItem {
 
     void reindex(
         const implementation::AccountActivitySortKey&,
-        const implementation::CustomData&) noexcept final
+        implementation::CustomData&) noexcept final
     {
     }
 };
@@ -819,7 +805,7 @@ struct ContactItem final : public Row, public internal::ContactItem {
 
     void reindex(
         const implementation::ContactSectionSortKey&,
-        const implementation::CustomData&) noexcept final
+        implementation::CustomData&) noexcept final
     {
     }
 };
@@ -832,7 +818,7 @@ struct ContactListItem : virtual public Row,
 
     void reindex(
         const implementation::ContactListSortKey&,
-        const implementation::CustomData&) noexcept override
+        implementation::CustomData&) noexcept override
     {
     }
 };
@@ -857,7 +843,7 @@ struct ContactSection final : public List<
 
     void reindex(
         const implementation::ContactSortKey&,
-        const implementation::CustomData&) noexcept final
+        implementation::CustomData&) noexcept final
     {
     }
 };
@@ -873,7 +859,7 @@ struct ContactSubsection final : public List<
 
     void reindex(
         const implementation::ContactSectionSortKey&,
-        const implementation::CustomData&) noexcept final
+        implementation::CustomData&) noexcept final
     {
     }
 };
@@ -888,7 +874,7 @@ struct IssuerItem final : public List<
 
     void reindex(
         const implementation::AccountSummarySortKey&,
-        const implementation::CustomData&) noexcept final
+        implementation::CustomData&) noexcept final
     {
     }
 };
@@ -898,7 +884,7 @@ struct PayableListItem final : virtual public ContactListItem,
 
     void reindex(
         const implementation::PayableListSortKey&,
-        const implementation::CustomData&) noexcept final
+        implementation::CustomData&) noexcept final
     {
     }
 };
@@ -923,7 +909,7 @@ struct ProfileItem : virtual public Row, virtual public internal::ProfileItem {
 
     void reindex(
         const implementation::ProfileSubsectionSortKey&,
-        const implementation::CustomData&) noexcept final
+        implementation::CustomData&) noexcept final
     {
     }
 };
@@ -982,7 +968,7 @@ struct ProfileSection : public List<
 
     void reindex(
         const implementation::ProfileSortKey& key,
-        const implementation::CustomData& custom) noexcept final
+        implementation::CustomData& custom) noexcept final
     {
     }
 
@@ -1031,7 +1017,7 @@ struct ProfileSubsection : public List<
 
     void reindex(
         const implementation::ProfileSortKey&,
-        const implementation::CustomData&) noexcept final
+        implementation::CustomData&) noexcept final
     {
     }
 
@@ -1045,7 +1031,7 @@ struct UnitListItem final : virtual public Row,
 
     void reindex(
         const implementation::UnitListSortKey&,
-        const implementation::CustomData&) noexcept final
+        implementation::CustomData&) noexcept final
     {
     }
 };
@@ -1075,7 +1061,7 @@ auto AccountListItem(
     const network::zeromq::socket::Publish& publisher,
     const ui::implementation::AccountListRowID& rowID,
     const ui::implementation::AccountListSortKey& sortKey,
-    const ui::implementation::CustomData& custom) noexcept
+    ui::implementation::CustomData& custom) noexcept
     -> std::shared_ptr<ui::implementation::AccountListRowInternal>;
 auto AccountListModel(
     const api::client::internal::Manager& api,
@@ -1096,7 +1082,7 @@ auto AccountSummaryItem(
     const network::zeromq::socket::Publish& publisher,
     const ui::implementation::IssuerItemRowID& rowID,
     const ui::implementation::IssuerItemSortKey& sortKey,
-    const ui::implementation::CustomData& custom) noexcept
+    ui::implementation::CustomData& custom) noexcept
     -> std::shared_ptr<ui::implementation::IssuerItemRowInternal>;
 auto AccountSummaryModel(
     const api::client::internal::Manager& api,
@@ -1119,7 +1105,7 @@ auto ActivitySummaryItem(
     const identifier::Nym& nymID,
     const ui::implementation::ActivitySummaryRowID& rowID,
     const ui::implementation::ActivitySummarySortKey& sortKey,
-    const ui::implementation::CustomData& custom,
+    ui::implementation::CustomData& custom,
     const Flag& running) noexcept
     -> std::shared_ptr<ui::implementation::ActivitySummaryRowInternal>;
 auto ActivitySummaryModel(
@@ -1168,16 +1154,25 @@ auto BlockchainAccountListItem(
     const network::zeromq::socket::Publish& publisher,
     const ui::implementation::AccountListRowID& rowID,
     const ui::implementation::AccountListSortKey& sortKey,
-    const ui::implementation::CustomData& custom) noexcept
+    ui::implementation::CustomData& custom) noexcept
     -> std::shared_ptr<ui::implementation::AccountListRowInternal>;
 #endif  // OT_BLOCKCHAIN
+auto BlockchainActivityThreadItem(
+    const ui::implementation::ActivityThreadInternalInterface& parent,
+    const api::client::internal::Manager& api,
+    const network::zeromq::socket::Publish& publisher,
+    const identifier::Nym& nymID,
+    const ui::implementation::ActivityThreadRowID& rowID,
+    const ui::implementation::ActivityThreadSortKey& sortKey,
+    ui::implementation::CustomData& custom) noexcept
+    -> std::shared_ptr<ui::implementation::ActivityThreadRowInternal>;
 auto BalanceItem(
     const ui::implementation::AccountActivityInternalInterface& parent,
     const api::client::internal::Manager& api,
     const network::zeromq::socket::Publish& publisher,
     const ui::implementation::AccountActivityRowID& rowID,
     const ui::implementation::AccountActivitySortKey& sortKey,
-    const ui::implementation::CustomData& custom,
+    ui::implementation::CustomData& custom,
     const identifier::Nym& nymID,
     const opentxs::Identifier& accountID) noexcept
     -> std::shared_ptr<ui::implementation::AccountActivityRowInternal>;
@@ -1187,7 +1182,7 @@ auto ContactItemWidget(
     const network::zeromq::socket::Publish& publisher,
     const ui::implementation::ContactSubsectionRowID& rowID,
     const ui::implementation::ContactSubsectionSortKey& sortKey,
-    const ui::implementation::CustomData& custom) noexcept
+    ui::implementation::CustomData& custom) noexcept
     -> std::shared_ptr<ui::implementation::ContactSubsectionRowInternal>;
 auto ContactListItem(
     const ui::implementation::ContactListInternalInterface& parent,
@@ -1228,7 +1223,7 @@ auto ContactSectionWidget(
     const network::zeromq::socket::Publish& publisher,
     const ui::implementation::ContactRowID& rowID,
     const ui::implementation::ContactSortKey& key,
-    const ui::implementation::CustomData& custom
+    ui::implementation::CustomData& custom
 #if OT_QT
     ,
     const bool qt
@@ -1240,7 +1235,7 @@ auto ContactSubsectionWidget(
     const network::zeromq::socket::Publish& publisher,
     const ui::implementation::ContactSectionRowID& rowID,
     const ui::implementation::ContactSectionSortKey& key,
-    const ui::implementation::CustomData& custom
+    ui::implementation::CustomData& custom
 #if OT_QT
     ,
     const bool qt
@@ -1253,7 +1248,7 @@ auto IssuerItem(
     const network::zeromq::socket::Publish& publisher,
     const ui::implementation::AccountSummaryRowID& rowID,
     const ui::implementation::AccountSummarySortKey& sortKey,
-    const ui::implementation::CustomData& custom,
+    ui::implementation::CustomData& custom,
     const proto::ContactItemType currency
 #if OT_QT
     ,
@@ -1268,7 +1263,7 @@ auto MailItem(
     const identifier::Nym& nymID,
     const ui::implementation::ActivityThreadRowID& rowID,
     const ui::implementation::ActivityThreadSortKey& sortKey,
-    const ui::implementation::CustomData& custom,
+    ui::implementation::CustomData& custom,
     const bool loading,
     const bool pending) noexcept
     -> std::shared_ptr<ui::implementation::ActivityThreadRowInternal>;
@@ -1279,7 +1274,7 @@ auto MailItem(
     const identifier::Nym& nymID,
     const ui::implementation::ActivityThreadRowID& rowID,
     const ui::implementation::ActivityThreadSortKey& sortKey,
-    const ui::implementation::CustomData& custom) noexcept
+    ui::implementation::CustomData& custom) noexcept
     -> std::shared_ptr<ui::implementation::ActivityThreadRowInternal>;
 auto MessagableListModel(
     const api::client::internal::Manager& api,
@@ -1310,7 +1305,7 @@ auto PaymentItem(
     const identifier::Nym& nymID,
     const ui::implementation::ActivityThreadRowID& rowID,
     const ui::implementation::ActivityThreadSortKey& sortKey,
-    const ui::implementation::CustomData& custom) noexcept
+    ui::implementation::CustomData& custom) noexcept
     -> std::shared_ptr<ui::implementation::ActivityThreadRowInternal>;
 auto PayableListModel(
     const api::client::internal::Manager& api,
@@ -1333,7 +1328,7 @@ auto PendingSend(
     const identifier::Nym& nymID,
     const ui::implementation::ActivityThreadRowID& rowID,
     const ui::implementation::ActivityThreadSortKey& sortKey,
-    const ui::implementation::CustomData& custom) noexcept
+    ui::implementation::CustomData& custom) noexcept
     -> std::shared_ptr<ui::implementation::ActivityThreadRowInternal>;
 auto ProfileModel(
     const api::client::internal::Manager& api,
@@ -1354,7 +1349,7 @@ auto ProfileItemWidget(
     const network::zeromq::socket::Publish& publisher,
     const ui::implementation::ProfileSubsectionRowID& rowID,
     const ui::implementation::ProfileSubsectionSortKey& sortKey,
-    const ui::implementation::CustomData& custom) noexcept
+    ui::implementation::CustomData& custom) noexcept
     -> std::shared_ptr<ui::implementation::ProfileSubsectionRowInternal>;
 auto ProfileSectionWidget(
     const ui::implementation::ProfileInternalInterface& parent,
@@ -1362,7 +1357,7 @@ auto ProfileSectionWidget(
     const network::zeromq::socket::Publish& publisher,
     const ui::implementation::ProfileRowID& rowID,
     const ui::implementation::ProfileSortKey& key,
-    const ui::implementation::CustomData& custom
+    ui::implementation::CustomData& custom
 #if OT_QT
     ,
     const bool qt
@@ -1374,7 +1369,7 @@ auto ProfileSubsectionWidget(
     const network::zeromq::socket::Publish& publisher,
     const ui::implementation::ProfileSectionRowID& rowID,
     const ui::implementation::ProfileSectionSortKey& key,
-    const ui::implementation::CustomData& custom
+    ui::implementation::CustomData& custom
 #if OT_QT
     ,
     const bool qt
@@ -1387,7 +1382,7 @@ auto UnitListItem(
     const network::zeromq::socket::Publish& publisher,
     const ui::implementation::UnitListRowID& rowID,
     const ui::implementation::UnitListSortKey& sortKey,
-    const ui::implementation::CustomData& custom) noexcept
+    ui::implementation::CustomData& custom) noexcept
     -> std::shared_ptr<ui::implementation::UnitListRowInternal>;
 auto UnitListModel(
     const api::client::internal::Manager& api,

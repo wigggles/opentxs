@@ -53,13 +53,13 @@ public:
 
     OPENTXS_EXPORT static OTAsymmetricKey Factory() noexcept;
 
-    OPENTXS_EXPORT virtual std::unique_ptr<Asymmetric> asPublic() const
-        noexcept = 0;
+    OPENTXS_EXPORT virtual std::unique_ptr<Asymmetric> asPublic()
+        const noexcept = 0;
     OPENTXS_EXPORT virtual OTData CalculateHash(
         const proto::HashType hashType,
         const PasswordPrompt& reason) const noexcept = 0;
-    OPENTXS_EXPORT virtual bool CalculateID(Identifier& theOutput) const
-        noexcept = 0;
+    OPENTXS_EXPORT virtual bool CalculateID(
+        Identifier& theOutput) const noexcept = 0;
     OPENTXS_EXPORT virtual bool CalculateTag(
         const identity::Authority& nym,
         const proto::AsymmetricKeyType type,
@@ -77,14 +77,14 @@ public:
         Secret& password) const noexcept = 0;
     OPENTXS_EXPORT virtual const opentxs::crypto::AsymmetricProvider& engine()
         const noexcept = 0;
-    OPENTXS_EXPORT virtual const OTSignatureMetadata* GetMetadata() const
-        noexcept = 0;
+    OPENTXS_EXPORT virtual const OTSignatureMetadata* GetMetadata()
+        const noexcept = 0;
     OPENTXS_EXPORT virtual bool hasCapability(
         const NymCapability& capability) const noexcept = 0;
     OPENTXS_EXPORT virtual bool HasPrivate() const noexcept = 0;
     OPENTXS_EXPORT virtual bool HasPublic() const noexcept = 0;
-    OPENTXS_EXPORT virtual proto::AsymmetricKeyType keyType() const
-        noexcept = 0;
+    OPENTXS_EXPORT virtual proto::AsymmetricKeyType keyType()
+        const noexcept = 0;
     OPENTXS_EXPORT virtual ReadView Params() const noexcept = 0;
     OPENTXS_EXPORT virtual const std::string Path() const noexcept = 0;
     OPENTXS_EXPORT virtual bool Path(proto::HDPath& output) const noexcept = 0;
@@ -113,8 +113,8 @@ public:
     OPENTXS_EXPORT virtual VersionNumber Version() const noexcept = 0;
 
     OPENTXS_EXPORT virtual operator bool() const noexcept = 0;
-    OPENTXS_EXPORT virtual bool operator==(const proto::AsymmetricKey&) const
-        noexcept = 0;
+    OPENTXS_EXPORT virtual bool operator==(
+        const proto::AsymmetricKey&) const noexcept = 0;
 
     OPENTXS_EXPORT virtual ~Asymmetric() = default;
 

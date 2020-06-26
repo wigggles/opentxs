@@ -7,14 +7,20 @@
 #include "1_Internal.hpp"  // IWYU pragma: associated
 #include "api/client/blockchain/database/Database.hpp"  // IWYU pragma: associated
 
+extern "C" {
+#include <sodium.h>
+}
+
 #include <algorithm>
 #include <cstring>
 #include <stdexcept>
+#include <type_traits>
 
 #include "api/client/blockchain/database/Blocks.hpp"
 #include "internal/api/client/Client.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/api/Legacy.hpp"
+#include "opentxs/core/Log.hpp"
 
 // #define OT_METHOD
 // "opentxs::api::client::blockchain::database::implementation::Database::"
@@ -78,13 +84,19 @@ Database::Database(
               {BlockIndex, 0},
           })
     , block_policy_(block_storage_level(args, lmdb_))
+    , siphash_key_(siphash_key(lmdb_))
     , headers_(api, lmdb_)
     , peers_(api, lmdb_)
     , filters_(api, lmdb_)
 #if OPENTXS_BLOCK_STORAGE_ENABLED
     , blocks_(lmdb_, blocks_path_->Get())
 #endif  // OPENTXS_BLOCK_STORAGE_ENABLED
+    , wallet_(api, lmdb_)
 {
+    OT_ASSERT(crypto_shorthash_KEYBYTES == siphash_key_.size());
+
+    static_assert(
+        sizeof(opentxs::blockchain::PatternID) == crypto_shorthash_BYTES);
 }
 
 auto Database::AllocateStorageFolder(const std::string& dir) const noexcept
@@ -148,7 +160,9 @@ auto Database::block_storage_level_arg(const ArgList& args) noexcept
 auto Database::block_storage_level_configured(
     opentxs::storage::lmdb::LMDB& db) noexcept -> std::optional<BlockStorage>
 {
-    if (false == db.Exists(Config, tsv(Key::BlockStoragePolicy))) { return {}; }
+    if (false == db.Exists(Config, tsv(Key::BlockStoragePolicy))) {
+        return std::nullopt;
+    }
 
     auto output{BlockStorage::None};
     auto cb = [&output](const auto in) {
@@ -158,7 +172,7 @@ auto Database::block_storage_level_configured(
     };
 
     if (false == db.Load(Config, tsv(Key::BlockStoragePolicy), cb)) {
-        return {};
+        return std::nullopt;
     }
 
     return output;
@@ -230,5 +244,42 @@ auto Database::init_storage_path(
 {
     return init_folder(
         legacy, String::Factory(dataFolder), String::Factory("blockchain"));
+}
+
+auto Database::siphash_key(opentxs::storage::lmdb::LMDB& db) noexcept
+    -> SiphashKey
+{
+    auto configured = siphash_key_configured(db);
+
+    if (configured.has_value()) { return configured.value(); }
+
+    auto output = space(crypto_shorthash_KEYBYTES);
+    ::crypto_shorthash_keygen(reinterpret_cast<unsigned char*>(output.data()));
+    const auto saved = db.Store(Config, tsv(Key::SiphashKey), reader(output));
+
+    OT_ASSERT(saved.first);
+
+    return output;
+}
+
+auto Database::siphash_key_configured(opentxs::storage::lmdb::LMDB& db) noexcept
+    -> std::optional<SiphashKey>
+{
+    if (false == db.Exists(Config, tsv(Key::SiphashKey))) {
+        return std::nullopt;
+    }
+
+    auto output = space(crypto_shorthash_KEYBYTES);
+    auto cb = [&output](const auto in) {
+        if (output.size() != in.size()) { return; }
+
+        std::memcpy(output.data(), in.data(), in.size());
+    };
+
+    if (false == db.Load(Config, tsv(Key::SiphashKey), cb)) {
+        return std::nullopt;
+    }
+
+    return std::move(output);
 }
 }  // namespace opentxs::api::client::blockchain::database::implementation

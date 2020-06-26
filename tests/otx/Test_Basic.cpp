@@ -3354,7 +3354,7 @@ TEST_F(Test_Basic, initiate_store_secret_and_acknowledge_notice)
 TEST_F(Test_Basic, waitForCash_Alice)
 {
     auto mint = server_1_.GetPublicMint(find_unit_definition_id_1());
-    const auto start = std::chrono::system_clock::now();
+    const auto start = Clock::now();
     std::cout << "Pausing for up to " << MINT_TIME_LIMIT_MINUTES
               << " minutes until mint generation is finished." << std::endl;
 
@@ -3362,7 +3362,7 @@ TEST_F(Test_Basic, waitForCash_Alice)
         std::cout << "* Waiting for mint..." << std::endl;
         Sleep(std::chrono::seconds(10));
         mint = server_1_.GetPublicMint(find_unit_definition_id_1());
-        const auto wait = std::chrono::system_clock::now() - start;
+        const auto wait = Clock::now() - start;
         const auto limit = std::chrono::minutes(MINT_TIME_LIMIT_MINUTES);
 
         if (wait > limit) { break; }

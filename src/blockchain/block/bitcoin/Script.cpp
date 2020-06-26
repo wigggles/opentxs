@@ -18,7 +18,10 @@
 #include <utility>
 #include <vector>
 
-#include "internal/blockchain/block/bitcoin/Bitcoin.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/api/client/Blockchain.hpp"
+#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/blockchain/block/bitcoin/Script.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
@@ -33,11 +36,12 @@ namespace opentxs::factory
 using ReturnType = blockchain::block::bitcoin::implementation::Script;
 
 auto BitcoinScript(
+    const blockchain::Type chain,
     const ReadView bytes,
     const bool isOutput,
     const bool isCoinbase,
     const bool allowInvalidOpcodes) noexcept
-    -> std::unique_ptr<blockchain::block::bitcoin::Script>
+    -> std::unique_ptr<blockchain::block::bitcoin::internal::Script>
 {
     const auto role = isOutput ? ReturnType::Position::Output
                                : (isCoinbase ? ReturnType::Position::Coinbase
@@ -46,7 +50,8 @@ auto BitcoinScript(
 
     if ((nullptr == bytes.data()) || (0 == bytes.size()) ||
         (ReturnType::Position::Coinbase == role)) {
-        return std::make_unique<ReturnType>(role, std::move(elements), 0);
+        return std::make_unique<ReturnType>(
+            chain, role, std::move(elements), 0);
     }
 
     elements.reserve(bytes.size());
@@ -166,7 +171,7 @@ auto BitcoinScript(
 
     try {
         return std::make_unique<ReturnType>(
-            role, std::move(elements), bytes.size());
+            chain, role, std::move(elements), bytes.size());
     } catch (const std::exception& e) {
         LogVerbose("opentxs::factory::")(__FUNCTION__)(": ")(e.what()).Flush();
 
@@ -175,10 +180,11 @@ auto BitcoinScript(
 }
 
 auto BitcoinScript(
+    const blockchain::Type chain,
     blockchain::block::bitcoin::ScriptElements&& elements,
     const bool isOutput,
     const bool isCoinbase) noexcept
-    -> std::unique_ptr<blockchain::block::bitcoin::Script>
+    -> std::unique_ptr<blockchain::block::bitcoin::internal::Script>
 {
     if (false == ReturnType::validate(elements)) {
         LogVerbose("opentxs::factory::")(__FUNCTION__)(": Invalid elements")
@@ -199,20 +205,31 @@ auto BitcoinScript(
 
     elements.shrink_to_fit();
 
-    return std::make_unique<ReturnType>(role, std::move(elements));
+    return std::make_unique<ReturnType>(chain, role, std::move(elements));
 }
 }  // namespace opentxs::factory
 
 namespace opentxs::blockchain::block::bitcoin::implementation
 {
 Script::Script(
+    const blockchain::Type chain,
     const Position role,
     ScriptElements&& elements,
     std::optional<std::size_t> size) noexcept
-    : role_(role)
+    : chain_(chain)
+    , role_(role)
     , elements_(std::move(elements))
     , type_(get_type(role_, elements_))
     , size_(size)
+{
+}
+
+Script::Script(const Script& rhs) noexcept
+    : chain_(rhs.chain_)
+    , role_(rhs.role_)
+    , elements_(rhs.elements_)
+    , type_(rhs.type_)
+    , size_(rhs.size_)
 {
 }
 
@@ -234,6 +251,21 @@ auto Script::bytes(const ScriptElements& script) noexcept -> std::size_t
         [](const std::size_t& lhs, const value_type& rhs) -> std::size_t {
             return lhs + bytes(rhs);
         });
+}
+
+auto Script::CalculateHash160(const api::Core& api, const AllocateOutput output)
+    const noexcept -> bool
+{
+    auto preimage = Space{};
+
+    if (false == Serialize(writer(preimage))) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to serialize script")
+            .Flush();
+
+        return false;
+    }
+
+    return blockchain::ScriptHash(api, chain_, reader(preimage), output);
 }
 
 auto Script::CalculateSize() const noexcept -> std::size_t
@@ -605,6 +637,22 @@ auto Script::ExtractElements(const filter::Type style) const noexcept
     return output;
 }
 
+auto Script::ExtractPatterns(const api::client::Manager& api) const noexcept
+    -> std::vector<PatternID>
+{
+    auto output = std::vector<PatternID>{};
+    const auto hashes = LikelyPubkeyHashes(api);
+    std::transform(
+        std::begin(hashes),
+        std::end(hashes),
+        std::back_inserter(output),
+        [&](const auto& hash) -> auto {
+            return api.Blockchain().IndexItem(hash->Bytes());
+        });
+
+    return output;
+}
+
 auto Script::first_opcode(const ScriptElements& script) noexcept -> OP
 {
     return script.cbegin()->opcode_;
@@ -725,6 +773,73 @@ auto Script::last_opcode(const ScriptElements& script) noexcept -> OP
     return script.crbegin()->opcode_;
 }
 
+auto Script::LikelyPubkeyHashes(const api::client::Manager& api) const noexcept
+    -> std::vector<OTData>
+{
+    auto output = std::vector<OTData>{};
+
+    switch (type_) {
+        case Pattern::PayToPubkeyHash: {
+            const auto hash = PubkeyHash();
+
+            OT_ASSERT(hash.has_value());
+
+            output.emplace_back(api.Factory().Data(hash.value()));
+        } break;
+        case Pattern::PayToMultisig: {
+            for (auto i = std::uint8_t{0}; i < N().value(); ++i) {
+                auto hash = api.Factory().Data();
+                const auto key = MultisigPubkey(i);
+
+                OT_ASSERT(key.has_value());
+
+                blockchain::PubkeyHash(
+                    api, chain_, key.value(), hash->WriteInto());
+                output.emplace_back(std::move(hash));
+            }
+        } break;
+        case Pattern::PayToPubkey: {
+            auto hash = api.Factory().Data();
+            const auto key = Pubkey();
+
+            OT_ASSERT(key.has_value());
+
+            blockchain::PubkeyHash(api, chain_, key.value(), hash->WriteInto());
+            output.emplace_back(std::move(hash));
+        } break;
+        case Pattern::Coinbase:
+        case Pattern::PayToScriptHash:
+        case Pattern::Empty:
+        case Pattern::Malformed: {
+        } break;
+        case Pattern::Custom:
+        case Pattern::NullData:
+        case Pattern::Input:
+        default: {
+            for (const auto& element : elements_) {
+                if (is_hash160(element)) {
+                    OT_ASSERT(element.data_.has_value());
+
+                    output.emplace_back(
+                        api.Factory().Data(reader(element.data_.value())));
+                } else if (is_public_key(element)) {
+                    OT_ASSERT(element.data_.has_value());
+
+                    auto hash = api.Factory().Data();
+                    blockchain::PubkeyHash(
+                        api,
+                        chain_,
+                        reader(element.data_.value()),
+                        hash->WriteInto());
+                    output.emplace_back(std::move(hash));
+                }
+            }
+        }
+    }
+
+    return output;
+}
+
 auto Script::M() const noexcept -> std::optional<std::uint8_t>
 {
     if (Pattern::PayToMultisig != type_) { return {}; }
@@ -796,14 +911,14 @@ auto Script::PubkeyHash() const noexcept -> std::optional<ReadView>
 auto Script::RedeemScript() const noexcept -> std::unique_ptr<bitcoin::Script>
 {
     if (Position::Input != role_) { return {}; }
-    if (1 < elements_.size()) { return {}; }
+    if (0 == elements_.size()) { return {}; }
 
     const auto& element = *elements_.crbegin();
 
     if (false == is_data_push(element)) { return {}; }
 
     return factory::BitcoinScript(
-        reader(element.data_.value()), false, false, false);
+        chain_, reader(element.data_.value()), false, false, false);
 }
 
 auto Script::ScriptHash() const noexcept -> std::optional<ReadView>

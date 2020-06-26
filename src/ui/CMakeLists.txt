@@ -24,6 +24,8 @@ set(
   BalanceItem.cpp
   BlockchainAccountActivity.cpp
   BlockchainAccountListItem.cpp
+  BlockchainActivityThreadItem.cpp
+  BlockchainBalanceItem.cpp
   ChequeBalanceItem.cpp
   Contact.cpp
   ContactItem.cpp
@@ -100,6 +102,8 @@ set(
   ActivityThreadItem.hpp
   BalanceItem.hpp
   BlockchainAccountActivity.hpp
+  BlockchainActivityThreadItem.hpp
+  BlockchainBalanceItem.hpp
   Combined.hpp
   Contact.hpp
   ContactItem.hpp

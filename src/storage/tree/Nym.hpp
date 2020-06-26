@@ -24,7 +24,6 @@
 #include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/protobuf/ContactEnums.pb.h"
 #include "storage/tree/Node.hpp"
-#include "storage/tree/Txos.hpp"
 
 namespace opentxs
 {
@@ -53,6 +52,9 @@ class PeerReplies;
 class PeerRequests;
 class Threads;
 }  // namespace storage
+
+class Data;
+class Identifier;
 }  // namespace opentxs
 
 namespace opentxs::storage
@@ -80,7 +82,6 @@ public:
     auto SentRequestBox() const -> const PeerRequests&;
     auto Threads() const -> const storage::Threads&;
     auto PaymentWorkflows() const -> const storage::PaymentWorkflows&;
-    auto TXOs() const -> const storage::Txos& { return *txos(); }
 
     auto mutable_Bip47Channels() -> Editor<storage::Bip47Channels>;
     auto mutable_Contexts() -> Editor<storage::Contexts>;
@@ -96,8 +97,11 @@ public:
     auto mutable_SentReplyBox() -> Editor<PeerReplies>;
     auto mutable_SentRequestBox() -> Editor<PeerRequests>;
     auto mutable_Threads() -> Editor<storage::Threads>;
+    auto mutable_Threads(
+        const Data& txid,
+        const Identifier& contact,
+        const bool add) -> Editor<storage::Threads>;
     auto mutable_PaymentWorkflows() -> Editor<storage::PaymentWorkflows>;
-    auto mutable_TXOs() -> Editor<storage::Txos>;
 
     auto Alias() const -> std::string;
     auto Load(
@@ -191,9 +195,6 @@ private:
     mutable std::mutex workflows_lock_;
     mutable std::unique_ptr<storage::PaymentWorkflows> workflows_;
     std::map<PurseID, std::string> purse_id_;
-    mutable std::mutex txo_lock_;
-    mutable std::unique_ptr<storage::Txos> txo_;
-    std::string txo_root_;
 
     template <typename T, typename... Args>
     auto construct(
@@ -217,10 +218,6 @@ private:
     auto contexts() const -> storage::Contexts*;
     auto issuers() const -> storage::Issuers*;
     auto workflows() const -> storage::PaymentWorkflows*;
-    auto txos() const -> storage::Txos*
-    {
-        return construct<storage::Txos>(txo_lock_, txo_, txo_root_);
-    }
 
     template <typename T>
     auto editor(std::string& root, std::mutex& mutex, T* (Nym::*get)() const)

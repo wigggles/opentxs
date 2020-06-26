@@ -37,8 +37,8 @@ public:
 
     OPENTXS_EXPORT virtual auto CalculateSize() const noexcept
         -> std::size_t = 0;
-    OPENTXS_EXPORT virtual auto ExtractElements(const FilterType style) const
-        noexcept -> std::vector<Space> = 0;
+    OPENTXS_EXPORT virtual auto ExtractElements(
+        const FilterType style) const noexcept -> std::vector<Space> = 0;
     OPENTXS_EXPORT virtual auto FindMatches(
         const FilterType type,
         const Patterns& txos,

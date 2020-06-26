@@ -44,10 +44,10 @@ public:
         const PasswordPrompt& reason) const noexcept = 0;
     OPENTXS_EXPORT virtual int Depth() const noexcept = 0;
     OPENTXS_EXPORT virtual Bip32Fingerprint Fingerprint() const noexcept = 0;
-    OPENTXS_EXPORT virtual std::string Xprv(const PasswordPrompt& reason) const
-        noexcept = 0;
-    OPENTXS_EXPORT virtual std::string Xpub(const PasswordPrompt& reason) const
-        noexcept = 0;
+    OPENTXS_EXPORT virtual std::string Xprv(
+        const PasswordPrompt& reason) const noexcept = 0;
+    OPENTXS_EXPORT virtual std::string Xpub(
+        const PasswordPrompt& reason) const noexcept = 0;
 
     OPENTXS_EXPORT ~HD() override = default;
 

@@ -64,7 +64,8 @@ public:
         const VersionNumber parentVersion,
         const proto::ContactSectionName section,
         const proto::ContactItem& serialized);
-    OPENTXS_EXPORT ContactItem(const ContactItem&);
+    OPENTXS_EXPORT ContactItem(const ContactItem&) noexcept;
+    OPENTXS_EXPORT ContactItem(ContactItem&&) noexcept;
 
     OPENTXS_EXPORT bool operator==(const ContactItem& rhs) const;
 
@@ -95,14 +96,14 @@ public:
 
 private:
     const api::internal::Core& api_;
-    const VersionNumber version_{0};
-    const std::string nym_{};
-    const proto::ContactSectionName section_{proto::CONTACTSECTION_ERROR};
-    const proto::ContactItemType type_{proto::CITEMTYPE_ERROR};
+    const VersionNumber version_;
+    const std::string nym_;
+    const proto::ContactSectionName section_;
+    const proto::ContactItemType type_;
     const std::string value_;
-    const std::time_t start_{0};
-    const std::time_t end_{0};
-    const std::set<proto::ContactItemAttribute> attributes_{};
+    const std::time_t start_;
+    const std::time_t end_;
+    const std::set<proto::ContactItemAttribute> attributes_;
     const OTIdentifier id_;
     const std::string subtype_;
 
@@ -119,7 +120,6 @@ private:
         const bool value) const;
 
     ContactItem() = delete;
-    ContactItem(ContactItem&&) = delete;
     ContactItem& operator=(const ContactItem&) = delete;
     ContactItem& operator=(ContactItem&&) = delete;
 };

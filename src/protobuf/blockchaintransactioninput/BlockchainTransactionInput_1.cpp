@@ -16,7 +16,6 @@ namespace opentxs
 {
 namespace proto
 {
-
 auto CheckProto_1(const BlockchainTransactionInput& input, const bool silent)
     -> bool
 {
@@ -25,6 +24,10 @@ auto CheckProto_1(const BlockchainTransactionInput& input, const bool silent)
         previous, BlockchainTransactionInputAllowedBlockchainPreviousOutput());
     OPTIONAL_SUBOBJECT(
         witness, BlockchainTransactionInputAllowedBlockchainInputWitness());
+    OPTIONAL_SUBOBJECTS(
+        key, BlockchainTransactionInputAllowedBlockchainWalletKey());
+    OPTIONAL_SUBOBJECT(
+        spends, BlockchainTransactionInputAllowedBlockchainTransactionOutput());
 
     return true;
 }

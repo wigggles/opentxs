@@ -25,8 +25,8 @@ public:
     OPENTXS_EXPORT virtual OTString Description() const noexcept = 0;
     OPENTXS_EXPORT virtual proto::SourceType Type() const noexcept = 0;
     OPENTXS_EXPORT virtual OTNymID NymID() const noexcept = 0;
-    OPENTXS_EXPORT virtual std::shared_ptr<proto::NymIDSource> Serialize() const
-        noexcept = 0;
+    OPENTXS_EXPORT virtual std::shared_ptr<proto::NymIDSource> Serialize()
+        const noexcept = 0;
     OPENTXS_EXPORT virtual bool Verify(
         const proto::Credential& master,
         const proto::Signature& sourceSignature) const noexcept = 0;

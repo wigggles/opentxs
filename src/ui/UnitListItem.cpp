@@ -19,7 +19,7 @@ auto UnitListItem(
     const network::zeromq::socket::Publish& publisher,
     const ui::implementation::UnitListRowID& rowID,
     const ui::implementation::UnitListSortKey& sortKey,
-    const ui::implementation::CustomData& custom) noexcept
+    ui::implementation::CustomData& custom) noexcept
     -> std::shared_ptr<ui::implementation::UnitListRowInternal>
 {
     using ReturnType = ui::implementation::UnitListItem;
@@ -37,7 +37,7 @@ UnitListItem::UnitListItem(
     const network::zeromq::socket::Publish& publisher,
     const UnitListRowID& rowID,
     const UnitListSortKey& sortKey,
-    [[maybe_unused]] const CustomData& custom) noexcept
+    [[maybe_unused]] CustomData& custom) noexcept
     : UnitListItemRow(parent, api, publisher, rowID, true)
     , name_(sortKey)
 {

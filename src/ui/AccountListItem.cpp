@@ -32,7 +32,7 @@ auto AccountListItem(
     const network::zeromq::socket::Publish& publisher,
     const ui::implementation::AccountListRowID& rowID,
     const ui::implementation::AccountListSortKey& sortKey,
-    const ui::implementation::CustomData& custom) noexcept
+    ui::implementation::CustomData& custom) noexcept
     -> std::shared_ptr<ui::implementation::AccountListRowInternal>
 {
     using ReturnType = ui::implementation::AccountListItem;
@@ -50,7 +50,7 @@ AccountListItem::AccountListItem(
     const network::zeromq::socket::Publish& publisher,
     const AccountListRowID& rowID,
     const AccountListSortKey& sortKey,
-    const CustomData& custom) noexcept
+    CustomData& custom) noexcept
     : AccountListItemRow(parent, api, publisher, rowID, true)
     , type_(AccountType::Custodial)
     , unit_(sortKey.first)

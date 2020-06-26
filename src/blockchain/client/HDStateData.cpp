@@ -451,7 +451,13 @@ auto HDStateData::update_utxos(
     for (const auto& [txid, data] : transactions) {
         auto& [outputs, pTX] = data;
         auto updated = db_.AddConfirmedTransaction(
-            node_.ID(), subchain_, filter_type_, position, outputs, *pTX);
+            network_.Chain(),
+            node_.ID(),
+            subchain_,
+            filter_type_,
+            position,
+            outputs,
+            *pTX);
 
         OT_ASSERT(updated);  // TODO handle database errors
     }

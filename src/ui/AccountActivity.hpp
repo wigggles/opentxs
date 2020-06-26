@@ -131,6 +131,11 @@ protected:
 private:
     virtual auto startup() noexcept -> void = 0;
 
+    auto construct_row(
+        const AccountActivityRowID& id,
+        const AccountActivitySortKey& index,
+        CustomData& custom) const noexcept -> void* final;
+
     AccountActivity() = delete;
     AccountActivity(const AccountActivity&) = delete;
     AccountActivity(AccountActivity&&) = delete;

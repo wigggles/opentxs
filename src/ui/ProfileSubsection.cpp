@@ -33,7 +33,7 @@ auto ProfileSubsectionWidget(
     const network::zeromq::socket::Publish& publisher,
     const ui::implementation::ProfileSectionRowID& rowID,
     const ui::implementation::ProfileSectionSortKey& key,
-    const ui::implementation::CustomData& custom
+    ui::implementation::CustomData& custom
 #if OT_QT
     ,
     const bool qt
@@ -65,7 +65,7 @@ ProfileSubsection::ProfileSubsection(
     const network::zeromq::socket::Publish& publisher,
     const ProfileSectionRowID& rowID,
     const ProfileSectionSortKey& key,
-    const CustomData& custom
+    CustomData& custom
 #if OT_QT
     ,
     const bool qt
@@ -86,7 +86,10 @@ ProfileSubsection::ProfileSubsection(
       )
 {
     init();
-    startup_.reset(new std::thread(&ProfileSubsection::startup, this, custom));
+    startup_.reset(new std::thread(
+        &ProfileSubsection::startup,
+        this,
+        extract_custom<opentxs::ContactGroup>(custom)));
 
     OT_ASSERT(startup_)
 }
@@ -102,7 +105,7 @@ auto ProfileSubsection::AddItem(
 auto ProfileSubsection::construct_row(
     const ProfileSubsectionRowID& id,
     const ProfileSubsectionSortKey& index,
-    const CustomData& custom) const noexcept -> void*
+    CustomData& custom) const noexcept -> void*
 {
     OT_ASSERT(1 == custom.size())
 
@@ -152,7 +155,7 @@ auto ProfileSubsection::process_group(
 
 void ProfileSubsection::reindex(
     const ProfileSectionSortKey&,
-    const CustomData& custom) noexcept
+    CustomData& custom) noexcept
 {
     delete_inactive(
         process_group(extract_custom<opentxs::ContactGroup>(custom)));
@@ -199,9 +202,9 @@ auto ProfileSubsection::sort_key(const ProfileSubsectionRowID) const noexcept
     return static_cast<int>(items_.size());
 }
 
-void ProfileSubsection::startup(const CustomData& custom) noexcept
+void ProfileSubsection::startup(const opentxs::ContactGroup group) noexcept
 {
-    process_group(extract_custom<opentxs::ContactGroup>(custom));
+    process_group(group);
     finish_startup();
 }
 }  // namespace opentxs::ui::implementation

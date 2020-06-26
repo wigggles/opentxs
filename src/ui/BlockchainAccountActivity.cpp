@@ -10,14 +10,20 @@
 
 #include <atomic>
 #include <memory>
+#include <numeric>
 #include <string>
 #include <thread>
 
+#include "internal/api/client/blockchain/Blockchain.hpp"
 #include "internal/blockchain/Blockchain.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/client/Blockchain.hpp"
 #include "opentxs/api/client/blockchain/BalanceTree.hpp"
+#include "opentxs/api/storage/Storage.hpp"
+#if OT_BLOCKCHAIN
+#include "opentxs/blockchain/block/bitcoin/Transaction.hpp"
+#endif  // OT_BLOCKCHAIN
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
@@ -25,8 +31,9 @@
 #include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/socket/Socket.hpp"
+#include "util/Container.hpp"
 
-#define OT_METHOD "opentxs::ui::implementation::BlockchainAccountActivity::"
+// #define OT_METHOD "opentxs::ui::implementation::BlockchainAccountActivity::"
 
 namespace opentxs::factory
 {
@@ -77,29 +84,19 @@ BlockchainAccountActivity::BlockchainAccountActivity(
 #if OT_QT
           qt,
 #endif
-          {})
+          {
+              {api.Endpoints().BlockchainTransactions(),
+               new MessageProcessor<BlockchainAccountActivity>(
+                   &BlockchainAccountActivity::process_txid)},
+              {api.Endpoints().BlockchainTransactions(nymID),
+               new MessageProcessor<BlockchainAccountActivity>(
+                   &BlockchainAccountActivity::process_txid)},
+          })
     , chain_(ui::Chain(api_, accountID))
-    , balance_cb_(zmq::ListenCallback::Factory(
-          [this](const auto& in) { process_balance(in); }
-
-          ))
-    , balance_listener_(api_.ZeroMQ().DealerSocket(
-          balance_cb_,
-          zmq::socket::Socket::Direction::Connect))
 {
     startup_.reset(new std::thread(&BlockchainAccountActivity::startup, this));
 
     OT_ASSERT(startup_)
-}
-
-auto BlockchainAccountActivity::construct_row(
-    const AccountActivityRowID& id,
-    const AccountActivitySortKey& index,
-    const CustomData& custom) const noexcept -> void*
-{
-    // TODO
-
-    return nullptr;
 }
 
 auto BlockchainAccountActivity::DepositAddress(
@@ -119,59 +116,82 @@ auto BlockchainAccountActivity::DisplayBalance() const noexcept -> std::string
     return blockchain::internal::Format(chain_, balance_.load());
 }
 
-auto BlockchainAccountActivity::setup_listeners(
-    const ListenerDefinitions& definitions) noexcept -> void
+auto BlockchainAccountActivity::load_thread() noexcept -> void
 {
-    Widget::setup_listeners(definitions);
-    const auto connected =
-        balance_listener_->Start(api_.Endpoints().BlockchainBalance());
+#if OT_BLOCKCHAIN
+    const auto transactions =
+        api_.Storage().BlockchainTransactionList(primary_id_);
 
-    OT_ASSERT(connected);
+    for (const auto& txid : transactions) {
+        const auto rowID = AccountActivityRowID{
+            blockchain_thread_item_id(api_.Crypto(), chain_, txid),
+            proto::PAYMENTEVENTTYPE_COMPLETE};
+
+        {
+            Lock lock(lock_);
+            auto& existing = find_by_id(lock, rowID);
+
+            if (existing.Valid()) { continue; }
+        }
+
+        auto pTX = api_.Blockchain().LoadTransactionBitcoin(txid);
+
+        if (false == bool(pTX)) { continue; }
+
+        const auto& tx = *pTX;
+
+        if (false == contains(tx.Chains(), chain_)) { continue; }
+
+        const auto sortKey{tx.Timestamp()};
+        balance_ += tx.NetBalanceChange(primary_id_);
+        auto custom = CustomData{
+            new proto::PaymentWorkflow(),
+            new proto::PaymentEvent(),
+            const_cast<void*>(static_cast<const void*>(pTX.release())),
+            new blockchain::Type{chain_},
+            new std::string{
+                api_.Blockchain().ActivityDescription(primary_id_, chain_, tx)},
+            new OTData{tx.ID()}};
+        add_item(rowID, sortKey, custom);
+    }
+#endif  // OT_BLOCKCHAIN
 }
 
-auto BlockchainAccountActivity::process_balance(
-    const network::zeromq::Message& message) noexcept -> void
+auto BlockchainAccountActivity::process_txid(
+    const network::zeromq::Message& in) noexcept -> void
 {
+    static std::mutex zmq_lock_{};
+
     wait_for_startup();
+    const auto& body = in.Body();
 
-    if (3 > message.Body().size()) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid message").Flush();
+    OT_ASSERT(2 <= body.size());
 
-        return;
+    const auto txid = api_.Factory().Data(body.at(0));
+    const auto chain = body.at(1).as<blockchain::Type>();
+
+    if (chain != chain_) { return; }
+
+    Lock zmq(zmq_lock_);
+    const auto rowID = AccountActivityRowID{
+        blockchain_thread_item_id(api_.Crypto(), chain_, txid),
+        proto::PAYMENTEVENTTYPE_COMPLETE};
+    {
+        Lock lock(lock_);
+        auto& existing = find_by_id(lock, rowID);
+
+        if (existing.Valid()) {
+            balance_ -= existing.Amount();
+            delete_item(lock, rowID);
+        }
     }
 
-    const auto& chainFrame = message.Body_at(0);
-    // NOTE confirmed balance is not used here
-    const auto& balanceFrame = message.Body_at(2);
-
-    try {
-        const auto chain = chainFrame.as<blockchain::Type>();
-
-        if (chain_ != chain) { return; }
-
-        balance_.store(balanceFrame.as<Amount>());
-        UpdateNotify();
-    } catch (...) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid chain or balance")
-            .Flush();
-
-        return;
-    }
+    load_thread();
 }
 
 auto BlockchainAccountActivity::startup() noexcept -> void
 {
-    {  // register for balance updates
-        auto out = api_.ZeroMQ().Message();
-        out->AddFrame();
-        out->AddFrame(chain_);
-        balance_listener_->Send(out);
-    }
-
-    {  // load transaction history
-       // TODO
-    }
-
+    load_thread();
     finish_startup();
 }
 }  // namespace opentxs::ui::implementation

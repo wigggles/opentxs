@@ -121,7 +121,6 @@
 #include <opentxs/protobuf/StorageBip47NymAddressIndex.pb.h>
 #include <opentxs/protobuf/StorageBlockchainAccountList.pb.h>
 #include <opentxs/protobuf/StorageBlockchainTransactions.pb.h>
-#include <opentxs/protobuf/StorageBlockchainTxo.pb.h>
 #include <opentxs/protobuf/StorageContactAddressIndex.pb.h>
 #include <opentxs/protobuf/StorageContactNymIndex.pb.h>
 #include <opentxs/protobuf/StorageContacts.pb.h>
@@ -140,7 +139,6 @@
 #include <opentxs/protobuf/StorageServers.pb.h>
 #include <opentxs/protobuf/StorageThread.pb.h>
 #include <opentxs/protobuf/StorageThreadItem.pb.h>
-#include <opentxs/protobuf/StorageTxoIndex.pb.h>
 #include <opentxs/protobuf/StorageUnits.pb.h>
 #include <opentxs/protobuf/StorageWorkflowIndex.pb.h>
 #include <opentxs/protobuf/StorageWorkflowType.pb.h>
@@ -266,7 +264,6 @@
 #include "opentxs/protobuf/StorageBip47NymAddressIndex.pb.h"
 #include "opentxs/protobuf/StorageBlockchainAccountList.pb.h"
 #include "opentxs/protobuf/StorageBlockchainTransactions.pb.h"
-#include "opentxs/protobuf/StorageBlockchainTxo.pb.h"
 #include "opentxs/protobuf/StorageContactAddressIndex.pb.h"
 #include "opentxs/protobuf/StorageContactNymIndex.pb.h"
 #include "opentxs/protobuf/StorageContacts.pb.h"
@@ -285,7 +282,6 @@
 #include "opentxs/protobuf/StorageServers.pb.h"
 #include "opentxs/protobuf/StorageThread.pb.h"
 #include "opentxs/protobuf/StorageThreadItem.pb.h"
-#include "opentxs/protobuf/StorageTxoIndex.pb.h"
 #include "opentxs/protobuf/StorageUnits.pb.h"
 #include "opentxs/protobuf/StorageWorkflowIndex.pb.h"
 #include "opentxs/protobuf/StorageWorkflowType.pb.h"
@@ -413,7 +409,6 @@
 #include "opentxs/protobuf/verify/StorageBip47NymAddressIndex.hpp"
 #include "opentxs/protobuf/verify/StorageBlockchainAccountList.hpp"
 #include "opentxs/protobuf/verify/StorageBlockchainTransactions.hpp"
-#include "opentxs/protobuf/verify/StorageBlockchainTxo.hpp"
 #include "opentxs/protobuf/verify/StorageContactAddressIndex.hpp"
 #include "opentxs/protobuf/verify/StorageContactNymIndex.hpp"
 #include "opentxs/protobuf/verify/StorageContacts.hpp"
@@ -432,7 +427,6 @@
 #include "opentxs/protobuf/verify/StorageServers.hpp"
 #include "opentxs/protobuf/verify/StorageThread.hpp"
 #include "opentxs/protobuf/verify/StorageThreadItem.hpp"
-#include "opentxs/protobuf/verify/StorageTxoIndex.hpp"
 #include "opentxs/protobuf/verify/StorageUnits.hpp"
 #include "opentxs/protobuf/verify/StorageWorkflowIndex.hpp"
 #include "opentxs/protobuf/verify/StorageWorkflowType.hpp"

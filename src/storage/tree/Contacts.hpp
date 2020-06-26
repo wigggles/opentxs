@@ -44,8 +44,6 @@ class Contacts final : public Node
 {
 public:
     auto Alias(const std::string& id) const -> std::string;
-    auto AddressOwner(proto::ContactItemType chain, std::string address) const
-        -> std::string;
     auto List() const -> ObjectList final;
     auto Load(
         const std::string& id,
@@ -57,10 +55,7 @@ public:
 
     auto Delete(const std::string& id) -> bool;
     auto SetAlias(const std::string& id, const std::string& alias) -> bool;
-    auto Store(
-        const proto::Contact& data,
-        const std::string& alias,
-        std::map<OTData, OTIdentifier>& changed) -> bool;
+    auto Store(const proto::Contact& data, const std::string& alias) -> bool;
 
     ~Contacts() final = default;
 
@@ -70,20 +65,13 @@ private:
     using Address = std::pair<proto::ContactItemType, std::string>;
 
     static const VersionNumber CurrentVersion{2};
-    static const VersionNumber AddressIndexVersion{1};
     static const VersionNumber MergeIndexVersion{1};
     static const VersionNumber NymIndexVersion{1};
 
-    mutable std::map<Address, std::string> address_index_;
-    mutable std::map<std::string, std::set<Address>> address_reverse_index_;
     std::map<std::string, std::set<std::string>> merge_;
     std::map<std::string, std::string> merged_;
     mutable std::map<std::string, std::string> nym_contact_index_;
 
-    void extract_addresses(
-        const Lock& lock,
-        const proto::Contact& data,
-        std::map<OTData, OTIdentifier>& changed) const;
     void extract_nyms(const Lock& lock, const proto::Contact& data) const;
     auto nomalize_id(const std::string& input) const -> const std::string&;
     auto save(const std::unique_lock<std::mutex>& lock) const -> bool final;

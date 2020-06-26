@@ -363,7 +363,7 @@ auto Factory::BitcoinScriptNullData(
         elements.emplace_back(bb::internal::PushData(element));
     }
 
-    return factory::BitcoinScript(std::move(elements));
+    return factory::BitcoinScript(chain, std::move(elements));
 }
 
 auto Factory::BitcoinScriptP2MS(
@@ -405,7 +405,7 @@ auto Factory::BitcoinScriptP2MS(
     elements.emplace_back(bb::internal::Opcode(static_cast<bb::OP>(N + 80)));
     elements.emplace_back(bb::internal::Opcode(bb::OP::CHECKMULTISIG));
 
-    return factory::BitcoinScript(std::move(elements));
+    return factory::BitcoinScript(chain, std::move(elements));
 }
 
 auto Factory::BitcoinScriptP2PK(
@@ -419,7 +419,7 @@ auto Factory::BitcoinScriptP2PK(
     elements.emplace_back(bb::internal::PushData(key.PublicKey()));
     elements.emplace_back(bb::internal::Opcode(bb::OP::CHECKSIG));
 
-    return factory::BitcoinScript(std::move(elements));
+    return factory::BitcoinScript(chain, std::move(elements));
 }
 
 auto Factory::BitcoinScriptP2PKH(
@@ -446,7 +446,7 @@ auto Factory::BitcoinScriptP2PKH(
     elements.emplace_back(bb::internal::Opcode(bb::OP::EQUALVERIFY));
     elements.emplace_back(bb::internal::Opcode(bb::OP::CHECKSIG));
 
-    return factory::BitcoinScript(std::move(elements));
+    return factory::BitcoinScript(chain, std::move(elements));
 }
 
 auto Factory::BitcoinScriptP2SH(
@@ -479,7 +479,7 @@ auto Factory::BitcoinScriptP2SH(
     elements.emplace_back(bb::internal::PushData(reader(hash)));
     elements.emplace_back(bb::internal::Opcode(bb::OP::EQUAL));
 
-    return factory::BitcoinScript(std::move(elements));
+    return factory::BitcoinScript(chain, std::move(elements));
 }
 
 auto Factory::BlockchainAddress(
@@ -863,7 +863,7 @@ auto Factory::Data(const std::uint32_t input) const -> OTData
     return Data::Factory(input);
 }
 
-auto Factory::Data(const std::string input, const StringStyle mode) const
+auto Factory::Data(const std::string& input, const StringStyle mode) const
     -> OTData
 {
     return Data::Factory(input, static_cast<Data::Mode>(mode));

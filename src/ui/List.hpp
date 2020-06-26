@@ -462,7 +462,7 @@ protected:
     virtual void add_item(
         const RowID& id,
         const SortKey& index,
-        const CustomData& custom) noexcept
+        CustomData& custom) noexcept
     {
         insert_outer(id, index, custom);
     }
@@ -550,7 +550,7 @@ private:
     virtual auto construct_row(
         const RowID& id,
         const SortKey& index,
-        const CustomData& custom) const noexcept -> void* = 0;
+        CustomData& custom) const noexcept -> void* = 0;
     /** Returns item reference by the inner_ iterator. Does not increment
      *  iterators. */
     auto current(const Lock& lock) const
@@ -784,7 +784,7 @@ private:
         const RowID& id,
         const SortKey& oldIndex,
         const SortKey& newIndex,
-        const CustomData& custom) const noexcept
+        CustomData& custom) const noexcept
     {
         OT_ASSERT(verify_lock(lock));
         OT_ASSERT(1 == items_.count(oldIndex))
@@ -858,7 +858,7 @@ private:
     void insert_outer(
         const RowID& id,
         const SortKey& index,
-        const CustomData& custom) noexcept
+        CustomData& custom) noexcept
     {
         Lock lock(lock_);
 

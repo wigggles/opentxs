@@ -101,10 +101,11 @@ public:
     OPENTXS_EXPORT virtual proto::ContactItemType BlockchainAccountType(
         const std::string& nymID,
         const std::string& accountID) const = 0;
-    OPENTXS_EXPORT virtual std::string BlockchainAddressOwner(
-        proto::ContactItemType chain,
-        std::string address) const = 0;
-    OPENTXS_EXPORT virtual ObjectList BlockchainTransactionList() const = 0;
+    OPENTXS_EXPORT virtual std::vector<OTIdentifier> BlockchainThreadMap(
+        const identifier::Nym& nym,
+        const Data& txid) const noexcept = 0;
+    OPENTXS_EXPORT virtual std::vector<OTData> BlockchainTransactionList(
+        const identifier::Nym& nym) const noexcept = 0;
 #if OT_CASH
     OPENTXS_EXPORT virtual bool CheckTokenSpent(
         const identifier::Server& notary,
@@ -148,10 +149,6 @@ public:
         const identifier::Nym& nymID,
         const Identifier& channelID,
         std::shared_ptr<proto::Bip47Channel>& output,
-        const bool checking = false) const = 0;
-    OPENTXS_EXPORT virtual bool Load(
-        const std::string& id,
-        std::shared_ptr<proto::BlockchainTransaction>& transaction,
         const bool checking = false) const = 0;
     OPENTXS_EXPORT virtual bool Load(
         const std::string& id,
@@ -235,11 +232,6 @@ public:
         std::string& alias,
         const bool checking = false) const = 0;
     OPENTXS_EXPORT virtual bool Load(
-        const identifier::Nym& nym,
-        const api::client::blockchain::Coin& id,
-        std::shared_ptr<proto::StorageBlockchainTxo>& output,
-        const bool checking = false) const = 0;
-    OPENTXS_EXPORT virtual bool Load(
         const std::string& nymId,
         const std::string& threadId,
         std::shared_ptr<proto::StorageThread>& thread) const = 0;
@@ -256,13 +248,6 @@ public:
         std::string& alias,
         const bool checking = false) const = 0;
     OPENTXS_EXPORT virtual const std::set<std::string> LocalNyms() const = 0;
-    OPENTXS_EXPORT virtual std::set<OTNymID> LookupBlockchainTransaction(
-        const std::string& txid) const = 0;
-    OPENTXS_EXPORT virtual std::set<api::client::blockchain::Coin>
-    LookupElement(const identifier::Nym& nym, const Data& element) const = 0;
-    OPENTXS_EXPORT virtual std::set<api::client::blockchain::Coin> LookupTxid(
-        const identifier::Nym& nym,
-        const std::string& txid) const = 0;
     OPENTXS_EXPORT virtual void MapPublicNyms(NymLambda& lambda) const = 0;
     OPENTXS_EXPORT virtual void MapServers(ServerLambda& lambda) const = 0;
     OPENTXS_EXPORT virtual void MapUnitDefinitions(
@@ -306,6 +291,11 @@ public:
     OPENTXS_EXPORT virtual bool RelabelThread(
         const std::string& threadID,
         const std::string& label) const = 0;
+    OPENTXS_EXPORT virtual bool RemoveBlockchainThreadItem(
+        const identifier::Nym& nym,
+        const Identifier& thread,
+        const opentxs::blockchain::Type chain,
+        const Data& txid) const noexcept = 0;
     OPENTXS_EXPORT virtual bool RemoveNymBoxItem(
         const std::string& nymID,
         const StorageBox box,
@@ -315,9 +305,6 @@ public:
         const identifier::Nym& nym,
         const Identifier& thread,
         const std::string& id) const = 0;
-    OPENTXS_EXPORT virtual bool RemoveTxo(
-        const identifier::Nym& nym,
-        const api::client::blockchain::Coin& id) const = 0;
     OPENTXS_EXPORT virtual bool RemoveUnitDefinition(
         const std::string& id) const = 0;
     OPENTXS_EXPORT virtual bool RenameThread(
@@ -379,12 +366,7 @@ public:
         const identifier::Nym& nymID,
         const proto::Bip47Channel& data,
         Identifier& channelID) const = 0;
-    OPENTXS_EXPORT virtual bool Store(
-        const identifier::Nym& nym,
-        const proto::BlockchainTransaction& data) const = 0;
-    OPENTXS_EXPORT virtual bool Store(
-        const proto::Contact& data,
-        std::map<OTData, OTIdentifier>& changed) const = 0;
+    OPENTXS_EXPORT virtual bool Store(const proto::Contact& data) const = 0;
     OPENTXS_EXPORT virtual bool Store(const proto::Context& data) const = 0;
     OPENTXS_EXPORT virtual bool Store(const proto::Credential& data) const = 0;
     OPENTXS_EXPORT virtual bool Store(
@@ -406,6 +388,12 @@ public:
         const StorageBox box,
         const std::string& account = std::string("")) const = 0;
     OPENTXS_EXPORT virtual bool Store(
+        const identifier::Nym& nym,
+        const Identifier& thread,
+        const opentxs::blockchain::Type chain,
+        const Data& txid,
+        const Time time) const noexcept = 0;
+    OPENTXS_EXPORT virtual bool Store(
         const proto::PeerReply& data,
         const std::string& nymid,
         const StorageBox box) const = 0;
@@ -422,9 +410,6 @@ public:
     OPENTXS_EXPORT virtual bool Store(
         const proto::ServerContract& data,
         const std::string& alias = std::string("")) const = 0;
-    OPENTXS_EXPORT virtual bool Store(
-        const identifier::Nym& nym,
-        const proto::StorageBlockchainTxo& data) const = 0;
     OPENTXS_EXPORT virtual bool Store(
         const proto::Ciphertext& serialized) const = 0;
     OPENTXS_EXPORT virtual bool Store(

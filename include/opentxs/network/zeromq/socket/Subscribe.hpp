@@ -49,8 +49,8 @@ namespace socket
 class Subscribe : virtual public curve::Client
 {
 public:
-    OPENTXS_EXPORT virtual bool SetSocksProxy(const std::string& proxy) const
-        noexcept = 0;
+    OPENTXS_EXPORT virtual bool SetSocksProxy(
+        const std::string& proxy) const noexcept = 0;
 
     OPENTXS_EXPORT ~Subscribe() override = default;
 
