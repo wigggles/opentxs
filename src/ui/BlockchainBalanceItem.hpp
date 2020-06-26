@@ -10,10 +10,15 @@
 
 #include <memory>
 #include <string>
+#include <utility>
+#include <vector>
 
 #include "1_Internal.hpp"
 #include "internal/ui/UI.hpp"
+#include "opentxs/Pimpl.hpp"
 #include "opentxs/Types.hpp"
+#include "opentxs/core/Data.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "ui/BalanceItem.hpp"
 
 namespace opentxs
@@ -94,9 +99,7 @@ public:
     ~BlockchainBalanceItem() = default;
 
 private:
-#if OT_BLOCKCHAIN
     const blockchain::Type chain_;
-#endif  // OT_BLOCKCHAIN
     const OTData txid_;
     const opentxs::Amount amount_;
     const std::string memo_;

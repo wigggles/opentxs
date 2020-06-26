@@ -13,10 +13,12 @@
 #include <optional>
 #include <string>
 #include <type_traits>
+#include <vector>
 
 #include "Helpers.hpp"
 #include "opentxs/SharedPimpl.hpp"
 #include "opentxs/Types.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/client/Blockchain.hpp"
 #include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/api/client/Manager.hpp"

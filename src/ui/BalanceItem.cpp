@@ -20,14 +20,18 @@
 #if OT_BLOCKCHAIN
 #include "opentxs/blockchain/block/bitcoin/Transaction.hpp"
 #endif  // OT_BLOCKCHAIN
+#include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/protobuf/PaymentWorkflowEnums.pb.h"
+#if OT_BLOCKCHAIN
 #include "ui/BlockchainBalanceItem.hpp"
+#endif  // OT_QT
 #include "ui/ChequeBalanceItem.hpp"
 #include "ui/TransferBalanceItem.hpp"
+#include "ui/Widget.hpp"
 #if OT_QT
 #include "util/Polarity.hpp"  // IWYU pragma: keep
 #endif                        // OT_QT
@@ -47,8 +51,8 @@ auto BalanceItem(
     const Identifier& accountID) noexcept
     -> std::shared_ptr<ui::implementation::AccountActivityRowInternal>
 {
-    if (2 < custom.size()) {
 #if OT_BLOCKCHAIN
+    if (2 < custom.size()) {
         using Transaction = opentxs::blockchain::block::bitcoin::Transaction;
 
         auto pTx = std::unique_ptr<Transaction>{
@@ -72,61 +76,45 @@ auto BalanceItem(
             tx.NetBalanceChange(nymID),
             tx.Memo(),
             ui::implementation::extract_custom<std::string>(custom, 4));
-#else
-        return std::make_shared<ui::implementation::BlockchainBalanceItem>(
-            parent,
-            api,
-            publisher,
-            rowID,
-            sortKey,
-            custom,
-            nymID,
-            accountID,
-            ui::implementation::extract_custom<blockchain::Type>(custom, 3),
-            ui::implementation::extract_custom<OTData>(custom, 5),
-            0,
-            "",
-            ui::implementation::extract_custom<std::string>(custom, 4));
+    }
 #endif  // OT_BLOCKCHAIN
-    } else {
-        const auto type =
-            ui::implementation::BalanceItem::recover_workflow(custom).type();
 
-        switch (type) {
-            case proto::PAYMENTWORKFLOWTYPE_OUTGOINGCHEQUE:
-            case proto::PAYMENTWORKFLOWTYPE_INCOMINGCHEQUE:
-            case proto::PAYMENTWORKFLOWTYPE_OUTGOINGINVOICE:
-            case proto::PAYMENTWORKFLOWTYPE_INCOMINGINVOICE: {
-                return std::make_shared<ui::implementation::ChequeBalanceItem>(
-                    parent,
-                    api,
-                    publisher,
-                    rowID,
-                    sortKey,
-                    custom,
-                    nymID,
-                    accountID);
-            }
-            case proto::PAYMENTWORKFLOWTYPE_OUTGOINGTRANSFER:
-            case proto::PAYMENTWORKFLOWTYPE_INCOMINGTRANSFER:
-            case proto::PAYMENTWORKFLOWTYPE_INTERNALTRANSFER: {
-                return std::make_shared<
-                    ui::implementation::TransferBalanceItem>(
-                    parent,
-                    api,
-                    publisher,
-                    rowID,
-                    sortKey,
-                    custom,
-                    nymID,
-                    accountID);
-            }
-            case proto::PAYMENTWORKFLOWTYPE_ERROR:
-            default: {
-                LogOutput(OT_METHOD)(__FUNCTION__)(
-                    ": Unhandled workflow type (")(type)(")")
-                    .Flush();
-            }
+    const auto type =
+        ui::implementation::BalanceItem::recover_workflow(custom).type();
+
+    switch (type) {
+        case proto::PAYMENTWORKFLOWTYPE_OUTGOINGCHEQUE:
+        case proto::PAYMENTWORKFLOWTYPE_INCOMINGCHEQUE:
+        case proto::PAYMENTWORKFLOWTYPE_OUTGOINGINVOICE:
+        case proto::PAYMENTWORKFLOWTYPE_INCOMINGINVOICE: {
+            return std::make_shared<ui::implementation::ChequeBalanceItem>(
+                parent,
+                api,
+                publisher,
+                rowID,
+                sortKey,
+                custom,
+                nymID,
+                accountID);
+        }
+        case proto::PAYMENTWORKFLOWTYPE_OUTGOINGTRANSFER:
+        case proto::PAYMENTWORKFLOWTYPE_INCOMINGTRANSFER:
+        case proto::PAYMENTWORKFLOWTYPE_INTERNALTRANSFER: {
+            return std::make_shared<ui::implementation::TransferBalanceItem>(
+                parent,
+                api,
+                publisher,
+                rowID,
+                sortKey,
+                custom,
+                nymID,
+                accountID);
+        }
+        case proto::PAYMENTWORKFLOWTYPE_ERROR:
+        default: {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Unhandled workflow type (")(
+                type)(")")
+                .Flush();
         }
     }
 

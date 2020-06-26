@@ -5,10 +5,22 @@
 
 #pragma once
 
+#include <cstdint>
+#include <functional>
+#include <iosfwd>
+#include <map>
+#include <memory>
 #include <optional>
+#include <set>
+#include <string>
+#include <tuple>
+#include <utility>
+#include <vector>
 
 #include "internal/blockchain/client/Client.hpp"
+#include "opentxs/Bytes.hpp"
 #include "opentxs/Types.hpp"
+#include "opentxs/Version.hpp"
 #include "opentxs/api/client/blockchain/BalanceList.hpp"
 #include "opentxs/api/client/blockchain/BalanceNode.hpp"
 #include "opentxs/api/client/blockchain/BalanceTree.hpp"
@@ -16,7 +28,10 @@
 #include "opentxs/api/client/blockchain/HD.hpp"
 #include "opentxs/api/client/blockchain/Imported.hpp"
 #include "opentxs/api/client/blockchain/PaymentCode.hpp"
+#include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
+#include "opentxs/protobuf/BlockchainAddress.pb.h"
 
 namespace std
 {
@@ -70,12 +85,33 @@ struct Imported;
 struct PaymentCode;
 }  // namespace internal
 }  // namespace blockchain
+
+namespace internal
+{
+struct Blockchain;
+}  // namespace internal
 }  // namespace client
+
+namespace internal
+{
+struct Core;
+}  // namespace internal
 
 class Crypto;
 }  // namespace api
 
+namespace identifier
+{
+class Nym;
+}  // namespace identifier
+
+namespace proto
+{
+class HDPath;
+}  // namespace proto
+
 class Identifier;
+class PasswordPrompt;
 }  // namespace opentxs
 
 namespace opentxs

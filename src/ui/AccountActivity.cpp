@@ -7,7 +7,12 @@
 #include "1_Internal.hpp"          // IWYU pragma: associated
 #include "ui/AccountActivity.hpp"  // IWYU pragma: associated
 
+#include <map>
+#include <memory>
 #include <utility>
+
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/core/Log.hpp"
 
 // #define OT_METHOD "opentxs::ui::implementation::AccountActivity::"
 

@@ -9,7 +9,6 @@
 
 #include <atomic>
 #include <chrono>
-#include <map>
 #include <memory>
 #include <set>
 #include <string>
@@ -38,7 +37,6 @@
 #include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/protobuf/PaymentWorkflowEnums.pb.h"
-#include "ui/List.hpp"
 #include "ui/Widget.hpp"
 
 #define OT_METHOD "opentxs::ui::implementation::CustodialAccountActivity::"

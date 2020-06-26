@@ -7,9 +7,11 @@
 #include "1_Internal.hpp"  // IWYU pragma: associated
 #include "internal/api/client/blockchain/Blockchain.hpp"  // IWYU pragma: associated
 
+#include "opentxs/Pimpl.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
 
 namespace opentxs
 {

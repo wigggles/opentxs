@@ -22,10 +22,6 @@ set(
   ActivityThread.cpp
   ActivityThreadItem.cpp
   BalanceItem.cpp
-  BlockchainAccountActivity.cpp
-  BlockchainAccountListItem.cpp
-  BlockchainActivityThreadItem.cpp
-  BlockchainBalanceItem.cpp
   ChequeBalanceItem.cpp
   Contact.cpp
   ContactItem.cpp
@@ -101,9 +97,6 @@ set(
   ActivityThread.hpp
   ActivityThreadItem.hpp
   BalanceItem.hpp
-  BlockchainAccountActivity.hpp
-  BlockchainActivityThreadItem.hpp
-  BlockchainBalanceItem.hpp
   Combined.hpp
   Contact.hpp
   ContactItem.hpp
@@ -129,6 +122,25 @@ set(
   UnitListItem.hpp
   Widget.hpp
 )
+
+if(OT_BLOCKCHAIN_EXPORT)
+  list(
+    APPEND
+      cxx-sources
+      BlockchainAccountActivity.cpp
+      BlockchainAccountListItem.cpp
+      BlockchainActivityThreadItem.cpp
+      BlockchainBalanceItem.cpp
+  )
+  list(
+    APPEND
+      cxx-headers
+      BlockchainAccountActivity.hpp
+      BlockchainAccountListItem.hpp
+      BlockchainActivityThreadItem.hpp
+      BlockchainBalanceItem.hpp
+  )
+endif()
 
 if(OT_WITH_QT)
   qt5_wrap_cpp(MOC_SRCS ${ot-qobject-install-headers})

@@ -1156,7 +1156,6 @@ auto BlockchainAccountListItem(
     const ui::implementation::AccountListSortKey& sortKey,
     ui::implementation::CustomData& custom) noexcept
     -> std::shared_ptr<ui::implementation::AccountListRowInternal>;
-#endif  // OT_BLOCKCHAIN
 auto BlockchainActivityThreadItem(
     const ui::implementation::ActivityThreadInternalInterface& parent,
     const api::client::internal::Manager& api,
@@ -1166,6 +1165,7 @@ auto BlockchainActivityThreadItem(
     const ui::implementation::ActivityThreadSortKey& sortKey,
     ui::implementation::CustomData& custom) noexcept
     -> std::shared_ptr<ui::implementation::ActivityThreadRowInternal>;
+#endif  // OT_BLOCKCHAIN
 auto BalanceItem(
     const ui::implementation::AccountActivityInternalInterface& parent,
     const api::client::internal::Manager& api,
