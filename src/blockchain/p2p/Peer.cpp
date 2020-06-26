@@ -66,6 +66,11 @@ Peer::Peer(
     , download_peers_()
     , header_(make_buffer(headerSize))
     , state_()
+    , verify_filter_checkpoint_(
+          api::client::blockchain::BlockStorage::All !=
+          static_cast<const blockchain::client::internal::BlockDatabase&>(
+              network.DB())
+              .BlockPolicy())
     , header_bytes_(headerSize)
     , id_(id)
     , connection_id_()
@@ -306,7 +311,8 @@ auto Peer::check_verify() noexcept -> void
 {
     auto& state = state_.verify_;
 
-    if (state.first_action_ && state.second_action_ &&
+    if (state.first_action_ &&
+        (state.second_action_ || (false == verify_filter_checkpoint_)) &&
         (false == state.done())) {
         state.promise_.set_value();
     }
@@ -617,7 +623,8 @@ auto Peer::shutdown(std::promise<void>& promise) noexcept -> void
 auto Peer::start_verify() noexcept -> void
 {
     request_checkpoint_block_header();
-    request_checkpoint_filter_header();
+
+    if (verify_filter_checkpoint_) { request_checkpoint_filter_header(); }
 }
 
 auto Peer::state_machine() noexcept -> bool

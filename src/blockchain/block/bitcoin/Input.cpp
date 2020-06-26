@@ -404,6 +404,10 @@ auto Input::ExtractElements(const filter::Type style) const noexcept
 
     switch (style) {
         case filter::Type::Extended_opentxs: {
+            if (Script::Position::Coinbase == script_->Role()) {
+                return output;
+            }
+
             LogTrace(OT_METHOD)(__FUNCTION__)(": processing input script")
                 .Flush();
             output = script_->ExtractElements(style);

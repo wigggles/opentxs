@@ -289,6 +289,7 @@ private:
         std::map<int, std::promise<bool>> map_;
     };
 
+    const bool verify_filter_checkpoint_;
     const std::size_t header_bytes_;
     const int id_;
     const Space connection_id_;

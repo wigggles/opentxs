@@ -11,9 +11,7 @@
 
 constexpr char operator"" _B(const unsigned long long int in)
 {
-    char output = in;
-
-    return output;
+    return static_cast<const char&>(in);
 }
 
 namespace opentxs::blockchain::client::implementation
@@ -26,7 +24,12 @@ const FilterOracle::CheckpointMap FilterOracle::filter_checkpoints_{
             {159_B, 60_B,  48_B,  240_B, 195_B, 127_B, 185_B, 119_B,
              207_B, 62_B,  26_B,  49_B,  115_B, 198_B, 49_B,  232_B,
              255_B, 17_B,  154_B, 211_B, 8_B,   139_B, 111_B, 91_B,
-             43_B,  206_B, 208_B, 128_B, 33_B,  57_B,  194_B, 2_B}}}},
+             43_B,  206_B, 208_B, 128_B, 33_B,  57_B,  194_B, 2_B}},
+           {filter::Type::Extended_opentxs,
+            {3_B,  84_B,  87_B, 134_B, 52_B,  221_B, 23_B,  128_B,
+             88_B, 173_B, 95_B, 58_B,  221_B, 240_B, 217_B, 124_B,
+             69_B, 145_B, 31_B, 72_B,  60_B,  153_B, 161_B, 2_B,
+             44_B, 229_B, 21_B, 2_B,   225_B, 66_B,  233_B, 159_B}}}},
          {25000,
           {{filter::Type::Basic_BIP158,
             {4_B,   68_B, 41_B,  0_B,   25_B,  200_B, 88_B,  217_B,
@@ -182,6 +185,11 @@ const FilterOracle::CheckpointMap FilterOracle::filter_checkpoints_{
      {
          {0,
           {{filter::Type::Basic_BIP158,
+            {80_B,  183_B, 129_B, 174_B, 215_B, 183_B, 18_B,  144_B,
+             18_B,  166_B, 210_B, 14_B,  45_B,  4_B,   0_B,   39_B,
+             147_B, 127_B, 58_B,  255_B, 174_B, 229_B, 115_B, 119_B,
+             153_B, 8_B,   235_B, 183_B, 121_B, 69_B,  88_B,  33_B}},
+           {filter::Type::Extended_opentxs,
             {80_B,  183_B, 129_B, 174_B, 215_B, 183_B, 18_B,  144_B,
              18_B,  166_B, 210_B, 14_B,  45_B,  4_B,   0_B,   39_B,
              147_B, 127_B, 58_B,  255_B, 174_B, 229_B, 115_B, 119_B,
@@ -608,7 +616,12 @@ const FilterOracle::CheckpointMap FilterOracle::filter_checkpoints_{
             {159_B, 60_B,  48_B,  240_B, 195_B, 127_B, 185_B, 119_B,
              207_B, 62_B,  26_B,  49_B,  115_B, 198_B, 49_B,  232_B,
              255_B, 17_B,  154_B, 211_B, 8_B,   139_B, 111_B, 91_B,
-             43_B,  206_B, 208_B, 128_B, 33_B,  57_B,  194_B, 2_B}}}},
+             43_B,  206_B, 208_B, 128_B, 33_B,  57_B,  194_B, 2_B}},
+           {filter::Type::Extended_opentxs,
+            {3_B,  84_B,  87_B, 134_B, 52_B,  221_B, 23_B,  128_B,
+             88_B, 173_B, 95_B, 58_B,  221_B, 240_B, 217_B, 124_B,
+             69_B, 145_B, 31_B, 72_B,  60_B,  153_B, 161_B, 2_B,
+             44_B, 229_B, 21_B, 2_B,   225_B, 66_B,  233_B, 159_B}}}},
          {25000,
           {{filter::Type::Basic_BCHVariant,
             {78_B,  13_B,  249_B, 7_B,   208_B, 170_B, 71_B,  195_B,
@@ -764,6 +777,11 @@ const FilterOracle::CheckpointMap FilterOracle::filter_checkpoints_{
      {
          {0,
           {{filter::Type::Basic_BCHVariant,
+            {80_B,  183_B, 129_B, 174_B, 215_B, 183_B, 18_B,  144_B,
+             18_B,  166_B, 210_B, 14_B,  45_B,  4_B,   0_B,   39_B,
+             147_B, 127_B, 58_B,  255_B, 174_B, 229_B, 115_B, 119_B,
+             153_B, 8_B,   235_B, 183_B, 121_B, 69_B,  88_B,  33_B}},
+           {filter::Type::Extended_opentxs,
             {80_B,  183_B, 129_B, 174_B, 215_B, 183_B, 18_B,  144_B,
              18_B,  166_B, 210_B, 14_B,  45_B,  4_B,   0_B,   39_B,
              147_B, 127_B, 58_B,  255_B, 174_B, 229_B, 115_B, 119_B,

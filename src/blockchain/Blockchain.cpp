@@ -515,12 +515,12 @@ auto GetFilterParams(const filter::Type type) noexcept(false) -> FilterParams
     static const auto gcs_bits_ = std::map<filter::Type, std::uint8_t>{
         {filter::Type::Basic_BIP158, 19},
         {filter::Type::Basic_BCHVariant, 19},
-        {filter::Type::Extended_opentxs, 21},
+        {filter::Type::Extended_opentxs, 23},
     };
     static const auto gcs_fp_rate_ = std::map<filter::Type, std::uint32_t>{
         {filter::Type::Basic_BIP158, 784931},
         {filter::Type::Basic_BCHVariant, 784931},
-        {filter::Type::Extended_opentxs, 3139724},
+        {filter::Type::Extended_opentxs, 12558895},
     };
 
     return {gcs_bits_.at(type), gcs_fp_rate_.at(type)};

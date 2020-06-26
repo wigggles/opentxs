@@ -6,11 +6,15 @@
 #pragma once
 
 #include <chrono>
+#include <deque>
 #include <future>
 #include <iosfwd>
 #include <map>
 #include <memory>
+#include <optional>
+#include <queue>
 #include <string>
+#include <tuple>
 #include <utility>
 #include <vector>
 
@@ -20,6 +24,7 @@
 #include "opentxs/Forward.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/blockchain/client/BlockOracle.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/socket/Publish.hpp"
@@ -89,6 +94,7 @@ public:
     FilterOracle(
         const api::client::Manager& api,
         const internal::Network& network,
+        const internal::HeaderOracle& header,
         const internal::FilterDatabase& database,
         const blockchain::Type type,
         const std::string& shutdown) noexcept;
@@ -107,26 +113,49 @@ private:
         shutdown = OT_ZMQ_SHUTDOWN_SIGNAL,
     };
 
-    struct Cleanup {
-        operator bool() { return repeat_; }
+    struct BlockQueue {
+        using Future = client::BlockOracle::BitcoinBlockFuture;
 
-        auto Off() -> void { repeat_ = false; }
-        auto On() -> void { repeat_ = true; }
-
-        Cleanup()
-            : rate_limit_(10)
-            , repeat_(true)
+        auto Capacity() const noexcept -> std::size_t;
+        auto HighestRequested() const noexcept -> block::Height
         {
+            return highest_;
         }
 
-        ~Cleanup()
-        {
-            if (repeat_) { Sleep(rate_limit_); }
-        }
+        auto Add(const block::Position& position, Future block) noexcept
+            -> void;
+        auto Reset() noexcept -> void;
+        auto Run(bool& repeat) noexcept -> void;
+
+        BlockQueue(
+            const api::client::Manager& api,
+            const internal::FilterDatabase& db,
+            const internal::HeaderOracle& header,
+            const blockchain::Type chain,
+            const filter::Type type,
+            const std::size_t limit) noexcept;
 
     private:
-        const std::chrono::milliseconds rate_limit_;
-        bool repeat_;
+        using Block = client::BlockOracle::BitcoinBlock_p;
+        using Element = std::pair<block::Position, Future>;
+        using Queue = std::queue<Element>;
+        using FilterHeader = OTData;
+        using Cached = std::pair<block::Height, FilterHeader>;
+
+        const api::client::Manager& api_;
+        const internal::FilterDatabase& db_;
+        const internal::HeaderOracle& header_;
+        const blockchain::Type chain_;
+        const filter::Type type_;
+        const std::size_t limit_;
+        mutable std::optional<Cached> cached_;
+        block::Height highest_;
+        Queue queue_;
+
+        auto previous_filter_header(
+            const block::Position& current) const noexcept -> const Data&;
+        auto process(const block::Position& position, Block block)
+            const noexcept -> void;
     };
 
     struct FilterQueue {
@@ -192,10 +221,14 @@ private:
     static const CheckpointMap filter_checkpoints_;
 
     const internal::Network& network_;
+    const internal::HeaderOracle& header_;
     const internal::FilterDatabase& database_;
+    const blockchain::Type chain_;
+    const bool full_mode_;
     const filter::Type default_type_;
     HeaderQueue header_requests_;
     FilterQueue outstanding_filters_;
+    BlockQueue block_requests_;
     OTZMQPublishSocket socket_;
     std::promise<void> init_promise_;
     std::shared_future<void> init_;
@@ -203,20 +236,25 @@ private:
     auto oldest_checkpoint_before(const block::Height height) const noexcept
         -> block::Height;
 
+    auto check_blocks(
+        const filter::Type type,
+        const block::Height maxRequests,
+        bool& repeat) noexcept -> void;
     auto check_filters(
         const filter::Type type,
         const block::Height maxRequests,
-        Cleanup& repeat) noexcept -> void;
+        bool& repeat) noexcept -> void;
     auto check_headers(
         const filter::Type type,
         const block::Height maxRequests,
-        Cleanup& repeat) noexcept -> void;
+        bool& repeat) noexcept -> void;
     auto compare_tips_to_checkpoint() noexcept -> void;
     auto compare_tips_to_header_chain() noexcept -> bool;
     auto pipeline(const zmq::Message& in) noexcept -> void;
     auto process_cfheader(const zmq::Message& in) noexcept -> void;
     auto process_cfilter(const zmq::Message& in) noexcept -> void;
     auto process_reorg(const zmq::Message& in) noexcept -> void;
+    auto process_reorg(const block::Position& parent) noexcept -> void;
     auto request() noexcept -> bool;
     auto reset_tips_to(const block::Position position) noexcept -> bool;
     auto shutdown(std::promise<void>& promise) noexcept -> void;

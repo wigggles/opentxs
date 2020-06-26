@@ -223,6 +223,8 @@ struct FilterDatabase {
     using Filter =
         std::pair<ReadView, std::unique_ptr<const blockchain::internal::GCS>>;
 
+    virtual auto BlockPolicy() const noexcept
+        -> api::client::blockchain::BlockStorage = 0;
     virtual auto FilterHeaderTip(const filter::Type type) const noexcept
         -> block::Position = 0;
     virtual auto FilterTip(const filter::Type type) const noexcept
@@ -615,6 +617,7 @@ auto BlockchainDatabase(
 auto BlockchainFilterOracle(
     const api::client::Manager& api,
     const blockchain::client::internal::Network& network,
+    const blockchain::client::internal::HeaderOracle& header,
     const blockchain::client::internal::FilterDatabase& database,
     const blockchain::Type type,
     const std::string& shutdown) noexcept

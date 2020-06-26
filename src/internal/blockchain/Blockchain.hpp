@@ -33,6 +33,11 @@ class Core;
 
 namespace blockchain
 {
+namespace block
+{
+class Block;
+}  // namespace block
+
 class BloomFilter;
 class NumericHash;
 class Work;
@@ -209,6 +214,11 @@ OPENTXS_EXPORT auto GCS(
     const std::uint32_t fpRate,
     const ReadView key,
     const std::vector<OTData>& elements) noexcept
+    -> std::unique_ptr<blockchain::internal::GCS>;
+OPENTXS_EXPORT auto GCS(
+    const api::Core& api,
+    const blockchain::filter::Type type,
+    const blockchain::block::Block& block) noexcept
     -> std::unique_ptr<blockchain::internal::GCS>;
 OPENTXS_EXPORT auto GCS(
     const api::Core& api,

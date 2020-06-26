@@ -38,6 +38,10 @@ const std::map<
               {"9f3c30f0c37fb977cf3e1a3173c631e8ff119ad3088b6f5b2bced0802139c20"
                "2",
                "017fa880"}},
+             {filter::Type::Extended_opentxs,
+              {"0354578634dd178058ad5f3addf0d97c45911f483c99a1022ce51502e142e99"
+               "f",
+               "049dc75e0d584a300293ef3d3980"}},
          }},
         {blockchain::Type::BitcoinCash,
          {
@@ -45,6 +49,10 @@ const std::map<
               {"9f3c30f0c37fb977cf3e1a3173c631e8ff119ad3088b6f5b2bced0802139c20"
                "2",
                "017fa880"}},
+             {filter::Type::Extended_opentxs,
+              {"0354578634dd178058ad5f3addf0d97c45911f483c99a1022ce51502e142e99"
+               "f",
+               "049dc75e0d584a300293ef3d3980"}},
          }},
         {blockchain::Type::Bitcoin_testnet3,
          {
@@ -52,6 +60,10 @@ const std::map<
               {"50b781aed7b7129012a6d20e2d040027937f3affaee573779908ebb77945582"
                "1",
                "019dfca8"}},
+             {filter::Type::Extended_opentxs,
+              {"a1310188d76ce653283a3086aa6f1ba30b6934990a093e1789a78a43b926131"
+               "5",
+               "04e2f587e146bf6c662d35278a40"}},
          }},
         {blockchain::Type::BitcoinCash_testnet3,
          {
@@ -59,6 +71,10 @@ const std::map<
               {"50b781aed7b7129012a6d20e2d040027937f3affaee573779908ebb77945582"
                "1",
                "019dfca8"}},
+             {filter::Type::Extended_opentxs,
+              {"a1310188d76ce653283a3086aa6f1ba30b6934990a093e1789a78a43b926131"
+               "5",
+               "04e2f587e146bf6c662d35278a40"}},
          }},
     };
 
@@ -73,7 +89,7 @@ Filters::Filters(
     , blank_position_(make_blank<block::Position>::value(api))
     , lock_()
 {
-    import_genesis(chain);
+    import_genesis(common_.BlockPolicy(), chain);
 }
 
 auto Filters::CurrentHeaderTip(const filter::Type type) const noexcept
@@ -101,10 +117,14 @@ auto Filters::CurrentTip(const filter::Type type) const noexcept
     return output;
 }
 
-auto Filters::import_genesis(const blockchain::Type chain) const noexcept
-    -> void
+auto Filters::import_genesis(
+    const api::client::blockchain::BlockStorage mode,
+    const blockchain::Type chain) const noexcept -> void
 {
-    const auto style{blockchain::internal::DefaultFilter(chain)};
+    const auto style{
+        api::client::blockchain::BlockStorage::All == mode
+            ? filter::Type::Extended_opentxs
+            : blockchain::internal::DefaultFilter(chain)};
     const auto needHeader =
         blank_position_.first == CurrentHeaderTip(style).first;
     const auto needFilter = blank_position_.first == CurrentTip(style).first;

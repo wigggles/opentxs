@@ -16,6 +16,7 @@
 #include <vector>
 
 #include "Bip158.hpp"
+#include "Helpers.hpp"
 #include "blockchain/bitcoin/CompactSize.hpp"
 #include "internal/blockchain/Blockchain.hpp"
 #include "internal/blockchain/bitcoin/Bitcoin.hpp"
@@ -104,6 +105,52 @@ struct Test_BitcoinBlock : public ::testing::Test {
     {
     }
 };
+
+TEST_F(Test_BitcoinBlock, init) {}
+
+TEST_F(Test_BitcoinBlock, genesis_mainnet)
+{
+    const auto bytes =
+        api_.Factory().Data(genesis_block_mainnet_, ot::StringStyle::Hex);
+    const auto block = api_.Factory().BitcoinBlock(
+        ot::blockchain::Type::Bitcoin, bytes->Bytes());
+
+    ASSERT_TRUE(block);
+
+    const auto gcs = ot::factory::GCS(
+        api_, ot::blockchain::filter::Type::Extended_opentxs, *block);
+
+    ASSERT_TRUE(gcs);
+
+    const auto filter = gcs->Encode();
+    const auto header =
+        ot::blockchain::internal::FilterToHeader(api_, filter->Bytes());
+
+    EXPECT_EQ(filter->asHex(), genesis_block_filter_mainnet_);
+    EXPECT_EQ(header->asHex(), genesis_block_filter_header_mainnet_);
+}
+
+TEST_F(Test_BitcoinBlock, genesis_testnet)
+{
+    const auto bytes =
+        api_.Factory().Data(genesis_block_testnet_, ot::StringStyle::Hex);
+    const auto block = api_.Factory().BitcoinBlock(
+        ot::blockchain::Type::Bitcoin_testnet3, bytes->Bytes());
+
+    ASSERT_TRUE(block);
+
+    const auto gcs = ot::factory::GCS(
+        api_, ot::blockchain::filter::Type::Extended_opentxs, *block);
+
+    ASSERT_TRUE(gcs);
+
+    const auto filter = gcs->Encode();
+    const auto header =
+        ot::blockchain::internal::FilterToHeader(api_, filter->Bytes());
+
+    EXPECT_EQ(filter->asHex(), genesis_block_filter_testnet_);
+    EXPECT_EQ(header->asHex(), genesis_block_filter_header_testnet_);
+}
 
 TEST_F(Test_BitcoinBlock, bip158)
 {

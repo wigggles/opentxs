@@ -92,6 +92,7 @@ const std::map<Type, std::vector<std::string>> PeerManager::dns_seeds_{
          "seed.tbtc.petertodd.org",
          "seed.testnet.bitcoin.sprovoost.nl",
          "testnet-seed.bluematt.me",
+         "testnet-seed.bitcoin.schildbach.de",
      }},
     {Type::BitcoinCash,
      {
