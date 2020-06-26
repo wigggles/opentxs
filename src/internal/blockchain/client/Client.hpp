@@ -645,7 +645,8 @@ OPENTXS_EXPORT auto BlockchainWallet(
 auto BlockOracle(
     const api::client::Manager& api,
     const blockchain::client::internal::Network& network,
-    const blockchain::Type type,
+    const blockchain::client::internal::BlockDatabase& db,
+    const blockchain::Type chain,
     const std::string& shutdown) noexcept
     -> std::unique_ptr<blockchain::client::internal::BlockOracle>;
 auto HeaderOracle(

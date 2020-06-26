@@ -54,8 +54,12 @@ Network::Network(
           type,
           seednode,
           shutdown_sender_.endpoint_))
-    , block_p_(
-          factory::BlockOracle(api, *this, type, shutdown_sender_.endpoint_))
+    , block_p_(factory::BlockOracle(
+          api,
+          *this,
+          *database_p_,
+          type,
+          shutdown_sender_.endpoint_))
     , filter_p_(factory::BlockchainFilterOracle(
           api,
           *this,

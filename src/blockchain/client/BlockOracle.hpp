@@ -62,7 +62,8 @@ public:
     BlockOracle(
         const api::client::Manager& api,
         const internal::Network& network,
-        const blockchain::Type type,
+        const internal::BlockDatabase& db,
+        const blockchain::Type chain,
         const std::string& shutdown) noexcept;
 
     ~BlockOracle() final;
@@ -83,7 +84,10 @@ private:
 
         auto Shutdown() noexcept -> void;
 
-        Cache(const internal::Network& network) noexcept;
+        Cache(
+            const internal::Network& network,
+            const internal::BlockDatabase& db,
+            const blockchain::Type chain) noexcept;
         ~Cache() { Shutdown(); }
 
     private:
@@ -91,6 +95,8 @@ private:
         static const std::chrono::seconds download_timeout_;
 
         const internal::Network& network_;
+        const internal::BlockDatabase& db_;
+        const blockchain::Type chain_;
         mutable std::mutex lock_;
         mutable Pending pending_;
         mutable Completed completed_;
