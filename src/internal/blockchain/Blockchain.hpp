@@ -13,6 +13,7 @@
 #include <memory>
 #include <string>
 #include <tuple>
+#include <utility>
 #include <vector>
 
 #include "internal/blockchain/client/Client.hpp"
@@ -155,6 +156,8 @@ struct Database : virtual public client::internal::BlockDatabase,
     virtual ~Database() = default;
 };
 
+using FilterParams = std::pair<std::uint8_t, std::uint32_t>;
+
 auto DefaultFilter(const Type type) noexcept -> filter::Type;
 auto Deserialize(const Type chain, const std::uint8_t type) noexcept
     -> filter::Type;
@@ -175,8 +178,10 @@ OPENTXS_EXPORT auto FilterToHeader(
     const ReadView filter,
     const ReadView previous = {}) noexcept -> OTData;
 auto Format(const Type chain, const Amount) noexcept -> std::string;
-OPENTXS_EXPORT auto Grind(const std::function<void()> function) noexcept
-    -> void;
+OPENTXS_EXPORT auto GetFilterParams(const filter::Type type) noexcept(false)
+    -> FilterParams;
+OPENTXS_EXPORT
+auto Grind(const std::function<void()> function) noexcept -> void;
 auto Serialize(const Type chain, const filter::Type type) noexcept(false)
     -> std::uint8_t;
 auto Serialize(const block::Position& position) noexcept -> Space;

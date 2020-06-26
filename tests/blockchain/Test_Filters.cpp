@@ -13,6 +13,7 @@
 #include <memory>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 #include "OTTestEnvironment.hpp"  // IWYU pragma: keep
@@ -33,6 +34,9 @@
 
 namespace
 {
+const auto params_ = ot::blockchain::internal::GetFilterParams(
+    ot::blockchain::filter::Type::Basic_BIP158);
+
 class Test_Filters : public ::testing::Test
 {
 public:
@@ -70,8 +74,8 @@ public:
 
         const auto pGCS = ot::factory::GCS(
             api_,
-            19,
-            784931,
+            params_.first,
+            params_.second,
             ot::blockchain::internal::BlockHashToFilterKey(block->Bytes()),
             elements);
 
@@ -366,7 +370,8 @@ TEST_F(Test_Filters, gcs)
         std::vector<ot::OTData>{object1, object2, object3, object4};
     auto excludedElements = std::vector<ot::OTData>{object5, object6};
     auto key = std::string{"0123456789abcdef"};
-    auto pGcs = ot::factory::GCS(api_, 19, 784931, key, includedElements);
+    auto pGcs = ot::factory::GCS(
+        api_, params_.first, params_.second, key, includedElements);
 
     ASSERT_TRUE(pGcs);
 
@@ -427,8 +432,8 @@ TEST_F(Test_Filters, bip158_case_1665877)
         ot::StringStyle::Hex);
 
     auto key = ot::blockchain::internal::BlockHashToFilterKey(block->Bytes());
-    const auto pGcs =
-        ot::factory::GCS(api_, 19, 784931, key, 154, encodedGCS->Bytes());
+    const auto pGcs = ot::factory::GCS(
+        api_, params_.first, params_.second, key, 154, encodedGCS->Bytes());
 
     ASSERT_TRUE(pGcs);
 
@@ -509,8 +514,8 @@ TEST_F(Test_Filters, hash)
     const auto filter_0 = api_.Factory().Data("0x9dfca8", ot::StringStyle::Hex);
     auto pGcs = ot::factory::GCS(
         api_,
-        19,
-        784931,
+        params_.first,
+        params_.second,
         bc::BlockHashToFilterKey(block_0.Bytes()),
         1,
         filter_0->Bytes());

@@ -12,6 +12,7 @@
 #include <map>
 #include <memory>
 
+#include "internal/blockchain/Blockchain.hpp"
 #include "internal/blockchain/p2p/bitcoin/message/Message.hpp"
 #include "opentxs/Bytes.hpp"
 #include "opentxs/Types.hpp"
@@ -47,14 +48,11 @@ class Cfilter final : public internal::Cfilter
 public:
     using BitcoinFormat = FilterPrefixBasic;
 
-    auto Bits() const noexcept -> std::uint8_t final
-    {
-        return gcs_bits_.at(type_);
-    }
+    auto Bits() const noexcept -> std::uint8_t final { return params_.first; }
     auto ElementCount() const noexcept -> std::uint32_t final { return count_; }
     auto FPRate() const noexcept -> std::uint32_t final
     {
-        return gcs_fp_rate_.at(type_);
+        return params_.second;
     }
     auto Filter() const noexcept -> ReadView { return reader(filter_); }
     auto Hash() const noexcept -> const filter::Hash& final { return hash_; }
@@ -78,13 +76,11 @@ public:
     ~Cfilter() final = default;
 
 private:
-    static const std::map<filter::Type, std::uint8_t> gcs_bits_;
-    static const std::map<filter::Type, std::uint32_t> gcs_fp_rate_;
-
     const filter::Type type_;
     const filter::pHash hash_;
     const std::uint32_t count_;
     const Space filter_;
+    const blockchain::internal::FilterParams params_;
 
     auto payload() const noexcept -> OTData final;
 

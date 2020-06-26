@@ -130,10 +130,12 @@ TEST_F(Test_BitcoinBlock, bip158)
                 it, expectedSize, encodedFilter->size(), encodedElements));
         }
 
+        static const auto params = ot::blockchain::internal::GetFilterParams(
+            ot::blockchain::filter::Type::Basic_BIP158);
         const auto pGCS = ot::factory::GCS(
             api_,
-            19,
-            784931,
+            params.first,
+            params.second,
             ot::blockchain::internal::BlockHashToFilterKey(block.ID().Bytes()),
             ExtractElements(vector, block, encodedElements));
 
