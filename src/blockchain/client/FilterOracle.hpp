@@ -166,13 +166,13 @@ private:
         block::Position target_;
     };
 
-    struct RequestQueue {
+    struct HeaderQueue {
         auto Finish(const block::Hash& block) noexcept -> void;
         auto IsRunning(const block::Hash& block) noexcept -> bool;
         auto Reset() noexcept -> void { hashes_.clear(); }
         auto Start(const block::Hash& hash) noexcept -> void;
 
-        RequestQueue(const api::client::Manager& api) noexcept;
+        HeaderQueue(const api::client::Manager& api) noexcept;
 
     private:
         using Map = std::map<block::pHash, Time>;
@@ -194,7 +194,7 @@ private:
     const internal::Network& network_;
     const internal::FilterDatabase& database_;
     const filter::Type default_type_;
-    RequestQueue header_requests_;
+    HeaderQueue header_requests_;
     FilterQueue outstanding_filters_;
     OTZMQPublishSocket socket_;
     std::promise<void> init_promise_;

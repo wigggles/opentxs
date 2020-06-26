@@ -7,6 +7,8 @@ add_subdirectory(bitcoin)
 
 set(
   cxx-sources
+  filteroracle/FilterQueue.cpp
+  filteroracle/HeaderQueue.cpp
   BlockOracle.cpp
   Client.cpp
   FilterOracle.cpp
@@ -28,8 +30,8 @@ set(
   cxx-headers
   ${cxx-install-headers}
   "${opentxs_SOURCE_DIR}/src/internal/blockchain/client/Client.hpp"
+  filteroracle/FilterCheckpoints.hpp
   BlockOracle.hpp
-  FilterCheckpoints.hpp
   FilterOracle.hpp
   HDStateData.hpp
   HeaderOracle.hpp
