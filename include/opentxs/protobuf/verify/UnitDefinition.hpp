@@ -14,6 +14,14 @@ namespace opentxs
 {
 namespace proto
 {
+class UnitDefinition;
+}  // namespace proto
+}  // namespace opentxs
+
+namespace opentxs
+{
+namespace proto
+{
 OPENTXS_EXPORT bool CheckProto_1(
     const UnitDefinition& contract,
     const bool silent,

@@ -14,6 +14,14 @@ namespace opentxs
 {
 namespace proto
 {
+class TaskComplete;
+}  // namespace proto
+}  // namespace opentxs
+
+namespace opentxs
+{
+namespace proto
+{
 OPENTXS_EXPORT bool CheckProto_1(const TaskComplete& input, const bool silent);
 OPENTXS_EXPORT bool CheckProto_2(const TaskComplete& input, const bool silent);
 OPENTXS_EXPORT bool CheckProto_3(const TaskComplete& input, const bool silent);

@@ -8,8 +8,8 @@
 
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/Pimpl.hpp"
+#include "opentxs/core/Identifier.hpp"
 
 #ifdef SWIG
 // clang-format off

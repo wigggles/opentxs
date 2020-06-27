@@ -3,28 +3,34 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-set(
-  cxx-sources
-  mint/Lucre.cpp
-  token/Lucre.cpp
-  Lucre.cpp
-  Mint.cpp
-  Purse.cpp
-  Token.cpp
-)
+set(cxx-sources Mint.cpp Purse.cpp Token.cpp)
 set(cxx-install-headers "${opentxs_SOURCE_DIR}/include/opentxs/blind/Mint.hpp"
                         "${opentxs_SOURCE_DIR}/include/opentxs/blind/Purse.hpp"
                         "${opentxs_SOURCE_DIR}/include/opentxs/blind/Token.hpp")
 set(
   cxx-headers
   ${cxx-install-headers}
-  mint/Lucre.hpp
-  token/Lucre.hpp
-  Lucre.hpp
   Mint.hpp
   Purse.hpp
   Token.hpp
 )
+
+if(CASH_LUCRE_EXPORT)
+  list(
+    APPEND
+      cxx-sources
+      mint/Lucre.cpp
+      token/Lucre.cpp
+      Lucre.cpp
+  )
+  list(
+    APPEND
+      cxx-headers
+      mint/Lucre.hpp
+      token/Lucre.hpp
+      Lucre.hpp
+  )
+endif()
 
 add_library(opentxs-blind OBJECT ${cxx-sources} ${cxx-headers})
 target_link_libraries(opentxs-blind PRIVATE opentxs::messages)

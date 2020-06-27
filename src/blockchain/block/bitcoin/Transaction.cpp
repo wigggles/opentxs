@@ -14,13 +14,13 @@
 #include <map>
 #include <numeric>
 #include <stdexcept>
+#include <type_traits>
 #include <utility>
 
 #include "blockchain/bitcoin/CompactSize.hpp"
 #include "internal/api/client/Client.hpp"
 #include "internal/blockchain/bitcoin/Bitcoin.hpp"
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/api/client/Manager.hpp"
@@ -33,6 +33,9 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/iterator/Bidirectional.hpp"
+#include "opentxs/protobuf/BlockchainTransaction.pb.h"
+#include "opentxs/protobuf/BlockchainTransactionInput.pb.h"
+#include "opentxs/protobuf/BlockchainTransactionOutput.pb.h"
 #include "opentxs/protobuf/ContactEnums.pb.h"
 #include "util/Container.hpp"
 

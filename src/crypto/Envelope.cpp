@@ -20,7 +20,6 @@
 #include "2_Factory.hpp"
 #include "internal/api/Api.hpp"
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
@@ -37,7 +36,11 @@
 #include "opentxs/crypto/key/Symmetric.hpp"
 #include "opentxs/identity/Authority.hpp"
 #include "opentxs/identity/Nym.hpp"
+#include "opentxs/protobuf/AsymmetricKey.pb.h"
+#include "opentxs/protobuf/Ciphertext.pb.h"
 #include "opentxs/protobuf/Enums.pb.h"
+#include "opentxs/protobuf/Envelope.pb.h"
+#include "opentxs/protobuf/TaggedKey.pb.h"
 
 #define OT_METHOD "opentxs::crypto::implementation::Envelope::"
 

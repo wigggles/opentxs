@@ -23,6 +23,7 @@
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/identity/Nym.hpp"
 #include "opentxs/protobuf/ConsensusEnums.pb.h"
+#include "opentxs/protobuf/Context.pb.h"
 
 namespace opentxs
 {
@@ -40,6 +41,11 @@ namespace identifier
 {
 class Nym;
 }  // namespace identifier
+
+namespace proto
+{
+class Signature;
+}  // namespace proto
 
 class Factory;
 class NymFile;

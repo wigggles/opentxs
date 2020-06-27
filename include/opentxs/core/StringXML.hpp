@@ -10,8 +10,8 @@
 
 #include <cstdint>
 
-#include "opentxs/core/String.hpp"
 #include "opentxs/Pimpl.hpp"
+#include "opentxs/core/String.hpp"
 
 namespace irr
 {

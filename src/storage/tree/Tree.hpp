@@ -14,6 +14,7 @@
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/api/Editor.hpp"
+#include "opentxs/protobuf/StorageItems.pb.h"
 #include "storage/tree/Node.hpp"
 
 namespace opentxs

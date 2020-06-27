@@ -14,6 +14,14 @@ namespace opentxs
 {
 namespace proto
 {
+class BlockchainActivity;
+}  // namespace proto
+}  // namespace opentxs
+
+namespace opentxs
+{
+namespace proto
+{
 OPENTXS_EXPORT bool CheckProto_1(
     const BlockchainActivity& input,
     const bool silent);
@@ -76,5 +84,4 @@ OPENTXS_EXPORT bool CheckProto_20(
     const bool silent);
 }  // namespace proto
 }  // namespace opentxs
-
 #endif  // OPENTXS_PROTOBUF_BLOCKCHAIN_ACTIVITY_HPP

@@ -18,6 +18,17 @@
 #include "opentxs/Proto.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/protobuf/PeerEnums.pb.h"
+
+namespace opentxs
+{
+namespace proto
+{
+class BailmentReply;
+class ConnectionInfoReply;
+class Issuer;
+}  // namespace proto
+}  // namespace opentxs
 
 namespace opentxs
 {

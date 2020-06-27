@@ -14,6 +14,8 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/protobuf/Check.hpp"
+#include "opentxs/protobuf/StorageThread.pb.h"
+#include "opentxs/protobuf/StorageThreadItem.pb.h"
 #include "opentxs/protobuf/verify/StorageThread.hpp"
 #include "opentxs/protobuf/verify/StorageThreadItem.hpp"
 #include "storage/Plugin.hpp"

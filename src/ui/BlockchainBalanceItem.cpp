@@ -13,9 +13,10 @@
 
 #include "internal/api/client/Client.hpp"
 #include "internal/blockchain/Blockchain.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/protobuf/PaymentEvent.pb.h"
+#include "opentxs/protobuf/PaymentWorkflow.pb.h"
 #include "ui/BalanceItem.hpp"
 #include "ui/Widget.hpp"
 

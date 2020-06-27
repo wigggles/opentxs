@@ -17,7 +17,6 @@
 
 #include "internal/api/client/Client.hpp"
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/Shared.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/api/Core.hpp"
@@ -36,6 +35,8 @@
 #include "opentxs/network/zeromq/FrameIterator.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/protobuf/PaymentEvent.pb.h"
+#include "opentxs/protobuf/PaymentWorkflow.pb.h"
 #include "opentxs/protobuf/PaymentWorkflowEnums.pb.h"
 #include "ui/Widget.hpp"
 

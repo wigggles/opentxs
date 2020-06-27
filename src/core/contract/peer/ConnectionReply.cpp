@@ -14,12 +14,14 @@
 #include "2_Factory.hpp"
 #include "core/contract/peer/PeerReply.hpp"
 #include "internal/api/Api.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/protobuf/Check.hpp"
+#include "opentxs/protobuf/ConnectionInfoReply.pb.h"
 #include "opentxs/protobuf/PeerEnums.pb.h"
+#include "opentxs/protobuf/PeerReply.pb.h"
+#include "opentxs/protobuf/PeerRequest.pb.h"
 #include "opentxs/protobuf/verify/PeerReply.hpp"
 
 #define CURRENT_VERSION 4

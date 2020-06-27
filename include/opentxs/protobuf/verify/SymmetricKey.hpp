@@ -14,6 +14,14 @@ namespace opentxs
 {
 namespace proto
 {
+class SymmetricKey;
+}  // namespace proto
+}  // namespace opentxs
+
+namespace opentxs
+{
+namespace proto
+{
 OPENTXS_EXPORT bool CheckProto_1(const SymmetricKey& key, const bool silent);
 OPENTXS_EXPORT bool CheckProto_2(const SymmetricKey&, const bool);
 OPENTXS_EXPORT bool CheckProto_3(const SymmetricKey&, const bool);

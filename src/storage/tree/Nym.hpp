@@ -23,6 +23,7 @@
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/protobuf/ContactEnums.pb.h"
+#include "opentxs/protobuf/StorageNym.pb.h"
 #include "storage/tree/Node.hpp"
 
 namespace opentxs
@@ -39,6 +40,13 @@ namespace identity
 {
 class Nym;
 }  // namespace identity
+
+namespace proto
+{
+class HDAccount;
+class Nym;
+class Purse;
+}  // namespace proto
 
 namespace storage
 {

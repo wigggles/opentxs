@@ -12,9 +12,10 @@
 
 #include <string>
 
-#include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/SharedPimpl.hpp"
+#include "opentxs/core/contract/Signable.hpp"
+#include "opentxs/protobuf/PeerEnums.pb.h"
 
 namespace opentxs
 {
@@ -25,6 +26,11 @@ namespace peer
 class Reply;
 }  // namespace peer
 }  // namespace contract
+
+namespace proto
+{
+class PeerReply;
+}  // namespace proto
 
 using OTPeerReply = SharedPimpl<contract::peer::Reply>;
 }  // namespace opentxs

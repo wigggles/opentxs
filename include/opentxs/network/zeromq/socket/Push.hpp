@@ -10,10 +10,10 @@
 
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
-#include "opentxs/network/zeromq/curve/Client.hpp"
-#include "opentxs/network/zeromq/socket/Sender.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Proto.hpp"
+#include "opentxs/network/zeromq/curve/Client.hpp"
+#include "opentxs/network/zeromq/socket/Sender.hpp"
 
 #ifdef SWIG
 // clang-format off

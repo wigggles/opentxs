@@ -23,7 +23,11 @@
 #include "opentxs/identity/Nym.hpp"
 #include "opentxs/otx/Request.hpp"
 #include "opentxs/protobuf/Check.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
+#include "opentxs/protobuf/Nym.pb.h"
 #include "opentxs/protobuf/OTXEnums.pb.h"
+#include "opentxs/protobuf/ServerRequest.pb.h"
+#include "opentxs/protobuf/Signature.pb.h"
 #include "opentxs/protobuf/verify/ServerRequest.hpp"
 
 template class opentxs::Pimpl<opentxs::otx::Request>;

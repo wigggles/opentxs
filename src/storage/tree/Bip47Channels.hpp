@@ -16,6 +16,7 @@
 #include "opentxs/Types.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/protobuf/ContactEnums.pb.h"
+#include "opentxs/protobuf/StorageBip47Contexts.pb.h"
 #include "storage/tree/Node.hpp"
 
 namespace opentxs
@@ -27,6 +28,12 @@ namespace storage
 class Driver;
 }  // namespace storage
 }  // namespace api
+
+namespace proto
+{
+class Bip47Channel;
+class Bip47Direction;
+}  // namespace proto
 
 namespace storage
 {

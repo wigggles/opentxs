@@ -3,13 +3,14 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "opentxs/Proto.hpp"  // IWYU pragma: associated
-
 #include <stdexcept>
 #include <utility>
 
 #include "opentxs/protobuf/Basic.hpp"
 #include "opentxs/protobuf/Check.hpp"
+#include "opentxs/protobuf/MasterCredentialParameters.pb.h"
+#include "opentxs/protobuf/NymIDSource.pb.h"
+#include "opentxs/protobuf/SourceProof.pb.h"
 #include "opentxs/protobuf/verify/MasterCredentialParameters.hpp"
 #include "opentxs/protobuf/verify/NymIDSource.hpp"
 #include "opentxs/protobuf/verify/SourceProof.hpp"

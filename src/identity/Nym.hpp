@@ -53,6 +53,15 @@ namespace identifier
 class UnitDefinition;
 }  // namespace identifier
 
+namespace proto
+{
+class ContactData;
+class HDPath;
+class Nym;
+class Signature;
+class VerificationSet;
+}  // namespace proto
+
 class Data;
 class Factory;
 class OTPassword;

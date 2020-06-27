@@ -14,6 +14,14 @@ namespace opentxs
 {
 namespace proto
 {
+class BlockchainTransactionInput;
+}  // namespace proto
+}  // namespace opentxs
+
+namespace opentxs
+{
+namespace proto
+{
 OPENTXS_EXPORT bool CheckProto_1(
     const BlockchainTransactionInput& input,
     const bool silent);

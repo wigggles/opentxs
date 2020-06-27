@@ -15,7 +15,6 @@
 #include "2_Factory.hpp"
 #include "internal/api/Api.hpp"
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/core/Armored.hpp"
@@ -30,7 +29,14 @@
 #include "opentxs/crypto/key/Keypair.hpp"
 #include "opentxs/crypto/library/AsymmetricProvider.hpp"
 #include "opentxs/identity/credential/Primary.hpp"
+#include "opentxs/protobuf/AsymmetricKey.pb.h"
+#include "opentxs/protobuf/Credential.pb.h"
 #include "opentxs/protobuf/Enums.pb.h"
+#include "opentxs/protobuf/KeyCredential.pb.h"
+#include "opentxs/protobuf/MasterCredentialParameters.pb.h"
+#include "opentxs/protobuf/NymIDSource.pb.h"
+#include "opentxs/protobuf/PaymentCode.pb.h"
+#include "opentxs/protobuf/SourceProof.pb.h"
 
 #define OT_METHOD "opentxs::identity::Source::"
 

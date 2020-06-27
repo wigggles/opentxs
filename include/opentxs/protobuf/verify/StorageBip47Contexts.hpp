@@ -14,6 +14,14 @@ namespace opentxs
 {
 namespace proto
 {
+class StorageBip47Contexts;
+}  // namespace proto
+}  // namespace opentxs
+
+namespace opentxs
+{
+namespace proto
+{
 OPENTXS_EXPORT bool CheckProto_1(
     const StorageBip47Contexts& input,
     const bool silent);

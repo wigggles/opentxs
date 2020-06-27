@@ -20,6 +20,7 @@
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/otx/Reply.hpp"
 #include "opentxs/protobuf/OTXEnums.pb.h"
+#include "opentxs/protobuf/ServerReply.pb.h"
 
 namespace opentxs
 {
@@ -30,6 +31,12 @@ namespace internal
 struct Core;
 }  // namespace internal
 }  // namespace api
+
+namespace proto
+{
+class OTXPush;
+class Signature;
+}  // namespace proto
 
 class PasswordPrompt;
 }  // namespace opentxs

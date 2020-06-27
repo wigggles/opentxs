@@ -17,6 +17,7 @@
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/iterator/Bidirectional.hpp"
+#include "opentxs/protobuf/CashEnums.pb.h"
 
 namespace opentxs
 {
@@ -35,6 +36,11 @@ namespace blind
 {
 class Purse;
 }  // namespace blind
+
+namespace proto
+{
+class Purse;
+}  // namespace proto
 
 using OTPurse = Pimpl<blind::Purse>;
 }  // namespace opentxs

@@ -33,6 +33,7 @@
 #include "opentxs/core/Lockable.hpp"
 #include "opentxs/core/Secret.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
+#include "opentxs/protobuf/RPCResponse.pb.h"
 
 namespace opentxs
 {

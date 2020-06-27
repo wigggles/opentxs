@@ -13,8 +13,8 @@
 #include <set>
 
 #include "opentxs/Bytes.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.hpp"
 
 namespace opentxs
 {
@@ -22,6 +22,11 @@ namespace crypto
 {
 class Envelope;
 }  // namespace crypto
+
+namespace proto
+{
+class Envelope;
+}  // namespace proto
 
 using OTEnvelope = Pimpl<crypto::Envelope>;
 }  // namespace opentxs

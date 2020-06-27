@@ -17,6 +17,7 @@
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/core/Data.hpp"
+#include "opentxs/protobuf/GCS.pb.h"
 
 namespace opentxs
 {

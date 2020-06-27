@@ -16,6 +16,7 @@
 #include "opentxs/api/Editor.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/protobuf/PaymentWorkflowEnums.pb.h"
+#include "opentxs/protobuf/StoragePaymentWorkflows.pb.h"
 #include "storage/tree/Node.hpp"
 
 namespace opentxs
@@ -27,6 +28,11 @@ namespace storage
 class Driver;
 }  // namespace storage
 }  // namespace api
+
+namespace proto
+{
+class PaymentWorkflow;
+}  // namespace proto
 
 namespace storage
 {

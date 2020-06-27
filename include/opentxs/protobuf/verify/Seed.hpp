@@ -14,6 +14,14 @@ namespace opentxs
 {
 namespace proto
 {
+class Seed;
+}  // namespace proto
+}  // namespace opentxs
+
+namespace opentxs
+{
+namespace proto
+{
 OPENTXS_EXPORT bool CheckProto_1(const Seed& input, const bool silent);
 OPENTXS_EXPORT bool CheckProto_2(const Seed& input, const bool silent);
 OPENTXS_EXPORT bool CheckProto_3(const Seed& input, const bool silent);

@@ -16,6 +16,7 @@
 #include "opentxs/Version.hpp"
 #include "opentxs/core/Secret.hpp"
 #include "opentxs/crypto/key/HD.hpp"
+#include "opentxs/protobuf/Ciphertext.pb.h"
 #include "opentxs/protobuf/Enums.pb.h"
 
 namespace opentxs
@@ -37,6 +38,12 @@ class Symmetric;
 
 class EcdsaProvider;
 }  // namespace crypto
+
+namespace proto
+{
+class AsymmetricKey;
+class HDPath;
+}  // namespace proto
 
 class Data;
 class PasswordPrompt;

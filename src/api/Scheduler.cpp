@@ -11,12 +11,13 @@
 #include <limits>
 #include <ratio>
 
-#include "opentxs/Proto.hpp"
 #include "opentxs/api/network/Dht.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/identity/Nym.hpp"
+#include "opentxs/protobuf/ServerContract.pb.h"
+#include "opentxs/protobuf/UnitDefinition.pb.h"
 
 //#define OT_METHOD "opentxs::api::implementation::Scheduler::"
 

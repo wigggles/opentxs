@@ -15,9 +15,9 @@
 #include <tuple>
 #include <vector>
 
-#include "opentxs/ui/List.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/SharedPimpl.hpp"
+#include "opentxs/ui/List.hpp"
 
 #ifdef SWIG
 #include <algorithm>

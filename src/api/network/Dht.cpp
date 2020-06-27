@@ -21,7 +21,6 @@
 #endif  // OT_DHT
 #include "opentxs/Forward.hpp"
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/Proto.tpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/api/Endpoints.hpp"
@@ -40,6 +39,9 @@
 #include "opentxs/network/zeromq/ReplyCallback.hpp"
 #include "opentxs/network/zeromq/socket/Reply.hpp"
 #include "opentxs/network/zeromq/socket/Socket.hpp"
+#include "opentxs/protobuf/Nym.pb.h"
+#include "opentxs/protobuf/ServerContract.pb.h"
+#include "opentxs/protobuf/UnitDefinition.pb.h"
 
 #if OT_DHT
 #define OT_METHOD "opentxs::Dht"

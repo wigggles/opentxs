@@ -12,10 +12,18 @@
 
 #include <string>
 
-#include "opentxs/core/Data.hpp"
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
+#include "opentxs/core/Data.hpp"
+#include "opentxs/core/Identifier.hpp"
+
+namespace opentxs
+{
+namespace proto
+{
+class Signature;
+}  // namespace proto
+}  // namespace opentxs
 
 namespace opentxs
 {

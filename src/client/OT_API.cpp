@@ -17,7 +17,6 @@
 
 #include "internal/api/Api.hpp"
 #include "internal/api/client/Client.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/Shared.hpp"
 #include "opentxs/SharedPimpl.hpp"
 #include "opentxs/api/Editor.hpp"
@@ -61,7 +60,10 @@
 #include "opentxs/otx/consensus/Base.hpp"
 #include "opentxs/otx/consensus/ManagedNumber.hpp"
 #include "opentxs/otx/consensus/Server.hpp"
+#include "opentxs/protobuf/BasketItem.pb.h"
+#include "opentxs/protobuf/BasketParams.pb.h"
 #include "opentxs/protobuf/ContractEnums.pb.h"
+#include "opentxs/protobuf/UnitDefinition.pb.h"
 
 #define CLIENT_MASTER_KEY_TIMEOUT_DEFAULT 300
 

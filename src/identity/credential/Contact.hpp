@@ -11,6 +11,7 @@
 #include "internal/identity/credential/Credential.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
+#include "opentxs/protobuf/ContactData.pb.h"
 
 namespace opentxs
 {

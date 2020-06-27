@@ -23,6 +23,7 @@
 #include "opentxs/Version.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/core/Data.hpp"
+#include "opentxs/protobuf/GCS.pb.h"
 
 namespace opentxs
 {

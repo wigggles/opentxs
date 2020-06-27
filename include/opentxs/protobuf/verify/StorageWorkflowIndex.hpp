@@ -14,6 +14,14 @@ namespace opentxs
 {
 namespace proto
 {
+class StorageWorkflowIndex;
+}  // namespace proto
+}  // namespace opentxs
+
+namespace opentxs
+{
+namespace proto
+{
 OPENTXS_EXPORT bool CheckProto_1(
     const StorageWorkflowIndex& input,
     const bool silent);

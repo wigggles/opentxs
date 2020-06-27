@@ -13,6 +13,7 @@
 
 #include "opentxs/otx/consensus/Base.hpp"
 #include "opentxs/otx/consensus/ManagedNumber.hpp"
+#include "opentxs/protobuf/ConsensusEnums.pb.h"
 
 namespace opentxs
 {

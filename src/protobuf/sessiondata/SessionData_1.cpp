@@ -3,8 +3,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "opentxs/Proto.hpp"  // IWYU pragma: associated
-
+#include "opentxs/protobuf/SessionData.pb.h"  // IWYU pragma: keep
 #include "opentxs/protobuf/verify/SessionData.hpp"
 #include "protobuf/Check.hpp"
 
@@ -14,7 +13,6 @@ namespace opentxs
 {
 namespace proto
 {
-
 auto CheckProto_1(const SessionData& input, const bool silent) -> bool
 {
     return true;

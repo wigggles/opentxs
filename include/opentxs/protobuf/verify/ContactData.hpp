@@ -14,6 +14,14 @@ namespace opentxs
 {
 namespace proto
 {
+class ContactData;
+}  // namespace proto
+}  // namespace opentxs
+
+namespace opentxs
+{
+namespace proto
+{
 OPENTXS_EXPORT bool CheckProto_1(
     const ContactData& contactData,
     const bool silent,

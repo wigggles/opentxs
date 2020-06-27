@@ -3,11 +3,19 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "opentxs/Proto.hpp"  // IWYU pragma: associated
-
 #include "opentxs/protobuf/Basic.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
 #include "opentxs/protobuf/PeerEnums.pb.h"
+#include "opentxs/protobuf/PeerRequest.pb.h"
+#include "opentxs/protobuf/verify/Bailment.hpp"        // IWYU pragma: keep
+#include "opentxs/protobuf/verify/ConnectionInfo.hpp"  // IWYU pragma: keep
+#include "opentxs/protobuf/verify/Faucet.hpp"          // IWYU pragma: keep
+#include "opentxs/protobuf/verify/OutBailment.hpp"     // IWYU pragma: keep
 #include "opentxs/protobuf/verify/PeerRequest.hpp"
+#include "opentxs/protobuf/verify/PendingBailment.hpp"    // IWYU pragma: keep
+#include "opentxs/protobuf/verify/Signature.hpp"          // IWYU pragma: keep
+#include "opentxs/protobuf/verify/StoreSecret.hpp"        // IWYU pragma: keep
+#include "opentxs/protobuf/verify/VerificationOffer.hpp"  // IWYU pragma: keep
 #include "opentxs/protobuf/verify/VerifyPeer.hpp"
 #include "protobuf/Check.hpp"
 

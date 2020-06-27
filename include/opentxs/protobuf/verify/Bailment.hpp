@@ -14,6 +14,14 @@ namespace opentxs
 {
 namespace proto
 {
+class Bailment;
+}  // namespace proto
+}  // namespace opentxs
+
+namespace opentxs
+{
+namespace proto
+{
 OPENTXS_EXPORT bool CheckProto_1(const Bailment& request, const bool silent);
 OPENTXS_EXPORT bool CheckProto_2(const Bailment& request, const bool silent);
 OPENTXS_EXPORT bool CheckProto_3(const Bailment& request, const bool silent);

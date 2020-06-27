@@ -14,6 +14,14 @@ namespace opentxs
 {
 namespace proto
 {
+class PairEvent;
+}  // namespace proto
+}  // namespace opentxs
+
+namespace opentxs
+{
+namespace proto
+{
 OPENTXS_EXPORT bool CheckProto_1(const PairEvent& input, const bool silent);
 OPENTXS_EXPORT bool CheckProto_2(const PairEvent& input, const bool silent);
 OPENTXS_EXPORT bool CheckProto_3(const PairEvent& input, const bool silent);

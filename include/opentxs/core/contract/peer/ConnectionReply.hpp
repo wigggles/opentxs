@@ -8,8 +8,8 @@
 
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
-#include "opentxs/core/contract/peer/PeerReply.hpp"
 #include "opentxs/SharedPimpl.hpp"
+#include "opentxs/core/contract/peer/PeerReply.hpp"
 
 namespace opentxs
 {

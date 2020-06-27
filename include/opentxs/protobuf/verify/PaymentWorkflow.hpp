@@ -14,6 +14,14 @@ namespace opentxs
 {
 namespace proto
 {
+class PaymentWorkflow;
+}  // namespace proto
+}  // namespace opentxs
+
+namespace opentxs
+{
+namespace proto
+{
 OPENTXS_EXPORT bool CheckProto_1(
     const PaymentWorkflow& input,
     const bool silent);

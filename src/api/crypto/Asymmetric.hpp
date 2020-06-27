@@ -21,6 +21,7 @@
 #include "opentxs/crypto/key/EllipticCurve.hpp"
 #include "opentxs/crypto/key/Secp256k1.hpp"
 #include "opentxs/protobuf/Enums.pb.h"
+#include "opentxs/protobuf/HDPath.pb.h"
 
 namespace opentxs
 {
@@ -31,6 +32,11 @@ namespace internal
 struct Core;
 }  // namespace internal
 }  // namespace api
+
+namespace proto
+{
+class AsymmetricKey;
+}  // namespace proto
 
 class Factory;
 class NymParameters;

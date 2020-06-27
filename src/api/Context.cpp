@@ -40,6 +40,7 @@ extern "C" {
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/crypto/OTCallback.hpp"
 #include "opentxs/core/crypto/OTCaller.hpp"
+#include "opentxs/protobuf/RPCResponse.pb.h"
 #include "opentxs/util/PIDFile.hpp"
 #include "opentxs/util/Signals.hpp"
 

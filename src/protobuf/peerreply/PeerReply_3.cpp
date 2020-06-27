@@ -3,15 +3,20 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "opentxs/Proto.hpp"  // IWYU pragma: associated
-
 #include <stdexcept>
 #include <string>
 #include <utility>
 
+#include "opentxs/protobuf/BailmentReply.pb.h"
 #include "opentxs/protobuf/Basic.hpp"
 #include "opentxs/protobuf/Check.hpp"
+#include "opentxs/protobuf/ConnectionInfoReply.pb.h"
+#include "opentxs/protobuf/Enums.pb.h"
+#include "opentxs/protobuf/NoticeAcknowledgement.pb.h"
+#include "opentxs/protobuf/OutBailmentReply.pb.h"
 #include "opentxs/protobuf/PeerEnums.pb.h"
+#include "opentxs/protobuf/PeerReply.pb.h"
+#include "opentxs/protobuf/Signature.pb.h"
 #include "opentxs/protobuf/verify/BailmentReply.hpp"
 #include "opentxs/protobuf/verify/ConnectionInfoReply.hpp"
 #include "opentxs/protobuf/verify/NoticeAcknowledgement.hpp"

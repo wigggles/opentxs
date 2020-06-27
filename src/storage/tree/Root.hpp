@@ -17,6 +17,7 @@
 #include "opentxs/Types.hpp"
 #include "opentxs/api/Editor.hpp"
 #include "opentxs/core/Flag.hpp"
+#include "opentxs/protobuf/StorageRoot.pb.h"
 #include "storage/tree/Node.hpp"
 #include "storage/tree/Tree.hpp"
 

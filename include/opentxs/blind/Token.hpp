@@ -16,6 +16,7 @@
 #if OT_CASH
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Proto.hpp"
+#include "opentxs/protobuf/CashEnums.pb.h"
 
 namespace opentxs
 {
@@ -23,6 +24,11 @@ namespace blind
 {
 class Token;
 }  // namespace blind
+
+namespace proto
+{
+class Token;
+}  // namespace proto
 
 using OTToken = Pimpl<blind::Token>;
 }  // namespace opentxs

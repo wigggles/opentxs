@@ -18,6 +18,7 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/identity/credential/Contact.hpp"
 #include "opentxs/protobuf/ContactEnums.pb.h"
+#include "opentxs/protobuf/ContactItem.pb.h"
 
 #define OT_METHOD "opentxs::ContactItem::"
 

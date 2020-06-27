@@ -3,9 +3,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "0_stdafx.hpp"    // IWYU pragma: associated
-#include "1_Internal.hpp"  // IWYU pragma: associated
-#if OT_CASH
+#include "0_stdafx.hpp"     // IWYU pragma: associated
+#include "1_Internal.hpp"   // IWYU pragma: associated
 #include "blind/Token.hpp"  // IWYU pragma: associated
 
 #include <memory>
@@ -23,6 +22,7 @@
 #include "opentxs/crypto/key/Symmetric.hpp"
 #include "opentxs/protobuf/CashEnums.pb.h"
 #include "opentxs/protobuf/Enums.pb.h"
+#include "opentxs/protobuf/Token.pb.h"
 
 #define OT_METHOD "opentxs::blind::token::implementation::Token::"
 
@@ -223,4 +223,3 @@ auto Token::Serialize() const -> proto::Token
     return output;
 }
 }  // namespace opentxs::blind::token::implementation
-#endif

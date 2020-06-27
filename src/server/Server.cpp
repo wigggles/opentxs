@@ -15,7 +15,6 @@
 #include <string>
 #include <vector>
 
-#include "opentxs/Proto.hpp"
 #include "opentxs/Proto.tpp"
 #include "opentxs/SharedPimpl.hpp"
 #include "opentxs/api/Endpoints.hpp"
@@ -54,6 +53,8 @@
 #include "opentxs/protobuf/ContactEnums.pb.h"
 #include "opentxs/protobuf/ContractEnums.pb.h"
 #include "opentxs/protobuf/OTXEnums.pb.h"
+#include "opentxs/protobuf/OTXPush.pb.h"
+#include "opentxs/protobuf/ServerContract.pb.h"
 #include "server/ConfigLoader.hpp"
 #include "server/MainFile.hpp"
 #include "server/Transactor.hpp"

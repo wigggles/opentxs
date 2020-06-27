@@ -11,8 +11,8 @@
 #include <cstdint>
 #include <memory>
 
-#include "opentxs/blockchain/block/Block.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/blockchain/block/Block.hpp"
 #include "opentxs/iterator/Bidirectional.hpp"
 
 namespace opentxs

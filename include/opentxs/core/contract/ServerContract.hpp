@@ -19,6 +19,7 @@
 #include "opentxs/SharedPimpl.hpp"
 #include "opentxs/core/Secret.hpp"
 #include "opentxs/core/contract/Signable.hpp"
+#include "opentxs/protobuf/ContractEnums.pb.h"
 
 namespace opentxs
 {
@@ -26,6 +27,11 @@ namespace contract
 {
 class Server;
 }  // namespace contract
+
+namespace proto
+{
+class ServerContract;
+}  // namespace proto
 
 using OTServerContract = SharedPimpl<contract::Server>;
 }  // namespace opentxs

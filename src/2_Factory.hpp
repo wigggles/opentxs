@@ -8,6 +8,8 @@
 #include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/core/contract/peer/PeerReply.hpp"
 #include "opentxs/core/contract/peer/PeerRequest.hpp"
+#include "opentxs/protobuf/CashEnums.pb.h"
+#include "opentxs/protobuf/Enums.pb.h"
 
 namespace opentxs
 {
@@ -202,6 +204,28 @@ namespace context
 class Server;
 }  // namespace context
 }  // namespace otx
+
+namespace proto
+{
+class AsymmetricKey;
+class Authority;
+class Credential;
+class Envelope;
+class HDAccount;
+class Issuer;
+class Nym;
+class NymIDSource;
+class PeerObject;
+class Purse;
+class ServerContract;
+class SymmetricKey;
+class Token;
+class UnitDefinition;
+class Verification;
+class VerificationGroup;
+class VerificationIdentity;
+class VerificationSet;
+}  // namespace proto
 
 namespace rpc
 {

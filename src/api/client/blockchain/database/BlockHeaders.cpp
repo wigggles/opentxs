@@ -17,6 +17,7 @@
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/blockchain/block/Header.hpp"
+#include "opentxs/protobuf/BlockchainBlockHeader.pb.h"
 #include "util/LMDB.hpp"
 
 // #define OT_METHOD

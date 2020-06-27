@@ -18,6 +18,7 @@
 #include "opentxs/Version.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/crypto/key/HD.hpp"
+#include "opentxs/protobuf/HDPath.pb.h"
 
 namespace opentxs
 {

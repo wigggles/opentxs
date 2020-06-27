@@ -10,6 +10,7 @@
 #include "opentxs/Types.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/identity/wot/verification/Item.hpp"
+#include "opentxs/protobuf/Signature.pb.h"
 
 namespace opentxs
 {

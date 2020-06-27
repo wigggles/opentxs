@@ -16,6 +16,7 @@
 #include "opentxs/Types.hpp"
 #include "opentxs/api/Editor.hpp"
 #include "opentxs/api/storage/Storage.hpp"
+#include "opentxs/protobuf/StorageNymList.pb.h"
 #include "storage/tree/Node.hpp"
 
 namespace opentxs

@@ -15,6 +15,8 @@
 #include "opentxs/Version.hpp"
 #include "opentxs/api/Editor.hpp"
 #include "opentxs/api/storage/Storage.hpp"
+#include "opentxs/protobuf/SpentTokenList.pb.h"
+#include "opentxs/protobuf/StorageNotary.pb.h"
 #include "storage/tree/Node.hpp"
 
 namespace opentxs

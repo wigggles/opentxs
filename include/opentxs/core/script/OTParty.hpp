@@ -12,9 +12,9 @@
 #include <map>
 #include <string>
 
+#include "opentxs/Types.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/Types.hpp"
 
 namespace opentxs
 {

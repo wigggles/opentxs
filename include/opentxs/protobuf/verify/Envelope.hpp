@@ -14,6 +14,14 @@ namespace opentxs
 {
 namespace proto
 {
+class Envelope;
+}  // namespace proto
+}  // namespace opentxs
+
+namespace opentxs
+{
+namespace proto
+{
 OPENTXS_EXPORT bool CheckProto_1(const Envelope& data, const bool silent);
 OPENTXS_EXPORT bool CheckProto_2(const Envelope& data, const bool silent);
 OPENTXS_EXPORT bool CheckProto_3(const Envelope& data, const bool silent);

@@ -14,6 +14,14 @@ namespace opentxs
 {
 namespace proto
 {
+class StorageBip47ChannelList;
+}  // namespace proto
+}  // namespace opentxs
+
+namespace opentxs
+{
+namespace proto
+{
 OPENTXS_EXPORT bool CheckProto_1(
     const StorageBip47ChannelList& input,
     const bool silent);

@@ -20,6 +20,7 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/protobuf/BlockchainActivity.pb.h"
 
 namespace opentxs
 {

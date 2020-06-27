@@ -32,10 +32,21 @@
 #include "opentxs/core/crypto/PaymentCode.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/protobuf/Check.hpp"
+#include "opentxs/protobuf/Contact.pb.h"
+#include "opentxs/protobuf/ContactData.pb.h"
 #include "opentxs/protobuf/ContactEnums.pb.h"
+#include "opentxs/protobuf/ContactItem.pb.h"
 #include "opentxs/protobuf/verify/ContactItem.hpp"
 #include "opentxs/protobuf/verify/VerifyContacts.hpp"
 #include "util/Container.hpp"
+
+namespace opentxs
+{
+namespace proto
+{
+class Nym;
+}  // namespace proto
+}  // namespace opentxs
 
 #define ID_BYTES 32
 

@@ -14,14 +14,20 @@
 #include <memory>
 #include <string>
 
-#include "opentxs/core/contract/peer/PeerReply.hpp"
-#include "opentxs/core/contract/peer/PeerRequest.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Proto.hpp"
+#include "opentxs/core/contract/peer/PeerReply.hpp"
+#include "opentxs/core/contract/peer/PeerRequest.hpp"
+#include "opentxs/protobuf/PeerEnums.pb.h"
 
 namespace opentxs
 {
 class PeerObject;
+
+namespace proto
+{
+class PeerObject;
+}  // namespace proto
 
 using OTPeerObject = Pimpl<PeerObject>;
 }  // namespace opentxs

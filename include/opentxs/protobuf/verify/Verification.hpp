@@ -14,6 +14,14 @@ namespace opentxs
 {
 namespace proto
 {
+class Verification;
+}  // namespace proto
+}  // namespace opentxs
+
+namespace opentxs
+{
+namespace proto
+{
 OPENTXS_EXPORT bool CheckProto_1(
     const Verification& verification,
     const bool silent,

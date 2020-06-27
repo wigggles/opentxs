@@ -10,6 +10,9 @@
 #else
 #include <iostream>
 #endif
+#include <string>
+
+#include "opentxs/protobuf/Check.hpp"
 
 namespace opentxs::proto
 {

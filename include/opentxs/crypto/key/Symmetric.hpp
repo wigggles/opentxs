@@ -13,10 +13,11 @@
 #include <cstdint>
 #include <string>
 
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/Bytes.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Proto.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
 
 namespace opentxs
 {
@@ -27,6 +28,12 @@ namespace key
 class Symmetric;
 }  // namespace key
 }  // namespace crypto
+
+namespace proto
+{
+class Ciphertext;
+class SymmetricKey;
+}  // namespace proto
 
 class Secret;
 

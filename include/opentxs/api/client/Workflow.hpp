@@ -15,6 +15,7 @@
 
 #include "opentxs/Proto.hpp"
 #include "opentxs/core/Identifier.hpp"
+#include "opentxs/protobuf/PaymentWorkflowEnums.pb.h"
 
 namespace opentxs
 {
@@ -24,7 +25,19 @@ namespace internal
 {
 struct Core;
 }  // namespace internal
+}  // namespace api
 
+namespace proto
+{
+class PaymentWorkflow;
+class Purse;
+}  // namespace proto
+}  // namespace opentxs
+
+namespace opentxs
+{
+namespace api
+{
 namespace client
 {
 /** Store and retrieve payment workflow events

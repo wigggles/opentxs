@@ -12,11 +12,13 @@
 
 #include "2_Factory.hpp"
 #include "core/contract/UnitDefinition.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/protobuf/Check.hpp"
 #include "opentxs/protobuf/ContactEnums.pb.h"
 #include "opentxs/protobuf/ContractEnums.pb.h"
+#include "opentxs/protobuf/CurrencyParams.pb.h"
+#include "opentxs/protobuf/Signature.pb.h"
+#include "opentxs/protobuf/UnitDefinition.pb.h"
 #include "opentxs/protobuf/verify/UnitDefinition.hpp"
 
 namespace opentxs

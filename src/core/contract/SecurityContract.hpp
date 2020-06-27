@@ -16,6 +16,7 @@
 #include "opentxs/core/contract/SecurityContract.hpp"
 #include "opentxs/protobuf/ContactEnums.pb.h"
 #include "opentxs/protobuf/ContractEnums.pb.h"
+#include "opentxs/protobuf/UnitDefinition.pb.h"
 
 namespace opentxs
 {

@@ -13,9 +13,10 @@
 #include <cstdint>
 #include <string>
 
-#include "opentxs/identity/credential/Base.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
+#include "opentxs/identity/credential/Base.hpp"
+#include "opentxs/protobuf/ContactEnums.pb.h"
 
 namespace opentxs
 {
@@ -26,7 +27,16 @@ namespace internal
 struct Core;
 }  // namespace internal
 }  // namespace api
+namespace proto
 
+{
+class Claim;
+class ContactItem;
+}  // namespace proto
+}  // namespace opentxs
+
+namespace opentxs
+{
 namespace identity
 {
 namespace credential

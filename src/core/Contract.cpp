@@ -19,7 +19,6 @@
 
 #include "internal/api/Api.hpp"
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Wallet.hpp"
@@ -39,6 +38,7 @@
 #include "opentxs/crypto/library/HashingProvider.hpp"
 #include "opentxs/identity/Nym.hpp"
 #include "opentxs/protobuf/Enums.pb.h"
+#include "opentxs/protobuf/Nym.pb.h"
 
 using namespace irr;
 using namespace io;

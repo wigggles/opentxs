@@ -8,15 +8,15 @@
 
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
-#include <cstdint>
 #include <chrono>
+#include <cstdint>
 #include <functional>
 #include <memory>
 #include <string>
 #include <tuple>
 
-#include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/Types.hpp"
+#include "opentxs/network/zeromq/Message.hpp"
 
 #ifdef SWIG
 // clang-format off

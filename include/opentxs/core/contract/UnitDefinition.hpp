@@ -13,9 +13,10 @@
 #include <cstdint>
 #include <string>
 
-#include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/SharedPimpl.hpp"
+#include "opentxs/core/contract/Signable.hpp"
+#include "opentxs/protobuf/ContractEnums.pb.h"
 
 namespace opentxs
 {
@@ -23,6 +24,11 @@ namespace contract
 {
 class Unit;
 }  // namespace contract
+
+namespace proto
+{
+class UnitDefinition;
+}  // namespace proto
 
 using OTUnitDefinition = SharedPimpl<contract::Unit>;
 }  // namespace opentxs

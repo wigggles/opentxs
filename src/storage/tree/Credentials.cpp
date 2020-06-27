@@ -13,10 +13,14 @@
 #include <tuple>
 #include <utility>
 
-#include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/api/storage/Driver.hpp"
 #include "opentxs/protobuf/Check.hpp"
+#include "opentxs/protobuf/Credential.pb.h"
+#include "opentxs/protobuf/Enums.pb.h"
+#include "opentxs/protobuf/StorageCredentials.pb.h"
+#include "opentxs/protobuf/StorageItemHash.pb.h"
+#include "opentxs/protobuf/verify/Credential.hpp"
 #include "opentxs/protobuf/verify/StorageCredentials.hpp"
 #include "storage/Plugin.hpp"
 #include "storage/tree/Node.hpp"

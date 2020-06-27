@@ -13,13 +13,15 @@
 #include <chrono>
 #include <cstdint>
 #include <future>
-#include <tuple>
 #include <memory>
 #include <set>
+#include <tuple>
 
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/protobuf/ConsensusEnums.pb.h"
+#include "opentxs/protobuf/PeerEnums.pb.h"
 
 #define OT_CHEQUE_DAYS 30
 #define OT_CHEQUE_HOURS 24 * OT_CHEQUE_DAYS

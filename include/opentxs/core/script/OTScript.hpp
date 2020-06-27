@@ -10,8 +10,8 @@
 
 #include <cstddef>
 #include <map>
-#include <string>
 #include <memory>
+#include <string>
 
 namespace opentxs
 {

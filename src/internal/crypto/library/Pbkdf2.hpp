@@ -7,7 +7,8 @@
 
 #include <cstdint>
 
-#include "opentxs/Proto.hpp"  // IWYU pragma: keep
+#include "opentxs/Proto.hpp"
+#include "opentxs/protobuf/Enums.pb.h"  // IWYU pragma: keep
 
 namespace opentxs::crypto
 {

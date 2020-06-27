@@ -3,13 +3,16 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "opentxs/Proto.hpp"  // IWYU pragma: associated
-
 #include <stdexcept>
 #include <utility>
 
 #include "opentxs/protobuf/Basic.hpp"
 #include "opentxs/protobuf/Check.hpp"
+#include "opentxs/protobuf/StorageContactAddressIndex.pb.h"
+#include "opentxs/protobuf/StorageContactNymIndex.pb.h"
+#include "opentxs/protobuf/StorageContacts.pb.h"
+#include "opentxs/protobuf/StorageIDList.pb.h"
+#include "opentxs/protobuf/StorageItemHash.pb.h"
 #include "opentxs/protobuf/verify/StorageContactAddressIndex.hpp"
 #include "opentxs/protobuf/verify/StorageContactNymIndex.hpp"
 #include "opentxs/protobuf/verify/StorageContacts.hpp"

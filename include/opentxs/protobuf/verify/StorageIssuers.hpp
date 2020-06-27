@@ -14,6 +14,14 @@ namespace opentxs
 {
 namespace proto
 {
+class StorageIssuers;
+}  // namespace proto
+}  // namespace opentxs
+
+namespace opentxs
+{
+namespace proto
+{
 OPENTXS_EXPORT bool CheckProto_1(
     const StorageIssuers& input,
     const bool silent);

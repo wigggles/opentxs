@@ -14,10 +14,11 @@
 
 #include "internal/api/Api.hpp"  // IWYU pragma: keep
 #include "internal/blockchain/Blockchain.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/Proto.tpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/protobuf/BlockchainFilterHeader.pb.h"
+#include "opentxs/protobuf/GCS.pb.h"
 #include "util/LMDB.hpp"
 
 // #define OT_METHOD

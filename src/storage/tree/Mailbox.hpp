@@ -10,6 +10,7 @@
 
 #include "opentxs/Proto.hpp"
 #include "opentxs/api/Editor.hpp"
+#include "opentxs/protobuf/StorageNymList.pb.h"
 #include "storage/tree/Node.hpp"
 
 namespace opentxs

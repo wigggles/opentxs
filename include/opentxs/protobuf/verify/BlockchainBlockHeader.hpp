@@ -14,6 +14,14 @@ namespace opentxs
 {
 namespace proto
 {
+class BlockchainBlockHeader;
+}  // namespace proto
+}  // namespace opentxs
+
+namespace opentxs
+{
+namespace proto
+{
 OPENTXS_EXPORT bool CheckProto_1(
     const BlockchainBlockHeader& input,
     const bool silent);

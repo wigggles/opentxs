@@ -14,6 +14,7 @@
 #include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/protobuf/CashEnums.pb.h"
 #include "opentxs/protobuf/Enums.pb.h"
+#include "opentxs/protobuf/Token.pb.h"
 
 namespace opentxs
 {
@@ -48,6 +49,11 @@ namespace identity
 {
 class Nym;
 }  // namespace identity
+
+namespace proto
+{
+class Ciphertext;
+}  // namespace proto
 
 class PasswordPrompt;
 }  // namespace opentxs

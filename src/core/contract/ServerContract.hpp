@@ -21,6 +21,7 @@
 #include "opentxs/core/Secret.hpp"
 #include "opentxs/core/contract/ServerContract.hpp"
 #include "opentxs/protobuf/ContractEnums.pb.h"
+#include "opentxs/protobuf/ServerContract.pb.h"
 
 namespace opentxs
 {
@@ -33,6 +34,11 @@ struct Core;
 
 class Core;
 }  // namespace api
+
+namespace proto
+{
+class Signature;
+}  // namespace proto
 
 class Factory;
 class OTPassword;

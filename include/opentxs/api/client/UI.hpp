@@ -11,6 +11,7 @@
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include "opentxs/Proto.hpp"
+#include "opentxs/protobuf/ContactEnums.pb.h"
 
 #ifdef SWIG
 // clang-format off

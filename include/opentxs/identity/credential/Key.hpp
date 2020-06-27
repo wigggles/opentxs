@@ -12,11 +12,11 @@
 
 #include <memory>
 
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/crypto/key/Keypair.hpp"
 #include "opentxs/identity/credential/Base.hpp"
-#include "opentxs/Proto.hpp"
-#include "opentxs/Types.hpp"
 
 namespace opentxs
 {

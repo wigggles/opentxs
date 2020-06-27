@@ -17,6 +17,14 @@
 
 namespace opentxs
 {
+namespace proto
+{
+class BlockchainTransactionOutput;
+}  // namespace proto
+}  // namespace opentxs
+
+namespace opentxs
+{
 namespace blockchain
 {
 namespace block

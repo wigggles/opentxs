@@ -12,10 +12,18 @@
 
 #include <cstdint>
 
+#include "opentxs/Proto.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/blockchain/NumericHash.hpp"
 #include "opentxs/blockchain/Work.hpp"
-#include "opentxs/Proto.hpp"
+
+namespace opentxs
+{
+namespace proto
+{
+class BlockchainBlockHeader;
+}  // namespace proto
+}  // namespace opentxs
 
 namespace opentxs
 {

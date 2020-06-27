@@ -26,6 +26,7 @@
 #include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
 
 #define BITMASK(n) ((1 << (n)) - 1)
 

@@ -31,9 +31,9 @@
 #define PROTOBUF_INLINE_NOT_IN_HEADERS 0
 #endif
 
+#include "Bitcoin.pb.h"
 #include "Generics.pb.h"
 #include "Markets.pb.h"
-#include "Bitcoin.pb.h"
 #include "Moneychanger.pb.h"
 
 #ifdef _WIN32
