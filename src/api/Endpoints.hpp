@@ -15,6 +15,11 @@
 
 namespace opentxs
 {
+namespace identifier
+{
+class Nym;
+}  // namespace identifier
+
 namespace network
 {
 namespace zeromq

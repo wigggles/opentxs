@@ -259,6 +259,7 @@ auto ActivityThread::construct_row(
 
             return it->second.get();
         }
+#if OT_BLOCKCHAIN
         case StorageBox::BLOCKCHAIN: {
             const auto [it, added] = items_[index].emplace(
                 id,
@@ -267,6 +268,7 @@ auto ActivityThread::construct_row(
 
             return it->second.get();
         }
+#endif  // OT_BLOCKCHAIN
         case StorageBox::SENTPEERREQUEST:
         case StorageBox::INCOMINGPEERREQUEST:
         case StorageBox::SENTPEERREPLY:

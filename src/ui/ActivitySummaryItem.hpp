@@ -36,6 +36,8 @@ namespace internal
 {
 struct Manager;
 }  // namespace internal
+
+class Manager;
 }  // namespace client
 }  // namespace api
 

@@ -21,6 +21,7 @@
 #include <optional>
 #include <stdexcept>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "blockchain/bitcoin/CompactSize.hpp"
@@ -31,6 +32,8 @@
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
+#include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/blockchain/block/Block.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
@@ -109,6 +112,43 @@ auto GCS(
     try {
         return std::make_unique<ReturnType>(
             api, bits, fpRate, filterElementCount, key, filter);
+    } catch (const std::exception& e) {
+        LogVerbose("opentxs::factory::")(__FUNCTION__)(": ")(e.what()).Flush();
+
+        return nullptr;
+    }
+}
+
+auto GCS(
+    const api::Core& api,
+    const blockchain::filter::Type type,
+    const blockchain::block::Block& block) noexcept
+    -> std::unique_ptr<blockchain::internal::GCS>
+{
+    using ReturnType = blockchain::implementation::GCS;
+
+    if (blockchain::filter::Type::Basic_BIP158 == type) {
+        LogOutput("opentxs::factory::")(__FUNCTION__)(
+            ": Filter can not be constructed without previous outputs")
+            .Flush();
+
+        return nullptr;
+    }
+
+    try {
+        const auto params = blockchain::internal::GetFilterParams(type);
+        const auto input = block.ExtractElements(type);
+        auto elements = std::vector<ReadView>{};
+        std::transform(
+            std::begin(input), std::end(input), std::back_inserter(elements), [
+            ](const auto& element) -> auto { return reader(element); });
+
+        return std::make_unique<ReturnType>(
+            api,
+            params.first,
+            params.second,
+            blockchain::internal::BlockHashToFilterKey(block.ID().Bytes()),
+            elements);
     } catch (const std::exception& e) {
         LogVerbose("opentxs::factory::")(__FUNCTION__)(": ")(e.what()).Flush();
 

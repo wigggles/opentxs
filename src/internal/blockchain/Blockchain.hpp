@@ -13,6 +13,7 @@
 #include <memory>
 #include <string>
 #include <tuple>
+#include <utility>
 #include <vector>
 
 #include "internal/blockchain/client/Client.hpp"
@@ -32,6 +33,11 @@ class Core;
 
 namespace blockchain
 {
+namespace block
+{
+class Block;
+}  // namespace block
+
 class BloomFilter;
 class NumericHash;
 class Work;
@@ -155,6 +161,8 @@ struct Database : virtual public client::internal::BlockDatabase,
     virtual ~Database() = default;
 };
 
+using FilterParams = std::pair<std::uint8_t, std::uint32_t>;
+
 auto DefaultFilter(const Type type) noexcept -> filter::Type;
 auto Deserialize(const Type chain, const std::uint8_t type) noexcept
     -> filter::Type;
@@ -175,8 +183,10 @@ OPENTXS_EXPORT auto FilterToHeader(
     const ReadView filter,
     const ReadView previous = {}) noexcept -> OTData;
 auto Format(const Type chain, const Amount) noexcept -> std::string;
-OPENTXS_EXPORT auto Grind(const std::function<void()> function) noexcept
-    -> void;
+OPENTXS_EXPORT auto GetFilterParams(const filter::Type type) noexcept(false)
+    -> FilterParams;
+OPENTXS_EXPORT
+auto Grind(const std::function<void()> function) noexcept -> void;
 auto Serialize(const Type chain, const filter::Type type) noexcept(false)
     -> std::uint8_t;
 auto Serialize(const block::Position& position) noexcept -> Space;
@@ -204,6 +214,11 @@ OPENTXS_EXPORT auto GCS(
     const std::uint32_t fpRate,
     const ReadView key,
     const std::vector<OTData>& elements) noexcept
+    -> std::unique_ptr<blockchain::internal::GCS>;
+OPENTXS_EXPORT auto GCS(
+    const api::Core& api,
+    const blockchain::filter::Type type,
+    const blockchain::block::Block& block) noexcept
     -> std::unique_ptr<blockchain::internal::GCS>;
 OPENTXS_EXPORT auto GCS(
     const api::Core& api,

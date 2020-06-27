@@ -7,31 +7,15 @@
 #include "1_Internal.hpp"                // IWYU pragma: associated
 #include "ui/BlockchainBalanceItem.hpp"  // IWYU pragma: associated
 
-#include <cstdint>
-#include <memory>
+#include <algorithm>
+#include <iterator>
 #include <string>
-#include <thread>
 
 #include "internal/api/client/Client.hpp"
-#include "internal/api/storage/Storage.hpp"
-#if OT_BLOCKCHAIN
 #include "internal/blockchain/Blockchain.hpp"
-#endif  // OT_BLOCKCHAIN
-#include "opentxs/Pimpl.hpp"
 #include "opentxs/Proto.hpp"
-#include "opentxs/SharedPimpl.hpp"
-#include "opentxs/api/Wallet.hpp"
-#include "opentxs/api/client/OTX.hpp"
-#include "opentxs/api/client/Workflow.hpp"
-#include "opentxs/core/Cheque.hpp"
-#include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/LogSource.hpp"
-#include "opentxs/core/String.hpp"
-#include "opentxs/core/contract/UnitDefinition.hpp"
+#include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
-#include "opentxs/core/identifier/Server.hpp"
-#include "opentxs/protobuf/PaymentWorkflowEnums.pb.h"
 #include "ui/BalanceItem.hpp"
 #include "ui/Widget.hpp"
 
@@ -63,9 +47,7 @@ BlockchainBalanceItem::BlockchainBalanceItem(
           nymID,
           accountID,
           text)
-#if OT_BLOCKCHAIN
     , chain_(chain)
-#endif  // OT_BLOCKCHAIN
     , txid_(txid)
     , amount_(amount)
     , memo_(memo)
@@ -88,10 +70,6 @@ auto BlockchainBalanceItem::Contacts() const noexcept
 
 auto BlockchainBalanceItem::DisplayAmount() const noexcept -> std::string
 {
-#if OT_BLOCKCHAIN
     return blockchain::internal::Format(chain_, amount_);
-#else
-    return {};
-#endif  // OT_BLOCKCHAIN
 }
 }  // namespace opentxs::ui::implementation

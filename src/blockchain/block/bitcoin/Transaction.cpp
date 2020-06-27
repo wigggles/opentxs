@@ -407,6 +407,12 @@ auto Transaction::ExtractElements(const filter::Type style) const noexcept
         output.end(),
         std::make_move_iterator(temp.begin()),
         std::make_move_iterator(temp.end()));
+
+    if (filter::Type::Extended_opentxs == style) {
+        const auto* data = static_cast<const std::byte*>(txid_->data());
+        output.emplace_back(data, data + txid_->size());
+    }
+
     LogTrace(OT_METHOD)(__FUNCTION__)(": extracted ")(output.size())(
         " total elements")
         .Flush();

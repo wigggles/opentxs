@@ -128,6 +128,8 @@ private:
     const block::Position blank_position_;
     mutable std::mutex lock_;
 
-    auto import_genesis(const blockchain::Type type) const noexcept -> void;
+    auto import_genesis(
+        const api::client::blockchain::BlockStorage mode,
+        const blockchain::Type type) const noexcept -> void;
 };
 }  // namespace opentxs::blockchain::database

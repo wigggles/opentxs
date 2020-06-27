@@ -145,17 +145,6 @@ auto BitcoinP2PCfilter(
 
 namespace opentxs::blockchain::p2p::bitcoin::message::implementation
 {
-const std::map<filter::Type, std::uint8_t> Cfilter::gcs_bits_{
-    {filter::Type::Basic_BIP158, 19},
-    {filter::Type::Basic_BCHVariant, 19},
-    {filter::Type::Extended_opentxs, 19},
-};
-const std::map<filter::Type, std::uint32_t> Cfilter::gcs_fp_rate_{
-    {filter::Type::Basic_BIP158, 784931},
-    {filter::Type::Basic_BCHVariant, 784931},
-    {filter::Type::Extended_opentxs, 784931},
-};
-
 Cfilter::Cfilter(
     const api::client::Manager& api,
     const blockchain::Type network,
@@ -168,6 +157,7 @@ Cfilter::Cfilter(
     , hash_(hash)
     , count_(count)
     , filter_(compressed)
+    , params_(blockchain::internal::GetFilterParams(type_))
 {
     init_hash();
 }
@@ -184,6 +174,7 @@ Cfilter::Cfilter(
     , hash_(hash)
     , count_(count)
     , filter_(std::move(compressed))
+    , params_(blockchain::internal::GetFilterParams(type_))
 {
 }
 

@@ -5,32 +5,32 @@
 
 #include "0_stdafx.hpp"    // IWYU pragma: associated
 #include "1_Internal.hpp"  // IWYU pragma: associated
-#if OT_BLOCKCHAIN
-#include "ui/BlockchainAccountActivity.hpp"  // IWYU pragma: associated
 
+#include <mutex>
 #include <atomic>
 #include <memory>
-#include <numeric>
 #include <string>
 #include <thread>
 
 #include "internal/api/client/blockchain/Blockchain.hpp"
 #include "internal/blockchain/Blockchain.hpp"
 #include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.hpp"
 #include "opentxs/api/Endpoints.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/client/Blockchain.hpp"
 #include "opentxs/api/client/blockchain/BalanceTree.hpp"
 #include "opentxs/api/storage/Storage.hpp"
-#if OT_BLOCKCHAIN
 #include "opentxs/blockchain/block/bitcoin/Transaction.hpp"
-#endif  // OT_BLOCKCHAIN
+#include "opentxs/core/Data.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/core/LogSource.hpp"
-#include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/network/zeromq/socket/Socket.hpp"
+#include "opentxs/protobuf/PaymentWorkflowEnums.pb.h"
+#include "ui/BlockchainAccountActivity.hpp"  // IWYU pragma: associated
+#include "ui/Widget.hpp"
 #include "util/Container.hpp"
 
 // #define OT_METHOD "opentxs::ui::implementation::BlockchainAccountActivity::"
@@ -118,7 +118,6 @@ auto BlockchainAccountActivity::DisplayBalance() const noexcept -> std::string
 
 auto BlockchainAccountActivity::load_thread() noexcept -> void
 {
-#if OT_BLOCKCHAIN
     const auto transactions =
         api_.Storage().BlockchainTransactionList(primary_id_);
 
@@ -154,7 +153,6 @@ auto BlockchainAccountActivity::load_thread() noexcept -> void
             new OTData{tx.ID()}};
         add_item(rowID, sortKey, custom);
     }
-#endif  // OT_BLOCKCHAIN
 }
 
 auto BlockchainAccountActivity::process_txid(
@@ -195,4 +193,3 @@ auto BlockchainAccountActivity::startup() noexcept -> void
     finish_startup();
 }
 }  // namespace opentxs::ui::implementation
-#endif  // OT_BLOCKCHAIN

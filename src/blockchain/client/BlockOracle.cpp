@@ -7,16 +7,11 @@
 #include "1_Internal.hpp"                     // IWYU pragma: associated
 #include "blockchain/client/BlockOracle.hpp"  // IWYU pragma: associated
 
-#include <map>
 #include <memory>
-#include <type_traits>
 
 #include "core/Executor.hpp"
-#include "internal/blockchain/Blockchain.hpp"
-#include "internal/blockchain/block/bitcoin/Bitcoin.hpp"
 #include "internal/blockchain/client/Client.hpp"
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/blockchain/block/bitcoin/Block.hpp"
 #include "opentxs/blockchain/client/BlockOracle.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Log.hpp"
@@ -44,171 +39,32 @@ namespace opentxs::factory
 auto BlockOracle(
     const api::client::Manager& api,
     const blockchain::client::internal::Network& network,
-    const blockchain::Type type,
+    const blockchain::client::internal::BlockDatabase& db,
+    const blockchain::Type chain,
     const std::string& shutdown) noexcept
     -> std::unique_ptr<blockchain::client::internal::BlockOracle>
 {
     using ReturnType = blockchain::client::implementation::BlockOracle;
 
-    return std::make_unique<ReturnType>(api, network, type, shutdown);
+    return std::make_unique<ReturnType>(api, network, db, chain, shutdown);
 }
 }  // namespace opentxs::factory
 
 namespace opentxs::blockchain::client::implementation
 {
-const std::size_t BlockOracle::Cache::cache_limit_{16};
-const std::chrono::seconds BlockOracle::Cache::download_timeout_{30};
-
 BlockOracle::BlockOracle(
     const api::client::Manager& api,
     const internal::Network& network,
-    [[maybe_unused]] const blockchain::Type type,
+    const internal::BlockDatabase& db,
+    const blockchain::Type chain,
     const std::string& shutdown) noexcept
     : Executor(api)
     , network_(network)
     , init_promise_()
     , init_(init_promise_.get_future())
-    , cache_(network_)
+    , cache_(network, db, chain)
 {
     init_executor({shutdown});
-}
-
-BlockOracle::Cache::Cache(const internal::Network& network) noexcept
-    : network_(network)
-    , lock_()
-    , pending_()
-    , completed_()
-    , running_(true)
-{
-}
-
-auto BlockOracle::Cache::download(const block::Hash& block) const noexcept
-    -> bool
-{
-    return network_.RequestBlock(block);
-}
-
-auto BlockOracle::Cache::ReceiveBlock(const zmq::Frame& in) const noexcept
-    -> void
-{
-    auto pBlock =
-        factory::BitcoinBlock(network_.API(), network_.Chain(), in.Bytes());
-
-    if (false == bool(pBlock)) {
-        LogOutput(OT_METHOD)("Cache::")(__FUNCTION__)(": Invalid block")
-            .Flush();
-
-        return;
-    }
-
-    Lock lock{lock_};
-    auto& block = *pBlock;
-    const auto& db = network_.DB();
-
-    if (api::client::blockchain::BlockStorage::None != db.BlockPolicy()) {
-        db.BlockStore(block);
-    }
-
-    const auto& id = block.ID();
-    auto pending = pending_.find(id);
-
-    if (pending_.end() == pending) {
-        LogOutput(OT_METHOD)("Cache::")(__FUNCTION__)(
-            ": Received block not in request list")
-            .Flush();
-
-        return;
-    }
-
-    auto& [time, promise, future, queued] = pending->second;
-    promise.set_value(std::move(pBlock));
-    completed_.emplace_back(id, std::move(future));
-    pending_.erase(pending);
-    LogVerbose(OT_METHOD)("Cache::")(__FUNCTION__)(": Cached block ")(
-        id.asHex())
-        .Flush();
-}
-
-auto BlockOracle::Cache::Request(const block::Hash& block) const noexcept
-    -> BitcoinBlockFuture
-{
-    Lock lock{lock_};
-
-    if (false == running_) {
-        auto promise = Promise{};
-        promise.set_value(nullptr);
-
-        return promise.get_future();
-    }
-
-    for (const auto& [hash, future] : completed_) {
-        if (block == hash) { return future; }
-    }
-
-    {
-        auto it = pending_.find(block);
-
-        if (pending_.end() != it) {
-            const auto& [time, promise, future, queued] = it->second;
-
-            return future;
-        }
-    }
-
-    const auto& db = network_.DB();
-
-    if (auto pBlock = db.BlockLoadBitcoin(block); bool(pBlock)) {
-        auto promise = Promise{};
-        promise.set_value(std::move(pBlock));
-
-        return completed_.emplace_back(block, promise.get_future()).second;
-    }
-
-    auto& [time, promise, future, queued] = pending_[block];
-    time = Clock::now();
-    future = promise.get_future();
-    queued = download(block);
-
-    return future;
-}
-
-auto BlockOracle::Cache::Shutdown() noexcept -> void
-{
-    Lock lock{lock_};
-
-    if (running_) {
-        running_ = false;
-        completed_.clear();
-
-        for (auto& [hash, item] : pending_) {
-            auto& [time, promise, future, queued] = item;
-            promise.set_value(nullptr);
-        }
-
-        pending_.clear();
-    }
-}
-
-auto BlockOracle::Cache::StateMachine() const noexcept -> bool
-{
-    Lock lock{lock_};
-
-    if (false == running_) { return false; }
-
-    while (completed_.size() > cache_limit_) { completed_.pop_front(); }
-
-    for (auto& [hash, item] : pending_) {
-        auto& [time, promise, future, queued] = item;
-        const auto now = Clock::now();
-        const auto timeout = download_timeout_ <= (now - time);
-
-        if (timeout || (false == queued)) {
-            queued = download(hash);
-            time = now;
-        }
-    }
-
-    return 0 < pending_.size();
 }
 
 auto BlockOracle::Init() noexcept -> void
