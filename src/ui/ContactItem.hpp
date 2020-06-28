@@ -93,7 +93,6 @@ public:
     ContactItem(
         const ContactSubsectionInternalInterface& parent,
         const api::client::internal::Manager& api,
-        const network::zeromq::socket::Publish& publisher,
         const ContactSubsectionRowID& rowID,
         const ContactSubsectionSortKey& sortKey,
         CustomData& custom) noexcept;

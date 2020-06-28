@@ -16,7 +16,6 @@ namespace opentxs::factory
 auto UnitListItem(
     const ui::implementation::UnitListInternalInterface& parent,
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const ui::implementation::UnitListRowID& rowID,
     const ui::implementation::UnitListSortKey& sortKey,
     ui::implementation::CustomData& custom) noexcept
@@ -24,8 +23,7 @@ auto UnitListItem(
 {
     using ReturnType = ui::implementation::UnitListItem;
 
-    return std::make_shared<ReturnType>(
-        parent, api, publisher, rowID, sortKey, custom);
+    return std::make_shared<ReturnType>(parent, api, rowID, sortKey, custom);
 }
 }  // namespace opentxs::factory
 
@@ -34,11 +32,10 @@ namespace opentxs::ui::implementation
 UnitListItem::UnitListItem(
     const UnitListInternalInterface& parent,
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const UnitListRowID& rowID,
     const UnitListSortKey& sortKey,
     [[maybe_unused]] CustomData& custom) noexcept
-    : UnitListItemRow(parent, api, publisher, rowID, true)
+    : UnitListItemRow(parent, api, rowID, true)
     , name_(sortKey)
 {
 }

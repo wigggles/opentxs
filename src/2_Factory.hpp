@@ -307,10 +307,6 @@ public:
         const VersionNumber nymVersion,
         const opentxs::PasswordPrompt& reason)
         -> identity::internal::Authority*;
-    static auto Activity(
-        const api::internal::Core& api,
-        const api::client::Contacts& contact)
-        -> api::client::internal::Activity*;
     static auto AsymmetricAPI(const api::internal::Core& api)
         -> api::crypto::internal::Asymmetric*;
     static auto BailmentNotice(
@@ -375,14 +371,6 @@ public:
     static auto Bitcoin(const api::Crypto& crypto) -> crypto::Bitcoin*;
     static auto Bip39(const api::Crypto& api) noexcept
         -> std::unique_ptr<crypto::Bip39>;
-    static auto BlockchainAPI(
-        const api::client::internal::Manager& api,
-        const api::client::Activity& activity,
-        const api::client::Contacts& contacts,
-        const api::Legacy& legacy,
-        const std::string& dataFolder,
-        const ArgList& args) noexcept
-        -> std::unique_ptr<api::client::Blockchain>;
     static auto BlockchainBalanceList(
         const api::client::internal::Blockchain& parent,
         const blockchain::Type chain)
@@ -402,15 +390,6 @@ public:
         const api::client::blockchain::internal::BalanceTree& parent,
         const proto::HDAccount& serialized,
         Identifier& id) -> api::client::blockchain::internal::HD*;
-    static auto ClientManager(
-        const api::internal::Context& parent,
-        Flag& running,
-        const ArgList& args,
-        const api::Settings& config,
-        const api::Crypto& crypto,
-        const network::zeromq::Context& context,
-        const std::string& dataFolder,
-        const int instance) -> api::client::internal::Manager*;
     static auto ConnectionReply(
         const api::internal::Core& api,
         const Nym_p& nym,
@@ -458,8 +437,6 @@ public:
         const identity::credential::internal::Primary& master,
         const proto::Credential& credential)
         -> identity::credential::internal::Contact*;
-    static auto ContactAPI(const api::client::internal::Manager& api)
-        -> api::client::internal::Contacts*;
     template <class C>
     static auto Credential(
         const api::internal::Core& api,
@@ -547,8 +524,6 @@ public:
         const api::internal::Core& api,
         const proto::Envelope& serialized) noexcept(false)
         -> std::unique_ptr<crypto::Envelope>;
-    static auto FactoryAPIClient(const api::client::internal::Manager& api)
-        -> api::internal::Factory*;
     static auto FactoryAPIServer(const api::server::internal::Manager& api)
         -> api::internal::Factory*;
     static auto Hash(
@@ -558,14 +533,6 @@ public:
         const crypto::Pbkdf2& pbkdf2,
         const crypto::Ripemd160& ripe) noexcept
         -> std::unique_ptr<api::crypto::Hash>;
-    static auto Issuer(
-        const api::Wallet& wallet,
-        const identifier::Nym& nymID,
-        const proto::Issuer& serialized) -> api::client::Issuer*;
-    static auto Issuer(
-        const api::Wallet& wallet,
-        const identifier::Nym& nymID,
-        const identifier::Nym& issuerID) -> api::client::Issuer*;
     static auto Keypair() noexcept -> std::unique_ptr<crypto::key::Keypair>;
     static auto Keypair(
         const api::internal::Core& api,
@@ -658,18 +625,9 @@ public:
         const Nym_p& nym,
         const proto::PeerRequest& serialized) noexcept
         -> std::shared_ptr<contract::peer::request::Outbailment>;
-    static auto OTX(
-        const Flag& running,
-        const api::client::internal::Manager& api,
-        OTClient& otclient,
-        const ContextLockCallback& lockCallback) -> api::client::OTX*;
     static auto PasswordPrompt(
         const api::internal::Core& api,
         const std::string& text) -> opentxs::PasswordPrompt*;
-    static auto PairAPI(
-        const Flag& running,
-        const api::client::internal::Manager& client)
-        -> api::client::internal::Pair*;
     static auto PairSocket(
         const network::zeromq::Context& context,
         const network::zeromq::ListenCallback& callback,
@@ -900,9 +858,6 @@ public:
         const Nym_p& nym,
         const proto::UnitDefinition serialized) noexcept
         -> std::shared_ptr<contract::unit::Security>;
-    static auto ServerAction(
-        const api::client::internal::Manager& api,
-        const ContextLockCallback& lockCallback) -> api::client::ServerAction*;
     static auto ServerContract(const api::Core& api) noexcept
         -> std::unique_ptr<contract::Server>;
     static auto ServerContract(
@@ -1048,14 +1003,6 @@ public:
         const opentxs::PasswordPrompt& reason) noexcept(false)
         -> std::unique_ptr<blind::Token>;
 #endif
-    static auto UI(
-        const api::client::internal::Manager& api,
-        const Flag& running
-#if OT_QT
-        ,
-        const bool qt
-#endif
-        ) -> api::client::UI*;
     static auto UnitDefinition(const api::Core& api) noexcept
         -> std::shared_ptr<contract::Unit>;
     static auto UnitDefinition(
@@ -1120,14 +1067,8 @@ public:
         const identifier::Nym& nym,
         const proto::VerificationSet& serialized)
         -> identity::wot::verification::internal::Set*;
-    static auto Wallet(const api::client::internal::Manager& client)
-        -> api::Wallet*;
     static auto Wallet(const api::server::internal::Manager& server)
         -> api::Wallet*;
-    static auto Workflow(
-        const api::internal::Core& api,
-        const api::client::Activity& activity,
-        const api::client::Contacts& contact) -> api::client::Workflow*;
     static auto ZAP(const network::zeromq::Context& context)
         -> api::network::ZAP*;
     static auto ZMQ(const api::internal::Core& api, const Flag& running)

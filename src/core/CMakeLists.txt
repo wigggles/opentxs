@@ -83,6 +83,7 @@ set(
   "${opentxs_SOURCE_DIR}/src/internal/core/Core.hpp"
   "Armored.hpp"
   "Data.hpp"
+  "Executor.hpp"
   "Flag.hpp"
   "Identifier.hpp"
   "NymFile.hpp"
@@ -91,6 +92,7 @@ set(
   "StateMachine.hpp"
   "String.hpp"
   "StringXML.hpp"
+  "Worker.hpp"
 )
 
 add_library(opentxs-core OBJECT ${cxx-sources} ${cxx-headers})

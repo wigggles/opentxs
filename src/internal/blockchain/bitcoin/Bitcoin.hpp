@@ -8,6 +8,7 @@
 #include <boost/endian/buffers.hpp>
 #include <array>
 #include <cstddef>
+#include <cstdint>
 #include <optional>
 #include <tuple>
 #include <vector>
@@ -125,13 +126,62 @@ struct EncodedTransaction {
     Space wtxid_{};
     Space txid_{};
 
+    static auto DefaultVersion(const blockchain::Type chain) noexcept
+        -> std::uint32_t;
+
+    auto CalculateIDs(
+        const api::Core& api,
+        const blockchain::Type chain) noexcept -> bool;
+    auto CalculateIDs(
+        const api::Core& api,
+        const blockchain::Type chain,
+        ReadView bytes) noexcept -> bool;
     OPENTXS_EXPORT static auto Deserialize(
         const api::Core& api,
         const blockchain::Type chain,
         const ReadView bytes) noexcept(false) -> EncodedTransaction;
 
+    auto wtxid_preimage() const noexcept -> Space;
     auto txid_preimage() const noexcept -> Space;
     auto txid_size() const noexcept -> std::size_t;
     auto size() const noexcept -> std::size_t;
+};
+
+enum class SigOption : std::uint8_t {
+    All,
+    None,
+    Single,
+};
+
+struct SigHash {
+    std::byte flags_{0x01};
+    std::array<std::byte, 3> forkid_{};
+
+    auto AnyoneCanPay() const noexcept -> bool;
+    auto begin() const noexcept -> const std::byte*;
+    auto end() const noexcept -> const std::byte*;
+    auto ForkID() const noexcept -> ReadView;
+    auto Type() const noexcept -> SigOption;
+
+    SigHash(
+        const blockchain::Type chain,
+        const SigOption flag = SigOption::All,
+        const bool anyoneCanPay = false) noexcept;
+};
+
+struct Bip143Hashes {
+    using Hash = std::array<std::byte, 32>;
+
+    Hash outpoints_{};
+    Hash sequences_{};
+    Hash outputs_{};
+
+    auto Outpoints(const SigHash type) const noexcept -> const Hash&;
+    auto Outputs(const SigHash type, const Hash* single) const noexcept
+        -> const Hash&;
+    auto Sequences(const SigHash type) const noexcept -> const Hash&;
+
+private:
+    static auto blank() noexcept -> const Hash&;
 };
 }  // namespace opentxs::blockchain::bitcoin

@@ -9,7 +9,6 @@
 
 #include <functional>
 
-#include "2_Factory.hpp"
 #include "api/Wallet.hpp"
 #include "internal/api/Api.hpp"
 #include "internal/api/client/Client.hpp"
@@ -34,14 +33,13 @@
 
 //#define OT_METHOD "opentxs::api::client::implementation::Wallet::"
 
-namespace opentxs
+namespace opentxs::factory
 {
-auto Factory::Wallet(const api::client::internal::Manager& client)
-    -> api::Wallet*
+auto Wallet(const api::client::internal::Manager& client) -> api::Wallet*
 {
     return new api::client::implementation::Wallet(client);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::api::client::implementation
 {

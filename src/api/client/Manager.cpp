@@ -38,9 +38,9 @@
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 
-namespace opentxs
+namespace opentxs::factory
 {
-auto Factory::ClientManager(
+auto ClientManager(
     const api::internal::Context& parent,
     Flag& running,
     const ArgList& args,
@@ -53,7 +53,7 @@ auto Factory::ClientManager(
     return new api::client::implementation::Manager(
         parent, running, args, config, crypto, context, dataFolder, instance);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::api::client::implementation
 {
@@ -78,18 +78,18 @@ Manager::Manager(
           instance,
           false,
           std::unique_ptr<api::internal::Factory>{
-              opentxs::Factory::FactoryAPIClient(*this)})
+              factory::FactoryAPIClient(*this)})
     , zeromq_(opentxs::Factory::ZMQ(*this, running_))
-    , contacts_(opentxs::Factory::ContactAPI(*this))
-    , activity_(opentxs::Factory::Activity(*this, *contacts_))
-    , blockchain_(opentxs::Factory::BlockchainAPI(
+    , contacts_(factory::ContactAPI(*this))
+    , activity_(factory::Activity(*this, *contacts_))
+    , blockchain_(factory::BlockchainAPI(
           *this,
           *activity_,
           *contacts_,
           parent_.Legacy(),
           dataFolder,
           args_))
-    , workflow_(opentxs::Factory::Workflow(*this, *activity_, *contacts_))
+    , workflow_(factory::Workflow(*this, *activity_, *contacts_))
     , ot_api_(new OT_API(
           *this,
           *activity_,
@@ -104,16 +104,16 @@ Manager::Manager(
           *zeromq_,
           *ot_api_,
           std::bind(&Manager::get_lock, this, std::placeholders::_1)))
-    , server_action_(opentxs::Factory::ServerAction(
+    , server_action_(factory::ServerAction(
           *this,
           std::bind(&Manager::get_lock, this, std::placeholders::_1)))
-    , otx_(opentxs::Factory::OTX(
+    , otx_(factory::OTX(
           running_,
           *this,
           *ot_api_->m_pClient,
           std::bind(&Manager::get_lock, this, std::placeholders::_1)))
-    , pair_(opentxs::Factory::PairAPI(running_, *this))
-    , ui_(opentxs::Factory::UI(
+    , pair_(factory::PairAPI(running_, *this))
+    , ui_(factory::UI(
           *this,
           running_
 #if OT_QT
@@ -124,7 +124,7 @@ Manager::Manager(
     , map_lock_()
     , context_locks_()
 {
-    wallet_.reset(opentxs::Factory::Wallet(*this));
+    wallet_.reset(factory::Wallet(*this));
 
     OT_ASSERT(wallet_);
     OT_ASSERT(zeromq_);

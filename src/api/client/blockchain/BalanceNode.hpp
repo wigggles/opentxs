@@ -79,6 +79,13 @@ public:
     {
         return parent_;
     }
+    auto PrivateKey(
+        const Subchain type,
+        const Bip32Index index,
+        const PasswordPrompt& reason) const noexcept -> ECKey override
+    {
+        return {};
+    }
     auto SetContact(
         const Subchain type,
         const Bip32Index index,
@@ -120,6 +127,11 @@ protected:
         {
             return parent_;
         }
+        auto PrivateKey(const PasswordPrompt& reason) const noexcept
+            -> ECKey final
+        {
+            return parent_.PrivateKey(subchain_, index_, reason);
+        }
         auto PubkeyHash() const noexcept -> OTData final;
         auto Serialize() const noexcept -> SerializedType final;
         auto Subchain() const noexcept -> blockchain::Subchain final
@@ -136,15 +148,17 @@ protected:
             const std::string& label) noexcept final;
 
         Element(
+            const api::internal::Core& api,
+            const client::internal::Blockchain& blockchain,
             const internal::BalanceNode& parent,
-            const client::internal::Blockchain& api,
             const opentxs::blockchain::Type chain,
             const blockchain::Subchain subchain,
             const Bip32Index index,
             std::unique_ptr<opentxs::crypto::key::HD> key) noexcept(false);
         Element(
+            const api::internal::Core& api,
+            const client::internal::Blockchain& blockchain,
             const internal::BalanceNode& parent,
-            const client::internal::Blockchain& api,
             const opentxs::blockchain::Type chain,
             const blockchain::Subchain subchain,
             const SerializedType& address) noexcept(false);
@@ -153,8 +167,9 @@ protected:
     private:
         static const VersionNumber DefaultVersion{1};
 
+        const api::internal::Core& api_;
+        const client::internal::Blockchain& blockchain_;
         const internal::BalanceNode& parent_;
-        const client::internal::Blockchain& api_;
         const opentxs::blockchain::Type chain_;
         mutable std::mutex lock_;
         const VersionNumber version_;
@@ -173,8 +188,9 @@ protected:
         auto update_element(Lock& lock) const noexcept -> void;
 
         Element(
+            const api::internal::Core& api,
+            const client::internal::Blockchain& blockchain,
             const internal::BalanceNode& parent,
-            const client::internal::Blockchain& api,
             const opentxs::blockchain::Type chain,
             const VersionNumber version,
             const blockchain::Subchain subchain,

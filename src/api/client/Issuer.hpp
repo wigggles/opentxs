@@ -95,6 +95,15 @@ public:
         const Identifier& requestID,
         const bool isUsed = true) -> bool final;
 
+    Issuer(
+        const api::Wallet& wallet,
+        const identifier::Nym& nymID,
+        const proto::Issuer& serialized);
+    Issuer(
+        const api::Wallet& wallet,
+        const identifier::Nym& nymID,
+        const identifier::Nym& issuerID);
+
     ~Issuer() final;
 
 private:
@@ -102,7 +111,6 @@ private:
     using WorkflowMap = std::map<proto::PeerRequestType, Workflow>;
     using UnitAccountPair = std::pair<OTUnitID, OTIdentifier>;
 
-    friend opentxs::Factory;
     const api::Wallet& wallet_;
     VersionNumber version_{0};
     std::string pairing_code_{""};
@@ -128,14 +136,6 @@ private:
         const Identifier& requestID,
         const Identifier& replyID) -> bool;
 
-    Issuer(
-        const api::Wallet& wallet,
-        const identifier::Nym& nymID,
-        const proto::Issuer& serialized);
-    Issuer(
-        const api::Wallet& wallet,
-        const identifier::Nym& nymID,
-        const identifier::Nym& issuerID);
     Issuer() = delete;
     Issuer(const Issuer&) = delete;
     Issuer(Issuer&&) = delete;

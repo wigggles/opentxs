@@ -25,6 +25,7 @@ namespace opentxs
 namespace proto
 {
 class BlockchainTransaction;
+class BlockchainTransactionOutput;
 }  // namespace proto
 }  // namespace opentxs
 
@@ -78,6 +79,11 @@ public:
         -> std::optional<std::size_t> final;
     auto size() const noexcept -> std::size_t final { return inputs_.size(); }
 
+    auto AnyoneCanPay(const std::size_t index) noexcept -> bool final;
+    auto AssociatePreviousOutput(
+        const std::size_t inputIndex,
+        const proto::BlockchainTransactionOutput& output) noexcept
+        -> bool final;
     auto at(const std::size_t position) noexcept(false) -> value_type& final
     {
         return *inputs_.at(position);
@@ -87,6 +93,7 @@ public:
     {
         inputs_.at(rhs.index())->MergeMetadata(rhs);
     }
+    auto ReplaceScript(const std::size_t index) noexcept -> bool final;
 
     Inputs(InputList&& inputs, std::optional<std::size_t> size = {}) noexcept(
         false);

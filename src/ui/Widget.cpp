@@ -7,48 +7,24 @@
 #include "1_Internal.hpp"  // IWYU pragma: associated
 #include "ui/Widget.hpp"   // IWYU pragma: associated
 
-#include <functional>
-#include <thread>
-
 #include "internal/api/client/Client.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Types.hpp"
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/core/LogSource.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
-#include "opentxs/network/zeromq/socket/Publish.hpp"
-#include "opentxs/network/zeromq/socket/Sender.tpp"
-
-#define OT_METHOD "opentxs::ui::implementation::Widget::"
 
 namespace opentxs::ui::implementation
 {
 Widget::Widget(
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
-    const Identifier& id) noexcept
+    const Identifier& id,
+    const SimpleCallback& cb) noexcept
     : api_(api)
-    , publisher_(publisher)
-    , widget_id_(Identifier::Factory(id))
+    , widget_id_(id)
     , callbacks_()
     , listeners_()
-    , cb_lock_()
-    , cb_()
 {
-}
-
-Widget::Widget(
-    const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher) noexcept
-    : Widget(api, publisher, Identifier::Random())
-{
-}
-
-void Widget::SetCallback(ui::Widget::Callback cb) const noexcept
-{
-    Lock lock(cb_lock_);
-    cb_ = cb;
+    if (cb) { SetCallback(cb); }
 }
 
 void Widget::setup_listeners(const ListenerDefinitions& definitions) noexcept
@@ -66,23 +42,5 @@ void Widget::setup_listeners(const ListenerDefinitions& definitions) noexcept
 
         OT_ASSERT(listening)
     }
-}
-
-void Widget::UpdateNotify() const noexcept
-{
-    LogTrace(OT_METHOD)(__FUNCTION__)(": Widget ")(widget_id_)(" updated.")
-        .Flush();
-    publisher_.Send(widget_id_->str());
-    Lock lock(cb_lock_);
-
-    if (cb_) {
-        std::thread thread{[=]() -> void { cb_(); }};
-        thread.detach();
-    }
-}
-
-auto Widget::WidgetID() const noexcept -> OTIdentifier
-{
-    return Identifier::Factory(widget_id_);
 }
 }  // namespace opentxs::ui::implementation

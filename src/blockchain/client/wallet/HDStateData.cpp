@@ -3,9 +3,9 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "0_stdafx.hpp"                       // IWYU pragma: associated
-#include "1_Internal.hpp"                     // IWYU pragma: associated
-#include "blockchain/client/HDStateData.hpp"  // IWYU pragma: associated
+#include "0_stdafx.hpp"                              // IWYU pragma: associated
+#include "1_Internal.hpp"                            // IWYU pragma: associated
+#include "blockchain/client/wallet/HDStateData.hpp"  // IWYU pragma: associated
 
 #include <algorithm>
 #include <chrono>
@@ -96,6 +96,7 @@ auto HDStateData::get_targets(
     -> blockchain::internal::GCS::Targets
 {
     auto output = blockchain::internal::GCS::Targets{};
+    output.reserve(keys.size() + unspent.size());
     std::transform(
         std::begin(keys),
         std::end(keys),
@@ -108,7 +109,10 @@ auto HDStateData::get_targets(
                 std::begin(unspent),
                 std::end(unspent),
                 std::back_inserter(output),
-                [](const auto& in) { return in.second.script(); });
+                [](const auto& in) {
+                    return ReadView{
+                        in.second.script().data(), in.second.script().size()};
+                });
         } break;
         case filter::Type::Basic_BCHVariant:
         case filter::Type::Extended_opentxs:
@@ -248,7 +252,7 @@ auto HDStateData::process() noexcept -> void
     const auto& header = *pHeader;
     update_utxos(block, header.Position(), confirmed);
     const auto [balance, unconfirmed] = db_.GetBalance();
-    LogOutput("opentxs::blockchain::client::internal::")(__FUNCTION__)(
+    LogVerbose("opentxs::blockchain::client::internal::")(__FUNCTION__)(
         ": block ")(blockHash.asHex())(" processed in ")(
         std::chrono::duration_cast<std::chrono::milliseconds>(
             Clock::now() - start)

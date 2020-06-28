@@ -27,6 +27,7 @@
 #include "opentxs/blockchain/block/bitcoin/Input.hpp"
 #include "opentxs/blockchain/block/bitcoin/Output.hpp"
 #include "opentxs/blockchain/block/bitcoin/Outputs.hpp"
+#include "opentxs/blockchain/block/bitcoin/Script.hpp"
 #include "opentxs/blockchain/block/bitcoin/Transaction.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -47,6 +48,76 @@ namespace be = boost::endian;
 namespace opentxs::factory
 {
 using ReturnType = blockchain::block::bitcoin::implementation::Transaction;
+
+auto BitcoinTransaction(
+    const api::client::Manager& api,
+    const blockchain::Type chain,
+    const Time& time,
+    const boost::endian::little_int32_buf_t& version,
+    const boost::endian::little_uint32_buf_t lockTime,
+    std::unique_ptr<blockchain::block::bitcoin::internal::Inputs> inputs,
+    std::unique_ptr<blockchain::block::bitcoin::internal::Outputs>
+        outputs) noexcept
+    -> std::unique_ptr<blockchain::block::bitcoin::internal::Transaction>
+{
+    OT_ASSERT(inputs);
+    OT_ASSERT(outputs);
+
+    using Encoded = blockchain::bitcoin::EncodedTransaction;
+
+    auto raw = Encoded{};
+    raw.version_ = version;
+    raw.segwit_flag_ = std::nullopt;  // TODO segwit
+    raw.input_count_ = inputs->size();
+
+    for (const auto& input : *inputs) {
+        raw.inputs_.emplace_back();
+        auto& out = *raw.inputs_.rbegin();
+        const auto& outpoint = input.PreviousOutput();
+
+        static_assert(sizeof(out.outpoint_) == sizeof(outpoint));
+
+        std::memcpy(
+            &out.outpoint_,
+            static_cast<const void*>(&outpoint),
+            sizeof(outpoint));
+        input.Script().Serialize(writer(out.script_));
+        out.cs_ = out.script_.size();
+        out.sequence_ = input.Sequence();
+    }
+
+    for (const auto& output : *outputs) {
+        raw.outputs_.emplace_back();
+        auto& out = *raw.outputs_.rbegin();
+        out.value_ = output.Value();
+        output.Script().Serialize(writer(out.script_));
+        out.cs_ = out.script_.size();
+    }
+
+    raw.lock_time_ = lockTime;
+    raw.CalculateIDs(api, chain);
+
+    try {
+        return std::make_unique<ReturnType>(
+            api,
+            ReturnType::default_version_,
+            false,
+            raw.version_.value(),
+            raw.segwit_flag_.value_or(std::byte{0x0}),
+            raw.lock_time_.value(),
+            api.Factory().Data(reader(raw.txid_)),
+            api.Factory().Data(reader(raw.wtxid_)),
+            time,
+            std::string{},
+            std::move(inputs),
+            std::move(outputs),
+            std::vector<blockchain::Type>{chain});
+    } catch (const std::exception& e) {
+        LogOutput("opentxs::factory::")(__FUNCTION__)(": ")(e.what()).Flush();
+
+        return {};
+    }
+}
 
 auto BitcoinTransaction(
     const api::client::Manager& api,
@@ -449,6 +520,42 @@ auto Transaction::GetPatterns() const noexcept -> std::vector<PatternID>
     return output;
 }
 
+auto Transaction::GetPreimageBTC(
+    const std::size_t index,
+    const blockchain::bitcoin::SigHash& hashType) const noexcept -> Space
+{
+    if (SigHash::All != hashType.Type()) {
+        // TODO
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Mode not supported").Flush();
+
+        return {};
+    }
+
+    auto copy = Transaction{*this};
+    copy.size_ = std::nullopt;
+
+    if (false == copy.inputs_->ReplaceScript(index)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Failed to initialize input script")
+            .Flush();
+
+        return {};
+    }
+
+    if (hashType.AnyoneCanPay() && (!copy.inputs_->AnyoneCanPay(index))) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Failed to apply AnyoneCanPay flag")
+            .Flush();
+
+        return {};
+    }
+
+    auto output = Space{};
+    copy.Serialize(writer(output));
+
+    return output;
+}
+
 auto Transaction::Memo() const noexcept -> std::string
 {
     if (false == memo_.empty()) { return memo_; }
@@ -466,7 +573,7 @@ auto Transaction::MergeMetadata(
     const blockchain::Type chain,
     const SerializeType& rhs) noexcept -> void
 {
-    if (txid_->asHex() != rhs.txid()) {
+    if (txid_->str() != rhs.txid()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Wrong transaction").Flush();
 
         return;

@@ -76,11 +76,11 @@
 
 namespace zmq = opentxs::network::zeromq;
 
-namespace opentxs
-{
-using ReturnType = api::client::implementation::Blockchain;
+using ReturnType = opentxs::api::client::implementation::Blockchain;
 
-auto Factory::BlockchainAPI(
+namespace opentxs::factory
+{
+auto BlockchainAPI(
     const api::client::internal::Manager& api,
     const api::client::Activity& activity,
     const api::client::Contacts& contacts,
@@ -88,11 +88,10 @@ auto Factory::BlockchainAPI(
     const std::string& dataFolder,
     const ArgList& args) noexcept -> std::unique_ptr<api::client::Blockchain>
 {
-
     return std::make_unique<ReturnType>(
         api, activity, contacts, legacy, dataFolder, args);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::api::client::implementation
 {
@@ -132,13 +131,15 @@ const Blockchain::StyleReverseMap Blockchain::address_style_reverse_map_{
 
 Blockchain::Blockchain(
     const api::client::internal::Manager& api,
-    const api::client::Activity& activity,
+    [[maybe_unused]] const api::client::Activity& activity,
     const api::client::Contacts& contacts,
     [[maybe_unused]] const api::Legacy& legacy,
     [[maybe_unused]] const std::string& dataFolder,
     [[maybe_unused]] const ArgList& args) noexcept
     : api_(api)
+#if OT_BLOCKCHAIN
     , activity_(activity)
+#endif  // OT_BLOCKCHAIN
     , contacts_(contacts)
     , lock_()
     , nym_lock_()

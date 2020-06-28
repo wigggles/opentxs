@@ -75,6 +75,44 @@ auto HasSegwit(
     return output;
 }
 
+auto Bip143Hashes::blank() noexcept -> const Hash&
+{
+    static const auto output = Hash{};
+
+    return output;
+}
+
+auto Bip143Hashes::Outpoints(const SigHash sig) const noexcept -> const Hash&
+{
+    if (sig.AnyoneCanPay()) { return blank(); }
+
+    return outpoints_;
+}
+
+auto Bip143Hashes::Outputs(const SigHash sig, const Hash* single) const noexcept
+    -> const Hash&
+{
+    if (SigOption::All == sig.Type()) {
+
+        return outputs_;
+    } else if ((SigOption::Single == sig.Type()) && (nullptr != single)) {
+
+        return *single;
+    } else {
+
+        return blank();
+    }
+}
+
+auto Bip143Hashes::Sequences(const SigHash sig) const noexcept -> const Hash&
+{
+    if (sig.AnyoneCanPay() || (SigOption::All != sig.Type())) {
+        return blank();
+    }
+
+    return sequences_;
+}
+
 auto EncodedInput::size() const noexcept -> std::size_t
 {
     return sizeof(outpoint_) + cs_.Total() + sizeof(sequence_);
@@ -89,6 +127,54 @@ auto EncodedInputWitness::size() const noexcept -> std::size_t
 auto EncodedOutput::size() const noexcept -> std::size_t
 {
     return sizeof(value_) + cs_.Total();
+}
+
+auto EncodedTransaction::CalculateIDs(
+    const api::Core& api,
+    const blockchain::Type chain,
+    ReadView bytes) noexcept -> bool
+{
+    auto output = TransactionHash(api, chain, bytes, writer(wtxid_));
+
+    if (false == output) {
+        LogOutput("opentxs::blockchain::bitcoin::EncodedTransaction::")(
+            __FUNCTION__)(": Failed to calculate wtxid")
+            .Flush();
+
+        return false;
+    }
+
+    if (segwit_flag_.has_value()) {
+        const auto preimage = txid_preimage();
+        output = TransactionHash(api, chain, reader(preimage), writer(txid_));
+    } else {
+        txid_ = wtxid_;
+    }
+
+    if (false == output) {
+        LogOutput("opentxs::blockchain::bitcoin::EncodedTransaction::")(
+            __FUNCTION__)(": Failed to calculate txid")
+            .Flush();
+
+        return false;
+    }
+
+    return output;
+}
+
+auto EncodedTransaction::CalculateIDs(
+    const api::Core& api,
+    const blockchain::Type chain) noexcept -> bool
+{
+    const auto preimage = wtxid_preimage();
+
+    return CalculateIDs(api, chain, reader(preimage));
+}
+
+auto EncodedTransaction::DefaultVersion(const blockchain::Type) noexcept
+    -> std::uint32_t
+{
+    return 1;
 }
 
 auto EncodedTransaction::Deserialize(
@@ -294,30 +380,99 @@ auto EncodedTransaction::Deserialize(
     std::memcpy(static_cast<void*>(&locktime), it, sizeof(locktime));
     std::advance(it, sizeof(locktime));
     const auto txBytes = static_cast<std::size_t>(std::distance(start, it));
+    const auto view = ReadView{in.data(), txBytes};
     LogTrace("opentxs::blockchain::bitcoin::EncodedTransaction::")(
         __FUNCTION__)(": lock time: ")(locktime.value())
         .Flush();
-    const auto gotWtxid = TransactionHash(
-        api, chain, ReadView{in.data(), txBytes}, writer(wtxid));
 
-    if (false == gotWtxid) {
+    if (false == output.CalculateIDs(api, chain, view)) {
         throw std::runtime_error("Failed to calculate txid / wtxid");
-    }
-
-    if (segwit.has_value()) {
-        const auto gotTxid = TransactionHash(
-            api, chain, reader(output.txid_preimage()), writer(txid));
-
-        if (false == gotTxid) {
-            throw std::runtime_error("Failed to calculate txid");
-        }
-    } else {
-        txid = wtxid;
     }
 
     OT_ASSERT(txBytes == output.size());
 
     return output;
+}
+
+auto EncodedTransaction::wtxid_preimage() const noexcept -> Space
+{
+    auto output = space(size());
+    auto it = reinterpret_cast<std::byte*>(output.data());
+    std::memcpy(it, static_cast<const void*>(&version_), sizeof(version_));
+    std::advance(it, sizeof(version_));
+
+    if (segwit_flag_.has_value()) {
+        static const auto marker = std::byte{0x0};
+        std::memcpy(it, static_cast<const void*>(&marker), sizeof(marker));
+        std::advance(it, sizeof(marker));
+        const auto& segwit = segwit_flag_.value();
+        std::memcpy(it, static_cast<const void*>(&segwit), sizeof(segwit));
+        std::advance(it, sizeof(segwit));
+    }
+
+    {
+        const auto bytes = input_count_.Encode();
+        std::memcpy(it, bytes.data(), bytes.size());
+        std::advance(it, bytes.size());
+    }
+
+    for (const auto& [outpoint, cs, script, sequence] : inputs_) {
+        const auto bytes = cs.Encode();
+        std::memcpy(it, static_cast<const void*>(&outpoint), sizeof(outpoint));
+        std::advance(it, sizeof(outpoint));
+        std::memcpy(it, bytes.data(), bytes.size());
+        std::advance(it, bytes.size());
+        std::memcpy(it, script.data(), script.size());
+        std::advance(it, script.size());
+        std::memcpy(it, static_cast<const void*>(&sequence), sizeof(sequence));
+        std::advance(it, sizeof(sequence));
+    }
+
+    {
+        const auto bytes = output_count_.Encode();
+        std::memcpy(it, bytes.data(), bytes.size());
+        std::advance(it, bytes.size());
+    }
+
+    for (const auto& [value, cs, script] : outputs_) {
+        const auto bytes = cs.Encode();
+        std::memcpy(it, static_cast<const void*>(&value), sizeof(value));
+        std::advance(it, sizeof(value));
+        std::memcpy(it, bytes.data(), bytes.size());
+        std::advance(it, bytes.size());
+        std::memcpy(it, script.data(), script.size());
+        std::advance(it, script.size());
+    }
+
+    if (segwit_flag_.has_value()) {
+        {
+            const auto cs = CompactSize{witnesses_.size()};
+            const auto bytes = cs.Encode();
+            std::memcpy(it, bytes.data(), bytes.size());
+            std::advance(it, bytes.size());
+        }
+
+        for (const auto& input : witnesses_) {
+            {
+                const auto bytes = input.cs_.Encode();
+                std::memcpy(it, bytes.data(), bytes.size());
+                std::advance(it, bytes.size());
+            }
+
+            for (const auto& item : input.items_) {
+                {
+                    const auto bytes = item.cs_.Encode();
+                    std::memcpy(it, bytes.data(), bytes.size());
+                    std::advance(it, bytes.size());
+                }
+
+                std::memcpy(it, item.item_.data(), item.item_.size());
+                std::advance(it, item.item_.size());
+            }
+        }
+    }
+
+    return {};
 }
 
 auto EncodedTransaction::txid_preimage() const noexcept -> Space
@@ -388,5 +543,128 @@ auto EncodedTransaction::size() const noexcept -> std::size_t
 auto EncodedWitnessItem::size() const noexcept -> std::size_t
 {
     return cs_.Total();
+}
+
+constexpr auto All = std::byte{0x01};
+constexpr auto None = std::byte{0x02};
+constexpr auto Single = std::byte{0x03};
+constexpr auto Fork_ID = std::byte{0x40};
+constexpr auto Anyone_Can_Pay = std::byte{0x08};
+constexpr auto test_anyone_can_pay(const std::byte& rhs) noexcept -> bool
+{
+    return (rhs & Anyone_Can_Pay) == Anyone_Can_Pay;
+}
+constexpr auto test_none(const std::byte& rhs) noexcept -> bool
+{
+    return (rhs & Single) == None;
+}
+constexpr auto test_single(const std::byte& rhs) noexcept -> bool
+{
+    return (rhs & Single) == Single;
+}
+constexpr auto test_all(const std::byte& rhs) noexcept -> bool
+{
+    return ((rhs & Single) | All) == All;
+}
+
+SigHash::SigHash(
+    const blockchain::Type chain,
+    const SigOption flag,
+    const bool anyoneCanPay) noexcept
+    : flags_(All)
+    , forkid_()
+{
+    static_assert(sizeof(std::uint32_t) == sizeof(SigHash));
+
+    static_assert(false == test_anyone_can_pay(std::byte{0x00}));
+    static_assert(false == test_anyone_can_pay(std::byte{0x01}));
+    static_assert(false == test_anyone_can_pay(std::byte{0x02}));
+    static_assert(false == test_anyone_can_pay(std::byte{0x03}));
+    static_assert(test_anyone_can_pay(std::byte{0x08}));
+    static_assert(test_anyone_can_pay(std::byte{0x09}));
+    static_assert(test_anyone_can_pay(std::byte{0x0a}));
+    static_assert(test_anyone_can_pay(std::byte{0x0b}));
+
+    static_assert(false == test_none(std::byte{0x00}));
+    static_assert(false == test_none(std::byte{0x01}));
+    static_assert(test_none(std::byte{0x02}));
+    static_assert(false == test_none(std::byte{0x03}));
+    static_assert(false == test_none(std::byte{0x08}));
+    static_assert(false == test_none(std::byte{0x09}));
+    static_assert(test_none(std::byte{0x0a}));
+    static_assert(false == test_none(std::byte{0x0b}));
+
+    static_assert(false == test_single(std::byte{0x00}));
+    static_assert(false == test_single(std::byte{0x01}));
+    static_assert(false == test_single(std::byte{0x02}));
+    static_assert(test_single(std::byte{0x03}));
+    static_assert(false == test_single(std::byte{0x08}));
+    static_assert(false == test_single(std::byte{0x09}));
+    static_assert(false == test_single(std::byte{0x0a}));
+    static_assert(test_single(std::byte{0x0b}));
+
+    static_assert(test_all(std::byte{0x00}));
+    static_assert(test_all(std::byte{0x01}));
+    static_assert(false == test_all(std::byte{0x02}));
+    static_assert(false == test_all(std::byte{0x03}));
+    static_assert(test_all(std::byte{0x08}));
+    static_assert(test_all(std::byte{0x09}));
+    static_assert(false == test_all(std::byte{0x0a}));
+    static_assert(false == test_all(std::byte{0x0b}));
+
+    switch (flag) {
+        case SigOption::Single: {
+            flags_ = Single;
+        } break;
+        case SigOption::None: {
+            flags_ = None;
+        } break;
+        default: {
+        }
+    }
+
+    if (anyoneCanPay) { flags_ |= Anyone_Can_Pay; }
+
+    switch (chain) {
+        case blockchain::Type::BitcoinCash:
+        case blockchain::Type::BitcoinCash_testnet3: {
+            flags_ |= Fork_ID;
+        } break;
+        default: {
+        }
+    }
+}
+
+auto SigHash::AnyoneCanPay() const noexcept -> bool
+{
+    return test_anyone_can_pay(flags_);
+}
+
+auto SigHash::begin() const noexcept -> const std::byte*
+{
+    return reinterpret_cast<const std::byte*>(this);
+}
+
+auto SigHash::end() const noexcept -> const std::byte*
+{
+    return begin() + sizeof(*this);
+}
+
+auto SigHash::ForkID() const noexcept -> ReadView
+{
+    return {reinterpret_cast<const char*>(forkid_.data()), forkid_.size()};
+}
+
+auto SigHash::Type() const noexcept -> SigOption
+{
+    if (test_single(flags_)) {
+
+        return SigOption::Single;
+    } else if (test_none(flags_)) {
+
+        return SigOption::None;
+    }
+
+    return SigOption::All;
 }
 }  // namespace opentxs::blockchain::bitcoin

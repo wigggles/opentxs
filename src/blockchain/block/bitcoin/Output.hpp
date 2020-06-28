@@ -62,9 +62,18 @@ public:
     auto Note() const noexcept -> std::string final;
     auto Payee() const noexcept -> ContactID final;
     auto Payer() const noexcept -> ContactID final;
+    auto PrintScript() const noexcept -> std::string final
+    {
+        return script_->str();
+    }
     auto Serialize(const AllocateOutput destination) const noexcept
         -> std::optional<std::size_t>;
     auto Serialize(SerializeType& destination) const noexcept -> bool;
+    auto SigningSubscript() const noexcept
+        -> std::unique_ptr<internal::Script> final
+    {
+        return script_->SigningSubscript(chain_);
+    }
     auto Script() const noexcept -> const internal::Script& final
     {
         return *script_;
@@ -76,6 +85,14 @@ public:
         keys_.insert(key);
     }
     auto MergeMetadata(const SerializeType& rhs) noexcept -> void final;
+    auto SetIndex(const std::uint32_t index) noexcept -> void final
+    {
+        const_cast<std::uint32_t&>(index_) = index;
+    }
+    auto SetValue(const std::int64_t value) noexcept -> void final
+    {
+        const_cast<std::int64_t&>(value_) = value;
+    }
 
     Output(
         const api::client::Manager& api,
@@ -84,6 +101,14 @@ public:
         const std::int64_t value,
         const std::size_t size,
         const ReadView script,
+        const VersionNumber version = default_version_) noexcept(false);
+    Output(
+        const api::client::Manager& api,
+        const blockchain::Type chain,
+        const std::uint32_t index,
+        const std::int64_t value,
+        std::unique_ptr<const internal::Script> script,
+        boost::container::flat_set<KeyID>&& keys,
         const VersionNumber version = default_version_) noexcept(false);
     Output(
         const api::client::Manager& api,

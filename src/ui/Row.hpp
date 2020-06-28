@@ -19,11 +19,10 @@ class Row : public RowType<InterfaceType, ParentType, IdentifierType>,
 protected:
     Row(const ParentType& parent,
         const api::client::internal::Manager& api,
-        const network::zeromq::socket::Publish& publisher,
         const IdentifierType id,
         const bool valid) noexcept
         : RowType<InterfaceType, ParentType, IdentifierType>(parent, id, valid)
-        , Widget(api, publisher, parent.WidgetID())
+        , Widget(api, parent.WidgetID())
     {
     }
     Row() = delete;

@@ -25,7 +25,6 @@ namespace opentxs::factory
 auto AccountSummaryItem(
     const ui::implementation::IssuerItemInternalInterface& parent,
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const ui::implementation::IssuerItemRowID& rowID,
     const ui::implementation::IssuerItemSortKey& sortKey,
     ui::implementation::CustomData& custom) noexcept
@@ -33,8 +32,7 @@ auto AccountSummaryItem(
 {
     using ReturnType = ui::implementation::AccountSummaryItem;
 
-    return std::make_shared<ReturnType>(
-        parent, api, publisher, rowID, sortKey, custom);
+    return std::make_shared<ReturnType>(parent, api, rowID, sortKey, custom);
 }
 }  // namespace opentxs::factory
 
@@ -43,11 +41,10 @@ namespace opentxs::ui::implementation
 AccountSummaryItem::AccountSummaryItem(
     const IssuerItemInternalInterface& parent,
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const IssuerItemRowID& rowID,
     const IssuerItemSortKey& sortKey,
     CustomData& custom) noexcept
-    : AccountSummaryItemRow(parent, api, publisher, rowID, true)
+    : AccountSummaryItemRow(parent, api, rowID, true)
     , account_id_(std::get<0>(row_id_).get())
     , currency_(std::get<1>(row_id_))
     , balance_(extract_custom<Amount>(custom))

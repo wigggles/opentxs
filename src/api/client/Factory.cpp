@@ -30,14 +30,14 @@
 #define OT_METHOD "opentxs::api::client::implementation::Factory::"
 #endif  // OT_BLOCKCHAIN
 
-namespace opentxs
+namespace opentxs::factory
 {
-auto Factory::FactoryAPIClient(const api::client::internal::Manager& api)
+auto FactoryAPIClient(const api::client::internal::Manager& api)
     -> api::internal::Factory*
 {
     return new api::client::implementation::Factory(api);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::api::client::implementation
 {

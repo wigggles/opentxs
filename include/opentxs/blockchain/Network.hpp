@@ -8,6 +8,16 @@
 
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
+#include <future>
+
+namespace opentxs
+{
+namespace identifier
+{
+class Nym;
+}  // namespace identifier
+}  // namespace opentxs
+
 namespace opentxs
 {
 namespace blockchain
@@ -15,6 +25,8 @@ namespace blockchain
 class Network
 {
 public:
+    using PendingOutgoing = std::future<block::pTxid>;
+
     virtual auto AddPeer(const p2p::Address& address) const noexcept
         -> bool = 0;
     virtual auto GetBalance() const noexcept -> Balance = 0;
@@ -24,15 +36,10 @@ public:
     virtual auto GetPeerCount() const noexcept -> std::size_t = 0;
     virtual auto GetType() const noexcept -> Type = 0;
     virtual auto SendToAddress(
+        const identifier::Nym& sender,
         const std::string& address,
         const Amount amount,
-        const api::client::blockchain::BalanceTree& source) const noexcept
-        -> std::string = 0;
-    virtual auto SendToPaymentCode(
-        const std::string& address,
-        const Amount amount,
-        const api::client::blockchain::PaymentCode& source) const noexcept
-        -> std::string = 0;
+        const std::string& memo = {}) const noexcept -> PendingOutgoing = 0;
 
     virtual auto Connect() noexcept -> bool = 0;
     virtual auto Disconnect() noexcept -> bool = 0;

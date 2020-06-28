@@ -6,8 +6,8 @@
 #include <gtest/gtest-message.h>
 #include <gtest/gtest-test-part.h>
 #include <gtest/gtest.h>
+#include <atomic>
 #include <future>
-#include <map>
 #include <memory>
 #include <set>
 #include <string>
@@ -15,6 +15,7 @@
 #include <vector>
 
 #include "OTTestEnvironment.hpp"  // IWYU pragma: keep
+#include "UIHelpers.hpp"
 #include "integration/Helpers.hpp"
 #include "opentxs/OT.hpp"
 #include "opentxs/Proto.tpp"
@@ -91,12 +92,13 @@ class Manager;
 
 namespace
 {
+Counter account_summary_{};
+
 class Test_Pair : public ::testing::Test
 {
 public:
     static Callbacks cb_chris_;
     static Issuer issuer_data_;
-    static const StateMap state_;
     static ot::OTUnitID unit_id_;
 
     const ot::api::client::Manager& api_issuer_;
@@ -104,7 +106,6 @@ public:
     const ot::api::server::Manager& api_server_1_;
     ot::OTZMQListenCallback issuer_peer_request_cb_;
     ot::OTZMQListenCallback chris_rename_notary_cb_;
-    ot::OTZMQSubscribeSocket chris_ui_update_listener_;
     ot::OTZMQSubscribeSocket issuer_peer_request_listener_;
     ot::OTZMQSubscribeSocket chris_rename_notary_listener_;
 
@@ -119,8 +120,6 @@ public:
               [this](const auto& in) { issuer_peer_request(in); }))
         , chris_rename_notary_cb_(ot::network::zeromq::ListenCallback::Factory(
               [this](const auto& in) { chris_rename_notary(in); }))
-        , chris_ui_update_listener_(
-              api_chris_.ZeroMQ().SubscribeSocket(cb_chris_.callback_))
         , issuer_peer_request_listener_(
               api_issuer_.ZeroMQ().SubscribeSocket(issuer_peer_request_cb_))
         , chris_rename_notary_listener_(
@@ -135,8 +134,6 @@ public:
 
     void subscribe_sockets()
     {
-        ASSERT_TRUE(chris_ui_update_listener_->Start(
-            api_chris_.Endpoints().WidgetUpdate()));
         ASSERT_TRUE(issuer_peer_request_listener_->Start(
             api_issuer_.Endpoints().PeerRequestUpdate()));
         ASSERT_TRUE(chris_rename_notary_listener_->Start(
@@ -219,108 +216,27 @@ ot::OTUnitID Test_Pair::unit_id_{ot::identifier::UnitDefinition::Factory()};
 Callbacks Test_Pair::cb_chris_{chris_.name_};
 const std::string Issuer::new_notary_name_{"Chris's Notary"};
 Issuer Test_Pair::issuer_data_{};
-const StateMap Test_Pair::state_{
-    {chris_.name_,
-     {
-         {Widget::AccountSummaryUSD,
-          {
-              {0,
-               []() -> bool {
-                   const auto& widget = chris_.api_->UI().AccountSummary(
-                       chris_.nym_id_, ot::proto::CITEMTYPE_USD);
-                   auto row = widget.First();
-
-                   EXPECT_FALSE(row->Valid());
-
-                   return true;
-               }},
-              {1,
-               []() -> bool {
-                   const auto& widget = chris_.api_->UI().AccountSummary(
-                       chris_.nym_id_, ot::proto::CITEMTYPE_USD);
-                   auto row = widget.First();
-
-                   EXPECT_TRUE(row->Valid());
-
-                   if (false == row->Valid()) { return false; }
-
-                   EXPECT_TRUE(row->ConnectionState());
-                   EXPECT_EQ(row->Name(), "localhost");
-                   EXPECT_FALSE(row->Trusted());
-
-                   {
-                       const auto subrow = row->First();
-
-                       EXPECT_TRUE(subrow->Valid());
-
-                       if (false == subrow->Valid()) { return false; }
-
-                       EXPECT_FALSE(subrow->AccountID().empty());
-                       EXPECT_EQ(subrow->Balance(), 0);
-                       EXPECT_EQ(subrow->DisplayBalance(), "dollars 0.00");
-                       EXPECT_FALSE(subrow->AccountID().empty());
-                       EXPECT_TRUE(subrow->Last());
-
-                       chris_.SetAccount("USD", subrow->AccountID());
-                   }
-
-                   EXPECT_TRUE(row->Last());
-
-                   return true;
-               }},
-              {2,
-               []() -> bool {
-                   const auto& widget = chris_.api_->UI().AccountSummary(
-                       chris_.nym_id_, ot::proto::CITEMTYPE_USD);
-                   auto row = widget.First();
-
-                   EXPECT_TRUE(row->Valid());
-
-                   if (false == row->Valid()) { return false; }
-
-                   EXPECT_TRUE(row->ConnectionState());
-                   EXPECT_EQ(row->Name(), issuer_data_.new_notary_name_);
-                   EXPECT_TRUE(row->Trusted());
-
-                   {
-                       const auto subrow = row->First();
-
-                       EXPECT_TRUE(subrow->Valid());
-
-                       if (false == subrow->Valid()) { return false; }
-
-                       EXPECT_FALSE(subrow->AccountID().empty());
-                       EXPECT_EQ(subrow->Balance(), 0);
-                       EXPECT_EQ(subrow->DisplayBalance(), "dollars 0.00");
-                       EXPECT_FALSE(subrow->AccountID().empty());
-                       EXPECT_TRUE(subrow->Last());
-                   }
-
-                   EXPECT_TRUE(row->Last());
-
-                   return true;
-               }},
-          }},
-     }},
-};
 
 TEST_F(Test_Pair, init_ot) {}
 
 TEST_F(Test_Pair, init_ui)
 {
-    {
-        ot::Lock lock{cb_chris_.callback_lock_};
-        cb_chris_.RegisterWidget(
-            lock,
-            Widget::AccountSummaryUSD,
-            api_chris_.UI()
-                .AccountSummary(chris_.nym_id_, ot::proto::CITEMTYPE_USD)
-                .WidgetID());
+    account_summary_.expected_ = 0;
+    api_chris_.UI().AccountSummary(
+        chris_.nym_id_,
+        ot::proto::CITEMTYPE_USD,
+        make_cb(account_summary_, "account summary USD"));
+}
 
-        EXPECT_EQ(1, cb_chris_.Count());
-    }
+TEST_F(Test_Pair, initial_state)
+{
+    ASSERT_TRUE(wait_for_counter(account_summary_));
 
-    EXPECT_TRUE(state_.at(chris_.name_).at(Widget::AccountSummaryUSD).at(0)());
+    const auto& widget = chris_.api_->UI().AccountSummary(
+        chris_.nym_id_, ot::proto::CITEMTYPE_USD);
+    auto row = widget.First();
+
+    EXPECT_FALSE(row->Valid());
 }
 
 TEST_F(Test_Pair, issue_dollars)
@@ -399,10 +315,7 @@ TEST_F(Test_Pair, issue_dollars)
 
 TEST_F(Test_Pair, pair_untrusted)
 {
-    auto future = cb_chris_.SetCallback(
-        Widget::AccountSummaryUSD,
-        5,
-        state_.at(chris_.name_).at(Widget::AccountSummaryUSD).at(1));
+    account_summary_.expected_ += 5;
 
     ASSERT_TRUE(
         api_chris_.Pair().AddIssuer(chris_.nym_id_, issuer_.nym_id_, ""));
@@ -459,20 +372,43 @@ TEST_F(Test_Pair, pair_untrusted)
         EXPECT_FALSE(issuer.StoreSecretComplete());
         EXPECT_FALSE(issuer.StoreSecretInitiated());
     }
+}
 
-    EXPECT_TRUE(test_future(future));
+TEST_F(Test_Pair, pair_untrusted_state)
+{
+    ASSERT_TRUE(wait_for_counter(account_summary_));
+
+    const auto& widget = chris_.api_->UI().AccountSummary(
+        chris_.nym_id_, ot::proto::CITEMTYPE_USD);
+    auto row = widget.First();
+
+    ASSERT_TRUE(row->Valid());
+    EXPECT_TRUE(row->ConnectionState());
+    EXPECT_EQ(row->Name(), "localhost");
+    EXPECT_FALSE(row->Trusted());
+
+    {
+        const auto subrow = row->First();
+
+        ASSERT_TRUE(subrow->Valid());
+        EXPECT_FALSE(subrow->AccountID().empty());
+        EXPECT_EQ(subrow->Balance(), 0);
+        EXPECT_EQ(subrow->DisplayBalance(), "dollars 0.00");
+        EXPECT_FALSE(subrow->AccountID().empty());
+        EXPECT_TRUE(subrow->Last());
+
+        chris_.SetAccount("USD", subrow->AccountID());
+    }
+
+    EXPECT_TRUE(row->Last());
 }
 
 TEST_F(Test_Pair, pair_trusted)
 {
-    auto future = cb_chris_.SetCallback(
-        Widget::AccountSummaryUSD,
-        7,
-        state_.at(chris_.name_).at(Widget::AccountSummaryUSD).at(2));
+    account_summary_.expected_ += 2;
 
     ASSERT_TRUE(api_chris_.Pair().AddIssuer(
         chris_.nym_id_, issuer_.nym_id_, server_1_.password_));
-    EXPECT_TRUE(test_future(future));
 
     api_chris_.Pair().Wait().get();
 
@@ -529,6 +465,33 @@ TEST_F(Test_Pair, pair_trusted)
         EXPECT_FALSE(issuer.StoreSecretInitiated());
 #endif  // OT_CRYPTO_WITH_BIP32
     }
+}
+
+TEST_F(Test_Pair, pair_trusted_state)
+{
+    ASSERT_TRUE(wait_for_counter(account_summary_));
+
+    const auto& widget = chris_.api_->UI().AccountSummary(
+        chris_.nym_id_, ot::proto::CITEMTYPE_USD);
+    auto row = widget.First();
+
+    ASSERT_TRUE(row->Valid());
+    EXPECT_TRUE(row->ConnectionState());
+    EXPECT_EQ(row->Name(), issuer_data_.new_notary_name_);
+    EXPECT_TRUE(row->Trusted());
+
+    {
+        const auto subrow = row->First();
+
+        ASSERT_TRUE(subrow->Valid());
+        EXPECT_FALSE(subrow->AccountID().empty());
+        EXPECT_EQ(subrow->Balance(), 0);
+        EXPECT_EQ(subrow->DisplayBalance(), "dollars 0.00");
+        EXPECT_FALSE(subrow->AccountID().empty());
+        EXPECT_TRUE(subrow->Last());
+    }
+
+    EXPECT_TRUE(row->Last());
 }
 
 TEST_F(Test_Pair, shutdown)

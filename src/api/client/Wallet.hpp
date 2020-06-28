@@ -70,7 +70,6 @@ class Context;
 }  // namespace proto
 
 class Context;
-class Factory;
 class Identifier;
 class PasswordPrompt;
 }  // namespace opentxs
@@ -98,11 +97,11 @@ public:
         const Identifier& remoteID) const
         -> std::shared_ptr<const otx::context::Server> final;
 
-    ~Wallet() = default;
+    Wallet(const api::client::internal::Manager& client);
+
+    ~Wallet() final = default;
 
 private:
-    friend opentxs::Factory;
-
     using ot_super = api::implementation::Wallet;
 
     const api::client::internal::Manager& client_;
@@ -118,7 +117,6 @@ private:
         const noexcept final;
     auto signer_nym(const identifier::Nym& id) const -> Nym_p final;
 
-    Wallet(const api::client::internal::Manager& client);
     Wallet() = delete;
     Wallet(const Wallet&) = delete;
     Wallet(Wallet&&) = delete;

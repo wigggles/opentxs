@@ -40,7 +40,6 @@ namespace proto
 class UnitDefinition;
 }  // namespace proto
 
-class Factory;
 class Identifier;
 class OTPaymentPlan;
 class OTSmartContract;
@@ -165,17 +164,16 @@ public:
         const Amount amount,
         const std::string& memo) const -> Action final;
 
-    ~ServerAction() final = default;
-
-private:
-    friend opentxs::Factory;
-
-    const api::client::internal::Manager& api_;
-    ContextLockCallback lock_callback_;
-
     ServerAction(
         const api::client::internal::Manager& api,
         const ContextLockCallback& lockCallback);
+
+    ~ServerAction() final = default;
+
+private:
+    const api::client::internal::Manager& api_;
+    ContextLockCallback lock_callback_;
+
     ServerAction() = delete;
     ServerAction(const ServerAction&) = delete;
     ServerAction(ServerAction&&) = delete;

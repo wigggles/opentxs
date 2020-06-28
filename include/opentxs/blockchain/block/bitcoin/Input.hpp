@@ -43,11 +43,17 @@ struct Outpoint {
     auto operator!=(const Outpoint& rhs) const noexcept -> bool;
 
     auto Bytes() const noexcept -> ReadView;
-    auto Txid() const noexcept -> ReadView;
     auto Index() const noexcept -> std::uint32_t;
+    auto Txid() const noexcept -> ReadView;
+    auto str() const noexcept -> std::string;
 
     Outpoint(const ReadView serialized) noexcept(false);
     Outpoint(const ReadView txid, const std::uint32_t index) noexcept(false);
+    Outpoint() noexcept;
+    Outpoint(const Outpoint&) noexcept;
+    Outpoint(Outpoint&&) noexcept;
+    Outpoint& operator=(const Outpoint&) noexcept;
+    Outpoint& operator=(Outpoint&&) noexcept;
 };
 
 class Input

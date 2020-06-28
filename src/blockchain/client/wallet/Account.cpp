@@ -18,7 +18,7 @@
 #include <utility>
 #include <vector>
 
-#include "blockchain/client/HDStateData.hpp"
+#include "blockchain/client/wallet/HDStateData.hpp"
 #include "internal/blockchain/client/Client.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/api/client/Manager.hpp"

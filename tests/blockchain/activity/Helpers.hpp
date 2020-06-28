@@ -62,6 +62,7 @@ constexpr auto contact_3_name_{"Chris"};
 constexpr auto contact_4_name_{"Daniel"};
 constexpr auto contact_5_name_{"Edward"};
 constexpr auto contact_6_name_{"Frank"};
+constexpr auto contact_7_name_{"Gabe"};
 
 struct Test_BlockchainActivity : public ::testing::Test {
     using Element = ot::api::client::blockchain::BalanceNode::Element;
@@ -170,6 +171,15 @@ struct Test_BlockchainActivity : public ::testing::Test {
 
         return output->ID();
     }
+    [[maybe_unused]] auto contact_7_id() const noexcept -> const ot::Identifier&
+    {
+        static const auto output = api_.Contacts().NewContactFromAddress(
+            "17VZNX1SN5NtKa8UQFxwQbFeFc3iqRYhem",
+            contact_7_name_,
+            ot::proto::CITEMTYPE_BTC);
+
+        return output->ID();
+    }
     [[maybe_unused]] auto get_test_transaction(
         const Element& first,
         const Element& second,
@@ -192,6 +202,51 @@ struct Test_BlockchainActivity : public ::testing::Test {
         OT_ASSERT(added);
 
         added = output->ForTestingOnlyAddKey(1, second.KeyID());
+
+        OT_ASSERT(added);
+
+        return std::move(output);
+    }
+    [[maybe_unused]] auto get_test_transaction(
+        const Element& inputKey1,
+        const Element& inputKey2,
+        const Element& inputKey3,
+        const Element& outputKey1,
+        const ot::proto::BlockchainTransactionOutput& prevOut1,
+        const ot::proto::BlockchainTransactionOutput& prevOut2,
+        const ot::proto::BlockchainTransactionOutput& prevOut3,
+        const std::string& secondOutput,
+        const ot::Time& time = ot::Clock::now()) const
+        -> std::unique_ptr<const Transaction>
+    {
+        auto output = ot::factory::BitcoinTransaction(
+            api_,
+            ot::blockchain::Type::Bitcoin,
+            false,
+            time,
+            ot::blockchain::bitcoin::EncodedTransaction::Deserialize(
+                api_,
+                ot::blockchain::Type::Bitcoin,
+                api_.Factory()
+                    .Data(
+                        monkey_patch(
+                            outputKey1.PubkeyHash()->asHex(), secondOutput),
+                        ot::StringStyle::Hex)
+                    ->Bytes()));
+
+        auto added = output->ForTestingOnlyAddKey(0, outputKey1.KeyID());
+
+        OT_ASSERT(added);
+
+        added = output->AssociatePreviousOutput(0, prevOut1);
+
+        OT_ASSERT(added);
+
+        added = output->AssociatePreviousOutput(1, prevOut2);
+
+        OT_ASSERT(added);
+
+        added = output->AssociatePreviousOutput(2, prevOut3);
 
         OT_ASSERT(added);
 

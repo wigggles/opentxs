@@ -44,25 +44,22 @@ namespace opentxs::factory
 {
 auto ProfileModel(
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
-    const identifier::Nym& nymID
+    const identifier::Nym& nymID,
 #if OT_QT
-    ,
-    const bool qt
+    const bool qt,
 #endif
-    ) noexcept -> std::unique_ptr<ui::implementation::Profile>
+    const SimpleCallback& cb) noexcept
+    -> std::unique_ptr<ui::implementation::Profile>
 {
     using ReturnType = ui::implementation::Profile;
 
     return std::make_unique<ReturnType>(
         api,
-        publisher,
-        nymID
+        nymID,
 #if OT_QT
-        ,
-        qt
+        qt,
 #endif
-    );
+        cb);
 }
 
 #if OT_QT
@@ -105,17 +102,15 @@ const std::map<proto::ContactSectionName, int> Profile::sort_keys_{
 
 Profile::Profile(
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
-    const identifier::Nym& nymID
+    const identifier::Nym& nymID,
 #if OT_QT
-    ,
-    const bool qt
+    const bool qt,
 #endif
-    ) noexcept
+    const SimpleCallback& cb) noexcept
     : ProfileList(
           api,
-          publisher,
-          nymID
+          nymID,
+          cb
 #if OT_QT
           ,
           qt
@@ -236,7 +231,7 @@ auto Profile::construct_row(
         factory::ProfileSectionWidget(
             *this,
             api_,
-            publisher_,
+
             id,
             index,
             custom

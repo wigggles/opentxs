@@ -106,7 +106,6 @@ class HDPath;
 }  // namespace proto
 
 class Contact;
-class Factory;
 class PasswordPrompt;
 }  // namespace opentxs
 
@@ -297,8 +296,6 @@ private:
     using pTxid = opentxs::blockchain::block::pTxid;
 #endif  // OT_BLOCKCHAIN
 
-    friend opentxs::Factory;
-
     struct AccountCache {
         auto List(const identifier::Nym& nymID, const Chain chain)
             const noexcept -> std::set<OTIdentifier>;
@@ -451,7 +448,9 @@ private:
     static const StyleReverseMap address_style_reverse_map_;
 
     const api::client::internal::Manager& api_;
+#if OT_BLOCKCHAIN
     const api::client::Activity& activity_;
+#endif  // OT_BLOCKCHAIN
     const api::client::Contacts& contacts_;
     mutable std::mutex lock_;
     mutable IDLock nym_lock_;

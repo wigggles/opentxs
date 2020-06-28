@@ -137,6 +137,7 @@ private:
     auto get_body_size(const zmq::Frame& header) const noexcept
         -> std::size_t final;
 
+    auto broadcast_transaction(zmq::Message& message) noexcept -> void final;
     auto ping() noexcept -> void final;
     auto pong() noexcept -> void final;
     auto process_message(const zmq::Message& message) noexcept -> void final;

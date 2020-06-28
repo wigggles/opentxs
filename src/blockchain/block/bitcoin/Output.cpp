@@ -45,6 +45,30 @@ auto BitcoinTransactionOutput(
     const blockchain::Type chain,
     const std::uint32_t index,
     const std::int64_t value,
+    std::unique_ptr<const blockchain::block::bitcoin::internal::Script> script,
+    const std::set<api::client::blockchain::Key>& keys) noexcept
+    -> std::unique_ptr<blockchain::block::bitcoin::internal::Output>
+{
+    try {
+        auto keySet = boost::container::flat_set<ReturnType::KeyID>{};
+        std::for_each(std::begin(keys), std::end(keys), [&](const auto& key) {
+            keySet.emplace(key);
+        });
+
+        return std::make_unique<ReturnType>(
+            api, chain, index, value, std::move(script), std::move(keySet));
+    } catch (const std::exception& e) {
+        LogOutput("opentxs::factory::")(__FUNCTION__)(": ")(e.what()).Flush();
+
+        return {};
+    }
+}
+
+auto BitcoinTransactionOutput(
+    const api::client::Manager& api,
+    const blockchain::Type chain,
+    const std::uint32_t index,
+    const std::int64_t value,
     const blockchain::bitcoin::CompactSize& cs,
     const ReadView script) noexcept
     -> std::unique_ptr<blockchain::block::bitcoin::internal::Output>
@@ -158,6 +182,29 @@ Output::Output(
           value,
           factory::BitcoinScript(chain, in, true, false),
           size,
+          {},
+          {},
+          {},
+          false)
+{
+}
+
+Output::Output(
+    const api::client::Manager& api,
+    const blockchain::Type chain,
+    const std::uint32_t index,
+    const std::int64_t value,
+    std::unique_ptr<const internal::Script> script,
+    boost::container::flat_set<KeyID>&& keys,
+    const VersionNumber version) noexcept(false)
+    : Output(
+          api,
+          chain,
+          version,
+          index,
+          value,
+          std::move(script),
+          {},
           {},
           {},
           {},

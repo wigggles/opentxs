@@ -14,7 +14,7 @@
 #include <ostream>
 #include <type_traits>
 
-#include "2_Factory.hpp"
+#include "internal/api/client/Client.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/api/client/Issuer.hpp"
@@ -46,9 +46,9 @@
 
 #define OT_METHOD "opentxs::api::client::implementation::Issuer::"
 
-namespace opentxs
+namespace opentxs::factory
 {
-auto Factory::Issuer(
+auto Issuer(
     const api::Wallet& wallet,
     const identifier::Nym& nymID,
     const proto::Issuer& serialized) -> api::client::Issuer*
@@ -56,14 +56,14 @@ auto Factory::Issuer(
     return new api::client::implementation::Issuer(wallet, nymID, serialized);
 }
 
-auto Factory::Issuer(
+auto Issuer(
     const api::Wallet& wallet,
     const identifier::Nym& nymID,
     const identifier::Nym& issuerID) -> api::client::Issuer*
 {
     return new api::client::implementation::Issuer(wallet, nymID, issuerID);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::api::client::implementation
 {

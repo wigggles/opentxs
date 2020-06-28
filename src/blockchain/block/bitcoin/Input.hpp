@@ -12,6 +12,7 @@
 #include <memory>
 #include <optional>
 #include <set>
+#include <string>
 #include <vector>
 
 #include "internal/blockchain/block/bitcoin/Bitcoin.hpp"
@@ -36,6 +37,7 @@ class Manager;
 namespace proto
 {
 class BlockchainTransactionInput;
+class BlockchainTransactionOutput;
 }  // namespace proto
 }  // namespace opentxs
 
@@ -66,15 +68,14 @@ public:
     auto GetPatterns() const noexcept -> std::vector<PatternID> final;
     auto Keys() const noexcept -> std::vector<KeyID> final;
     auto NetBalanceChange(const identifier::Nym& nym) const noexcept
-        -> opentxs::Amount final
-    {
-        // TODO
-
-        return 0;
-    }
+        -> opentxs::Amount final;
     auto PreviousOutput() const noexcept -> const Outpoint& final
     {
         return previous_;
+    }
+    auto PrintScript() const noexcept -> std::string final
+    {
+        return script_->str();
     }
     auto Serialize(const AllocateOutput destination) const noexcept
         -> std::optional<std::size_t> final;
@@ -82,17 +83,27 @@ public:
         -> std::optional<std::size_t> final;
     auto Serialize(const std::uint32_t index, SerializeType& destination)
         const noexcept -> bool final;
+    auto SignatureVersion() const noexcept
+        -> std::unique_ptr<internal::Input> final;
+    auto SignatureVersion(std::unique_ptr<internal::Script> subscript)
+        const noexcept -> std::unique_ptr<internal::Input> final;
     auto Script() const noexcept -> const bitcoin::Script& final
     {
         return *script_;
     }
     auto Sequence() const noexcept -> std::uint32_t final { return sequence_; }
+    auto Spends() const noexcept(false) -> const internal::Output& final;
     auto Witness() const noexcept -> const std::vector<Space>& final
     {
         return witness_;
     }
 
+    auto AddSignatures(const Signatures& signatures) noexcept -> bool final;
+    auto AssociatePreviousOutput(
+        const proto::BlockchainTransactionOutput& output) noexcept
+        -> bool final;
     auto MergeMetadata(const SerializeType& rhs) noexcept -> void final;
+    auto ReplaceScript() noexcept -> bool final;
 
     Input(
         const api::client::Manager& api,
@@ -102,7 +113,17 @@ public:
         std::vector<Space>&& witness,
         std::unique_ptr<const internal::Script> script,
         const VersionNumber version,
-        std::optional<std::size_t> size = {}) noexcept(false);
+        std::optional<std::size_t> size) noexcept(false);
+    Input(
+        const api::client::Manager& api,
+        const blockchain::Type chain,
+        const std::uint32_t sequence,
+        Outpoint&& previous,
+        std::vector<Space>&& witness,
+        std::unique_ptr<const internal::Script> script,
+        const VersionNumber version,
+        std::unique_ptr<const internal::Output> output,
+        boost::container::flat_set<KeyID>&& keys) noexcept(false);
     Input(
         const api::client::Manager& api,
         const blockchain::Type chain,
@@ -111,6 +132,7 @@ public:
         std::vector<Space>&& witness,
         const ReadView coinbase,
         const VersionNumber version,
+        std::unique_ptr<const internal::Output> output,
         std::optional<std::size_t> size = {}) noexcept(false);
     Input(
         const api::client::Manager& api,
@@ -125,8 +147,12 @@ public:
         boost::container::flat_set<KeyID>&& keys,
         boost::container::flat_set<PatternID>&& pubkeyHashes,
         std::optional<PatternID>&& scriptHash,
-        const bool indexed) noexcept(false);
+        const bool indexed,
+        std::unique_ptr<const internal::Output> output) noexcept(false);
     Input(const Input&) noexcept;
+    Input(
+        const Input& rhs,
+        std::unique_ptr<const internal::Script> script) noexcept;
 
     ~Input() final = default;
 
@@ -144,6 +170,7 @@ private:
     const std::uint32_t sequence_;
     const boost::container::flat_set<PatternID> pubkey_hashes_;
     const std::optional<PatternID> script_hash_;
+    mutable std::unique_ptr<const internal::Output> previous_output_;
     mutable std::optional<std::size_t> size_;
     mutable std::optional<std::size_t> normalized_size_;
     mutable boost::container::flat_set<KeyID> keys_;

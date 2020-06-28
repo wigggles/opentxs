@@ -43,7 +43,6 @@ namespace opentxs::factory
 auto BalanceItem(
     const ui::implementation::AccountActivityInternalInterface& parent,
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const ui::implementation::AccountActivityRowID& rowID,
     const ui::implementation::AccountActivitySortKey& sortKey,
     ui::implementation::CustomData& custom,
@@ -65,7 +64,6 @@ auto BalanceItem(
         return std::make_shared<ui::implementation::BlockchainBalanceItem>(
             parent,
             api,
-            publisher,
             rowID,
             sortKey,
             custom,
@@ -88,27 +86,13 @@ auto BalanceItem(
         case proto::PAYMENTWORKFLOWTYPE_OUTGOINGINVOICE:
         case proto::PAYMENTWORKFLOWTYPE_INCOMINGINVOICE: {
             return std::make_shared<ui::implementation::ChequeBalanceItem>(
-                parent,
-                api,
-                publisher,
-                rowID,
-                sortKey,
-                custom,
-                nymID,
-                accountID);
+                parent, api, rowID, sortKey, custom, nymID, accountID);
         }
         case proto::PAYMENTWORKFLOWTYPE_OUTGOINGTRANSFER:
         case proto::PAYMENTWORKFLOWTYPE_INCOMINGTRANSFER:
         case proto::PAYMENTWORKFLOWTYPE_INTERNALTRANSFER: {
             return std::make_shared<ui::implementation::TransferBalanceItem>(
-                parent,
-                api,
-                publisher,
-                rowID,
-                sortKey,
-                custom,
-                nymID,
-                accountID);
+                parent, api, rowID, sortKey, custom, nymID, accountID);
         }
         case proto::PAYMENTWORKFLOWTYPE_ERROR:
         default: {
@@ -127,14 +111,13 @@ namespace opentxs::ui::implementation
 BalanceItem::BalanceItem(
     const AccountActivityInternalInterface& parent,
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const AccountActivityRowID& rowID,
     const AccountActivitySortKey& sortKey,
     CustomData& custom,
     const identifier::Nym& nymID,
     const Identifier& accountID,
     const std::string& text) noexcept
-    : BalanceItemRow(parent, api, publisher, rowID, true)
+    : BalanceItemRow(parent, api, rowID, true)
     , nym_id_(nymID)
     , workflow_(recover_workflow(custom).id())
     , type_(extract_type(recover_workflow(custom)))

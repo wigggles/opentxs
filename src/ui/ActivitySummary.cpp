@@ -39,27 +39,24 @@ namespace opentxs::factory
 {
 auto ActivitySummaryModel(
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const Flag& running,
-    const identifier::Nym& nymID
+    const identifier::Nym& nymID,
 #if OT_QT
-    ,
-    const bool qt
+    const bool qt,
 #endif
-    ) noexcept -> std::unique_ptr<ui::implementation::ActivitySummary>
+    const SimpleCallback& cb) noexcept
+    -> std::unique_ptr<ui::implementation::ActivitySummary>
 {
     using ReturnType = ui::implementation::ActivitySummary;
 
     return std::make_unique<ReturnType>(
         api,
-        publisher,
         running,
-        nymID
+        nymID,
 #if OT_QT
-        ,
-        qt
+        qt,
 #endif
-    );
+        cb);
 }
 
 #if OT_QT
@@ -86,18 +83,16 @@ namespace opentxs::ui::implementation
 
 ActivitySummary::ActivitySummary(
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const Flag& running,
-    const identifier::Nym& nymID
+    const identifier::Nym& nymID,
 #if OT_QT
-    ,
-    const bool qt
+    const bool qt,
 #endif
-    ) noexcept
+    const SimpleCallback& cb) noexcept
     : ActivitySummaryList(
           api,
-          publisher,
-          nymID
+          nymID,
+          cb
 #if OT_QT
           ,
           qt,
@@ -124,7 +119,7 @@ auto ActivitySummary::construct_row(
     const auto [it, added] = items_[index].emplace(
         id,
         factory::ActivitySummaryItem(
-            *this, api_, publisher_, primary_id_, id, index, custom, running_));
+            *this, api_, primary_id_, id, index, custom, running_));
 
     return it->second.get();
 }

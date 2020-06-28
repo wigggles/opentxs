@@ -7,14 +7,19 @@
 #include "1_Internal.hpp"                      // IWYU pragma: associated
 #include "internal/blockchain/Blockchain.hpp"  // IWYU pragma: associated
 
+#include <boost/lexical_cast/bad_lexical_cast.hpp>
+#include <boost/multiprecision/cpp_dec_float.hpp>  // IWYU pragma: keep
+#include <boost/multiprecision/cpp_int.hpp>
 #include <algorithm>
 #include <cstddef>
 #include <cstring>
+#include <iomanip>
 #include <iterator>
 #include <limits>
 #include <map>
 #include <memory>
 #include <set>
+#include <sstream>
 #include <stdexcept>
 #include <string_view>
 #include <thread>
@@ -32,6 +37,8 @@
 #include "opentxs/protobuf/Enums.pb.h"
 
 #define BITMASK(n) ((1 << (n)) - 1)
+
+namespace mp = boost::multiprecision;
 
 namespace opentxs::blockchain
 {
@@ -529,20 +536,27 @@ auto FilterToHeader(
         api, FilterToHash(api, filter)->Bytes(), previous);
 }
 
-auto Format(const Type chain, const Amount amount) noexcept -> std::string
+auto Format(const Type chain, const opentxs::Amount amount) noexcept
+    -> std::string
 {
     static const auto map = std::map<Type, unsigned int>{
-        {Type::Bitcoin, 1e8},
-        {Type::Bitcoin_testnet3, 1e8},
-        {Type::BitcoinCash, 1e8},
-        {Type::BitcoinCash_testnet3, 1e8},
+        {Type::Bitcoin, 8},
+        {Type::Bitcoin_testnet3, 8},
+        {Type::BitcoinCash, 8},
+        {Type::BitcoinCash_testnet3, 8},
     };
 
     try {
-        return std::to_string(
-                   static_cast<double>(amount) /
-                   static_cast<double>(map.at(chain))) +
-               ' ' + Ticker(chain);
+        const auto& precision = map.at(chain);
+        const auto scaled = mp::cpp_dec_float_100{amount} /
+                            mp::cpp_dec_float_100{std::pow(10, precision)};
+        auto output = std::stringstream{};
+        output << std::fixed << std::setprecision(precision);
+        output << scaled;
+        output << ' ';
+        output << Ticker(chain);
+
+        return output.str();
     } catch (...) {
 
         return {};

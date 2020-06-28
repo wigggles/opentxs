@@ -38,6 +38,7 @@
 #include "opentxs/blockchain/block/bitcoin/Input.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
+#include "opentxs/protobuf/BlockchainTransactionProposal.pb.h"
 #include "util/LMDB.hpp"
 
 namespace opentxs
@@ -66,7 +67,6 @@ class Manager;
 }  // namespace client
 
 class Core;
-class Manager;
 }  // namespace api
 
 namespace blockchain
@@ -92,10 +92,12 @@ class UpdateTransaction;
 namespace proto
 {
 class BlockchainTransactionOutput;
+class BlockchainTransactionProposal;
 }  // namespace proto
 
 class Data;
 class Factory;
+class Identifier;
 }  // namespace opentxs
 
 namespace opentxs::blockchain::implementation
@@ -123,9 +125,26 @@ public:
             outputIndices,
             transaction);
     }
+    auto AddOutgoingTransaction(
+        const blockchain::Type chain,
+        const Identifier& proposalID,
+        const proto::BlockchainTransactionProposal& proposal,
+        const block::bitcoin::Transaction& transaction) const noexcept
+        -> bool final
+    {
+        return wallet_.AddOutgoingTransaction(
+            chain, proposalID, proposal, transaction);
+    }
     auto AddOrUpdate(Address address) const noexcept -> bool final
     {
         return common_.AddOrUpdate(std::move(address));
+    }
+    auto AddProposal(
+        const Identifier& id,
+        const proto::BlockchainTransactionProposal& tx) const noexcept
+        -> bool final
+    {
+        return wallet_.AddProposal(id, tx);
     }
     auto ApplyUpdate(const client::UpdateTransaction& update) const noexcept
         -> bool final
@@ -156,6 +175,10 @@ public:
     {
         return blocks_.Store(block);
     }
+    auto CompletedProposals() const noexcept -> std::set<OTIdentifier> final
+    {
+        return wallet_.CompletedProposals();
+    }
     auto CurrentBest() const noexcept -> std::unique_ptr<block::Header> final
     {
         return headers_.CurrentBest();
@@ -163,6 +186,14 @@ public:
     auto CurrentCheckpoint() const noexcept -> block::Position final
     {
         return headers_.CurrentCheckpoint();
+    }
+    auto CancelProposal(const Identifier& id) const noexcept -> bool final
+    {
+        return wallet_.CancelProposal(id);
+    }
+    auto DeleteProposal(const Identifier& id) const noexcept -> bool final
+    {
+        return wallet_.DeleteProposal(id);
     }
     auto FilterHeaderTip(const filter::Type type) const noexcept
         -> block::Position final
@@ -173,6 +204,11 @@ public:
         -> block::Position final
     {
         return filters_.CurrentTip(type);
+    }
+    auto ForgetProposals(const std::set<OTIdentifier>& ids) const noexcept
+        -> bool final
+    {
+        return wallet_.ForgetProposals(ids);
     }
     auto DisconnectedHashes() const noexcept -> client::DisconnectedList final
     {
@@ -263,6 +299,16 @@ public:
     {
         return headers_.LoadHeader(hash);
     }
+    auto LoadProposal(const Identifier& id) const noexcept
+        -> std::optional<proto::BlockchainTransactionProposal> final
+    {
+        return wallet_.LoadProposal(id);
+    }
+    auto LoadProposals() const noexcept
+        -> std::vector<proto::BlockchainTransactionProposal> final
+    {
+        return wallet_.LoadProposals();
+    }
     auto LookupContact(const Data& pubkeyHash) const noexcept
         -> std::set<OTIdentifier> final
     {
@@ -272,6 +318,11 @@ public:
     {
         return headers_.RecentHashes();
     }
+    auto ReleaseChangeKey(const Identifier& proposal, const KeyID key)
+        const noexcept -> bool final
+    {
+        return wallet_.ReleaseChangeKey(proposal, key);
+    }
     auto ReorgTo(
         const NodeID& balanceNode,
         const Subchain subchain,
@@ -279,6 +330,21 @@ public:
         const std::vector<block::Position>& reorg) const noexcept -> bool final
     {
         return wallet_.ReorgTo(balanceNode, subchain, type, reorg);
+    }
+    auto ReserveChangeKey(const Identifier& proposal) const noexcept
+        -> std::optional<KeyID> final
+    {
+        return wallet_.ReserveChangeKey(proposal);
+    }
+    auto ReserveUTXO(const Identifier& proposal) const noexcept
+        -> std::optional<UTXO> final
+    {
+        return wallet_.ReserveUTXO(proposal);
+    }
+    auto SetDefaultFilterType(const FilterType type) const noexcept
+        -> bool final
+    {
+        return wallet_.SetDefaultFilterType(type);
     }
     auto SetFilterHeaderTip(
         const filter::Type type,

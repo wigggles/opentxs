@@ -25,6 +25,7 @@ extern "C" {
 
 #include "2_Factory.hpp"
 #include "internal/api/Api.hpp"
+#include "internal/api/client/Client.hpp"
 #include "internal/rpc/RPC.hpp"
 #include "opentxs/OT.hpp"
 #include "opentxs/Pimpl.hpp"
@@ -401,7 +402,7 @@ void Context::start_client(const Lock& lock, const ArgList& args) const
     auto merged_args = merge_arglist(args);
     const int next = client_.size();
     const auto instance = client_instance(next);
-    client_.emplace_back(opentxs::Factory::ClientManager(
+    client_.emplace_back(factory::ClientManager(
         *this,
         running_,
         merged_args,

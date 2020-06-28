@@ -13,6 +13,7 @@
 
 #include "blockchain/p2p/bitcoin/Message.hpp"
 #include "internal/blockchain/p2p/bitcoin/Bitcoin.hpp"
+#include "opentxs/Bytes.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/core/Data.hpp"
 
@@ -47,10 +48,10 @@ public:
 
     Tx(const api::client::Manager& api,
        const blockchain::Type network,
-       const Data& raw_tx) noexcept;
+       const ReadView transaction) noexcept;
     Tx(const api::client::Manager& api,
        std::unique_ptr<Header> header,
-       const Data& raw_tx) noexcept(false);
+       const ReadView transaction) noexcept(false);
 
     ~Tx() final = default;
 

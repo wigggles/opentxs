@@ -186,7 +186,7 @@ OPENTXS_EXPORT auto FilterToHeader(
     const api::Core& api,
     const ReadView filter,
     const ReadView previous = {}) noexcept -> OTData;
-auto Format(const Type chain, const Amount) noexcept -> std::string;
+auto Format(const Type chain, const opentxs::Amount) noexcept -> std::string;
 OPENTXS_EXPORT auto GetFilterParams(const filter::Type type) noexcept(false)
     -> FilterParams;
 OPENTXS_EXPORT

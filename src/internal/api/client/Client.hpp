@@ -6,6 +6,7 @@
 #pragma once
 
 #include <future>
+#include <memory>
 #include <string>
 #include <tuple>
 #include <utility>
@@ -23,6 +24,7 @@
 #include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/client/OTX.hpp"
 #include "opentxs/api/client/Pair.hpp"
+#include "opentxs/api/client/UI.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/UniqueQueue.hpp"
@@ -53,7 +55,16 @@ namespace internal
 struct BalanceTree;
 }  // namespace internal
 }  // namespace blockchain
+
+class Issuer;
+class ServerAction;
+class Workflow;
 }  // namespace client
+
+class Crypto;
+class Legacy;
+class Settings;
+class Wallet;
 }  // namespace api
 
 namespace blockchain
@@ -82,10 +93,19 @@ namespace socket
 {
 class Publish;
 }  // namespace socket
+
+class Context;
 }  // namespace zeromq
 }  // namespace network
 
+namespace proto
+{
+class Issuer;
+}  // namespace proto
+
+class Flag;
 class Identifier;
+class OTClient;
 class OTPayment;
 template <class T>
 class UniqueQueue;
@@ -148,6 +168,11 @@ struct Contacts : virtual public api::client::Contacts {
 };
 struct Manager : virtual public api::client::Manager,
                  virtual public api::internal::Core {
+    virtual auto ActivateUICallback(const Identifier& widget) const noexcept
+        -> void = 0;
+    virtual auto RegisterUICallback(
+        const Identifier& widget,
+        const SimpleCallback& cb) const noexcept -> void = 0;
     virtual void StartActivity() = 0;
     virtual void StartContacts() = 0;
 
@@ -179,4 +204,71 @@ struct Pair : virtual public opentxs::api::client::Pair {
 
     virtual ~Pair() = default;
 };
+struct UI : virtual public opentxs::api::client::UI {
+    virtual auto ActivateUICallback(const Identifier& widget) const noexcept
+        -> void = 0;
+    virtual auto RegisterUICallback(
+        const Identifier& widget,
+        const SimpleCallback& cb) const noexcept -> void = 0;
+
+    virtual ~UI() = default;
+};
 }  // namespace opentxs::api::client::internal
+
+namespace opentxs::factory
+{
+auto Activity(
+    const api::internal::Core& api,
+    const api::client::Contacts& contact) -> api::client::internal::Activity*;
+auto BlockchainAPI(
+    const api::client::internal::Manager& api,
+    const api::client::Activity& activity,
+    const api::client::Contacts& contacts,
+    const api::Legacy& legacy,
+    const std::string& dataFolder,
+    const ArgList& args) noexcept -> std::unique_ptr<api::client::Blockchain>;
+auto ClientManager(
+    const api::internal::Context& parent,
+    Flag& running,
+    const ArgList& args,
+    const api::Settings& config,
+    const api::Crypto& crypto,
+    const network::zeromq::Context& context,
+    const std::string& dataFolder,
+    const int instance) -> api::client::internal::Manager*;
+auto ContactAPI(const api::client::internal::Manager& api)
+    -> api::client::internal::Contacts*;
+auto FactoryAPIClient(const api::client::internal::Manager& api)
+    -> api::internal::Factory*;
+auto Issuer(
+    const api::Wallet& wallet,
+    const identifier::Nym& nymID,
+    const proto::Issuer& serialized) -> api::client::Issuer*;
+auto Issuer(
+    const api::Wallet& wallet,
+    const identifier::Nym& nymID,
+    const identifier::Nym& issuerID) -> api::client::Issuer*;
+auto OTX(
+    const Flag& running,
+    const api::client::internal::Manager& api,
+    OTClient& otclient,
+    const ContextLockCallback& lockCallback) -> api::client::OTX*;
+auto PairAPI(const Flag& running, const api::client::internal::Manager& client)
+    -> api::client::internal::Pair*;
+auto ServerAction(
+    const api::client::internal::Manager& api,
+    const ContextLockCallback& lockCallback) -> api::client::ServerAction*;
+auto UI(
+    const api::client::internal::Manager& api,
+    const Flag& running
+#if OT_QT
+    ,
+    const bool qt
+#endif
+    ) noexcept -> std::unique_ptr<api::client::internal::UI>;
+auto Wallet(const api::client::internal::Manager& client) -> api::Wallet*;
+auto Workflow(
+    const api::internal::Core& api,
+    const api::client::Activity& activity,
+    const api::client::Contacts& contact) -> api::client::Workflow*;
+}  // namespace opentxs::factory

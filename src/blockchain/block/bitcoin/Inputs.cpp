@@ -68,6 +68,24 @@ Inputs::Inputs(const Inputs& rhs) noexcept
 {
 }
 
+auto Inputs::AnyoneCanPay(const std::size_t index) noexcept -> bool
+{
+    auto& inputs = const_cast<InputList&>(inputs_);
+
+    try {
+        auto replace = InputList{};
+        replace.emplace_back(inputs.at(index).release());
+        inputs.swap(replace);
+        size_ = std::nullopt;
+
+        return true;
+    } catch (...) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid index").Flush();
+
+        return false;
+    }
+}
+
 auto Inputs::AssociatedLocalNyms(std::vector<OTNymID>& output) const noexcept
     -> void
 {
@@ -84,6 +102,20 @@ auto Inputs::AssociatedRemoteContacts(
         std::begin(inputs_), std::end(inputs_), [&](const auto& item) {
             item->AssociatedRemoteContacts(output);
         });
+}
+
+auto Inputs::AssociatePreviousOutput(
+    const std::size_t index,
+    const proto::BlockchainTransactionOutput& output) noexcept -> bool
+{
+    try {
+
+        return inputs_.at(index)->AssociatePreviousOutput(output);
+    } catch (...) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid index").Flush();
+
+        return false;
+    }
 }
 
 auto Inputs::CalculateSize(const bool normalized) const noexcept -> std::size_t
@@ -183,20 +215,27 @@ auto Inputs::NetBalanceChange(const identifier::Nym& nym) const noexcept
         });
 }
 
+auto Inputs::ReplaceScript(const std::size_t index) noexcept -> bool
+{
+    try {
+        size_ = std::nullopt;
+
+        return inputs_.at(index)->ReplaceScript();
+    } catch (...) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid index").Flush();
+
+        return false;
+    }
+}
+
 auto Inputs::serialize(const AllocateOutput destination, const bool normalize)
     const noexcept -> std::optional<std::size_t>
 {
     if (!destination) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid output allocator")
             .Flush();
-#ifndef _MSC_VER
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
-#endif
-        return {};
-#ifndef _MSC_VER
-#pragma GCC diagnostic pop
-#endif
+
+        return std::nullopt;
     }
 
     const auto size = CalculateSize(normalize);
@@ -205,14 +244,8 @@ auto Inputs::serialize(const AllocateOutput destination, const bool normalize)
     if (false == output.valid(size)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to allocate output bytes")
             .Flush();
-#ifndef _MSC_VER
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
-#endif
-        return {};
-#ifndef _MSC_VER
-#pragma GCC diagnostic pop
-#endif
+
+        return std::nullopt;
     }
 
     auto remaining{output.size()};
@@ -232,14 +265,8 @@ auto Inputs::serialize(const AllocateOutput destination, const bool normalize)
         if (false == bytes.has_value()) {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to serialize input")
                 .Flush();
-#ifndef _MSC_VER
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
-#endif
-            return {};
-#ifndef _MSC_VER
-#pragma GCC diagnostic pop
-#endif
+
+            return std::nullopt;
         }
 
         std::advance(it, bytes.value());

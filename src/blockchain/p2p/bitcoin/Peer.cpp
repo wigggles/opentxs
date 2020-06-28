@@ -161,6 +161,36 @@ Peer::Peer(
     init();
 }
 
+auto Peer::broadcast_transaction(zmq::Message& in) noexcept -> void
+{
+    const auto body = in.Body();
+
+    if (1 > body.size()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid command").Flush();
+
+        OT_FAIL;
+    }
+
+    auto& bytes = body.at(0);
+
+    {
+        auto raw = api_.Factory().Data(bytes);
+        LogOutput(OT_METHOD)(__FUNCTION__)(": ")(raw->asHex()).Flush();
+    }
+
+    auto pTx = std::unique_ptr<Message>{
+        factory::BitcoinP2PTx(api_, chain_, bytes.Bytes())};
+
+    if (false == bool(pTx)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to construct tx").Flush();
+
+        return;
+    }
+
+    const auto& tx = *pTx;
+    send(tx.Encode());
+}
+
 auto Peer::get_body_size(const zmq::Frame& header) const noexcept -> std::size_t
 {
     OT_ASSERT(HeaderType::Size() == header.size());
@@ -1164,6 +1194,9 @@ auto Peer::process_version(
                             (0 == services.count(p2p::Service::Limited));
 
     if (unsuitable) {
+        LogNormal("Peer ")(address_.Display())(
+            " does not advertise necessary services")
+            .Flush();
         disconnect();
 
         return;
@@ -1425,6 +1458,9 @@ auto Peer::start_handshake() noexcept -> void
         const auto status = Connected().wait_for(std::chrono::seconds(5));
 
         if (std::future_status::ready != status) {
+            LogNormal("Connection to peer ")(address_.Display())(
+                " timed out during handshake")
+                .Flush();
             disconnect();
 
             return;

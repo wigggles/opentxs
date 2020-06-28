@@ -164,10 +164,6 @@ public:
 
         return SharedPimpl<RowInterface>(next(lock));
     }
-    auto WidgetID() const noexcept -> OTIdentifier override
-    {
-        return widget_id_;
-    }
 
     ~List() override
     {
@@ -477,7 +473,6 @@ protected:
 
     List(
         const api::client::internal::Manager& api,
-        const network::zeromq::socket::Publish& publisher,
         const typename PrimaryID::interface_type& primaryID,
         const Identifier& widgetID,
 #if OT_QT
@@ -486,8 +481,9 @@ protected:
         const int columns = 0,
         const int startRow = 0,
 #endif  // OT_QT
-        const bool subnode = true) noexcept
-        : Widget(api, publisher, widgetID)
+        const bool subnode = true,
+        const SimpleCallback& cb = {}) noexcept
+        : Widget(api, widgetID, cb)
 #if OT_QT
         , enable_qt_(qt)
         , qt_roles_(roles)
@@ -513,11 +509,12 @@ protected:
         , startup_future_(startup_promise_.get_future())
     {
         OT_ASSERT(blank_p_);
+        OT_ASSERT(!(subnode && bool(cb)));
     }
     List(
         const api::client::internal::Manager& api,
-        const network::zeromq::socket::Publish& publisher,
-        const typename PrimaryID::interface_type& primaryID
+        const typename PrimaryID::interface_type& primaryID,
+        const SimpleCallback& cb
 #if OT_QT
         ,
         const bool qt,
@@ -528,7 +525,6 @@ protected:
         ) noexcept
         : List(
               api,
-              publisher,
               primaryID,
               Identifier::Random(),
 #if OT_QT
@@ -537,7 +533,8 @@ protected:
               columns,
               startRow,
 #endif  // OT_QT
-              false)
+              false,
+              cb)
     {
     }
 

@@ -16,7 +16,9 @@
 #include <iterator>
 #include <map>
 #include <memory>
+#include <optional>
 #include <random>
+#include <string_view>
 #include <utility>
 
 #include "core/Executor.hpp"
@@ -27,6 +29,7 @@
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/client/Manager.hpp"
+#include "opentxs/blockchain/block/bitcoin/Transaction.hpp"
 #include "opentxs/blockchain/p2p/Address.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -159,6 +162,8 @@ PeerManager::Jobs::Jobs(const api::client::Manager& api) noexcept
           api.ZeroMQ().PushSocket(zmq::socket::Socket::Direction::Bind))
     , heartbeat_(api.ZeroMQ().PublishSocket())
     , getblock_(api.ZeroMQ().PushSocket(zmq::socket::Socket::Direction::Bind))
+    , broadcast_transaction_(
+          api.ZeroMQ().PushSocket(zmq::socket::Socket::Direction::Bind))
     , endpoint_map_()
     , socket_map_({
           {Task::Getheaders, &getheaders_.get()},
@@ -166,6 +171,7 @@ PeerManager::Jobs::Jobs(const api::client::Manager& api) noexcept
           {Task::Getcfilters, &getcfilters_.get()},
           {Task::Heartbeat, &heartbeat_.get()},
           {Task::Getblock, &getblock_.get()},
+          {Task::BroadcastTransaction, &broadcast_transaction_.get()},
       })
 {
     // NOTE endpoint_map_ should never be modified after construction
@@ -174,6 +180,7 @@ PeerManager::Jobs::Jobs(const api::client::Manager& api) noexcept
     listen(Task::Getcfilters, getcfilters_);
     listen(Task::Heartbeat, heartbeat_);
     listen(Task::Getblock, getblock_);
+    listen(Task::BroadcastTransaction, broadcast_transaction_);
 }
 
 PeerManager::Peers::Peers(
@@ -604,6 +611,25 @@ auto PeerManager::AddPeer(const p2p::Address& address) const noexcept -> bool
     }
 
     return false;
+}
+
+auto PeerManager::BroadcastTransaction(
+    const block::bitcoin::Transaction& tx) const noexcept -> bool
+{
+    if (false == running_.get()) { return false; }
+
+    if (0 == peers_.Count()) { return false; }
+
+    auto bytes = Space{};
+
+    if (false == tx.Serialize(writer(bytes))) { return false; }
+
+    const auto view = reader(bytes);
+    auto work = jobs_.Work(Task::BroadcastTransaction);
+    work->AddFrame(view.data(), view.size());
+    jobs_.Dispatch(work);
+
+    return true;
 }
 
 auto PeerManager::Connect() noexcept -> bool

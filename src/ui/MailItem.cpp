@@ -27,7 +27,6 @@ namespace opentxs::factory
 auto MailItem(
     const ui::implementation::ActivityThreadInternalInterface& parent,
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const identifier::Nym& nymID,
     const ui::implementation::ActivityThreadRowID& rowID,
     const ui::implementation::ActivityThreadSortKey& sortKey,
@@ -39,21 +38,12 @@ auto MailItem(
     using ReturnType = ui::implementation::MailItem;
 
     return std::make_shared<ReturnType>(
-        parent,
-        api,
-        publisher,
-        nymID,
-        rowID,
-        sortKey,
-        custom,
-        loading,
-        pending);
+        parent, api, nymID, rowID, sortKey, custom, loading, pending);
 }
 
 auto MailItem(
     const ui::implementation::ActivityThreadInternalInterface& parent,
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const identifier::Nym& nymID,
     const ui::implementation::ActivityThreadRowID& rowID,
     const ui::implementation::ActivityThreadSortKey& sortKey,
@@ -63,7 +53,7 @@ auto MailItem(
     using ReturnType = ui::implementation::MailItem;
 
     return std::make_shared<ReturnType>(
-        parent, api, publisher, nymID, rowID, sortKey, custom);
+        parent, api, nymID, rowID, sortKey, custom);
 }
 }  // namespace opentxs::factory
 
@@ -72,7 +62,6 @@ namespace opentxs::ui::implementation
 MailItem::MailItem(
     const ActivityThreadInternalInterface& parent,
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const identifier::Nym& nymID,
     const ActivityThreadRowID& rowID,
     const ActivityThreadSortKey& sortKey,
@@ -82,7 +71,6 @@ MailItem::MailItem(
     : ActivityThreadItem(
           parent,
           api,
-          publisher,
           nymID,
           rowID,
           sortKey,
@@ -98,21 +86,11 @@ MailItem::MailItem(
 MailItem::MailItem(
     const ActivityThreadInternalInterface& parent,
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const identifier::Nym& nymID,
     const ActivityThreadRowID& rowID,
     const ActivityThreadSortKey& sortKey,
     CustomData& custom) noexcept
-    : MailItem(
-          parent,
-          api,
-          publisher,
-          nymID,
-          rowID,
-          sortKey,
-          custom,
-          true,
-          false)
+    : MailItem(parent, api, nymID, rowID, sortKey, custom, true, false)
 {
     switch (box_) {
         case StorageBox::MAILINBOX:

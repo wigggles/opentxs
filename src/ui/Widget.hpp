@@ -12,7 +12,9 @@
 #include <utility>
 #include <vector>
 
+#include "internal/api/client/Client.hpp"
 #include "internal/ui/UI.hpp"
+#include "opentxs/Types.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
@@ -116,8 +118,11 @@ public:
         auto operator=(const MessageProcessor&) -> MessageProcessor& = delete;
     };
 
-    void SetCallback(ui::Widget::Callback cb) const noexcept final;
-    auto WidgetID() const noexcept -> OTIdentifier override;
+    void SetCallback(SimpleCallback cb) const noexcept final
+    {
+        api_.RegisterUICallback(WidgetID(), cb);
+    }
+    auto WidgetID() const noexcept -> OTIdentifier final { return widget_id_; }
 
     ~Widget() override = default;
 
@@ -126,26 +131,20 @@ protected:
     using ListenerDefinitions = std::vector<ListenerDefinition>;
 
     const api::client::internal::Manager& api_;
-    const network::zeromq::socket::Publish& publisher_;
     const OTIdentifier widget_id_;
 
     virtual void setup_listeners(
         const ListenerDefinitions& definitions) noexcept;
-    void UpdateNotify() const noexcept;
+    void UpdateNotify() const noexcept { api_.ActivateUICallback(WidgetID()); }
 
     Widget(
         const api::client::internal::Manager& api,
-        const network::zeromq::socket::Publish& publisher,
-        const Identifier& id) noexcept;
-    Widget(
-        const api::client::internal::Manager& api,
-        const network::zeromq::socket::Publish& publisher) noexcept;
+        const Identifier& id,
+        const SimpleCallback& cb = {}) noexcept;
 
 private:
     std::vector<OTZMQListenCallback> callbacks_;
     std::vector<OTZMQSubscribeSocket> listeners_;
-    mutable std::mutex cb_lock_;
-    mutable ui::Widget::Callback cb_;
 
     Widget() = delete;
     Widget(const Widget&) = delete;

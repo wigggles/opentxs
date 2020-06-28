@@ -117,7 +117,6 @@ public:
     ProfileSection(
         const ProfileInternalInterface& parent,
         const api::client::internal::Manager& api,
-        const network::zeromq::socket::Publish& publisher,
         const ProfileRowID& rowID,
         const ProfileSortKey& key,
         CustomData& custom

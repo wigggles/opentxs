@@ -33,6 +33,7 @@
 #include "opentxs/blockchain/block/bitcoin/Output.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
+#include "opentxs/protobuf/BlockchainTransactionProposal.pb.h"
 #include "util/LMDB.hpp"
 
 namespace opentxs
@@ -64,10 +65,18 @@ class Transaction;
 }  // namespace block
 }  // namespace blockchain
 
+namespace identifier
+{
+class Nym;
+}  // namespace identifier
+
 namespace proto
 {
 class BlockchainTransactionOutput;
+class BlockchainTransactionProposal;
 }  // namespace proto
+
+class Identifier;
 }  // namespace opentxs
 
 namespace opentxs::blockchain::database
@@ -87,6 +96,7 @@ public:
     using Patterns = Parent::Patterns;
     using MatchingIndices = Parent::MatchingIndices;
     using UTXO = Parent::UTXO;
+    using KeyID = api::client::blockchain::Key;
 
     auto AddConfirmedTransaction(
         const blockchain::Type chain,
@@ -97,11 +107,19 @@ public:
         const block::Position& block,
         const std::vector<std::uint32_t> outputIndices,
         const block::bitcoin::Transaction& transaction) const noexcept -> bool;
-    auto LookupContact(const Data& pubkeyHash) const noexcept
-        -> std::set<OTIdentifier>
-    {
-        return common_.LookupContact(pubkeyHash);
-    }
+    auto AddOutgoingTransaction(
+        const blockchain::Type chain,
+        const Identifier& proposalID,
+        const proto::BlockchainTransactionProposal& proposal,
+        const block::bitcoin::Transaction& transaction) const noexcept -> bool;
+    auto AddProposal(
+        const Identifier& id,
+        const proto::BlockchainTransactionProposal& tx) const noexcept -> bool;
+    auto CancelProposal(const Identifier& id) const noexcept -> bool;
+    auto CompletedProposals() const noexcept -> std::set<OTIdentifier>;
+    auto DeleteProposal(const Identifier& id) const noexcept -> bool;
+    auto ForgetProposals(const std::set<OTIdentifier>& ids) const noexcept
+        -> bool;
     auto GetBalance() const noexcept -> Balance;
     auto GetPatterns(
         const NodeID& balanceNode,
@@ -115,11 +133,27 @@ public:
         const FilterType type,
         const ReadView blockID,
         const VersionNumber version) const noexcept -> Patterns;
+    auto LoadProposal(const Identifier& id) const noexcept
+        -> std::optional<proto::BlockchainTransactionProposal>;
+    auto LoadProposals() const noexcept
+        -> std::vector<proto::BlockchainTransactionProposal>;
+    auto LookupContact(const Data& pubkeyHash) const noexcept
+        -> std::set<OTIdentifier>
+    {
+        return common_.LookupContact(pubkeyHash);
+    }
+    auto ReleaseChangeKey(const Identifier& proposal, const KeyID key)
+        const noexcept -> bool;
     auto ReorgTo(
         const NodeID& balanceNode,
         const Subchain subchain,
         const FilterType type,
         const std::vector<block::Position>& reorg) const noexcept -> bool;
+    auto ReserveChangeKey(const Identifier& proposal) const noexcept
+        -> std::optional<KeyID>;
+    auto ReserveUTXO(const Identifier& proposal) const noexcept
+        -> std::optional<UTXO>;
+    auto SetDefaultFilterType(const FilterType type) const noexcept -> bool;
     auto SubchainAddElements(
         const NodeID& balanceNode,
         const Subchain subchain,
@@ -176,7 +210,7 @@ public:
         const blockchain::Type chain) noexcept;
 
 private:
-    enum class State : std::uint8_t {
+    enum class TxoState : std::uint8_t {
         UnconfirmedNew,
         UnconfirmedSpend,
         ConfirmedNew,
@@ -199,11 +233,14 @@ private:
     using MatchIndex = std::map<block::pHash, IDSet>;
     using OutputMap = std::map<
         block::bitcoin::Outpoint,
-        std::tuple<State, block::Position, proto::BlockchainTransactionOutput>>;
+        std::tuple<
+            TxoState,
+            block::Position,
+            proto::BlockchainTransactionOutput>>;
     using OutputPositionIndex =
         std::map<block::Position, std::vector<block::bitcoin::Outpoint>>;
     using OutputStateIndex =
-        std::map<State, std::vector<block::bitcoin::Outpoint>>;
+        std::map<TxoState, std::vector<block::bitcoin::Outpoint>>;
     using OutputSubchainIndex =
         std::map<pSubchainID, std::vector<block::bitcoin::Outpoint>>;
     using TransactionBlockMap =
@@ -212,11 +249,19 @@ private:
         std::map<block::pHash, std::vector<block::pTxid>>;
     using TransactionHistory =
         std::map<block::Height, std::vector<block::pTxid>>;
+    using ProposalMap =
+        std::map<OTIdentifier, proto::BlockchainTransactionProposal>;
+    using ProposalOutputMap =
+        std::map<OTIdentifier, std::vector<block::bitcoin::Outpoint>>;
+    using OutputProposalMap = std::map<block::bitcoin::Outpoint, OTIdentifier>;
+    using FinishedProposals = std::set<OTIdentifier>;
+    using ChangeKeyMap = std::map<OTIdentifier, std::vector<KeyID>>;
 
     const api::client::Manager& api_;
     const api::client::internal::Blockchain& blockchain_;
     const Common& common_;
     const blockchain::Type chain_;
+    const FilterType default_filter_type_;
     mutable std::mutex lock_;
     mutable PatternMap patterns_;
     mutable SubchainPatternIndex subchain_pattern_index_;
@@ -232,13 +277,30 @@ private:
     mutable TransactionBlockMap tx_to_block_;
     mutable BlockTransactionMap block_to_tx_;
     mutable TransactionHistory tx_history_;
+    mutable ProposalMap proposals_;
+    mutable ProposalOutputMap proposal_spent_outpoints_;
+    mutable ProposalOutputMap proposal_created_outpoints_;
+    mutable OutputProposalMap outpoint_proposal_;
+    mutable FinishedProposals finished_proposals_;  // NOTE don't move to lmdb
+    mutable ChangeKeyMap change_keys_;
+
+    static auto owns(
+        const identifier::Nym& spender,
+        proto::BlockchainTransactionOutput) noexcept -> bool;
 
     auto belongs_to(
         const Lock& lock,
         const block::bitcoin::Outpoint& id,
         const SubchainID& subchain) const noexcept -> bool;
-    auto effective_position(const State state, const block::Position& position)
-        const noexcept -> const block::Position&;
+    auto check_proposals(
+        const Lock& lock,
+        const block::bitcoin::Outpoint& outpoint,
+        const block::Position& block,
+        const block::Txid& txid) const noexcept -> bool;
+    auto effective_position(
+        const TxoState state,
+        const block::Position& position) const noexcept
+        -> const block::Position&;
     auto get_balance(const Lock& lock) const noexcept -> Balance;
     auto get_patterns(
         const Lock& lock,
@@ -269,21 +331,27 @@ private:
 
         return output;
     }
+    auto load_proposal(const Lock& lock, const Identifier& id) const noexcept
+        -> std::optional<proto::BlockchainTransactionProposal>;
 
     auto add_transaction(
         const Lock& lock,
         const blockchain::Type chain,
         const block::Position& block,
         const block::bitcoin::Transaction& transaction) const noexcept -> bool;
+    auto associate_outpoint(
+        const Lock& lock,
+        const block::bitcoin::Outpoint& outpoint,
+        const KeyID& key) const noexcept -> bool;
     auto change_state(
         const Lock& lock,
         const block::bitcoin::Outpoint& id,
-        const State newState,
+        const TxoState newState,
         const block::Position newPosition) const noexcept -> bool;
     auto create_state(
         const Lock& lock,
         const block::bitcoin::Outpoint& id,
-        const State state,
+        const TxoState state,
         const block::Position position,
         const block::bitcoin::Output& output) const noexcept -> bool;
     auto find_output(const Lock& lock, const block::bitcoin::Outpoint& id)
@@ -294,6 +362,11 @@ private:
         const Lock& lock,
         const SubchainID& subchain,
         const block::Position& position) const noexcept -> bool;
+    auto subchain_index_version(
+        const Lock& lock,
+        const NodeID& balanceNode,
+        const Subchain subchain,
+        const FilterType type) const noexcept -> VersionNumber;
     auto subchain_version_index(
         const NodeID& balanceNode,
         const Subchain subchain,
@@ -303,5 +376,9 @@ private:
         const Subchain subchain,
         const FilterType type,
         const VersionNumber version) const noexcept -> pSubchainID;
+    auto subchain_id(
+        const Lock& lock,
+        const NodeID& balanceNode,
+        const Subchain subchain) const noexcept -> pSubchainID;
 };
 }  // namespace opentxs::blockchain::database

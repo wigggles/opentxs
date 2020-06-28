@@ -46,27 +46,24 @@ namespace opentxs::factory
 {
 auto AccountActivityModel(
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const identifier::Nym& nymID,
-    const Identifier& accountID
+    const Identifier& accountID,
 #if OT_QT
-    ,
-    const bool qt
+    const bool qt,
 #endif
-    ) noexcept -> std::unique_ptr<ui::implementation::AccountActivity>
+    const SimpleCallback& cb) noexcept
+    -> std::unique_ptr<ui::implementation::AccountActivity>
 {
     using ReturnType = ui::implementation::CustodialAccountActivity;
 
     return std::make_unique<ReturnType>(
         api,
-        publisher,
         nymID,
-        accountID
+        accountID,
 #if OT_QT
-        ,
-        qt
+        qt,
 #endif
-    );
+        cb);
 }
 }  // namespace opentxs::factory
 
@@ -74,20 +71,18 @@ namespace opentxs::ui::implementation
 {
 CustodialAccountActivity::CustodialAccountActivity(
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const identifier::Nym& nymID,
-    const Identifier& accountID
+    const Identifier& accountID,
 #if OT_QT
-    ,
-    const bool qt
+    const bool qt,
 #endif
-    ) noexcept
+    const SimpleCallback& cb) noexcept
     : AccountActivity(
           api,
-          publisher,
           nymID,
           accountID,
           AccountType::Custodial,
+          cb,
 #if OT_QT
           qt,
 #endif

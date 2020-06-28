@@ -13,8 +13,8 @@
 #include <future>
 #include <memory>
 
-#include "blockchain/client/HDStateData.hpp"
-#include "core/Executor.hpp"
+#include "blockchain/client/wallet/HDStateData.hpp"
+#include "core/Worker.hpp"
 #include "internal/api/client/Client.hpp"
 #include "internal/blockchain/Blockchain.hpp"
 #include "internal/blockchain/client/Client.hpp"
@@ -102,7 +102,7 @@ Wallet::Wallet(
     const internal::Network& parent,
     const Type chain,
     const std::string& shutdown) noexcept
-    : Executor(api)
+    : Worker(api, std::chrono::milliseconds(1))
     , parent_(parent)
     , db_(parent_.DB())
     , blockchain_api_(blockchain)
@@ -111,6 +111,7 @@ Wallet::Wallet(
     , init_(init_promise_.get_future())
     , socket_(api_.ZeroMQ().PushSocket(zmq::socket::Socket::Direction::Connect))
     , accounts_(api, blockchain_api_, parent_, db_, socket_, chain_)
+    , proposals_(api, parent_, db_, chain_)
 {
     auto zmq = socket_->Start(blockchain.ThreadPool().Endpoint());
 
@@ -124,10 +125,20 @@ Wallet::Wallet(
     });
 }
 
+auto Wallet::ConstructTransaction(
+    const proto::BlockchainTransactionProposal& tx) const noexcept
+    -> std::future<block::pTxid>
+{
+    auto output = proposals_.Add(tx);
+    trigger();
+
+    return output;
+}
+
 auto Wallet::Init() noexcept -> void
 {
     init_promise_.set_value();
-    Trigger();
+    trigger();
 }
 
 auto Wallet::pipeline(const zmq::Message& in) noexcept -> void
@@ -149,13 +160,13 @@ auto Wallet::pipeline(const zmq::Message& in) noexcept -> void
 
     switch (work) {
         case Work::filter: {
-            Trigger();
+            trigger();
         } break;
         case Work::nym: {
             OT_ASSERT(0 < body.size());
 
             accounts_.Add(body.at(0));
-            Trigger();
+            trigger();
         } break;
         case Work::reorg: {
             process_reorg(in);
@@ -192,7 +203,7 @@ auto Wallet::process_reorg(const zmq::Message& in) noexcept -> void
         body.at(2).as<block::Height>(),
         api_.Factory().Data(body.at(1).Bytes())};
     accounts_.Reorg(parent);
-    Trigger();
+    trigger();
 }
 
 auto Wallet::shutdown(std::promise<void>& promise) noexcept -> void
@@ -200,11 +211,6 @@ auto Wallet::shutdown(std::promise<void>& promise) noexcept -> void
     init_.get();
 
     if (running_->Off()) {
-        try {
-            state_machine_.set_value(false);
-        } catch (...) {
-        }
-
         try {
             promise.set_value();
         } catch (...) {
@@ -214,17 +220,9 @@ auto Wallet::shutdown(std::promise<void>& promise) noexcept -> void
 
 auto Wallet::state_machine() noexcept -> void
 {
-    static const auto rateLimit = std::chrono::milliseconds{1};
-
-    auto repeat = accounts_.state_machine();
-    Sleep(rateLimit);
-
-    if (repeat) { Sleep(rateLimit); }
-
-    try {
-        state_machine_.set_value(repeat);
-    } catch (...) {
-    }
+    auto output = accounts_.state_machine();
+    output |= proposals_.Run();
+    repeat(output);
 }
 
 Wallet::~Wallet() { Shutdown().get(); }

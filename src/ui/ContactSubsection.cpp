@@ -29,7 +29,6 @@ namespace opentxs::factory
 auto ContactSubsectionWidget(
     const ui::implementation::ContactSectionInternalInterface& parent,
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const ui::implementation::ContactSectionRowID& rowID,
     const ui::implementation::ContactSectionSortKey& key,
     ui::implementation::CustomData& custom
@@ -44,7 +43,6 @@ auto ContactSubsectionWidget(
     return std::make_shared<ReturnType>(
         parent,
         api,
-        publisher,
         rowID,
         key,
         custom
@@ -61,7 +59,6 @@ namespace opentxs::ui::implementation
 ContactSubsection::ContactSubsection(
     const ContactSectionInternalInterface& parent,
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const ContactSectionRowID& rowID,
     const ContactSectionSortKey& key,
     CustomData& custom
@@ -72,7 +69,6 @@ ContactSubsection::ContactSubsection(
     ) noexcept
     : Combined(
           api,
-          publisher,
           Identifier::Factory(parent.ContactID()),
           parent.WidgetID(),
           parent,
@@ -102,8 +98,7 @@ auto ContactSubsection::construct_row(
 
     names_.emplace(id, index);
     const auto [it, added] = items_[index].emplace(
-        id,
-        factory::ContactItemWidget(*this, api_, publisher_, id, index, custom));
+        id, factory::ContactItemWidget(*this, api_, id, index, custom));
 
     return it->second.get();
 }

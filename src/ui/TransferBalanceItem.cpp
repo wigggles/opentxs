@@ -41,21 +41,12 @@ namespace opentxs::ui::implementation
 TransferBalanceItem::TransferBalanceItem(
     const AccountActivityInternalInterface& parent,
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const AccountActivityRowID& rowID,
     const AccountActivitySortKey& sortKey,
     CustomData& custom,
     const identifier::Nym& nymID,
     const Identifier& accountID) noexcept
-    : BalanceItem(
-          parent,
-          api,
-          publisher,
-          rowID,
-          sortKey,
-          custom,
-          nymID,
-          accountID)
+    : BalanceItem(parent, api, rowID, sortKey, custom, nymID, accountID)
     , transfer_()
 {
     OT_ASSERT(2 == custom.size())

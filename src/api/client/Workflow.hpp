@@ -63,13 +63,11 @@ namespace proto
 {
 class PaymentWorkflow;
 }  // namespace proto
-
-class Factory;
 }  // namespace opentxs
 
 namespace opentxs::api::client::implementation
 {
-class Workflow final : opentxs::api::client::Workflow, Lockable
+class Workflow final : public opentxs::api::client::Workflow, Lockable
 {
 public:
     auto AbortTransfer(
@@ -175,11 +173,14 @@ public:
         const Identifier& accountID) const -> std::vector<OTIdentifier> final;
     auto WriteCheque(const opentxs::Cheque& cheque) const -> OTIdentifier final;
 
+    Workflow(
+        const api::internal::Core& api,
+        const Activity& activity,
+        const Contacts& contact);
+
     ~Workflow() final = default;
 
 private:
-    friend opentxs::Factory;
-
     struct ProtobufVersions {
         VersionNumber event_;
         VersionNumber source_;
@@ -385,10 +386,6 @@ private:
         const Time time,
         const std::string& memo) const;
 
-    Workflow(
-        const api::internal::Core& api,
-        const Activity& activity,
-        const Contacts& contact);
     Workflow() = delete;
     Workflow(const Workflow&) = delete;
     Workflow(Workflow&&) = delete;

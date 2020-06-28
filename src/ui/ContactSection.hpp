@@ -103,7 +103,6 @@ public:
     ContactSection(
         const ContactInternalInterface& parent,
         const api::client::internal::Manager& api,
-        const network::zeromq::socket::Publish& publisher,
         const ContactRowID& rowID,
         const ContactSortKey& key,
         CustomData& custom

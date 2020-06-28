@@ -13,10 +13,12 @@ set(
   filteroracle/HeaderQueue.cpp
   wallet/Account.cpp
   wallet/Accounts.cpp
+  wallet/BitcoinTransactionBuilder.cpp
+  wallet/HDStateData.cpp
+  wallet/Proposals.cpp
   BlockOracle.cpp
   Client.cpp
   FilterOracle.cpp
-  HDStateData.cpp
   HeaderOracle.cpp
   Network.cpp
   PeerManager.cpp
@@ -35,9 +37,9 @@ set(
   ${cxx-install-headers}
   "${opentxs_SOURCE_DIR}/src/internal/blockchain/client/Client.hpp"
   filteroracle/FilterCheckpoints.hpp
+  wallet/HDStateData.hpp
   BlockOracle.hpp
   FilterOracle.hpp
-  HDStateData.hpp
   HeaderOracle.hpp
   Network.hpp
   PeerManager.hpp

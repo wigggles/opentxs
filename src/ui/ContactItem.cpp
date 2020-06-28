@@ -16,7 +16,6 @@ namespace opentxs::factory
 auto ContactItemWidget(
     const ui::implementation::ContactSubsectionInternalInterface& parent,
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const ui::implementation::ContactSubsectionRowID& rowID,
     const ui::implementation::ContactSubsectionSortKey& sortKey,
     ui::implementation::CustomData& custom) noexcept
@@ -24,8 +23,7 @@ auto ContactItemWidget(
 {
     using ReturnType = ui::implementation::ContactItem;
 
-    return std::make_shared<ReturnType>(
-        parent, api, publisher, rowID, sortKey, custom);
+    return std::make_shared<ReturnType>(parent, api, rowID, sortKey, custom);
 }
 }  // namespace opentxs::factory
 
@@ -34,11 +32,10 @@ namespace opentxs::ui::implementation
 ContactItem::ContactItem(
     const ContactSubsectionInternalInterface& parent,
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const ContactSubsectionRowID& rowID,
     const ContactSubsectionSortKey& sortKey,
     CustomData& custom) noexcept
-    : ContactItemRow(parent, api, publisher, rowID, true)
+    : ContactItemRow(parent, api, rowID, true)
     , item_{new opentxs::ContactItem(
           extract_custom<opentxs::ContactItem>(custom))}
 {

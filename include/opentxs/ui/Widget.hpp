@@ -11,6 +11,7 @@
 #include <string>
 
 #include "opentxs/core/Identifier.hpp"
+#include "opentxs/Types.hpp"
 
 #ifdef SWIG
 // clang-format off
@@ -33,9 +34,8 @@ namespace ui
 class Widget
 {
 public:
-    using Callback = std::function<void()>;
-
-    OPENTXS_EXPORT virtual void SetCallback(Callback cb) const noexcept = 0;
+    OPENTXS_EXPORT virtual void SetCallback(
+        SimpleCallback cb) const noexcept = 0;
     OPENTXS_EXPORT virtual OTIdentifier WidgetID() const noexcept = 0;
 
     OPENTXS_EXPORT virtual ~Widget() = default;

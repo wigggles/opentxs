@@ -53,18 +53,23 @@ class Context;
 }  // namespace zeromq
 }  // namespace network
 
-class Factory;
 class Flag;
+class Identifier;
 class OTAPI_Exec;
 class OT_API;
 }  // namespace opentxs
 
 namespace opentxs::api::client::implementation
 {
-class Manager final : opentxs::api::client::internal::Manager,
-                      api::implementation::Core
+class Manager final : public opentxs::api::client::internal::Manager,
+                      public api::implementation::Core
 {
 public:
+    auto ActivateUICallback(const Identifier& widget) const noexcept
+        -> void final
+    {
+        ui_->ActivateUICallback(widget);
+    }
     auto Activity() const -> const api::client::Activity& final;
     auto Blockchain() const -> const api::client::Blockchain& final;
     auto Contacts() const -> const api::client::Contacts& final;
@@ -75,6 +80,11 @@ public:
     auto OTAPI(const std::string& wallet = "") const -> const OT_API& final;
     auto OTX() const -> const client::OTX& final;
     auto Pair() const -> const api::client::Pair& final;
+    auto RegisterUICallback(const Identifier& widget, const SimpleCallback& cb)
+        const noexcept -> void final
+    {
+        ui_->RegisterUICallback(widget, cb);
+    }
     auto ServerAction() const -> const client::ServerAction& final;
     auto UI() const -> const api::client::UI& final;
     auto Workflow() const -> const client::Workflow& final;
@@ -82,30 +92,6 @@ public:
 
     void StartActivity() final;
     void StartContacts() final;
-
-    ~Manager() final;
-
-private:
-    friend opentxs::Factory;
-
-    std::unique_ptr<api::network::ZMQ> zeromq_;
-    std::unique_ptr<api::client::internal::Contacts> contacts_;
-    std::unique_ptr<api::client::internal::Activity> activity_;
-    std::unique_ptr<api::client::Blockchain> blockchain_;
-    std::unique_ptr<api::client::Workflow> workflow_;
-    std::unique_ptr<OT_API> ot_api_;
-    std::unique_ptr<OTAPI_Exec> otapi_exec_;
-    std::unique_ptr<api::client::ServerAction> server_action_;
-    std::unique_ptr<api::client::OTX> otx_;
-    std::unique_ptr<api::client::internal::Pair> pair_;
-    std::unique_ptr<api::client::UI> ui_;
-    mutable std::mutex map_lock_;
-    mutable std::map<ContextID, std::recursive_mutex> context_locks_;
-
-    auto get_lock(const ContextID context) const -> std::recursive_mutex&;
-
-    void Cleanup();
-    void Init();
 
     Manager(
         const api::internal::Context& parent,
@@ -116,6 +102,29 @@ private:
         const opentxs::network::zeromq::Context& context,
         const std::string& dataFolder,
         const int instance);
+
+    ~Manager() final;
+
+private:
+    std::unique_ptr<network::ZMQ> zeromq_;
+    std::unique_ptr<internal::Contacts> contacts_;
+    std::unique_ptr<internal::Activity> activity_;
+    std::unique_ptr<client::Blockchain> blockchain_;
+    std::unique_ptr<client::Workflow> workflow_;
+    std::unique_ptr<OT_API> ot_api_;
+    std::unique_ptr<OTAPI_Exec> otapi_exec_;
+    std::unique_ptr<client::ServerAction> server_action_;
+    std::unique_ptr<client::OTX> otx_;
+    std::unique_ptr<internal::Pair> pair_;
+    std::unique_ptr<internal::UI> ui_;
+    mutable std::mutex map_lock_;
+    mutable std::map<ContextID, std::recursive_mutex> context_locks_;
+
+    auto get_lock(const ContextID context) const -> std::recursive_mutex&;
+
+    void Cleanup();
+    void Init();
+
     Manager() = delete;
     Manager(const Manager&) = delete;
     Manager(Manager&&) = delete;

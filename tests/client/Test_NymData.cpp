@@ -124,7 +124,6 @@ TEST_F(Test_NymData, asPublicNym)
     EXPECT_TRUE(credentialIndex.IsInitialized());
 }
 
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 TEST_F(Test_NymData, AddPaymentCode)
 {
     auto added = nymData_.AddPaymentCode(
@@ -135,7 +134,6 @@ TEST_F(Test_NymData, AddPaymentCode)
         paymentCode, ot::proto::CITEMTYPE_USD, false, false, reason_);
     EXPECT_TRUE(added);
 }
-#endif
 
 TEST_F(Test_NymData, AddPhoneNumber)
 {
@@ -356,7 +354,6 @@ TEST_F(Test_NymData, Nym)
     EXPECT_STREQ("testNym", nymData_.Nym().Name().c_str());
 }
 
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 TEST_F(Test_NymData, PaymentCode)
 {
     auto added = nymData_.AddPaymentCode(
@@ -370,7 +367,6 @@ TEST_F(Test_NymData, PaymentCode)
     paymentcode = nymData_.PaymentCode(ot::proto::CITEMTYPE_USD);
     EXPECT_TRUE(paymentcode.empty());
 }
-#endif
 
 TEST_F(Test_NymData, PhoneNumbers)
 {

@@ -663,7 +663,7 @@ struct UnitListItem : virtual public Row, virtual public ui::UnitListItem {
 namespace blank
 {
 struct Widget : virtual public ui::Widget {
-    void SetCallback(Callback cb) const noexcept final {}
+    void SetCallback(SimpleCallback) const noexcept final {}
     auto WidgetID() const noexcept -> OTIdentifier override
     {
         return Identifier::Factory();
@@ -1042,14 +1042,13 @@ namespace opentxs::factory
 {
 auto AccountActivityModel(
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const identifier::Nym& nymID,
-    const opentxs::Identifier& accountID
+    const opentxs::Identifier& accountID,
 #if OT_QT
-    ,
-    const bool qt
+    const bool qt,
 #endif
-    ) noexcept -> std::unique_ptr<ui::implementation::AccountActivity>;
+    const SimpleCallback& cb) noexcept
+    -> std::unique_ptr<ui::implementation::AccountActivity>;
 #if OT_QT
 auto AccountActivityQtModel(
     ui::implementation::AccountActivity& parent) noexcept
@@ -1058,20 +1057,18 @@ auto AccountActivityQtModel(
 auto AccountListItem(
     const ui::implementation::AccountListInternalInterface& parent,
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const ui::implementation::AccountListRowID& rowID,
     const ui::implementation::AccountListSortKey& sortKey,
     ui::implementation::CustomData& custom) noexcept
     -> std::shared_ptr<ui::implementation::AccountListRowInternal>;
 auto AccountListModel(
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
-    const identifier::Nym& nymID
+    const identifier::Nym& nymID,
 #if OT_QT
-    ,
-    const bool qt
+    const bool qt,
 #endif
-    ) noexcept -> std::unique_ptr<ui::implementation::AccountList>;
+    const SimpleCallback& cb) noexcept
+    -> std::unique_ptr<ui::implementation::AccountList>;
 #if OT_QT
 auto AccountListQtModel(ui::implementation::AccountList& parent) noexcept
     -> std::unique_ptr<ui::AccountListQt>;
@@ -1079,21 +1076,19 @@ auto AccountListQtModel(ui::implementation::AccountList& parent) noexcept
 auto AccountSummaryItem(
     const ui::implementation::IssuerItemInternalInterface& parent,
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const ui::implementation::IssuerItemRowID& rowID,
     const ui::implementation::IssuerItemSortKey& sortKey,
     ui::implementation::CustomData& custom) noexcept
     -> std::shared_ptr<ui::implementation::IssuerItemRowInternal>;
 auto AccountSummaryModel(
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const identifier::Nym& nymID,
-    const proto::ContactItemType currency
+    const proto::ContactItemType currency,
 #if OT_QT
-    ,
-    const bool qt
+    const bool qt,
 #endif
-    ) noexcept -> std::unique_ptr<ui::implementation::AccountSummary>;
+    const SimpleCallback& cb) noexcept
+    -> std::unique_ptr<ui::implementation::AccountSummary>;
 #if OT_QT
 auto AccountSummaryQtModel(ui::implementation::AccountSummary& parent) noexcept
     -> std::unique_ptr<ui::AccountSummaryQt>;
@@ -1101,7 +1096,6 @@ auto AccountSummaryQtModel(ui::implementation::AccountSummary& parent) noexcept
 auto ActivitySummaryItem(
     const ui::implementation::ActivitySummaryInternalInterface& parent,
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const identifier::Nym& nymID,
     const ui::implementation::ActivitySummaryRowID& rowID,
     const ui::implementation::ActivitySummarySortKey& sortKey,
@@ -1110,14 +1104,13 @@ auto ActivitySummaryItem(
     -> std::shared_ptr<ui::implementation::ActivitySummaryRowInternal>;
 auto ActivitySummaryModel(
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const Flag& running,
-    const identifier::Nym& nymID
+    const identifier::Nym& nymID,
 #if OT_QT
-    ,
-    const bool qt
+    const bool qt,
 #endif
-    ) noexcept -> std::unique_ptr<ui::implementation::ActivitySummary>;
+    const SimpleCallback& cb) noexcept
+    -> std::unique_ptr<ui::implementation::ActivitySummary>;
 #if OT_QT
 auto ActivitySummaryQtModel(
     ui::implementation::ActivitySummary& parent) noexcept
@@ -1125,14 +1118,13 @@ auto ActivitySummaryQtModel(
 #endif
 auto ActivityThreadModel(
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const identifier::Nym& nymID,
-    const opentxs::Identifier& threadID
+    const opentxs::Identifier& threadID,
 #if OT_QT
-    ,
-    const bool qt
+    const bool qt,
 #endif
-    ) noexcept -> std::unique_ptr<ui::implementation::ActivityThread>;
+    const SimpleCallback& cb) noexcept
+    -> std::unique_ptr<ui::implementation::ActivityThread>;
 #if OT_QT
 auto ActivityThreadQtModel(ui::implementation::ActivityThread& parent) noexcept
     -> std::unique_ptr<ui::ActivityThreadQt>;
@@ -1140,18 +1132,16 @@ auto ActivityThreadQtModel(ui::implementation::ActivityThread& parent) noexcept
 #if OT_BLOCKCHAIN
 auto BlockchainAccountActivityModel(
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const identifier::Nym& nymID,
-    const opentxs::Identifier& accountID
+    const opentxs::Identifier& accountID,
 #if OT_QT
-    ,
-    const bool qt
+    const bool qt,
 #endif
-    ) noexcept -> std::unique_ptr<ui::implementation::AccountActivity>;
+    const SimpleCallback& cb) noexcept
+    -> std::unique_ptr<ui::implementation::AccountActivity>;
 auto BlockchainAccountListItem(
     const ui::implementation::AccountListInternalInterface& parent,
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const ui::implementation::AccountListRowID& rowID,
     const ui::implementation::AccountListSortKey& sortKey,
     ui::implementation::CustomData& custom) noexcept
@@ -1159,7 +1149,6 @@ auto BlockchainAccountListItem(
 auto BlockchainActivityThreadItem(
     const ui::implementation::ActivityThreadInternalInterface& parent,
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const identifier::Nym& nymID,
     const ui::implementation::ActivityThreadRowID& rowID,
     const ui::implementation::ActivityThreadSortKey& sortKey,
@@ -1169,7 +1158,6 @@ auto BlockchainActivityThreadItem(
 auto BalanceItem(
     const ui::implementation::AccountActivityInternalInterface& parent,
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const ui::implementation::AccountActivityRowID& rowID,
     const ui::implementation::AccountActivitySortKey& sortKey,
     ui::implementation::CustomData& custom,
@@ -1179,7 +1167,6 @@ auto BalanceItem(
 auto ContactItemWidget(
     const ui::implementation::ContactSubsectionInternalInterface& parent,
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const ui::implementation::ContactSubsectionRowID& rowID,
     const ui::implementation::ContactSubsectionSortKey& sortKey,
     ui::implementation::CustomData& custom) noexcept
@@ -1187,32 +1174,29 @@ auto ContactItemWidget(
 auto ContactListItem(
     const ui::implementation::ContactListInternalInterface& parent,
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const ui::implementation::ContactListRowID& rowID,
     const ui::implementation::ContactListSortKey& key) noexcept
     -> std::shared_ptr<ui::implementation::ContactListRowInternal>;
 auto ContactListModel(
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
-    const identifier::Nym& nymID
+    const identifier::Nym& nymID,
 #if OT_QT
-    ,
-    const bool qt
+    const bool qt,
 #endif
-    ) noexcept -> std::unique_ptr<ui::implementation::ContactList>;
+    const SimpleCallback& cb) noexcept
+    -> std::unique_ptr<ui::implementation::ContactList>;
 #if OT_QT
 auto ContactListQtModel(ui::implementation::ContactList& parent) noexcept
     -> std::unique_ptr<ui::ContactListQt>;
 #endif
 auto ContactModel(
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
-    const opentxs::Identifier& contactID
+    const opentxs::Identifier& contactID,
 #if OT_QT
-    ,
-    const bool qt
+    const bool qt,
 #endif
-    ) noexcept -> std::unique_ptr<ui::implementation::Contact>;
+    const SimpleCallback& cb) noexcept
+    -> std::unique_ptr<ui::implementation::Contact>;
 #if OT_QT
 auto ContactQtModel(ui::implementation::Contact& parent) noexcept
     -> std::unique_ptr<ui::ContactQt>;
@@ -1220,7 +1204,6 @@ auto ContactQtModel(ui::implementation::Contact& parent) noexcept
 auto ContactSectionWidget(
     const ui::implementation::ContactInternalInterface& parent,
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const ui::implementation::ContactRowID& rowID,
     const ui::implementation::ContactSortKey& key,
     ui::implementation::CustomData& custom
@@ -1232,7 +1215,6 @@ auto ContactSectionWidget(
 auto ContactSubsectionWidget(
     const ui::implementation::ContactSectionInternalInterface& parent,
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const ui::implementation::ContactSectionRowID& rowID,
     const ui::implementation::ContactSectionSortKey& key,
     ui::implementation::CustomData& custom
@@ -1245,7 +1227,6 @@ auto ContactSubsectionWidget(
 auto IssuerItem(
     const ui::implementation::AccountSummaryInternalInterface& parent,
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const ui::implementation::AccountSummaryRowID& rowID,
     const ui::implementation::AccountSummarySortKey& sortKey,
     ui::implementation::CustomData& custom,
@@ -1259,7 +1240,6 @@ auto IssuerItem(
 auto MailItem(
     const ui::implementation::ActivityThreadInternalInterface& parent,
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const identifier::Nym& nymID,
     const ui::implementation::ActivityThreadRowID& rowID,
     const ui::implementation::ActivityThreadSortKey& sortKey,
@@ -1270,7 +1250,6 @@ auto MailItem(
 auto MailItem(
     const ui::implementation::ActivityThreadInternalInterface& parent,
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const identifier::Nym& nymID,
     const ui::implementation::ActivityThreadRowID& rowID,
     const ui::implementation::ActivityThreadSortKey& sortKey,
@@ -1278,13 +1257,12 @@ auto MailItem(
     -> std::shared_ptr<ui::implementation::ActivityThreadRowInternal>;
 auto MessagableListModel(
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
-    const identifier::Nym& nymID
+    const identifier::Nym& nymID,
 #if OT_QT
-    ,
-    const bool qt
+    const bool qt,
 #endif
-    ) noexcept -> std::unique_ptr<ui::implementation::MessagableList>;
+    const SimpleCallback& cb) noexcept
+    -> std::unique_ptr<ui::implementation::MessagableList>;
 #if OT_QT
 auto MessagableListQtModel(ui::implementation::MessagableList& parent) noexcept
     -> std::unique_ptr<ui::MessagableListQt>;
@@ -1292,7 +1270,6 @@ auto MessagableListQtModel(ui::implementation::MessagableList& parent) noexcept
 auto PayableListItem(
     const ui::implementation::PayableInternalInterface& parent,
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const ui::implementation::PayableListRowID& rowID,
     const ui::implementation::PayableListSortKey& key,
     const std::string& paymentcode,
@@ -1301,7 +1278,6 @@ auto PayableListItem(
 auto PaymentItem(
     const ui::implementation::ActivityThreadInternalInterface& parent,
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const identifier::Nym& nymID,
     const ui::implementation::ActivityThreadRowID& rowID,
     const ui::implementation::ActivityThreadSortKey& sortKey,
@@ -1309,14 +1285,13 @@ auto PaymentItem(
     -> std::shared_ptr<ui::implementation::ActivityThreadRowInternal>;
 auto PayableListModel(
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const identifier::Nym& nymID,
-    const proto::ContactItemType& currency
+    const proto::ContactItemType& currency,
 #if OT_QT
-    ,
-    const bool qt
+    const bool qt,
 #endif
-    ) noexcept -> std::unique_ptr<ui::implementation::PayableList>;
+    const SimpleCallback& cb) noexcept
+    -> std::unique_ptr<ui::implementation::PayableList>;
 #if OT_QT
 auto PayableListQtModel(ui::implementation::PayableList& parent) noexcept
     -> std::unique_ptr<ui::PayableListQt>;
@@ -1324,7 +1299,6 @@ auto PayableListQtModel(ui::implementation::PayableList& parent) noexcept
 auto PendingSend(
     const ui::implementation::ActivityThreadInternalInterface& parent,
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const identifier::Nym& nymID,
     const ui::implementation::ActivityThreadRowID& rowID,
     const ui::implementation::ActivityThreadSortKey& sortKey,
@@ -1332,13 +1306,12 @@ auto PendingSend(
     -> std::shared_ptr<ui::implementation::ActivityThreadRowInternal>;
 auto ProfileModel(
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
-    const identifier::Nym& nymID
+    const identifier::Nym& nymID,
 #if OT_QT
-    ,
-    const bool qt
+    const bool qt,
 #endif
-    ) noexcept -> std::unique_ptr<ui::implementation::Profile>;
+    const SimpleCallback& cb) noexcept
+    -> std::unique_ptr<ui::implementation::Profile>;
 #if OT_QT
 auto ProfileQtModel(ui::implementation::Profile& parent) noexcept
     -> std::unique_ptr<ui::ProfileQt>;
@@ -1346,7 +1319,6 @@ auto ProfileQtModel(ui::implementation::Profile& parent) noexcept
 auto ProfileItemWidget(
     const ui::implementation::ProfileSubsectionInternalInterface& parent,
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const ui::implementation::ProfileSubsectionRowID& rowID,
     const ui::implementation::ProfileSubsectionSortKey& sortKey,
     ui::implementation::CustomData& custom) noexcept
@@ -1354,7 +1326,6 @@ auto ProfileItemWidget(
 auto ProfileSectionWidget(
     const ui::implementation::ProfileInternalInterface& parent,
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const ui::implementation::ProfileRowID& rowID,
     const ui::implementation::ProfileSortKey& key,
     ui::implementation::CustomData& custom
@@ -1366,7 +1337,6 @@ auto ProfileSectionWidget(
 auto ProfileSubsectionWidget(
     const ui::implementation::ProfileSectionInternalInterface& parent,
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const ui::implementation::ProfileSectionRowID& rowID,
     const ui::implementation::ProfileSectionSortKey& key,
     ui::implementation::CustomData& custom
@@ -1379,20 +1349,18 @@ auto ProfileSubsectionWidget(
 auto UnitListItem(
     const ui::implementation::UnitListInternalInterface& parent,
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const ui::implementation::UnitListRowID& rowID,
     const ui::implementation::UnitListSortKey& sortKey,
     ui::implementation::CustomData& custom) noexcept
     -> std::shared_ptr<ui::implementation::UnitListRowInternal>;
 auto UnitListModel(
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
-    const identifier::Nym& nymID
+    const identifier::Nym& nymID,
 #if OT_QT
-    ,
-    const bool qt
+    const bool qt,
 #endif
-    ) noexcept -> std::unique_ptr<ui::implementation::UnitList>;
+    const SimpleCallback& cb) noexcept
+    -> std::unique_ptr<ui::implementation::UnitList>;
 #if OT_QT
 auto UnitListQtModel(ui::implementation::UnitList& parent) noexcept
     -> std::unique_ptr<ui::UnitListQt>;

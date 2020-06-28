@@ -52,7 +52,6 @@ class StorageThread;
 }  // namespace proto
 
 class Contact;
-class Factory;
 }  // namespace opentxs
 
 namespace opentxs::api::client::implementation
@@ -132,11 +131,13 @@ public:
     auto ThreadPublisher(const identifier::Nym& nym) const noexcept
         -> std::string final;
 
+    Activity(
+        const api::internal::Core& api,
+        const client::Contacts& contact) noexcept;
+
     ~Activity() = default;
 
 private:
-    friend opentxs::Factory;
-
     using MailCache =
         std::map<OTIdentifier, std::shared_ptr<const std::string>>;
 
@@ -194,9 +195,6 @@ private:
     auto verify_thread_exists(const std::string& nym, const std::string& thread)
         const noexcept -> bool;
 
-    Activity(
-        const api::internal::Core& api,
-        const client::Contacts& contact) noexcept;
     Activity() = delete;
     Activity(const Activity&) = delete;
     Activity(Activity&&) = delete;

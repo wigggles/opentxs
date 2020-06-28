@@ -22,7 +22,6 @@ namespace opentxs::factory
 auto PendingSend(
     const ui::implementation::ActivityThreadInternalInterface& parent,
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const identifier::Nym& nymID,
     const ui::implementation::ActivityThreadRowID& rowID,
     const ui::implementation::ActivityThreadSortKey& sortKey,
@@ -32,7 +31,7 @@ auto PendingSend(
     using ReturnType = ui::implementation::PendingSend;
 
     return std::make_shared<ReturnType>(
-        parent, api, publisher, nymID, rowID, sortKey, custom);
+        parent, api, nymID, rowID, sortKey, custom);
 }
 }  // namespace opentxs::factory
 
@@ -41,7 +40,6 @@ namespace opentxs::ui::implementation
 PendingSend::PendingSend(
     const ActivityThreadInternalInterface& parent,
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const identifier::Nym& nymID,
     const ActivityThreadRowID& rowID,
     const ActivityThreadSortKey& sortKey,
@@ -49,7 +47,6 @@ PendingSend::PendingSend(
     : ActivityThreadItem(
           parent,
           api,
-          publisher,
           nymID,
           rowID,
           sortKey,

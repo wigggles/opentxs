@@ -31,6 +31,19 @@ namespace client
 class Manager;
 }  // namespace client
 }  // namespace api
+
+namespace blockchain
+{
+namespace bitcoin
+{
+struct SigHash;
+}  // namespace bitcoin
+}  // namespace blockchain
+
+namespace proto
+{
+class BlockchainTransactionOutput;
+}  // namespace proto
 }  // namespace opentxs
 
 namespace opentxs::blockchain::block::bitcoin::implementation
@@ -62,6 +75,10 @@ public:
         const Patterns& txos,
         const Patterns& elements) const noexcept -> Matches final;
     auto GetPatterns() const noexcept -> std::vector<PatternID> final;
+    auto GetPreimageBTC(
+        const std::size_t index,
+        const blockchain::bitcoin::SigHash& hashType) const noexcept
+        -> Space final;
     auto ID() const noexcept -> const Txid& final { return txid_; }
     auto IDNormalized() const noexcept -> const Identifier&;
     auto Inputs() const noexcept -> const bitcoin::Inputs& final
@@ -84,6 +101,12 @@ public:
     auto Version() const noexcept -> std::int32_t final { return version_; }
     auto WTXID() const noexcept -> const Txid& final { return wtxid_; }
 
+    auto AssociatePreviousOutput(
+        const std::size_t index,
+        const proto::BlockchainTransactionOutput& output) noexcept -> bool final
+    {
+        return inputs_->AssociatePreviousOutput(index, output);
+    }
     auto ForTestingOnlyAddKey(
         const std::size_t index,
         const api::client::blockchain::Key& key) noexcept -> bool final

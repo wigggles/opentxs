@@ -15,6 +15,7 @@
 #include "internal/ui/UI.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/SharedPimpl.hpp"
+#include "opentxs/Types.hpp"
 #include "opentxs/Version.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/protobuf/ContactEnums.pb.h"
@@ -73,14 +74,12 @@ public:
 
     PayableList(
         const api::client::internal::Manager& api,
-        const network::zeromq::socket::Publish& publisher,
         const identifier::Nym& nymID,
-        const proto::ContactItemType& currency
+        const proto::ContactItemType& currency,
 #if OT_QT
-        ,
-        const bool qt
+        const bool qt,
 #endif
-    );
+        const SimpleCallback& cb);
     ~PayableList() final;
 
 private:

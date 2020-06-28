@@ -99,7 +99,6 @@ public:
     ProfileItem(
         const ProfileSubsectionInternalInterface& parent,
         const api::client::internal::Manager& api,
-        const network::zeromq::socket::Publish& publisher,
         const ProfileSubsectionRowID& rowID,
         const ProfileSubsectionSortKey& sortKey,
         CustomData& custom) noexcept;

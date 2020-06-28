@@ -129,6 +129,7 @@ class Publish;
 namespace proto
 {
 class BlockchainTransactionOutput;
+class BlockchainTransactionProposal;
 }  // namespace proto
 
 template <typename T>
@@ -375,8 +376,12 @@ struct Network : virtual public opentxs::blockchain::Network {
         -> const api::client::internal::Blockchain& = 0;
     virtual auto BlockOracle() const noexcept
         -> const internal::BlockOracle& = 0;
+    virtual auto BroadcastTransaction(
+        const block::bitcoin::Transaction& tx) const noexcept -> bool = 0;
     virtual auto Chain() const noexcept -> Type = 0;
     virtual auto DB() const noexcept -> blockchain::internal::Database& = 0;
+    // amount represents satoshis per 1000 bytes
+    virtual auto FeeRate() const noexcept -> Amount = 0;
     virtual auto FilterOracle() const noexcept
         -> const internal::FilterOracle& = 0;
     virtual auto HeaderOracle() const noexcept
@@ -431,6 +436,7 @@ struct PeerManager {
         Getcfilters = 2,
         Heartbeat = 3,
         Getblock = 4,
+        BroadcastTransaction = 5,
         Body = 126,
         Header = 127,
         Connect = OT_ZMQ_CONNECT_SIGNAL,
@@ -444,6 +450,8 @@ struct PeerManager {
 
     virtual auto AddPeer(const p2p::Address& address) const noexcept
         -> bool = 0;
+    virtual auto BroadcastTransaction(
+        const block::bitcoin::Transaction& tx) const noexcept -> bool = 0;
     virtual auto Connect() noexcept -> bool = 0;
     virtual auto Database() const noexcept -> const PeerDatabase& = 0;
     virtual auto Disconnect(const int id) const noexcept -> void = 0;
@@ -492,6 +500,10 @@ struct Wallet {
 
     static auto ProcessTask(const zmq::Message& task) noexcept -> void;
 
+    virtual auto ConstructTransaction(
+        const proto::BlockchainTransactionProposal& tx) const noexcept
+        -> std::future<block::pTxid> = 0;
+
     virtual auto Init() noexcept -> void = 0;
     virtual auto Run() noexcept -> void = 0;
     virtual auto Shutdown() noexcept -> std::shared_future<void> = 0;
@@ -513,6 +525,7 @@ struct WalletDatabase {
     using UTXO = std::pair<
         blockchain::block::bitcoin::Outpoint,
         proto::BlockchainTransactionOutput>;
+    using KeyID = api::client::blockchain::Key;
 
     static const VersionNumber DefaultIndexVersion;
 
@@ -526,6 +539,24 @@ struct WalletDatabase {
         const block::bitcoin::Transaction& transaction,
         const VersionNumber version = DefaultIndexVersion) const noexcept
         -> bool = 0;
+    virtual auto AddOutgoingTransaction(
+        const blockchain::Type chain,
+        const Identifier& proposalID,
+        const proto::BlockchainTransactionProposal& proposal,
+        const block::bitcoin::Transaction& transaction) const noexcept
+        -> bool = 0;
+    virtual auto AddProposal(
+        const Identifier& id,
+        const proto::BlockchainTransactionProposal& tx) const noexcept
+        -> bool = 0;
+    virtual auto CancelProposal(const Identifier& id) const noexcept
+        -> bool = 0;
+    virtual auto CompletedProposals() const noexcept
+        -> std::set<OTIdentifier> = 0;
+    virtual auto DeleteProposal(const Identifier& id) const noexcept
+        -> bool = 0;
+    virtual auto ForgetProposals(
+        const std::set<OTIdentifier>& ids) const noexcept -> bool = 0;
     virtual auto GetBalance() const noexcept -> Balance = 0;
     virtual auto GetPatterns(
         const NodeID& balanceNode,
@@ -541,13 +572,25 @@ struct WalletDatabase {
         const ReadView blockID,
         const VersionNumber version = DefaultIndexVersion) const noexcept
         -> Patterns = 0;
+    virtual auto LoadProposal(const Identifier& id) const noexcept
+        -> std::optional<proto::BlockchainTransactionProposal> = 0;
+    virtual auto LoadProposals() const noexcept
+        -> std::vector<proto::BlockchainTransactionProposal> = 0;
     virtual auto LookupContact(const Data& pubkeyHash) const noexcept
         -> std::set<OTIdentifier> = 0;
+    virtual auto ReleaseChangeKey(const Identifier& proposal, const KeyID key)
+        const noexcept -> bool = 0;
     virtual auto ReorgTo(
         const NodeID& balanceNode,
         const Subchain subchain,
         const FilterType type,
         const std::vector<block::Position>& reorg) const noexcept -> bool = 0;
+    virtual auto ReserveChangeKey(const Identifier& proposal) const noexcept
+        -> std::optional<KeyID> = 0;
+    virtual auto ReserveUTXO(const Identifier& proposal) const noexcept
+        -> std::optional<UTXO> = 0;
+    virtual auto SetDefaultFilterType(const FilterType type) const noexcept
+        -> bool = 0;
     virtual auto SubchainAddElements(
         const NodeID& balanceNode,
         const Subchain subchain,
