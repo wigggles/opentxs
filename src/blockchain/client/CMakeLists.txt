@@ -11,6 +11,8 @@ set(
   filteroracle/BlockQueue.cpp
   filteroracle/FilterQueue.cpp
   filteroracle/HeaderQueue.cpp
+  wallet/Account.cpp
+  wallet/Accounts.cpp
   BlockOracle.cpp
   Client.cpp
   FilterOracle.cpp
