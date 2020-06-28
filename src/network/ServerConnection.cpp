@@ -18,7 +18,6 @@
 #include "internal/api/Api.hpp"
 #include "opentxs/Forward.hpp"
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/Proto.tpp"
 #include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Factory.hpp"
@@ -54,6 +53,8 @@
 #include "opentxs/protobuf/Check.hpp"
 #include "opentxs/protobuf/ContractEnums.pb.h"
 #include "opentxs/protobuf/OTXEnums.pb.h"
+#include "opentxs/protobuf/ServerReply.pb.h"
+#include "opentxs/protobuf/ServerRequest.pb.h"
 #include "opentxs/protobuf/verify/ServerReply.hpp"
 
 namespace zmq = opentxs::network::zeromq;

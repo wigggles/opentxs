@@ -22,6 +22,7 @@
 #include "opentxs/Types.hpp"
 #include "opentxs/Version.hpp"
 #include "opentxs/core/Identifier.hpp"
+#include "opentxs/protobuf/HDAccount.pb.h"
 
 namespace opentxs
 {
@@ -38,6 +39,7 @@ struct Blockchain;
 
 namespace proto
 {
+class HDAccount;
 class HDPath;
 }  // namespace proto
 

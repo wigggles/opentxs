@@ -12,11 +12,12 @@
 
 #include <string>
 
-#include "opentxs/core/Data.hpp"
 #include "opentxs/Bytes.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
+#include "opentxs/core/Data.hpp"
+#include "opentxs/protobuf/ContactEnums.pb.h"
 
 #ifdef SWIG
 // clang-format off
@@ -36,6 +37,11 @@
 
 namespace opentxs
 {
+namespace proto
+{
+class HDPath;
+}  // namespace proto
+
 class Identifier;
 
 using OTIdentifier = Pimpl<Identifier>;

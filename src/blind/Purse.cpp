@@ -3,15 +3,15 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "0_stdafx.hpp"    // IWYU pragma: associated
-#include "1_Internal.hpp"  // IWYU pragma: associated
-#if OT_CASH
+#include "0_stdafx.hpp"     // IWYU pragma: associated
+#include "1_Internal.hpp"   // IWYU pragma: associated
 #include "blind/Purse.hpp"  // IWYU pragma: associated
 
 #include <algorithm>
 #include <chrono>
 #include <set>
 #include <stdexcept>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -36,6 +36,9 @@
 #include "opentxs/otx/consensus/Server.hpp"
 #include "opentxs/protobuf/CashEnums.pb.h"
 #include "opentxs/protobuf/Enums.pb.h"
+#include "opentxs/protobuf/Envelope.pb.h"
+#include "opentxs/protobuf/Purse.pb.h"
+#include "opentxs/protobuf/Token.pb.h"
 
 #define OT_PURSE_VERSION 1
 
@@ -929,4 +932,3 @@ auto Purse::Verify(const api::server::internal::Manager& server) const -> bool
     return true;
 }
 }  // namespace opentxs::blind::implementation
-#endif  // #if OT_CASH

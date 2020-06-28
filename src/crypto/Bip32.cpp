@@ -22,7 +22,6 @@
 #include "crypto/HDNode.hpp"
 #include "opentxs/OT.hpp"
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/api/Context.hpp"
 #include "opentxs/api/Primitives.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
@@ -34,6 +33,8 @@
 #include "opentxs/core/Secret.hpp"
 #include "opentxs/crypto/Bip32.hpp"
 #include "opentxs/crypto/library/EcdsaProvider.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
+#include "opentxs/protobuf/HDPath.pb.h"
 #include "util/HDIndex.hpp"
 #include "util/Sodium.hpp"
 

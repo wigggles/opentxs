@@ -15,7 +15,6 @@
 #include "internal/api/client/Client.hpp"
 #include "internal/otx/consensus/Consensus.hpp"
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/client/Contacts.hpp"
@@ -30,6 +29,8 @@
 #include "opentxs/otx/consensus/Base.hpp"
 #include "opentxs/otx/consensus/Server.hpp"
 #include "opentxs/protobuf/ConsensusEnums.pb.h"
+#include "opentxs/protobuf/Context.pb.h"
+#include "opentxs/protobuf/ServerContext.pb.h"
 
 //#define OT_METHOD "opentxs::api::client::implementation::Wallet::"
 

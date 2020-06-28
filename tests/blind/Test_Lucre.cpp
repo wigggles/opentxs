@@ -15,7 +15,6 @@
 #include "internal/api/client/Client.hpp"
 #include "opentxs/OT.hpp"
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/api/Context.hpp"
 #include "opentxs/api/Editor.hpp"
@@ -36,6 +35,8 @@
 #include "opentxs/identity/Nym.hpp"
 #include "opentxs/protobuf/CashEnums.pb.h"
 #include "opentxs/protobuf/Check.hpp"
+#include "opentxs/protobuf/Purse.pb.h"
+#include "opentxs/protobuf/Token.pb.h"
 #include "opentxs/protobuf/verify/Purse.hpp"
 
 #define MINT_EXPIRE_MONTHS 6

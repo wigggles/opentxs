@@ -8,10 +8,10 @@
 
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
-#include "opentxs/core/Data.hpp"
-#include "opentxs/network/zeromq/zap/ZAP.hpp"
-#include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/Pimpl.hpp"
+#include "opentxs/core/Data.hpp"
+#include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/network/zeromq/zap/ZAP.hpp"
 
 namespace opentxs
 {

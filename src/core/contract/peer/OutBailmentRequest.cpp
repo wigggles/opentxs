@@ -15,7 +15,6 @@
 #include "core/contract/peer/PeerRequest.hpp"
 #include "internal/api/Api.hpp"
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/Log.hpp"
@@ -24,7 +23,9 @@
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/protobuf/Check.hpp"
+#include "opentxs/protobuf/OutBailment.pb.h"
 #include "opentxs/protobuf/PeerEnums.pb.h"
+#include "opentxs/protobuf/PeerRequest.pb.h"
 #include "opentxs/protobuf/verify/PeerRequest.hpp"
 
 #define CURRENT_VERSION 4

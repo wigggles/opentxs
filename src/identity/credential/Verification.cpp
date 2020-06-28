@@ -15,7 +15,6 @@
 #include "identity/credential/Base.hpp"
 #include "internal/api/Api.hpp"
 #include "internal/identity/Identity.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -23,6 +22,13 @@
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/identity/credential/Verification.hpp"
+#include "opentxs/protobuf/Credential.pb.h"
+#include "opentxs/protobuf/Enums.pb.h"
+#include "opentxs/protobuf/Signature.pb.h"
+#include "opentxs/protobuf/Verification.pb.h"
+#include "opentxs/protobuf/VerificationGroup.pb.h"
+#include "opentxs/protobuf/VerificationIdentity.pb.h"
+#include "opentxs/protobuf/VerificationSet.pb.h"
 
 #define OT_METHOD "opentxs::identity::credential::Verification::"
 

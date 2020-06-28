@@ -23,7 +23,6 @@
 #include "internal/api/Api.hpp"
 #include "internal/core/contract/Contract.hpp"
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/Shared.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Legacy.hpp"
@@ -41,6 +40,10 @@
 #include "opentxs/protobuf/Check.hpp"
 #include "opentxs/protobuf/Contact.hpp"
 #include "opentxs/protobuf/ContractEnums.pb.h"
+#include "opentxs/protobuf/Enums.pb.h"
+#include "opentxs/protobuf/Nym.pb.h"
+#include "opentxs/protobuf/Signature.pb.h"
+#include "opentxs/protobuf/UnitDefinition.pb.h"
 #include "opentxs/protobuf/verify/UnitDefinition.hpp"
 
 #define OT_METHOD "opentxs::contract::implementation::Unit::"

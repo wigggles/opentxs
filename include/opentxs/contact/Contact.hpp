@@ -28,6 +28,7 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/identity/Nym.hpp"
+#include "opentxs/protobuf/Contact.pb.h"
 #include "opentxs/protobuf/ContactEnums.pb.h"
 
 namespace opentxs

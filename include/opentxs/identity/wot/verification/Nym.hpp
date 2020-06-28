@@ -10,10 +10,10 @@
 
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
-#include "opentxs/identity/wot/verification/Item.hpp"
-#include "opentxs/iterator/Bidirectional.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
+#include "opentxs/identity/wot/verification/Item.hpp"
+#include "opentxs/iterator/Bidirectional.hpp"
 
 namespace opentxs
 {

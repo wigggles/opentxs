@@ -20,7 +20,6 @@
 #include "2_Factory.hpp"
 #include "internal/api/Api.hpp"
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Factory.hpp"
@@ -50,7 +49,10 @@
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/socket/Publish.hpp"
 #include "opentxs/network/zeromq/socket/Sender.tpp"
+#include "opentxs/protobuf/PaymentWorkflow.pb.h"
 #include "opentxs/protobuf/PaymentWorkflowEnums.pb.h"
+#include "opentxs/protobuf/StorageThread.pb.h"
+#include "opentxs/protobuf/StorageThreadItem.pb.h"
 
 #define OT_METHOD "opentxs::api::client::implementation::Activity::"
 

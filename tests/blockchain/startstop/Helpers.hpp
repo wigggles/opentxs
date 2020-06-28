@@ -5,8 +5,8 @@
 
 #pragma once
 
-#include "OTTestEnvironment.hpp"  // IWYU pragma: keep
 #include "1_Internal.hpp"
+#include "OTTestEnvironment.hpp"  // IWYU pragma: keep
 #include "internal/api/client/Client.hpp"
 #include "opentxs/OT.hpp"
 

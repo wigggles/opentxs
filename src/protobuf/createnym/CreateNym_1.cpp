@@ -3,12 +3,12 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "opentxs/Proto.hpp"  // IWYU pragma: associated
-
 #include <set>
 
 #include "opentxs/protobuf/Basic.hpp"
 #include "opentxs/protobuf/Contact.hpp"
+#include "opentxs/protobuf/CreateNym.pb.h"
+#include "opentxs/protobuf/verify/AddClaim.hpp"  // IWYU pragma: keep
 #include "opentxs/protobuf/verify/CreateNym.hpp"
 #include "opentxs/protobuf/verify/VerifyRPC.hpp"
 #include "protobuf/Check.hpp"

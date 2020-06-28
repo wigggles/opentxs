@@ -29,6 +29,9 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/protobuf/BlockchainActivity.pb.h"
+#include "opentxs/protobuf/BlockchainAddress.pb.h"
+#include "opentxs/protobuf/HDPath.pb.h"
 
 #define OT_METHOD "opentxs::api::client::blockchain::implementation::HD::"
 

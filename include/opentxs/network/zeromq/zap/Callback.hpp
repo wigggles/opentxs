@@ -10,8 +10,8 @@
 
 #include <functional>
 
-#include "opentxs/network/zeromq/zap/Reply.hpp"
 #include "opentxs/Pimpl.hpp"
+#include "opentxs/network/zeromq/zap/Reply.hpp"
 
 namespace opentxs
 {

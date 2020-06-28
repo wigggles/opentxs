@@ -17,7 +17,6 @@
 #include "identity/credential/Base.hpp"
 #include "internal/api/Api.hpp"
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
@@ -25,7 +24,13 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/identity/credential/Contact.hpp"
+#include "opentxs/protobuf/Claim.pb.h"
+#include "opentxs/protobuf/ContactData.pb.h"
 #include "opentxs/protobuf/ContactEnums.pb.h"
+#include "opentxs/protobuf/ContactItem.pb.h"
+#include "opentxs/protobuf/Credential.pb.h"
+#include "opentxs/protobuf/Enums.pb.h"
+#include "opentxs/protobuf/Signature.pb.h"
 
 #define OT_METHOD "opentxs::identity::credential::implementation::Contact::"
 

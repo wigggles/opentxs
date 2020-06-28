@@ -39,6 +39,7 @@
 #include "opentxs/otx/consensus/Server.hpp"
 #include "opentxs/otx/consensus/TransactionStatement.hpp"
 #include "opentxs/protobuf/ConsensusEnums.pb.h"
+#include "opentxs/protobuf/Context.pb.h"
 #include "otx/consensus/Base.hpp"
 
 namespace opentxs
@@ -91,6 +92,11 @@ namespace otx
 {
 class Reply;
 }  // namespace otx
+
+namespace proto
+{
+class OTXPush;
+}  // namespace proto
 
 class Armored;
 class Ledger;

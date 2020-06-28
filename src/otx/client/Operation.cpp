@@ -26,7 +26,6 @@
 #include "opentxs/Bytes.hpp"
 #include "opentxs/Forward.hpp"
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/Shared.hpp"
 #include "opentxs/SharedPimpl.hpp"
 #include "opentxs/api/Factory.hpp"
@@ -72,6 +71,9 @@
 #include "opentxs/protobuf/ContactEnums.pb.h"
 #include "opentxs/protobuf/PaymentWorkflowEnums.pb.h"
 #include "opentxs/protobuf/PeerEnums.pb.h"
+#include "opentxs/protobuf/PeerObject.pb.h"
+#include "opentxs/protobuf/Purse.pb.h"
+#include "opentxs/protobuf/ServerContract.pb.h"
 #include "opentxs/protobuf/verify/UnitDefinition.hpp"
 
 #define START()                                                                \

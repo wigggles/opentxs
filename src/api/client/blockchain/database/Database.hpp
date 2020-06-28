@@ -29,6 +29,7 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/protobuf/BlockchainBlockHeader.pb.h"
 #include "util/LMDB.hpp"
 
 namespace opentxs

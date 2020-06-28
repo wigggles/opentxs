@@ -29,6 +29,7 @@
 #include "opentxs/core/script/OTSmartContract.hpp"
 #include "opentxs/ext/OTPayment.hpp"
 #include "opentxs/protobuf/PeerEnums.pb.h"
+#include "opentxs/protobuf/UnitDefinition.pb.h"
 
 #define OT_METHOD "opentxs::OTAPI_Func::"
 

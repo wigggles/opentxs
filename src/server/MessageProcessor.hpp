@@ -28,6 +28,7 @@
 #include "opentxs/network/zeromq/socket/Router.hpp"
 #include "opentxs/network/zeromq/socket/Sender.tpp"
 #include "opentxs/network/zeromq/socket/Socket.hpp"
+#include "opentxs/protobuf/ServerRequest.pb.h"
 
 namespace opentxs
 {

@@ -17,7 +17,6 @@
 #include "internal/api/client/Client.hpp"
 #include "opentxs/OT.hpp"
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/api/Context.hpp"
 #include "opentxs/api/client/Manager.hpp"
@@ -29,7 +28,10 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/identity/credential/Contact.hpp"
+#include "opentxs/protobuf/ContactData.pb.h"
 #include "opentxs/protobuf/ContactEnums.pb.h"
+#include "opentxs/protobuf/ContactItem.pb.h"
+#include "opentxs/protobuf/ContactSection.pb.h"
 
 namespace
 {

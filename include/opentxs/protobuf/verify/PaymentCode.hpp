@@ -14,6 +14,14 @@ namespace opentxs
 {
 namespace proto
 {
+class PaymentCode;
+}  // namespace proto
+}  // namespace opentxs
+
+namespace opentxs
+{
+namespace proto
+{
 OPENTXS_EXPORT bool CheckProto_1(const PaymentCode& code, const bool silent);
 OPENTXS_EXPORT bool CheckProto_2(const PaymentCode&, const bool);
 OPENTXS_EXPORT bool CheckProto_3(const PaymentCode&, const bool);

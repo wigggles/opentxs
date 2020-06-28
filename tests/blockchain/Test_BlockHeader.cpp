@@ -17,7 +17,6 @@
 #include "opentxs/Forward.hpp"
 #include "opentxs/OT.hpp"
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/api/Context.hpp"
 #include "opentxs/api/Factory.hpp"
@@ -27,6 +26,9 @@
 #include "opentxs/blockchain/block/Header.hpp"
 #include "opentxs/blockchain/client/HeaderOracle.hpp"
 #include "opentxs/core/Data.hpp"
+#include "opentxs/protobuf/BitcoinBlockHeaderFields.pb.h"
+#include "opentxs/protobuf/BlockchainBlockHeader.pb.h"
+#include "opentxs/protobuf/BlockchainBlockLocalData.pb.h"
 
 #define BTC_GENESIS_HASH_NUMERIC                                               \
     "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"

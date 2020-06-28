@@ -7,13 +7,13 @@
 #include "1_Internal.hpp"                            // IWYU pragma: associated
 #include "network/zeromq/PairEventCallbackSwig.hpp"  // IWYU pragma: associated
 
-#include "opentxs/Proto.hpp"
 #include "opentxs/Proto.tpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/PairEventCallbackSwig.hpp"
+#include "opentxs/protobuf/PairEvent.pb.h"
 #include "opentxs/protobuf/ZMQEnums.pb.h"
 
 #define OT_METHOD                                                              \

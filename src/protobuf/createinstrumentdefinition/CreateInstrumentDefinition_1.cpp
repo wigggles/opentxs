@@ -3,11 +3,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "opentxs/Proto.hpp"  // IWYU pragma: associated
-
 #include <set>
 
 #include "opentxs/protobuf/Contact.hpp"
+#include "opentxs/protobuf/CreateInstrumentDefinition.pb.h"
 #include "opentxs/protobuf/verify/CreateInstrumentDefinition.hpp"
 #include "protobuf/Check.hpp"
 

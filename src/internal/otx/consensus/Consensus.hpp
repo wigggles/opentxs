@@ -5,8 +5,8 @@
 
 #pragma once
 
-#include "opentxs/otx/consensus/Client.hpp"
 #include "opentxs/otx/consensus/Base.hpp"
+#include "opentxs/otx/consensus/Client.hpp"
 #include "opentxs/otx/consensus/Server.hpp"
 
 namespace opentxs::otx::context::internal

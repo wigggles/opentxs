@@ -15,12 +15,12 @@
 #include <memory>
 #include <string>
 
+#include "opentxs/Bytes.hpp"
+#include "opentxs/Proto.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/crypto/library/AsymmetricProvider.hpp"
-#include "opentxs/Bytes.hpp"
-#include "opentxs/Proto.hpp"
 
 namespace opentxs
 {

@@ -10,8 +10,8 @@
 
 #include <string>
 
-#include "opentxs/SharedPimpl.hpp"
 #include "ListRow.hpp"
+#include "opentxs/SharedPimpl.hpp"
 
 #ifdef SWIG
 // clang-format off

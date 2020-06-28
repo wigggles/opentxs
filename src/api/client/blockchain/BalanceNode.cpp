@@ -19,13 +19,14 @@
 #include "internal/api/Api.hpp"
 #include "internal/api/client/Client.hpp"
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/crypto/Asymmetric.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/crypto/key/EllipticCurve.hpp"
 #include "opentxs/crypto/key/HD.hpp"  // IWYU pragma: keep
+#include "opentxs/protobuf/AsymmetricKey.pb.h"
+#include "opentxs/protobuf/BlockchainActivity.pb.h"
 
 // #define OT_METHOD
 // "opentxs::api::client::blockchain::implementation::BalanceNode::"

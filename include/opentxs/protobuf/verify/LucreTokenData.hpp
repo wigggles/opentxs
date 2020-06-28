@@ -14,6 +14,14 @@ namespace opentxs
 {
 namespace proto
 {
+class LucreTokenData;
+}  // namespace proto
+}  // namespace opentxs
+
+namespace opentxs
+{
+namespace proto
+{
 OPENTXS_EXPORT bool CheckProto_1(
     const LucreTokenData& input,
     const bool silent,

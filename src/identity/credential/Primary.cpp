@@ -25,7 +25,13 @@
 #include "opentxs/identity/Source.hpp"
 #include "opentxs/identity/credential/Base.hpp"
 #include "opentxs/protobuf/Check.hpp"
+#include "opentxs/protobuf/Credential.pb.h"
 #include "opentxs/protobuf/Enums.pb.h"
+#include "opentxs/protobuf/HDPath.pb.h"
+#include "opentxs/protobuf/MasterCredentialParameters.pb.h"
+#include "opentxs/protobuf/NymIDSource.pb.h"
+#include "opentxs/protobuf/Signature.pb.h"
+#include "opentxs/protobuf/SourceProof.pb.h"
 #include "opentxs/protobuf/verify/Credential.hpp"
 
 #define OT_METHOD "opentxs::identity::credential::implementation::Primary::"

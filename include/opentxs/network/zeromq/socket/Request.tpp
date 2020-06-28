@@ -8,8 +8,8 @@
 
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
-#include "opentxs/network/zeromq/socket/Request.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
+#include "opentxs/network/zeromq/socket/Request.hpp"
 
 namespace opentxs
 {

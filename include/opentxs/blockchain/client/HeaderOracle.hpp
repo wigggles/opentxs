@@ -9,8 +9,8 @@
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <cstdint>
-#include <string>
 #include <set>
+#include <string>
 #include <tuple>
 #include <vector>
 

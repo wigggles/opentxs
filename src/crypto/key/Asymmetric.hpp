@@ -20,6 +20,7 @@
 #include "opentxs/crypto/key/Asymmetric.hpp"
 #include "opentxs/crypto/library/AsymmetricProvider.hpp"
 #include "opentxs/protobuf/Enums.pb.h"
+#include "opentxs/protobuf/Signature.pb.h"
 
 namespace opentxs
 {
@@ -43,6 +44,13 @@ namespace identity
 {
 class Authority;
 }  // namespace identity
+
+namespace proto
+{
+class AsymmetricKey;
+class Ciphertext;
+class HDPath;
+}  // namespace proto
 
 class Identifier;
 class NymParameters;
@@ -105,7 +113,7 @@ public:
         -> std::shared_ptr<proto::AsymmetricKey> override;
     auto SigHashType() const noexcept -> proto::HashType override
     {
-        return StandardHash;
+        return proto::HASHTYPE_BLAKE2B256;
     }
     auto Sign(
         const GetPreimage input,

@@ -12,8 +12,8 @@
 
 #include <cstdint>
 
-#include "opentxs/crypto/key/Symmetric.hpp"
 #include "opentxs/Proto.hpp"
+#include "opentxs/crypto/key/Symmetric.hpp"
 
 namespace opentxs
 {

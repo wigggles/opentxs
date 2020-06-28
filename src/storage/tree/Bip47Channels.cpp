@@ -9,6 +9,7 @@
 
 #include <mutex>
 #include <stdexcept>
+#include <type_traits>
 #include <utility>
 
 #include "opentxs/Pimpl.hpp"
@@ -17,8 +18,16 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
+#include "opentxs/protobuf/Bip47Address.pb.h"
+#include "opentxs/protobuf/Bip47Channel.pb.h"
+#include "opentxs/protobuf/Bip47Direction.pb.h"
 #include "opentxs/protobuf/Check.hpp"
 #include "opentxs/protobuf/ContactEnums.pb.h"
+#include "opentxs/protobuf/StorageBip47AddressIndex.pb.h"
+#include "opentxs/protobuf/StorageBip47ChannelList.pb.h"
+#include "opentxs/protobuf/StorageBip47Contexts.pb.h"
+#include "opentxs/protobuf/StorageItemHash.pb.h"
+#include "opentxs/protobuf/verify/Bip47Channel.hpp"
 #include "opentxs/protobuf/verify/StorageBip47ChannelList.hpp"
 #include "opentxs/protobuf/verify/StorageBip47Contexts.hpp"
 #include "storage/Plugin.hpp"

@@ -13,6 +13,11 @@
 #include <memory>
 #include <string>
 
+#include "opentxs/Bytes.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/network/zeromq/Frame.hpp"
+#include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/socket/Dealer.hpp"
 #include "opentxs/network/zeromq/socket/Pair.hpp"
 #include "opentxs/network/zeromq/socket/Publish.hpp"
@@ -23,11 +28,6 @@
 #include "opentxs/network/zeromq/socket/Router.hpp"
 #include "opentxs/network/zeromq/socket/Socket.hpp"
 #include "opentxs/network/zeromq/socket/Subscribe.hpp"
-#include "opentxs/network/zeromq/Frame.hpp"
-#include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/Bytes.hpp"
-#include "opentxs/Pimpl.hpp"
-#include "opentxs/Proto.hpp"
 
 #ifdef SWIG
 // clang-format off

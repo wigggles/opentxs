@@ -12,9 +12,9 @@
 #include <optional>
 #include <tuple>
 
+#include "opentxs/Bytes.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/iterator/Bidirectional.hpp"
-#include "opentxs/Bytes.hpp"
 
 namespace opentxs
 {

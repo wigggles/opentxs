@@ -14,7 +14,6 @@
 #include "internal/api/Api.hpp"
 #include "internal/core/contract/Contract.hpp"
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/Data.hpp"
@@ -26,7 +25,10 @@
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/identity/Nym.hpp"
 #include "opentxs/protobuf/Check.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
 #include "opentxs/protobuf/PeerEnums.pb.h"
+#include "opentxs/protobuf/PeerReply.pb.h"
+#include "opentxs/protobuf/Signature.pb.h"
 #include "opentxs/protobuf/verify/PeerReply.hpp"
 
 #define OT_METHOD "opentxs::contract::peer::implementation::Reply::"

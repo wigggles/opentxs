@@ -14,7 +14,9 @@
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/identity/Nym.hpp"
 #include "opentxs/otx/consensus/TransactionStatement.hpp"
+#include "opentxs/protobuf/ClientContext.pb.h"
 #include "opentxs/protobuf/ConsensusEnums.pb.h"
+#include "opentxs/protobuf/Context.pb.h"
 #include "otx/consensus/Base.hpp"
 
 #define CURRENT_VERSION 1

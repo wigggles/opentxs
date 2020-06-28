@@ -14,6 +14,14 @@ namespace opentxs
 {
 namespace proto
 {
+class StorageNotary;
+}  // namespace proto
+}  // namespace opentxs
+
+namespace opentxs
+{
+namespace proto
+{
 OPENTXS_EXPORT bool CheckProto_1(const StorageNotary& input, const bool silent);
 OPENTXS_EXPORT bool CheckProto_2(const StorageNotary& input, const bool silent);
 OPENTXS_EXPORT bool CheckProto_3(const StorageNotary& input, const bool silent);

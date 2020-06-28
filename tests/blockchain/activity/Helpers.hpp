@@ -6,9 +6,9 @@
 #pragma once
 
 #include <gtest/gtest.h>
-#include <string>
-#include <regex>
 #include <iterator>
+#include <regex>
+#include <string>
 
 #include "OTTestEnvironment.hpp"  // IWYU pragma: keep
 #include "internal/blockchain/bitcoin/Bitcoin.hpp"

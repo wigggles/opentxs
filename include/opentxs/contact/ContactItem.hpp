@@ -23,6 +23,7 @@
 #include "opentxs/Types.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/protobuf/ContactEnums.pb.h"
+#include "opentxs/protobuf/ContactItem.pb.h"
 
 namespace opentxs
 {

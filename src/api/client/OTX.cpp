@@ -24,7 +24,6 @@
 #include "internal/api/client/Client.hpp"
 #include "opentxs/Forward.hpp"
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/Proto.tpp"
 #include "opentxs/Shared.hpp"
 #include "opentxs/SharedPimpl.hpp"
@@ -84,6 +83,8 @@
 #include "opentxs/protobuf/OTXEnums.pb.h"
 #include "opentxs/protobuf/PaymentWorkflowEnums.pb.h"
 #include "opentxs/protobuf/PeerEnums.pb.h"
+#include "opentxs/protobuf/ServerContract.pb.h"
+#include "opentxs/protobuf/ServerReply.pb.h"
 #include "otx/client/PaymentTasks.hpp"
 #include "otx/client/StateMachine.hpp"
 

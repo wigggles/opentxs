@@ -8,14 +8,14 @@
 
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
-#include <cstdint>
 #include <chrono>
+#include <cstdint>
 #include <list>
 #include <string>
 
+#include "ListRow.hpp"
 #include "opentxs/SharedPimpl.hpp"
 #include "opentxs/Types.hpp"
-#include "ListRow.hpp"
 
 #ifdef SWIG
 // clang-format off

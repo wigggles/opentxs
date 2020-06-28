@@ -5,7 +5,6 @@
 
 #include "0_stdafx.hpp"    // IWYU pragma: associated
 #include "1_Internal.hpp"  // IWYU pragma: associated
-#if OT_CASH
 #include "blind/Mint.hpp"  // IWYU pragma: associated
 
 #include <irrxml/irrXML.hpp>
@@ -726,4 +725,3 @@ void Mint::GenerateNewMint(
 
 Mint::~Mint() { Release_Mint(); }
 }  // namespace opentxs::blind::mint::implementation
-#endif  // OT_CASH

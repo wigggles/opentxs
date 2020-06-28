@@ -12,6 +12,14 @@ namespace opentxs
 {
 namespace proto
 {
+class NymIDSource;
+}  // namespace proto
+}  // namespace opentxs
+
+namespace opentxs
+{
+namespace proto
+{
 OPENTXS_EXPORT bool CheckProto_1(const NymIDSource& source, const bool silent);
 OPENTXS_EXPORT bool CheckProto_2(const NymIDSource&, const bool);
 OPENTXS_EXPORT bool CheckProto_3(const NymIDSource&, const bool);

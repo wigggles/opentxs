@@ -25,7 +25,6 @@
 #include "internal/blockchain/block/bitcoin/Bitcoin.hpp"
 #endif  // OT_BLOCKCHAIN
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/api/Core.hpp"
 #if OT_BLOCKCHAIN
 #include "opentxs/api/Endpoints.hpp"
@@ -54,6 +53,10 @@
 #include "opentxs/network/zeromq/socket/Socket.hpp"
 #endif  // OT_BLOCKCHAIN
 #include "opentxs/protobuf/ContactEnums.pb.h"
+#include "opentxs/protobuf/Enums.pb.h"
+#include "opentxs/protobuf/HDPath.pb.h"
+#include "opentxs/protobuf/StorageThread.pb.h"
+#include "opentxs/protobuf/StorageThreadItem.pb.h"
 #include "util/Container.hpp"
 #if OT_BLOCKCHAIN
 #include "util/ScopeGuard.hpp"

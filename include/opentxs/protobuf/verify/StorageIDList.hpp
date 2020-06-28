@@ -14,6 +14,14 @@ namespace opentxs
 {
 namespace proto
 {
+class StorageIDList;
+}  // namespace proto
+}  // namespace opentxs
+
+namespace opentxs
+{
+namespace proto
+{
 OPENTXS_EXPORT bool CheckProto_1(const StorageIDList& list, const bool silent);
 OPENTXS_EXPORT bool CheckProto_2(const StorageIDList&, const bool);
 OPENTXS_EXPORT bool CheckProto_3(const StorageIDList&, const bool);

@@ -187,9 +187,13 @@ auto PushData(const ReadView in) noexcept(false) -> ScriptElement
 {
     const auto size = in.size();
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wtautological-type-limit-compare"
+    // std::size_t might be 32 bit
     if (size > std::numeric_limits<std::uint32_t>::max()) {
         throw std::out_of_range("Too many bytes");
     }
+#pragma GCC diagnostic pop
 
     if ((nullptr == in.data()) || (0 == size)) {
         return {OP::PUSHDATA1, {}, Space{std::byte{0x0}}, Space{}};

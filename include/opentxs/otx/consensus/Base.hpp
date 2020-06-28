@@ -13,10 +13,11 @@
 #include <memory>
 #include <set>
 
-#include "opentxs/api/Editor.hpp"
-#include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
+#include "opentxs/api/Editor.hpp"
+#include "opentxs/core/contract/Signable.hpp"
+#include "opentxs/protobuf/ConsensusEnums.pb.h"
 
 namespace opentxs
 {

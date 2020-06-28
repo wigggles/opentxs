@@ -14,11 +14,12 @@
 #include "2_Factory.hpp"
 #include "crypto/key/Asymmetric.hpp"
 #include "internal/api/Api.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/crypto/key/Asymmetric.hpp"
+#include "opentxs/protobuf/AsymmetricKey.pb.h"
+#include "opentxs/protobuf/Ciphertext.pb.h"
 #include "opentxs/protobuf/Enums.pb.h"
 
 namespace opentxs

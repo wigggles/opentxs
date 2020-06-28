@@ -25,13 +25,38 @@
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
+#include "opentxs/protobuf/ContactEnums.pb.h"
+#include "opentxs/protobuf/PaymentWorkflowEnums.pb.h"
 
 namespace opentxs
 {
+namespace proto
+{
+class Bip47Channel;
+class Ciphertext;
+class Contact;
+class Context;
+class Credential;
+class HDAccount;
+class Issuer;
+class Nym;
+class PaymentWorkflow;
+class PeerReply;
+class PeerRequest;
+class Purse;
+class Seed;
+class ServerContract;
+class StorageThread;
+class UnitDefinition;
+}  // namespace proto
+
 using NymLambda = std::function<void(const proto::Nym&)>;
 using ServerLambda = std::function<void(const proto::ServerContract&)>;
 using UnitLambda = std::function<void(const proto::UnitDefinition&)>;
+}  // namespace opentxs
 
+namespace opentxs
+{
 namespace api
 {
 namespace storage

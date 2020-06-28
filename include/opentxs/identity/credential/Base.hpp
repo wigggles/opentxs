@@ -17,9 +17,17 @@
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/core/contract/Signable.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
 
 namespace opentxs
 {
+namespace proto
+{
+class Credential;
+class ContactData;
+class VerificationSet;
+}  // namespace proto
+
 class Secret;
 }  // namespace opentxs
 

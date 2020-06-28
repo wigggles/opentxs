@@ -10,9 +10,9 @@
 
 #include <string>
 
-#include "opentxs/crypto/key/EllipticCurve.hpp"
 #include "opentxs/Bytes.hpp"
 #include "opentxs/Pimpl.hpp"
+#include "opentxs/crypto/key/EllipticCurve.hpp"
 
 namespace opentxs
 {

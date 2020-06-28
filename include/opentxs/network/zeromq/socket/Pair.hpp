@@ -10,8 +10,8 @@
 
 #include <string>
 
-#include "opentxs/network/zeromq/socket/Sender.hpp"
 #include "opentxs/Pimpl.hpp"
+#include "opentxs/network/zeromq/socket/Sender.hpp"
 
 #ifdef SWIG
 // clang-format off

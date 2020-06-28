@@ -12,10 +12,10 @@
 
 #include <string>
 
-#include "opentxs/ui/List.hpp"
-#include "opentxs/ui/ListRow.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/SharedPimpl.hpp"
+#include "opentxs/ui/List.hpp"
+#include "opentxs/ui/ListRow.hpp"
 
 #ifdef SWIG
 // clang-format off

@@ -8,8 +8,8 @@
 #include "storage/tree/Nym.hpp"  // IWYU pragma: associated
 
 #include <functional>
+#include <type_traits>
 
-#include "opentxs/Pimpl.hpp"
 #include "opentxs/api/storage/Driver.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
@@ -17,7 +17,17 @@
 #include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/protobuf/Check.hpp"
 #include "opentxs/protobuf/ContactEnums.pb.h"
+#include "opentxs/protobuf/Enums.pb.h"
+#include "opentxs/protobuf/HDAccount.pb.h"
+#include "opentxs/protobuf/Nym.pb.h"
+#include "opentxs/protobuf/Purse.pb.h"
+#include "opentxs/protobuf/StorageBlockchainAccountList.pb.h"
+#include "opentxs/protobuf/StorageItemHash.pb.h"
+#include "opentxs/protobuf/StorageNym.pb.h"
+#include "opentxs/protobuf/StoragePurse.pb.h"
 #include "opentxs/protobuf/verify/HDAccount.hpp"
+#include "opentxs/protobuf/verify/Nym.hpp"
+#include "opentxs/protobuf/verify/Purse.hpp"
 #include "opentxs/protobuf/verify/StorageNym.hpp"
 #include "storage/Plugin.hpp"
 #include "storage/tree/Bip47Channels.hpp"

@@ -16,12 +16,13 @@
 #include "2_Factory.hpp"
 #include "internal/identity/wot/verification/Verification.hpp"
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/identity/wot/verification/Nym.hpp"
 #include "opentxs/protobuf/Basic.hpp"
+#include "opentxs/protobuf/VerificationGroup.pb.h"
+#include "opentxs/protobuf/VerificationIdentity.pb.h"
 #include "opentxs/protobuf/verify/VerifyContacts.hpp"
 
 #define OT_METHOD                                                              \

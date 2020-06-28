@@ -13,13 +13,15 @@
 #include "internal/api/Api.hpp"
 #include "internal/identity/wot/verification/Verification.hpp"
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/identity/Nym.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
+#include "opentxs/protobuf/Signature.pb.h"
+#include "opentxs/protobuf/Verification.pb.h"
 
 namespace opentxs
 {

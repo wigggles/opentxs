@@ -3,8 +3,6 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "opentxs/Proto.hpp"  // IWYU pragma: associated
-
 #include <cstdint>
 #include <iosfwd>
 #include <map>
@@ -13,9 +11,13 @@
 #include <string>
 #include <utility>
 
+#include "opentxs/Proto.hpp"
 #include "opentxs/protobuf/Basic.hpp"
 #include "opentxs/protobuf/Check.hpp"
+#include "opentxs/protobuf/PaymentEvent.pb.h"
+#include "opentxs/protobuf/PaymentWorkflow.pb.h"
 #include "opentxs/protobuf/PaymentWorkflowEnums.pb.h"
+#include "opentxs/protobuf/verify/InstrumentRevision.hpp"  // IWYU pragma: keep
 #include "opentxs/protobuf/verify/PaymentEvent.hpp"
 #include "opentxs/protobuf/verify/PaymentWorkflow.hpp"
 #include "opentxs/protobuf/verify/VerifyWorkflows.hpp"

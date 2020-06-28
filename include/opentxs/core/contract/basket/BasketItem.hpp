@@ -10,8 +10,8 @@
 
 #include <deque>
 
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/Types.hpp"
+#include "opentxs/core/Identifier.hpp"
 
 namespace opentxs
 {

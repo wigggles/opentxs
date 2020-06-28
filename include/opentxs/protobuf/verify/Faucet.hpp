@@ -14,6 +14,14 @@ namespace opentxs
 {
 namespace proto
 {
+class Faucet;
+}  // namespace proto
+}  // namespace opentxs
+
+namespace opentxs
+{
+namespace proto
+{
 OPENTXS_EXPORT bool CheckProto_1(const Faucet&, const bool);
 OPENTXS_EXPORT bool CheckProto_2(const Faucet&, const bool);
 OPENTXS_EXPORT bool CheckProto_3(const Faucet&, const bool);

@@ -14,6 +14,14 @@ namespace opentxs
 {
 namespace proto
 {
+class Bip47Address;
+}  // namespace proto
+}  // namespace opentxs
+
+namespace opentxs
+{
+namespace proto
+{
 OPENTXS_EXPORT bool CheckProto_1(const Bip47Address& input, const bool silent);
 OPENTXS_EXPORT bool CheckProto_2(const Bip47Address&, const bool);
 OPENTXS_EXPORT bool CheckProto_3(const Bip47Address&, const bool);

@@ -20,6 +20,9 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/protobuf/Contact.hpp"
+#include "opentxs/protobuf/ContactData.pb.h"
+#include "opentxs/protobuf/ContactItem.pb.h"
+#include "opentxs/protobuf/ContactSection.pb.h"
 #include "opentxs/protobuf/verify/VerifyContacts.hpp"
 
 #define OT_METHOD "opentxs::ContactData::"

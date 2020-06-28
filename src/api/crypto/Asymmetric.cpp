@@ -30,7 +30,9 @@
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #include "opentxs/crypto/key/Secp256k1.hpp"
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+#include "opentxs/protobuf/AsymmetricKey.pb.h"
 #include "opentxs/protobuf/Enums.pb.h"
+#include "opentxs/protobuf/HDPath.pb.h"
 
 #define OT_METHOD "opentxs::api::crypto::implementation::Asymmetric::"
 

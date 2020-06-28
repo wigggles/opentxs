@@ -83,6 +83,7 @@ namespace proto
 {
 class Context;
 class Credential;
+class Issuer;
 class Nym;
 class PeerReply;
 class PeerRequest;

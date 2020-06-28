@@ -121,6 +121,19 @@ class Server;
 }  // namespace context
 }  // namespace otx
 
+namespace proto
+{
+class AsymmetricKey;
+class BlockchainBlockHeader;
+class PaymentCode;
+class PeerObject;
+class PeerReply;
+class PeerRequest;
+class Purse;
+class SymmetricKey;
+class UnitDefinition;
+}  // namespace proto
+
 class Basket;
 class Cheque;
 class Contract;

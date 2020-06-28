@@ -17,7 +17,6 @@
 #include "crypto/key/SymmetricNull.hpp"
 #include "internal/api/Api.hpp"
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -29,6 +28,7 @@
 #include "opentxs/crypto/key/Symmetric.hpp"
 #include "opentxs/crypto/library/SymmetricProvider.hpp"
 #include "opentxs/protobuf/Check.hpp"
+#include "opentxs/protobuf/Ciphertext.pb.h"
 #include "opentxs/protobuf/Enums.pb.h"
 #include "opentxs/protobuf/verify/SymmetricKey.hpp"
 

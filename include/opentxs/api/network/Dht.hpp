@@ -14,8 +14,8 @@
 #include <map>
 #include <string>
 
-#include "opentxs/identity/Nym.hpp"
 #include "opentxs/Proto.hpp"
+#include "opentxs/identity/Nym.hpp"
 
 namespace opentxs
 {

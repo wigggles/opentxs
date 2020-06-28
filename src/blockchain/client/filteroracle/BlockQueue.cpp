@@ -15,8 +15,8 @@
 #include "opentxs/api/client/Manager.hpp"
 #include "opentxs/blockchain/block/Header.hpp"
 #include "opentxs/blockchain/block/bitcoin/Block.hpp"
-#include "opentxs/blockchain/client/HeaderOracle.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
 #include "util/ScopeGuard.hpp"
 
 // #define OT_METHOD

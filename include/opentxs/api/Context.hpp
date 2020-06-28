@@ -24,6 +24,12 @@ namespace api
 {
 class Primitives;
 }  // namespace api
+
+namespace proto
+{
+class RPCCommand;
+class RPCResponse;
+}  // namespace proto
 }  // namespace opentxs
 
 namespace opentxs

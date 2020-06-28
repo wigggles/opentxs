@@ -8,8 +8,8 @@
 
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
-#include "opentxs/core/Armored.hpp"
 #include "opentxs/Pimpl.hpp"
+#include "opentxs/core/Armored.hpp"
 
 namespace opentxs
 {

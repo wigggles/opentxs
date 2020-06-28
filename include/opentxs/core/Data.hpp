@@ -12,9 +12,9 @@
 #include <string>
 #include <vector>
 
-#include "opentxs/iterator/Bidirectional.hpp"
 #include "opentxs/Bytes.hpp"
 #include "opentxs/Pimpl.hpp"
+#include "opentxs/iterator/Bidirectional.hpp"
 
 #ifdef SWIG
 // clang-format off

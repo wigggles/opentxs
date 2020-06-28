@@ -35,7 +35,10 @@
 #include "opentxs/crypto/library/AsymmetricProvider.hpp"
 #include "opentxs/identity/Authority.hpp"
 #include "opentxs/identity/credential/Key.hpp"
+#include "opentxs/protobuf/AsymmetricKey.pb.h"
+#include "opentxs/protobuf/Ciphertext.pb.h"
 #include "opentxs/protobuf/Enums.pb.h"
+#include "opentxs/protobuf/Signature.pb.h"
 
 template class opentxs::Pimpl<opentxs::crypto::key::Asymmetric>;
 

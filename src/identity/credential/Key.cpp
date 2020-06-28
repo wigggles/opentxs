@@ -16,7 +16,6 @@
 #include "identity/credential/Base.hpp"
 #include "internal/api/Api.hpp"
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/Proto.tpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/api/Factory.hpp"
@@ -29,7 +28,11 @@
 #include "opentxs/crypto/key/Asymmetric.hpp"
 #include "opentxs/crypto/key/Keypair.hpp"
 #include "opentxs/crypto/library/AsymmetricProvider.hpp"
+#include "opentxs/protobuf/AsymmetricKey.pb.h"
+#include "opentxs/protobuf/Credential.pb.h"
 #include "opentxs/protobuf/Enums.pb.h"
+#include "opentxs/protobuf/KeyCredential.pb.h"
+#include "opentxs/protobuf/Signature.pb.h"
 
 #define OT_METHOD "opentxs::identity::credential::implementation::Key::"
 

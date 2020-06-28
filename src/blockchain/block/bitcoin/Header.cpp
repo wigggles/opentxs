@@ -18,7 +18,6 @@
 #include "internal/blockchain/block/bitcoin/Bitcoin.hpp"
 #include "internal/blockchain/client/Client.hpp"
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/client/Manager.hpp"
 #include "opentxs/blockchain/NumericHash.hpp"
@@ -28,6 +27,8 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
+#include "opentxs/protobuf/BitcoinBlockHeaderFields.pb.h"
+#include "opentxs/protobuf/BlockchainBlockHeader.pb.h"
 #include "util/Blank.hpp"
 
 #define OT_BITCOIN_BLOCK_HEADER_SIZE 80

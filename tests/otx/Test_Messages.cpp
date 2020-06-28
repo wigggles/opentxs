@@ -15,7 +15,6 @@
 #include "internal/api/server/Server.hpp"
 #include "opentxs/OT.hpp"
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/SharedPimpl.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/Version.hpp"
@@ -35,7 +34,12 @@
 #include "opentxs/identity/Nym.hpp"
 #include "opentxs/otx/Reply.hpp"
 #include "opentxs/otx/Request.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
 #include "opentxs/protobuf/OTXEnums.pb.h"
+#include "opentxs/protobuf/OTXPush.pb.h"
+#include "opentxs/protobuf/ServerReply.pb.h"
+#include "opentxs/protobuf/ServerRequest.pb.h"
+#include "opentxs/protobuf/Signature.pb.h"
 
 using namespace opentxs;
 

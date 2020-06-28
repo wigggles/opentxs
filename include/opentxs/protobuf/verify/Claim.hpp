@@ -14,6 +14,14 @@ namespace opentxs
 {
 namespace proto
 {
+class Claim;
+}  // namespace proto
+}  // namespace opentxs
+
+namespace opentxs
+{
+namespace proto
+{
 OPENTXS_EXPORT bool CheckProto_1(const Claim& claim, const bool silent);
 OPENTXS_EXPORT bool CheckProto_2(const Claim&, const bool);
 OPENTXS_EXPORT bool CheckProto_3(const Claim&, const bool);

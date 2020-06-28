@@ -14,6 +14,14 @@ namespace opentxs
 {
 namespace proto
 {
+class HDPath;
+}  // namespace proto
+}  // namespace opentxs
+
+namespace opentxs
+{
+namespace proto
+{
 OPENTXS_EXPORT bool CheckProto_1(const HDPath& path, const bool silent);
 OPENTXS_EXPORT bool CheckProto_2(const HDPath&, const bool);
 OPENTXS_EXPORT bool CheckProto_3(const HDPath&, const bool);

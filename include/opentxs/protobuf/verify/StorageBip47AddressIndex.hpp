@@ -14,6 +14,14 @@ namespace opentxs
 {
 namespace proto
 {
+class StorageBip47AddressIndex;
+}  // namespace proto
+}  // namespace opentxs
+
+namespace opentxs
+{
+namespace proto
+{
 OPENTXS_EXPORT bool CheckProto_1(
     const StorageBip47AddressIndex& input,
     const bool silent);

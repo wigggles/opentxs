@@ -13,7 +13,6 @@
 
 #include "2_Factory.hpp"
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/Proto.tpp"
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
@@ -21,6 +20,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/crypto/key/Symmetric.hpp"
+#include "opentxs/protobuf/Ciphertext.pb.h"
 #include "storage/StorageConfig.hpp"
 
 #define ROOT_FILE_EXTENSION ".hash"

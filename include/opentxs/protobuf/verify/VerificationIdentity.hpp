@@ -16,6 +16,14 @@ namespace opentxs
 {
 namespace proto
 {
+class VerificationIdentity;
+}  // namespace proto
+}  // namespace opentxs
+
+namespace opentxs
+{
+namespace proto
+{
 using VerificationNymMap = std::map<std::string, std::uint64_t>;
 
 OPENTXS_EXPORT bool CheckProto_1(

@@ -21,6 +21,7 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/protobuf/CashEnums.pb.h"
+#include "opentxs/protobuf/Token.pb.h"
 
 namespace opentxs
 {

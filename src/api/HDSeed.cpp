@@ -19,7 +19,6 @@
 #include "opentxs/Bytes.hpp"
 #include "opentxs/OT.hpp"
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/api/Context.hpp"
 #include "opentxs/api/HDSeed.hpp"
 #include "opentxs/api/Primitives.hpp"
@@ -36,7 +35,10 @@
 #include "opentxs/crypto/key/Secp256k1.hpp"
 #include "opentxs/crypto/key/Symmetric.hpp"
 #include "opentxs/protobuf/Check.hpp"
+#include "opentxs/protobuf/Ciphertext.pb.h"
 #include "opentxs/protobuf/Enums.pb.h"
+#include "opentxs/protobuf/HDPath.pb.h"
+#include "opentxs/protobuf/Seed.pb.h"
 #include "opentxs/protobuf/verify/Seed.hpp"
 #include "util/HDIndex.hpp"
 

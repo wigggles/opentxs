@@ -14,10 +14,11 @@
 
 #include "2_Factory.hpp"
 #include "opentxs/OT.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/api/Context.hpp"
 #include "opentxs/api/Primitives.hpp"
+#include "opentxs/protobuf/ContactData.pb.h"
 #include "opentxs/protobuf/Enums.pb.h"
+#include "opentxs/protobuf/VerificationSet.pb.h"
 #include "util/Container.hpp"
 
 namespace opentxs

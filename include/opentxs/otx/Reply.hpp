@@ -12,10 +12,11 @@
 
 #include <memory>
 
-#include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
+#include "opentxs/core/contract/Signable.hpp"
+#include "opentxs/protobuf/OTXEnums.pb.h"
 
 namespace opentxs
 {
@@ -31,6 +32,12 @@ namespace otx
 {
 class Reply;
 }  // namespace otx
+
+namespace proto
+{
+class OTXPush;
+class ServerReply;
+}  // namespace proto
 
 using OTXReply = Pimpl<otx::Reply>;
 }  // namespace opentxs

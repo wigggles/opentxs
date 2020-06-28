@@ -11,13 +11,13 @@
 #include <iterator>
 #include <utility>
 
-#include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/api/client/Blockchain.hpp"
 #include "opentxs/api/client/Manager.hpp"
 #include "opentxs/contact/Contact.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
+#include "opentxs/protobuf/BlockchainTransaction.pb.h"
 #include "util/Container.hpp"
 
 #define OT_METHOD                                                              \

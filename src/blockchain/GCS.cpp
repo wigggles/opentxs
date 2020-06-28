@@ -27,7 +27,6 @@
 #include "blockchain/bitcoin/CompactSize.hpp"
 #include "internal/blockchain/Blockchain.hpp"
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
@@ -37,6 +36,8 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
+#include "opentxs/protobuf/GCS.pb.h"
 #include "util/Container.hpp"
 
 //#define OT_METHOD "opentxs::blockchain::implementation::GCS::"

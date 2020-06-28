@@ -7,10 +7,13 @@
 #include "1_Internal.hpp"         // IWYU pragma: associated
 #include "storage/tree/Node.hpp"  // IWYU pragma: associated
 
-#include "opentxs/Proto.hpp"
 #include "opentxs/api/storage/Driver.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/protobuf/Contact.pb.h"
+#include "opentxs/protobuf/Nym.pb.h"
+#include "opentxs/protobuf/Seed.pb.h"
 #include "opentxs/protobuf/StorageEnums.pb.h"
+#include "opentxs/protobuf/StorageItemHash.pb.h"
 
 #define OT_METHOD "opentxs::storage::Node::"
 

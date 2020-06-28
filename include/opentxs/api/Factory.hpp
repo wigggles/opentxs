@@ -51,6 +51,10 @@
 #include "opentxs/crypto/key/Keypair.hpp"
 #include "opentxs/crypto/key/Symmetric.hpp"
 #include "opentxs/network/zeromq/Pipeline.hpp"
+#include "opentxs/protobuf/CashEnums.pb.h"
+#include "opentxs/protobuf/ContactEnums.pb.h"
+#include "opentxs/protobuf/Enums.pb.h"
+#include "opentxs/protobuf/PeerEnums.pb.h"
 
 namespace opentxs
 {
@@ -61,6 +65,19 @@ namespace context
 class Server;
 }  // namespace context
 }  // namespace otx
+
+namespace proto
+{
+class AsymmetricKey;
+class BlockchainBlockHeader;
+class PaymentCode;
+class PeerObject;
+class PeerReply;
+class PeerRequest;
+class Purse;
+class SymmetricKey;
+class UnitDefinition;
+}  // namespace proto
 
 class Secret;
 }  // namespace opentxs

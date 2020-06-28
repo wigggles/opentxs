@@ -14,8 +14,8 @@
 #include <memory>
 #include <string>
 
-#include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
+#include "opentxs/protobuf/ContractEnums.pb.h"
 
 namespace opentxs
 {

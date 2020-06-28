@@ -11,7 +11,6 @@
 #include <utility>
 
 #include "internal/api/client/Client.hpp"
-#include "ui/Widget.hpp"
 #include "internal/blockchain/Blockchain.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/api/client/Blockchain.hpp"
@@ -20,6 +19,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "ui/ActivityThreadItem.hpp"
+#include "ui/Widget.hpp"
 
 // #define OT_METHOD
 // "opentxs::ui::implementation::BlockchainActivityThreadItem::"

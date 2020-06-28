@@ -8,10 +8,10 @@
 
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
-#include "opentxs/core/identifier/Nym.hpp"
-#include "opentxs/core/Instrument.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Instrument.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
 
 namespace opentxs
 {

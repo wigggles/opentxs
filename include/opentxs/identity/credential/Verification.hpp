@@ -10,8 +10,8 @@
 
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
-#include "opentxs/identity/credential/Base.hpp"
 #include "opentxs/Proto.hpp"
+#include "opentxs/identity/credential/Base.hpp"
 
 namespace opentxs
 {

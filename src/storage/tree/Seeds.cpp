@@ -13,10 +13,13 @@
 #include <tuple>
 #include <utility>
 
-#include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/api/storage/Driver.hpp"
 #include "opentxs/protobuf/Check.hpp"
+#include "opentxs/protobuf/Seed.pb.h"
+#include "opentxs/protobuf/StorageItemHash.pb.h"
+#include "opentxs/protobuf/StorageSeeds.pb.h"
+#include "opentxs/protobuf/verify/Seed.hpp"
 #include "opentxs/protobuf/verify/StorageSeeds.hpp"
 #include "storage/Plugin.hpp"
 #include "storage/tree/Node.hpp"

@@ -20,7 +20,6 @@
 #include "core/Shutdown.hpp"
 #include "internal/api/storage/Storage.hpp"
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/HDSeed.hpp"
 #include "opentxs/api/Wallet.hpp"
@@ -34,6 +33,8 @@
 #include "opentxs/core/Secret.hpp"
 #include "opentxs/core/crypto/OTCaller.hpp"
 #include "opentxs/crypto/key/Symmetric.hpp"
+#include "opentxs/protobuf/Ciphertext.pb.h"
+#include "opentxs/protobuf/Enums.pb.h"
 #include "util/ScopeGuard.hpp"
 
 //#define OT_METHOD "opentxs::api::implementation::Core::"

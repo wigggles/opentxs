@@ -15,6 +15,7 @@
 #include "opentxs/Types.hpp"
 #include "opentxs/identity/credential/Base.hpp"
 #include "opentxs/protobuf/Enums.pb.h"
+#include "opentxs/protobuf/SourceProof.pb.h"
 
 namespace opentxs
 {
@@ -35,6 +36,13 @@ struct Authority;
 
 class Source;
 }  // namespace identity
+
+namespace proto
+{
+class Credential;
+class HDPath;
+class Signature;
+}  // namespace proto
 
 class Factory;
 class Identifier;

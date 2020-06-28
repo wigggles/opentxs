@@ -16,13 +16,14 @@
 #include "OTTestEnvironment.hpp"  // IWYU pragma: keep
 #include "internal/api/client/Client.hpp"
 #include "opentxs/OT.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/api/Context.hpp"
 #include "opentxs/api/client/Manager.hpp"
 #include "opentxs/contact/ContactGroup.hpp"
 #include "opentxs/contact/ContactItem.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/protobuf/ContactEnums.pb.h"
+#include "opentxs/protobuf/ContactItem.pb.h"
+#include "opentxs/protobuf/ContactSection.pb.h"
 
 namespace
 {

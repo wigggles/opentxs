@@ -16,6 +16,14 @@ namespace opentxs
 {
 namespace proto
 {
+class BasketItem;
+}  // namespace proto
+}  // namespace opentxs
+
+namespace opentxs
+{
+namespace proto
+{
 using BasketItemMap = std::map<std::string, uint64_t>;
 
 OPENTXS_EXPORT bool CheckProto_1(

@@ -20,6 +20,7 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/protobuf/ContactEnums.pb.h"
+#include "opentxs/protobuf/StorageContacts.pb.h"
 #include "storage/tree/Node.hpp"
 
 namespace opentxs
@@ -31,6 +32,11 @@ namespace storage
 class Driver;
 }  // namespace storage
 }  // namespace api
+
+namespace proto
+{
+class Contact;
+}  // namespace proto
 
 namespace storage
 {

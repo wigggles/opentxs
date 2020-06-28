@@ -14,6 +14,14 @@ namespace opentxs
 {
 namespace proto
 {
+class BasketParams;
+}  // namespace proto
+}  // namespace opentxs
+
+namespace opentxs
+{
+namespace proto
+{
 OPENTXS_EXPORT bool CheckProto_1(const BasketParams& params, const bool silent);
 OPENTXS_EXPORT bool CheckProto_2(const BasketParams&, const bool);
 OPENTXS_EXPORT bool CheckProto_3(const BasketParams&, const bool);

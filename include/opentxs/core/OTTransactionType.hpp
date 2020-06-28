@@ -10,13 +10,13 @@
 
 #include <cstdint>
 
-#include "opentxs/core/identifier/Nym.hpp"
-#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/Types.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Contract.hpp"
-#include "opentxs/core/NumList.hpp"
-#include "opentxs/Types.hpp"
 #include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/NumList.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/Server.hpp"
 
 namespace opentxs
 {

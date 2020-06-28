@@ -12,8 +12,8 @@
 #include <map>
 #include <string>
 
-#include "opentxs/core/script/OTVariable.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/core/script/OTVariable.hpp"
 
 namespace opentxs
 {

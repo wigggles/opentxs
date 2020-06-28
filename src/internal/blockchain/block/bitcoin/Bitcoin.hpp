@@ -62,6 +62,11 @@ class Transaction;
 }  // namespace bitcoin
 }  // namespace block
 }  // namespace blockchain
+
+namespace proto
+{
+class BlockchainBlockHeader;
+}  // namespace proto
 }  // namespace opentxs
 
 namespace opentxs::blockchain::block::bitcoin::internal

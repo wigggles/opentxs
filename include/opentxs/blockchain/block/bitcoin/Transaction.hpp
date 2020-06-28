@@ -32,6 +32,11 @@ struct Transaction;
 }  // namespace bitcoin
 }  // namespace block
 }  // namespace blockchain
+
+namespace proto
+{
+class BlockchainTransaction;
+}  // namespace proto
 }  // namespace opentxs
 
 namespace opentxs

@@ -14,6 +14,14 @@ namespace opentxs
 {
 namespace proto
 {
+class StorageAccounts;
+}  // namespace proto
+}  // namespace opentxs
+
+namespace opentxs
+{
+namespace proto
+{
 OPENTXS_EXPORT bool CheckProto_1(
     const StorageAccounts& input,
     const bool silent);

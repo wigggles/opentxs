@@ -9,6 +9,7 @@
 #include "opentxs/Proto.hpp"
 #include "opentxs/api/client/Manager.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/protobuf/BlockchainBlockHeader.pb.h"
 #include "util/LMDB.hpp"
 
 namespace opentxs

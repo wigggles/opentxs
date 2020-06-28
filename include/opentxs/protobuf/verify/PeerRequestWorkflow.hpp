@@ -14,6 +14,14 @@ namespace opentxs
 {
 namespace proto
 {
+class PeerRequestWorkflow;
+}  // namespace proto
+}  // namespace opentxs
+
+namespace opentxs
+{
+namespace proto
+{
 OPENTXS_EXPORT bool CheckProto_1(
     const PeerRequestWorkflow& input,
     const bool silent);

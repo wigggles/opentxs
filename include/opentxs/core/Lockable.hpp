@@ -11,8 +11,8 @@
 #include <mutex>
 #include <shared_mutex>
 
-#include "opentxs/core/Log.hpp"
 #include "opentxs/Types.hpp"
+#include "opentxs/core/Log.hpp"
 
 namespace opentxs
 {

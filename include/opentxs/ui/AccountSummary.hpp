@@ -9,8 +9,8 @@
 #ifndef Q_MOC_RUN
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
-#include "opentxs/ui/List.hpp"
 #include "opentxs/SharedPimpl.hpp"
+#include "opentxs/ui/List.hpp"
 
 #ifdef SWIG
 // clang-format off

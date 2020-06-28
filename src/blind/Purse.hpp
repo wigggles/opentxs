@@ -24,6 +24,8 @@
 #include "opentxs/crypto/key/Symmetric.hpp"
 #include "opentxs/protobuf/CashEnums.pb.h"
 #include "opentxs/protobuf/Enums.pb.h"
+#include "opentxs/protobuf/Envelope.pb.h"
+#include "opentxs/protobuf/Purse.pb.h"
 
 namespace opentxs
 {

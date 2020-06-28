@@ -14,6 +14,14 @@ namespace opentxs
 {
 namespace proto
 {
+class PendingCommand;
+}  // namespace proto
+}  // namespace opentxs
+
+namespace opentxs
+{
+namespace proto
+{
 OPENTXS_EXPORT bool CheckProto_1(
     const PendingCommand& input,
     const bool silent);

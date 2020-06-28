@@ -3,8 +3,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "opentxs/Proto.hpp"  // IWYU pragma: associated
-
+#include "opentxs/protobuf/BlockchainWalletKey.pb.h"
 #include "opentxs/protobuf/ContactEnums.pb.h"
 #include "opentxs/protobuf/verify/BlockchainWalletKey.hpp"
 #include "opentxs/protobuf/verify/VerifyContacts.hpp"

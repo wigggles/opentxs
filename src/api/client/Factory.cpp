@@ -13,7 +13,6 @@
 #include "internal/blockchain/block/Block.hpp"
 #include "internal/blockchain/block/bitcoin/Bitcoin.hpp"
 #endif  // OT_BLOCKCHAIN
-#include "opentxs/Proto.hpp"
 #if OT_BLOCKCHAIN
 #include "opentxs/blockchain/block/Header.hpp"
 #endif  // OT_BLOCKCHAIN
@@ -23,6 +22,7 @@
 #include "opentxs/core/contract/peer/PeerObject.hpp"
 #include "opentxs/core/contract/peer/PeerReply.hpp"
 #include "opentxs/core/contract/peer/PeerRequest.hpp"
+#include "opentxs/protobuf/BlockchainBlockHeader.pb.h"
 #include "opentxs/protobuf/Check.hpp"
 #include "opentxs/protobuf/verify/BlockchainBlockHeader.hpp"
 

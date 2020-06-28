@@ -29,7 +29,10 @@
 #include "opentxs/crypto/Bip32.hpp"
 #include "opentxs/crypto/key/HD.hpp"
 #include "opentxs/crypto/key/Symmetric.hpp"
+#include "opentxs/protobuf/AsymmetricKey.pb.h"
+#include "opentxs/protobuf/Ciphertext.pb.h"
 #include "opentxs/protobuf/Enums.pb.h"
+#include "opentxs/protobuf/HDPath.pb.h"
 #include "util/HDIndex.hpp"
 
 #define OT_METHOD "opentxs::crypto::key::implementation::HD::"

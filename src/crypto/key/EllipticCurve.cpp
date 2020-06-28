@@ -11,13 +11,14 @@
 #include <utility>
 
 #include "crypto/key/Asymmetric.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Secret.hpp"
 #include "opentxs/crypto/key/EllipticCurve.hpp"
 #include "opentxs/crypto/library/EcdsaProvider.hpp"
+#include "opentxs/protobuf/AsymmetricKey.pb.h"
+#include "opentxs/protobuf/Ciphertext.pb.h"
 #include "opentxs/protobuf/Enums.pb.h"
 
 // #define OT_METHOD "opentxs::crypto::key::implementation::EllipticCurve::"

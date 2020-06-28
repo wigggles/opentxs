@@ -3,9 +3,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "0_stdafx.hpp"    // IWYU pragma: associated
-#include "1_Internal.hpp"  // IWYU pragma: associated
-#if OT_CASH_USING_LUCRE
+#include "0_stdafx.hpp"           // IWYU pragma: associated
+#include "1_Internal.hpp"         // IWYU pragma: associated
 #include "blind/token/Lucre.hpp"  // IWYU pragma: associated
 
 extern "C" {
@@ -23,7 +22,6 @@ extern "C" {
 #include "crypto/library/OpenSSL_BIO.hpp"
 #include "internal/api/Api.hpp"
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/blind/Mint.hpp"
@@ -36,6 +34,9 @@ extern "C" {
 #include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/crypto/key/Symmetric.hpp"
 #include "opentxs/protobuf/CashEnums.pb.h"
+#include "opentxs/protobuf/Ciphertext.pb.h"
+#include "opentxs/protobuf/LucreTokenData.pb.h"
+#include "opentxs/protobuf/Token.pb.h"
 
 #define LUCRE_TOKEN_VERSION 1
 
@@ -715,4 +716,3 @@ void Lucre::serialize_spendable(proto::LucreTokenData& lucre) const
     *lucre.mutable_spendable() = *spend_;
 }
 }  // namespace opentxs::blind::token::implementation
-#endif

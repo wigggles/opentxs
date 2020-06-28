@@ -14,6 +14,14 @@ namespace opentxs
 {
 namespace proto
 {
+class Bip47Direction;
+}  // namespace proto
+}  // namespace opentxs
+
+namespace opentxs
+{
+namespace proto
+{
 OPENTXS_EXPORT bool CheckProto_1(
     const Bip47Direction& input,
     const bool silent);

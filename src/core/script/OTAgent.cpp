@@ -30,8 +30,8 @@
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/identity/Nym.hpp"
-#include "opentxs/otx/consensus/Client.hpp"
 #include "opentxs/otx/consensus/Base.hpp"
+#include "opentxs/otx/consensus/Client.hpp"
 #include "opentxs/otx/consensus/ManagedNumber.hpp"
 #include "opentxs/otx/consensus/Server.hpp"
 

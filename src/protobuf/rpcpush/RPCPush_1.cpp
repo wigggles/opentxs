@@ -3,11 +3,13 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "opentxs/Proto.hpp"  // IWYU pragma: associated
-
 #include "opentxs/protobuf/Basic.hpp"
 #include "opentxs/protobuf/RPCEnums.pb.h"
+#include "opentxs/protobuf/RPCPush.pb.h"
+#include "opentxs/protobuf/verify/AccountEvent.hpp"  // IWYU pragma: keep
+#include "opentxs/protobuf/verify/ContactEvent.hpp"  // IWYU pragma: keep
 #include "opentxs/protobuf/verify/RPCPush.hpp"
+#include "opentxs/protobuf/verify/TaskComplete.hpp"  // IWYU pragma: keep
 #include "opentxs/protobuf/verify/VerifyRPC.hpp"
 #include "protobuf/Check.hpp"
 

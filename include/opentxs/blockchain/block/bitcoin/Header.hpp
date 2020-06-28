@@ -8,8 +8,8 @@
 
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
-#include "opentxs/blockchain/block/Header.hpp"
 #include "opentxs/Types.hpp"
+#include "opentxs/blockchain/block/Header.hpp"
 
 namespace opentxs
 {
