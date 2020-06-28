@@ -3,6 +3,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#include "opentxs/protobuf/verify/BlockchainTransaction.hpp"  // IWYU pragma: associated
+
 #include <cstdint>
 #include <limits>
 #include <stdexcept>
@@ -15,7 +17,6 @@
 #include "opentxs/protobuf/BlockchainTransactionOutput.pb.h"
 #include "opentxs/protobuf/Check.hpp"
 #include "opentxs/protobuf/Contact.hpp"
-#include "opentxs/protobuf/verify/BlockchainTransaction.hpp"
 #include "opentxs/protobuf/verify/BlockchainTransactionInput.hpp"
 #include "opentxs/protobuf/verify/BlockchainTransactionOutput.hpp"
 #include "opentxs/protobuf/verify/VerifyBlockchain.hpp"

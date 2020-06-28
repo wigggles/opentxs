@@ -31,6 +31,11 @@ class Transaction;
 }  // namespace bitcoin
 }  // namespace block
 }  // namespace blockchain
+
+namespace proto
+{
+class StorageThread;
+}  // namespace proto
 }  // namespace opentxs
 
 namespace opentxs

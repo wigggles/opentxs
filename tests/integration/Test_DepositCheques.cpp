@@ -42,6 +42,8 @@
 #include "opentxs/protobuf/ConsensusEnums.pb.h"
 #include "opentxs/protobuf/ContactEnums.pb.h"
 #include "opentxs/protobuf/ContractEnums.pb.h"
+#include "opentxs/protobuf/Nym.pb.h"             // IWYU pragma: keep
+#include "opentxs/protobuf/ServerContract.pb.h"  // IWYU pragma: keep
 
 using namespace opentxs;
 

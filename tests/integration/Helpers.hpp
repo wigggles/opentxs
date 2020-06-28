@@ -21,6 +21,7 @@
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
+#include "opentxs/protobuf/ServerContract.pb.h"
 
 namespace
 {

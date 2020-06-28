@@ -8,7 +8,9 @@
 
 #include "opentxs/Version.hpp"  // IWYU pragma: associated
 
+#include <cstdint>
 #include <map>
+#include <string>
 
 #include "opentxs/protobuf/verify/VerifyContacts.hpp"
 

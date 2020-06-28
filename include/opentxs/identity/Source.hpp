@@ -13,6 +13,15 @@
 #include <memory>
 
 #include "opentxs/Proto.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
+
+namespace opentxs
+{
+namespace proto
+{
+class NymIDSource;
+}  // namespace proto
+}  // namespace opentxs
 
 namespace opentxs
 {

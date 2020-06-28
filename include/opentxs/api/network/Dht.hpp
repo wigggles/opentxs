@@ -19,6 +19,15 @@
 
 namespace opentxs
 {
+namespace proto
+{
+class ServerContract;
+class UnitDefinition;
+}  // namespace proto
+}  // namespace opentxs
+
+namespace opentxs
+{
 namespace api
 {
 namespace network

@@ -65,6 +65,14 @@ class Message;
 }  // namespace zeromq
 }  // namespace network
 
+namespace proto
+{
+class APIArgument;
+class RPCCommand;
+class RPCResponse;
+class TaskComplete;
+}  // namespace proto
+
 class Factory;
 }  // namespace opentxs
 

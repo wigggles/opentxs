@@ -3,6 +3,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#include "opentxs/protobuf/verify/BasketParams.hpp"  // IWYU pragma: associated
+
 #include <stdexcept>
 #include <utility>
 
@@ -11,7 +13,6 @@
 #include "opentxs/protobuf/BasketParams.pb.h"
 #include "opentxs/protobuf/Check.hpp"
 #include "opentxs/protobuf/verify/BasketItem.hpp"
-#include "opentxs/protobuf/verify/BasketParams.hpp"
 #include "opentxs/protobuf/verify/VerifyContracts.hpp"
 #include "protobuf/Check.hpp"
 

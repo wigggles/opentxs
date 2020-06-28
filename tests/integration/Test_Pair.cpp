@@ -52,7 +52,9 @@
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/socket/Subscribe.hpp"
 #include "opentxs/protobuf/Bailment.pb.h"
+#include "opentxs/protobuf/BailmentReply.pb.h"  // IWYU pragma: keep
 #include "opentxs/protobuf/Check.hpp"
+#include "opentxs/protobuf/ConnectionInfoReply.pb.h"  // IWYU pragma: keep
 #include "opentxs/protobuf/ConsensusEnums.pb.h"
 #include "opentxs/protobuf/ContactEnums.pb.h"
 #include "opentxs/protobuf/ContractEnums.pb.h"

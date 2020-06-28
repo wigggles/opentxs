@@ -60,6 +60,7 @@
 #include "opentxs/protobuf/ConsensusEnums.pb.h"
 #include "opentxs/protobuf/ContactEnums.pb.h"
 #include "opentxs/protobuf/Context.pb.h"
+#include "opentxs/protobuf/Issuer.pb.h"  // IWYU pragma: keep
 #include "opentxs/protobuf/Nym.pb.h"
 #include "opentxs/protobuf/PeerEnums.pb.h"
 #include "opentxs/protobuf/PeerReply.pb.h"

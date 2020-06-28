@@ -3,6 +3,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#include "opentxs/protobuf/verify/SymmetricKey.hpp"  // IWYU pragma: associated
+
 #include <stdexcept>
 #include <utility>
 
@@ -11,7 +13,6 @@
 #include "opentxs/protobuf/Ciphertext.pb.h"
 #include "opentxs/protobuf/Enums.pb.h"
 #include "opentxs/protobuf/verify/Ciphertext.hpp"
-#include "opentxs/protobuf/verify/SymmetricKey.hpp"
 #include "opentxs/protobuf/verify/VerifyCredentials.hpp"
 #include "protobuf/Check.hpp"
 

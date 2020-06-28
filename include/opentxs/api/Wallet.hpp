@@ -26,6 +26,7 @@
 #include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/contract/basket/BasketContract.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
+#include "opentxs/protobuf/CashEnums.pb.h"
 
 namespace opentxs
 {
@@ -38,6 +39,12 @@ class Client;
 class Server;
 }  // namespace context
 }  // namespace otx
+
+namespace proto
+{
+class PeerReply;
+class PeerRequest;
+}  // namespace proto
 }  // namespace opentxs
 
 namespace opentxs

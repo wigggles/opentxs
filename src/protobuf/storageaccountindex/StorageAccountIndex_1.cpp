@@ -3,9 +3,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#include "opentxs/protobuf/verify/StorageAccountIndex.hpp"  // IWYU pragma: associated
+
 #include "opentxs/protobuf/ContactEnums.pb.h"
 #include "opentxs/protobuf/StorageAccountIndex.pb.h"
-#include "opentxs/protobuf/verify/StorageAccountIndex.hpp"
 #include "opentxs/protobuf/verify/VerifyContacts.hpp"
 #include "protobuf/Check.hpp"
 

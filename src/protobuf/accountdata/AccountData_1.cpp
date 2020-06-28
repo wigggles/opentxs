@@ -3,9 +3,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#include "opentxs/protobuf/verify/AccountData.hpp"  // IWYU pragma: associated
+
 #include "opentxs/protobuf/AccountData.pb.h"
 #include "opentxs/protobuf/RPCEnums.pb.h"
-#include "opentxs/protobuf/verify/AccountData.hpp"
 #include "protobuf/Check.hpp"
 
 #define PROTO_NAME "account data"

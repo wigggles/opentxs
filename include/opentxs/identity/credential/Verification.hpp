@@ -23,6 +23,14 @@ struct Core;
 }  // namespace internal
 }  // namespace api
 
+namespace proto
+{
+class Verification;
+}  // namespace proto
+}  // namespace opentxs
+
+namespace opentxs
+{
 namespace identity
 {
 namespace credential

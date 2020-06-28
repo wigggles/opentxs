@@ -3,11 +3,12 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#include "opentxs/protobuf/verify/BlindedSeriesList.hpp"  // IWYU pragma: associated
+
 #include <string>
 
 #include "opentxs/protobuf/Basic.hpp"
 #include "opentxs/protobuf/BlindedSeriesList.pb.h"
-#include "opentxs/protobuf/verify/BlindedSeriesList.hpp"
 #include "opentxs/protobuf/verify/StorageItemHash.hpp"  // IWYU pragma: keep
 #include "opentxs/protobuf/verify/VerifyStorage.hpp"
 #include "protobuf/Check.hpp"

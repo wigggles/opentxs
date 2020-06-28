@@ -8,7 +8,7 @@
 
 #include "opentxs/Version.hpp"  // IWYU pragma: associated
 
-#include "opentxs/protobuf/verify/VerifyCash.hpp"
+#include "opentxs/protobuf/CashEnums.pb.h"
 
 namespace opentxs
 {

@@ -3,12 +3,13 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#include "opentxs/protobuf/verify/ServerReply.hpp"  // IWYU pragma: associated
+
 #include "opentxs/protobuf/Basic.hpp"
 #include "opentxs/protobuf/Enums.pb.h"
 #include "opentxs/protobuf/OTXEnums.pb.h"
 #include "opentxs/protobuf/ServerReply.pb.h"
-#include "opentxs/protobuf/verify/OTXPush.hpp"  // IWYU pragma: keep
-#include "opentxs/protobuf/verify/ServerReply.hpp"
+#include "opentxs/protobuf/verify/OTXPush.hpp"    // IWYU pragma: keep
 #include "opentxs/protobuf/verify/Signature.hpp"  // IWYU pragma: keep
 #include "opentxs/protobuf/verify/VerifyOTX.hpp"
 #include "protobuf/Check.hpp"

@@ -3,13 +3,14 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#include "opentxs/protobuf/verify/LucreTokenData.hpp"  // IWYU pragma: associated
+
 #include <string>
 
 #include "opentxs/protobuf/Basic.hpp"
 #include "opentxs/protobuf/CashEnums.pb.h"
 #include "opentxs/protobuf/LucreTokenData.pb.h"
 #include "opentxs/protobuf/verify/Ciphertext.hpp"  // IWYU pragma: keep
-#include "opentxs/protobuf/verify/LucreTokenData.hpp"
 #include "opentxs/protobuf/verify/VerifyCash.hpp"
 #include "protobuf/Check.hpp"
 

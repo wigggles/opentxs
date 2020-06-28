@@ -3,6 +3,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#include "opentxs/protobuf/verify/UnitDefinition.hpp"  // IWYU pragma: associated
+
 #include <set>
 #include <stdexcept>
 #include <string>
@@ -24,7 +26,6 @@
 #include "opentxs/protobuf/verify/EquityParams.hpp"
 #include "opentxs/protobuf/verify/Nym.hpp"
 #include "opentxs/protobuf/verify/Signature.hpp"
-#include "opentxs/protobuf/verify/UnitDefinition.hpp"
 #include "opentxs/protobuf/verify/VerifyContracts.hpp"
 #include "protobuf/Check.hpp"
 

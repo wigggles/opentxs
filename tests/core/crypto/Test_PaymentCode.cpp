@@ -29,6 +29,7 @@
 #include "opentxs/identity/Nym.hpp"
 #include "opentxs/protobuf/ContactEnums.pb.h"
 #include "opentxs/protobuf/HDPath.pb.h"
+#include "opentxs/protobuf/PaymentCode.pb.h"  // IWYU pragma: keep
 
 using namespace opentxs;
 

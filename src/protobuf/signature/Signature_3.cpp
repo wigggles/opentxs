@@ -3,12 +3,13 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#include "opentxs/protobuf/verify/Signature.hpp"  // IWYU pragma: associated
+
 #include <cstdint>
 #include <string>
 
 #include "opentxs/protobuf/Enums.pb.h"
 #include "opentxs/protobuf/Signature.pb.h"
-#include "opentxs/protobuf/verify/Signature.hpp"
 #include "protobuf/Check.hpp"
 
 #define PROTO_NAME "signature"

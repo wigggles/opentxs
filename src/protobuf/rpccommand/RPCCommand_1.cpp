@@ -3,6 +3,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#include "opentxs/protobuf/verify/RPCCommand.hpp"  // IWYU pragma: associated
+
 #include "opentxs/protobuf/Basic.hpp"
 #include "opentxs/protobuf/RPCCommand.pb.h"
 #include "opentxs/protobuf/RPCEnums.pb.h"
@@ -11,11 +13,10 @@
 #include "opentxs/protobuf/verify/AddClaim.hpp"    // IWYU pragma: keep
 #include "opentxs/protobuf/verify/AddContact.hpp"  // IWYU pragma: keep
 #include "opentxs/protobuf/verify/CreateInstrumentDefinition.hpp"  // IWYU pragma: keep
-#include "opentxs/protobuf/verify/CreateNym.hpp"    // IWYU pragma: keep
-#include "opentxs/protobuf/verify/GetWorkflow.hpp"  // IWYU pragma: keep
-#include "opentxs/protobuf/verify/HDSeed.hpp"       // IWYU pragma: keep
-#include "opentxs/protobuf/verify/MoveFunds.hpp"    // IWYU pragma: keep
-#include "opentxs/protobuf/verify/RPCCommand.hpp"
+#include "opentxs/protobuf/verify/CreateNym.hpp"       // IWYU pragma: keep
+#include "opentxs/protobuf/verify/GetWorkflow.hpp"     // IWYU pragma: keep
+#include "opentxs/protobuf/verify/HDSeed.hpp"          // IWYU pragma: keep
+#include "opentxs/protobuf/verify/MoveFunds.hpp"       // IWYU pragma: keep
 #include "opentxs/protobuf/verify/SendMessage.hpp"     // IWYU pragma: keep
 #include "opentxs/protobuf/verify/SendPayment.hpp"     // IWYU pragma: keep
 #include "opentxs/protobuf/verify/ServerContract.hpp"  // IWYU pragma: keep

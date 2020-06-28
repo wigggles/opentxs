@@ -31,6 +31,8 @@
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/crypto/Envelope.hpp"
 #include "opentxs/identity/Nym.hpp"
+#include "opentxs/protobuf/Envelope.pb.h"  // IWYU pragma: keep
+#include "opentxs/protobuf/Nym.pb.h"       // IWYU pragma: keep
 
 namespace
 {
