@@ -10,6 +10,7 @@ if(OT_BLOCKCHAIN_EXPORT)
 endif()
 
 add_opentx_test(unittests-opentxs-blockchain-api Test_BlockchainAPI.cpp)
+add_opentx_test(unittests-opentxs-blockchain-address Test_Address.cpp)
 
 if(OT_BLOCKCHAIN_EXPORT)
   add_opentx_test(unittests-opentxs-blockchain-blockheader Test_BlockHeader.cpp)

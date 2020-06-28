@@ -115,9 +115,26 @@ namespace opentxs::api::client::implementation
 class Blockchain final : virtual public internal::Blockchain
 {
 public:
+    enum class Prefix : std::uint8_t {
+        Unknown = 0,
+        BitcoinP2PKH,
+        BitcoinP2SH,
+        BitcoinTestnetP2PKH,
+        BitcoinTestnetP2SH,
+        LitecoinP2PKH,
+        LitecoinP2SH,
+        LitecoinTestnetP2SH,
+    };
+
+    using StylePair = std::pair<Style, Chain>;
+    // Style, preferred prefix, additional prefixes
+    using StyleMap = std::map<StylePair, std::pair<Prefix, std::set<Prefix>>>;
+    using StyleReverseMap = std::map<Prefix, std::set<StylePair>>;
 #if OT_BLOCKCHAIN
     using ThreadPoolType = opentxs::blockchain::client::internal::ThreadPool;
 #endif  // OT_BLOCKCHAIN
+
+    static auto reverse(const StyleMap& in) noexcept -> StyleReverseMap;
 
     auto Account(const identifier::Nym& nymID, const Chain chain) const
         noexcept(false) -> const blockchain::BalanceTree& final
@@ -177,7 +194,7 @@ public:
         return contacts_;
     }
     auto DecodeAddress(const std::string& encoded) const noexcept
-        -> std::tuple<OTData, Style, Chain> final;
+        -> DecodedAddress final;
     auto EncodeAddress(const Style style, const Chain chain, const Data& data)
         const noexcept -> std::string final;
 #if OT_BLOCKCHAIN
@@ -268,14 +285,6 @@ private:
         Imported,
         PaymentCode,
     };
-    enum class Prefix : std::uint8_t {
-        Unknown = 0,
-        BitcoinP2PKH,
-        BitcoinP2SH,
-        BitcoinTestnetP2PKH,
-        BitcoinTestnetP2SH,
-        LitecoinP2PKH,
-    };
 
     using IDLock = std::map<OTIdentifier, std::mutex>;
     using TXOs = std::vector<blockchain::Activity>;
@@ -283,9 +292,6 @@ private:
     using ParsedTransaction = std::pair<TXOs, TXOs>;
     using AddressMap = std::map<Prefix, std::string>;
     using AddressReverseMap = std::map<std::string, Prefix>;
-    using StylePair = std::pair<Style, Chain>;
-    using StyleMap = std::map<StylePair, Prefix>;
-    using StyleReverseMap = std::map<Prefix, StylePair>;
 #if OT_BLOCKCHAIN
     using Txid = opentxs::blockchain::block::Txid;
     using pTxid = opentxs::blockchain::block::pTxid;

@@ -78,6 +78,8 @@ namespace zmq = opentxs::network::zeromq;
 
 namespace opentxs
 {
+using ReturnType = api::client::implementation::Blockchain;
+
 auto Factory::BlockchainAPI(
     const api::client::internal::Manager& api,
     const api::client::Activity& activity,
@@ -86,7 +88,6 @@ auto Factory::BlockchainAPI(
     const std::string& dataFolder,
     const ArgList& args) noexcept -> std::unique_ptr<api::client::Blockchain>
 {
-    using ReturnType = api::client::implementation::Blockchain;
 
     return std::make_unique<ReturnType>(
         api, activity, contacts, legacy, dataFolder, args);
@@ -95,28 +96,39 @@ auto Factory::BlockchainAPI(
 
 namespace opentxs::api::client::implementation
 {
-const Blockchain::AddressMap Blockchain::address_prefix_map_{
-    {Prefix::BitcoinP2PKH, "00"},
-    {Prefix::BitcoinP2SH, "05"},
-    {Prefix::BitcoinTestnetP2PKH, "6f"},
-    {Prefix::BitcoinTestnetP2SH, "c4"},
-    {Prefix::LitecoinP2PKH, "30"},
-};
 const Blockchain::AddressReverseMap Blockchain::address_prefix_reverse_map_{
-    reverse_map(address_prefix_map_)};
+    {"00", Prefix::BitcoinP2PKH},
+    {"05", Prefix::BitcoinP2SH},
+    {"30", Prefix::LitecoinP2PKH},
+    {"32", Prefix::LitecoinP2SH},
+    {"3a", Prefix::LitecoinTestnetP2SH},
+    {"6f", Prefix::BitcoinTestnetP2PKH},
+    {"c4", Prefix::BitcoinTestnetP2SH},
+};
+const Blockchain::AddressMap Blockchain::address_prefix_map_{
+    reverse_map(address_prefix_reverse_map_)};
 const Blockchain::StyleMap Blockchain::address_style_map_{
-    {{Style::P2PKH, Chain::Bitcoin}, Prefix::BitcoinP2PKH},
-    {{Style::P2SH, Chain::Bitcoin}, Prefix::BitcoinP2SH},
-    {{Style::P2PKH, Chain::Bitcoin_testnet3}, Prefix::BitcoinTestnetP2PKH},
-    {{Style::P2SH, Chain::Bitcoin_testnet3}, Prefix::BitcoinTestnetP2SH},
-    {{Style::P2PKH, Chain::BitcoinCash}, Prefix::BitcoinP2PKH},
-    {{Style::P2SH, Chain::BitcoinCash}, Prefix::BitcoinP2SH},
-    {{Style::P2PKH, Chain::BitcoinCash_testnet3}, Prefix::BitcoinTestnetP2PKH},
-    {{Style::P2SH, Chain::BitcoinCash_testnet3}, Prefix::BitcoinTestnetP2SH},
-    {{Style::P2PKH, Chain::Litecoin}, Prefix::LitecoinP2PKH},
+    {{Style::P2PKH, Chain::BitcoinCash_testnet3},
+     {Prefix::BitcoinTestnetP2PKH, {}}},
+    {{Style::P2PKH, Chain::BitcoinCash}, {Prefix::BitcoinP2PKH, {}}},
+    {{Style::P2PKH, Chain::Bitcoin_testnet3},
+     {Prefix::BitcoinTestnetP2PKH, {}}},
+    {{Style::P2PKH, Chain::Bitcoin}, {Prefix::BitcoinP2PKH, {}}},
+    {{Style::P2PKH, Chain::Litecoin_testnet4},
+     {Prefix::BitcoinTestnetP2PKH, {}}},
+    {{Style::P2PKH, Chain::Litecoin}, {Prefix::LitecoinP2PKH, {}}},
+    {{Style::P2SH, Chain::BitcoinCash_testnet3},
+     {Prefix::BitcoinTestnetP2SH, {}}},
+    {{Style::P2SH, Chain::BitcoinCash}, {Prefix::BitcoinP2SH, {}}},
+    {{Style::P2SH, Chain::Bitcoin_testnet3}, {Prefix::BitcoinTestnetP2SH, {}}},
+    {{Style::P2SH, Chain::Bitcoin}, {Prefix::BitcoinP2SH, {}}},
+    {{Style::P2SH, Chain::Litecoin_testnet4},
+     {Prefix::LitecoinTestnetP2SH, {Prefix::BitcoinTestnetP2SH}}},
+    {{Style::P2SH, Chain::Litecoin},
+     {Prefix::LitecoinP2SH, {Prefix::BitcoinP2SH}}},
 };
 const Blockchain::StyleReverseMap Blockchain::address_style_reverse_map_{
-    reverse_map(address_style_map_)};
+    ReturnType::reverse(address_style_map_)};
 
 Blockchain::Blockchain(
     const api::client::internal::Manager& api,
@@ -588,7 +600,7 @@ auto Blockchain::address_prefix(const Style style, const Chain chain) const
     noexcept(false) -> OTData
 {
     return api_.Factory().Data(
-        address_prefix_map_.at(address_style_map_.at({style, chain})),
+        address_prefix_map_.at(address_style_map_.at({style, chain}).first),
         StringStyle::Hex);
 }
 
@@ -821,11 +833,10 @@ auto Blockchain::CalculateAddress(
 }
 
 auto Blockchain::DecodeAddress(const std::string& encoded) const noexcept
-    -> std::tuple<OTData, Blockchain::Style, Blockchain::Chain>
+    -> DecodedAddress
 {
-    auto output = std::tuple<OTData, Style, Chain>{
-        api_.Factory().Data(), Style::Unknown, Chain::Unknown};
-    auto& [data, style, chain] = output;
+    auto output = DecodedAddress{api_.Factory().Data(), Style::Unknown, {}};
+    auto& [data, style, chains] = output;
     const auto bytes = api_.Factory().Data(
         api_.Crypto().Encode().IdentifierDecode(encoded), StringStyle::Raw);
     auto type = api_.Factory().Data();
@@ -845,10 +856,13 @@ auto Blockchain::DecodeAddress(const std::string& encoded) const noexcept
                 return output;
             }
 
-            const auto [decodeStyle, decodeChain] =
-                address_style_reverse_map_.at(prefix);
-            style = decodeStyle;
-            chain = decodeChain;
+            const auto& map = address_style_reverse_map_.at(prefix);
+
+            for (const auto& [decodeStyle, decodeChain] : map) {
+                style = decodeStyle;
+                chains.emplace(decodeChain);
+            }
+
             bytes->Extract(20, data, 1);
         } break;
         default: {
@@ -1215,6 +1229,22 @@ auto Blockchain::PubkeyHash(
             proto::HASHTYPE_BITCOIN, pubkey.Bytes(), output->WriteInto())) {
         throw std::runtime_error("Unable to calculate hash.");
     }
+
+    return output;
+}
+
+auto Blockchain::reverse(const StyleMap& in) noexcept -> StyleReverseMap
+{
+    auto output = StyleReverseMap{};
+    std::for_each(std::begin(in), std::end(in), [&](const auto& data) {
+        const auto& [metadata, prefixData] = data;
+        const auto& [preferred, additional] = prefixData;
+        output[preferred].emplace(metadata);
+
+        for (const auto& prefix : additional) {
+            output[prefix].emplace(metadata);
+        }
+    });
 
     return output;
 }

@@ -52,6 +52,7 @@ class Blockchain
 public:
     using Chain = opentxs::blockchain::Type;
     using Style = blockchain::AddressStyle;
+    using DecodedAddress = std::tuple<OTData, Style, std::set<Chain>>;
     using ContactList = std::set<OTIdentifier>;
 #if OT_BLOCKCHAIN
     using Tx = opentxs::blockchain::block::bitcoin::Transaction;
@@ -94,7 +95,7 @@ public:
         const TxidHex& id,
         const std::string& label) const noexcept = 0;
 #endif  // OT_BLOCKCHAIN
-    OPENTXS_EXPORT virtual std::tuple<OTData, Style, Chain> DecodeAddress(
+    OPENTXS_EXPORT virtual DecodedAddress DecodeAddress(
         const std::string& encoded) const noexcept = 0;
     OPENTXS_EXPORT virtual std::string EncodeAddress(
         const Style style,

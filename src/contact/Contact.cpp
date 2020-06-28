@@ -335,9 +335,9 @@ auto Contact::AddBlockchainAddress(
     const proto::ContactItemType currency) -> bool
 {
     const auto& api = api_;
-    auto [bytes, style, chain] = api.Blockchain().DecodeAddress(address);
-    const auto bad = bytes->empty() || (AddressStyle::Unknown == style) ||
-                     (BlockchainType::Unknown == chain);
+    auto [bytes, style, chains] = api.Blockchain().DecodeAddress(address);
+    const auto bad =
+        bytes->empty() || (AddressStyle::Unknown == style) || chains.empty();
 
     if (bad) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to decode address")
@@ -346,9 +346,17 @@ auto Contact::AddBlockchainAddress(
         return false;
     }
 
-    if (proto::CITEMTYPE_UNKNOWN != currency) { chain = Translate(currency); }
+    const auto type = Translate(currency);
 
-    return AddBlockchainAddress(style, chain, bytes);
+    if (0 == chains.count(type)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Address is not valid for specified chain")
+            .Flush();
+
+        return false;
+    }
+
+    return AddBlockchainAddress(style, type, bytes);
 }
 
 auto Contact::AddBlockchainAddress(

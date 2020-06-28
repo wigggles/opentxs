@@ -607,8 +607,12 @@ TEST_F(Test_BlockchainAPI, testBip32_SeedA)
 
         EXPECT_EQ(element.Address(AddressStyle::P2PKH), target);
 
-        const auto [bytes, style, chain] =
+        const auto [bytes, style, chains] =
             api_.Blockchain().DecodeAddress(target);
+
+        ASSERT_GT(chains.size(), 0);
+
+        const auto& chain = *chains.cbegin();
         const auto encoded =
             api_.Blockchain().EncodeAddress(style, chain, bytes);
 
@@ -869,8 +873,12 @@ TEST_F(Test_BlockchainAPI, testBip44_ltc)
 
         EXPECT_EQ(element.Address(AddressStyle::P2PKH), target);
 
-        const auto [bytes, style, chain] =
+        const auto [bytes, style, chains] =
             api_.Blockchain().DecodeAddress(target);
+
+        ASSERT_GT(chains.size(), 0);
+
+        const auto& chain = *chains.cbegin();
         const auto encoded =
             api_.Blockchain().EncodeAddress(style, chain, bytes);
 
