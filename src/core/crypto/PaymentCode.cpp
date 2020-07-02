@@ -275,8 +275,7 @@ auto PaymentCode::Sign(
         proto::SIGROLE_NYMIDSOURCE,
         signature,
         ID(),
-        reason,
-        proto::KEYROLE_SIGN);
+        reason);
     sig.CopyFrom(signature);
 
     return output;
@@ -290,7 +289,12 @@ auto PaymentCode::Sign(
     const auto& key = *key_;
 
     return key.engine().Sign(
-        api_, data, key, proto::HASHTYPE_SHA256, output, reason);
+        api_,
+        data.Bytes(),
+        key,
+        proto::HASHTYPE_SHA256,
+        output.WriteInto(),
+        reason);
 }
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 

@@ -123,7 +123,13 @@ auto AsymmetricProvider::SignContract(
         strContractUnsigned.Get(),
         strContractUnsigned.GetLength() + 1);  // include null terminator
     auto signature = Data::Factory();
-    bool success = Sign(api, plaintext, theKey, hashType, signature, reason);
+    bool success = Sign(
+        api,
+        plaintext->Bytes(),
+        theKey,
+        hashType,
+        signature->WriteInto(),
+        reason);
     theSignature.SetData(signature, true);  // true means, "yes, with newlines
                                             // in the b64-encoded output,
                                             // please."

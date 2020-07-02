@@ -539,15 +539,8 @@ auto Asymmetric::Sign(
     proto::Signature& signature,
     const Identifier& credential,
     const PasswordPrompt& reason,
-    [[maybe_unused]] proto::KeyRole key,
     const proto::HashType hash) const noexcept -> bool
 {
-    if (false == has_private_) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Missing private key").Flush();
-
-        return false;
-    }
-
     const auto type{(proto::HASHTYPE_ERROR == hash) ? SigHashType() : hash};
 
     try {
@@ -558,19 +551,31 @@ auto Asymmetric::Sign(
         return false;
     }
 
-    auto sig = Data::Factory();
-    const auto raw = input();
-    const auto preimage = Data::Factory(raw.data(), raw.size());
-    bool goodSig =
-        engine().Sign(api_, preimage, *this, signature.hashtype(), sig, reason);
+    const auto preimage = input();
+    auto& output = *signature.mutable_signature();
 
-    if (goodSig) {
-        signature.set_signature(sig->data(), sig->size());
-    } else {
+    return Sign(preimage, type, writer(output), reason);
+}
+
+auto Asymmetric::Sign(
+    const ReadView preimage,
+    const proto::HashType hash,
+    const AllocateOutput output,
+    const PasswordPrompt& reason) const noexcept -> bool
+{
+    if (false == has_private_) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Missing private key").Flush();
+
+        return false;
+    }
+
+    bool success = engine().Sign(api_, preimage, *this, hash, output, reason);
+
+    if (false == success) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to sign preimage").Flush();
     }
 
-    return goodSig;
+    return success;
 }
 
 auto Asymmetric::TransportKey(

@@ -157,8 +157,8 @@ public:
     {
         auto reason = client_.Factory().PasswordPrompt(__FUNCTION__);
         auto sig = Data::Factory();
-        const auto haveSig =
-            lib.Sign(client_, plaintext, key, hash, sig, reason);
+        const auto haveSig = lib.Sign(
+            client_, plaintext.Bytes(), key, hash, sig->WriteInto(), reason);
 
         if (false == haveSig) { return false; }
 
@@ -174,7 +174,8 @@ public:
     {
         auto reason = client_.Factory().PasswordPrompt(__FUNCTION__);
         auto sig = Data::Factory();
-        lib.Sign(client_, plaintext_1, key, hash, sig, reason);
+        lib.Sign(
+            client_, plaintext_1->Bytes(), key, hash, sig->WriteInto(), reason);
         const auto verified = lib.Verify(plaintext_2, key, sig, hash);
 
         return !verified;

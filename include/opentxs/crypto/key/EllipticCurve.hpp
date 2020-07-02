@@ -27,6 +27,11 @@ public:
 
     OPENTXS_EXPORT virtual std::unique_ptr<EllipticCurve> asPublicEC()
         const noexcept = 0;
+    OPENTXS_EXPORT virtual bool SignDER(
+        const ReadView preimage,
+        const proto::HashType hash,
+        Space& output,
+        const PasswordPrompt& reason) const noexcept = 0;
 
     OPENTXS_EXPORT ~EllipticCurve() override = default;
 

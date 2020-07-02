@@ -776,13 +776,12 @@ auto OpenSSL::SharedSecret(
 }
 
 auto OpenSSL::Sign(
-    [[maybe_unused]] const api::internal::Core&,
-    const Data& in,
+    [[maybe_unused]] const api::internal::Core& api,
+    const ReadView in,
     const key::Asymmetric& key,
     const proto::HashType type,
-    Data& out,
-    const PasswordPrompt& reason,
-    const std::optional<OTSecret>) const -> bool
+    const AllocateOutput signature,
+    const PasswordPrompt& reason) const -> bool
 {
     if (proto::AKEYTYPE_LEGACY != key.keyType()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid key type").Flush();
@@ -832,7 +831,22 @@ auto OpenSSL::Sign(
         return false;
     }
 
-    out.resize(bytes);
+    if (false == bool(signature)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid output allocator")
+            .Flush();
+
+        return false;
+    }
+
+    auto out = signature(bytes);
+
+    if (false == out.valid(bytes)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Failed to allocate space for signature")
+            .Flush();
+
+        return false;
+    }
 
     if (1 != EVP_DigestSignFinal(
                  md, reinterpret_cast<unsigned char*>(out.data()), &bytes)) {

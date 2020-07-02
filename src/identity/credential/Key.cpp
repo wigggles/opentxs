@@ -485,7 +485,7 @@ auto Key::Sign(
     if (nullptr != keyToUse) {
         try {
             return keyToUse->GetPrivateKey().Sign(
-                input, role, signature, id_, reason, key, hash);
+                input, role, signature, id_, reason, hash);
         } catch (...) {
         }
     }

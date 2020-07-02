@@ -57,12 +57,11 @@ public:
         const AllocateOutput params = {}) const noexcept = 0;
     OPENTXS_EXPORT virtual bool Sign(
         const api::internal::Core& api,
-        const Data& plaintext,
-        const key::Asymmetric& theKey,
-        const proto::HashType hashType,
-        Data& signature,  // output
-        const PasswordPrompt& reason,
-        const std::optional<OTSecret> exportPassword = {}) const = 0;
+        const ReadView plaintext,
+        const key::Asymmetric& key,
+        const proto::HashType hash,
+        const AllocateOutput signature,
+        const PasswordPrompt& reason) const = 0;
     OPENTXS_EXPORT virtual bool SignContract(
         const api::internal::Core& api,
         const String& strContractUnsigned,

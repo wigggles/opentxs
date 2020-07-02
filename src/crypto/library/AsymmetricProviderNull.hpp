@@ -38,12 +38,11 @@ public:
     }
     auto Sign(
         const api::internal::Core&,
-        const Data&,
+        const ReadView,
         const key::Asymmetric&,
         const proto::HashType,
-        Data&,
-        const PasswordPrompt&,
-        const std::optional<OTSecret> exportPassword) const -> bool final
+        const AllocateOutput,
+        const PasswordPrompt&) const -> bool final
     {
         return false;
     }
