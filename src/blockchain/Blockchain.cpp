@@ -11,13 +11,16 @@
 #include <cstddef>
 #include <cstring>
 #include <iterator>
+#include <limits>
 #include <map>
 #include <memory>
 #include <set>
 #include <stdexcept>
+#include <string_view>
 #include <thread>
 #include <utility>
 
+#include "internal/blockchain/bitcoin/Bitcoin.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
@@ -395,6 +398,41 @@ auto BlockHashToFilterKey(const ReadView hash) noexcept(false) -> ReadView
     if (16 > hash.size()) { throw std::runtime_error("Hash too short"); }
 
     return ReadView{hash.data(), 16};
+}
+
+auto DecodeSerializedCfilter(const ReadView bytes) noexcept(false)
+    -> std::pair<std::uint32_t, ReadView>
+{
+    auto output = std::pair<std::uint32_t, ReadView>{};
+    auto it = reinterpret_cast<const std::byte*>(bytes.data());
+    auto expectedSize = std::size_t{1};
+
+    if (expectedSize > bytes.size()) {
+        throw std::runtime_error("Empty input");
+    }
+
+    auto elementCount = std::size_t{0};
+    auto csBytes = std::size_t{0};
+    const auto haveElementCount = bitcoin::DecodeCompactSizeFromPayload(
+        it, expectedSize, bytes.size(), elementCount, csBytes);
+
+    if (false == haveElementCount) {
+        throw std::runtime_error("Failed to decode CompactSize");
+    }
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wtautological-type-limit-compare"
+    // std::size_t might be 32 bit
+    if (elementCount > std::numeric_limits<std::uint32_t>::max()) {
+        throw std::runtime_error("Too many elements");
+    }
+#pragma GCC diagnostic pop
+
+    const auto dataSize = bytes.size() - (1 + csBytes);
+    output.first = static_cast<std::uint32_t>(elementCount);
+    output.second = {reinterpret_cast<const char*>(it), dataSize};
+
+    return output;
 }
 
 auto DefaultFilter(const Type type) noexcept -> filter::Type

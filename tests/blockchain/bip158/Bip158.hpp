@@ -5,6 +5,9 @@
 
 #pragma once
 
+#include <array>
+#include <cstdint>
+
 #include "OTTestEnvironment.hpp"  // IWYU pragma: keep
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
@@ -13,6 +16,9 @@
 
 namespace
 {
+extern const std::array<std::uint8_t, 381319> bch_filter_1307544_;
+extern const std::array<std::uint8_t, 430483> bch_filter_1307723_;
+
 auto some_moron_wrote_the_bytes_backwards(const std::string& in) -> std::string
 {
     if (0 != (in.size() % 2)) {

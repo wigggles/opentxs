@@ -105,7 +105,7 @@ auto FilterOracle::AddFilter(zmq::Message& work) const noexcept -> void
     auto header = work.Header();
 
     if (1 > header.size()) {
-        LogVerbose(OT_METHOD)(__FUNCTION__)(": Invalid work header").Flush();
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Invalid work header").Flush();
 
         return;
     }
@@ -121,7 +121,7 @@ auto FilterOracle::AddHeaders(zmq::Message& work) const noexcept -> void
     auto header = work.Header();
 
     if (1 > header.size()) {
-        LogVerbose(OT_METHOD)(__FUNCTION__)(": Invalid work header").Flush();
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Invalid work header").Flush();
 
         return;
     }
@@ -170,7 +170,7 @@ auto FilterOracle::check_blocks(
     OT_ASSERT(startHeight <= stopHeight);
     OT_ASSERT(startHeight > 0);
 
-    LogNormal("Requesting ")(blockchain::internal::DisplayString(chain_))(
+    LogVerbose("Requesting ")(blockchain::internal::DisplayString(chain_))(
         " blocks from ")(startHeight)(" to ")(stopHeight)
         .Flush();
     const std::size_t limit = 1u + stopHeight - startHeight;
@@ -207,7 +207,11 @@ void FilterOracle::check_filters(
 
     repeat = true;
 
-    if (outstanding_filters_.IsRunning()) { return; }
+    if (outstanding_filters_.IsRunning()) {
+        if (outstanding_filters_.IsFull()) { flush_filters(); }
+
+        return;
+    }
 
     const auto headerTip = database_.FilterHeaderTip(type).first;
     const auto begin{start.first + static_cast<block::Height>(1)};
@@ -223,11 +227,11 @@ void FilterOracle::check_filters(
     OT_ASSERT(0 < stopHeight);
     OT_ASSERT(stopHeight >= begin);
 
-    LogNormal("Requesting ")(blockchain::internal::DisplayString(chain_))(
+    LogVerbose("Requesting ")(blockchain::internal::DisplayString(chain_))(
         " filters from ")(begin)(" to ")(stopHeight)
         .Flush();
     const auto stopHash = headers.BestHash(stopHeight);
-    outstanding_filters_.Queue(begin, stopHash, headers);
+    outstanding_filters_.Queue(type, begin, stopHash, headers);
     network_.RequestFilters(type, begin, stopHash);
 }
 
@@ -259,7 +263,7 @@ void FilterOracle::check_headers(
     OT_ASSERT(0 < stopHeight);
     OT_ASSERT(stopHeight >= begin);
 
-    LogNormal("Requesting ")(blockchain::internal::DisplayString(chain_))(
+    LogVerbose("Requesting ")(blockchain::internal::DisplayString(chain_))(
         " filter headers from ")(begin)(" to ")(stopHeight)
         .Flush();
     header_requests_.Start(stopHash);
@@ -322,6 +326,31 @@ auto FilterOracle::compare_tips_to_header_chain() noexcept -> bool
     reset_tips_to(parent);
 
     return true;
+}
+
+auto FilterOracle::flush_filters() noexcept -> void
+{
+    auto postcondition = ScopeGuard{[&] { outstanding_filters_.Reset(); }};
+    auto filters = std::vector<internal::FilterDatabase::Filter>{};
+    auto position = outstanding_filters_.Flush(filters);
+    const auto& type = outstanding_filters_.type_;
+
+    if (false == database_.StoreFilters(type, std::move(filters))) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Database error").Flush();
+        Trigger();
+
+        return;
+    }
+
+    database_.SetFilterTip(type, position);
+    auto work = MakeWork(OTZMQWorkType{OT_ZMQ_NEW_FILTER_SIGNAL});
+    work->AddFrame(type);
+    work->AddFrame(position.first);
+    work->AddFrame(position.second);
+    socket_->Send(work);
+    LogNormal(blockchain::internal::DisplayString(chain_))(
+        " filter chain updated to height ")(position.first)
+        .Flush();
 }
 
 auto FilterOracle::oldest_checkpoint_before(
@@ -418,8 +447,7 @@ auto FilterOracle::process_cfheader(const zmq::Message& in) noexcept -> void
 
     const auto stopHash = api_.Factory().Data(stopBlock);
     header_requests_.Finish(stopHash);
-    const auto& headers = header_;
-    const auto pHeader = headers.LoadHeader(stopHash);
+    const auto pHeader = header_.LoadHeader(stopHash);
 
     if (false == bool(pHeader)) {
         LogVerbose(OT_METHOD)(__FUNCTION__)(": Block header for ")(
@@ -511,11 +539,11 @@ auto FilterOracle::process_cfheader(const zmq::Message& in) noexcept -> void
         }
 
         const auto& row = output.emplace_back(internal::FilterDatabase::Header{
-            headers.BestHash(i), std::move(receivedHeader), hash});
+            header_.BestHash(i), std::move(receivedHeader), hash});
         priorFilter = std::get<1>(row)->Bytes();
     }
 
-    if (false == headers.IsInBestChain(stopHash)) { return; }
+    if (false == header_.IsInBestChain(stopHash)) { return; }
 
     if (database_.StoreFilterHeaders(type, previousHeader, std::move(output))) {
         if (database_.SetFilterHeaderTip(type, header.Position())) {
@@ -591,29 +619,10 @@ auto FilterOracle::process_cfilter(const zmq::Message& in) noexcept -> void
     }
 
     outstanding_filters_.AddFilter(
-        header.Height(), header.Hash(), std::move(gcs));
+        type, header.Height(), header.Hash(), std::move(gcs));
 
     if (outstanding_filters_.IsFull()) {
-        auto postcondition = ScopeGuard{[&] { outstanding_filters_.Reset(); }};
-        auto filters = std::vector<internal::FilterDatabase::Filter>{};
-        auto position = outstanding_filters_.Flush(filters);
-
-        if (false == database_.StoreFilters(type, std::move(filters))) {
-            LogOutput(OT_METHOD)(__FUNCTION__)(": Database error").Flush();
-            Trigger();
-
-            return;
-        }
-
-        database_.SetFilterTip(type, position);
-        auto work = MakeWork(OTZMQWorkType{OT_ZMQ_NEW_FILTER_SIGNAL});
-        work->AddFrame(default_type_);
-        work->AddFrame(position.first);
-        work->AddFrame(position.second);
-        socket_->Send(work);
-        LogNormal(blockchain::internal::DisplayString(chain_))(
-            " filter chain updated to height ")(header.Height())
-            .Flush();
+        flush_filters();
     } else {
         LogVerbose(blockchain::internal::DisplayString(chain_))(
             " filter for block ")(header.Hash().asHex())(" at height ")(

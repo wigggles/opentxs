@@ -10,7 +10,8 @@
 #include <cstddef>
 #include <cstring>
 #include <iterator>
-#include <limits>
+#include <stdexcept>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -90,39 +91,28 @@ auto BitcoinP2PCfilter(
         return nullptr;
     }
 
-    expectedSize += 1;
-    auto elementCount = std::size_t{0};
-    auto csBytes = std::size_t{0};
-    const auto haveElementCount =
-        blockchain::bitcoin::DecodeCompactSizeFromPayload(
-            it, expectedSize, size, elementCount, csBytes);
-
-    if (false == haveElementCount) {
-        LogOutput(__FUNCTION__)(": CompactSize incomplete").Flush();
-
-        return nullptr;
-    }
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wtautological-type-limit-compare"
-    // std::size_t might be 32 bit
-    if (std::numeric_limits<std::uint32_t>::max() < elementCount) {
-        LogOutput(__FUNCTION__)(": Too many elements").Flush();
-
-        return nullptr;
-    }
-#pragma GCC diagnostic pop
-
     const auto filterType = raw.Type(header.Network());
-    const auto dataSize = filterSize - (1 + csBytes);
 
-    return new ReturnType(
-        api,
-        std::move(pHeader),
-        filterType,
-        raw.Hash(),
-        static_cast<std::uint32_t>(elementCount),
-        Space{it, it + dataSize});
+    try {
+        const auto [elementCount, filterBytes] =
+            blockchain::internal::DecodeSerializedCfilter(
+                ReadView{reinterpret_cast<const char*>(it), filterSize});
+        const auto start =
+            reinterpret_cast<const std::byte*>(filterBytes.data());
+        const auto end = start + filterBytes.size();
+
+        return new ReturnType(
+            api,
+            std::move(pHeader),
+            filterType,
+            raw.Hash(),
+            elementCount,
+            Space{start, end});
+    } catch (const std::exception& e) {
+        LogOutput("opentxs::factory::")(__FUNCTION__)(": ")(e.what()).Flush();
+
+        return nullptr;
+    }
 }
 
 auto BitcoinP2PCfilter(
