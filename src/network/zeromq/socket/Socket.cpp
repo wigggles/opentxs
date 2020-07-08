@@ -52,6 +52,7 @@ Socket::Socket(
     , endpoint_lock_()
     , endpoints_()
     , running_(Flag::Factory(true))
+    , endpoint_queue_()
     , type_(type)
 {
     if (nullptr == socket_) {
@@ -311,6 +312,12 @@ auto Socket::Start(const std::string& endpoint) const noexcept -> bool
         [&](const Lock& lock) -> bool { return start(lock, endpoint); }};
 
     return apply_socket(std::move(cb));
+}
+
+auto Socket::StartAsync(const std::string& endpoint) const noexcept -> void
+{
+    Lock lock{endpoint_queue_.lock_};
+    endpoint_queue_.queue_.push(endpoint);
 }
 
 auto Socket::start(const Lock& lock, const std::string& endpoint) const noexcept

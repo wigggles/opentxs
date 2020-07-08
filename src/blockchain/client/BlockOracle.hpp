@@ -15,7 +15,7 @@
 #include <tuple>
 #include <utility>
 
-#include "core/Executor.hpp"
+#include "core/Worker.hpp"
 #include "internal/blockchain/client/Client.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
@@ -45,7 +45,7 @@ class Message;
 namespace opentxs::blockchain::client::implementation
 {
 class BlockOracle final : public internal::BlockOracle,
-                          public Executor<BlockOracle>
+                          public Worker<BlockOracle>
 {
 public:
     auto LoadBitcoin(const block::Hash& block) const noexcept
@@ -53,10 +53,9 @@ public:
     auto SubmitBlock(const zmq::Frame& in) const noexcept -> void final;
 
     auto Init() noexcept -> void final;
-    auto Run() noexcept -> void final { Trigger(); }
     auto Shutdown() noexcept -> std::shared_future<void> final
     {
-        return stop_executor();
+        return stop_worker();
     }
 
     BlockOracle(
@@ -69,7 +68,7 @@ public:
     ~BlockOracle() final;
 
 private:
-    friend Executor<BlockOracle>;
+    friend Worker<BlockOracle>;
 
     using Promise = std::promise<BitcoinBlock_p>;
     using PendingData = std::tuple<Time, Promise, BitcoinBlockFuture, bool>;
@@ -112,7 +111,7 @@ private:
 
     auto pipeline(const zmq::Message& in) noexcept -> void;
     auto shutdown(std::promise<void>& promise) noexcept -> void;
-    auto state_machine() noexcept -> void;
+    auto state_machine() noexcept -> bool;
 
     BlockOracle() = delete;
     BlockOracle(const BlockOracle&) = delete;

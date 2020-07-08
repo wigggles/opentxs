@@ -211,6 +211,11 @@ public:
     {
         return io_;
     }
+    auto KeyEndpoint() const noexcept -> const std::string& final
+    {
+        return key_generated_endpoint_;
+    }
+    auto KeyGenerated(const Chain chain) const noexcept -> void final;
     auto LoadTransactionBitcoin(const TxidHex& id) const noexcept
         -> std::unique_ptr<const Tx> final;
     auto LoadTransactionBitcoin(const Txid& id) const noexcept
@@ -266,6 +271,11 @@ public:
 #endif  // OT_BLOCKCHAIN
     auto UpdateElement(std::vector<ReadView>& pubkeyHashes) const noexcept
         -> void final;
+#if OT_BLOCKCHAIN
+    auto UpdatePeer(
+        const opentxs::blockchain::Type chain,
+        const std::string& address) const noexcept -> void final;
+#endif  // OT_BLOCKCHAIN
 
     Blockchain(
         const api::client::internal::Manager& api,
@@ -457,11 +467,14 @@ private:
     mutable AccountCache accounts_;
     mutable BalanceLists balance_lists_;
 #if OT_BLOCKCHAIN
+    const std::string key_generated_endpoint_;
     ThreadPoolManager thread_pool_;
     opentxs::blockchain::client::internal::IO io_;
     blockchain::database::implementation::Database db_;
     OTZMQPublishSocket reorg_;
     OTZMQPublishSocket transaction_updates_;
+    OTZMQPublishSocket peer_updates_;
+    OTZMQPublishSocket key_updates_;
     mutable std::map<
         Chain,
         std::unique_ptr<opentxs::blockchain::client::internal::Network>>

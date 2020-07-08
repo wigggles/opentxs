@@ -61,6 +61,19 @@ public:
      */
     OPENTXS_EXPORT virtual std::string BlockchainBalance() const noexcept = 0;
 
+    /** Blockchain peer connection
+     *
+     *  A subscribe socket can connect to this endpoint to be notified when
+     *  any active blockchain connects to a new peer
+     *
+     *  Messages bodies consist of two frames.
+     *   * The first frame contains the chain type
+     *   * The second frame contains the peer address
+     *
+     *  This endpoint is active for client sessions only.
+     */
+    OPENTXS_EXPORT virtual std::string BlockchainPeer() const noexcept = 0;
+
     /** Blockchain reorg notifications
      *
      *  A subscribe socket can connect to this endpoint to be notified when

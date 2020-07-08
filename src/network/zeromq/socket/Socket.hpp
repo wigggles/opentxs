@@ -10,6 +10,7 @@
 #include <functional>
 #include <map>
 #include <mutex>
+#include <queue>
 #include <set>
 #include <string>
 
@@ -71,12 +72,33 @@ public:
         const std::chrono::milliseconds& send,
         const std::chrono::milliseconds& receive) const noexcept -> bool final;
     auto Start(const std::string& endpoint) const noexcept -> bool override;
+    auto StartAsync(const std::string& endpoint) const noexcept -> void final;
 
     auto get() -> Socket& { return *this; }
 
     ~Socket() override;
 
 protected:
+    struct Endpoints {
+        std::mutex lock_{};
+        std::queue<std::string> queue_{};
+
+        auto pop() noexcept -> std::vector<std::string>
+        {
+            auto output = std::vector<std::string>{};
+
+            Lock lock{lock_};
+            output.reserve(queue_.size());
+
+            while (false == queue_.empty()) {
+                output.emplace_back(queue_.front());
+                queue_.pop();
+            }
+
+            return output;
+        }
+    };
+
     const zeromq::Context& context_;
     const Socket::Direction direction_;
     mutable void* socket_;
@@ -86,6 +108,7 @@ protected:
     mutable std::mutex endpoint_lock_;
     mutable std::set<std::string> endpoints_;
     mutable OTFlag running_;
+    mutable Endpoints endpoint_queue_;
 
     void add_endpoint(const std::string& endpoint) const noexcept;
     auto apply_timeouts(const Lock& lock) const noexcept -> bool;

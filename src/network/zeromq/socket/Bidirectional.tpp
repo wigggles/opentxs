@@ -226,6 +226,7 @@ void Bidirectional<InterfaceType, MessageType>::thread() noexcept
 
     while (this->running_.get()) {
         std::this_thread::yield();
+        auto newEndpoints = this->endpoint_queue_.pop();
         Lock lock(this->lock_, std::try_to_lock);
         zmq_pollitem_t poll[2]{};
         poll[0].socket = this->socket_;
@@ -234,6 +235,10 @@ void Bidirectional<InterfaceType, MessageType>::thread() noexcept
         poll[1].events = ZMQ_POLLIN;
 
         if (false == lock.owns_lock()) { continue; }
+
+        for (const auto& endpoint : newEndpoints) {
+            this->start(lock, endpoint);
+        }
 
         this->run_tasks(lock);
         const auto events = zmq_poll(poll, 2, POLL_MILLISECONDS);

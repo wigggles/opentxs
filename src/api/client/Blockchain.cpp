@@ -18,6 +18,9 @@
 #include <type_traits>
 
 #include "2_Factory.hpp"
+#if OT_BLOCKCHAIN
+#include "core/Worker.hpp"
+#endif  // OT_BLOCKCHAIN
 #include "internal/api/client/Client.hpp"
 #include "internal/api/client/blockchain/Blockchain.hpp"
 #if OT_BLOCKCHAIN
@@ -62,6 +65,9 @@
 #include "util/ScopeGuard.hpp"
 #endif  // OT_BLOCKCHAIN
 #include "util/HDIndex.hpp"
+#if OT_BLOCKCHAIN
+#include "util/Work.hpp"
+#endif  // OT_BLOCKCHAIN
 
 #define LOCK_NYM()                                                             \
     Lock mapLock(lock_);                                                       \
@@ -146,11 +152,15 @@ Blockchain::Blockchain(
     , accounts_(api_)
     , balance_lists_(*this)
 #if OT_BLOCKCHAIN
+    , key_generated_endpoint_(
+          std::string{"inproc://"} + Identifier::Random()->str())
     , thread_pool_(api)
     , io_(api)
     , db_(api, legacy, dataFolder, args)
     , reorg_(api_.ZeroMQ().PublishSocket())
     , transaction_updates_(api_.ZeroMQ().PublishSocket())
+    , peer_updates_(api_.ZeroMQ().PublishSocket())
+    , key_updates_(api_.ZeroMQ().PublishSocket())
     , networks_()
     , balances_(*this, api)
 #endif  // OT_BLOCKCHAIN
@@ -163,6 +173,14 @@ Blockchain::Blockchain(
 
     listen =
         transaction_updates_->Start(api_.Endpoints().BlockchainTransactions());
+
+    OT_ASSERT(listen);
+
+    listen = peer_updates_->Start(api_.Endpoints().BlockchainPeer());
+
+    OT_ASSERT(listen);
+
+    listen = key_updates_->Start(key_generated_endpoint_);
 
     OT_ASSERT(listen);
 #endif  // OT_BLOCKCHAIN
@@ -992,6 +1010,14 @@ auto Blockchain::init_path(
 }
 
 #if OT_BLOCKCHAIN
+auto Blockchain::KeyGenerated(const Chain chain) const noexcept -> void
+{
+    auto work =
+        MakeWork(api_, OTZMQWorkType{OT_ZMQ_NEW_BLOCKCHAIN_WALLET_KEY_SIGNAL});
+    work->AddFrame(chain);
+    key_updates_->Send(work);
+}
+
 auto Blockchain::load_transaction(const Lock& lock, const TxidHex& txid)
     const noexcept -> std::unique_ptr<
         opentxs::blockchain::block::bitcoin::internal::Transaction>
@@ -1360,6 +1386,18 @@ auto Blockchain::UpdateElement([
 #endif  // OT_BLOCKCHAIN
 }
 
+#if OT_BLOCKCHAIN
+auto Blockchain::UpdatePeer(
+    const opentxs::blockchain::Type chain,
+    const std::string& address) const noexcept -> void
+{
+    auto work = MakeWork(api_, OTZMQWorkType{OT_ZMQ_NEW_PEER_SIGNAL});
+    work->AddFrame(chain);
+    work->AddFrame(address);
+    peer_updates_->Send(work);
+}
+
+#endif  // OT_BLOCKCHAIN
 auto Blockchain::validate_nym(const identifier::Nym& nymID) const noexcept
     -> bool
 {

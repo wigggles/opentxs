@@ -5,7 +5,15 @@
 
 add_subdirectory(bitcoin)
 
-set(cxx-sources "Address.cpp" "Peer.cpp")
+set(
+  cxx-sources
+  "peer/Activity.cpp"
+  "peer/Address.cpp"
+  "peer/DownloadPeers.cpp"
+  "peer/SendPromises.cpp"
+  "Address.cpp"
+  "Peer.cpp"
+)
 
 set(cxx-headers "${opentxs_SOURCE_DIR}/src/internal/blockchain/p2p/P2P.hpp"
                 "Address.hpp" "Peer.hpp")

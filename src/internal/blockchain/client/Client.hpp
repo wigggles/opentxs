@@ -211,7 +211,6 @@ struct BlockOracle : virtual public opentxs::blockchain::client::BlockOracle {
     virtual auto SubmitBlock(const zmq::Frame& in) const noexcept -> void = 0;
 
     virtual auto Init() noexcept -> void = 0;
-    virtual auto Run() noexcept -> void = 0;
     virtual auto Shutdown() noexcept -> std::shared_future<void> = 0;
 
     ~BlockOracle() override = default;
@@ -261,7 +260,6 @@ struct FilterDatabase {
 struct FilterOracle {
     virtual auto AddFilter(zmq::Message& work) const noexcept -> void = 0;
     virtual auto AddHeaders(zmq::Message& work) const noexcept -> void = 0;
-    virtual auto CheckBlocks() const noexcept -> void = 0;
     virtual auto DefaultType() const noexcept -> filter::Type = 0;
     virtual auto LoadFilter(const filter::Type type, const block::Hash& block)
         const noexcept -> std::unique_ptr<const blockchain::internal::GCS> = 0;
@@ -470,7 +468,6 @@ struct PeerManager {
     virtual auto RequestHeaders() const noexcept -> bool = 0;
 
     virtual auto init() noexcept -> void = 0;
-    virtual auto Run() noexcept -> void = 0;
     virtual auto Shutdown() noexcept -> std::shared_future<void> = 0;
 
     virtual ~PeerManager() = default;
@@ -505,7 +502,6 @@ struct Wallet {
         -> std::future<block::pTxid> = 0;
 
     virtual auto Init() noexcept -> void = 0;
-    virtual auto Run() noexcept -> void = 0;
     virtual auto Shutdown() noexcept -> std::shared_future<void> = 0;
 
     virtual ~Wallet() = default;

@@ -34,8 +34,6 @@ class Message;
 class ReplyCallback;
 }  // namespace zeromq
 }  // namespace network
-
-class Factory;
 }  // namespace opentxs
 
 namespace opentxs::network::zeromq::socket::implementation
@@ -44,11 +42,14 @@ class Reply final : public Receiver<zeromq::socket::Reply>,
                     public zeromq::curve::implementation::Server
 {
 public:
+    Reply(
+        const zeromq::Context& context,
+        const Socket::Direction direction,
+        const ReplyCallback& callback) noexcept;
+
     ~Reply() final;
 
 private:
-    friend opentxs::Factory;
-
     const ReplyCallback& callback_;
 
     auto clone() const noexcept -> Reply* final;
@@ -56,10 +57,6 @@ private:
 
     void process_incoming(const Lock& lock, Message& message) noexcept final;
 
-    Reply(
-        const zeromq::Context& context,
-        const Socket::Direction direction,
-        const ReplyCallback& callback) noexcept;
     Reply() = delete;
     Reply(const Reply&) = delete;
     Reply(Reply&&) = delete;

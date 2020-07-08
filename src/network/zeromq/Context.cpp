@@ -13,6 +13,7 @@
 
 #include "2_Factory.hpp"
 #include "PairEventListener.hpp"
+#include "internal/network/zeromq/socket/Socket.hpp"
 #include "opentxs/Bytes.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/core/Log.hpp"
@@ -159,7 +160,7 @@ auto Context::DealerSocket(
     -> OTZMQDealerSocket
 {
     return OTZMQDealerSocket{
-        Factory::DealerSocket(*this, static_cast<bool>(direction), callback)};
+        factory::DealerSocket(*this, static_cast<bool>(direction), callback)};
 }
 
 auto Context::Frame(const void* input, const std::size_t size) const noexcept
@@ -196,7 +197,7 @@ auto Context::PairSocket(
     const opentxs::network::zeromq::ListenCallback& callback) const noexcept
     -> OTZMQPairSocket
 {
-    return OTZMQPairSocket{Factory::PairSocket(*this, callback, true)};
+    return OTZMQPairSocket{factory::PairSocket(*this, callback, true)};
 }
 
 auto Context::PairSocket(
@@ -204,14 +205,14 @@ auto Context::PairSocket(
     const opentxs::network::zeromq::socket::Pair& peer) const noexcept
     -> OTZMQPairSocket
 {
-    return OTZMQPairSocket{Factory::PairSocket(callback, peer, true)};
+    return OTZMQPairSocket{factory::PairSocket(callback, peer, true)};
 }
 
 auto Context::PairSocket(
     const opentxs::network::zeromq::ListenCallback& callback,
     const std::string& endpoint) const noexcept -> OTZMQPairSocket
 {
-    return OTZMQPairSocket{Factory::PairSocket(*this, callback, endpoint)};
+    return OTZMQPairSocket{factory::PairSocket(*this, callback, endpoint)};
 }
 
 auto Context::Pipeline(
@@ -219,7 +220,7 @@ auto Context::Pipeline(
     std::function<void(zeromq::Message&)> callback) const noexcept
     -> OTZMQPipeline
 {
-    return OTZMQPipeline{opentxs::Factory::Pipeline(api, *this, callback)};
+    return OTZMQPipeline{opentxs::factory::Pipeline(api, *this, callback)};
 }
 
 auto Context::Proxy(
@@ -231,14 +232,14 @@ auto Context::Proxy(
 
 auto Context::PublishSocket() const noexcept -> OTZMQPublishSocket
 {
-    return OTZMQPublishSocket{Factory::PublishSocket(*this)};
+    return OTZMQPublishSocket{factory::PublishSocket(*this)};
 }
 
 auto Context::PullSocket(
     const socket::Socket::Direction direction) const noexcept -> OTZMQPullSocket
 {
     return OTZMQPullSocket{
-        Factory::PullSocket(*this, static_cast<bool>(direction))};
+        factory::PullSocket(*this, static_cast<bool>(direction))};
 }
 
 auto Context::PullSocket(
@@ -246,14 +247,14 @@ auto Context::PullSocket(
     const socket::Socket::Direction direction) const noexcept -> OTZMQPullSocket
 {
     return OTZMQPullSocket{
-        Factory::PullSocket(*this, static_cast<bool>(direction), callback)};
+        factory::PullSocket(*this, static_cast<bool>(direction), callback)};
 }
 
 auto Context::PushSocket(
     const socket::Socket::Direction direction) const noexcept -> OTZMQPushSocket
 {
     return OTZMQPushSocket{
-        Factory::PushSocket(*this, static_cast<bool>(direction))};
+        factory::PushSocket(*this, static_cast<bool>(direction))};
 }
 
 auto Context::ReplyMessage(const zeromq::Message& request) const noexcept
@@ -278,12 +279,12 @@ auto Context::ReplySocket(
     -> OTZMQReplySocket
 {
     return OTZMQReplySocket{
-        Factory::ReplySocket(*this, static_cast<bool>(direction), callback)};
+        factory::ReplySocket(*this, static_cast<bool>(direction), callback)};
 }
 
 auto Context::RequestSocket() const noexcept -> OTZMQRequestSocket
 {
-    return OTZMQRequestSocket{Factory::RequestSocket(*this)};
+    return OTZMQRequestSocket{factory::RequestSocket(*this)};
 }
 
 auto Context::RouterSocket(
@@ -292,13 +293,13 @@ auto Context::RouterSocket(
     -> OTZMQRouterSocket
 {
     return OTZMQRouterSocket{
-        Factory::RouterSocket(*this, static_cast<bool>(direction), callback)};
+        factory::RouterSocket(*this, static_cast<bool>(direction), callback)};
 }
 
 auto Context::SubscribeSocket(const ListenCallback& callback) const noexcept
     -> OTZMQSubscribeSocket
 {
-    return OTZMQSubscribeSocket{Factory::SubscribeSocket(*this, callback)};
+    return OTZMQSubscribeSocket{factory::SubscribeSocket(*this, callback)};
 }
 
 Context::~Context()

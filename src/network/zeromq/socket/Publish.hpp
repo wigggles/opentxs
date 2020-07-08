@@ -26,8 +26,6 @@ class Publish;
 class Context;
 }  // namespace zeromq
 }  // namespace network
-
-class Factory;
 }  // namespace opentxs
 
 namespace opentxs::network::zeromq::socket::implementation
@@ -36,17 +34,16 @@ class Publish final : public Sender<zeromq::socket::Publish>,
                       public zeromq::curve::implementation::Server
 {
 public:
-    ~Publish();
+    Publish(const zeromq::Context& context) noexcept;
+
+    ~Publish() final;
 
 private:
-    friend opentxs::Factory;
-
     auto clone() const noexcept -> Publish* final
     {
         return new Publish(context_);
     }
 
-    Publish(const zeromq::Context& context) noexcept;
     Publish() = delete;
     Publish(const Publish&) = delete;
     Publish(Publish&&) = delete;

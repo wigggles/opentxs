@@ -478,11 +478,6 @@ public:
         const Nym_p& nym,
         const proto::UnitDefinition serialized) noexcept
         -> std::shared_ptr<contract::unit::Currency>;
-    static auto DealerSocket(
-        const network::zeromq::Context& context,
-        const bool direction,
-        const network::zeromq::ListenCallback& callback)
-        -> network::zeromq::socket::Dealer*;
     static auto Dht(
         const bool defaultEnable,
         const api::internal::Core& api,
@@ -628,18 +623,6 @@ public:
     static auto PasswordPrompt(
         const api::internal::Core& api,
         const std::string& text) -> opentxs::PasswordPrompt*;
-    static auto PairSocket(
-        const network::zeromq::Context& context,
-        const network::zeromq::ListenCallback& callback,
-        const bool startThread) -> network::zeromq::socket::Pair*;
-    static auto PairSocket(
-        const network::zeromq::ListenCallback& callback,
-        const network::zeromq::socket::Pair& peer,
-        const bool startThread) -> network::zeromq::socket::Pair*;
-    static auto PairSocket(
-        const network::zeromq::Context& context,
-        const network::zeromq::ListenCallback& callback,
-        const std::string& endpoint) -> network::zeromq::socket::Pair*;
     static auto PaymentCode(
         const api::internal::Core& api,
         const std::uint8_t version,
@@ -703,11 +686,6 @@ public:
         const proto::PeerRequest& serialized) noexcept
         -> std::shared_ptr<contract::peer::Request>;
     static auto PIDFile(const std::string& path) -> opentxs::PIDFile*;
-    static auto Pipeline(
-        const api::internal::Core& api,
-        const network::zeromq::Context& context,
-        std::function<void(network::zeromq::Message&)> callback)
-        -> opentxs::network::zeromq::Pipeline*;
     static auto PrimaryCredential(
         const api::internal::Core& api,
         identity::internal::Authority& parent,
@@ -755,26 +733,6 @@ public:
         const proto::CashType type,
         const opentxs::PasswordPrompt& reason) -> blind::Purse*;
 #endif
-    static auto PublishSocket(const network::zeromq::Context& context)
-        -> network::zeromq::socket::Publish*;
-    static auto PullSocket(
-        const network::zeromq::Context& context,
-        const bool direction) -> network::zeromq::socket::Pull*;
-    static auto PullSocket(
-        const network::zeromq::Context& context,
-        const bool direction,
-        const network::zeromq::ListenCallback& callback)
-        -> network::zeromq::socket::Pull*;
-    static auto PushSocket(
-        const network::zeromq::Context& context,
-        const bool direction) -> network::zeromq::socket::Push*;
-    static auto ReplySocket(
-        const network::zeromq::Context& context,
-        const bool direction,
-        const network::zeromq::ReplyCallback& callback)
-        -> network::zeromq::socket::Reply*;
-    static auto RequestSocket(const network::zeromq::Context& context)
-        -> network::zeromq::socket::Request*;
     static auto RPC(const api::Context& native) -> rpc::internal::RPC*;
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
     static auto RSAKey(
@@ -791,11 +749,6 @@ public:
         const opentxs::PasswordPrompt& reason) noexcept
         -> std::unique_ptr<crypto::key::RSA>;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
-    static auto RouterSocket(
-        const network::zeromq::Context& context,
-        const bool direction,
-        const network::zeromq::ListenCallback& callback)
-        -> network::zeromq::socket::Router*;
     static auto SecondaryCredential(
         const api::internal::Core& api,
         identity::internal::Authority& parent,
@@ -957,10 +910,6 @@ public:
         const Nym_p& nym,
         const proto::PeerRequest& serialized) noexcept
         -> std::shared_ptr<contract::peer::request::StoreSecret>;
-    static auto SubscribeSocket(
-        const network::zeromq::Context& context,
-        const network::zeromq::ListenCallback& callback)
-        -> network::zeromq::socket::Subscribe*;
     static auto Symmetric(const api::internal::Core& api)
         -> api::crypto::Symmetric*;
     static auto SymmetricKey() -> crypto::key::Symmetric*;

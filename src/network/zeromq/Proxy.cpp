@@ -9,7 +9,7 @@
 
 #include <zmq.h>
 
-#include "2_Factory.hpp"
+#include "internal/network/zeromq/socket/Socket.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
@@ -43,12 +43,9 @@ Proxy::Proxy(
     , backend_(backend)
     , null_callback_(opentxs::network::zeromq::ListenCallback::Factory(
           [](const zeromq::Message&) -> void {}))
-    , control_listener_(
-          opentxs::Factory::PairSocket(context, null_callback_, false))
-    , control_sender_(opentxs::Factory::PairSocket(
-          null_callback_,
-          control_listener_,
-          false))
+    , control_listener_(factory::PairSocket(context, null_callback_, false))
+    , control_sender_(
+          factory::PairSocket(null_callback_, control_listener_, false))
     , thread_(nullptr)
 {
     thread_.reset(new std::thread(&Proxy::proxy, this));

@@ -19,7 +19,7 @@
 #include <vector>
 
 #include "1_Internal.hpp"
-#include "core/Executor.hpp"
+#include "core/Worker.hpp"
 #include "internal/blockchain/client/Client.hpp"
 #include "opentxs/Forward.hpp"
 #include "opentxs/Types.hpp"
@@ -60,8 +60,6 @@ namespace zeromq
 class Message;
 }  // namespace zeromq
 }  // namespace network
-
-class Factory;
 }  // namespace opentxs
 
 namespace zmq = opentxs::network::zeromq;
@@ -69,12 +67,11 @@ namespace zmq = opentxs::network::zeromq;
 namespace opentxs::blockchain::client::implementation
 {
 class FilterOracle final : virtual public internal::FilterOracle,
-                           public Executor<FilterOracle>
+                           public Worker<FilterOracle>
 {
 public:
     auto AddFilter(zmq::Message& work) const noexcept -> void final;
     auto AddHeaders(zmq::Message& work) const noexcept -> void final;
-    auto CheckBlocks() const noexcept -> void final;
     auto DefaultType() const noexcept -> filter::Type final
     {
         return default_type_;
@@ -87,7 +84,7 @@ public:
 
     auto Shutdown() noexcept -> std::shared_future<void> final
     {
-        return stop_executor();
+        return stop_worker();
     }
     auto Start() noexcept -> void;
 
@@ -102,12 +99,13 @@ public:
     ~FilterOracle() final;
 
 private:
-    friend opentxs::Factory;
-    friend Executor<FilterOracle>;
+    friend Worker<FilterOracle>;
 
     enum class Work : OTZMQWorkType {
         cfilter = 0,
         cfheader = 1,
+        peer = OT_ZMQ_NEW_PEER_SIGNAL,
+        block = OT_ZMQ_NEW_BLOCK_HEADER_SIGNAL,
         reorg = OT_ZMQ_REORG_SIGNAL,
         statemachine = OT_ZMQ_STATE_MACHINE_SIGNAL,
         shutdown = OT_ZMQ_SHUTDOWN_SIGNAL,
@@ -263,9 +261,9 @@ private:
     auto process_cfilter(const zmq::Message& in) noexcept -> void;
     auto process_reorg(const zmq::Message& in) noexcept -> void;
     auto process_reorg(const block::Position& parent) noexcept -> void;
-    auto request() noexcept -> bool;
     auto reset_tips_to(const block::Position position) noexcept -> bool;
     auto shutdown(std::promise<void>& promise) noexcept -> void;
+    auto state_machine() noexcept -> bool;
 
     FilterOracle() = delete;
     FilterOracle(const FilterOracle&) = delete;

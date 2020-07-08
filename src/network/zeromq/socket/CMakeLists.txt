@@ -38,6 +38,7 @@ set(
 set(
   cxx-headers
   ${cxx-install-headers}
+  "${opentxs_SOURCE_DIR}/src/internal/network/zeromq/socket/Socket.hpp"
   Bidirectional.hpp
   Dealer.hpp
   Pair.hpp

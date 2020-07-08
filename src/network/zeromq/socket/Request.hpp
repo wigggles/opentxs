@@ -26,8 +26,6 @@ class Context;
 class Message;
 }  // namespace zeromq
 }  // namespace network
-
-class Factory;
 }  // namespace opentxs
 
 namespace opentxs::network::zeromq::socket::implementation
@@ -39,17 +37,16 @@ class Request final : virtual public zeromq::socket::Request,
 public:
     auto SetSocksProxy(const std::string& proxy) const noexcept -> bool final;
 
+    Request(const zeromq::Context& context) noexcept;
+
     ~Request() final;
 
 private:
-    friend opentxs::Factory;
-
     auto clone() const noexcept -> Request* final;
     auto send_request(zeromq::Message& message) const noexcept
         -> SendResult final;
     auto wait(const Lock& lock) const noexcept -> bool;
 
-    Request(const zeromq::Context& context) noexcept;
     Request() = delete;
     Request(const Request&) = delete;
     Request(Request&&) = delete;

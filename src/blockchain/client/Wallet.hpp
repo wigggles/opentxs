@@ -141,7 +141,6 @@ public:
         const noexcept -> std::future<block::pTxid> final;
 
     auto Init() noexcept -> void final;
-    auto Run() noexcept -> void final { trigger(); }
     auto Shutdown() noexcept -> std::shared_future<void> final
     {
         return stop_worker();
@@ -160,6 +159,8 @@ private:
     friend Worker<Wallet>;
 
     enum class Work : OTZMQWorkType {
+        key = OT_ZMQ_NEW_BLOCKCHAIN_WALLET_KEY_SIGNAL,
+        block = OT_ZMQ_NEW_BLOCK_HEADER_SIGNAL,
         filter = OT_ZMQ_NEW_FILTER_SIGNAL,
         nym = OT_ZMQ_NEW_NYM_SIGNAL,
         reorg = OT_ZMQ_REORG_SIGNAL,
@@ -344,7 +345,7 @@ private:
     auto pipeline(const zmq::Message& in) noexcept -> void;
     auto process_reorg(const zmq::Message& in) noexcept -> void;
     auto shutdown(std::promise<void>& promise) noexcept -> void;
-    auto state_machine() noexcept -> void;
+    auto state_machine() noexcept -> bool;
 
     Wallet() = delete;
     Wallet(const Wallet&) = delete;

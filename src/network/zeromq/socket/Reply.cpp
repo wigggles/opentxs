@@ -7,29 +7,13 @@
 #include "1_Internal.hpp"                   // IWYU pragma: associated
 #include "network/zeromq/socket/Reply.hpp"  // IWYU pragma: associated
 
-#include "2_Factory.hpp"
+#include "internal/network/zeromq/socket/Socket.hpp"
 #include "network/zeromq/curve/Server.hpp"
 #include "network/zeromq/socket/Receiver.tpp"
 #include "network/zeromq/socket/Socket.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/ReplyCallback.hpp"
-
-namespace opentxs
-{
-namespace network
-{
-namespace zeromq
-{
-namespace socket
-{
-class Reply;
-}  // namespace socket
-
-class Context;
-}  // namespace zeromq
-}  // namespace network
-}  // namespace opentxs
 
 template class opentxs::Pimpl<opentxs::network::zeromq::socket::Reply>;
 template class opentxs::network::zeromq::socket::implementation::Receiver<
@@ -38,9 +22,9 @@ template class opentxs::network::zeromq::socket::implementation::Receiver<
 //#define OT_METHOD
 //"opentxs::network::zeromq::socket::implementation::Reply::"
 
-namespace opentxs
+namespace opentxs::factory
 {
-auto Factory::ReplySocket(
+auto ReplySocket(
     const network::zeromq::Context& context,
     const bool direction,
     const network::zeromq::ReplyCallback& callback)
@@ -53,7 +37,7 @@ auto Factory::ReplySocket(
         static_cast<network::zeromq::socket::Socket::Direction>(direction),
         callback);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::network::zeromq::socket::implementation
 {

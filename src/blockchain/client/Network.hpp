@@ -11,8 +11,8 @@
 #include <memory>
 #include <string>
 
-#include "core/Executor.hpp"
 #include "core/Shutdown.hpp"
+#include "core/Worker.hpp"
 #include "internal/api/Api.hpp"
 #include "internal/api/client/Client.hpp"
 #include "internal/blockchain/Blockchain.hpp"
@@ -85,7 +85,7 @@ namespace zmq = opentxs::network::zeromq;
 
 namespace opentxs::blockchain::client::implementation
 {
-class Network : virtual public internal::Network, public Executor<Network>
+class Network : virtual public internal::Network, public Worker<Network>
 {
 public:
     auto AddPeer(const p2p::Address& address) const noexcept -> bool final;
@@ -166,7 +166,7 @@ public:
     }
     auto Shutdown() noexcept -> std::shared_future<void> final
     {
-        return stop_executor();
+        return stop_worker();
     }
 
     ~Network() override;
@@ -201,13 +201,14 @@ protected:
         const std::string& shutdown) noexcept;
 
 private:
-    friend Executor<Network>;
+    friend Worker<Network>;
 
     const api::client::internal::Blockchain& parent_;
     mutable std::atomic<block::Height> local_chain_height_;
     mutable std::atomic<block::Height> remote_chain_height_;
     OTFlag processing_headers_;
-    int task_id_;
+    std::promise<void> init_promise_;
+    std::shared_future<void> init_;
 
     static auto shutdown_endpoint() noexcept -> std::string;
 
@@ -219,8 +220,8 @@ private:
     auto process_cfheader(zmq::Message& in) noexcept -> void;
     auto process_filter(zmq::Message& in) noexcept -> void;
     auto process_header(zmq::Message& in) noexcept -> void;
-    auto process_state_machine() noexcept -> void;
     auto shutdown(std::promise<void>& promise) noexcept -> void;
+    auto state_machine() noexcept -> bool;
 
     Network() = delete;
     Network(const Network&) = delete;
