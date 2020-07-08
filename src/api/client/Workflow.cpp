@@ -13,8 +13,8 @@
 #include <memory>
 #include <type_traits>
 
-#include "2_Factory.hpp"
 #include "internal/api/Api.hpp"
+#include "internal/api/client/Client.hpp"
 #include "opentxs/Forward.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Proto.tpp"
@@ -63,16 +63,16 @@
 
 namespace zmq = opentxs::network::zeromq;
 
-namespace opentxs
+namespace opentxs::factory
 {
-auto Factory::Workflow(
+auto Workflow(
     const api::internal::Core& api,
     const api::client::Activity& activity,
     const api::client::Contacts& contact) -> api::client::Workflow*
 {
     return new api::client::implementation::Workflow(api, activity, contact);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::api::client
 {

@@ -7,19 +7,25 @@
 #include "1_Internal.hpp"     // IWYU pragma: associated
 #include "api/client/UI.hpp"  // IWYU pragma: associated
 
+#include <functional>
 #include <map>
 #include <memory>
+#include <string>
 #include <tuple>
 
-#include "2_Factory.hpp"
 #include "internal/api/client/Client.hpp"
 #include "internal/ui/UI.hpp"
+#include "opentxs/Pimpl.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/api/Endpoints.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
+#include "opentxs/network/zeromq/Frame.hpp"
+#include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/socket/Publish.hpp"
 #include "opentxs/protobuf/ContactEnums.pb.h"
 #include "opentxs/ui/AccountActivity.hpp"
@@ -47,18 +53,20 @@
 
 //#define OT_METHOD "opentxs::api::implementation::UI"
 
-namespace opentxs
+namespace opentxs::factory
 {
-auto Factory::UI(
+auto UI(
     const api::client::internal::Manager& api,
     const Flag& running
 #if OT_QT
     ,
     const bool qt
 #endif
-    ) -> api::client::UI*
+    ) noexcept -> std::unique_ptr<api::client::internal::UI>
 {
-    return new api::client::implementation::UI(
+    using ReturnType = api::client::implementation::UI;
+
+    return std::make_unique<ReturnType>(
         api,
         running
 #if OT_QT
@@ -67,7 +75,7 @@ auto Factory::UI(
 #endif
     );
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::api::client::implementation
 {
@@ -109,10 +117,20 @@ UI::UI(
     , profiles_qt_()
     , unit_lists_qt_()
 #endif  // OT_QT
-    , widget_update_publisher_(api_.ZeroMQ().PublishSocket())
+    , update_manager_(api_)
 {
     // WARNING: do not access api_.Wallet() during construction
-    widget_update_publisher_->Start(api_.Endpoints().WidgetUpdate());
+}
+
+UI::UpdateManager::UpdateManager(
+    const api::client::internal::Manager& api) noexcept
+    : api_(api)
+    , lock_()
+    , map_()
+    , publisher_(api.ZeroMQ().PublishSocket())
+    , pipeline_(api.ZeroMQ().Pipeline(api, [this](auto& in) { pipeline(in); }))
+{
+    publisher_->Start(api_.Endpoints().WidgetUpdate());
 }
 
 #if OT_QT
@@ -134,11 +152,44 @@ auto UI::Blank::get(const std::size_t columns) noexcept -> ui::BlankModel*
 }
 #endif  // OT_QT
 
+auto UI::UpdateManager::ActivateUICallback(
+    const Identifier& widget) const noexcept -> void
+{
+    pipeline_->Push(widget.str());
+}
+
+auto UI::UpdateManager::pipeline(zmq::Message& in) noexcept -> void
+{
+    if (0 == in.size()) { return; }
+
+    const auto& frame = in.at(0);
+    const auto id = api_.Factory().Identifier(frame);
+    LogTrace("opentxs::api::implementation::UI::UpdateManager::")(__FUNCTION__)(
+        ": Widget ")(id->str())(" updated.")
+        .Flush();
+    Lock lock(lock_);
+    auto it = map_.find(id);
+
+    if (map_.end() == it) { return; }
+
+    const auto& cb = it->second;
+
+    if (cb) { cb(); }
+}
+
+auto UI::UpdateManager::RegisterUICallback(
+    const Identifier& widget,
+    const SimpleCallback& cb) const noexcept -> void
+{
+    Lock lock(lock_);
+    map_[widget] = cb;
+}
+
 auto UI::account_activity(
     const Lock& lock,
     const identifier::Nym& nymID,
-    const Identifier& accountID) const noexcept
-    -> AccountActivityMap::mapped_type&
+    const Identifier& accountID,
+    const SimpleCallback& cb) const noexcept -> AccountActivityMap::mapped_type&
 {
     auto key = AccountActivityKey{nymID, accountID};
     auto it = accounts_.find(key);
@@ -162,14 +213,12 @@ auto UI::account_activity(
                          (opentxs::factory::AccountActivityModel)
 #endif  // OT_BLOCKCHAIN
                              (api_,
-                              widget_update_publisher_,
                               nymID,
-                              accountID
+                              accountID,
 #if OT_QT
-                              ,
-                              enable_qt_
+                              enable_qt_,
 #endif  // OT_QT
-                              )))
+                              cb)))
                  .first;
 
         OT_ASSERT(it->second);
@@ -180,17 +229,19 @@ auto UI::account_activity(
 
 auto UI::AccountActivity(
     const identifier::Nym& nymID,
-    const Identifier& accountID) const noexcept -> const ui::AccountActivity&
+    const Identifier& accountID,
+    const SimpleCallback cb) const noexcept -> const ui::AccountActivity&
 {
     Lock lock(lock_);
 
-    return *account_activity(lock, nymID, accountID);
+    return *account_activity(lock, nymID, accountID, cb);
 }
 
 #if OT_QT
 auto UI::AccountActivityQt(
     const identifier::Nym& nymID,
-    const Identifier& accountID) const noexcept -> ui::AccountActivityQt*
+    const Identifier& accountID,
+    const SimpleCallback cb) const noexcept -> ui::AccountActivityQt*
 {
     Lock lock(lock_);
     auto key = AccountActivityKey{nymID, accountID};
@@ -201,7 +252,7 @@ auto UI::AccountActivityQt(
                  .emplace(
                      std::move(key),
                      opentxs::factory::AccountActivityQtModel(
-                         *account_activity(lock, nymID, accountID)))
+                         *account_activity(lock, nymID, accountID, cb)))
                  .first;
 
         OT_ASSERT(it->second);
@@ -211,8 +262,10 @@ auto UI::AccountActivityQt(
 }
 #endif
 
-auto UI::account_list(const Lock& lock, const identifier::Nym& nymID)
-    const noexcept -> AccountListMap::mapped_type&
+auto UI::account_list(
+    const Lock& lock,
+    const identifier::Nym& nymID,
+    const SimpleCallback& cb) const noexcept -> AccountListMap::mapped_type&
 {
     auto key = AccountListKey{nymID};
     auto it = account_lists_.find(key);
@@ -224,13 +277,11 @@ auto UI::account_list(const Lock& lock, const identifier::Nym& nymID)
                      std::forward_as_tuple(std::move(key)),
                      std::forward_as_tuple(opentxs::factory::AccountListModel(
                          api_,
-                         widget_update_publisher_,
-                         nymID
+                         nymID,
 #if OT_QT
-                         ,
-                         enable_qt_
+                         enable_qt_,
 #endif  // OT_QT
-                         )))
+                         cb)))
                  .first;
 
         OT_ASSERT(it->second);
@@ -239,17 +290,17 @@ auto UI::account_list(const Lock& lock, const identifier::Nym& nymID)
     return it->second;
 }
 
-auto UI::AccountList(const identifier::Nym& nymID) const noexcept
-    -> const ui::AccountList&
+auto UI::AccountList(const identifier::Nym& nymID, const SimpleCallback cb)
+    const noexcept -> const ui::AccountList&
 {
     Lock lock(lock_);
 
-    return *account_list(lock, nymID);
+    return *account_list(lock, nymID, cb);
 }
 
 #if OT_QT
-auto UI::AccountListQt(const identifier::Nym& nymID) const noexcept
-    -> ui::AccountListQt*
+auto UI::AccountListQt(const identifier::Nym& nymID, const SimpleCallback cb)
+    const noexcept -> ui::AccountListQt*
 {
     Lock lock(lock_);
     auto key = AccountListKey{nymID};
@@ -260,7 +311,7 @@ auto UI::AccountListQt(const identifier::Nym& nymID) const noexcept
                  .emplace(
                      std::move(key),
                      opentxs::factory::AccountListQtModel(
-                         *account_list(lock, nymID)))
+                         *account_list(lock, nymID, cb)))
                  .first;
 
         OT_ASSERT(it->second);
@@ -273,8 +324,8 @@ auto UI::AccountListQt(const identifier::Nym& nymID) const noexcept
 auto UI::account_summary(
     const Lock& lock,
     const identifier::Nym& nymID,
-    const proto::ContactItemType currency) const noexcept
-    -> AccountSummaryMap::mapped_type&
+    const proto::ContactItemType currency,
+    const SimpleCallback& cb) const noexcept -> AccountSummaryMap::mapped_type&
 {
     auto key = AccountSummaryKey{nymID, currency};
     auto it = account_summaries_.find(key);
@@ -287,14 +338,12 @@ auto UI::account_summary(
                     std::forward_as_tuple(std::move(key)),
                     std::forward_as_tuple(opentxs::factory::AccountSummaryModel(
                         api_,
-                        widget_update_publisher_,
                         nymID,
-                        currency
+                        currency,
 #if OT_QT
-                        ,
-                        enable_qt_
+                        enable_qt_,
 #endif  // OT_QT
-                        )))
+                        cb)))
                 .first;
 
         OT_ASSERT(it->second);
@@ -305,19 +354,19 @@ auto UI::account_summary(
 
 auto UI::AccountSummary(
     const identifier::Nym& nymID,
-    const proto::ContactItemType currency) const noexcept
-    -> const ui::AccountSummary&
+    const proto::ContactItemType currency,
+    const SimpleCallback cb) const noexcept -> const ui::AccountSummary&
 {
     Lock lock(lock_);
 
-    return *account_summary(lock, nymID, currency);
+    return *account_summary(lock, nymID, currency, cb);
 }
 
 #if OT_QT
 auto UI::AccountSummaryQt(
     const identifier::Nym& nymID,
-    const proto::ContactItemType currency) const noexcept
-    -> ui::AccountSummaryQt*
+    const proto::ContactItemType currency,
+    const SimpleCallback cb) const noexcept -> ui::AccountSummaryQt*
 {
     Lock lock(lock_);
     auto key = AccountSummaryKey{nymID, currency};
@@ -328,7 +377,7 @@ auto UI::AccountSummaryQt(
                  .emplace(
                      std::move(key),
                      opentxs::factory::AccountSummaryQtModel(
-                         *account_summary(lock, nymID, currency)))
+                         *account_summary(lock, nymID, currency, cb)))
                  .first;
 
         OT_ASSERT(it->second);
@@ -338,8 +387,10 @@ auto UI::AccountSummaryQt(
 }
 #endif
 
-auto UI::activity_summary(const Lock& lock, const identifier::Nym& nymID)
-    const noexcept -> ActivitySummaryMap::mapped_type&
+auto UI::activity_summary(
+    const Lock& lock,
+    const identifier::Nym& nymID,
+    const SimpleCallback& cb) const noexcept -> ActivitySummaryMap::mapped_type&
 {
     auto key = ActivitySummaryKey{nymID};
     auto it = activity_summaries_.find(key);
@@ -352,14 +403,12 @@ auto UI::activity_summary(const Lock& lock, const identifier::Nym& nymID)
                      std::forward_as_tuple(
                          opentxs::factory::ActivitySummaryModel(
                              api_,
-                             widget_update_publisher_,
                              running_,
-                             nymID
+                             nymID,
 #if OT_QT
-                             ,
-                             enable_qt_
+                             enable_qt_,
 #endif  // OT_QT
-                             )))
+                             cb)))
                  .first;
 
         OT_ASSERT(it->second);
@@ -368,17 +417,18 @@ auto UI::activity_summary(const Lock& lock, const identifier::Nym& nymID)
     return it->second;
 }
 
-auto UI::ActivitySummary(const identifier::Nym& nymID) const noexcept
-    -> const ui::ActivitySummary&
+auto UI::ActivitySummary(const identifier::Nym& nymID, const SimpleCallback cb)
+    const noexcept -> const ui::ActivitySummary&
 {
     Lock lock(lock_);
 
-    return *activity_summary(lock, nymID);
+    return *activity_summary(lock, nymID, cb);
 }
 
 #if OT_QT
-auto UI::ActivitySummaryQt(const identifier::Nym& nymID) const noexcept
-    -> ui::ActivitySummaryQt*
+auto UI::ActivitySummaryQt(
+    const identifier::Nym& nymID,
+    const SimpleCallback cb) const noexcept -> ui::ActivitySummaryQt*
 {
     Lock lock(lock_);
     auto key = ActivitySummaryKey{nymID};
@@ -389,7 +439,7 @@ auto UI::ActivitySummaryQt(const identifier::Nym& nymID) const noexcept
                  .emplace(
                      std::move(key),
                      opentxs::factory::ActivitySummaryQtModel(
-                         *activity_summary(lock, nymID)))
+                         *activity_summary(lock, nymID, cb)))
                  .first;
 
         OT_ASSERT(it->second);
@@ -402,8 +452,8 @@ auto UI::ActivitySummaryQt(const identifier::Nym& nymID) const noexcept
 auto UI::activity_thread(
     const Lock& lock,
     const identifier::Nym& nymID,
-    const Identifier& threadID) const noexcept
-    -> ActivityThreadMap::mapped_type&
+    const Identifier& threadID,
+    const SimpleCallback& cb) const noexcept -> ActivityThreadMap::mapped_type&
 {
     auto key = ActivityThreadKey{nymID, threadID};
     auto it = activity_threads_.find(key);
@@ -416,14 +466,12 @@ auto UI::activity_thread(
                     std::forward_as_tuple(std::move(key)),
                     std::forward_as_tuple(opentxs::factory::ActivityThreadModel(
                         api_,
-                        widget_update_publisher_,
                         nymID,
-                        threadID
+                        threadID,
 #if OT_QT
-                        ,
-                        enable_qt_
+                        enable_qt_,
 #endif  // OT_QT
-                        )))
+                        cb)))
                 .first;
 
         OT_ASSERT(it->second);
@@ -434,17 +482,19 @@ auto UI::activity_thread(
 
 auto UI::ActivityThread(
     const identifier::Nym& nymID,
-    const Identifier& threadID) const noexcept -> const ui::ActivityThread&
+    const Identifier& threadID,
+    const SimpleCallback cb) const noexcept -> const ui::ActivityThread&
 {
     Lock lock(lock_);
 
-    return *activity_thread(lock, nymID, threadID);
+    return *activity_thread(lock, nymID, threadID, cb);
 }
 
 #if OT_QT
 auto UI::ActivityThreadQt(
     const identifier::Nym& nymID,
-    const Identifier& threadID) const noexcept -> ui::ActivityThreadQt*
+    const Identifier& threadID,
+    const SimpleCallback cb) const noexcept -> ui::ActivityThreadQt*
 {
     Lock lock(lock_);
     auto key = ActivityThreadKey{nymID, threadID};
@@ -455,7 +505,7 @@ auto UI::ActivityThreadQt(
                  .emplace(
                      std::move(key),
                      opentxs::factory::ActivityThreadQtModel(
-                         *activity_thread(lock, nymID, threadID)))
+                         *activity_thread(lock, nymID, threadID, cb)))
                  .first;
 
         OT_ASSERT(it->second);
@@ -465,8 +515,10 @@ auto UI::ActivityThreadQt(
 }
 #endif
 
-auto UI::contact(const Lock& lock, const Identifier& contactID) const noexcept
-    -> ContactMap::mapped_type&
+auto UI::contact(
+    const Lock& lock,
+    const Identifier& contactID,
+    const SimpleCallback& cb) const noexcept -> ContactMap::mapped_type&
 {
     auto key = ContactKey{contactID};
     auto it = contacts_.find(key);
@@ -478,13 +530,11 @@ auto UI::contact(const Lock& lock, const Identifier& contactID) const noexcept
                      std::forward_as_tuple(std::move(key)),
                      std::forward_as_tuple(opentxs::factory::ContactModel(
                          api_,
-                         widget_update_publisher_,
-                         contactID
+                         contactID,
 #if OT_QT
-                         ,
-                         enable_qt_
+                         enable_qt_,
 #endif  // OT_QT
-                         )))
+                         cb)))
                  .first;
 
         OT_ASSERT(it->second);
@@ -493,28 +543,29 @@ auto UI::contact(const Lock& lock, const Identifier& contactID) const noexcept
     return it->second;
 }
 
-auto UI::Contact(const Identifier& contactID) const noexcept
-    -> const ui::Contact&
+auto UI::Contact(const Identifier& contactID, const SimpleCallback cb)
+    const noexcept -> const ui::Contact&
 {
     Lock lock(lock_);
 
-    return *contact(lock, contactID);
+    return *contact(lock, contactID, cb);
 }
 
 #if OT_QT
-auto UI::ContactQt(const Identifier& contactID) const noexcept -> ui::ContactQt*
+auto UI::ContactQt(const Identifier& contactID, const SimpleCallback cb)
+    const noexcept -> ui::ContactQt*
 {
     Lock lock(lock_);
     auto key = ContactKey{contactID};
     auto it = contacts_qt_.find(key);
 
     if (contacts_qt_.end() == it) {
-        it =
-            contacts_qt_
-                .emplace(
-                    std::move(key),
-                    opentxs::factory::ContactQtModel(*contact(lock, contactID)))
-                .first;
+        it = contacts_qt_
+                 .emplace(
+                     std::move(key),
+                     opentxs::factory::ContactQtModel(
+                         *contact(lock, contactID, cb)))
+                 .first;
 
         OT_ASSERT(it->second);
     }
@@ -523,8 +574,10 @@ auto UI::ContactQt(const Identifier& contactID) const noexcept -> ui::ContactQt*
 }
 #endif
 
-auto UI::contact_list(const Lock& lock, const identifier::Nym& nymID)
-    const noexcept -> ContactListMap::mapped_type&
+auto UI::contact_list(
+    const Lock& lock,
+    const identifier::Nym& nymID,
+    const SimpleCallback& cb) const noexcept -> ContactListMap::mapped_type&
 {
     auto key = ContactListKey{nymID};
     auto it = contact_lists_.find(key);
@@ -536,13 +589,11 @@ auto UI::contact_list(const Lock& lock, const identifier::Nym& nymID)
                      std::forward_as_tuple(std::move(key)),
                      std::forward_as_tuple(opentxs::factory::ContactListModel(
                          api_,
-                         widget_update_publisher_,
-                         nymID
+                         nymID,
 #if OT_QT
-                         ,
-                         enable_qt_
+                         enable_qt_,
 #endif  // OT_QT
-                         )))
+                         cb)))
                  .first;
 
         OT_ASSERT(it->second);
@@ -551,17 +602,17 @@ auto UI::contact_list(const Lock& lock, const identifier::Nym& nymID)
     return it->second;
 }
 
-auto UI::ContactList(const identifier::Nym& nymID) const noexcept
-    -> const ui::ContactList&
+auto UI::ContactList(const identifier::Nym& nymID, const SimpleCallback cb)
+    const noexcept -> const ui::ContactList&
 {
     Lock lock(lock_);
 
-    return *contact_list(lock, nymID);
+    return *contact_list(lock, nymID, cb);
 }
 
 #if OT_QT
-auto UI::ContactListQt(const identifier::Nym& nymID) const noexcept
-    -> ui::ContactListQt*
+auto UI::ContactListQt(const identifier::Nym& nymID, const SimpleCallback cb)
+    const noexcept -> ui::ContactListQt*
 {
     Lock lock(lock_);
     auto key = ContactListKey{nymID};
@@ -572,7 +623,7 @@ auto UI::ContactListQt(const identifier::Nym& nymID) const noexcept
                  .emplace(
                      std::move(key),
                      opentxs::factory::ContactListQtModel(
-                         *contact_list(lock, nymID)))
+                         *contact_list(lock, nymID, cb)))
                  .first;
 
         OT_ASSERT(it->second);
@@ -594,8 +645,10 @@ auto UI::is_blockchain_account(const Identifier& id) const noexcept
 }
 #endif  // OT_BLOCKCHAIN
 
-auto UI::messagable_list(const Lock& lock, const identifier::Nym& nymID)
-    const noexcept -> MessagableListMap::mapped_type&
+auto UI::messagable_list(
+    const Lock& lock,
+    const identifier::Nym& nymID,
+    const SimpleCallback& cb) const noexcept -> MessagableListMap::mapped_type&
 {
     auto key = MessagableListKey{nymID};
     auto it = messagable_lists_.find(key);
@@ -608,30 +661,28 @@ auto UI::messagable_list(const Lock& lock, const identifier::Nym& nymID)
                     std::forward_as_tuple(std::move(key)),
                     std::forward_as_tuple(opentxs::factory::MessagableListModel(
                         api_,
-                        widget_update_publisher_,
-                        nymID
+                        nymID,
 #if OT_QT
-                        ,
-                        enable_qt_
+                        enable_qt_,
 #endif  // OT_QT
-                        )))
+                        cb)))
                 .first;
     }
 
     return it->second;
 }
 
-auto UI::MessagableList(const identifier::Nym& nymID) const noexcept
-    -> const ui::MessagableList&
+auto UI::MessagableList(const identifier::Nym& nymID, const SimpleCallback cb)
+    const noexcept -> const ui::MessagableList&
 {
     Lock lock(lock_);
 
-    return *messagable_list(lock, nymID);
+    return *messagable_list(lock, nymID, cb);
 }
 
 #if OT_QT
-auto UI::MessagableListQt(const identifier::Nym& nymID) const noexcept
-    -> ui::MessagableListQt*
+auto UI::MessagableListQt(const identifier::Nym& nymID, const SimpleCallback cb)
+    const noexcept -> ui::MessagableListQt*
 {
     Lock lock(lock_);
     auto key = MessagableListKey{nymID};
@@ -642,7 +693,7 @@ auto UI::MessagableListQt(const identifier::Nym& nymID) const noexcept
                  .emplace(
                      std::move(key),
                      opentxs::factory::MessagableListQtModel(
-                         *messagable_list(lock, nymID)))
+                         *messagable_list(lock, nymID, cb)))
                  .first;
 
         OT_ASSERT(it->second);
@@ -655,8 +706,8 @@ auto UI::MessagableListQt(const identifier::Nym& nymID) const noexcept
 auto UI::payable_list(
     const Lock& lock,
     const identifier::Nym& nymID,
-    const proto::ContactItemType currency) const noexcept
-    -> PayableListMap::mapped_type&
+    const proto::ContactItemType currency,
+    const SimpleCallback& cb) const noexcept -> PayableListMap::mapped_type&
 {
     auto key = PayableListKey{nymID, currency};
     auto it = payable_lists_.find(key);
@@ -668,14 +719,12 @@ auto UI::payable_list(
                      std::forward_as_tuple(std::move(key)),
                      std::forward_as_tuple(opentxs::factory::PayableListModel(
                          api_,
-                         widget_update_publisher_,
                          nymID,
-                         currency
+                         currency,
 #if OT_QT
-                         ,
-                         enable_qt_
+                         enable_qt_,
 #endif  // OT_QT
-                         )))
+                         cb)))
                  .first;
     }
 
@@ -684,17 +733,19 @@ auto UI::payable_list(
 
 auto UI::PayableList(
     const identifier::Nym& nymID,
-    proto::ContactItemType currency) const noexcept -> const ui::PayableList&
+    proto::ContactItemType currency,
+    const SimpleCallback cb) const noexcept -> const ui::PayableList&
 {
     Lock lock(lock_);
 
-    return *payable_list(lock, nymID, currency);
+    return *payable_list(lock, nymID, currency, cb);
 }
 
 #if OT_QT
 auto UI::PayableListQt(
     const identifier::Nym& nymID,
-    proto::ContactItemType currency) const noexcept -> ui::PayableListQt*
+    proto::ContactItemType currency,
+    const SimpleCallback cb) const noexcept -> ui::PayableListQt*
 {
     Lock lock(lock_);
     auto key = PayableListKey{nymID, currency};
@@ -705,7 +756,7 @@ auto UI::PayableListQt(
                  .emplace(
                      std::move(key),
                      opentxs::factory::PayableListQtModel(
-                         *payable_list(lock, nymID, currency)))
+                         *payable_list(lock, nymID, currency, cb)))
                  .first;
 
         OT_ASSERT(it->second);
@@ -715,8 +766,10 @@ auto UI::PayableListQt(
 }
 #endif
 
-auto UI::profile(const Lock& lock, const identifier::Nym& nymID) const noexcept
-    -> ProfileMap::mapped_type&
+auto UI::profile(
+    const Lock& lock,
+    const identifier::Nym& nymID,
+    const SimpleCallback& cb) const noexcept -> ProfileMap::mapped_type&
 {
     auto key = ProfileKey{nymID};
     auto it = profiles_.find(key);
@@ -728,13 +781,11 @@ auto UI::profile(const Lock& lock, const identifier::Nym& nymID) const noexcept
                      std::forward_as_tuple(std::move(key)),
                      std::forward_as_tuple(opentxs::factory::ProfileModel(
                          api_,
-                         widget_update_publisher_,
-                         nymID
+                         nymID,
 #if OT_QT
-                         ,
-                         enable_qt_
+                         enable_qt_,
 #endif  // OT_QT
-                         )))
+                         cb)))
                  .first;
 
         OT_ASSERT(it->second);
@@ -743,28 +794,29 @@ auto UI::profile(const Lock& lock, const identifier::Nym& nymID) const noexcept
     return it->second;
 }
 
-auto UI::Profile(const identifier::Nym& nymID) const noexcept
-    -> const ui::Profile&
+auto UI::Profile(const identifier::Nym& nymID, const SimpleCallback cb)
+    const noexcept -> const ui::Profile&
 {
     Lock lock(lock_);
 
-    return *profile(lock, nymID);
+    return *profile(lock, nymID, cb);
 }
 
 #if OT_QT
-auto UI::ProfileQt(const identifier::Nym& nymID) const noexcept
-    -> ui::ProfileQt*
+auto UI::ProfileQt(const identifier::Nym& nymID, const SimpleCallback cb)
+    const noexcept -> ui::ProfileQt*
 {
     Lock lock(lock_);
     auto key = ProfileKey{nymID};
     auto it = profiles_qt_.find(key);
 
     if (profiles_qt_.end() == it) {
-        it = profiles_qt_
-                 .emplace(
-                     std::move(key),
-                     opentxs::factory::ProfileQtModel(*profile(lock, nymID)))
-                 .first;
+        it =
+            profiles_qt_
+                .emplace(
+                    std::move(key),
+                    opentxs::factory::ProfileQtModel(*profile(lock, nymID, cb)))
+                .first;
 
         OT_ASSERT(it->second);
     }
@@ -773,8 +825,10 @@ auto UI::ProfileQt(const identifier::Nym& nymID) const noexcept
 }
 #endif
 
-auto UI::unit_list(const Lock& lock, const identifier::Nym& nymID)
-    const noexcept -> UnitListMap::mapped_type&
+auto UI::unit_list(
+    const Lock& lock,
+    const identifier::Nym& nymID,
+    const SimpleCallback& cb) const noexcept -> UnitListMap::mapped_type&
 {
     auto key = UnitListKey{nymID};
     auto it = unit_lists_.find(key);
@@ -786,13 +840,11 @@ auto UI::unit_list(const Lock& lock, const identifier::Nym& nymID)
                      std::forward_as_tuple(std::move(key)),
                      std::forward_as_tuple(opentxs::factory::UnitListModel(
                          api_,
-                         widget_update_publisher_,
-                         nymID
+                         nymID,
 #if OT_QT
-                         ,
-                         enable_qt_
+                         enable_qt_,
 #endif  // OT_QT
-                         )))
+                         cb)))
                  .first;
 
         OT_ASSERT(it->second);
@@ -801,17 +853,17 @@ auto UI::unit_list(const Lock& lock, const identifier::Nym& nymID)
     return it->second;
 }
 
-auto UI::UnitList(const identifier::Nym& nymID) const noexcept
-    -> const ui::UnitList&
+auto UI::UnitList(const identifier::Nym& nymID, const SimpleCallback cb)
+    const noexcept -> const ui::UnitList&
 {
     Lock lock(lock_);
 
-    return *unit_list(lock, nymID);
+    return *unit_list(lock, nymID, cb);
 }
 
 #if OT_QT
-auto UI::UnitListQt(const identifier::Nym& nymID) const noexcept
-    -> ui::UnitListQt*
+auto UI::UnitListQt(const identifier::Nym& nymID, const SimpleCallback cb)
+    const noexcept -> ui::UnitListQt*
 {
     Lock lock(lock_);
     auto key = UnitListKey{nymID};
@@ -821,7 +873,8 @@ auto UI::UnitListQt(const identifier::Nym& nymID) const noexcept
         it = unit_lists_qt_
                  .emplace(
                      std::move(key),
-                     opentxs::factory::UnitListQtModel(*unit_list(lock, nymID)))
+                     opentxs::factory::UnitListQtModel(
+                         *unit_list(lock, nymID, cb)))
                  .first;
 
         OT_ASSERT(it->second);

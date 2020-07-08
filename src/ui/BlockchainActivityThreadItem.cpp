@@ -29,7 +29,6 @@ namespace opentxs::factory
 auto BlockchainActivityThreadItem(
     const ui::implementation::ActivityThreadInternalInterface& parent,
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const identifier::Nym& nymID,
     const ui::implementation::ActivityThreadRowID& rowID,
     const ui::implementation::ActivityThreadSortKey& sortKey,
@@ -57,7 +56,6 @@ auto BlockchainActivityThreadItem(
     return std::make_shared<ReturnType>(
         parent,
         api,
-        publisher,
         nymID,
         rowID,
         sortKey,
@@ -74,7 +72,6 @@ namespace opentxs::ui::implementation
 BlockchainActivityThreadItem::BlockchainActivityThreadItem(
     const ActivityThreadInternalInterface& parent,
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const identifier::Nym& nymID,
     const ActivityThreadRowID& rowID,
     const ActivityThreadSortKey& sortKey,
@@ -86,7 +83,6 @@ BlockchainActivityThreadItem::BlockchainActivityThreadItem(
     : ActivityThreadItem(
           parent,
           api,
-          publisher,
           nymID,
           rowID,
           sortKey,

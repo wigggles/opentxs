@@ -607,8 +607,12 @@ TEST_F(Test_BlockchainAPI, testBip32_SeedA)
 
         EXPECT_EQ(element.Address(AddressStyle::P2PKH), target);
 
-        const auto [bytes, style, chain] =
+        const auto [bytes, style, chains] =
             api_.Blockchain().DecodeAddress(target);
+
+        ASSERT_GT(chains.size(), 0);
+
+        const auto& chain = *chains.cbegin();
         const auto encoded =
             api_.Blockchain().EncodeAddress(style, chain, bytes);
 
@@ -636,6 +640,7 @@ TEST_F(Test_BlockchainAPI, testBip32_SeedA)
         EXPECT_EQ(element.Address(AddressStyle::P2PKH), alex_internal_.at(i));
         EXPECT_EQ(element.Contact()->str(), empty_id_.str());
         EXPECT_EQ(element.Label(), label);
+        EXPECT_TRUE(element.PrivateKey(reason_));
     }
 }
 
@@ -683,6 +688,7 @@ TEST_F(Test_BlockchainAPI, testBip32_SeedB)
         EXPECT_EQ(element.Address(AddressStyle::P2PKH), bob_external_.at(i));
         EXPECT_EQ(element.Contact()->str(), contact_alex_.str());
         EXPECT_EQ(element.Label(), label);
+        EXPECT_TRUE(element.PrivateKey(reason_));
     }
 
     for (ot::Bip32Index i{0}; i < 10; ++i) {
@@ -704,6 +710,7 @@ TEST_F(Test_BlockchainAPI, testBip32_SeedB)
         EXPECT_EQ(element.Address(AddressStyle::P2PKH), bob_internal_.at(i));
         EXPECT_EQ(element.Contact()->str(), empty_id_.str());
         EXPECT_EQ(element.Label(), label);
+        EXPECT_TRUE(element.PrivateKey(reason_));
     }
 }
 
@@ -742,6 +749,7 @@ TEST_F(Test_BlockchainAPI, testBip44_btc)
             element.Address(AddressStyle::P2PKH), chris_btc_external_.at(i));
         EXPECT_EQ(element.Contact()->str(), contact_daniel_.str());
         EXPECT_EQ(element.Label(), label);
+        EXPECT_TRUE(element.PrivateKey(reason_));
     }
 
     for (ot::Bip32Index i{0}; i < 2; ++i) {
@@ -764,6 +772,7 @@ TEST_F(Test_BlockchainAPI, testBip44_btc)
             element.Address(AddressStyle::P2PKH), chris_btc_internal_.at(i));
         EXPECT_EQ(element.Contact()->str(), empty_id_.str());
         EXPECT_EQ(element.Label(), label);
+        EXPECT_TRUE(element.PrivateKey(reason_));
     }
 }
 
@@ -801,6 +810,7 @@ TEST_F(Test_BlockchainAPI, testBip44_bch)
             element.Address(AddressStyle::P2PKH), chris_bch_external_.at(i));
         EXPECT_EQ(element.Contact()->str(), empty_id_.str());
         EXPECT_EQ(element.Label(), label);
+        EXPECT_TRUE(element.PrivateKey(reason_));
     }
 
     for (ot::Bip32Index i{0}; i < 2; ++i) {
@@ -822,6 +832,7 @@ TEST_F(Test_BlockchainAPI, testBip44_bch)
             element.Address(AddressStyle::P2PKH), chris_bch_internal_.at(i));
         EXPECT_EQ(element.Contact()->str(), empty_id_.str());
         EXPECT_EQ(element.Label(), label);
+        EXPECT_TRUE(element.PrivateKey(reason_));
     }
 }
 
@@ -869,14 +880,19 @@ TEST_F(Test_BlockchainAPI, testBip44_ltc)
 
         EXPECT_EQ(element.Address(AddressStyle::P2PKH), target);
 
-        const auto [bytes, style, chain] =
+        const auto [bytes, style, chains] =
             api_.Blockchain().DecodeAddress(target);
+
+        ASSERT_GT(chains.size(), 0);
+
+        const auto& chain = *chains.cbegin();
         const auto encoded =
             api_.Blockchain().EncodeAddress(style, chain, bytes);
 
         EXPECT_EQ(target, encoded);
         EXPECT_EQ(element.Contact()->str(), contact_alex_.str());
         EXPECT_EQ(element.Label(), label);
+        EXPECT_TRUE(element.PrivateKey(reason_));
     }
 
     for (ot::Bip32Index i{0}; i < 2; ++i) {
@@ -899,6 +915,7 @@ TEST_F(Test_BlockchainAPI, testBip44_ltc)
             element.Address(AddressStyle::P2PKH), chris_ltc_internal_.at(i));
         EXPECT_EQ(element.Contact()->str(), empty_id_.str());
         EXPECT_EQ(element.Label(), label);
+        EXPECT_TRUE(element.PrivateKey(reason_));
     }
 }
 

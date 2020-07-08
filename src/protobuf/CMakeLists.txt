@@ -42,11 +42,14 @@ set(
   blockchainexternaladdress/BlockchainExternalAddress_1.cpp
   blockchainfilterheader/BlockchainFilterHeader_1.cpp
   blockchaininputwitness/BlockchainInputWitness_1.cpp
+  blockchainoutputmultisigdetails/BlockchainOutputMultisigDetails_1.cpp
   blockchainpeeraddress/BlockchainPeerAddress_1.cpp
   blockchainpreviousoutput/BlockchainPreviousOutput_1.cpp
   blockchaintransaction/BlockchainTransaction_1.cpp
   blockchaintransactioninput/BlockchainTransactionInput_1.cpp
   blockchaintransactionoutput/BlockchainTransactionOutput_1.cpp
+  blockchaintransactionproposal/BlockchainTransactionProposal_1.cpp
+  blockchaintransactionproposedoutput/BlockchainTransactionProposedOutput_1.cpp
   blockchainwalletkey/BlockchainWalletKey_1.cpp
   childcredentialparameters/ChildCredentialParameters_1.cpp
   ciphertext/Ciphertext_1.cpp

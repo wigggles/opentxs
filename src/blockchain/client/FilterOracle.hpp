@@ -160,10 +160,12 @@ private:
 
     struct FilterQueue {
         bool error_;
+        filter::Type type_;
 
         using Filters = std::vector<internal::FilterDatabase::Filter>;
 
         auto AddFilter(
+            const filter::Type type,
             const block::Height height,
             const block::Hash& hash,
             std::unique_ptr<const blockchain::internal::GCS> filter) noexcept
@@ -174,6 +176,7 @@ private:
         auto IsFull() noexcept -> bool;
         auto IsRunning() noexcept -> bool;
         auto Queue(
+            const filter::Type type,
             const block::Height startHeight,
             const block::Hash& stopHash,
             const client::HeaderOracle& headers) noexcept -> void;
@@ -190,8 +193,12 @@ private:
         const api::client::Manager& api_;
         bool running_;
         std::size_t queued_;
+        // filters are stored in newest-to-oldest order
         std::vector<FilterData> filters_;
         Time last_received_;
+        // height of oldest filter to fetch
+        block::Height start_height_;
+        // position of the newest fetch to fetch
         block::Position target_;
     };
 
@@ -250,6 +257,7 @@ private:
         bool& repeat) noexcept -> void;
     auto compare_tips_to_checkpoint() noexcept -> void;
     auto compare_tips_to_header_chain() noexcept -> bool;
+    auto flush_filters() noexcept -> void;
     auto pipeline(const zmq::Message& in) noexcept -> void;
     auto process_cfheader(const zmq::Message& in) noexcept -> void;
     auto process_cfilter(const zmq::Message& in) noexcept -> void;

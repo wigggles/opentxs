@@ -3,6 +3,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#include "opentxs/protobuf/verify/StorageServers.hpp"  // IWYU pragma: associated
+
 #include <stdexcept>
 #include <utility>
 
@@ -11,7 +13,6 @@
 #include "opentxs/protobuf/StorageItemHash.pb.h"
 #include "opentxs/protobuf/StorageServers.pb.h"
 #include "opentxs/protobuf/verify/StorageItemHash.hpp"
-#include "opentxs/protobuf/verify/StorageServers.hpp"
 #include "opentxs/protobuf/verify/VerifyStorage.hpp"
 #include "protobuf/Check.hpp"
 

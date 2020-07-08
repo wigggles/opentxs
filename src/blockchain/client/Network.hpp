@@ -22,6 +22,7 @@
 #include "opentxs/Types.hpp"
 #include "opentxs/api/client/Manager.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/blockchain/Network.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
@@ -49,6 +50,11 @@ namespace blockchain
 {
 namespace block
 {
+namespace bitcoin
+{
+class Transaction;
+}  // namespace bitcoin
+
 class Header;
 }  // namespace block
 
@@ -57,6 +63,11 @@ namespace p2p
 class Address;
 }  // namespace p2p
 }  // namespace blockchain
+
+namespace identifier
+{
+class Nym;
+}  // namespace identifier
 
 namespace network
 {
@@ -87,6 +98,8 @@ public:
     {
         return *block_p_;
     }
+    auto BroadcastTransaction(
+        const block::bitcoin::Transaction& tx) const noexcept -> bool final;
     auto API() const noexcept -> const api::client::Manager& final
     {
         return api_;
@@ -96,6 +109,7 @@ public:
     {
         return *database_p_;
     }
+    auto FeeRate() const noexcept -> Amount final;
     auto GetBalance() const noexcept -> Balance final
     {
         return database_.GetBalance();
@@ -134,15 +148,10 @@ public:
         const block::Height start,
         const block::Hash& stop) const noexcept -> bool final;
     auto SendToAddress(
+        const opentxs::identifier::Nym& sender,
         const std::string& address,
         const Amount amount,
-        const api::client::blockchain::BalanceTree& source) const noexcept
-        -> std::string final;
-    auto SendToPaymentCode(
-        const std::string& address,
-        const Amount amount,
-        const api::client::blockchain::PaymentCode& source) const noexcept
-        -> std::string final;
+        const std::string& memo) const noexcept -> PendingOutgoing final;
     auto Submit(network::zeromq::Message& work) const noexcept -> void final;
     auto UpdateHeight(const block::Height height) const noexcept -> void final;
     auto UpdateLocalHeight(const block::Position position) const noexcept

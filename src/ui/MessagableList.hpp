@@ -14,6 +14,7 @@
 #include "1_Internal.hpp"
 #include "internal/ui/UI.hpp"
 #include "opentxs/SharedPimpl.hpp"
+#include "opentxs/Types.hpp"
 #include "opentxs/Version.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/ui/MessagableList.hpp"
@@ -71,13 +72,11 @@ public:
 
     MessagableList(
         const api::client::internal::Manager& api,
-        const network::zeromq::socket::Publish& publisher,
-        const identifier::Nym& nymID
+        const identifier::Nym& nymID,
 #if OT_QT
-        ,
-        const bool qt
+        const bool qt,
 #endif
-        ) noexcept;
+        const SimpleCallback& cb) noexcept;
     ~MessagableList() final;
 
 private:

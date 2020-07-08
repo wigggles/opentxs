@@ -9,6 +9,7 @@
 #include <cstdint>
 #include <memory>
 #include <optional>
+#include <string>
 #include <vector>
 
 #include "internal/blockchain/block/bitcoin/Bitcoin.hpp"
@@ -83,7 +84,10 @@ public:
     auto ScriptHash() const noexcept -> std::optional<ReadView> final;
     auto Serialize(const AllocateOutput destination) const noexcept
         -> bool final;
+    auto SigningSubscript(const blockchain::Type chain) const noexcept
+        -> std::unique_ptr<internal::Script> final;
     auto size() const noexcept -> std::size_t final { return elements_.size(); }
+    auto str() const noexcept -> std::string final;
     auto Type() const noexcept -> Pattern final { return type_; }
     auto Value(const std::size_t position) const noexcept
         -> std::optional<ReadView> final;

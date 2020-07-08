@@ -74,6 +74,7 @@
 #include "opentxs/protobuf/PeerObject.pb.h"
 #include "opentxs/protobuf/Purse.pb.h"
 #include "opentxs/protobuf/ServerContract.pb.h"
+#include "opentxs/protobuf/UnitDefinition.pb.h"  // IWYU pragma: keep
 #include "opentxs/protobuf/verify/UnitDefinition.hpp"
 
 #define START()                                                                \

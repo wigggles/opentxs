@@ -13,6 +13,8 @@
 #include <iterator>
 #include <map>
 #include <numeric>
+#include <stdexcept>
+#include <string>
 #include <tuple>
 
 #include "internal/api/client/Client.hpp"
@@ -21,6 +23,8 @@
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/client/Blockchain.hpp"
 #include "opentxs/api/client/Manager.hpp"
+#include "opentxs/api/client/blockchain/BalanceNode.hpp"
+#include "opentxs/api/client/blockchain/BalanceTree.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/blockchain/block/bitcoin/Input.hpp"
 #include "opentxs/blockchain/block/bitcoin/Inputs.hpp"
@@ -31,6 +35,10 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/protobuf/BlockchainTransactionOutput.pb.h"
+#include "opentxs/protobuf/BlockchainTransactionProposal.pb.h"
+#include "opentxs/protobuf/BlockchainWalletKey.pb.h"
 #include "util/Container.hpp"
 
 #define OT_METHOD "opentxs::blockchain::database::Wallet::"
@@ -64,6 +72,7 @@ Wallet::Wallet(
     , blockchain_(blockchain)
     , common_(common)
     , chain_(chain)
+    , default_filter_type_()
     , lock_()
     , patterns_()
     , subchain_pattern_index_()
@@ -79,7 +88,15 @@ Wallet::Wallet(
     , tx_to_block_()
     , block_to_tx_()
     , tx_history_()
+    , proposals_()
+    , proposal_spent_outpoints_()
+    , proposal_created_outpoints_()
+    , outpoint_proposal_()
+    , finished_proposals_()
+    , change_keys_()
 {
+    // TODO persist default_filter_type_ and reindex various tables
+    // if the type provided by the filter oracle has changed
 }
 
 auto Wallet::add_transaction(
@@ -122,24 +139,40 @@ auto Wallet::AddConfirmedTransaction(
     const VersionNumber version,
     const block::Position& block,
     const std::vector<std::uint32_t> outputIndices,
-    const block::bitcoin::Transaction& transaction) const noexcept -> bool
+    const block::bitcoin::Transaction& original) const noexcept -> bool
 {
     Lock lock(lock_);
+    auto pCopy = original.clone();
 
-    if (false == add_transaction(lock, chain, block, transaction)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Error adding transaction to database")
-            .Flush();
+    OT_ASSERT(pCopy);
 
-        return false;
-    }
+    auto& copy = *pCopy;
+    auto inputIndex = int{-1};
 
-    for (const auto& input : transaction.Inputs()) {
+    for (const auto& input : copy.Inputs()) {
         const auto& outpoint = input.PreviousOutput();
+        ++inputIndex;
+
+        if (false == check_proposals(lock, outpoint, block, copy.ID())) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Error updating proposals")
+                .Flush();
+
+            return false;
+        }
 
         if (auto out = find_output(lock, outpoint); out.has_value()) {
+            const auto& proto = std::get<2>(out.value()->second);
+
+            if (!copy.AssociatePreviousOutput(inputIndex, proto)) {
+                LogOutput(OT_METHOD)(__FUNCTION__)(
+                    ": Error associating previous output to input")
+                    .Flush();
+
+                return false;
+            }
+
             if (false ==
-                change_state(lock, outpoint, State::ConfirmedSpend, block)) {
+                change_state(lock, outpoint, TxoState::ConfirmedSpend, block)) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(
                     ": Error updating consumed output state")
                     .Flush();
@@ -163,12 +196,12 @@ auto Wallet::AddConfirmedTransaction(
 
     for (const auto index : outputIndices) {
         const auto outpoint =
-            block::bitcoin::Outpoint{transaction.ID().Bytes(), index};
-        const auto& output = transaction.Outputs().at(index);
+            block::bitcoin::Outpoint{copy.ID().Bytes(), index};
+        const auto& output = copy.Outputs().at(index);
 
         if (auto out = find_output(lock, outpoint); out.has_value()) {
             if (false ==
-                change_state(lock, outpoint, State::ConfirmedNew, block)) {
+                change_state(lock, outpoint, TxoState::ConfirmedNew, block)) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(
                     ": Error updating created output state")
                     .Flush();
@@ -178,7 +211,7 @@ auto Wallet::AddConfirmedTransaction(
         } else {
             if (false ==
                 create_state(
-                    lock, outpoint, State::ConfirmedNew, block, output)) {
+                    lock, outpoint, TxoState::ConfirmedNew, block, output)) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(
                     ": Error created new output state")
                     .Flush();
@@ -195,7 +228,124 @@ auto Wallet::AddConfirmedTransaction(
         }
     }
 
+    if (false == add_transaction(lock, chain, block, copy)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Error adding transaction to database")
+            .Flush();
+
+        return false;
+    }
+
     blockchain_.UpdateBalance(chain_, get_balance(lock));
+
+    return true;
+}
+
+auto Wallet::AddOutgoingTransaction(
+    const blockchain::Type chain,
+    const Identifier& proposalID,
+    const proto::BlockchainTransactionProposal& proposal,
+    const block::bitcoin::Transaction& transaction) const noexcept -> bool
+{
+    static const auto block = make_blank<block::Position>::value(api_);
+    Lock lock(lock_);
+
+    for (const auto& input : transaction.Inputs()) {
+        const auto& outpoint = input.PreviousOutput();
+
+        try {
+            if (proposalID != outpoint_proposal_.at(outpoint)) {
+                LogOutput(OT_METHOD)(__FUNCTION__)(": Incorrect proposal ID")
+                    .Flush();
+
+                return false;
+            }
+        } catch (...) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Input spending")(
+                outpoint.str())(" not registered with a proposal")
+                .Flush();
+
+            return false;
+        }
+    }
+
+    auto index{-1};
+    auto& pending = proposal_created_outpoints_[proposalID];
+
+    for (const auto& output : transaction.Outputs()) {
+        if (0 == output.Keys().size()) { continue; }
+
+        const auto outpoint = block::bitcoin::Outpoint{
+            transaction.ID().Bytes(), static_cast<std::uint32_t>(++index)};
+        pending.emplace_back(outpoint);
+
+        if (auto out = find_output(lock, outpoint); out.has_value()) {
+            if (false ==
+                change_state(lock, outpoint, TxoState::UnconfirmedNew, block)) {
+                LogOutput(OT_METHOD)(__FUNCTION__)(
+                    ": Error updating created output state")
+                    .Flush();
+
+                return false;
+            }
+        } else {
+            if (false ==
+                create_state(
+                    lock, outpoint, TxoState::UnconfirmedNew, block, output)) {
+                LogOutput(OT_METHOD)(__FUNCTION__)(
+                    ": Error creating new output state")
+                    .Flush();
+
+                return false;
+            }
+        }
+
+        for (const auto& key : output.Keys()) {
+            if (false == associate_outpoint(lock, outpoint, key)) {
+                LogOutput(OT_METHOD)(__FUNCTION__)(
+                    ": Error associating output to subchain")
+                    .Flush();
+
+                return false;
+            }
+        }
+    }
+
+    if (false == add_transaction(lock, chain, block, transaction)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Error adding transaction to database")
+            .Flush();
+
+        return false;
+    }
+
+    dedup(pending);
+    blockchain_.UpdateBalance(chain_, get_balance(lock));
+
+    return true;
+}
+
+auto Wallet::AddProposal(
+    const Identifier& id,
+    const proto::BlockchainTransactionProposal& tx) const noexcept -> bool
+{
+    Lock lock{lock_};
+    proposals_[id] = tx;
+
+    return true;
+}
+
+auto Wallet::associate_outpoint(
+    const Lock& lock,
+    const block::bitcoin::Outpoint& outpoint,
+    const KeyID& key) const noexcept -> bool
+{
+    const auto& [nodeID, subchain, index] = key;
+    const auto subchainID =
+        subchain_id(lock, api_.Factory().Identifier(nodeID), subchain);
+    auto& vector = output_subchain_[subchainID];
+    vector.emplace_back(outpoint);
+    dedup(vector);
 
     return true;
 }
@@ -221,7 +371,7 @@ auto Wallet::belongs_to(
 auto Wallet::change_state(
     const Lock& lock,
     const block::bitcoin::Outpoint& id,
-    const State newState,
+    const TxoState newState,
     const block::Position newPosition) const noexcept -> bool
 {
     auto itOutput = outputs_.find(id);
@@ -272,10 +422,60 @@ auto Wallet::change_state(
     return true;
 }
 
+auto Wallet::check_proposals(
+    const Lock& lock,
+    const block::bitcoin::Outpoint& outpoint,
+    const block::Position& block,
+    const block::Txid& txid) const noexcept -> bool
+
+{
+    if (0 == outpoint_proposal_.count(outpoint)) { return true; }
+
+    auto proposalID{outpoint_proposal_.at(outpoint)};
+
+    if (0 < proposal_created_outpoints_.count(proposalID)) {
+        auto& created = proposal_created_outpoints_.at(proposalID);
+
+        for (const auto& newOutpoint : created) {
+            const auto rhs = api_.Factory().Data(newOutpoint.Txid());
+
+            if (txid != rhs) {
+                const auto changed =
+                    change_state(lock, outpoint, TxoState::OrphanedNew, block);
+
+                if (false == changed) {
+                    LogOutput(OT_METHOD)(__FUNCTION__)(
+                        ": Failed to update txo state")
+                        .Flush();
+
+                    return false;
+                }
+            }
+        }
+
+        proposal_created_outpoints_.erase(proposalID);
+    }
+
+    if (0 < proposal_spent_outpoints_.count(proposalID)) {
+        auto& spent = proposal_spent_outpoints_.at(proposalID);
+
+        for (const auto& spentOutpoint : spent) {
+            outpoint_proposal_.erase(spentOutpoint);
+        }
+
+        proposal_spent_outpoints_.erase(proposalID);
+    }
+
+    proposals_.erase(proposalID);
+    finished_proposals_.emplace(std::move(proposalID));
+
+    return true;
+}
+
 auto Wallet::create_state(
     const Lock& lock,
     const block::bitcoin::Outpoint& id,
-    const State state,
+    const TxoState state,
     const block::Position position,
     const block::bitcoin::Output& output) const noexcept -> bool
 {
@@ -316,14 +516,80 @@ auto Wallet::create_state(
     return true;
 }
 
+auto Wallet::CancelProposal(const Identifier& id) const noexcept -> bool
+{
+    static const auto blank = api_.Factory().Identifier();
+
+    Lock lock(lock_);
+
+    {
+        auto& available = change_keys_[blank];
+
+        try {
+            auto& used = change_keys_.at(id);
+            std::move(
+                std::begin(used),
+                std::end(used),
+                std::back_inserter(available));
+            change_keys_.erase(id);
+        } catch (...) {
+        }
+    }
+
+    auto& reserved = proposal_spent_outpoints_[id];
+    auto& created = proposal_created_outpoints_[id];
+    auto& outgoing = output_states_[TxoState::UnconfirmedSpend];
+    auto& available = output_states_[TxoState::ConfirmedNew];
+    auto& pending = output_states_[TxoState::UnconfirmedNew];
+    auto& orphaned = output_states_[TxoState::OrphanedNew];
+
+    for (const auto& outpoint : reserved) {
+        auto& [state, position, data] = outputs_.at(outpoint);
+        state = TxoState::ConfirmedNew;
+        delete_from_vector(outgoing, outpoint);
+        available.emplace_back(outpoint);
+        dedup(available);
+        outpoint_proposal_.erase(outpoint);
+    }
+
+    for (const auto& outpoint : created) {
+        auto& [state, position, data] = outputs_.at(outpoint);
+        state = TxoState::OrphanedNew;
+        delete_from_vector(pending, outpoint);
+        orphaned.emplace_back(outpoint);
+        dedup(orphaned);
+    }
+
+    proposal_spent_outpoints_.erase(id);
+    proposal_created_outpoints_.erase(id);
+    proposals_.erase(id);
+
+    return true;
+}
+
+auto Wallet::CompletedProposals() const noexcept -> std::set<OTIdentifier>
+{
+    Lock lock(lock_);
+
+    return finished_proposals_;
+}
+
+auto Wallet::DeleteProposal(const Identifier& id) const noexcept -> bool
+{
+    Lock lock{lock_};
+    proposals_.erase(id);
+
+    return true;
+}
+
 auto Wallet::effective_position(
-    const State state,
+    const TxoState state,
     const block::Position& position) const noexcept -> const block::Position&
 {
     static const auto blankPosition = make_blank<block::Position>::value(api_);
 
-    return ((State::UnconfirmedNew == state) ||
-            (State::UnconfirmedSpend == state))
+    return ((TxoState::UnconfirmedNew == state) ||
+            (TxoState::UnconfirmedSpend == state))
                ? blankPosition
                : position;
 }
@@ -342,6 +608,16 @@ auto Wallet::find_output(const Lock& lock, const block::bitcoin::Outpoint& id)
     }
 }
 
+auto Wallet::ForgetProposals(const std::set<OTIdentifier>& ids) const noexcept
+    -> bool
+{
+    Lock lock(lock_);
+
+    for (const auto& id : ids) { finished_proposals_.erase(id); }
+
+    return true;
+}
+
 auto Wallet::get_balance(const Lock&) const noexcept -> Balance
 {
     auto output = Balance{};
@@ -352,12 +628,26 @@ auto Wallet::get_balance(const Lock&) const noexcept -> Balance
 
         return previous + data.value();
     };
-    const auto& confirmedNew = output_states_[State::ConfirmedNew];
+    const auto& confirmedNew = output_states_[TxoState::ConfirmedNew];
+    const auto& unconfirmedSpend = output_states_[TxoState::UnconfirmedSpend];
+    const auto unconfirmedSpendTotal = std::accumulate(
+        std::begin(unconfirmedSpend),
+        std::end(unconfirmedSpend),
+        std::uint64_t{0},
+        cb);
     confirmed = std::accumulate(
-        std::begin(confirmedNew), std::end(confirmedNew), std::uint64_t{0}, cb);
-    const auto& unconfirmedNew = output_states_[State::UnconfirmedNew];
+                    std::begin(confirmedNew),
+                    std::end(confirmedNew),
+                    std::uint64_t{0},
+                    cb) +
+                unconfirmedSpendTotal;
+    const auto& unconfirmedNew = output_states_[TxoState::UnconfirmedNew];
     unconfirmed = std::accumulate(
-        std::begin(unconfirmedNew), std::end(unconfirmedNew), confirmed, cb);
+                      std::begin(unconfirmedNew),
+                      std::end(unconfirmedNew),
+                      confirmed,
+                      cb) -
+                  unconfirmedSpendTotal;
 
     return output;
 }
@@ -411,15 +701,15 @@ auto Wallet::get_unspent_outputs(const Lock& lock) const noexcept
 {
     auto retrieve = std::vector<block::bitcoin::Outpoint>{};
 
-    for (const auto& outpoint : output_states_[State::UnconfirmedNew]) {
+    for (const auto& outpoint : output_states_[TxoState::UnconfirmedNew]) {
         retrieve.emplace_back(outpoint);
     }
 
-    for (const auto& outpoint : output_states_[State::ConfirmedNew]) {
+    for (const auto& outpoint : output_states_[TxoState::ConfirmedNew]) {
         retrieve.emplace_back(outpoint);
     }
 
-    for (const auto& outpoint : output_states_[State::UnconfirmedSpend]) {
+    for (const auto& outpoint : output_states_[TxoState::UnconfirmedSpend]) {
         retrieve.emplace_back(outpoint);
     }
 
@@ -469,6 +759,55 @@ auto Wallet::GetUntestedPatterns(
     }
 }
 
+auto Wallet::LoadProposal(const Identifier& id) const noexcept
+    -> std::optional<proto::BlockchainTransactionProposal>
+{
+    Lock lock(lock_);
+
+    return load_proposal(lock, id);
+}
+
+auto Wallet::load_proposal(const Lock& lock, const Identifier& id)
+    const noexcept -> std::optional<proto::BlockchainTransactionProposal>
+{
+    auto it = proposals_.find(id);
+
+    if (proposals_.end() == it) { return std::nullopt; }
+
+    return it->second;
+}
+
+auto Wallet::LoadProposals() const noexcept
+    -> std::vector<proto::BlockchainTransactionProposal>
+{
+    auto output = std::vector<proto::BlockchainTransactionProposal>{};
+    Lock lock{lock_};
+    std::transform(
+        std::begin(proposals_),
+        std::end(proposals_),
+        std::back_inserter(output),
+        [](const auto& in) -> auto { return in.second; });
+
+    return output;
+}
+
+auto Wallet::owns(
+    const identifier::Nym& spender,
+    proto::BlockchainTransactionOutput output) noexcept -> bool
+{
+    const auto id = spender.str();
+
+    for (const auto& key : output.key()) {
+        if (key.nym() == id) { return true; }
+    }
+
+    if (0 == output.key_size()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": No keys").Flush();
+    }
+
+    return false;
+}
+
 auto Wallet::pattern_id(const SubchainID& subchain, const Bip32Index index)
     const noexcept -> pPatternID
 {
@@ -478,6 +817,27 @@ auto Wallet::pattern_id(const SubchainID& subchain, const Bip32Index index)
     output->CalculateDigest(preimage->Bytes());
 
     return output;
+}
+
+auto Wallet::ReleaseChangeKey(const Identifier& proposal, const KeyID key)
+    const noexcept -> bool
+{
+    static const auto blank = api_.Factory().Identifier();
+
+    Lock lock(lock_);
+    auto& available = change_keys_[blank];
+    auto& used = change_keys_[proposal];
+
+    for (auto it{used.begin()}; it != used.end();) {
+        if (key == *it) {
+            available.emplace_back(std::move(*it));
+            it = used.erase(it);
+        } else {
+            ++it;
+        }
+    }
+
+    return true;
 }
 
 auto Wallet::ReorgTo(
@@ -525,11 +885,118 @@ auto Wallet::ReorgTo(
     return true;
 }
 
+auto Wallet::ReserveChangeKey(const Identifier& proposal) const noexcept
+    -> std::optional<KeyID>
+{
+    static const auto blank = api_.Factory().Identifier();
+
+    Lock lock(lock_);
+    auto& available = change_keys_[blank];
+
+    if (0 < available.size()) {
+        auto it = available.begin();
+        auto output{*it};
+        auto& used = change_keys_[proposal];
+        used.emplace_back(output);
+        available.erase(it);
+
+        return std::make_optional<KeyID>(std::move(output));
+    }
+
+    try {
+        const auto& data = proposals_.at(proposal);
+        const auto nym = api_.Factory().NymID(data.initiator());
+
+        try {
+            const auto& account = api_.Blockchain().Account(nym, chain_);
+            const auto reason =
+                api_.Factory().PasswordPrompt("Send a blockchain transaction");
+            const auto& node = account.GetNextChangeKey(reason);
+            auto output{node.KeyID()};
+            auto& used = change_keys_[proposal];
+            used.emplace_back(output);
+
+            return std::make_optional<KeyID>(std::move(output));
+        } catch (const std::exception& e) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": ")(e.what()).Flush();
+
+            return std::nullopt;
+        }
+    } catch (...) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid proposal").Flush();
+
+        return std::nullopt;
+    }
+}
+
+auto Wallet::ReserveUTXO(const Identifier& id) const noexcept
+    -> std::optional<UTXO>
+{
+    // TODO optionally spend unconfirmed
+    // TODO implement smarter selection algorithms
+    Lock lock(lock_);
+    const auto proposal = load_proposal(lock, id);
+
+    if (false == proposal.has_value()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Proposal does not exist").Flush();
+
+        return std::nullopt;
+    }
+
+    const auto spender = api_.Factory().NymID(proposal.value().initiator());
+
+    try {
+        auto& confirmed = output_states_.at(TxoState::ConfirmedNew);
+
+        if (confirmed.empty()) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": No spendable outputs")
+                .Flush();
+
+            return std::nullopt;
+        }
+
+        for (auto outpoint : confirmed) {  // intentional copy
+            auto& [state, position, serialized] = outputs_.at(outpoint);
+
+            if (owns(spender, serialized)) {
+                auto output = std::make_optional<UTXO>(outpoint, serialized);
+                state = TxoState::UnconfirmedSpend;
+                output_states_[TxoState::UnconfirmedSpend].emplace_back(
+                    outpoint);
+                auto& reserved = proposal_spent_outpoints_[id];
+                reserved.emplace_back(outpoint);
+                dedup(reserved);
+                LogVerbose(OT_METHOD)(__FUNCTION__)(": Reserving output ")(
+                    outpoint.str())
+                    .Flush();
+                outpoint_proposal_.emplace(outpoint, id);
+                delete_from_vector(confirmed, outpoint);  // NOTE outpoint would
+                                                          // be invalidated if
+                                                          // it was a reference
+                                                          // instead of a copy
+
+                return output;
+            }
+        }
+
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": No spendable outputs for specified nym")
+            .Flush();
+
+        return std::nullopt;
+    } catch (...) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": No spendable outputs").Flush();
+
+        return std::nullopt;
+    }
+}
+
 auto Wallet::rollback(
     const Lock& lock,
     const SubchainID& subchain,
     const block::Position& position) const noexcept -> bool
 {
+    // TODO rebroadcast transactions which have become unconfirmed
     auto outpoints = std::vector<block::bitcoin::Outpoint>{};
 
     for (const auto& outpoint : output_positions_[position]) {
@@ -544,16 +1011,16 @@ auto Wallet::rollback(
     for (const auto& id : outpoints) {
         auto& [opState, opPosition, data] = outputs_.at(id);
         auto change{true};
-        auto newState = State{};
+        auto newState = TxoState{};
 
         switch (opState) {
-            case State::ConfirmedNew:
-            case State::OrphanedNew: {
-                newState = State::UnconfirmedNew;
+            case TxoState::ConfirmedNew:
+            case TxoState::OrphanedNew: {
+                newState = TxoState::UnconfirmedNew;
             } break;
-            case State::ConfirmedSpend:
-            case State::OrphanedSpend: {
-                newState = State::UnconfirmedSpend;
+            case TxoState::ConfirmedSpend:
+            case TxoState::OrphanedSpend: {
+                newState = TxoState::UnconfirmedSpend;
             } break;
             default: {
                 change = false;
@@ -578,6 +1045,13 @@ auto Wallet::rollback(
             return false;
         }
     }
+
+    return true;
+}
+
+auto Wallet::SetDefaultFilterType(const FilterType type) const noexcept -> bool
+{
+    const_cast<FilterType&>(default_filter_type_) = type;
 
     return true;
 }
@@ -641,12 +1115,12 @@ auto Wallet::SubchainDropIndex(
     return true;
 }
 
-auto Wallet::SubchainIndexVersion(
+auto Wallet::subchain_index_version(
+    const Lock& lock,
     const NodeID& balanceNode,
     const Subchain subchain,
     const FilterType type) const noexcept -> VersionNumber
 {
-    Lock lock(lock_);
     const auto id = subchain_version_index(balanceNode, subchain, type);
 
     try {
@@ -656,6 +1130,16 @@ auto Wallet::SubchainIndexVersion(
 
         return 0;
     }
+}
+
+auto Wallet::SubchainIndexVersion(
+    const NodeID& balanceNode,
+    const Subchain subchain,
+    const FilterType type) const noexcept -> VersionNumber
+{
+    Lock lock(lock_);
+
+    return subchain_index_version(lock, balanceNode, subchain, type);
 }
 
 auto Wallet::SubchainLastIndexed(
@@ -795,6 +1279,18 @@ auto Wallet::subchain_id(
     output->CalculateDigest(preimage->Bytes());
 
     return output;
+}
+
+auto Wallet::subchain_id(
+    const Lock& lock,
+    const NodeID& nodeID,
+    const Subchain subchain) const noexcept -> pSubchainID
+{
+    return subchain_id(
+        nodeID,
+        subchain,
+        default_filter_type_,
+        subchain_index_version(lock, nodeID, subchain, default_filter_type_));
 }
 
 auto Wallet::TransactionLoadBitcoin(const ReadView txid) const noexcept

@@ -36,6 +36,7 @@ public:
     auto ElementCount() const noexcept -> std::uint32_t final { return count_; }
     auto Encode() const noexcept -> OTData final;
     auto Hash() const noexcept -> OTData final;
+    auto Header(const ReadView previous) const noexcept -> OTData final;
     auto Match(const Targets&) const noexcept -> Matches final;
     auto Serialize() const noexcept -> proto::GCS final;
     auto Test(const Data& target) const noexcept -> bool final;

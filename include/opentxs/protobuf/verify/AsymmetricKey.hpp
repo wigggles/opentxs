@@ -8,7 +8,7 @@
 
 #include "opentxs/Version.hpp"  // IWYU pragma: associated
 
-#include "opentxs/protobuf/verify/VerifyCredentials.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
 
 namespace opentxs
 {

@@ -10,27 +10,35 @@
 #include <algorithm>
 #include <chrono>
 #include <cstdint>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
 #include "opentxs/Pimpl.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/client/Manager.hpp"
 #include "opentxs/blockchain/block/Header.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/Pipeline.hpp"
+#include "opentxs/protobuf/BlockchainTransactionProposal.pb.h"
+#include "opentxs/protobuf/BlockchainTransactionProposedOutput.pb.h"
 #include "util/ScopeGuard.hpp"
 
 #define OT_METHOD "opentxs::blockchain::client::implementation::Network::"
 
 namespace opentxs::blockchain::client::implementation
 {
+constexpr auto proposal_version_ = VersionNumber{1};
+constexpr auto output_version_ = VersionNumber{1};
+
 Network::Network(
     const api::client::Manager& api,
     const api::client::internal::Blockchain& blockchain,
@@ -94,6 +102,7 @@ Network::Network(
     OT_ASSERT(block_p_);
     OT_ASSERT(wallet_p_);
 
+    database_.SetDefaultFilterType(filters_.DefaultType());
     header_.Init();
 
     init_executor({});
@@ -104,6 +113,14 @@ auto Network::AddPeer(const p2p::Address& address) const noexcept -> bool
     if (false == running_.get()) { return false; }
 
     return peer_.AddPeer(address);
+}
+
+auto Network::BroadcastTransaction(
+    const block::bitcoin::Transaction& tx) const noexcept -> bool
+{
+    if (false == running_.get()) { return false; }
+
+    return peer_.BroadcastTransaction(tx);
 }
 
 auto Network::Connect() noexcept -> bool
@@ -118,6 +135,36 @@ auto Network::Disconnect() noexcept -> bool
     // TODO
 
     return false;
+}
+
+auto Network::FeeRate() const noexcept -> Amount
+{
+    switch (chain_) {
+        case Type::Bitcoin: {
+            // TODO stop hardcoding this value
+
+            return 25000;
+        }
+        case Type::Bitcoin_testnet3: {
+            // TODO stop hardcoding this value
+
+            return 3113;
+        }
+        case Type::BitcoinCash: {
+            // TODO stop hardcoding this value
+
+            return 1000;
+        }
+        case Type::BitcoinCash_testnet3: {
+            // TODO stop hardcoding this value
+
+            return 1000;
+        }
+        default: {
+
+            return 0;
+        }
+    }
 }
 
 auto Network::GetConfirmations(const std::string& txid) const noexcept
@@ -319,25 +366,51 @@ auto Network::RequestFilters(
 }
 
 auto Network::SendToAddress(
+    const opentxs::identifier::Nym& sender,
     const std::string& address,
     const Amount amount,
-    const api::client::blockchain::BalanceTree& source) const noexcept
-    -> std::string
+    const std::string& memo) const noexcept -> PendingOutgoing
 {
-    // TODO
+    const auto [data, style, chains] = blockchain_.DecodeAddress(address);
 
-    return {};
-}
+    if (0 == chains.count(chain_)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Address ")(address)(
+            " not valid for ")(blockchain::internal::DisplayString(chain_))
+            .Flush();
 
-auto Network::SendToPaymentCode(
-    const std::string& address,
-    const Amount amount,
-    const api::client::blockchain::PaymentCode& source) const noexcept
-    -> std::string
-{
-    // TODO
+        return {};
+    }
 
-    return {};
+    auto id = api_.Factory().Identifier();
+    id->Randomize(32);
+    auto proposal = proto::BlockchainTransactionProposal{};
+    proposal.set_version(proposal_version_);
+    proposal.set_id(id->str());
+    proposal.set_initiator(sender.str());
+    proposal.set_expires(
+        Clock::to_time_t(Clock::now() + std::chrono::hours(1)));
+    proposal.set_memo(memo);
+    using Style = api::client::blockchain::AddressStyle;
+    auto& output = *proposal.add_output();
+    output.set_version(output_version_);
+    output.set_amount(amount);
+
+    switch (style) {
+        case Style::P2PKH: {
+            output.set_pubkeyhash(data->str());
+        } break;
+        case Style::P2SH: {
+            output.set_scripthash(data->str());
+        } break;
+        default: {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Unsupported address type")
+                .Flush();
+
+            return {};
+        }
+    }
+
+    return wallet_.ConstructTransaction(proposal);
 }
 
 auto Network::shutdown(std::promise<void>& promise) noexcept -> void

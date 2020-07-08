@@ -29,7 +29,6 @@ namespace opentxs::factory
 auto AccountListItem(
     const ui::implementation::AccountListInternalInterface& parent,
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const ui::implementation::AccountListRowID& rowID,
     const ui::implementation::AccountListSortKey& sortKey,
     ui::implementation::CustomData& custom) noexcept
@@ -37,8 +36,7 @@ auto AccountListItem(
 {
     using ReturnType = ui::implementation::AccountListItem;
 
-    return std::make_shared<ReturnType>(
-        parent, api, publisher, rowID, sortKey, custom);
+    return std::make_shared<ReturnType>(parent, api, rowID, sortKey, custom);
 }
 }  // namespace opentxs::factory
 
@@ -47,11 +45,10 @@ namespace opentxs::ui::implementation
 AccountListItem::AccountListItem(
     const AccountListInternalInterface& parent,
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const AccountListRowID& rowID,
     const AccountListSortKey& sortKey,
     CustomData& custom) noexcept
-    : AccountListItemRow(parent, api, publisher, rowID, true)
+    : AccountListItemRow(parent, api, rowID, true)
     , type_(AccountType::Custodial)
     , unit_(sortKey.first)
     , balance_(extract_custom<Amount>(custom, 1))

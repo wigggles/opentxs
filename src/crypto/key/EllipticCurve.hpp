@@ -9,6 +9,7 @@
 #include <string>
 
 #include "crypto/key/Asymmetric.hpp"
+#include "opentxs/Bytes.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/Version.hpp"
@@ -65,6 +66,11 @@ public:
     virtual auto CreateType() const -> NymParameterType = 0;
     auto Path() const noexcept -> const std::string override { return {}; }
     auto Path(proto::HDPath&) const noexcept -> bool override { return {}; }
+    auto SignDER(
+        const ReadView preimage,
+        const proto::HashType hash,
+        Space& output,
+        const PasswordPrompt& reason) const noexcept -> bool final;
 
     virtual ~EllipticCurve() override = default;
 

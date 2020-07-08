@@ -3,6 +3,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#include "opentxs/protobuf/verify/Credential.hpp"  // IWYU pragma: associated
+
 #include <cstdint>
 #include <ostream>
 #include <stdexcept>
@@ -21,7 +23,6 @@
 #include "opentxs/protobuf/VerificationSet.pb.h"
 #include "opentxs/protobuf/verify/ChildCredentialParameters.hpp"
 #include "opentxs/protobuf/verify/ContactData.hpp"
-#include "opentxs/protobuf/verify/Credential.hpp"
 #include "opentxs/protobuf/verify/KeyCredential.hpp"
 #include "opentxs/protobuf/verify/MasterCredentialParameters.hpp"
 #include "opentxs/protobuf/verify/Signature.hpp"

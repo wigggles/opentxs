@@ -13,6 +13,15 @@
 #include <cstdint>
 
 #include "opentxs/Proto.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
+
+namespace opentxs
+{
+namespace proto
+{
+class Ciphertext;
+}  // namespace proto
+}  // namespace opentxs
 
 namespace opentxs
 {

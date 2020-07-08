@@ -64,14 +64,14 @@ public:
     }
 };
 
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1 && OT_CRYPTO_WITH_BIP32
 TEST_F(Test_CreateNymHD, TestNym_DeterministicIDs)
 {
 
     EXPECT_STREQ(AliceID.c_str(), Alice.c_str());
     EXPECT_STREQ(BobID.c_str(), Bob.c_str());
 }
-#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1 && OT_CRYPTO_WITH_BIP32
 
 TEST_F(Test_CreateNymHD, TestNym_ABCD)
 {
@@ -149,9 +149,9 @@ TEST_F(Test_CreateNymHD, TestNym_Eve)
 
     ASSERT_TRUE(NymE);
 
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1 && OT_CRYPTO_WITH_BIP32
     EXPECT_EQ(EveID, NymE->ID().str());
-#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1 && OT_CRYPTO_WITH_BIP32
 
     proto::HDPath pathE;
     EXPECT_TRUE(NymE->Path(pathE));
@@ -174,9 +174,9 @@ TEST_F(Test_CreateNymHD, TestNym_Frank)
 
     EXPECT_NE(NymF->ID(), NymF2->ID());
 
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1 && OT_CRYPTO_WITH_BIP32
     EXPECT_EQ(FrankID, NymF->ID().str());
-#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1 && OT_CRYPTO_WITH_BIP32
 
     proto::HDPath pathF, pathF2;
     EXPECT_TRUE(NymF->Path(pathF));

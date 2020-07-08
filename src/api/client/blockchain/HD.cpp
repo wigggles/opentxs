@@ -29,6 +29,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/crypto/key/HD.hpp"
 #include "opentxs/protobuf/BlockchainActivity.pb.h"
 #include "opentxs/protobuf/BlockchainAddress.pb.h"
 #include "opentxs/protobuf/HDPath.pb.h"
@@ -134,10 +135,18 @@ HD::HD(
            {Subchain::External, serialized.externalindex()}})
     , version_(serialized.version())
     , revision_(serialized.revision())
-    , internal_addresses_(
-          extract_internal(*this, parent.Parent().Parent(), chain_, serialized))
-    , external_addresses_(
-          extract_external(*this, parent.Parent().Parent(), chain_, serialized))
+    , internal_addresses_(extract_internal(
+          parent.API(),
+          parent.Parent().Parent(),
+          *this,
+          chain_,
+          serialized))
+    , external_addresses_(extract_external(
+          parent.API(),
+          parent.Parent().Parent(),
+          *this,
+          chain_,
+          serialized))
 {
     id.Assign(id_);
 
@@ -220,8 +229,9 @@ auto HD::check_activity(
 }
 
 auto HD::extract_external(
+    const api::internal::Core& api,
+    const client::internal::Blockchain& blockchain,
     const internal::BalanceNode& parent,
-    const client::internal::Blockchain& api,
     const opentxs::blockchain::Type chain,
     const SerializedType& in) noexcept(false) -> HD::AddressMap
 {
@@ -232,7 +242,7 @@ auto HD::extract_external(
             std::piecewise_construct,
             std::forward_as_tuple(address.index()),
             std::forward_as_tuple(
-                parent, api, chain, Subchain::External, address));
+                api, blockchain, parent, chain, Subchain::External, address));
     }
 
     return output;
@@ -250,8 +260,9 @@ auto HD::extract_incoming(const SerializedType& in) -> std::vector<Activity>
 }
 
 auto HD::extract_internal(
+    const api::internal::Core& api,
+    const client::internal::Blockchain& blockchain,
     const internal::BalanceNode& parent,
-    const client::internal::Blockchain& api,
     const opentxs::blockchain::Type chain,
     const SerializedType& in) noexcept(false) -> HD::AddressMap
 {
@@ -262,7 +273,7 @@ auto HD::extract_internal(
             std::piecewise_construct,
             std::forward_as_tuple(address.index()),
             std::forward_as_tuple(
-                parent, api, chain, Subchain::Internal, address));
+                api, blockchain, parent, chain, Subchain::Internal, address));
     }
 
     return output;
@@ -305,8 +316,9 @@ auto HD::generate_next(
         std::piecewise_construct,
         std::forward_as_tuple(index),
         std::forward_as_tuple(
-            *this,
+            parent_.API(),
             parent_.Parent().Parent(),
+            *this,
             chain_,
             type,
             index,
@@ -358,6 +370,20 @@ auto HD::mutable_element(
         }
     }
 }
+
+#if OT_CRYPTO_WITH_BIP32
+auto HD::PrivateKey(
+    const Subchain type,
+    const Bip32Index index,
+    const PasswordPrompt& reason) const noexcept -> ECKey
+{
+    return api_.Seeds().AccountChildKey(
+        path_,
+        (Subchain::Internal == type) ? INTERNAL_CHAIN : EXTERNAL_CHAIN,
+        index,
+        reason);
+}
+#endif  // OT_CRYPTO_WITH_BIP32
 
 auto HD::save(const Lock& lock) const noexcept -> bool
 {

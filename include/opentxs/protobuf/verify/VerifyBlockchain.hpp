@@ -38,6 +38,12 @@ OPENTXS_EXPORT const VersionMap&
 BlockchainTransactionInputAllowedBlockchainWalletKey() noexcept;
 OPENTXS_EXPORT const VersionMap&
 BlockchainTransactionOutputAllowedBlockchainWalletKey() noexcept;
+OPENTXS_EXPORT const VersionMap&
+BlockchainTransactionProposalAllowedBlockchainTransaction() noexcept;
+OPENTXS_EXPORT const VersionMap&
+BlockchainTransactionProposalAllowedBlockchainTransactionProposedOutput() noexcept;
+OPENTXS_EXPORT const VersionMap&
+BlockchainTransactionProposedOutputAllowedBlockchainOutputMultisigDetails() noexcept;
 OPENTXS_EXPORT const VersionMap& HDAccountAllowedBlockchainActivity() noexcept;
 OPENTXS_EXPORT const VersionMap& HDAccountAllowedBlockchainAddress() noexcept;
 OPENTXS_EXPORT const VersionMap& HDAccountAllowedHDPath() noexcept;

@@ -28,21 +28,32 @@ const std::chrono::seconds FilterOracle::FilterQueue::timeout_{20};
 
 FilterOracle::FilterQueue::FilterQueue(const api::client::Manager& api) noexcept
     : error_(false)
+    , type_()
     , api_(api)
     , running_(false)
     , queued_(0)
     , filters_()
     , last_received_()
+    , start_height_(make_blank<block::Height>::value(api))
     , target_(make_blank<block::Position>::value(api))
 {
     filters_.reserve(1000);
 }
 
 auto FilterOracle::FilterQueue::AddFilter(
+    const filter::Type type,
     const block::Height height,
     const block::Hash& hash,
     std::unique_ptr<const blockchain::internal::GCS> filter) noexcept -> void
 {
+    if (IsFull()) { return; }
+
+    if (type != type_) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Incorrect filter type").Flush();
+
+        return;
+    }
+
     OT_ASSERT(filter);
 
     const auto& target = target_.first;
@@ -107,7 +118,7 @@ auto FilterOracle::FilterQueue::AddFilter(
 auto FilterOracle::FilterQueue::Flush(Filters& filters) noexcept
     -> block::Position
 {
-    auto counter = target_.first - filters_.size();
+    auto counter{start_height_};
 
     for (auto it{filters_.rbegin()}; it != filters_.rend(); ++it) {
         ++counter;
@@ -116,7 +127,7 @@ auto FilterOracle::FilterQueue::Flush(Filters& filters) noexcept
             filters.emplace_back(internal::FilterDatabase::Filter{
                 it->first->Bytes(), std::move(it->second)});
         } else {
-            LogOutput(OT_METHOD)(__FUNCTION__)(": Filter for block ")(counter)(
+            LogVerbose(OT_METHOD)(__FUNCTION__)(": Filter for block ")(counter)(
                 " is missing.")
                 .Flush();
 
@@ -146,7 +157,15 @@ auto FilterOracle::FilterQueue::IsRunning() noexcept -> bool
                 ": Filter request timed out after ")(timeout_.count())(
                 " seconds ")
                 .Flush();
-            Reset();
+
+            if (filters_.rbegin()->second) {
+                LogVerbose(OT_METHOD)(__FUNCTION__)(
+                    ": Accepting partial filter batch.")
+                    .Flush();
+                queued_ = filters_.size();
+            } else {
+                Reset();
+            }
         }
     }
 
@@ -154,6 +173,7 @@ auto FilterOracle::FilterQueue::IsRunning() noexcept -> bool
 }
 
 auto FilterOracle::FilterQueue::Queue(
+    const filter::Type type,
     const block::Height startHeight,
     const block::Hash& stopHash,
     const client::HeaderOracle& headers) noexcept -> void
@@ -162,10 +182,12 @@ auto FilterOracle::FilterQueue::Queue(
     OT_ASSERT(0 == queued_);
     OT_ASSERT(0 == filters_.size());
 
+    type_ = type;
     auto header = headers.LoadHeader(stopHash);
 
     OT_ASSERT(header);
 
+    start_height_ = startHeight;
     target_ = header->Position();
     filters_.emplace_back(FilterData{header->Hash(), nullptr});
 
@@ -183,10 +205,13 @@ auto FilterOracle::FilterQueue::Queue(
 
 auto FilterOracle::FilterQueue::Reset() noexcept -> void
 {
+    error_ = false;
+    type_ = {};
     running_ = false;
     queued_ = 0;
     filters_.clear();
     last_received_ = Time{};
+    start_height_ = make_blank<block::Height>::value(api_);
     target_ = make_blank<block::Position>::value(api_);
 }
 }  // namespace opentxs::blockchain::client::implementation

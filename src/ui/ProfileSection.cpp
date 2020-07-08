@@ -36,7 +36,6 @@ namespace opentxs::factory
 auto ProfileSectionWidget(
     const ui::implementation::ProfileInternalInterface& parent,
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const ui::implementation::ProfileRowID& rowID,
     const ui::implementation::ProfileSortKey& key,
     ui::implementation::CustomData& custom
@@ -51,7 +50,6 @@ auto ProfileSectionWidget(
     return std::make_shared<ReturnType>(
         parent,
         api,
-        publisher,
         rowID,
         key,
         custom
@@ -166,7 +164,6 @@ namespace opentxs::ui::implementation
 ProfileSection::ProfileSection(
     const ProfileInternalInterface& parent,
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const ProfileRowID& rowID,
     const ProfileSortKey& key,
     CustomData& custom
@@ -177,7 +174,6 @@ ProfileSection::ProfileSection(
     ) noexcept
     : Combined(
           api,
-          publisher,
           parent.NymID(),
           parent.WidgetID(),
           parent,
@@ -228,7 +224,7 @@ auto ProfileSection::construct_row(
         factory::ProfileSubsectionWidget(
             *this,
             api_,
-            publisher_,
+
             id,
             index,
             custom

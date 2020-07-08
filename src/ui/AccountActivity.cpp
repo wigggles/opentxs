@@ -69,18 +69,18 @@ namespace opentxs::ui::implementation
 {
 AccountActivity::AccountActivity(
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const identifier::Nym& nymID,
     const Identifier& accountID,
     const AccountType type,
+    const SimpleCallback& cb,
 #if OT_QT
     const bool qt,
 #endif  // OT_QT
     ListenerDefinitions&& listeners) noexcept
     : AccountActivityList(
           api,
-          publisher,
-          nymID
+          nymID,
+          cb
 #if OT_QT
           ,
           qt,
@@ -115,7 +115,7 @@ auto AccountActivity::construct_row(
         factory::BalanceItem(
             *this,
             api_,
-            publisher_,
+
             id,
             index,
             custom,

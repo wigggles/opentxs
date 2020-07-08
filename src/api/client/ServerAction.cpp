@@ -7,7 +7,6 @@
 #include "1_Internal.hpp"               // IWYU pragma: associated
 #include "api/client/ServerAction.hpp"  // IWYU pragma: associated
 
-#include "2_Factory.hpp"
 #include "client/OTAPI_Func.hpp"
 #include "internal/api/client/Client.hpp"
 #include "opentxs/Pimpl.hpp"
@@ -20,15 +19,15 @@
 
 //#define OT_METHOD "opentxs::api::client::implementation::ServerAction::"
 
-namespace opentxs
+namespace opentxs::factory
 {
-auto Factory::ServerAction(
+auto ServerAction(
     const api::client::internal::Manager& api,
     const ContextLockCallback& lockCallback) -> api::client::ServerAction*
 {
     return new api::client::implementation::ServerAction(api, lockCallback);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::api::client::implementation
 {

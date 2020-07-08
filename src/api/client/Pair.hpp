@@ -64,7 +64,6 @@ class PeerRequest;
 
 class ContactData;
 class ContactSection;
-class Factory;
 class Flag;
 class PasswordPrompt;
 }  // namespace opentxs
@@ -105,12 +104,12 @@ public:
 
     void init() noexcept final;
 
-    ~Pair() { cleanup().get(); }
+    Pair(const Flag& running, const api::client::internal::Manager& client);
 
-    friend opentxs::api::client::Pair;
+    ~Pair() final { cleanup().get(); }
 
 private:
-    friend opentxs::Factory;
+    friend opentxs::api::client::Pair;
     /// local nym id, issuer nym id
     using IssuerID = std::pair<OTNymID, OTNymID>;
     enum class Status : std::uint8_t {
@@ -287,7 +286,6 @@ private:
     void callback_peer_reply(const zmq::Message& in) noexcept;
     void callback_peer_request(const zmq::Message& in) noexcept;
 
-    Pair(const Flag& running, const api::client::internal::Manager& client);
     Pair() = delete;
     Pair(const Pair&) = delete;
     Pair(Pair&&) = delete;

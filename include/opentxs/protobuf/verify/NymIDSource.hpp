@@ -6,7 +6,7 @@
 #ifndef OPENTXS_PROTOBUF_NYMIDSOURCE_HPP
 #define OPENTXS_PROTOBUF_NYMIDSOURCE_HPP
 
-#include "opentxs/protobuf/verify/VerifyCredentials.hpp"
+#include "opentxs/Version.hpp"  // IWYU pragma: associated
 
 namespace opentxs
 {

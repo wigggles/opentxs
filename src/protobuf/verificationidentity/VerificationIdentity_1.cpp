@@ -3,6 +3,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#include "opentxs/protobuf/verify/VerificationIdentity.hpp"  // IWYU pragma: associated
+
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -12,7 +14,6 @@
 #include "opentxs/protobuf/Verification.pb.h"
 #include "opentxs/protobuf/VerificationIdentity.pb.h"
 #include "opentxs/protobuf/verify/Verification.hpp"
-#include "opentxs/protobuf/verify/VerificationIdentity.hpp"
 #include "opentxs/protobuf/verify/VerifyContacts.hpp"
 #include "protobuf/Check.hpp"
 

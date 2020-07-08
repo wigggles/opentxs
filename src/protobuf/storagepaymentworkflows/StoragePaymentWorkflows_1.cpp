@@ -3,10 +3,11 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#include "opentxs/protobuf/verify/StoragePaymentWorkflows.hpp"  // IWYU pragma: associated
+
 #include "opentxs/protobuf/Basic.hpp"
 #include "opentxs/protobuf/StoragePaymentWorkflows.pb.h"
 #include "opentxs/protobuf/verify/StorageItemHash.hpp"  // IWYU pragma: keep
-#include "opentxs/protobuf/verify/StoragePaymentWorkflows.hpp"
 #include "opentxs/protobuf/verify/StorageWorkflowIndex.hpp"  // IWYU pragma: keep
 #include "opentxs/protobuf/verify/StorageWorkflowType.hpp"  // IWYU pragma: keep
 #include "opentxs/protobuf/verify/VerifyStorage.hpp"

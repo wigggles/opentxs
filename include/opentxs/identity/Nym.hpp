@@ -23,6 +23,18 @@
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/crypto/key/Keypair.hpp"
 #include "opentxs/iterator/Bidirectional.hpp"
+#include "opentxs/protobuf/ContactEnums.pb.h"
+#include "opentxs/protobuf/Enums.pb.h"
+
+namespace opentxs
+{
+namespace proto
+{
+class ContactData;
+class Nym;
+class Signature;
+}  // namespace proto
+}  // namespace opentxs
 
 namespace opentxs
 {

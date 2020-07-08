@@ -66,7 +66,6 @@ protected:
 
     Combined(
         const api::client::internal::Manager& api,
-        const network::zeromq::socket::Publish& publisher,
         const typename ListTemplate::ListPrimaryID::interface_type& primaryID,
         const Identifier& widgetID,
         const typename RowTemplate::RowParentType& parent,
@@ -82,7 +81,6 @@ protected:
         ) noexcept
         : ListTemplate(
               api,
-              publisher,
               primaryID,
               widgetID
 #if OT_QT

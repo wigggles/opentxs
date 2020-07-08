@@ -15,6 +15,8 @@
 #include <optional>
 #include <utility>
 
+#include "internal/api/client/Client.hpp"
+#include "opentxs/Forward.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/Version.hpp"
@@ -22,6 +24,7 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/network/zeromq/Pipeline.hpp"
 #include "opentxs/network/zeromq/socket/Publish.hpp"
 #include "opentxs/protobuf/ContactEnums.pb.h"
 #include "opentxs/ui/AccountActivity.hpp"
@@ -50,6 +53,14 @@ struct Manager;
 }  // namespace client
 }  // namespace api
 
+namespace network
+{
+namespace zeromq
+{
+class Message;
+}  // namespace zeromq
+}  // namespace network
+
 namespace ui
 {
 namespace implementation
@@ -68,89 +79,111 @@ class UnitList;
 }  // namespace implementation
 }  // namespace ui
 
-class Factory;
 class Flag;
 }  // namespace opentxs
 
+namespace zmq = opentxs::network::zeromq;
+
 namespace opentxs::api::client::implementation
 {
-class UI final : virtual public opentxs::api::client::UI, Lockable
+class UI final : public internal::UI, Lockable
 {
 public:
     auto AccountActivity(
         const identifier::Nym& nymID,
-        const Identifier& accountID) const noexcept
+        const Identifier& accountID,
+        const SimpleCallback cb) const noexcept
         -> const ui::AccountActivity& final;
-    auto AccountList(const identifier::Nym& nym) const noexcept
-        -> const ui::AccountList& final;
+    auto AccountList(const identifier::Nym& nym, const SimpleCallback cb)
+        const noexcept -> const ui::AccountList& final;
     auto AccountSummary(
         const identifier::Nym& nymID,
-        const proto::ContactItemType currency) const noexcept
+        const proto::ContactItemType currency,
+        const SimpleCallback cb) const noexcept
         -> const ui::AccountSummary& final;
-    auto ActivitySummary(const identifier::Nym& nymID) const noexcept
-        -> const ui::ActivitySummary& final;
+    auto ActivateUICallback(const Identifier& widget) const noexcept
+        -> void final
+    {
+        update_manager_.ActivateUICallback(widget);
+    }
+    auto ActivitySummary(const identifier::Nym& nymID, const SimpleCallback cb)
+        const noexcept -> const ui::ActivitySummary& final;
     auto ActivityThread(
         const identifier::Nym& nymID,
-        const Identifier& threadID) const noexcept
+        const Identifier& threadID,
+        const SimpleCallback cb) const noexcept
         -> const ui::ActivityThread& final;
-    auto Contact(const Identifier& contactID) const noexcept
-        -> const ui::Contact& final;
-    auto ContactList(const identifier::Nym& nymID) const noexcept
-        -> const ui::ContactList& final;
-    auto MessagableList(const identifier::Nym& nymID) const noexcept
-        -> const ui::MessagableList& final;
+    auto Contact(const Identifier& contactID, const SimpleCallback cb)
+        const noexcept -> const ui::Contact& final;
+    auto ContactList(const identifier::Nym& nymID, const SimpleCallback cb)
+        const noexcept -> const ui::ContactList& final;
+    auto MessagableList(const identifier::Nym& nymID, const SimpleCallback cb)
+        const noexcept -> const ui::MessagableList& final;
     auto PayableList(
         const identifier::Nym& nymID,
-        const proto::ContactItemType currency) const noexcept
-        -> const ui::PayableList& final;
-    auto Profile(const identifier::Nym& nymID) const noexcept
-        -> const ui::Profile& final;
-    auto UnitList(const identifier::Nym& nym) const noexcept
-        -> const ui::UnitList& final;
+        const proto::ContactItemType currency,
+        const SimpleCallback cb) const noexcept -> const ui::PayableList& final;
+    auto Profile(const identifier::Nym& nymID, const SimpleCallback cb)
+        const noexcept -> const ui::Profile& final;
+    auto RegisterUICallback(const Identifier& widget, const SimpleCallback& cb)
+        const noexcept -> void final
+    {
+        update_manager_.RegisterUICallback(widget, cb);
+    }
+    auto UnitList(const identifier::Nym& nym, const SimpleCallback cb)
+        const noexcept -> const ui::UnitList& final;
 
 #if OT_QT
     auto AccountActivityQt(
         const identifier::Nym& nymID,
-        const Identifier& accountID) const noexcept
-        -> ui::AccountActivityQt* final;
-    auto AccountListQt(const identifier::Nym& nym) const noexcept
-        -> ui::AccountListQt* final;
+        const Identifier& accountID,
+        const SimpleCallback cb) const noexcept -> ui::AccountActivityQt* final;
+    auto AccountListQt(const identifier::Nym& nym, const SimpleCallback cb)
+        const noexcept -> ui::AccountListQt* final;
     auto AccountSummaryQt(
         const identifier::Nym& nymID,
-        const proto::ContactItemType currency) const noexcept
-        -> ui::AccountSummaryQt* final;
-    auto ActivitySummaryQt(const identifier::Nym& nymID) const noexcept
-        -> ui::ActivitySummaryQt* final;
+        const proto::ContactItemType currency,
+        const SimpleCallback cb) const noexcept -> ui::AccountSummaryQt* final;
+    auto ActivitySummaryQt(
+        const identifier::Nym& nymID,
+        const SimpleCallback cb) const noexcept -> ui::ActivitySummaryQt* final;
     auto ActivityThreadQt(
         const identifier::Nym& nymID,
-        const Identifier& threadID) const noexcept
-        -> ui::ActivityThreadQt* final;
+        const Identifier& threadID,
+        const SimpleCallback cb) const noexcept -> ui::ActivityThreadQt* final;
     auto BlankModel(const std::size_t columns) const noexcept
         -> QAbstractItemModel* final
     {
         return blank_.get(columns);
     }
-    auto ContactQt(const Identifier& contactID) const noexcept
-        -> ui::ContactQt* final;
-    auto ContactListQt(const identifier::Nym& nymID) const noexcept
-        -> ui::ContactListQt* final;
-    auto MessagableListQt(const identifier::Nym& nymID) const noexcept
-        -> ui::MessagableListQt* final;
+    auto ContactQt(const Identifier& contactID, const SimpleCallback cb)
+        const noexcept -> ui::ContactQt* final;
+    auto ContactListQt(const identifier::Nym& nymID, const SimpleCallback cb)
+        const noexcept -> ui::ContactListQt* final;
+    auto MessagableListQt(const identifier::Nym& nymID, const SimpleCallback cb)
+        const noexcept -> ui::MessagableListQt* final;
     auto PayableListQt(
         const identifier::Nym& nymID,
-        const proto::ContactItemType currency) const noexcept
-        -> ui::PayableListQt* final;
-    auto ProfileQt(const identifier::Nym& nymID) const noexcept
-        -> ui::ProfileQt* final;
-    auto UnitListQt(const identifier::Nym& nym) const noexcept
-        -> ui::UnitListQt* final;
+        const proto::ContactItemType currency,
+        const SimpleCallback cb) const noexcept -> ui::PayableListQt* final;
+    auto ProfileQt(const identifier::Nym& nymID, const SimpleCallback cb)
+        const noexcept -> ui::ProfileQt* final;
+    auto UnitListQt(const identifier::Nym& nym, const SimpleCallback cb)
+        const noexcept -> ui::UnitListQt* final;
 #endif  // OT_QT
+
+    UI(const api::client::internal::Manager& api,
+       const Flag& running
+#if OT_QT
+       ,
+       const bool qt
+#endif  // OT_QT
+       )
+    noexcept;
 
     ~UI() final = default;
 
 private:
-    friend opentxs::Factory;
-
     /** NymID, AccountID */
     using AccountActivityKey = std::pair<OTNymID, OTIdentifier>;
     using AccountListKey = OTNymID;
@@ -234,6 +267,25 @@ private:
     };
 #endif  // OT_QT
 
+    struct UpdateManager {
+        auto ActivateUICallback(const Identifier& widget) const noexcept
+            -> void;
+        auto RegisterUICallback(
+            const Identifier& widget,
+            const SimpleCallback& cb) const noexcept -> void;
+
+        UpdateManager(const api::client::internal::Manager& api) noexcept;
+
+    private:
+        const api::client::internal::Manager& api_;
+        mutable std::mutex lock_;
+        mutable std::map<OTIdentifier, SimpleCallback> map_;
+        OTZMQPublishSocket publisher_;
+        OTZMQPipeline pipeline_;
+
+        auto pipeline(zmq::Message& in) noexcept -> void;
+    };
+
     const api::client::internal::Manager& api_;
     const Flag& running_;
 #if OT_QT
@@ -264,55 +316,69 @@ private:
     mutable ProfileQtMap profiles_qt_;
     mutable UnitListQtMap unit_lists_qt_;
 #endif  // OT_QT
-    OTZMQPublishSocket widget_update_publisher_;
+    UpdateManager update_manager_;
 
     auto account_activity(
         const Lock& lock,
         const identifier::Nym& nymID,
-        const Identifier& accountID) const noexcept
+        const Identifier& accountID,
+        const SimpleCallback& cb) const noexcept
         -> AccountActivityMap::mapped_type&;
-    auto account_list(const Lock& lock, const identifier::Nym& nymID)
-        const noexcept -> AccountListMap::mapped_type&;
+    auto account_list(
+        const Lock& lock,
+        const identifier::Nym& nymID,
+        const SimpleCallback& cb) const noexcept
+        -> AccountListMap::mapped_type&;
     auto account_summary(
         const Lock& lock,
         const identifier::Nym& nymID,
-        const proto::ContactItemType currency) const noexcept
+        const proto::ContactItemType currency,
+        const SimpleCallback& cb) const noexcept
         -> AccountSummaryMap::mapped_type&;
-    auto activity_summary(const Lock& lock, const identifier::Nym& nymID)
-        const noexcept -> ActivitySummaryMap::mapped_type&;
+    auto activity_summary(
+        const Lock& lock,
+        const identifier::Nym& nymID,
+        const SimpleCallback& cb) const noexcept
+        -> ActivitySummaryMap::mapped_type&;
     auto activity_thread(
         const Lock& lock,
         const identifier::Nym& nymID,
-        const Identifier& threadID) const noexcept
+        const Identifier& threadID,
+        const SimpleCallback& cb) const noexcept
         -> ActivityThreadMap::mapped_type&;
-    auto contact(const Lock& lock, const Identifier& contactID) const noexcept
-        -> ContactMap::mapped_type&;
-    auto contact_list(const Lock& lock, const identifier::Nym& nymID)
-        const noexcept -> ContactListMap::mapped_type&;
+    auto contact(
+        const Lock& lock,
+        const Identifier& contactID,
+        const SimpleCallback& cb) const noexcept -> ContactMap::mapped_type&;
+    auto contact_list(
+        const Lock& lock,
+        const identifier::Nym& nymID,
+        const SimpleCallback& cb) const noexcept
+        -> ContactListMap::mapped_type&;
 #if OT_BLOCKCHAIN
     auto is_blockchain_account(const Identifier& id) const noexcept
         -> std::optional<opentxs::blockchain::Type>;
 #endif  // OT_BLOCKCHAIN
-    auto messagable_list(const Lock& lock, const identifier::Nym& nymID)
-        const noexcept -> MessagableListMap::mapped_type&;
+    auto messagable_list(
+        const Lock& lock,
+        const identifier::Nym& nymID,
+        const SimpleCallback& cb) const noexcept
+        -> MessagableListMap::mapped_type&;
     auto payable_list(
         const Lock& lock,
         const identifier::Nym& nymID,
-        const proto::ContactItemType currency) const noexcept
+        const proto::ContactItemType currency,
+        const SimpleCallback& cb) const noexcept
         -> PayableListMap::mapped_type&;
-    auto profile(const Lock& lock, const identifier::Nym& nymID) const noexcept
-        -> ProfileMap::mapped_type&;
-    auto unit_list(const Lock& lock, const identifier::Nym& nymID)
-        const noexcept -> UnitListMap::mapped_type&;
+    auto profile(
+        const Lock& lock,
+        const identifier::Nym& nymID,
+        const SimpleCallback& cb) const noexcept -> ProfileMap::mapped_type&;
+    auto unit_list(
+        const Lock& lock,
+        const identifier::Nym& nymID,
+        const SimpleCallback& cb) const noexcept -> UnitListMap::mapped_type&;
 
-    UI(const api::client::internal::Manager& api,
-       const Flag& running
-#if OT_QT
-       ,
-       const bool qt
-#endif  // OT_QT
-       )
-    noexcept;
     UI() = delete;
     UI(const UI&) = delete;
     UI(UI&&) = delete;

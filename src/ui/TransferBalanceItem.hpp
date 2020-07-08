@@ -75,7 +75,6 @@ public:
     TransferBalanceItem(
         const AccountActivityInternalInterface& parent,
         const api::client::internal::Manager& api,
-        const network::zeromq::socket::Publish& publisher,
         const AccountActivityRowID& rowID,
         const AccountActivitySortKey& sortKey,
         CustomData& custom,

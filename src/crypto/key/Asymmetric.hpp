@@ -121,8 +121,12 @@ public:
         proto::Signature& signature,
         const Identifier& credential,
         const PasswordPrompt& reason,
-        proto::KeyRole key,
         const proto::HashType hash) const noexcept -> bool final;
+    auto Sign(
+        const ReadView preimage,
+        const proto::HashType hash,
+        const AllocateOutput output,
+        const PasswordPrompt& reason) const noexcept -> bool final;
     auto TransportKey(
         Data& publicKey,
         Secret& privateKey,

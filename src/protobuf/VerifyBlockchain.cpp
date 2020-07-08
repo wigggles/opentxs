@@ -135,6 +135,33 @@ auto BlockchainTransactionOutputAllowedBlockchainWalletKey() noexcept
 
     return output;
 }
+auto BlockchainTransactionProposalAllowedBlockchainTransaction() noexcept
+    -> const VersionMap&
+{
+    static const auto output = VersionMap{
+        {1, {1, 1}},
+    };
+
+    return output;
+}
+auto BlockchainTransactionProposalAllowedBlockchainTransactionProposedOutput() noexcept
+    -> const VersionMap&
+{
+    static const auto output = VersionMap{
+        {1, {1, 1}},
+    };
+
+    return output;
+}
+auto BlockchainTransactionProposedOutputAllowedBlockchainOutputMultisigDetails() noexcept
+    -> const VersionMap&
+{
+    static const auto output = VersionMap{
+        {1, {1, 1}},
+    };
+
+    return output;
+}
 auto HDAccountAllowedBlockchainActivity() noexcept -> const VersionMap&
 {
     static const auto output = VersionMap{

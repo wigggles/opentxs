@@ -95,6 +95,7 @@
 #include "opentxs/protobuf/Ciphertext.pb.h"
 #include "opentxs/protobuf/ContactEnums.pb.h"
 #include "opentxs/protobuf/Enums.pb.h"
+#include "opentxs/protobuf/Envelope.pb.h"  // IWYU pragma: keep
 #include "opentxs/protobuf/PaymentCode.pb.h"
 #include "opentxs/protobuf/PeerEnums.pb.h"
 #include "opentxs/protobuf/PeerReply.pb.h"

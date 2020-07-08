@@ -14,6 +14,7 @@
 #include "opentxs/Types.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
 #include "opentxs/core/Secret.hpp"
 #include "opentxs/crypto/key/EllipticCurve.hpp"
 #include "opentxs/crypto/library/EcdsaProvider.hpp"
@@ -21,7 +22,7 @@
 #include "opentxs/protobuf/Ciphertext.pb.h"
 #include "opentxs/protobuf/Enums.pb.h"
 
-// #define OT_METHOD "opentxs::crypto::key::implementation::EllipticCurve::"
+#define OT_METHOD "opentxs::crypto::key::implementation::EllipticCurve::"
 
 namespace opentxs::crypto::key
 {
@@ -158,5 +159,26 @@ auto EllipticCurve::serialize_public(EllipticCurve* in)
     copy->erase_private_data();
 
     return copy->Serialize();
+}
+
+auto EllipticCurve::SignDER(
+    const ReadView preimage,
+    const proto::HashType hash,
+    Space& output,
+    const PasswordPrompt& reason) const noexcept -> bool
+{
+    if (false == has_private_) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Missing private key").Flush();
+
+        return false;
+    }
+
+    bool success = ecdsa_.SignDER(api_, preimage, *this, hash, output, reason);
+
+    if (false == success) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to sign preimage").Flush();
+    }
+
+    return success;
 }
 }  // namespace opentxs::crypto::key::implementation

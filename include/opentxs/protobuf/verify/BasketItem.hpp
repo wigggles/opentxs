@@ -8,9 +8,9 @@
 
 #include "opentxs/Version.hpp"  // IWYU pragma: associated
 
+#include <cstdint>
 #include <map>
-
-#include "opentxs/protobuf/verify/VerifyContracts.hpp"
+#include <string>
 
 namespace opentxs
 {
@@ -24,7 +24,7 @@ namespace opentxs
 {
 namespace proto
 {
-using BasketItemMap = std::map<std::string, uint64_t>;
+using BasketItemMap = std::map<std::string, std::uint64_t>;
 
 OPENTXS_EXPORT bool CheckProto_1(
     const BasketItem& item,

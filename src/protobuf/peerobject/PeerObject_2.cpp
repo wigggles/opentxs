@@ -3,6 +3,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#include "opentxs/protobuf/verify/PeerObject.hpp"  // IWYU pragma: associated
+
 #include <string>
 #include <utility>
 
@@ -14,7 +16,6 @@
 #include "opentxs/protobuf/PeerReply.pb.h"
 #include "opentxs/protobuf/PeerRequest.pb.h"
 #include "opentxs/protobuf/verify/Nym.hpp"
-#include "opentxs/protobuf/verify/PeerObject.hpp"
 #include "opentxs/protobuf/verify/PeerReply.hpp"
 #include "opentxs/protobuf/verify/PeerRequest.hpp"
 #include "opentxs/protobuf/verify/VerifyPeer.hpp"

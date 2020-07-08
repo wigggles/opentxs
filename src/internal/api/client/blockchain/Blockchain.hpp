@@ -203,6 +203,10 @@ struct BalanceNode : virtual public blockchain::BalanceNode {
         const noexcept(false) -> const internal::BalanceElement& = 0;
     virtual auto IncomingTransactions(const Key& key) const noexcept
         -> std::set<std::string> = 0;
+    virtual auto PrivateKey(
+        const Subchain type,
+        const Bip32Index index,
+        const PasswordPrompt& reason) const noexcept -> ECKey = 0;
 
     virtual auto SetContact(
         const Subchain type,

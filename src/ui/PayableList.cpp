@@ -43,27 +43,24 @@ namespace opentxs::factory
 {
 auto PayableListModel(
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const identifier::Nym& nymID,
-    const proto::ContactItemType& currency
+    const proto::ContactItemType& currency,
 #if OT_QT
-    ,
-    const bool qt
+    const bool qt,
 #endif
-    ) noexcept -> std::unique_ptr<ui::implementation::PayableList>
+    const SimpleCallback& cb) noexcept
+    -> std::unique_ptr<ui::implementation::PayableList>
 {
     using ReturnType = ui::implementation::PayableList;
 
     return std::make_unique<ReturnType>(
         api,
-        publisher,
         nymID,
-        currency
+        currency,
 #if OT_QT
-        ,
-        qt
+        qt,
 #endif
-    );
+        cb);
 }
 
 #if OT_QT
@@ -81,18 +78,16 @@ namespace opentxs::ui::implementation
 {
 PayableList::PayableList(
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const identifier::Nym& nymID,
-    const proto::ContactItemType& currency
+    const proto::ContactItemType& currency,
 #if OT_QT
-    ,
-    const bool qt
+    const bool qt,
 #endif
-    )
+    const SimpleCallback& cb)
     : PayableListList(
           api,
-          publisher,
-          nymID
+          nymID,
+          cb
 #if OT_QT
           ,
           qt,
@@ -135,7 +130,7 @@ auto PayableList::construct_row(
     const auto [it, added] = items_[index].emplace(
         id,
         factory::PayableListItem(
-            *this, api_, publisher_, id, index, *paymentCode, currency_));
+            *this, api_, id, index, *paymentCode, currency_));
 
     return it->second.get();
 }

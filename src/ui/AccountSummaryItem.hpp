@@ -81,7 +81,6 @@ public:
     AccountSummaryItem(
         const IssuerItemInternalInterface& parent,
         const api::client::internal::Manager& api,
-        const network::zeromq::socket::Publish& publisher,
         const IssuerItemRowID& rowID,
         const IssuerItemSortKey& sortKey,
         CustomData& custom) noexcept;

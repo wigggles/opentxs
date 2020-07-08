@@ -3,6 +3,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#include "opentxs/protobuf/verify/RPCResponse.hpp"  // IWYU pragma: associated
+
 #include "opentxs/protobuf/Basic.hpp"
 #include "opentxs/protobuf/RPCEnums.pb.h"
 #include "opentxs/protobuf/RPCResponse.pb.h"
@@ -14,7 +16,6 @@
 #include "opentxs/protobuf/verify/HDSeed.hpp"           // IWYU pragma: keep
 #include "opentxs/protobuf/verify/Nym.hpp"              // IWYU pragma: keep
 #include "opentxs/protobuf/verify/PaymentWorkflow.hpp"  // IWYU pragma: keep
-#include "opentxs/protobuf/verify/RPCResponse.hpp"
 #include "opentxs/protobuf/verify/RPCStatus.hpp"        // IWYU pragma: keep
 #include "opentxs/protobuf/verify/RPCTask.hpp"          // IWYU pragma: keep
 #include "opentxs/protobuf/verify/ServerContract.hpp"   // IWYU pragma: keep

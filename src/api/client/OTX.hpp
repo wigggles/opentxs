@@ -65,7 +65,6 @@ class Message;
 }  // namespace zeromq
 }  // namespace network
 
-class Factory;
 class OTClient;
 }  // namespace opentxs
 
@@ -293,12 +292,14 @@ public:
         const Amount value) const -> BackgroundTask final;
 #endif  // OT_CASH
 
-    ~OTX();
+    OTX(const Flag& running,
+        const api::client::internal::Manager& client,
+        const ContextLockCallback& lockCallback);
+
+    ~OTX() final;
 
 private:
     static const std::string DEFAULT_INTRODUCTION_SERVER;
-
-    friend opentxs::Factory;
 
     using TaskStatusMap =
         std::map<TaskID, std::pair<ThreadStatus, std::promise<Result>>>;
@@ -307,7 +308,6 @@ private:
     ContextLockCallback lock_callback_;
     const Flag& running_;
     const api::client::internal::Manager& client_;
-    OTClient& ot_client_;
     mutable std::mutex introduction_server_lock_{};
     mutable std::mutex nym_fetch_lock_{};
     mutable std::mutex task_status_lock_{};
@@ -433,10 +433,6 @@ private:
         const identifier::Nym& specifiedNymID,
         const identifier::Nym& recipient) const -> Depositability;
 
-    OTX(const Flag& running,
-        const api::client::internal::Manager& client,
-        OTClient& otclient,
-        const ContextLockCallback& lockCallback);
     OTX() = delete;
     OTX(const OTX&) = delete;
     OTX(OTX&&) = delete;

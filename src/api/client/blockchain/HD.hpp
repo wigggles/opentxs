@@ -35,6 +35,11 @@ namespace internal
 struct Blockchain;
 }  // namespace internal
 }  // namespace client
+
+namespace internal
+{
+struct Core;
+}  // namespace internal
 }  // namespace api
 
 namespace proto
@@ -58,6 +63,12 @@ public:
         noexcept(false) -> const Element& final;
     auto Key(const Subchain type, const Bip32Index index) const noexcept
         -> ECKey final;
+#if OT_CRYPTO_WITH_BIP32
+    auto PrivateKey(
+        const Subchain type,
+        const Bip32Index index,
+        const PasswordPrompt& reason) const noexcept -> ECKey override;
+#endif  // OT_CRYPTO_WITH_BIP32
 
     ~HD() final = default;
 
@@ -76,15 +87,17 @@ private:
     mutable AddressMap external_addresses_;
 
     static auto extract_external(
+        const api::internal::Core& api,
+        const client::internal::Blockchain& blockchain,
         const internal::BalanceNode& parent,
-        const client::internal::Blockchain& api,
         const opentxs::blockchain::Type chain,
         const SerializedType& in) noexcept(false) -> AddressMap;
     static auto extract_incoming(const SerializedType& in)
         -> std::vector<Activity>;
     static auto extract_internal(
+        const api::internal::Core& api,
+        const client::internal::Blockchain& blockchain,
         const internal::BalanceNode& parent,
-        const client::internal::Blockchain& api,
         const opentxs::blockchain::Type chain,
         const SerializedType& in) noexcept(false) -> AddressMap;
     static auto extract_outgoing(const SerializedType& in)

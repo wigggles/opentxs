@@ -51,8 +51,9 @@ BalanceNode::BalanceNode(
 }
 
 BalanceNode::Element::Element(
+    const api::internal::Core& api,
+    const client::internal::Blockchain& blockchain,
     const internal::BalanceNode& parent,
-    const client::internal::Blockchain& api,
     const opentxs::blockchain::Type chain,
     const VersionNumber version,
     const blockchain::Subchain subchain,
@@ -60,8 +61,9 @@ BalanceNode::Element::Element(
     const std::string label,
     const OTIdentifier contact,
     std::unique_ptr<opentxs::crypto::key::EllipticCurve> key) noexcept(false)
-    : parent_(parent)
-    , api_(api)
+    : api_(api)
+    , blockchain_(blockchain)
+    , parent_(parent)
     , chain_(chain)
     , lock_()
     , version_(version)
@@ -76,15 +78,17 @@ BalanceNode::Element::Element(
 }
 
 BalanceNode::Element::Element(
+    const api::internal::Core& api,
+    const client::internal::Blockchain& blockchain,
     const internal::BalanceNode& parent,
-    const client::internal::Blockchain& api,
     const opentxs::blockchain::Type chain,
     const blockchain::Subchain subchain,
     const Bip32Index index,
     std::unique_ptr<opentxs::crypto::key::HD> key) noexcept(false)
     : Element(
-          parent,
           api,
+          blockchain,
+          parent,
           chain,
           DefaultVersion,
           subchain,
@@ -96,29 +100,31 @@ BalanceNode::Element::Element(
 }
 
 BalanceNode::Element::Element(
+    const api::internal::Core& api,
+    const client::internal::Blockchain& blockchain,
     const internal::BalanceNode& parent,
-    const client::internal::Blockchain& api,
     const opentxs::blockchain::Type chain,
     const blockchain::Subchain subchain,
     const SerializedType& address) noexcept(false)
     : Element(
-          parent,
           api,
+          blockchain,
+          parent,
           chain,
           address.version(),
           subchain,
           address.index(),
           address.label(),
           Identifier::Factory(address.contact()),
-          instantiate(api.API(), address.key()))
+          instantiate(api, address.key()))
 {
 }
 
 auto BalanceNode::Element::Address(const AddressStyle format) const noexcept
     -> std::string
 {
-    return api_.CalculateAddress(
-        chain_, format, api_.API().Factory().Data(key_.PublicKey()));
+    return blockchain_.CalculateAddress(
+        chain_, format, api_.Factory().Data(key_.PublicKey()));
 }
 
 auto BalanceNode::Element::Contact() const noexcept -> OTIdentifier
@@ -139,10 +145,10 @@ auto BalanceNode::Element::elements(const Lock&) const noexcept
     -> std::set<OTData>
 {
     auto output = std::set<OTData>{};
-    auto pubkey = api_.API().Factory().Data(key_.PublicKey());
+    auto pubkey = api_.Factory().Data(key_.PublicKey());
 
     try {
-        output.emplace(api_.PubkeyHash(chain_, pubkey));
+        output.emplace(blockchain_.PubkeyHash(chain_, pubkey));
     } catch (...) {
         OT_FAIL;
     }
@@ -189,9 +195,9 @@ auto BalanceNode::Element::Label() const noexcept -> std::string
 
 auto BalanceNode::Element::PubkeyHash() const noexcept -> OTData
 {
-    const auto key = api_.API().Factory().Data(key_.PublicKey());
+    const auto key = api_.Factory().Data(key_.PublicKey());
 
-    return api_.PubkeyHash(chain_, key);
+    return blockchain_.PubkeyHash(chain_, key);
 }
 
 auto BalanceNode::Element::Serialize() const noexcept

@@ -12,6 +12,7 @@
 #include "internal/blockchain/client/Client.hpp"
 #include "opentxs/Proto.tpp"
 #include "opentxs/blockchain/block/Header.hpp"
+#include "opentxs/protobuf/BlockchainBlockHeader.pb.h"  // IWYU pragma: keep
 
 // #define OT_METHOD
 // "opentxs::blockchain::client::bitcoin::implementation::Network::"

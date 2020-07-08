@@ -113,7 +113,6 @@ class PeerObject;
 
 class Armored;
 class Data;
-class Factory;
 class PasswordPrompt;
 class PeerObject;
 }  // namespace opentxs
@@ -170,14 +169,13 @@ public:
         const opentxs::PasswordPrompt& reason) const
         -> std::unique_ptr<opentxs::PeerObject> final;
 
+    Factory(const api::client::internal::Manager& client);
+
     ~Factory() final = default;
 
 private:
-    friend opentxs::Factory;
-
     const api::client::internal::Manager& client_;
 
-    Factory(const api::client::internal::Manager& client);
     Factory() = delete;
     Factory(const Factory&) = delete;
     Factory(Factory&&) = delete;

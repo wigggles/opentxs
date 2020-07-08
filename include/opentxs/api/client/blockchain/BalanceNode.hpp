@@ -36,6 +36,8 @@ public:
         OPENTXS_EXPORT virtual blockchain::Key KeyID() const noexcept = 0;
         OPENTXS_EXPORT virtual std::string Label() const noexcept = 0;
         OPENTXS_EXPORT virtual const BalanceNode& Parent() const noexcept = 0;
+        OPENTXS_EXPORT virtual ECKey PrivateKey(
+            const PasswordPrompt& reason) const noexcept = 0;
         OPENTXS_EXPORT virtual OTData PubkeyHash() const noexcept = 0;
         OPENTXS_EXPORT virtual blockchain::Subchain Subchain()
             const noexcept = 0;

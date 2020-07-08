@@ -14,6 +14,7 @@
 #include <iterator>
 #include <map>
 #include <numeric>
+#include <sstream>
 #include <stdexcept>
 #include <utility>
 #include <vector>
@@ -208,6 +209,27 @@ auto BitcoinScript(
     return std::make_unique<ReturnType>(chain, role, std::move(elements));
 }
 }  // namespace opentxs::factory
+
+namespace opentxs::blockchain::block::bitcoin::internal
+{
+auto Script::blank_signature(const blockchain::Type chain) noexcept
+    -> const Space&
+{
+    static const auto output = space(72);
+
+    return output;
+}
+
+auto Script::blank_pubkey(
+    const blockchain::Type chain,
+    const bool mode) noexcept -> const Space&
+{
+    static const auto compressed = space(33);
+    static const auto uncompressed = space(65);
+
+    return mode ? compressed : uncompressed;
+}
+}  // namespace opentxs::blockchain::block::bitcoin::internal
 
 namespace opentxs::blockchain::block::bitcoin::implementation
 {
@@ -978,6 +1000,48 @@ auto Script::Serialize(const AllocateOutput destination) const noexcept -> bool
     }
 
     return true;
+}
+
+auto Script::SigningSubscript(const blockchain::Type chain) const noexcept
+    -> std::unique_ptr<internal::Script>
+{
+    // TODO handle OP_CODESEPERATOR shit
+
+    return clone();
+}
+
+auto Script::str() const noexcept -> std::string
+{
+    auto output = std::stringstream{};
+
+    for (const auto& [opcode, invalid, push, data] : elements_) {
+        output << "op: " << std::to_string(static_cast<std::uint8_t>(opcode));
+
+        if (invalid) {
+            output << " invalid: "
+                   << std::to_string(
+                          std::to_integer<std::uint8_t>(invalid.value()));
+        }
+
+        if (push) {
+            auto bytes = std::uint64_t{};
+            std::memcpy(
+                &bytes,
+                push.value().data(),
+                std::min(push.value().size(), sizeof(bytes)));
+            output << " push bytes: " << bytes;
+        }
+
+        if (data) {
+            auto item = Data::Factory();
+            item->Assign(reader(data.value()));
+            output << " (" << item->size() << ") bytes : " << item->asHex();
+        }
+
+        output << '\n';
+    }
+
+    return output.str();
 }
 
 auto Script::to_number(const OP opcode) noexcept -> std::uint8_t

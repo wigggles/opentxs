@@ -175,16 +175,66 @@ auto BalanceTree::ClaimAccountID(
 auto BalanceTree::find_best_deposit_address() const noexcept
     -> const blockchain::BalanceNode::Element&
 {
-    // TODO Find the next unused address instead of always returning the first
-    // address. Also add a mechanism for setting a default subaccount in case
-    // more than one is present. Also handle cases where only an imported
-    // subaccount exists
+    // TODO Add a mechanism for setting a default subaccount in case more than
+    // one is present. Also handle cases where only an imported subaccount
+    // exists
 
     OT_ASSERT(0 < hd_.size());
 
     const auto& account = *hd_.begin();
+    const auto last = account.LastUsed(Subchain::External);
 
-    return account.BalanceElement(Subchain::External, 0);
+    if (last.has_value()) {
+#if OT_CRYPTO_WITH_BIP32
+        const auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
+        const auto next = account.GenerateNext(Subchain::External, reason);
+
+        if (next.has_value()) {
+
+            return account.BalanceElement(Subchain::External, next.value());
+        }
+#else
+        return account.BalanceElement(Subchain::External, 0);
+#endif
+    } else {
+
+        return account.BalanceElement(Subchain::External, 0);
+    }
+
+    OT_FAIL;
+}
+
+auto BalanceTree::GetNextChangeKey(const PasswordPrompt& reason) const
+    noexcept(false) -> const blockchain::BalanceNode::Element&
+{
+    // TODO Add a mechanism for setting a default subaccount in case more than
+    // one is present. Also handle cases where only an imported subaccount
+    // exists
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunreachable-code-loop-increment"
+    for (const auto& account : hd_) {
+        const auto last = account.LastUsed(Subchain::Internal);
+
+        if (last.has_value()) {
+#if OT_CRYPTO_WITH_BIP32
+            const auto next = account.GenerateNext(Subchain::Internal, reason);
+
+            if (next.has_value()) {
+
+                return account.BalanceElement(Subchain::Internal, next.value());
+            }
+#else
+            return account.BalanceElement(Subchain::Internal, 0);
+#endif
+        } else {
+
+            return account.BalanceElement(Subchain::Internal, 0);
+        }
+    }
+#pragma GCC diagnostic pop
+
+    throw std::runtime_error("No available change keys");
 }
 
 auto BalanceTree::GetDepositAddress(const std::string& memo) const noexcept

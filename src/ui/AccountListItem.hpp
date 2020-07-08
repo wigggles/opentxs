@@ -107,7 +107,6 @@ public:
     AccountListItem(
         const AccountListInternalInterface& parent,
         const api::client::internal::Manager& api,
-        const network::zeromq::socket::Publish& publisher,
         const AccountListRowID& rowID,
         const AccountListSortKey& sortKey,
         CustomData& custom) noexcept;

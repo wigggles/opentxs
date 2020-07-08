@@ -101,8 +101,12 @@ public:
         proto::Signature& signature,
         const Identifier& credential,
         const PasswordPrompt& reason,
-        proto::KeyRole key = proto::KEYROLE_SIGN,
         const proto::HashType hash = proto::HASHTYPE_ERROR) const noexcept = 0;
+    OPENTXS_EXPORT virtual bool Sign(
+        const ReadView preimage,
+        const proto::HashType hash,
+        const AllocateOutput output,
+        const PasswordPrompt& reason) const noexcept = 0;
     OPENTXS_EXPORT virtual bool TransportKey(
         Data& publicKey,
         Secret& privateKey,

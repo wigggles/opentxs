@@ -5,14 +5,31 @@
 
 #pragma once
 
+#include "opentxs/Bytes.hpp"
 #include "opentxs/crypto/library/EcdsaProvider.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
 
 namespace opentxs
 {
 namespace api
 {
+namespace internal
+{
+struct Core;
+}  // namespace internal
+
 class Crypto;
 }  // namespace api
+
+namespace crypto
+{
+namespace key
+{
+class Asymmetric;
+}  // namespace key
+}  // namespace crypto
+
+class PasswordPrompt;
 }  // namespace opentxs
 
 namespace opentxs::crypto::implementation
@@ -20,6 +37,17 @@ namespace opentxs::crypto::implementation
 class EcdsaProvider : virtual public crypto::EcdsaProvider
 {
 public:
+    bool SignDER(
+        [[maybe_unused]] const api::internal::Core& api,
+        [[maybe_unused]] const ReadView plaintext,
+        [[maybe_unused]] const key::Asymmetric& key,
+        [[maybe_unused]] const proto::HashType hash,
+        [[maybe_unused]] Space& signature,
+        [[maybe_unused]] const PasswordPrompt& reason) const noexcept override
+    {
+        return false;
+    }
+
     ~EcdsaProvider() override = default;
 
 protected:

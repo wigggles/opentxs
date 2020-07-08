@@ -37,6 +37,7 @@
 #include "opentxs/protobuf/Enums.pb.h"
 #include "opentxs/protobuf/OTXEnums.pb.h"
 #include "opentxs/protobuf/OTXPush.pb.h"
+#include "opentxs/protobuf/ServerContract.pb.h"  // IWYU pragma: keep
 #include "opentxs/protobuf/ServerReply.pb.h"
 #include "opentxs/protobuf/ServerRequest.pb.h"
 #include "opentxs/protobuf/Signature.pb.h"

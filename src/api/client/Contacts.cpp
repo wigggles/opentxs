@@ -14,7 +14,6 @@
 #include <stdexcept>
 #include <vector>
 
-#include "2_Factory.hpp"
 #include "internal/api/client/Client.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/api/Endpoints.hpp"
@@ -37,14 +36,14 @@
 
 #define OT_METHOD "opentxs::api::implementation::Contacts::"
 
-namespace opentxs
+namespace opentxs::factory
 {
-auto Factory::ContactAPI(const api::client::internal::Manager& api)
+auto ContactAPI(const api::client::internal::Manager& api)
     -> api::client::internal::Contacts*
 {
     return new opentxs::api::client::implementation::Contacts(api);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::api::client::implementation
 {

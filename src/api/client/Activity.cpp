@@ -17,8 +17,8 @@
 #include <utility>
 #include <vector>
 
-#include "2_Factory.hpp"
 #include "internal/api/Api.hpp"
+#include "internal/api/client/Client.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/api/Endpoints.hpp"
@@ -56,15 +56,15 @@
 
 #define OT_METHOD "opentxs::api::client::implementation::Activity::"
 
-namespace opentxs
+namespace opentxs::factory
 {
-auto Factory::Activity(
+auto Activity(
     const api::internal::Core& api,
     const api::client::Contacts& contact) -> api::client::internal::Activity*
 {
     return new api::client::implementation::Activity(api, contact);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::api::client::implementation
 {

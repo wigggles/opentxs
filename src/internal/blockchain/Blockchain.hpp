@@ -129,6 +129,7 @@ struct GCS {
     virtual auto ElementCount() const noexcept -> std::uint32_t = 0;
     virtual auto Encode() const noexcept -> OTData = 0;
     virtual auto Hash() const noexcept -> OTData = 0;
+    virtual auto Header(const ReadView previous) const noexcept -> OTData = 0;
     virtual auto Match(const Targets&) const noexcept -> Matches = 0;
     virtual auto Serialize() const noexcept -> proto::GCS = 0;
     virtual auto Test(const Data& target) const noexcept -> bool = 0;
@@ -165,6 +166,8 @@ struct Database : virtual public client::internal::BlockDatabase,
 using FilterParams = std::pair<std::uint8_t, std::uint32_t>;
 
 auto DefaultFilter(const Type type) noexcept -> filter::Type;
+auto DecodeSerializedCfilter(const ReadView bytes) noexcept(false)
+    -> std::pair<std::uint32_t, ReadView>;
 auto Deserialize(const Type chain, const std::uint8_t type) noexcept
     -> filter::Type;
 auto Deserialize(const api::Core& api, const ReadView bytes) noexcept
@@ -183,7 +186,7 @@ OPENTXS_EXPORT auto FilterToHeader(
     const api::Core& api,
     const ReadView filter,
     const ReadView previous = {}) noexcept -> OTData;
-auto Format(const Type chain, const Amount) noexcept -> std::string;
+auto Format(const Type chain, const opentxs::Amount) noexcept -> std::string;
 OPENTXS_EXPORT auto GetFilterParams(const filter::Type type) noexcept(false)
     -> FilterParams;
 OPENTXS_EXPORT
@@ -232,6 +235,12 @@ OPENTXS_EXPORT auto GCS(
     const ReadView key,
     const std::uint32_t filterElementCount,
     const ReadView filter) noexcept
+    -> std::unique_ptr<blockchain::internal::GCS>;
+OPENTXS_EXPORT auto GCS(
+    const api::Core& api,
+    const blockchain::filter::Type type,
+    const ReadView key,
+    const ReadView encoded) noexcept
     -> std::unique_ptr<blockchain::internal::GCS>;
 OPENTXS_EXPORT auto NumericHash(const blockchain::block::Hash& hash)
     -> blockchain::NumericHash*;

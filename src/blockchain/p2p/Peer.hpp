@@ -233,22 +233,24 @@ protected:
     OTData header_;
     States state_;
 
-    auto verifying() noexcept -> bool;
+    virtual auto broadcast_transaction(zmq::Message& message) noexcept
+        -> void = 0;
     auto check_handshake() noexcept -> void;
     auto check_verify() noexcept -> void;
     auto disconnect() noexcept -> void;
-    auto local_endpoint() noexcept -> tcp::socket::endpoint_type;
     // NOTE call init in every final child class constructor
     auto init() noexcept -> void;
-    virtual void ping() noexcept = 0;
-    virtual void pong() noexcept = 0;
-    virtual void request_addresses() noexcept = 0;
-    virtual void request_block(zmq::Message& message) noexcept = 0;
-    virtual void request_headers() noexcept = 0;
+    auto local_endpoint() noexcept -> tcp::socket::endpoint_type;
+    virtual auto ping() noexcept -> void = 0;
+    virtual auto pong() noexcept -> void = 0;
+    virtual auto request_addresses() noexcept -> void = 0;
+    virtual auto request_block(zmq::Message& message) noexcept -> void = 0;
+    virtual auto request_headers() noexcept -> void = 0;
     auto send(OTData message) noexcept -> SendStatus;
     auto state_machine() noexcept -> bool;
     auto update_address_services(
         const std::set<p2p::Service>& services) noexcept -> void;
+    auto verifying() noexcept -> bool;
 
     Peer(
         const api::client::Manager& api,

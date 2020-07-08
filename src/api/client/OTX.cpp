@@ -19,7 +19,6 @@
 #include <type_traits>
 #include <vector>
 
-#include "2_Factory.hpp"
 #include "core/StateMachine.hpp"
 #include "internal/api/client/Client.hpp"
 #include "opentxs/Forward.hpp"
@@ -139,18 +138,17 @@
 
 namespace zmq = opentxs::network::zeromq;
 
-namespace opentxs
+namespace opentxs::factory
 {
-auto Factory::OTX(
+auto OTX(
     const Flag& running,
     const api::client::internal::Manager& client,
-    OTClient& otclient,
+    [[maybe_unused]] OTClient& otclient,
     const ContextLockCallback& lockCallback) -> api::client::OTX*
 {
-    return new api::client::implementation::OTX(
-        running, client, otclient, lockCallback);
+    return new api::client::implementation::OTX(running, client, lockCallback);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::api::client::implementation
 {
@@ -206,12 +204,10 @@ MCL/PCUJ6FIMhej+ROPk41604x1jeswkkRmXRNjzLlVdiJ/pQMxG4tJ0UQwpxHxrr0IaBA==
 OTX::OTX(
     const Flag& running,
     const api::client::internal::Manager& client,
-    OTClient& otclient,
     const ContextLockCallback& lockCallback)
     : lock_callback_(lockCallback)
     , running_(running)
     , client_(client)
-    , ot_client_(otclient)
     , introduction_server_lock_()
     , nym_fetch_lock_()
     , task_status_lock_()

@@ -3,6 +3,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#include "opentxs/protobuf/verify/PurseExchange.hpp"  // IWYU pragma: associated
+
 #include <cstdint>
 #include <string>
 
@@ -11,7 +13,6 @@
 #include "opentxs/protobuf/Purse.pb.h"
 #include "opentxs/protobuf/PurseExchange.pb.h"
 #include "opentxs/protobuf/verify/Purse.hpp"  // IWYU pragma: keep
-#include "opentxs/protobuf/verify/PurseExchange.hpp"
 #include "opentxs/protobuf/verify/VerifyCash.hpp"
 #include "protobuf/Check.hpp"
 

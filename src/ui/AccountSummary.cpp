@@ -37,27 +37,24 @@ namespace opentxs::factory
 {
 auto AccountSummaryModel(
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const identifier::Nym& nymID,
-    const proto::ContactItemType currency
+    const proto::ContactItemType currency,
 #if OT_QT
-    ,
-    const bool qt
+    const bool qt,
 #endif
-    ) noexcept -> std::unique_ptr<ui::implementation::AccountSummary>
+    const SimpleCallback& cb) noexcept
+    -> std::unique_ptr<ui::implementation::AccountSummary>
 {
     using ReturnType = ui::implementation::AccountSummary;
 
     return std::make_unique<ReturnType>(
         api,
-        publisher,
         nymID,
-        currency
+        currency,
 #if OT_QT
-        ,
-        qt
+        qt,
 #endif
-    );
+        cb);
 }
 
 #if OT_QT
@@ -82,18 +79,16 @@ namespace opentxs::ui::implementation
 {
 AccountSummary::AccountSummary(
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const identifier::Nym& nymID,
-    const proto::ContactItemType currency
+    const proto::ContactItemType currency,
 #if OT_QT
-    ,
-    const bool qt
+    const bool qt,
 #endif
-    ) noexcept
+    const SimpleCallback& cb) noexcept
     : AccountSummaryList(
           api,
-          publisher,
-          nymID
+          nymID,
+          cb
 #if OT_QT
           ,
           qt,
@@ -140,7 +135,7 @@ auto AccountSummary::construct_row(
         factory::IssuerItem(
             *this,
             api_,
-            publisher_,
+
             id,
             index,
             custom,

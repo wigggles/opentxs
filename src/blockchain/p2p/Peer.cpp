@@ -99,7 +99,12 @@ Peer::Peer(
 
     const auto status = future.wait_for(std::chrono::seconds(10));
 
-    if (std::future_status::ready != status) { disconnect(); }
+    if (std::future_status::ready != status) {
+        LogNormal("Connection to peer ")(address_.Display())(
+            " timed out during connect")
+            .Flush();
+        disconnect();
+    }
 }
 
 Peer::Activity::Activity() noexcept
@@ -335,6 +340,9 @@ auto Peer::disconnect() noexcept -> void
     } catch (...) {
     }
 
+    LogNormal("Disconnecting from ")(endpoint_.address().to_string())(":")(
+        endpoint_.port())
+        .Flush();
     manager_.Disconnect(id_);
 }
 
@@ -436,6 +444,9 @@ auto Peer::pipeline(zmq::Message& message) noexcept -> void
         case Task::Getblock: {
             request_block(message);
         } break;
+        case Task::BroadcastTransaction: {
+            broadcast_transaction(message);
+        } break;
         case Task::SendMessage: {
             transmit(message);
         } break;
@@ -472,14 +483,23 @@ auto Peer::pipeline_d(zmq::Message& message) noexcept -> void
             const auto& id = body.at(0);
             const auto start = static_cast<const std::byte*>(id.data());
             const_cast<Space&>(connection_id_).assign(start, start + id.size());
-            connection_id_promise_.set_value();
+
+            try {
+                connection_id_promise_.set_value();
+            } catch (...) {
+            }
         } break;
         case Task::Connect: {
             LogVerbose(OT_METHOD)(__FUNCTION__)(": Connect to ")(
                 endpoint_.address().to_string())(":")(endpoint_.port())(
                 " successful")
                 .Flush();
-            state_.connect_.promise_.set_value(true);
+
+            try {
+                state_.connect_.promise_.set_value(true);
+            } catch (...) {
+            }
+
             state_.value_.store(State::Handshake);
             init_executor(
                 {manager_.Endpoint(Task::Heartbeat), shutdown_endpoint_});
@@ -679,6 +699,7 @@ auto Peer::subscribe() noexcept -> void
     if (network || limited) {
         pipeline_->Start(manager_.Endpoint(Task::Getheaders));
         pipeline_->Start(manager_.Endpoint(Task::Getblock));
+        pipeline_->Start(manager_.Endpoint(Task::BroadcastTransaction));
     }
 
     if (cfilter) {

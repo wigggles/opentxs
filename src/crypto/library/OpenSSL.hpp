@@ -56,6 +56,7 @@ class Factory;
 class NymParameters;
 class OTPassword;
 class PasswordPrompt;
+class Secret;
 }  // namespace opentxs
 
 namespace opentxs::crypto
@@ -125,12 +126,11 @@ public:
         Secret& secret) const noexcept -> bool final;
     auto Sign(
         const api::internal::Core& api,
-        const Data& plaintext,
-        const key::Asymmetric& theKey,
-        const proto::HashType hashType,
-        Data& signature,  // output
-        const PasswordPrompt& reason,
-        const std::optional<OTSecret> = {}) const -> bool final;
+        const ReadView plaintext,
+        const key::Asymmetric& key,
+        const proto::HashType hash,
+        const AllocateOutput signature,
+        const PasswordPrompt& reason) const -> bool final;
     auto Verify(
         const Data& plaintext,
         const key::Asymmetric& theKey,

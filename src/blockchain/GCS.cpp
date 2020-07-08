@@ -55,6 +55,8 @@ constexpr auto bitmask(const std::uint64_t n) -> std::uint64_t
 
 namespace opentxs::factory
 {
+using ReturnType = blockchain::implementation::GCS;
+
 auto GCS(
     const api::Core& api,
     const std::uint8_t bits,
@@ -63,8 +65,6 @@ auto GCS(
     const std::vector<OTData>& elements) noexcept
     -> std::unique_ptr<blockchain::internal::GCS>
 {
-    using ReturnType = blockchain::implementation::GCS;
-
     try {
         auto effective = std::vector<ReadView>{};
 
@@ -87,8 +87,6 @@ auto GCS(
 auto GCS(const api::Core& api, const proto::GCS& in) noexcept
     -> std::unique_ptr<blockchain::internal::GCS>
 {
-    using ReturnType = blockchain::implementation::GCS;
-
     try {
         return std::make_unique<ReturnType>(
             api, in.bits(), in.fprate(), in.count(), in.key(), in.filter());
@@ -108,8 +106,6 @@ auto GCS(
     const ReadView filter) noexcept
     -> std::unique_ptr<blockchain::internal::GCS>
 {
-    using ReturnType = blockchain::implementation::GCS;
-
     try {
         return std::make_unique<ReturnType>(
             api, bits, fpRate, filterElementCount, key, filter);
@@ -123,11 +119,31 @@ auto GCS(
 auto GCS(
     const api::Core& api,
     const blockchain::filter::Type type,
+    const ReadView key,
+    const ReadView encoded) noexcept
+    -> std::unique_ptr<blockchain::internal::GCS>
+{
+    const auto params = blockchain::internal::GetFilterParams(type);
+
+    try {
+        const auto [elements, bytes] =
+            blockchain::internal::DecodeSerializedCfilter(encoded);
+
+        return std::make_unique<ReturnType>(
+            api, params.first, params.second, elements, key, bytes);
+    } catch (const std::exception& e) {
+        LogVerbose("opentxs::factory::")(__FUNCTION__)(": ")(e.what()).Flush();
+
+        return nullptr;
+    }
+}
+
+auto GCS(
+    const api::Core& api,
+    const blockchain::filter::Type type,
     const blockchain::block::Block& block) noexcept
     -> std::unique_ptr<blockchain::internal::GCS>
 {
-    using ReturnType = blockchain::implementation::GCS;
-
     if (blockchain::filter::Type::Basic_BIP158 == type) {
         LogOutput("opentxs::factory::")(__FUNCTION__)(
             ": Filter can not be constructed without previous outputs")
@@ -420,6 +436,11 @@ auto GCS::hash_to_range(const ReadView in) const noexcept -> std::uint64_t
 {
     return gcs::HashToRange(
         api_, key_->Bytes(), count_ * false_positive_rate_, in);
+}
+
+auto GCS::Header(const ReadView previous) const noexcept -> OTData
+{
+    return internal::FilterToHeader(api_, Encode()->Bytes(), previous);
 }
 
 auto GCS::Match(const Targets& targets) const noexcept -> Matches

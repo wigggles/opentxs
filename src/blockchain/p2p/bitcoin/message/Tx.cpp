@@ -13,7 +13,8 @@
 #include "blockchain/p2p/bitcoin/Header.hpp"
 #include "internal/blockchain/p2p/bitcoin/Bitcoin.hpp"
 #include "internal/blockchain/p2p/bitcoin/message/Message.hpp"
-#include "opentxs/Pimpl.hpp"
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 
@@ -39,10 +40,11 @@ auto BitcoinP2PTx(
         return nullptr;
     }
 
-    const auto raw_tx(Data::Factory(payload, size));
-    // --------------------------------------------------------
     try {
-        return new ReturnType(api, std::move(pHeader), raw_tx);
+        return new ReturnType(
+            api,
+            std::move(pHeader),
+            ReadView{static_cast<const char*>(payload), size});
     } catch (...) {
         LogOutput("opentxs::factory::")(__FUNCTION__)(": Checksum failure")
             .Flush();
@@ -55,12 +57,12 @@ auto BitcoinP2PTx(
 auto BitcoinP2PTx(
     const api::client::Manager& api,
     const blockchain::Type network,
-    const Data& raw_tx) -> blockchain::p2p::bitcoin::message::Tx*
+    const ReadView transaction) -> blockchain::p2p::bitcoin::message::Tx*
 {
     namespace bitcoin = blockchain::p2p::bitcoin;
     using ReturnType = bitcoin::message::Tx;
 
-    return new ReturnType(api, network, raw_tx);
+    return new ReturnType(api, network, transaction);
 }
 }  // namespace opentxs::factory
 
@@ -80,9 +82,9 @@ auto Tx::payload() const noexcept -> OTData
 Tx::Tx(
     const api::client::Manager& api,
     const blockchain::Type network,
-    const Data& raw_tx) noexcept
+    const ReadView transaction) noexcept
     : Message(api, network, bitcoin::Command::tx)
-    , raw_tx_(Data::Factory(raw_tx))
+    , raw_tx_(api_.Factory().Data(transaction))
 {
     init_hash();
 }
@@ -92,9 +94,9 @@ Tx::Tx(
 Tx::Tx(
     const api::client::Manager& api,
     std::unique_ptr<Header> header,
-    const Data& raw_tx) noexcept(false)
+    const ReadView transaction) noexcept(false)
     : Message(api, std::move(header))
-    , raw_tx_(Data::Factory(raw_tx))
+    , raw_tx_(api_.Factory().Data(transaction))
 {
     verify_checksum();
 }

@@ -7,6 +7,7 @@
 #include <gtest/gtest-test-part.h>
 #include <gtest/gtest.h>
 #include <algorithm>
+#include <array>
 #include <iosfwd>
 #include <iterator>
 #include <map>
@@ -15,12 +16,13 @@
 #include <utility>
 #include <vector>
 
-#include "Bip158.hpp"
 #include "Helpers.hpp"
+#include "bip158/Bip158.hpp"
+#include "bip158/bch_filter_1307544.hpp"
+#include "bip158/bch_filter_1307723.hpp"
 #include "blockchain/bitcoin/CompactSize.hpp"
 #include "internal/blockchain/Blockchain.hpp"
 #include "internal/blockchain/bitcoin/Bitcoin.hpp"
-#include "internal/blockchain/client/Client.hpp"
 #include "opentxs/Bytes.hpp"
 #include "opentxs/OT.hpp"
 #include "opentxs/Pimpl.hpp"
@@ -193,12 +195,32 @@ TEST_F(Test_BitcoinBlock, bip158)
 
         EXPECT_EQ(filter.get(), encodedFilter.get());
 
-        namespace bc = ot::blockchain::internal;
-        const auto hash = bc::FilterToHash(api_, filter->Bytes());
-        const auto header = bc::FilterToHeader(
-            api_, filter->Bytes(), vector.PreviousFilterHeader(api_)->Bytes());
+        const auto header =
+            gcs.Header(vector.PreviousFilterHeader(api_)->Bytes());
 
         EXPECT_EQ(vector.FilterHeader(api_).get(), header);
+    }
+}
+
+TEST_F(Test_BitcoinBlock, gcs_headers)
+{
+    for (const auto& vector : bip_158_vectors_) {
+        const auto blockHash = vector.Block(api_);
+        const auto encodedFilter = vector.Filter(api_);
+        const auto previousHeader = vector.PreviousFilterHeader(api_);
+
+        const auto pGCS = ot::factory::GCS(
+            api_,
+            ot::blockchain::filter::Type::Basic_BIP158,
+            ot::blockchain::internal::BlockHashToFilterKey(blockHash->Bytes()),
+            encodedFilter->Bytes());
+
+        ASSERT_TRUE(pGCS);
+
+        const auto& gcs = *pGCS;
+        const auto header = gcs.Header(previousHeader->Bytes());
+
+        EXPECT_EQ(header.get(), vector.FilterHeader(api_).get());
     }
 }
 
@@ -217,5 +239,63 @@ TEST_F(Test_BitcoinBlock, serialization)
         EXPECT_TRUE(block.Serialize(serialized->WriteInto()));
         EXPECT_EQ(raw.get(), serialized);
     }
+}
+
+TEST_F(Test_BitcoinBlock, bch_filter_1307544)
+{
+    const auto& filter = bch_filter_1307544_;
+    const auto blockHash = api_.Factory().Data(
+        "a9df8e8b72336137aaf70ac0d390c2a57b2afc826201e9f78b00000000000000",
+        ot::StringStyle::Hex);
+    const auto encodedFilter = ot::ReadView{
+        reinterpret_cast<const char*>(filter.data()), filter.size()};
+    const auto previousHeader = api_.Factory().Data(
+        "258c5095df5d3d57d4a427add793df679615366ce8ac6e1803a6ea02fca44fc6",
+        ot::StringStyle::Hex);
+    const auto expectedHeader = api_.Factory().Data(
+        "1aa1093ac9289923d390f3bdb2218095dc2d2559f14b4a68b20fcf1656b612b4",
+        ot::StringStyle::Hex);
+
+    const auto pGCS = ot::factory::GCS(
+        api_,
+        ot::blockchain::filter::Type::Basic_BCHVariant,
+        ot::blockchain::internal::BlockHashToFilterKey(blockHash->Bytes()),
+        encodedFilter);
+
+    ASSERT_TRUE(pGCS);
+
+    const auto& gcs = *pGCS;
+    const auto header = gcs.Header(previousHeader->Bytes());
+
+    EXPECT_EQ(header.get(), expectedHeader.get());
+}
+
+TEST_F(Test_BitcoinBlock, bch_filter_1307723)
+{
+    const auto& filter = bch_filter_1307723_;
+    const auto blockHash = api_.Factory().Data(
+        "c28ca17ec9727809b449447eac0ba416a0b347f3836843f31303000000000000",
+        ot::StringStyle::Hex);
+    const auto encodedFilter = ot::ReadView{
+        reinterpret_cast<const char*>(filter.data()), filter.size()};
+    const auto previousHeader = api_.Factory().Data(
+        "4417c11a1bfecdbd6948b225dfb92a86021bc2220e1b7d9749af04637b0c9e1f",
+        ot::StringStyle::Hex);
+    const auto expectedHeader = api_.Factory().Data(
+        "747d817e9a7b2130e000b197a08219fa2667c8dc8313591d00492bb9213293ae",
+        ot::StringStyle::Hex);
+
+    const auto pGCS = ot::factory::GCS(
+        api_,
+        ot::blockchain::filter::Type::Basic_BCHVariant,
+        ot::blockchain::internal::BlockHashToFilterKey(blockHash->Bytes()),
+        encodedFilter);
+
+    ASSERT_TRUE(pGCS);
+
+    const auto& gcs = *pGCS;
+    const auto header = gcs.Header(previousHeader->Bytes());
+
+    EXPECT_EQ(header.get(), expectedHeader.get());
 }
 }  // namespace

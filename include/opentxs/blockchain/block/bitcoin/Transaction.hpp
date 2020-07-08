@@ -36,6 +36,7 @@ struct Transaction;
 namespace proto
 {
 class BlockchainTransaction;
+class BlockchainTransactionOutput;
 }  // namespace proto
 }  // namespace opentxs
 

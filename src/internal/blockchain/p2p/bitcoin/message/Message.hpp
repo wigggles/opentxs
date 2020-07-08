@@ -672,7 +672,7 @@ auto BitcoinP2PTx(
 auto BitcoinP2PTx(
     const api::client::Manager& api,
     const blockchain::Type network,
-    const Data& raw_tx) -> blockchain::p2p::bitcoin::message::Tx*;
+    const ReadView transaction) -> blockchain::p2p::bitcoin::message::Tx*;
 auto BitcoinP2PVerack(
     const api::client::Manager& api,
     std::unique_ptr<blockchain::p2p::bitcoin::Header> header)

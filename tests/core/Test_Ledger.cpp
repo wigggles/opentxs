@@ -24,6 +24,7 @@
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/identity/Nym.hpp"
+#include "opentxs/protobuf/ServerContract.pb.h"  // IWYU pragma: keep
 
 ot::OTNymID nym_id_{ot::identifier::Nym::Factory()};
 ot::OTServerID server_id_{ot::identifier::Server::Factory()};

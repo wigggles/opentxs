@@ -17,6 +17,10 @@
 #include "opentxs/core/contract/peer/PeerReply.hpp"
 #include "opentxs/core/contract/peer/PeerRequest.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/protobuf/PeerReply.pb.h"
+#include "opentxs/protobuf/PeerRequest.pb.h"
+#include "opentxs/protobuf/ServerContract.pb.h"
+#include "opentxs/protobuf/UnitDefinition.pb.h"
 
 namespace opentxs::contract::blank
 {

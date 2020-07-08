@@ -30,11 +30,14 @@ set(
   BlockchainExternalAddress.proto
   BlockchainFilterHeader.proto
   BlockchainInputWitness.proto
+  BlockchainOutputMultisigDetails.proto
   BlockchainPeerAddress.proto
   BlockchainPreviousOutput.proto
   BlockchainTransaction.proto
   BlockchainTransactionInput.proto
   BlockchainTransactionOutput.proto
+  BlockchainTransactionProposal.proto
+  BlockchainTransactionProposedOutput.proto
   BlockchainWalletKey.proto
   CashEnums.proto
   ChildCredentialParameters.proto

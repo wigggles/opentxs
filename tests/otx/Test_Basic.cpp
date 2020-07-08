@@ -82,6 +82,7 @@
 #include "opentxs/protobuf/PeerEnums.pb.h"
 #include "opentxs/protobuf/PeerReply.pb.h"
 #include "opentxs/protobuf/PeerRequest.pb.h"
+#include "opentxs/protobuf/ServerContract.pb.h"  // IWYU pragma: keep
 #include "opentxs/protobuf/UnitDefinition.pb.h"
 #include "server/Server.hpp"
 #include "server/Transactor.hpp"

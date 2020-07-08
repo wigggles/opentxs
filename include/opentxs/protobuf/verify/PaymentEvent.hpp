@@ -8,7 +8,7 @@
 
 #include "opentxs/Version.hpp"  // IWYU pragma: associated
 
-#include "opentxs/protobuf/verify/VerifyWorkflows.hpp"
+#include "opentxs/protobuf/PaymentWorkflowEnums.pb.h"
 
 namespace opentxs
 {

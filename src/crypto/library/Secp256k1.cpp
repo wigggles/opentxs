@@ -256,12 +256,11 @@ auto Secp256k1::SharedSecret(
 
 auto Secp256k1::Sign(
     const api::internal::Core& api,
-    const Data& plaintext,
+    const ReadView plaintext,
     const key::Asymmetric& key,
     const proto::HashType type,
-    Data& signature,  // output
-    const PasswordPrompt& reason,
-    const std::optional<OTSecret>) const -> bool
+    const AllocateOutput signature,
+    const PasswordPrompt& reason) const -> bool
 {
     if (proto::AKEYTYPE_SECP256K1 != key.keyType()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid key type").Flush();
@@ -293,26 +292,123 @@ auto Secp256k1::Sign(
             return false;
         }
 
-        auto ecdsaSignature = ::secp256k1_ecdsa_signature{};
+        if (false == bool(signature)) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid output allocator")
+                .Flush();
+
+            return false;
+        }
+
+        const auto size = sizeof(secp256k1_ecdsa_signature);
+        auto output = signature(size);
+
+        if (false == output.valid(size)) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(
+                ": Failed to allocate space for signature")
+                .Flush();
+
+            return false;
+        }
+
         const bool signatureCreated = ::secp256k1_ecdsa_sign(
             context_,
-            &ecdsaSignature,
+            output.as<::secp256k1_ecdsa_signature>(),
             reinterpret_cast<const unsigned char*>(digest->data()),
             reinterpret_cast<const unsigned char*>(priv.data()),
             nullptr,
             nullptr);
 
-        if (signatureCreated) {
-            signature.Assign(ecdsaSignature.data, sizeof(ecdsaSignature));
-
-            return true;
-        } else {
+        if (false == signatureCreated) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
                 ": Call to secp256k1_ecdsa_sign() failed.")
                 .Flush();
 
             return false;
         }
+
+        return true;
+    } catch (const std::exception& e) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": ")(e.what()).Flush();
+
+        return false;
+    }
+}
+
+auto Secp256k1::SignDER(
+    const api::internal::Core& api,
+    const ReadView plaintext,
+    const key::Asymmetric& key,
+    const proto::HashType type,
+    Space& output,
+    const PasswordPrompt& reason) const noexcept -> bool
+{
+    if (proto::AKEYTYPE_SECP256K1 != key.keyType()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid key type").Flush();
+
+        return false;
+    }
+
+    if (false == key.HasPrivate()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": A private key required when generating signatures")
+            .Flush();
+
+        return false;
+    }
+
+    try {
+        const auto digest = hash(type, plaintext);
+        const auto priv = key.PrivateKey(reason);
+
+        if (nullptr == priv.data() || 0 == priv.size()) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Missing private key").Flush();
+
+            return false;
+        }
+
+        if (PrivateKeySize != priv.size()) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid private key").Flush();
+
+            return false;
+        }
+
+        auto sig = secp256k1_ecdsa_signature{};
+
+        const bool signatureCreated = ::secp256k1_ecdsa_sign(
+            context_,
+            &sig,
+            reinterpret_cast<const unsigned char*>(digest->data()),
+            reinterpret_cast<const unsigned char*>(priv.data()),
+            nullptr,
+            nullptr);
+
+        if (false == signatureCreated) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(
+                ": Call to secp256k1_ecdsa_sign() failed.")
+                .Flush();
+
+            return false;
+        }
+
+        output.resize(80);
+        auto allocated{output.size()};
+        const auto wrote = ::secp256k1_ecdsa_signature_serialize_der(
+            context_,
+            reinterpret_cast<unsigned char*>(output.data()),
+            &allocated,
+            &sig);
+
+        if (1 != wrote) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(
+                ": Call to secp256k1_ecdsa_signature_serialize_der() failed.")
+                .Flush();
+
+            return false;
+        }
+
+        output.resize(allocated);
+
+        return true;
     } catch (const std::exception& e) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": ")(e.what()).Flush();
 
@@ -333,7 +429,7 @@ auto Secp256k1::Verify(
     }
 
     try {
-        const auto digest = hash(type, plaintext);
+        const auto digest = hash(type, plaintext.Bytes());
         const auto parsed = parsed_public_key(key.PublicKey());
         const auto sig = parsed_signature(signature.Bytes());
 
@@ -349,13 +445,12 @@ auto Secp256k1::Verify(
     }
 }
 
-auto Secp256k1::hash(const proto::HashType type, const Data& data) const
+auto Secp256k1::hash(const proto::HashType type, const ReadView data) const
     noexcept(false) -> OTData
 {
     auto output = Data::Factory();
 
-    if (false ==
-        crypto_.Hash().Digest(type, data.Bytes(), output->WriteInto())) {
+    if (false == crypto_.Hash().Digest(type, data, output->WriteInto())) {
         throw std::runtime_error("Failed to obtain contract hash");
     }
 

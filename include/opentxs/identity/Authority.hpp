@@ -18,9 +18,20 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/crypto/key/Keypair.hpp"
 #include "opentxs/identity/Nym.hpp"
+#include "opentxs/protobuf/Enums.pb.h"
 
 namespace opentxs
 {
+namespace proto
+{
+class Authority;
+class ContactData;
+class HDPath;
+class Signature;
+class Verification;
+class VerificationSet;
+}  // namespace proto
+
 class Secret;
 }  // namespace opentxs
 

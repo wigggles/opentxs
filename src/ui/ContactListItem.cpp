@@ -22,14 +22,13 @@ namespace opentxs::factory
 auto ContactListItem(
     const ui::implementation::ContactListInternalInterface& parent,
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const ui::implementation::ContactListRowID& rowID,
     const ui::implementation::ContactListSortKey& key) noexcept
     -> std::shared_ptr<ui::implementation::ContactListRowInternal>
 {
     using ReturnType = ui::implementation::ContactListItem;
 
-    return std::make_shared<ReturnType>(parent, api, publisher, rowID, key);
+    return std::make_shared<ReturnType>(parent, api, rowID, key);
 }
 }  // namespace opentxs::factory
 
@@ -38,10 +37,9 @@ namespace opentxs::ui::implementation
 ContactListItem::ContactListItem(
     const ContactListInternalInterface& parent,
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const ContactListRowID& rowID,
     const ContactListSortKey& key) noexcept
-    : ContactListItemRow(parent, api, publisher, rowID, true)
+    : ContactListItemRow(parent, api, rowID, true)
     , key_(key)
 {
 }

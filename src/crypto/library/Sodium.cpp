@@ -540,12 +540,11 @@ auto Sodium::SharedSecret(
 
 auto Sodium::Sign(
     const api::internal::Core& api,
-    const Data& plaintext,
+    const ReadView plaintext,
     const key::Asymmetric& key,
-    const proto::HashType type,
-    Data& signature,
-    const PasswordPrompt& reason,
-    const std::optional<OTSecret>) const -> bool
+    const proto::HashType hash,
+    const AllocateOutput signature,
+    const PasswordPrompt& reason) const -> bool
 {
     if (proto::AKEYTYPE_ED25519 != key.keyType()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid key type").Flush();
@@ -561,9 +560,9 @@ auto Sodium::Sign(
         return false;
     }
 
-    if (proto::HASHTYPE_BLAKE2B256 != type) {
+    if (proto::HASHTYPE_BLAKE2B256 != hash) {
         LogVerbose(OT_METHOD)(__FUNCTION__)(": Unsupported hash function: ")(
-            type)
+            hash)
             .Flush();
 
         return false;
@@ -587,16 +586,14 @@ auto Sodium::Sign(
         return false;
     }
 
-    auto allocate = signature.WriteInto();
-
-    if (false == bool(allocate)) {
+    if (false == bool(signature)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid output allocator")
             .Flush();
 
         return false;
     }
 
-    auto output = allocate(crypto_sign_BYTES);
+    auto output = signature(crypto_sign_BYTES);
 
     if (false == output.valid(crypto_sign_BYTES)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -610,7 +607,7 @@ auto Sodium::Sign(
         0 == ::crypto_sign_detached(
                  output.as<unsigned char>(),
                  nullptr,
-                 static_cast<const unsigned char*>(plaintext.data()),
+                 reinterpret_cast<const unsigned char*>(plaintext.data()),
                  plaintext.size(),
                  reinterpret_cast<const unsigned char*>(priv.data()));
 

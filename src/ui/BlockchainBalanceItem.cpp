@@ -27,7 +27,6 @@ namespace opentxs::ui::implementation
 BlockchainBalanceItem::BlockchainBalanceItem(
     const AccountActivityInternalInterface& parent,
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const AccountActivityRowID& rowID,
     const AccountActivitySortKey& sortKey,
     CustomData& custom,
@@ -38,16 +37,7 @@ BlockchainBalanceItem::BlockchainBalanceItem(
     const opentxs::Amount amount,
     const std::string memo,
     const std::string text) noexcept
-    : BalanceItem(
-          parent,
-          api,
-          publisher,
-          rowID,
-          sortKey,
-          custom,
-          nymID,
-          accountID,
-          text)
+    : BalanceItem(parent, api, rowID, sortKey, custom, nymID, accountID, text)
     , chain_(chain)
     , txid_(txid)
     , amount_(amount)

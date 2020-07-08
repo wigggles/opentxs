@@ -24,6 +24,13 @@ public:
     OPENTXS_EXPORT virtual bool ScalarMultiplyBase(
         const ReadView scalar,
         const AllocateOutput result) const noexcept = 0;
+    OPENTXS_EXPORT virtual bool SignDER(
+        const api::internal::Core& api,
+        const ReadView plaintext,
+        const key::Asymmetric& key,
+        const proto::HashType hash,
+        Space& signature,
+        const PasswordPrompt& reason) const noexcept = 0;
 
     ~EcdsaProvider() override = default;
 

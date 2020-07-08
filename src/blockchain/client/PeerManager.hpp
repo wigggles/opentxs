@@ -41,6 +41,14 @@ class Manager;
 
 namespace blockchain
 {
+namespace block
+{
+namespace bitcoin
+{
+class Transaction;
+}  // namespace bitcoin
+}  // namespace block
+
 namespace p2p
 {
 namespace internal
@@ -83,6 +91,8 @@ public:
     static const std::map<Type, p2p::Protocol> protocol_map_;
 
     auto AddPeer(const p2p::Address& address) const noexcept -> bool final;
+    auto BroadcastTransaction(
+        const block::bitcoin::Transaction& tx) const noexcept -> bool final;
     auto Database() const noexcept -> const internal::PeerDatabase& final
     {
         return database_;
@@ -152,6 +162,7 @@ private:
         OTZMQPushSocket getcfilters_;
         OTZMQPublishSocket heartbeat_;
         OTZMQPushSocket getblock_;
+        OTZMQPushSocket broadcast_transaction_;
         const EndpointMap endpoint_map_;
         const SocketMap socket_map_;
 

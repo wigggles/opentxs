@@ -7,17 +7,25 @@
 #include "1_Internal.hpp"                      // IWYU pragma: associated
 #include "internal/blockchain/Blockchain.hpp"  // IWYU pragma: associated
 
+#include <boost/lexical_cast/bad_lexical_cast.hpp>
+#include <boost/multiprecision/cpp_dec_float.hpp>  // IWYU pragma: keep
+#include <boost/multiprecision/cpp_int.hpp>
 #include <algorithm>
 #include <cstddef>
 #include <cstring>
+#include <iomanip>
 #include <iterator>
+#include <limits>
 #include <map>
 #include <memory>
 #include <set>
+#include <sstream>
 #include <stdexcept>
+#include <string_view>
 #include <thread>
 #include <utility>
 
+#include "internal/blockchain/bitcoin/Bitcoin.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
@@ -29,6 +37,8 @@
 #include "opentxs/protobuf/Enums.pb.h"
 
 #define BITMASK(n) ((1 << (n)) - 1)
+
+namespace mp = boost::multiprecision;
 
 namespace opentxs::blockchain
 {
@@ -397,6 +407,41 @@ auto BlockHashToFilterKey(const ReadView hash) noexcept(false) -> ReadView
     return ReadView{hash.data(), 16};
 }
 
+auto DecodeSerializedCfilter(const ReadView bytes) noexcept(false)
+    -> std::pair<std::uint32_t, ReadView>
+{
+    auto output = std::pair<std::uint32_t, ReadView>{};
+    auto it = reinterpret_cast<const std::byte*>(bytes.data());
+    auto expectedSize = std::size_t{1};
+
+    if (expectedSize > bytes.size()) {
+        throw std::runtime_error("Empty input");
+    }
+
+    auto elementCount = std::size_t{0};
+    auto csBytes = std::size_t{0};
+    const auto haveElementCount = bitcoin::DecodeCompactSizeFromPayload(
+        it, expectedSize, bytes.size(), elementCount, csBytes);
+
+    if (false == haveElementCount) {
+        throw std::runtime_error("Failed to decode CompactSize");
+    }
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wtautological-type-limit-compare"
+    // std::size_t might be 32 bit
+    if (elementCount > std::numeric_limits<std::uint32_t>::max()) {
+        throw std::runtime_error("Too many elements");
+    }
+#pragma GCC diagnostic pop
+
+    const auto dataSize = bytes.size() - (1 + csBytes);
+    output.first = static_cast<std::uint32_t>(elementCount);
+    output.second = {reinterpret_cast<const char*>(it), dataSize};
+
+    return output;
+}
+
 auto DefaultFilter(const Type type) noexcept -> filter::Type
 {
     switch (type) {
@@ -491,20 +536,27 @@ auto FilterToHeader(
         api, FilterToHash(api, filter)->Bytes(), previous);
 }
 
-auto Format(const Type chain, const Amount amount) noexcept -> std::string
+auto Format(const Type chain, const opentxs::Amount amount) noexcept
+    -> std::string
 {
     static const auto map = std::map<Type, unsigned int>{
-        {Type::Bitcoin, 1e8},
-        {Type::Bitcoin_testnet3, 1e8},
-        {Type::BitcoinCash, 1e8},
-        {Type::BitcoinCash_testnet3, 1e8},
+        {Type::Bitcoin, 8},
+        {Type::Bitcoin_testnet3, 8},
+        {Type::BitcoinCash, 8},
+        {Type::BitcoinCash_testnet3, 8},
     };
 
     try {
-        return std::to_string(
-                   static_cast<double>(amount) /
-                   static_cast<double>(map.at(chain))) +
-               ' ' + Ticker(chain);
+        const auto& precision = map.at(chain);
+        const auto scaled = mp::cpp_dec_float_100{amount} /
+                            mp::cpp_dec_float_100{std::pow(10, precision)};
+        auto output = std::stringstream{};
+        output << std::fixed << std::setprecision(precision);
+        output << scaled;
+        output << ' ';
+        output << Ticker(chain);
+
+        return output.str();
     } catch (...) {
 
         return {};

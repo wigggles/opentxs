@@ -39,25 +39,22 @@ namespace opentxs::factory
 {
 auto UnitListModel(
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
-    const identifier::Nym& nymID
+    const identifier::Nym& nymID,
 #if OT_QT
-    ,
-    const bool qt
+    const bool qt,
 #endif
-    ) noexcept -> std::unique_ptr<ui::implementation::UnitList>
+    const SimpleCallback& cb) noexcept
+    -> std::unique_ptr<ui::implementation::UnitList>
 {
     using ReturnType = ui::implementation::UnitList;
 
     return std::make_unique<ReturnType>(
         api,
-        publisher,
-        nymID
+        nymID,
 #if OT_QT
-        ,
-        qt
+        qt,
 #endif
-    );
+        cb);
 }
 
 #if OT_QT
@@ -82,17 +79,15 @@ namespace opentxs::ui::implementation
 {
 UnitList::UnitList(
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
-    const identifier::Nym& nymID
+    const identifier::Nym& nymID,
 #if OT_QT
-    ,
-    const bool qt
+    const bool qt,
 #endif
-    ) noexcept
+    const SimpleCallback& cb) noexcept
     : UnitListList(
           api,
-          publisher,
-          nymID
+          nymID,
+          cb
 #if OT_QT
           ,
           qt,
@@ -127,7 +122,7 @@ auto UnitList::construct_row(
 {
     names_.emplace(id, index);
     const auto [it, added] = items_[index].emplace(
-        id, factory::UnitListItem(*this, api_, publisher_, id, index, custom));
+        id, factory::UnitListItem(*this, api_, id, index, custom));
 
     return it->second.get();
 }

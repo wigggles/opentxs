@@ -3,10 +3,11 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#include "opentxs/protobuf/verify/TaggedKey.hpp"  // IWYU pragma: associated
+
 #include "opentxs/protobuf/Basic.hpp"
 #include "opentxs/protobuf/TaggedKey.pb.h"
 #include "opentxs/protobuf/verify/SymmetricKey.hpp"  // IWYU pragma: keep
-#include "opentxs/protobuf/verify/TaggedKey.hpp"
 #include "opentxs/protobuf/verify/VerifyCredentials.hpp"
 #include "protobuf/Check.hpp"
 

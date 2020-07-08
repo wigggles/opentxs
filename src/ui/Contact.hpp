@@ -17,6 +17,7 @@
 #include "internal/ui/UI.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/SharedPimpl.hpp"
+#include "opentxs/Types.hpp"
 #include "opentxs/Version.hpp"
 #include "opentxs/protobuf/ContactEnums.pb.h"
 #include "ui/List.hpp"
@@ -80,13 +81,11 @@ public:
 
     Contact(
         const api::client::internal::Manager& api,
-        const network::zeromq::socket::Publish& publisher,
-        const Identifier& contactID
+        const Identifier& contactID,
 #if OT_QT
-        ,
-        const bool qt
+        const bool qt,
 #endif
-        ) noexcept;
+        const SimpleCallback& cb) noexcept;
     ~Contact();
 
 private:

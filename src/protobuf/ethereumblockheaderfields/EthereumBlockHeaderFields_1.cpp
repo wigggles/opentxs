@@ -3,8 +3,9 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#include "opentxs/protobuf/verify/EthereumBlockHeaderFields.hpp"  // IWYU pragma: associated
+
 #include "opentxs/protobuf/EthereumBlockHeaderFields.pb.h"  // IWYU pragma: keep
-#include "opentxs/protobuf/verify/EthereumBlockHeaderFields.hpp"
 #include "protobuf/Check.hpp"
 
 #define PROTO_NAME "ethereum block header fields"

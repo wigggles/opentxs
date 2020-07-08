@@ -39,21 +39,12 @@ namespace opentxs::ui::implementation
 ChequeBalanceItem::ChequeBalanceItem(
     const AccountActivityInternalInterface& parent,
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const AccountActivityRowID& rowID,
     const AccountActivitySortKey& sortKey,
     CustomData& custom,
     const identifier::Nym& nymID,
     const Identifier& accountID) noexcept
-    : BalanceItem(
-          parent,
-          api,
-          publisher,
-          rowID,
-          sortKey,
-          custom,
-          nymID,
-          accountID)
+    : BalanceItem(parent, api, rowID, sortKey, custom, nymID, accountID)
     , cheque_(nullptr)
 {
     OT_ASSERT(2 == custom.size())

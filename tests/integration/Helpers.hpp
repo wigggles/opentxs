@@ -21,6 +21,7 @@
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
+#include "opentxs/protobuf/ServerContract.pb.h"
 
 namespace
 {
@@ -124,14 +125,14 @@ struct User {
         return contacts_.at(contact).get();
     }
 
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1 && OT_CRYPTO_WITH_BIP32
     ot::OTPaymentCode PaymentCode() const
     {
         OT_ASSERT(nullptr != api_);
 
-        return api_->Factory().PaymentCode(payment_code_, Reason());
+        return api_->Factory().PaymentCode(payment_code_);
     }
-#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1 && OT_CRYPTO_WITH_BIP32
 
     ot::OTPasswordPrompt Reason() const
     {
@@ -199,11 +200,11 @@ struct User {
                 .Nym(
                     Reason(), name_, {seed_id_, static_cast<int>(index_)}, type)
                 ->ID();
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1 && OT_CRYPTO_WITH_BIP32
         payment_code_ = api.Factory()
                             .PaymentCode(seed_id_, index_, 1, Reason())
                             ->asBase58();
-#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1 && OT_CRYPTO_WITH_BIP32
         set_introduction_server(api, server);
         init_ = true;
     }

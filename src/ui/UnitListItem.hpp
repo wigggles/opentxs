@@ -79,7 +79,6 @@ public:
     UnitListItem(
         const UnitListInternalInterface& parent,
         const api::client::internal::Manager& api,
-        const network::zeromq::socket::Publish& publisher,
         const UnitListRowID& rowID,
         const UnitListSortKey& sortKey,
         CustomData& custom) noexcept;

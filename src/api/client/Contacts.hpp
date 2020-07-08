@@ -45,7 +45,6 @@ class Nym;
 }  // namespace proto
 
 class Contact;
-class Factory;
 class PaymentCode;
 }  // namespace opentxs
 
@@ -81,11 +80,11 @@ public:
     auto Update(const proto::Nym& nym) const
         -> std::shared_ptr<const opentxs::Contact> final;
 
+    Contacts(const api::client::internal::Manager& api);
+
     ~Contacts() final = default;
 
 private:
-    friend opentxs::Factory;
-
     using ContactLock =
         std::pair<std::mutex, std::shared_ptr<opentxs::Contact>>;
     using Address = std::pair<proto::ContactItemType, std::string>;
@@ -145,7 +144,6 @@ private:
         opentxs::Contact& contact,
         const bool replace = false) const;
 
-    Contacts(const api::client::internal::Manager& api);
     Contacts() = delete;
     Contacts(const Contacts&) = delete;
     Contacts(Contacts&&) = delete;

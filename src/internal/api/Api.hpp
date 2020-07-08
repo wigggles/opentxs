@@ -8,6 +8,7 @@
 #include "opentxs/api/Context.hpp"
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
+#include "opentxs/protobuf/Ciphertext.pb.h"
 
 namespace opentxs
 {

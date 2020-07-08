@@ -22,7 +22,6 @@ namespace opentxs::factory
 auto PayableListItem(
     const ui::implementation::PayableInternalInterface& parent,
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const ui::implementation::PayableListRowID& rowID,
     const ui::implementation::PayableListSortKey& key,
     const std::string& paymentcode,
@@ -32,7 +31,7 @@ auto PayableListItem(
     using ReturnType = ui::implementation::PayableListItem;
 
     return std::make_shared<ReturnType>(
-        parent, api, publisher, rowID, key, paymentcode, currency);
+        parent, api, rowID, key, paymentcode, currency);
 }
 }  // namespace opentxs::factory
 
@@ -41,12 +40,11 @@ namespace opentxs::ui::implementation
 PayableListItem::PayableListItem(
     const PayableInternalInterface& parent,
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const PayableListRowID& rowID,
     const PayableListSortKey& key,
     const std::string& paymentcode,
     const proto::ContactItemType& currency) noexcept
-    : ot_super(parent, api, publisher, rowID, key)
+    : ot_super(parent, api, rowID, key)
     , payment_code_(paymentcode)
     , currency_(currency)
 {

@@ -17,6 +17,7 @@
 #include "2_Factory.hpp"
 #include "Exclusive.tpp"
 #include "internal/api/Api.hpp"
+#include "internal/api/client/Client.hpp"
 #include "internal/core/Core.hpp"
 #include "internal/identity/Identity.hpp"
 #include "internal/otx/consensus/Consensus.hpp"
@@ -60,6 +61,7 @@
 #include "opentxs/protobuf/ConsensusEnums.pb.h"
 #include "opentxs/protobuf/ContactEnums.pb.h"
 #include "opentxs/protobuf/Context.pb.h"
+#include "opentxs/protobuf/Issuer.pb.h"  // IWYU pragma: keep
 #include "opentxs/protobuf/Nym.pb.h"
 #include "opentxs/protobuf/PeerEnums.pb.h"
 #include "opentxs/protobuf/PeerReply.pb.h"
@@ -989,7 +991,7 @@ auto Wallet::issuer(
     if (loaded) {
         OT_ASSERT(serialized)
 
-        pIssuer.reset(opentxs::Factory::Issuer(*this, nymID, *serialized));
+        pIssuer.reset(factory::Issuer(*this, nymID, *serialized));
 
         OT_ASSERT(pIssuer)
 
@@ -997,7 +999,7 @@ auto Wallet::issuer(
     }
 
     if (create) {
-        pIssuer.reset(opentxs::Factory::Issuer(*this, nymID, issuerID));
+        pIssuer.reset(factory::Issuer(*this, nymID, issuerID));
 
         OT_ASSERT(pIssuer);
 

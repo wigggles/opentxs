@@ -53,27 +53,24 @@ namespace opentxs::factory
 {
 auto ActivityThreadModel(
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const identifier::Nym& nymID,
-    const Identifier& threadID
+    const Identifier& threadID,
 #if OT_QT
-    ,
-    const bool qt
+    const bool qt,
 #endif
-    ) noexcept -> std::unique_ptr<ui::implementation::ActivityThread>
+    const SimpleCallback& cb) noexcept
+    -> std::unique_ptr<ui::implementation::ActivityThread>
 {
     using ReturnType = ui::implementation::ActivityThread;
 
     return std::make_unique<ReturnType>(
         api,
-        publisher,
         nymID,
-        threadID
+        threadID,
 #if OT_QT
-        ,
-        qt
+        qt,
 #endif
-    );
+        cb);
 }
 
 #if OT_QT
@@ -139,18 +136,15 @@ namespace opentxs::ui::implementation
 {
 ActivityThread::ActivityThread(
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const identifier::Nym& nymID,
-    const Identifier& threadID
+    const Identifier& threadID,
 #if OT_QT
-        ,
-        const bool qt
+    const bool qt,
 #endif
-    ) noexcept
+    const SimpleCallback& cb) noexcept
     : ActivityThreadList(
         api,
-        publisher,
-        nymID
+        nymID, cb
 #if OT_QT
         ,
         qt,
@@ -223,8 +217,7 @@ auto ActivityThread::construct_row(
         case StorageBox::MAILOUTBOX: {
             const auto [it, added] = items_[index].emplace(
                 id,
-                factory::MailItem(
-                    *this, api_, publisher_, primary_id_, id, index, custom));
+                factory::MailItem(*this, api_, primary_id_, id, index, custom));
 
             return it->second.get();
         }
@@ -234,7 +227,7 @@ auto ActivityThread::construct_row(
                 factory::MailItem(
                     *this,
                     api_,
-                    publisher_,
+
                     primary_id_,
                     id,
                     index,
@@ -249,7 +242,7 @@ auto ActivityThread::construct_row(
             const auto [it, added] = items_[index].emplace(
                 id,
                 factory::PaymentItem(
-                    *this, api_, publisher_, primary_id_, id, index, custom));
+                    *this, api_, primary_id_, id, index, custom));
 
             return it->second.get();
         }
@@ -257,7 +250,7 @@ auto ActivityThread::construct_row(
             const auto [it, added] = items_[index].emplace(
                 id,
                 factory::PendingSend(
-                    *this, api_, publisher_, primary_id_, id, index, custom));
+                    *this, api_, primary_id_, id, index, custom));
 
             return it->second.get();
         }
@@ -266,7 +259,7 @@ auto ActivityThread::construct_row(
             const auto [it, added] = items_[index].emplace(
                 id,
                 factory::BlockchainActivityThreadItem(
-                    *this, api_, publisher_, primary_id_, id, index, custom));
+                    *this, api_, primary_id_, id, index, custom));
 
             return it->second.get();
         }

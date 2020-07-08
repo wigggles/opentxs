@@ -66,7 +66,6 @@ public:
     ContactListItem(
         const ContactListInternalInterface& parent,
         const api::client::internal::Manager& api,
-        const network::zeromq::socket::Publish& publisher,
         const ContactListRowID& rowID,
         const ContactListSortKey& key) noexcept;
     ~ContactListItem() override = default;

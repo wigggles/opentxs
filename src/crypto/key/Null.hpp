@@ -134,8 +134,15 @@ public:
         proto::Signature&,
         const Identifier&,
         const PasswordPrompt&,
-        proto::KeyRole,
         const proto::HashType) const noexcept -> bool final
+    {
+        return false;
+    }
+    auto Sign(
+        const ReadView,
+        const proto::HashType,
+        const AllocateOutput,
+        const PasswordPrompt&) const noexcept -> bool final
     {
         return false;
     }
@@ -172,6 +179,14 @@ public:
     auto asPublicEC() const noexcept -> std::unique_ptr<EllipticCurve> final
     {
         return {};
+    }
+    auto SignDER(
+        const ReadView,
+        const proto::HashType,
+        Space&,
+        const PasswordPrompt&) const noexcept -> bool final
+    {
+        return false;
     }
 
     NullEC() = default;

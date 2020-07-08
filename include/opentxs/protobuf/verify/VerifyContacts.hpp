@@ -13,6 +13,9 @@
 #include <string>
 #include <utility>
 
+#include "opentxs/protobuf/Basic.hpp"
+#include "opentxs/protobuf/Contact.hpp"
+
 namespace opentxs
 {
 namespace proto
@@ -25,16 +28,7 @@ enum class VerificationType : bool {
     Indexed = true,
     Normal = false,
 };
-}  // namespace proto
-}  // namespace opentxs
 
-#include "opentxs/protobuf/Basic.hpp"
-#include "opentxs/protobuf/Contact.hpp"
-
-namespace opentxs
-{
-namespace proto
-{
 OPENTXS_EXPORT const VersionMap& ContactAllowedContactData() noexcept;
 OPENTXS_EXPORT const VersionMap& ContactDataAllowedContactSection() noexcept;
 OPENTXS_EXPORT const VersionMap& ContactSectionAllowedItem() noexcept;

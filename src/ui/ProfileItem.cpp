@@ -25,7 +25,6 @@ namespace opentxs::factory
 auto ProfileItemWidget(
     const ui::implementation::ProfileSubsectionInternalInterface& parent,
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const ui::implementation::ProfileSubsectionRowID& rowID,
     const ui::implementation::ProfileSubsectionSortKey& sortKey,
     ui::implementation::CustomData& custom) noexcept
@@ -33,8 +32,7 @@ auto ProfileItemWidget(
 {
     using ReturnType = ui::implementation::ProfileItem;
 
-    return std::make_shared<ReturnType>(
-        parent, api, publisher, rowID, sortKey, custom);
+    return std::make_shared<ReturnType>(parent, api, rowID, sortKey, custom);
 }
 }  // namespace opentxs::factory
 
@@ -43,11 +41,10 @@ namespace opentxs::ui::implementation
 ProfileItem::ProfileItem(
     const ProfileSubsectionInternalInterface& parent,
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const ProfileSubsectionRowID& rowID,
     const ProfileSubsectionSortKey& sortKey,
     CustomData& custom) noexcept
-    : ProfileItemRow(parent, api, publisher, rowID, true)
+    : ProfileItemRow(parent, api, rowID, true)
     , item_{new opentxs::ContactItem(
           extract_custom<opentxs::ContactItem>(custom))}
 {

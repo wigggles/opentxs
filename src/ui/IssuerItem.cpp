@@ -42,7 +42,6 @@ namespace opentxs::factory
 auto IssuerItem(
     const ui::implementation::AccountSummaryInternalInterface& parent,
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const ui::implementation::AccountSummaryRowID& rowID,
     const ui::implementation::AccountSummarySortKey& sortKey,
     ui::implementation::CustomData& custom,
@@ -58,7 +57,6 @@ auto IssuerItem(
     return std::make_shared<ReturnType>(
         parent,
         api,
-        publisher,
         rowID,
         sortKey,
         custom,
@@ -76,7 +74,6 @@ namespace opentxs::ui::implementation
 IssuerItem::IssuerItem(
     const AccountSummaryInternalInterface& parent,
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const AccountSummaryRowID& rowID,
     const AccountSummarySortKey& key,
     [[maybe_unused]] CustomData& custom,
@@ -88,7 +85,6 @@ IssuerItem::IssuerItem(
     ) noexcept
     : Combined(
           api,
-          publisher,
           parent.NymID(),
           parent.WidgetID(),
           parent,
@@ -131,9 +127,7 @@ auto IssuerItem::construct_row(
 {
     names_.emplace(id, index);
     const auto [it, added] = items_[index].emplace(
-        id,
-        factory::AccountSummaryItem(
-            *this, api_, publisher_, id, index, custom));
+        id, factory::AccountSummaryItem(*this, api_, id, index, custom));
 
     return it->second.get();
 }

@@ -36,25 +36,22 @@ namespace opentxs::factory
 {
 auto MessagableListModel(
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
-    const identifier::Nym& nymID
+    const identifier::Nym& nymID,
 #if OT_QT
-    ,
-    const bool qt
+    const bool qt,
 #endif
-    ) noexcept -> std::unique_ptr<ui::implementation::MessagableList>
+    const SimpleCallback& cb) noexcept
+    -> std::unique_ptr<ui::implementation::MessagableList>
 {
     using ReturnType = ui::implementation::MessagableList;
 
     return std::make_unique<ReturnType>(
         api,
-        publisher,
-        nymID
+        nymID,
 #if OT_QT
-        ,
-        qt
+        qt,
 #endif
-    );
+        cb);
 }
 
 #if OT_QT
@@ -79,17 +76,15 @@ namespace opentxs::ui::implementation
 {
 MessagableList::MessagableList(
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
-    const identifier::Nym& nymID
+    const identifier::Nym& nymID,
 #if OT_QT
-    ,
-    const bool qt
+    const bool qt,
 #endif
-    ) noexcept
+    const SimpleCallback& cb) noexcept
     : MessagableListList(
           api,
-          publisher,
-          nymID
+          nymID,
+          cb
 #if OT_QT
           ,
           qt,
@@ -122,7 +117,7 @@ auto MessagableList::construct_row(
 {
     names_.emplace(id, index);
     const auto [it, added] = items_[index].emplace(
-        id, factory::ContactListItem(*this, api_, publisher_, id, index));
+        id, factory::ContactListItem(*this, api_, id, index));
 
     return it->second.get();
 }

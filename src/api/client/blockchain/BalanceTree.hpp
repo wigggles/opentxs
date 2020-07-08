@@ -67,6 +67,8 @@ public:
     {
         return imported_;
     }
+    auto GetNextChangeKey(const PasswordPrompt& reason) const noexcept(false)
+        -> const blockchain::BalanceNode::Element& final;
     auto GetPaymentCode() const noexcept -> const PaymentCodeAccounts& final
     {
         return payment_code_;

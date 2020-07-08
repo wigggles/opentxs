@@ -3,6 +3,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#include "opentxs/protobuf/verify/Envelope.hpp"  // IWYU pragma: associated
+
 #include <cstdint>
 #include <map>
 #include <set>
@@ -13,8 +15,7 @@
 #include "opentxs/protobuf/Envelope.pb.h"
 #include "opentxs/protobuf/verify/AsymmetricKey.hpp"  // IWYU pragma: keep
 #include "opentxs/protobuf/verify/Ciphertext.hpp"     // IWYU pragma: keep
-#include "opentxs/protobuf/verify/Envelope.hpp"
-#include "opentxs/protobuf/verify/TaggedKey.hpp"  // IWYU pragma: keep
+#include "opentxs/protobuf/verify/TaggedKey.hpp"      // IWYU pragma: keep
 #include "opentxs/protobuf/verify/VerifyCredentials.hpp"
 #include "protobuf/Check.hpp"
 

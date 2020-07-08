@@ -17,7 +17,6 @@
 #include <set>
 #include <type_traits>
 
-#include "2_Factory.hpp"
 #include "core/StateMachine.hpp"
 #include "internal/api/client/Client.hpp"
 #include "opentxs/Pimpl.hpp"
@@ -78,16 +77,14 @@
 
 template class opentxs::Pimpl<opentxs::network::zeromq::socket::Publish>;
 
-namespace opentxs
+namespace opentxs::factory
 {
-auto Factory::PairAPI(
-    const Flag& running,
-    const api::client::internal::Manager& client)
+auto PairAPI(const Flag& running, const api::client::internal::Manager& client)
     -> api::client::internal::Pair*
 {
     return new api::client::implementation::Pair(running, client);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::api::client::implementation
 {

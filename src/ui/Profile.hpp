@@ -18,6 +18,7 @@
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/SharedPimpl.hpp"
+#include "opentxs/Types.hpp"
 #include "opentxs/Version.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/protobuf/ContactEnums.pb.h"
@@ -119,13 +120,11 @@ public:
 
     Profile(
         const api::client::internal::Manager& api,
-        const network::zeromq::socket::Publish& publisher,
-        const identifier::Nym& nymID
+        const identifier::Nym& nymID,
 #if OT_QT
-        ,
-        const bool qt
+        const bool qt,
 #endif
-        ) noexcept;
+        const SimpleCallback& cb) noexcept;
     ~Profile();
 
 private:

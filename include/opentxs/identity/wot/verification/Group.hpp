@@ -17,6 +17,14 @@
 
 namespace opentxs
 {
+namespace proto
+{
+class VerificationGroup;
+}  // namespace proto
+}  // namespace opentxs
+
+namespace opentxs
+{
 namespace identity
 {
 namespace wot

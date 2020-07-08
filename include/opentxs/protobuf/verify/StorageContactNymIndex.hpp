@@ -8,7 +8,13 @@
 
 #include "opentxs/Version.hpp"  // IWYU pragma: associated
 
-#include "opentxs/protobuf/verify/VerifyStorage.hpp"
+namespace opentxs
+{
+namespace proto
+{
+class StorageContactNymIndex;
+}  // namespace proto
+}  // namespace opentxs
 
 namespace opentxs
 {

@@ -36,25 +36,22 @@ namespace opentxs::factory
 {
 auto ContactModel(
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
-    const Identifier& contactID
+    const Identifier& contactID,
 #if OT_QT
-    ,
-    const bool qt
+    const bool qt,
 #endif
-    ) noexcept -> std::unique_ptr<ui::implementation::Contact>
+    const SimpleCallback& cb) noexcept
+    -> std::unique_ptr<ui::implementation::Contact>
 {
     using ReturnType = ui::implementation::Contact;
 
     return std::make_unique<ReturnType>(
         api,
-        publisher,
-        contactID
+        contactID,
 #if OT_QT
-        ,
-        qt
+        qt,
 #endif
-    );
+        cb);
 }
 
 #if OT_QT
@@ -100,17 +97,15 @@ const std::map<proto::ContactSectionName, int> Contact::sort_keys_{
 
 Contact::Contact(
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
-    const Identifier& contactID
+    const Identifier& contactID,
 #if OT_QT
-    ,
-    const bool qt
+    const bool qt,
 #endif
-    ) noexcept
+    const SimpleCallback& cb) noexcept
     : ContactType(
           api,
-          publisher,
-          contactID
+          contactID,
+          cb
 #if OT_QT
           ,
           qt
@@ -147,7 +142,7 @@ auto Contact::construct_row(
         factory::ContactSectionWidget(
             *this,
             api_,
-            publisher_,
+
             id,
             index,
             custom

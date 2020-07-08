@@ -8,8 +8,6 @@
 
 #include "opentxs/Version.hpp"  // IWYU pragma: associated
 
-#include "opentxs/protobuf/verify/VerifyConsensus.hpp"
-
 namespace opentxs
 {
 namespace proto

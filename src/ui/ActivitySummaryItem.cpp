@@ -40,7 +40,6 @@ namespace opentxs::factory
 auto ActivitySummaryItem(
     const ui::implementation::ActivitySummaryInternalInterface& parent,
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const identifier::Nym& nymID,
     const ui::implementation::ActivitySummaryRowID& rowID,
     const ui::implementation::ActivitySummarySortKey& sortKey,
@@ -53,7 +52,6 @@ auto ActivitySummaryItem(
     return std::make_shared<ReturnType>(
         parent,
         api,
-        publisher,
         nymID,
         rowID,
         sortKey,
@@ -68,14 +66,13 @@ namespace opentxs::ui::implementation
 ActivitySummaryItem::ActivitySummaryItem(
     const ActivitySummaryInternalInterface& parent,
     const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
     const identifier::Nym& nymID,
     const ActivitySummaryRowID& rowID,
     const ActivitySummarySortKey& sortKey,
     CustomData& custom,
     const Flag& running,
     std::string text) noexcept
-    : ActivitySummaryItemRow(parent, api, publisher, rowID, true)
+    : ActivitySummaryItemRow(parent, api, rowID, true)
     , running_(running)
     , nym_id_(nymID)
     , key_(sortKey)
