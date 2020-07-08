@@ -9,7 +9,7 @@
 
 #include <zmq.h>
 
-#include "2_Factory.hpp"
+#include "internal/network/zeromq/socket/Socket.hpp"
 #include "network/zeromq/socket/Receiver.tpp"
 #include "network/zeromq/socket/Socket.hpp"
 #include "opentxs/Pimpl.hpp"
@@ -18,31 +18,14 @@
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/socket/Socket.hpp"
 
-namespace opentxs
-{
-namespace network
-{
-namespace zeromq
-{
-namespace socket
-{
-class Subscribe;
-}  // namespace socket
-
-class Context;
-class Message;
-}  // namespace zeromq
-}  // namespace network
-}  // namespace opentxs
-
 template class opentxs::Pimpl<opentxs::network::zeromq::socket::Subscribe>;
 
 #define OT_METHOD                                                              \
     "opentxs::network::zeromq::socket::implementation::Subscribe::"
 
-namespace opentxs
+namespace opentxs::factory
 {
-auto Factory::SubscribeSocket(
+auto SubscribeSocket(
     const network::zeromq::Context& context,
     const network::zeromq::ListenCallback& callback)
     -> network::zeromq::socket::Subscribe*
@@ -51,7 +34,7 @@ auto Factory::SubscribeSocket(
 
     return new ReturnType(context, callback);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::network::zeromq::socket::implementation
 {

@@ -26,8 +26,8 @@ Receiver<InterfaceType, MessageType>::Receiver(
     const Socket::Direction direction,
     const bool startThread) noexcept
     : Socket(context, type, direction)
-    , receiver_thread_()
     , start_thread_(startThread)
+    , receiver_thread_()
     , next_task_(0)
     , task_lock_()
     , socket_tasks_()
@@ -140,9 +140,12 @@ void Receiver<InterfaceType, MessageType>::thread() noexcept
     poll[0].events = ZMQ_POLLIN;
 
     while (running_.get()) {
+        auto newEndpoints = endpoint_queue_.pop();
         Lock lock(lock_, std::try_to_lock);
 
         if (false == lock.owns_lock()) { continue; }
+
+        for (const auto& endpoint : newEndpoints) { start(lock, endpoint); }
 
         run_tasks(lock);
         const auto events = zmq_poll(poll, 1, RECEIVER_POLL_MILLISECONDS);

@@ -16,6 +16,7 @@
 #include <stdexcept>
 #include <type_traits>
 
+#include "internal/api/client/Client.hpp"
 #include "internal/blockchain/Blockchain.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/api/Endpoints.hpp"
@@ -54,7 +55,7 @@ Peer::Peer(
     const std::size_t headerSize,
     const std::size_t bodySize,
     std::unique_ptr<internal::Address> address) noexcept
-    : Executor(api, std::bind(&Peer::state_machine, this))
+    : Worker(api, std::chrono::milliseconds(10))
     , network_(network)
     , manager_(manager)
     , chain_(address->Chain())
@@ -81,6 +82,8 @@ Peer::Peer(
     , connection_id_promise_()
     , send_promises_()
     , activity_()
+    , init_promise_()
+    , init_(init_promise_.get_future())
     , cb_(zmq::ListenCallback::Factory([&](auto& in) { pipeline_d(in); }))
     , dealer_(api.ZeroMQ().DealerSocket(
           cb_,
@@ -104,155 +107,6 @@ Peer::Peer(
             " timed out during connect")
             .Flush();
         disconnect();
-    }
-}
-
-Peer::Activity::Activity() noexcept
-    : lock_()
-    , activity_(Clock::now())
-{
-}
-
-Peer::Address::Address(std::unique_ptr<internal::Address> address) noexcept
-    : lock_()
-    , address_(std::move(address))
-{
-    OT_ASSERT(address_);
-}
-
-Peer::DownloadPeers::DownloadPeers() noexcept
-    : downloaded_(Clock::now())
-{
-}
-
-Peer::SendPromises::SendPromises() noexcept
-    : lock_()
-    , counter_(0)
-    , map_()
-{
-}
-
-bool Peer::verifying() noexcept
-{
-    return (State::Verify == state_.value_.load());
-}
-
-auto Peer::Activity::Bump() noexcept -> void
-{
-    Lock lock(lock_);
-    activity_ = Clock::now();
-}
-
-auto Peer::Activity::get() const noexcept -> Time
-{
-    Lock lock(lock_);
-
-    return activity_;
-}
-
-auto Peer::Address::Bytes() const noexcept -> OTData
-{
-    Lock lock(lock_);
-
-    return address_->Bytes();
-}
-
-auto Peer::Address::Chain() const noexcept -> blockchain::Type
-{
-    Lock lock(lock_);
-
-    return address_->Chain();
-}
-
-auto Peer::Address::Display() const noexcept -> std::string
-{
-    Lock lock(lock_);
-
-    return address_->Display();
-}
-
-auto Peer::Address::ID() const noexcept -> OTIdentifier
-{
-    Lock lock(lock_);
-
-    return address_->ID();
-}
-
-auto Peer::Address::Port() const noexcept -> std::uint16_t
-{
-    Lock lock(lock_);
-
-    return address_->Port();
-}
-
-auto Peer::Address::Services() const noexcept -> std::set<Service>
-{
-    Lock lock(lock_);
-
-    return address_->Services();
-}
-
-auto Peer::Address::Type() const noexcept -> Network
-{
-    Lock lock(lock_);
-
-    return address_->Type();
-}
-
-auto Peer::Address::UpdateServices(
-    const std::set<p2p::Service>& services) noexcept -> pointer
-{
-    Lock lock(lock_);
-    address_->SetServices(services);
-
-    return address_->clone_internal();
-}
-
-auto Peer::Address::UpdateTime(const Time& time) noexcept -> pointer
-{
-    Lock lock(lock_);
-    address_->SetLastConnected(time);
-
-    return address_->clone_internal();
-}
-
-auto Peer::DownloadPeers::Bump() noexcept -> void
-{
-    downloaded_ = Clock::now();
-}
-
-auto Peer::DownloadPeers::get() const noexcept -> Time { return downloaded_; }
-
-auto Peer::SendPromises::Break() -> void
-{
-    Lock lock(lock_);
-
-    for (auto& [id, promise] : map_) { promise = {}; }
-}
-
-auto Peer::SendPromises::NewPromise() -> std::pair<std::future<bool>, int>
-{
-    Lock lock(lock_);
-    auto [it, added] = map_.emplace(++counter_, std::promise<bool>());
-
-    if (false == added) { return {}; }
-
-    return {it->second.get_future(), it->first};
-}
-
-auto Peer::SendPromises::SetPromise(const int promise, const bool value) -> void
-{
-    Lock lock(lock_);
-
-    auto it = map_.find(promise);
-
-    if (map_.end() != it) {
-        try {
-            it->second.set_value(value);
-        } catch (...) {
-        }
-
-        map_.erase(it);
     }
 }
 
@@ -309,7 +163,7 @@ auto Peer::check_handshake() noexcept -> void
         OT_ASSERT(state.done());
     }
 
-    Trigger();
+    trigger();
 }
 
 auto Peer::check_verify() noexcept -> void
@@ -320,9 +174,10 @@ auto Peer::check_verify() noexcept -> void
         (state.second_action_ || (false == verify_filter_checkpoint_)) &&
         (false == state.done())) {
         state.promise_.set_value();
+        network_.Blockchain().UpdatePeer(chain_, address_.Display());
     }
 
-    Trigger();
+    trigger();
 }
 
 auto Peer::connect() noexcept -> void
@@ -346,7 +201,11 @@ auto Peer::disconnect() noexcept -> void
     manager_.Disconnect(id_);
 }
 
-auto Peer::init() noexcept -> void { connect(); }
+auto Peer::init() noexcept -> void
+{
+    connect();
+    init_promise_.set_value();
+}
 
 auto Peer::init_send_promise() noexcept -> void
 {
@@ -438,9 +297,6 @@ auto Peer::pipeline(zmq::Message& message) noexcept -> void
                 request_cfilter(message);
             }
         } break;
-        case Task::Heartbeat: {
-            Trigger();
-        } break;
         case Task::Getblock: {
             request_block(message);
         } break;
@@ -453,12 +309,12 @@ auto Peer::pipeline(zmq::Message& message) noexcept -> void
         case Task::ReceiveMessage: {
             process_message(message);
         } break;
+        case Task::Heartbeat:
         case Task::StateMachine: {
-            process_state_machine();
+            do_work();
         } break;
         case Task::Shutdown: {
             shutdown(shutdown_promise_);
-            Stop();
         } break;
         default: {
             OT_FAIL;
@@ -503,7 +359,7 @@ auto Peer::pipeline_d(zmq::Message& message) noexcept -> void
             state_.value_.store(State::Handshake);
             init_executor(
                 {manager_.Endpoint(Task::Heartbeat), shutdown_endpoint_});
-            Trigger();
+            trigger();
             run();
         } break;
         case Task::Disconnect: {
@@ -604,18 +460,15 @@ auto Peer::Shutdown() noexcept -> std::shared_future<void>
 {
     dealer_->Close();
 
-    return stop_executor();
+    return stop_worker();
 }
 
 auto Peer::shutdown(std::promise<void>& promise) noexcept -> void
 {
+    init_.get();
+
     if (running_->Off()) {
         const auto state = state_.value_.exchange(State::Shutdown);
-
-        try {
-            state_machine_.set_value(false);
-        } catch (...) {
-        }
 
         try {
             socket_.shutdown(tcp::socket::shutdown_both);
@@ -649,6 +502,8 @@ auto Peer::start_verify() noexcept -> void
 
 auto Peer::state_machine() noexcept -> bool
 {
+    LogTrace(OT_METHOD)(__FUNCTION__).Flush();
+
     if (false == running_.get()) { return false; }
 
     auto disconnect{false};
@@ -672,11 +527,10 @@ auto Peer::state_machine() noexcept -> bool
             [[fallthrough]];
         }
         case State::Run: {
-            pipeline_->Push(MakeWork(Task::StateMachine));
+            process_state_machine();
         } break;
         case State::Shutdown: {
-            shutdown(shutdown_promise_);
-            pipeline_->Close();
+            disconnect = true;
         } break;
         default: {
         }

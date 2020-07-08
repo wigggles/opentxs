@@ -17,7 +17,7 @@
 #include <utility>
 
 #include "blockchain/client/UpdateTransaction.hpp"
-#include "core/Executor.hpp"
+#include "core/Worker.hpp"
 #include "internal/blockchain/block/Block.hpp"
 #include "internal/blockchain/database/Database.hpp"
 #include "opentxs/Bytes.hpp"
@@ -216,6 +216,7 @@ auto Headers::ApplyUpdate(const client::UpdateTransaction& update) noexcept
     }
 
     parentTxn.Finalize(true);
+    const auto position = best(lock);
 
     if (update.HaveReorg()) {
         const auto [height, hash] = update.ReorgParent();
@@ -228,9 +229,18 @@ auto Headers::ApplyUpdate(const client::UpdateTransaction& update) noexcept
         work->AddFrame(bytes.data(), bytes.size());
         work->AddFrame(height);
         network_.Reorg().Send(work);
+    } else {
+        const auto& [height, hash] = position;
+        const auto bytes = hash->Bytes();
+        auto work =
+            MakeWork(api_, OTZMQWorkType{OT_ZMQ_NEW_BLOCK_HEADER_SIGNAL});
+        work->AddFrame(network_.Chain());
+        work->AddFrame(bytes.data(), bytes.size());
+        work->AddFrame(height);
+        network_.Reorg().Send(work);
     }
 
-    network_.UpdateLocalHeight(best(lock));
+    network_.UpdateLocalHeight(position);
 
     return true;
 }

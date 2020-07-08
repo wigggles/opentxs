@@ -49,35 +49,32 @@ protected:
     std::promise<void> shutdown_promise_;
     OTZMQPipeline pipeline_;
 
-    auto repeat(const bool again) const noexcept -> void
-    {
-        if (again) {
-            Sleep(rate_limit_);
-            trigger();
-        }
-    }
     auto trigger() const noexcept -> void
     {
         if (false == running_.get()) { return; }
 
-        auto work =
-            api_.ZeroMQ().Message(OTZMQWorkType{OT_ZMQ_STATE_MACHINE_SIGNAL});
-        work->AddFrame();
-        pipeline_->Push(work);
+        const auto running = state_machine_queued_.exchange(true);
+
+        if (false == running) {
+            auto work = api_.ZeroMQ().Message(
+                OTZMQWorkType{OT_ZMQ_STATE_MACHINE_SIGNAL});
+            work->AddFrame();
+            pipeline_->Push(work);
+        }
     }
 
+    auto do_work() noexcept
+    {
+        rate_limit_state_machine();
+        state_machine_queued_.store(false);
+        repeat(downcast().state_machine());
+    }
     auto init_executor(const std::vector<std::string> endpoints = {}) noexcept
         -> void
     {
-        auto listen = pipeline_->Start(api_.Endpoints().Shutdown());
+        pipeline_->Start(api_.Endpoints().Shutdown());
 
-        OT_ASSERT(listen);
-
-        for (const auto& endpoint : endpoints) {
-            listen = pipeline_->Start(endpoint);
-
-            OT_ASSERT(listen);
-        }
+        for (const auto& endpoint : endpoints) { pipeline_->Start(endpoint); }
     }
     auto stop_worker() noexcept -> std::shared_future<void>
     {
@@ -87,6 +84,7 @@ protected:
 
         return shutdown_;
     }
+
     Worker(const API& api, const std::chrono::milliseconds rateLimit) noexcept
         : api_(api)
         , rate_limit_(rateLimit)
@@ -95,6 +93,8 @@ protected:
         , pipeline_(api.Factory().Pipeline(
               [this](auto& in) { downcast().pipeline(in); }))
         , shutdown_(shutdown_promise_.get_future())
+        , last_executed_(Clock::now())
+        , state_machine_queued_(false)
     {
     }
 
@@ -102,10 +102,26 @@ protected:
 
 private:
     std::shared_future<void> shutdown_;
+    Time last_executed_;
+    mutable std::atomic<bool> state_machine_queued_;
+
+    auto rate_limit_state_machine() const noexcept
+    {
+        const auto wait = std::chrono::duration_cast<std::chrono::milliseconds>(
+            rate_limit_ - (Clock::now() - last_executed_));
+
+        if (0 < wait.count()) { Sleep(wait); }
+    }
 
     inline auto downcast() noexcept -> Child&
     {
         return static_cast<Child&>(*this);
+    }
+    auto repeat(const bool again) noexcept -> void
+    {
+        if (again) { trigger(); }
+
+        last_executed_ = Clock::now();
     }
 };
 }  // namespace opentxs

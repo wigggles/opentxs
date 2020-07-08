@@ -28,8 +28,6 @@ class Push;
 class Context;
 }  // namespace zeromq
 }  // namespace network
-
-class Factory;
 }  // namespace opentxs
 
 namespace opentxs::network::zeromq::socket::implementation
@@ -38,19 +36,18 @@ class Push final : public Sender<zeromq::socket::Push>,
                    public zeromq::curve::implementation::Client
 {
 public:
-    ~Push();
+    Push(
+        const zeromq::Context& context,
+        const Socket::Direction direction) noexcept;
+
+    ~Push() final;
 
 private:
-    friend opentxs::Factory;
-
     auto clone() const noexcept -> Push* final
     {
         return new Push(context_, direction_);
     }
 
-    Push(
-        const zeromq::Context& context,
-        const Socket::Direction direction) noexcept;
     Push() = delete;
     Push(const Push&) = delete;
     Push(Push&&) = delete;

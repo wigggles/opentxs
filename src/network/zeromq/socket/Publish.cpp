@@ -7,7 +7,7 @@
 #include "1_Internal.hpp"                     // IWYU pragma: associated
 #include "network/zeromq/socket/Publish.hpp"  // IWYU pragma: associated
 
-#include "2_Factory.hpp"
+#include "internal/network/zeromq/socket/Socket.hpp"
 #include "network/zeromq/curve/Server.hpp"
 #include "network/zeromq/socket/Sender.tpp"
 #include "network/zeromq/socket/Socket.hpp"
@@ -15,37 +15,21 @@
 #include "opentxs/Types.hpp"
 #include "opentxs/network/zeromq/socket/Socket.hpp"
 
-namespace opentxs
-{
-namespace network
-{
-namespace zeromq
-{
-namespace socket
-{
-class Publish;
-}  // namespace socket
-
-class Context;
-}  // namespace zeromq
-}  // namespace network
-}  // namespace opentxs
-
 template class opentxs::Pimpl<opentxs::network::zeromq::socket::Publish>;
 
 //#define OT_METHOD
 //"opentxs::network::zeromq::socket::implementation::Publish::"
 
-namespace opentxs
+namespace opentxs::factory
 {
-auto Factory::PublishSocket(const opentxs::network::zeromq::Context& context)
+auto PublishSocket(const opentxs::network::zeromq::Context& context)
     -> network::zeromq::socket::Publish*
 {
     using ReturnType = network::zeromq::socket::implementation::Publish;
 
     return new ReturnType(context);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::network::zeromq::socket::implementation
 {

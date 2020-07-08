@@ -35,8 +35,6 @@ class ListenCallback;
 class Message;
 }  // namespace zeromq
 }  // namespace network
-
-class Factory;
 }  // namespace opentxs
 
 namespace opentxs::network::zeromq::socket::implementation
@@ -49,21 +47,6 @@ public:
     {
         return false;
     }
-
-    ~Pair();
-
-private:
-    friend opentxs::Factory;
-    friend opentxs::network::zeromq::socket::Pair;
-
-    const ListenCallback& callback_;
-    const std::string endpoint_;
-
-    auto clone() const noexcept -> Pair* final;
-    auto have_callback() const noexcept -> bool final;
-    void process_incoming(const Lock& lock, Message& message) noexcept final;
-
-    void init() noexcept final;
 
     Pair(
         const zeromq::Context& context,
@@ -83,6 +66,19 @@ private:
         const zeromq::Context& context,
         const zeromq::ListenCallback& callback,
         const std::string& endpoint) noexcept;
+
+    ~Pair() final;
+
+private:
+    const ListenCallback& callback_;
+    const std::string endpoint_;
+
+    auto clone() const noexcept -> Pair* final;
+    auto have_callback() const noexcept -> bool final;
+    void process_incoming(const Lock& lock, Message& message) noexcept final;
+
+    void init() noexcept final;
+
     Pair() = delete;
     Pair(const Pair&) = delete;
     Pair(Pair&&) = delete;

@@ -21,7 +21,7 @@
 #include <string_view>
 #include <utility>
 
-#include "core/Executor.hpp"
+#include "core/Worker.hpp"
 #include "internal/blockchain/client/Client.hpp"
 #include "internal/blockchain/p2p/P2P.hpp"
 #include "internal/blockchain/p2p/bitcoin/Bitcoin.hpp"
@@ -134,7 +134,7 @@ PeerManager::PeerManager(
     const std::string& seednode,
     const std::string& shutdown) noexcept
     : internal::PeerManager()
-    , Executor(api)
+    , Worker(api, std::chrono::milliseconds(100))
     , database_(database)
     , io_context_(io)
     , jobs_(api)
@@ -148,6 +148,8 @@ PeerManager::PeerManager(
           chain,
           seednode,
           io_context_)
+    , init_promise_()
+    , init_(init_promise_.get_future())
     , heartbeat_task_()
 {
     init_executor({shutdown});
@@ -213,6 +215,7 @@ PeerManager::Peers::Peers(
     , peers_()
     , active_()
     , count_()
+    , connected_()
 {
     database_.AddOrUpdate(Endpoint{factory::BlockchainAddress(
         api_,
@@ -293,10 +296,8 @@ auto PeerManager::Peers::add_peer(Endpoint endpoint) noexcept -> void
     const auto address = OTIdentifier{endpoint->ID()};
     auto& count = active_[address];
 
-    if (0 < count) {
-        // Wait for more peers
-        Sleep(std::chrono::milliseconds(10));
-    } else {
+    if (0 == count) {
+        auto addressID = OTIdentifier{endpoint->ID()};
         const auto id = ++next_id_;
         const auto [it, added] =
             peers_.emplace(id, peer_factory(std::move(endpoint), id));
@@ -304,6 +305,7 @@ auto PeerManager::Peers::add_peer(Endpoint endpoint) noexcept -> void
         if (added) {
             ++count;
             ++count_;
+            connected_.emplace(std::move(addressID));
         }
     }
 }
@@ -338,6 +340,22 @@ auto PeerManager::Peers::AddPeer(
 
     add_peer(std::move(endpoint));
     promise.set_value(true);
+}
+
+auto PeerManager::Peers::Disconnect(const int id) noexcept -> void
+{
+    auto it = peers_.find(id);
+
+    if (peers_.end() == it) { return; }
+
+    auto& peer = *it->second;
+    const auto address = peer.AddressID();
+    --active_.at(address);
+    peer.Shutdown().get();
+    it->second.reset();
+    peers_.erase(it);
+    --count_;
+    connected_.erase(address);
 }
 
 auto PeerManager::Peers::get_default_peer() const noexcept -> Endpoint
@@ -449,7 +467,7 @@ auto PeerManager::Peers::get_peer() const noexcept -> Endpoint
     const auto protocol = protocol_map_.at(chain_);
     auto pAddress = get_default_peer();
 
-    if (pAddress) {
+    if (pAddress && is_not_connected(*pAddress)) {
         LogVerbose(OT_METHOD)(__FUNCTION__)(
             ": Attempting to connect to peer: ")(pAddress->Display())
             .Flush();
@@ -459,7 +477,7 @@ auto PeerManager::Peers::get_peer() const noexcept -> Endpoint
 
     pAddress = get_preferred_peer(protocol);
 
-    if (pAddress) {
+    if (pAddress && is_not_connected(*pAddress)) {
         LogVerbose(OT_METHOD)(__FUNCTION__)(
             ": Attempting to connect to peer: ")(pAddress->Display())
             .Flush();
@@ -469,7 +487,7 @@ auto PeerManager::Peers::get_peer() const noexcept -> Endpoint
 
     pAddress = get_dns_peer();
 
-    if (pAddress) {
+    if (pAddress && is_not_connected(*pAddress)) {
         LogVerbose(OT_METHOD)(__FUNCTION__)(
             ": Attempting to connect to peer: ")(pAddress->Display())
             .Flush();
@@ -495,6 +513,12 @@ auto PeerManager::Peers::get_preferred_peer(
         protocol,
         {p2p::Network::ipv4, p2p::Network::ipv6},
         {p2p::Service::CompactFilters});
+}
+
+auto PeerManager::Peers::is_not_connected(
+    const p2p::Address& endpoint) const noexcept -> bool
+{
+    return 0 == connected_.count(endpoint.ID());
 }
 
 auto PeerManager::Peers::peer_factory(Endpoint endpoint, const int id) noexcept
@@ -538,30 +562,9 @@ auto PeerManager::Peers::set_default_peer(
     return localhost;
 }
 
-auto PeerManager::Peers::Disconnect(const int id) noexcept -> void
+auto PeerManager::Peers::Run() noexcept -> bool
 {
-    auto it = peers_.find(id);
-
-    if (peers_.end() == it) { return; }
-
-    auto& peer = *it->second;
-    --active_.at(peer.AddressID());
-    peer.Shutdown().get();
-    it->second.reset();
-    peers_.erase(it);
-    --count_;
-}
-
-auto PeerManager::Peers::Run(std::promise<bool>& promise) noexcept -> void
-{
-    if ((false == running_) || invalid_peer_) {
-        try {
-            promise.set_value(false);
-        } catch (...) {
-        }
-
-        return;
-    }
+    if ((false == running_) || invalid_peer_) { return false; }
 
     const auto target = minimum_peers_.load();
 
@@ -572,10 +575,7 @@ auto PeerManager::Peers::Run(std::promise<bool>& promise) noexcept -> void
         add_peer(get_peer());
     }
 
-    try {
-        promise.set_value(target > peers_.size());
-    } catch (...) {
-    }
+    return target > peers_.size();
 }
 
 auto PeerManager::Peers::Shutdown() noexcept -> void
@@ -636,7 +636,9 @@ auto PeerManager::Connect() noexcept -> bool
 {
     if (false == running_.get()) { return false; }
 
-    return Trigger();
+    trigger();
+
+    return true;
 }
 
 auto PeerManager::Disconnect(const int id) const noexcept -> void
@@ -650,7 +652,8 @@ auto PeerManager::init() noexcept -> void
 {
     heartbeat_task_ = api_.Schedule(
         std::chrono::seconds(10), [this]() -> void { this->Heartbeat(); });
-    Trigger();
+    init_promise_.set_value();
+    trigger();
 }
 
 auto PeerManager::pipeline(zmq::Message& message) noexcept -> void
@@ -668,6 +671,7 @@ auto PeerManager::pipeline(zmq::Message& message) noexcept -> void
             OT_ASSERT(0 < body.size());
 
             peers_.Disconnect(body.at(0).as<int>());
+            do_work();
         } break;
         case Work::AddPeer: {
             const auto body = message.Body();
@@ -686,9 +690,10 @@ auto PeerManager::pipeline(zmq::Message& message) noexcept -> void
             auto& promise = *promise_p;
 
             peers_.AddPeer(address, promise);
+            do_work();
         } break;
         case Work::StateMachine: {
-            peers_.Run(state_machine_);
+            do_work();
         } break;
         case Work::Shutdown: {
             shutdown(shutdown_promise_);
@@ -761,12 +766,9 @@ auto PeerManager::RequestHeaders() const noexcept -> bool
 
 auto PeerManager::shutdown(std::promise<void>& promise) noexcept -> void
 {
-    if (running_->Off()) {
-        try {
-            state_machine_.set_value(false);
-        } catch (...) {
-        }
+    init_.get();
 
+    if (running_->Off()) {
         api_.Cancel(heartbeat_task_);
         jobs_.Shutdown();
         peers_.Shutdown();
@@ -776,6 +778,15 @@ auto PeerManager::shutdown(std::promise<void>& promise) noexcept -> void
         } catch (...) {
         }
     }
+}
+
+auto PeerManager::state_machine() noexcept -> bool
+{
+    LogTrace(OT_METHOD)(__FUNCTION__).Flush();
+
+    if (false == running_.get()) { return false; }
+
+    return peers_.Run();
 }
 
 PeerManager::~PeerManager() { Shutdown().get(); }

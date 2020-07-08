@@ -40,7 +40,8 @@ public:
     auto Close() const noexcept -> bool final;
 
 protected:
-    mutable std::thread receiver_thread_{};
+    const bool start_thread_;
+    mutable std::thread receiver_thread_;
 
     virtual auto have_callback() const noexcept -> bool { return false; }
     void run_tasks(const Lock& lock) const noexcept;
@@ -61,7 +62,6 @@ protected:
     ~Receiver() override;
 
 private:
-    const bool start_thread_;
     mutable int next_task_;
     mutable std::mutex task_lock_;
     mutable std::map<int, SocketCallback> socket_tasks_;

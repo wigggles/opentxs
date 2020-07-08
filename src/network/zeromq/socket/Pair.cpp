@@ -7,7 +7,7 @@
 #include "1_Internal.hpp"                  // IWYU pragma: associated
 #include "network/zeromq/socket/Pair.hpp"  // IWYU pragma: associated
 
-#include "2_Factory.hpp"
+#include "internal/network/zeromq/socket/Socket.hpp"
 #include "network/zeromq/socket/Bidirectional.tpp"
 #include "network/zeromq/socket/Receiver.hpp"
 #include "network/zeromq/socket/Receiver.tpp"
@@ -18,25 +18,14 @@
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/socket/Pair.hpp"
 
-namespace opentxs
-{
-namespace network
-{
-namespace zeromq
-{
-class Context;
-}  // namespace zeromq
-}  // namespace network
-}  // namespace opentxs
-
 template class opentxs::Pimpl<opentxs::network::zeromq::socket::Pair>;
 
 // #define OT_METHOD
 // "opentxs::network::zeromq::socket::implementation::Pair::"
 
-namespace opentxs
+namespace opentxs::factory
 {
-auto Factory::PairSocket(
+auto PairSocket(
     const network::zeromq::Context& context,
     const network::zeromq::ListenCallback& callback,
     const bool startThread) -> network::zeromq::socket::Pair*
@@ -46,7 +35,7 @@ auto Factory::PairSocket(
     return new ReturnType(context, callback, startThread);
 }
 
-auto Factory::PairSocket(
+auto PairSocket(
     const network::zeromq::ListenCallback& callback,
     const network::zeromq::socket::Pair& peer,
     const bool startThread) -> network::zeromq::socket::Pair*
@@ -56,7 +45,7 @@ auto Factory::PairSocket(
     return new ReturnType(callback, peer, startThread);
 }
 
-auto Factory::PairSocket(
+auto PairSocket(
     const network::zeromq::Context& context,
     const network::zeromq::ListenCallback& callback,
     const std::string& endpoint) -> network::zeromq::socket::Pair*
@@ -65,7 +54,7 @@ auto Factory::PairSocket(
 
     return new ReturnType(context, callback, endpoint);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::network::zeromq::socket::implementation
 {

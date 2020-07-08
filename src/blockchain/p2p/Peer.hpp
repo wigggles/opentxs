@@ -23,7 +23,7 @@
 #include <utility>
 #include <vector>
 
-#include "core/Executor.hpp"
+#include "core/Worker.hpp"
 #include "internal/blockchain/client/Client.hpp"
 #include "internal/blockchain/p2p/P2P.hpp"
 #include "opentxs/Bytes.hpp"
@@ -66,7 +66,7 @@ namespace opentxs::blockchain::p2p::implementation
 {
 using tcp = asio::ip::tcp;
 
-class Peer : virtual public internal::Peer, public Executor<Peer>
+class Peer : virtual public internal::Peer, public Worker<Peer>
 {
 public:
     using SendStatus = std::future<bool>;
@@ -247,10 +247,12 @@ protected:
     virtual auto request_block(zmq::Message& message) noexcept -> void = 0;
     virtual auto request_headers() noexcept -> void = 0;
     auto send(OTData message) noexcept -> SendStatus;
-    auto state_machine() noexcept -> bool;
     auto update_address_services(
         const std::set<p2p::Service>& services) noexcept -> void;
-    auto verifying() noexcept -> bool;
+    auto verifying() noexcept -> bool
+    {
+        return (State::Verify == state_.value_.load());
+    }
 
     Peer(
         const api::client::Manager& api,
@@ -264,7 +266,7 @@ protected:
         std::unique_ptr<internal::Address> address) noexcept;
 
 private:
-    friend Executor<Peer>;
+    friend Worker<Peer>;
 
     struct Activity {
         auto get() const noexcept -> Time;
@@ -302,6 +304,8 @@ private:
     std::promise<void> connection_id_promise_;
     SendPromises send_promises_;
     Activity activity_;
+    std::promise<void> init_promise_;
+    std::shared_future<void> init_;
     OTZMQListenCallback cb_;
     OTZMQDealerSocket dealer_;
 
@@ -332,6 +336,7 @@ private:
     auto run() noexcept -> void;
     auto shutdown(std::promise<void>& promise) noexcept -> void;
     virtual auto start_handshake() noexcept -> void = 0;
+    auto state_machine() noexcept -> bool;
     auto start_verify() noexcept -> void;
     auto subscribe() noexcept -> void;
     auto transmit(zmq::Message& message) noexcept -> void;

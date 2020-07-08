@@ -52,7 +52,7 @@ public:
     {
         return push(Context().Message(data));
     }
-    OPENTXS_EXPORT virtual bool Start(
+    OPENTXS_EXPORT virtual void Start(
         const std::string& endpoint) const noexcept = 0;
 
     OPENTXS_EXPORT virtual ~Pipeline() = default;

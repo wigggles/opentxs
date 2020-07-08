@@ -13,7 +13,7 @@
 #include <thread>
 #include <type_traits>
 
-#include "2_Factory.hpp"
+#include "internal/network/zeromq/socket/Socket.hpp"
 #include "network/zeromq/curve/Client.hpp"
 #include "network/zeromq/socket/Socket.hpp"
 #include "opentxs/Pimpl.hpp"
@@ -22,33 +22,22 @@
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 
-namespace opentxs
-{
-namespace network
-{
-namespace zeromq
-{
-class Context;
-}  // namespace zeromq
-}  // namespace network
-}  // namespace opentxs
-
 template class opentxs::Pimpl<opentxs::network::zeromq::socket::Request>;
 
 #define POLL_MILLISECONDS 10
 
 #define OT_METHOD "opentxs::network::zeromq::socket::implementation::Request::"
 
-namespace opentxs
+namespace opentxs::factory
 {
-auto Factory::RequestSocket(const network::zeromq::Context& context)
+auto RequestSocket(const network::zeromq::Context& context)
     -> network::zeromq::socket::Request*
 {
     using ReturnType = network::zeromq::socket::implementation::Request;
 
     return new ReturnType(context);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::network::zeromq::socket::implementation
 {

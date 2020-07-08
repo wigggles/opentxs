@@ -48,10 +48,15 @@ public:
     {
         return sender_->Context();
     }
-    auto Start(const std::string& endpoint) const noexcept -> bool
+    auto Start(const std::string& endpoint) const noexcept -> void
     {
-        return receiver_->Start(endpoint);
+        return receiver_->StartAsync(endpoint);
     }
+
+    Pipeline(
+        const api::internal::Core& api,
+        const zeromq::Context& context,
+        std::function<void(zeromq::Message&)> callback) noexcept;
 
     ~Pipeline();
 
@@ -68,10 +73,6 @@ private:
         return sender_->Send(data);
     }
 
-    Pipeline(
-        const api::internal::Core& api,
-        const zeromq::Context& context,
-        std::function<void(zeromq::Message&)> callback) noexcept;
     Pipeline() = delete;
     Pipeline(const Pipeline&) = delete;
     Pipeline(Pipeline&&) = delete;

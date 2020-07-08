@@ -102,7 +102,7 @@ Wallet::Wallet(
     const internal::Network& parent,
     const Type chain,
     const std::string& shutdown) noexcept
-    : Worker(api, std::chrono::milliseconds(1))
+    : Worker(api, std::chrono::milliseconds(10))
     , parent_(parent)
     , db_(parent_.DB())
     , blockchain_api_(blockchain)
@@ -122,6 +122,7 @@ Wallet::Wallet(
         api.Endpoints().BlockchainReorg(),
         api.Endpoints().NymCreated(),
         api.Endpoints().InternalBlockchainFilterUpdated(chain),
+        blockchain.KeyEndpoint(),
     });
 }
 
@@ -159,20 +160,22 @@ auto Wallet::pipeline(const zmq::Message& in) noexcept -> void
     const auto body = in.Body();
 
     switch (work) {
-        case Work::filter: {
-            trigger();
+        case Work::block: {
+            // nothing to do until the filter is downloaded
+        } break;
+        case Work::reorg: {
+            process_reorg(in);
         } break;
         case Work::nym: {
             OT_ASSERT(0 < body.size());
 
             accounts_.Add(body.at(0));
-            trigger();
-        } break;
-        case Work::reorg: {
-            process_reorg(in);
-        } break;
+            [[fallthrough]];
+        }
+        case Work::key:
+        case Work::filter:
         case Work::statemachine: {
-            state_machine();
+            do_work();
         } break;
         case Work::shutdown: {
             shutdown(shutdown_promise_);
@@ -203,7 +206,7 @@ auto Wallet::process_reorg(const zmq::Message& in) noexcept -> void
         body.at(2).as<block::Height>(),
         api_.Factory().Data(body.at(1).Bytes())};
     accounts_.Reorg(parent);
-    trigger();
+    do_work();
 }
 
 auto Wallet::shutdown(std::promise<void>& promise) noexcept -> void
@@ -218,11 +221,16 @@ auto Wallet::shutdown(std::promise<void>& promise) noexcept -> void
     }
 }
 
-auto Wallet::state_machine() noexcept -> void
+auto Wallet::state_machine() noexcept -> bool
 {
-    auto output = accounts_.state_machine();
-    output |= proposals_.Run();
-    repeat(output);
+    LogTrace(OT_METHOD)(__FUNCTION__).Flush();
+
+    if (false == running_.get()) { return false; }
+
+    auto repeat = accounts_.state_machine();
+    repeat |= proposals_.Run();
+
+    return repeat;
 }
 
 Wallet::~Wallet() { Shutdown().get(); }

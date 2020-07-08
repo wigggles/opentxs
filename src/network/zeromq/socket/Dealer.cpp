@@ -7,7 +7,7 @@
 #include "1_Internal.hpp"                    // IWYU pragma: associated
 #include "network/zeromq/socket/Dealer.hpp"  // IWYU pragma: associated
 
-#include "2_Factory.hpp"
+#include "internal/network/zeromq/socket/Socket.hpp"
 #include "network/zeromq/curve/Client.hpp"
 #include "network/zeromq/socket/Bidirectional.tpp"
 #include "network/zeromq/socket/Receiver.hpp"
@@ -19,29 +19,13 @@
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 
-namespace opentxs
-{
-namespace network
-{
-namespace zeromq
-{
-namespace socket
-{
-class Dealer;
-}  // namespace socket
-
-class Context;
-}  // namespace zeromq
-}  // namespace network
-}  // namespace opentxs
-
 template class opentxs::Pimpl<opentxs::network::zeromq::socket::Dealer>;
 
 #define OT_METHOD "opentxs::network::zeromq::socket::implementation::Dealer::"
 
-namespace opentxs
+namespace opentxs::factory
 {
-auto Factory::DealerSocket(
+auto DealerSocket(
     const network::zeromq::Context& context,
     const bool direction,
     const network::zeromq::ListenCallback& callback)
@@ -54,7 +38,7 @@ auto Factory::DealerSocket(
         static_cast<network::zeromq::socket::Socket::Direction>(direction),
         callback);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::network::zeromq::socket::implementation
 {

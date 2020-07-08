@@ -7,38 +7,21 @@
 #include "1_Internal.hpp"                  // IWYU pragma: associated
 #include "network/zeromq/socket/Push.hpp"  // IWYU pragma: associated
 
-#include "2_Factory.hpp"
+#include "internal/network/zeromq/socket/Socket.hpp"
 #include "network/zeromq/curve/Client.hpp"
 #include "network/zeromq/socket/Sender.tpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Types.hpp"
-
-namespace opentxs
-{
-namespace network
-{
-namespace zeromq
-{
-namespace socket
-{
-class Push;
-}  // namespace socket
-
-class Context;
-}  // namespace zeromq
-}  // namespace network
-}  // namespace opentxs
 
 template class opentxs::Pimpl<opentxs::network::zeromq::socket::Push>;
 
 //#define OT_METHOD
 //"opentxs::network::zeromq::socket::implementation::Push::"
 
-namespace opentxs
+namespace opentxs::factory
 {
-auto Factory::PushSocket(
-    const network::zeromq::Context& context,
-    const bool direction) -> network::zeromq::socket::Push*
+auto PushSocket(const network::zeromq::Context& context, const bool direction)
+    -> network::zeromq::socket::Push*
 {
     using ReturnType = network::zeromq::socket::implementation::Push;
 
@@ -46,7 +29,7 @@ auto Factory::PushSocket(
         context,
         static_cast<network::zeromq::socket::Socket::Direction>(direction));
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::network::zeromq::socket::implementation
 {

@@ -37,8 +37,6 @@ class ListenCallback;
 class Message;
 }  // namespace zeromq
 }  // namespace network
-
-class Factory;
 }  // namespace opentxs
 
 namespace opentxs::network::zeromq::socket::implementation
@@ -53,18 +51,15 @@ public:
         return set_socks_proxy(proxy);
     }
 
-    virtual ~Router();
-
-protected:
-    const ListenCallback& callback_;
-
     Router(
         const zeromq::Context& context,
         const Socket::Direction direction,
         const zeromq::ListenCallback& callback) noexcept;
 
+    ~Router() final;
+
 private:
-    friend opentxs::Factory;
+    const ListenCallback& callback_;
 
     auto clone() const noexcept -> Router* final;
     auto have_callback() const noexcept -> bool final { return true; }

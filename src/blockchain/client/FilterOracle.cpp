@@ -15,7 +15,7 @@
 #include <type_traits>
 
 #include "blockchain/client/filteroracle/FilterCheckpoints.hpp"
-#include "core/Executor.hpp"
+#include "core/Worker.hpp"
 #include "internal/blockchain/Blockchain.hpp"
 #include "opentxs/Bytes.hpp"
 #include "opentxs/Pimpl.hpp"
@@ -67,7 +67,7 @@ FilterOracle::FilterOracle(
     const blockchain::Type chain,
     const std::string& shutdown) noexcept
     : internal::FilterOracle()
-    , Executor(api)
+    , Worker(api, std::chrono::milliseconds{100})
     , network_(network)
     , header_(header)
     , database_(database)
@@ -95,7 +95,10 @@ FilterOracle::FilterOracle(
 
     OT_ASSERT(zmq);
 
-    init_executor({shutdown, api.Endpoints().BlockchainReorg()});
+    init_executor(
+        {shutdown,
+         api.Endpoints().BlockchainReorg(),
+         api.Endpoints().BlockchainPeer()});
 }
 
 auto FilterOracle::AddFilter(zmq::Message& work) const noexcept -> void
@@ -130,13 +133,6 @@ auto FilterOracle::AddHeaders(zmq::Message& work) const noexcept -> void
     pipeline_->Push(work);
 }
 
-auto FilterOracle::CheckBlocks() const noexcept -> void
-{
-    if (false == running_.get()) { return; }
-
-    Trigger();
-}
-
 auto FilterOracle::check_blocks(
     const filter::Type type,
     const block::Height maxRequests,
@@ -147,7 +143,7 @@ auto FilterOracle::check_blocks(
     const auto [start, best] = headers.CommonParent(current);
 
     if (start == best) {
-        LogInsane(blockchain::internal::DisplayString(chain_))(
+        LogVerbose(blockchain::internal::DisplayString(chain_))(
             " filter chain is caught up to block header chain")
             .Flush();
         return;
@@ -195,7 +191,7 @@ void FilterOracle::check_filters(
     const auto [start, best] = headers.CommonParent(current);
 
     if (start == best) {
-        LogInsane(blockchain::internal::DisplayString(chain_))(
+        LogVerbose(blockchain::internal::DisplayString(chain_))(
             " filter chain is caught up to block header chain")
             .Flush();
         return;
@@ -245,14 +241,14 @@ void FilterOracle::check_headers(
         headers.CommonParent(database_.FilterHeaderTip(type));
 
     if (start == best) {
-        LogInsane(blockchain::internal::DisplayString(chain_))(
+        LogVerbose(blockchain::internal::DisplayString(chain_))(
             " filter header chain is caught up to block header chain")
             .Flush();
-        repeat = false;
 
         return;
     }
 
+    repeat = true;
     const auto begin{start.first + static_cast<block::Height>(1)};
     const auto target{begin + maxRequests - static_cast<block::Height>(1)};
     const auto stopHeight = std::min(target, best.first);
@@ -337,7 +333,7 @@ auto FilterOracle::flush_filters() noexcept -> void
 
     if (false == database_.StoreFilters(type, std::move(filters))) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Database error").Flush();
-        Trigger();
+        trigger();
 
         return;
     }
@@ -391,11 +387,10 @@ auto FilterOracle::pipeline(const zmq::Message& in) noexcept -> void
         case Work::reorg: {
             process_reorg(in);
         } break;
+        case Work::peer:
+        case Work::block:
         case Work::statemachine: {
-            try {
-                state_machine_.set_value(request());
-            } catch (...) {
-            }
+            do_work();
         } break;
         case Work::shutdown: {
             shutdown(shutdown_promise_);
@@ -630,7 +625,7 @@ auto FilterOracle::process_cfilter(const zmq::Message& in) noexcept -> void
             .Flush();
     }
 
-    Trigger();
+    trigger();
 }
 
 auto FilterOracle::process_reorg(const zmq::Message& in) noexcept -> void
@@ -664,25 +659,7 @@ auto FilterOracle::process_reorg(const block::Position& parent) noexcept -> void
         " filter chain tips reset to reorg parent ")(parent.second->asHex())(
         " at height ")(parent.first)
         .Flush();
-    request();
-}
-
-auto FilterOracle::request() noexcept -> bool
-{
-    auto repeat{true};
-    auto rateLimit = ScopeGuard{[&]() {
-        if (repeat) { Sleep(std::chrono::milliseconds(10)); }
-    }};
-
-    if (full_mode_) {
-        block_requests_.Run(repeat);
-        check_blocks(default_type_, max_block_requests_, repeat);
-    } else {
-        check_headers(default_type_, 2000, repeat);
-        check_filters(default_type_, 1000, repeat);
-    }
-
-    return repeat;
+    state_machine();
 }
 
 auto FilterOracle::reset_tips_to(const block::Position position) noexcept
@@ -709,11 +686,12 @@ auto FilterOracle::reset_tips_to(const block::Position position) noexcept
 
 auto FilterOracle::shutdown(std::promise<void>& promise) noexcept -> void
 {
+    init_.get();
+
     if (running_->Off()) {
-        try {
-            state_machine_.set_value(false);
-        } catch (...) {
-        }
+        header_requests_.Reset();
+        outstanding_filters_.Reset();
+        block_requests_.Reset();
 
         try {
             promise.set_value();
@@ -722,11 +700,29 @@ auto FilterOracle::shutdown(std::promise<void>& promise) noexcept -> void
     }
 }
 
+auto FilterOracle::state_machine() noexcept -> bool
+{
+    LogTrace(OT_METHOD)(__FUNCTION__).Flush();
+
+    if (false == running_.get()) { return false; }
+
+    auto repeat{false};
+
+    if (full_mode_) {
+        block_requests_.Run(repeat);
+        check_blocks(default_type_, max_block_requests_, repeat);
+    } else {
+        check_headers(default_type_, 2000, repeat);
+        check_filters(default_type_, 1000, repeat);
+    }
+
+    return repeat;
+}
+
 auto FilterOracle::Start() noexcept -> void
 {
     compare_tips_to_header_chain();
     compare_tips_to_checkpoint();
-    Trigger();
     init_promise_.set_value();
 }
 

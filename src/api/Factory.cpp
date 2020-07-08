@@ -22,6 +22,7 @@
 #include "internal/blockchain/block/bitcoin/Bitcoin.hpp"
 #include "internal/blockchain/p2p/P2P.hpp"
 #endif  // OT_BLOCKCHAIN
+#include "internal/network/zeromq/socket/Socket.hpp"
 #include "opentxs/Forward.hpp"
 #include "opentxs/OT.hpp"  // TODO remove
 #include "opentxs/Pimpl.hpp"
@@ -1879,8 +1880,7 @@ auto Factory::Pipeline(
     std::function<void(opentxs::network::zeromq::Message&)> callback) const
     -> OTZMQPipeline
 {
-    return OTZMQPipeline{
-        opentxs::Factory::Pipeline(api_, api_.ZeroMQ(), callback)};
+    return OTZMQPipeline{factory::Pipeline(api_, api_.ZeroMQ(), callback)};
 }
 
 #if OT_CASH

@@ -7,6 +7,7 @@
 
 #include <boost/asio.hpp>
 #include <boost/asio/ip/tcp.hpp>
+#include <boost/container/flat_set.hpp>
 #include <atomic>
 #include <cstdint>
 #include <future>
@@ -17,7 +18,7 @@
 #include <vector>
 
 #include "1_Internal.hpp"
-#include "core/Executor.hpp"
+#include "core/Worker.hpp"
 #include "internal/blockchain/client/Client.hpp"
 #include "opentxs/Forward.hpp"
 #include "opentxs/Types.hpp"
@@ -74,7 +75,6 @@ class Context;
 }  // namespace zeromq
 }  // namespace network
 
-class Factory;
 class Flag;
 }  // namespace opentxs
 
@@ -83,7 +83,7 @@ namespace zmq = opentxs::network::zeromq;
 namespace opentxs::blockchain::client::implementation
 {
 class PeerManager final : virtual public internal::PeerManager,
-                          public Executor<PeerManager>
+                          public Worker<PeerManager>
 {
 public:
     static const std::map<Type, std::uint16_t> default_port_map_;
@@ -120,11 +120,10 @@ public:
     auto RequestHeaders() const noexcept -> bool final;
     auto Shutdown() noexcept -> std::shared_future<void> final
     {
-        return stop_executor();
+        return stop_worker();
     }
 
     auto init() noexcept -> void final;
-    auto Run() noexcept -> void final { Trigger(); }
 
     PeerManager(
         const api::client::Manager& api,
@@ -138,8 +137,7 @@ public:
     ~PeerManager() final;
 
 private:
-    friend opentxs::Factory;
-    friend Executor<PeerManager>;
+    friend Worker<PeerManager>;
 
     struct Jobs {
         auto Endpoint(const Task type) const noexcept -> std::string;
@@ -179,7 +177,7 @@ private:
             const p2p::Address& address,
             std::promise<bool>& promise) noexcept -> void;
         auto Disconnect(const int id) noexcept -> void;
-        auto Run(std::promise<bool>& promise) noexcept -> void;
+        auto Run() noexcept -> bool;
         auto Shutdown() noexcept -> void;
 
         Peers(
@@ -197,6 +195,7 @@ private:
         using Endpoint = std::unique_ptr<p2p::internal::Address>;
         using Peer = std::unique_ptr<p2p::internal::Peer>;
         using Resolver = boost::asio::ip::tcp::resolver;
+        using Addresses = boost::container::flat_set<OTIdentifier>;
 
         const api::client::Manager& api_;
         const internal::Network& network_;
@@ -215,6 +214,7 @@ private:
         std::map<int, Peer> peers_;
         std::map<OTIdentifier, int> active_;
         std::atomic<std::size_t> count_;
+        Addresses connected_;
 
         static auto set_default_peer(
             const std::string node,
@@ -228,6 +228,8 @@ private:
         auto get_peer() const noexcept -> Endpoint;
         auto get_preferred_peer(const p2p::Protocol protocol) const noexcept
             -> Endpoint;
+        auto is_not_connected(const p2p::Address& endpoint) const noexcept
+            -> bool;
 
         auto add_peer(Endpoint endpoint) noexcept -> void;
         auto peer_factory(Endpoint endpoint, const int id) noexcept
@@ -247,10 +249,13 @@ private:
     const internal::IO& io_context_;
     mutable Jobs jobs_;
     mutable Peers peers_;
+    std::promise<void> init_promise_;
+    std::shared_future<void> init_;
     int heartbeat_task_;
 
     auto pipeline(zmq::Message& message) noexcept -> void;
     auto shutdown(std::promise<void>& promise) noexcept -> void;
+    auto state_machine() noexcept -> bool;
 
     PeerManager() = delete;
     PeerManager(const PeerManager&) = delete;

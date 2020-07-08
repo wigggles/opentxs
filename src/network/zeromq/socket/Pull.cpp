@@ -7,7 +7,7 @@
 #include "1_Internal.hpp"                  // IWYU pragma: associated
 #include "network/zeromq/socket/Pull.hpp"  // IWYU pragma: associated
 
-#include "2_Factory.hpp"
+#include "internal/network/zeromq/socket/Socket.hpp"
 #include "network/zeromq/curve/Server.hpp"
 #include "network/zeromq/socket/Receiver.tpp"
 #include "network/zeromq/socket/Socket.hpp"
@@ -15,33 +15,15 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 
-namespace opentxs
-{
-namespace network
-{
-namespace zeromq
-{
-namespace socket
-{
-class Pull;
-}  // namespace socket
-
-class Context;
-class Message;
-}  // namespace zeromq
-}  // namespace network
-}  // namespace opentxs
-
 template class opentxs::Pimpl<opentxs::network::zeromq::socket::Pull>;
 
 //#define OT_METHOD
 //"opentxs::network::zeromq::socket::implementation::Pull::"
 
-namespace opentxs
+namespace opentxs::factory
 {
-auto Factory::PullSocket(
-    const network::zeromq::Context& context,
-    const bool direction) -> network::zeromq::socket::Pull*
+auto PullSocket(const network::zeromq::Context& context, const bool direction)
+    -> network::zeromq::socket::Pull*
 {
     using ReturnType = network::zeromq::socket::implementation::Pull;
 
@@ -50,7 +32,7 @@ auto Factory::PullSocket(
         static_cast<network::zeromq::socket::Socket::Direction>(direction));
 }
 
-auto Factory::PullSocket(
+auto PullSocket(
     const network::zeromq::Context& context,
     const bool direction,
     const network::zeromq::ListenCallback& callback)
@@ -63,7 +45,7 @@ auto Factory::PullSocket(
         static_cast<network::zeromq::socket::Socket::Direction>(direction),
         callback);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::network::zeromq::socket::implementation
 {

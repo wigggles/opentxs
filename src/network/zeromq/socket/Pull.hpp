@@ -34,8 +34,6 @@ class ListenCallback;
 class Message;
 }  // namespace zeromq
 }  // namespace network
-
-class Factory;
 }  // namespace opentxs
 
 namespace opentxs::network::zeromq::socket::implementation
@@ -44,18 +42,6 @@ class Pull final : public Receiver<zeromq::socket::Pull>,
                    public zeromq::curve::implementation::Server
 {
 public:
-    ~Pull() final;
-
-private:
-    friend opentxs::Factory;
-
-    const ListenCallback& callback_;
-
-    auto clone() const noexcept -> Pull* final;
-    auto have_callback() const noexcept -> bool final;
-
-    void process_incoming(const Lock& lock, Message& message) noexcept final;
-
     Pull(
         const zeromq::Context& context,
         const Socket::Direction direction,
@@ -68,6 +54,17 @@ private:
     Pull(
         const zeromq::Context& context,
         const Socket::Direction direction) noexcept;
+
+    ~Pull() final;
+
+private:
+    const ListenCallback& callback_;
+
+    auto clone() const noexcept -> Pull* final;
+    auto have_callback() const noexcept -> bool final;
+
+    void process_incoming(const Lock& lock, Message& message) noexcept final;
+
     Pull() = delete;
     Pull(const Pull&) = delete;
     Pull(Pull&&) = delete;

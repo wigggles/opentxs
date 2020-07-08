@@ -30,8 +30,6 @@ class ListenCallback;
 class Message;
 }  // namespace zeromq
 }  // namespace network
-
-class Factory;
 }  // namespace opentxs
 
 namespace opentxs::network::zeromq::socket::implementation
@@ -42,18 +40,16 @@ class Subscribe : public Receiver<zeromq::socket::Subscribe>,
 public:
     auto SetSocksProxy(const std::string& proxy) const noexcept -> bool final;
 
+    Subscribe(
+        const zeromq::Context& context,
+        const zeromq::ListenCallback& callback) noexcept;
+
     ~Subscribe() override;
 
 protected:
     const ListenCallback& callback_;
 
-    Subscribe(
-        const zeromq::Context& context,
-        const zeromq::ListenCallback& callback) noexcept;
-
 private:
-    friend opentxs::Factory;
-
     auto clone() const noexcept -> Subscribe* override;
     auto have_callback() const noexcept -> bool final;
 

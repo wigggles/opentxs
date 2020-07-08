@@ -36,6 +36,7 @@ class Endpoints final : public opentxs::api::Endpoints
 public:
     auto AccountUpdate() const noexcept -> std::string final;
     auto BlockchainBalance() const noexcept -> std::string final;
+    auto BlockchainPeer() const noexcept -> std::string final;
     auto BlockchainReorg() const noexcept -> std::string final;
     auto BlockchainTransactions() const noexcept -> std::string final;
     auto BlockchainTransactions(const identifier::Nym& nym) const noexcept

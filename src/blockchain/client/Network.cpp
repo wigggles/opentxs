@@ -45,7 +45,7 @@ Network::Network(
     const Type type,
     const std::string& seednode,
     const std::string& shutdown) noexcept
-    : Executor(api)
+    : Worker(api, std::chrono::milliseconds(100))
     , shutdown_sender_(api.ZeroMQ(), shutdown_endpoint())
     , database_p_(factory::BlockchainDatabase(
           api,
@@ -93,7 +93,8 @@ Network::Network(
     , local_chain_height_(0)
     , remote_chain_height_(0)
     , processing_headers_(Flag::Factory(false))
-    , task_id_(-1)
+    , init_promise_()
+    , init_(init_promise_.get_future())
 {
     OT_ASSERT(database_p_);
     OT_ASSERT(filter_p_);
@@ -202,8 +203,8 @@ auto Network::init() noexcept -> void
     block_.Init();
     filters_.Start();
     wallet_.Init();
-    task_id_ = api_.Schedule(std::chrono::seconds(30), [this]() { Trigger(); });
-    Trigger();
+    init_promise_.set_value();
+    trigger();
 }
 
 auto Network::pipeline(zmq::Message& in) noexcept -> void
@@ -215,9 +216,6 @@ auto Network::pipeline(zmq::Message& in) noexcept -> void
     OT_ASSERT(0 < header.size());
 
     switch (header.at(0).as<Task>()) {
-        case Task::SubmitBlockHeader: {
-            process_header(in);
-        } break;
         case Task::SubmitFilterHeader: {
             process_cfheader(in);
         } break;
@@ -227,8 +225,12 @@ auto Network::pipeline(zmq::Message& in) noexcept -> void
         case Task::SubmitBlock: {
             process_block(in);
         } break;
+        case Task::SubmitBlockHeader: {
+            process_header(in);
+            [[fallthrough]];
+        }
         case Task::StateMachine: {
-            process_state_machine();
+            do_work();
         } break;
         case Task::Shutdown: {
             shutdown(shutdown_promise_);
@@ -314,28 +316,6 @@ auto Network::process_header(network::zeromq::Message& in) noexcept -> void
 
     processing_headers_->Off();
     promise.set_value();
-    Trigger();
-}
-
-auto Network::process_state_machine() noexcept -> void
-{
-    static const auto rateLimit = std::chrono::milliseconds{20};
-
-    filters_.CheckBlocks();
-    peer_.Run();
-    wallet_.Run();
-
-    try {
-        if (IsSynchronized()) {
-            state_machine_.set_value(false);
-        } else {
-            if (false == processing_headers_.get()) { peer_.RequestHeaders(); }
-
-            Sleep(rateLimit);
-            state_machine_.set_value(true);
-        }
-    } catch (...) {
-    }
 }
 
 auto Network::RequestBlock(const block::Hash& block) const noexcept -> bool
@@ -415,13 +395,9 @@ auto Network::SendToAddress(
 
 auto Network::shutdown(std::promise<void>& promise) noexcept -> void
 {
-    if (running_->Off()) {
-        try {
-            state_machine_.set_value(false);
-        } catch (...) {
-        }
+    init_.get();
 
-        api_.Cancel(task_id_);
+    if (running_->Off()) {
         shutdown_sender_.Activate();
         wallet_.Shutdown().get();
         block_.Shutdown().get();
@@ -441,6 +417,24 @@ auto Network::shutdown_endpoint() noexcept -> std::string
     return std::string{"inproc://"} + Identifier::Random()->str();
 }
 
+auto Network::state_machine() noexcept -> bool
+{
+    LogTrace(OT_METHOD)(__FUNCTION__).Flush();
+
+    if (false == running_.get()) { return false; }
+
+    if (IsSynchronized()) {
+
+        return false;
+    } else if (false == processing_headers_.get()) {
+        peer_.RequestHeaders();
+
+        return true;
+    }
+
+    return false;
+}
+
 auto Network::Submit(network::zeromq::Message& work) const noexcept -> void
 {
     if (false == running_.get()) { return; }
@@ -453,7 +447,7 @@ auto Network::UpdateHeight(const block::Height height) const noexcept -> void
     if (false == running_.get()) { return; }
 
     remote_chain_height_.store(std::max(height, remote_chain_height_.load()));
-    Trigger();
+    trigger();
 }
 
 auto Network::UpdateLocalHeight(const block::Position position) const noexcept
@@ -467,7 +461,7 @@ auto Network::UpdateLocalHeight(const block::Position position) const noexcept
         height)
         .Flush();
     local_chain_height_.store(height);
-    Trigger();
+    trigger();
 }
 
 auto Network::Work(const Task type) const noexcept -> OTZMQMessage

@@ -9,7 +9,7 @@
 
 #include <memory>
 
-#include "core/Executor.hpp"
+#include "core/Worker.hpp"
 #include "internal/blockchain/client/Client.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/blockchain/client/BlockOracle.hpp"
@@ -58,7 +58,7 @@ BlockOracle::BlockOracle(
     const internal::BlockDatabase& db,
     const blockchain::Type chain,
     const std::string& shutdown) noexcept
-    : Executor(api)
+    : Worker(api, std::chrono::milliseconds{25})
     , network_(network)
     , init_promise_()
     , init_(init_promise_.get_future())
@@ -67,17 +67,13 @@ BlockOracle::BlockOracle(
     init_executor({shutdown});
 }
 
-auto BlockOracle::Init() noexcept -> void
-{
-    init_promise_.set_value();
-    Trigger();
-}
+auto BlockOracle::Init() noexcept -> void { init_promise_.set_value(); }
 
 auto BlockOracle::LoadBitcoin(const block::Hash& block) const noexcept
     -> BitcoinBlockFuture
 {
     auto output = cache_.Request(block);
-    Trigger();
+    trigger();
 
     return output;
 }
@@ -106,9 +102,10 @@ auto BlockOracle::pipeline(const zmq::Message& in) noexcept -> void
             }
 
             cache_.ReceiveBlock(body.at(0));
-        } break;
+            [[fallthrough]];
+        }
         case Task::StateMachine: {
-            state_machine();
+            do_work();
         } break;
         case Task::Shutdown: {
             shutdown(shutdown_promise_);
@@ -126,11 +123,6 @@ auto BlockOracle::shutdown(std::promise<void>& promise) noexcept -> void
     init_.get();
 
     if (running_->Off()) {
-        try {
-            state_machine_.set_value(false);
-        } catch (...) {
-        }
-
         cache_.Shutdown();
 
         try {
@@ -140,19 +132,13 @@ auto BlockOracle::shutdown(std::promise<void>& promise) noexcept -> void
     }
 }
 
-auto BlockOracle::state_machine() noexcept -> void
+auto BlockOracle::state_machine() noexcept -> bool
 {
-    static const auto rateLimit = std::chrono::milliseconds{10};
+    LogTrace(OT_METHOD)(__FUNCTION__).Flush();
 
-    auto repeat = cache_.StateMachine();
-    Sleep(rateLimit);
+    if (false == running_.get()) { return false; }
 
-    if (repeat) { Sleep(rateLimit); }
-
-    try {
-        state_machine_.set_value(repeat);
-    } catch (...) {
-    }
+    return cache_.StateMachine();
 }
 
 auto BlockOracle::SubmitBlock(const zmq::Frame& in) const noexcept -> void

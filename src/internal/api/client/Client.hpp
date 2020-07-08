@@ -143,6 +143,8 @@ struct Blockchain : virtual public api::client::Blockchain {
 #if OT_BLOCKCHAIN
     virtual auto IO() const noexcept
         -> const opentxs::blockchain::client::internal::IO& = 0;
+    virtual auto KeyEndpoint() const noexcept -> const std::string& = 0;
+    virtual auto KeyGenerated(const Chain chain) const noexcept -> void = 0;
 #endif  // OT_BLOCKCHAIN
     virtual auto PubkeyHash(
         const opentxs::blockchain::Type chain,
@@ -158,6 +160,11 @@ struct Blockchain : virtual public api::client::Blockchain {
 #endif  // OT_BLOCKCHAIN
     virtual auto UpdateElement(
         std::vector<ReadView>& pubkeyHashes) const noexcept -> void = 0;
+#if OT_BLOCKCHAIN
+    virtual auto UpdatePeer(
+        const opentxs::blockchain::Type chain,
+        const std::string& address) const noexcept -> void = 0;
+#endif  // OT_BLOCKCHAIN
 
     virtual ~Blockchain() = default;
 };

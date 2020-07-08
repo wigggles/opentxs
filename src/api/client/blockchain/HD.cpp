@@ -326,6 +326,10 @@ auto HD::generate_next(
 
     if (false == added) { throw std::runtime_error("Failed to add key"); }
 
+#if OT_BLOCKCHAIN
+    parent_.Parent().Parent().KeyGenerated(chain_);
+#endif  // OT_BLOCKCHAIN
+
     return index++;
 }
 #endif  // OT_CRYPTO_WITH_BIP32

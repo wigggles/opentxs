@@ -9,8 +9,8 @@
 
 #include <memory>
 
-#include "2_Factory.hpp"
 #include "internal/api/Api.hpp"
+#include "internal/network/zeromq/socket/Socket.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
@@ -21,25 +21,14 @@
 #include "opentxs/network/zeromq/socket/Socket.hpp"
 #include "opentxs/network/zeromq/socket/Subscribe.hpp"
 
-namespace opentxs
-{
-namespace network
-{
-namespace zeromq
-{
-class Message;
-}  // namespace zeromq
-}  // namespace network
-}  // namespace opentxs
-
 template class opentxs::Pimpl<opentxs::network::zeromq::Pipeline>;
 
 //#define OT_METHOD
 //"opentxs::network::zeromq::socket::implementation::Pipeline::"
 
-namespace opentxs
+namespace opentxs::factory
 {
-auto Factory::Pipeline(
+auto Pipeline(
     const api::internal::Core& api,
     const network::zeromq::Context& context,
     std::function<void(network::zeromq::Message&)> callback)
@@ -48,7 +37,7 @@ auto Factory::Pipeline(
     return new opentxs::network::zeromq::socket::implementation::Pipeline(
         api, context, callback);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::network::zeromq::socket::implementation
 {
