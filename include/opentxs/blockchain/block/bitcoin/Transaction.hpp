@@ -57,9 +57,12 @@ public:
     using Matches = block::Block::Matches;
     using SerializeType = proto::BlockchainTransaction;
 
-    OPENTXS_EXPORT virtual auto AssociatedLocalNyms() const noexcept
+    OPENTXS_EXPORT virtual auto AssociatedLocalNyms(
+        const api::client::Blockchain& blockchain) const noexcept
         -> std::vector<OTNymID> = 0;
     OPENTXS_EXPORT virtual auto AssociatedRemoteContacts(
+        const api::client::Blockchain& blockchain,
+        const api::client::Contacts& contacts,
         const identifier::Nym& nym) const noexcept
         -> std::vector<OTIdentifier> = 0;
     OPENTXS_EXPORT virtual auto CalculateSize() const noexcept
@@ -69,6 +72,7 @@ public:
     OPENTXS_EXPORT virtual auto ExtractElements(
         const filter::Type style) const noexcept -> std::vector<Space> = 0;
     OPENTXS_EXPORT virtual auto FindMatches(
+        const api::client::Blockchain& blockchain,
         const FilterType type,
         const Patterns& txos,
         const Patterns& elements) const noexcept -> Matches = 0;
@@ -80,15 +84,18 @@ public:
     OPENTXS_EXPORT virtual auto Inputs() const noexcept
         -> const bitcoin::Inputs& = 0;
     OPENTXS_EXPORT virtual auto Locktime() const noexcept -> std::uint32_t = 0;
-    OPENTXS_EXPORT virtual auto Memo() const noexcept -> std::string = 0;
+    OPENTXS_EXPORT virtual auto Memo(const api::client::Blockchain& blockchain)
+        const noexcept -> std::string = 0;
     OPENTXS_EXPORT virtual auto NetBalanceChange(
+        const api::client::Blockchain& blockchain,
         const identifier::Nym& nym) const noexcept -> opentxs::Amount = 0;
     OPENTXS_EXPORT virtual auto Outputs() const noexcept
         -> const bitcoin::Outputs& = 0;
     OPENTXS_EXPORT virtual auto SegwitFlag() const noexcept -> std::byte = 0;
     OPENTXS_EXPORT virtual auto Serialize(const AllocateOutput destination)
         const noexcept -> std::optional<std::size_t> = 0;
-    OPENTXS_EXPORT virtual auto Serialize() const noexcept
+    OPENTXS_EXPORT virtual auto Serialize(
+        const api::client::Blockchain& blockchain) const noexcept
         -> std::optional<SerializeType> = 0;
     OPENTXS_EXPORT virtual auto Timestamp() const noexcept -> Time = 0;
     OPENTXS_EXPORT virtual auto Version() const noexcept -> std::int32_t = 0;

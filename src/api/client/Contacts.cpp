@@ -15,11 +15,11 @@
 #include <vector>
 
 #include "internal/api/client/Client.hpp"
+#include "internal/api/client/Factory.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
-#include "opentxs/api/client/Blockchain.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/contact/Contact.hpp"
 #include "opentxs/contact/ContactData.hpp"
@@ -38,10 +38,12 @@
 
 namespace opentxs::factory
 {
-auto ContactAPI(const api::client::internal::Manager& api)
-    -> api::client::internal::Contacts*
+auto ContactAPI(const api::client::internal::Manager& api) noexcept
+    -> std::unique_ptr<api::client::internal::Contacts>
 {
-    return new opentxs::api::client::implementation::Contacts(api);
+    using ReturnType = opentxs::api::client::implementation::Contacts;
+
+    return std::make_unique<ReturnType>(api);
 }
 }  // namespace opentxs::factory
 
@@ -49,6 +51,9 @@ namespace opentxs::api::client::implementation
 {
 Contacts::Contacts(const api::client::internal::Manager& api)
     : api_(api)
+#if OT_BLOCKCHAIN
+    , blockchain_()
+#endif  // OT_BLOCKCHAIN
     , lock_()
     , contact_map_()
     , contact_name_map_(build_name_map(api.Storage()))
@@ -56,6 +61,10 @@ Contacts::Contacts(const api::client::internal::Manager& api)
 {
     // WARNING: do not access api_.Wallet() during construction
     publisher_->Start(api_.Endpoints().ContactUpdate());
+
+    // TODO update Storage to record contact ids that need to be updated
+    // in blockchain api in cases where the process was interrupted due to
+    // library shutdown
 }
 
 auto Contacts::add_contact(const rLock& lock, opentxs::Contact* contact) const
@@ -353,7 +362,15 @@ auto Contacts::Merge(const Identifier& parent, const Identifier& child) const
 
     contact_map_.erase(child);
 #if OT_BLOCKCHAIN
-    api_.Blockchain().ProcessMergedContact(lhs, rhs);
+    auto blockchain = blockchain_.lock();
+
+    if (blockchain) {
+        blockchain->ProcessMergedContact(lhs, rhs);
+    } else {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Warning: contact not updated in blockchain API")
+            .Flush();
+    }
 #endif  // OT_BLOCKCHAIN
 
     return parentContact;
@@ -475,8 +492,16 @@ auto Contacts::NewContactFromAddress(
     const proto::ContactItemType currency) const
     -> std::shared_ptr<const opentxs::Contact>
 {
+    auto blockchain = blockchain_.lock();
+
+    if (false == bool(blockchain)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": shutting down ").Flush();
+
+        return {};
+    }
+
     rLock lock(lock_);
-    const auto existing = api_.Blockchain().LookupContacts(address);
+    const auto existing = blockchain->LookupContacts(address);
 
     switch (existing.size()) {
         case 0: {
@@ -515,7 +540,7 @@ auto Contacts::NewContactFromAddress(
         OT_FAIL;
     }
 
-    api_.Blockchain().ProcessContact(contact);
+    blockchain->ProcessContact(contact);
 
     return newContact;
 }
@@ -602,7 +627,15 @@ void Contacts::save(opentxs::Contact* contact) const
     rLock lock(lock_);
     refresh_indices(lock, *contact);
 #if OT_BLOCKCHAIN
-    api_.Blockchain().ProcessContact(*contact);
+    auto blockchain = blockchain_.lock();
+
+    if (blockchain) {
+        blockchain->ProcessContact(*contact);
+    } else {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Warning: contact not updated in blockchain API")
+            .Flush();
+    }
 #endif  // OT_BLOCKCHAIN
 }
 
@@ -772,7 +805,15 @@ void Contacts::update_nym_map(
     }
 
 #if OT_BLOCKCHAIN
-    api_.Blockchain().ProcessContact(contact);
+    auto blockchain = blockchain_.lock();
+
+    if (blockchain) {
+        blockchain->ProcessContact(contact);
+    } else {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Warning: contact not updated in blockchain API")
+            .Flush();
+    }
 #endif  // OT_BLOCKCHAIN
 }
 

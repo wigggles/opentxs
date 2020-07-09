@@ -30,7 +30,7 @@ struct Header : virtual public bitcoin::Header {
 namespace opentxs::factory
 {
 OPENTXS_EXPORT auto GenesisBlockHeader(
-    const api::client::Manager& api,
+    const api::Core& api,
     const blockchain::Type type) noexcept
     -> std::unique_ptr<blockchain::block::Header>;
 }  // namespace opentxs::factory

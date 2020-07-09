@@ -11,6 +11,7 @@
 #include "internal/blockchain/block/bitcoin/Bitcoin.hpp"
 #include "internal/blockchain/client/Client.hpp"
 #include "opentxs/Proto.tpp"
+#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/blockchain/block/Header.hpp"
 #include "opentxs/protobuf/BlockchainBlockHeader.pb.h"  // IWYU pragma: keep
 

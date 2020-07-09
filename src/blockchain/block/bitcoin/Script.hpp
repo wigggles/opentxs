@@ -25,6 +25,7 @@ namespace api
 {
 namespace client
 {
+class Blockchain;
 class Manager;
 }  // namespace client
 
@@ -64,9 +65,11 @@ public:
     auto end() const noexcept -> const_iterator final { return cend(); }
     auto ExtractElements(const filter::Type style) const noexcept
         -> std::vector<Space> final;
-    auto ExtractPatterns(const api::client::Manager& api) const noexcept
+    auto ExtractPatterns(
+        const api::Core& api,
+        const api::client::Blockchain& blockchain) const noexcept
         -> std::vector<PatternID> final;
-    auto LikelyPubkeyHashes(const api::client::Manager& api) const noexcept
+    auto LikelyPubkeyHashes(const api::Core& api) const noexcept
         -> std::vector<OTData> final;
     auto M() const noexcept -> std::optional<std::uint8_t> final;
     auto MultisigPubkey(const std::size_t position) const noexcept

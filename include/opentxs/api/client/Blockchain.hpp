@@ -135,11 +135,6 @@ public:
     OPENTXS_EXPORT virtual const identifier::Nym& Owner(
         const blockchain::Key& key) const noexcept = 0;
 #if OT_BLOCKCHAIN
-    OPENTXS_EXPORT virtual bool ProcessContact(
-        const Contact& contact) const noexcept = 0;
-    OPENTXS_EXPORT virtual bool ProcessMergedContact(
-        const Contact& parent,
-        const Contact& child) const noexcept = 0;
     OPENTXS_EXPORT virtual bool ProcessTransaction(
         const Chain chain,
         const Tx& transaction,

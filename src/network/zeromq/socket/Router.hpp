@@ -11,6 +11,7 @@
 #include <map>
 #include <ostream>
 #include <string>
+#include <vector>
 
 #include "network/zeromq/curve/Client.hpp"
 #include "network/zeromq/curve/Server.hpp"

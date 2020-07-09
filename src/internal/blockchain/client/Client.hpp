@@ -208,6 +208,7 @@ struct BlockOracle : virtual public opentxs::blockchain::client::BlockOracle {
         Shutdown = OT_ZMQ_SHUTDOWN_SIGNAL,
     };
 
+    virtual auto Heartbeat() const noexcept -> void = 0;
     virtual auto SubmitBlock(const zmq::Frame& in) const noexcept -> void = 0;
 
     virtual auto Init() noexcept -> void = 0;
@@ -261,8 +262,15 @@ struct FilterOracle {
     virtual auto AddFilter(zmq::Message& work) const noexcept -> void = 0;
     virtual auto AddHeaders(zmq::Message& work) const noexcept -> void = 0;
     virtual auto DefaultType() const noexcept -> filter::Type = 0;
+    virtual auto FilterTip(const filter::Type type) const noexcept
+        -> block::Position = 0;
+    virtual auto Heartbeat() const noexcept -> void = 0;
     virtual auto LoadFilter(const filter::Type type, const block::Hash& block)
         const noexcept -> std::unique_ptr<const blockchain::internal::GCS> = 0;
+    virtual auto LoadFilterOrResetTip(
+        const filter::Type type,
+        const block::Position& position) const noexcept
+        -> std::unique_ptr<const blockchain::internal::GCS> = 0;
 
     virtual auto Start() noexcept -> void = 0;
     virtual auto Shutdown() noexcept -> std::shared_future<void> = 0;
@@ -365,6 +373,7 @@ struct Network : virtual public opentxs::blockchain::Network {
         SubmitFilterHeader = 1,
         SubmitFilter = 2,
         SubmitBlock = 3,
+        Heartbeat = 4,
         StateMachine = OT_ZMQ_STATE_MACHINE_SIGNAL,
         Shutdown = OT_ZMQ_SHUTDOWN_SIGNAL,
     };
@@ -384,6 +393,7 @@ struct Network : virtual public opentxs::blockchain::Network {
         -> const internal::FilterOracle& = 0;
     virtual auto HeaderOracle() const noexcept
         -> const internal::HeaderOracle& = 0;
+    virtual auto Heartbeat() const noexcept -> void = 0;
     virtual auto IsSynchronized() const noexcept -> bool = 0;
     virtual auto Reorg() const noexcept
         -> const network::zeromq::socket::Publish& = 0;
@@ -455,6 +465,7 @@ struct PeerManager {
     virtual auto Disconnect(const int id) const noexcept -> void = 0;
     virtual auto Endpoint(const Task type) const noexcept -> std::string = 0;
     virtual auto GetPeerCount() const noexcept -> std::size_t = 0;
+    virtual auto Heartbeat() const noexcept -> void = 0;
     virtual auto RequestBlock(const block::Hash& block) const noexcept
         -> bool = 0;
     virtual auto RequestFilterHeaders(

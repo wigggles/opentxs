@@ -14,6 +14,7 @@
 #include "internal/blockchain/block/bitcoin/Bitcoin.hpp"
 #include "internal/blockchain/client/Client.hpp"
 #include "opentxs/Pimpl.hpp"
+#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/blockchain/block/bitcoin/Block.hpp"
 #include "opentxs/blockchain/client/BlockOracle.hpp"
 #include "opentxs/core/Log.hpp"
@@ -51,7 +52,8 @@ auto BlockOracle::Cache::download(const block::Hash& block) const noexcept
 auto BlockOracle::Cache::ReceiveBlock(const zmq::Frame& in) const noexcept
     -> void
 {
-    auto pBlock = factory::BitcoinBlock(network_.API(), chain_, in.Bytes());
+    auto pBlock = factory::BitcoinBlock(
+        network_.API(), network_.API().Blockchain(), chain_, in.Bytes());
 
     if (false == bool(pBlock)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid block").Flush();

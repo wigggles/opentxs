@@ -153,7 +153,13 @@ auto Wallet::Proposals::BitcoinTransactionBuilder::AddChange() noexcept -> bool
     }
 
     auto pOutput = factory::BitcoinTransactionOutput(
-        api_, chain_, outputs_.size(), 0, std::move(pScript), {keyID});
+        api_,
+        api_.Blockchain(),
+        chain_,
+        outputs_.size(),
+        0,
+        std::move(pScript),
+        {keyID});
 
     if (false == bool(pOutput)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to construct output")
@@ -173,7 +179,8 @@ auto Wallet::Proposals::BitcoinTransactionBuilder::AddChange() noexcept -> bool
 auto Wallet::Proposals::BitcoinTransactionBuilder::AddInput(
     const UTXO& utxo) noexcept -> bool
 {
-    auto pInput = factory::BitcoinTransactionInput(api_, chain_, utxo);
+    auto pInput =
+        factory::BitcoinTransactionInput(api_, api_.Blockchain(), chain_, utxo);
 
     if (false == bool(pInput)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to construct input")
@@ -290,6 +297,7 @@ auto Wallet::Proposals::BitcoinTransactionBuilder::CreateOutputs(
 
         auto pOutput = factory::BitcoinTransactionOutput(
             api_,
+            api_.Blockchain(),
             chain_,
             static_cast<std::uint32_t>(++index),
             static_cast<std::int64_t>(output.amount()),
@@ -369,6 +377,7 @@ auto Wallet::Proposals::BitcoinTransactionBuilder::
 
     return factory::BitcoinTransaction(
         api_,
+        api_.Blockchain(),
         chain_,
         Clock::now(),
         version_,
@@ -521,6 +530,7 @@ auto Wallet::Proposals::BitcoinTransactionBuilder::init_txcopy(
 
     txcopy = factory::BitcoinTransaction(
         api_,
+        api_.Blockchain(),
         chain_,
         Clock::now(),
         version_,

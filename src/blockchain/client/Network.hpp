@@ -88,28 +88,32 @@ namespace opentxs::blockchain::client::implementation
 class Network : virtual public internal::Network, public Worker<Network>
 {
 public:
+    auto API() const noexcept -> const api::client::Manager& final
+    {
+        return api_;
+    }
     auto AddPeer(const p2p::Address& address) const noexcept -> bool final;
+    auto BlockOracle() const noexcept -> const internal::BlockOracle& final
+    {
+        return *block_p_;
+    }
     auto Blockchain() const noexcept
         -> const api::client::internal::Blockchain& final
     {
         return blockchain_;
     }
-    auto BlockOracle() const noexcept -> const internal::BlockOracle& final
-    {
-        return *block_p_;
-    }
     auto BroadcastTransaction(
         const block::bitcoin::Transaction& tx) const noexcept -> bool final;
-    auto API() const noexcept -> const api::client::Manager& final
-    {
-        return api_;
-    }
     auto Chain() const noexcept -> Type final { return chain_; }
     auto DB() const noexcept -> blockchain::internal::Database& final
     {
         return *database_p_;
     }
     auto FeeRate() const noexcept -> Amount final;
+    auto FilterOracle() const noexcept -> const internal::FilterOracle& final
+    {
+        return *filter_p_;
+    }
     auto GetBalance() const noexcept -> Balance final
     {
         return database_.GetBalance();
@@ -122,13 +126,13 @@ public:
     }
     auto GetPeerCount() const noexcept -> std::size_t final;
     auto GetType() const noexcept -> Type final { return chain_; }
-    auto FilterOracle() const noexcept -> const internal::FilterOracle& final
-    {
-        return *filter_p_;
-    }
     auto HeaderOracle() const noexcept -> const internal::HeaderOracle& final
     {
         return header_;
+    }
+    auto Heartbeat() const noexcept -> void final
+    {
+        pipeline_->Push(MakeWork(Task::Heartbeat));
     }
     auto IsSynchronized() const noexcept -> bool final
     {
@@ -206,7 +210,10 @@ private:
     const api::client::internal::Blockchain& parent_;
     mutable std::atomic<block::Height> local_chain_height_;
     mutable std::atomic<block::Height> remote_chain_height_;
+    OTFlag waiting_for_headers_;
     OTFlag processing_headers_;
+    Time headers_requested_;
+    bool wallet_initialized_;
     std::promise<void> init_promise_;
     std::shared_future<void> init_;
 

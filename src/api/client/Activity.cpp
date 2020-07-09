@@ -19,6 +19,7 @@
 
 #include "internal/api/Api.hpp"
 #include "internal/api/client/Client.hpp"
+#include "internal/api/client/Factory.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/api/Endpoints.hpp"
@@ -60,9 +61,12 @@ namespace opentxs::factory
 {
 auto Activity(
     const api::internal::Core& api,
-    const api::client::Contacts& contact) -> api::client::internal::Activity*
+    const api::client::Contacts& contact) noexcept
+    -> std::unique_ptr<api::client::internal::Activity>
 {
-    return new api::client::implementation::Activity(api, contact);
+    using ReturnType = api::client::implementation::Activity;
+
+    return std::make_unique<ReturnType>(api, contact);
 }
 }  // namespace opentxs::factory
 
@@ -101,10 +105,12 @@ void Activity::activity_preload_thread(
 #if OT_BLOCKCHAIN
 auto Activity::add_blockchain_transaction(
     const eLock& lock,
+    const Blockchain& blockchain,
     const identifier::Nym& nym,
     const BlockchainTransaction& transaction) const noexcept -> bool
 {
-    const auto incoming = transaction.AssociatedRemoteContacts(nym);
+    const auto incoming =
+        transaction.AssociatedRemoteContacts(blockchain, contact_, nym);
     const auto existing =
         api_.Storage().BlockchainThreadMap(nym, transaction.ID());
     auto added = std::vector<OTIdentifier>{};
@@ -172,12 +178,13 @@ auto Activity::add_blockchain_transaction(
 }
 
 auto Activity::AddBlockchainTransaction(
+    const Blockchain& api,
     const BlockchainTransaction& transaction) const noexcept -> bool
 {
     eLock lock(shared_lock_);
 
-    for (const auto& nym : transaction.AssociatedLocalNyms()) {
-        if (false == add_blockchain_transaction(lock, nym, transaction)) {
+    for (const auto& nym : transaction.AssociatedLocalNyms(api)) {
+        if (false == add_blockchain_transaction(lock, api, nym, transaction)) {
             return false;
         }
     }

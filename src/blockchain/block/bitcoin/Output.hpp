@@ -30,9 +30,14 @@ namespace api
 {
 namespace client
 {
+class Blockchain;
 class Manager;
 }  // namespace client
+
+class Core;
 }  // namespace api
+
+class Core;
 }  // namespace opentxs
 
 namespace opentxs::blockchain::block::bitcoin::implementation
@@ -40,9 +45,11 @@ namespace opentxs::blockchain::block::bitcoin::implementation
 class Output final : public internal::Output
 {
 public:
-    auto AssociatedLocalNyms(std::vector<OTNymID>& output) const noexcept
-        -> void final;
+    auto AssociatedLocalNyms(
+        const api::client::Blockchain& blockchain,
+        std::vector<OTNymID>& output) const noexcept -> void final;
     auto AssociatedRemoteContacts(
+        const api::client::Blockchain& blockchain,
         std::vector<OTIdentifier>& output) const noexcept -> void final;
     auto CalculateSize() const noexcept -> std::size_t final;
     auto clone() const noexcept -> std::unique_ptr<internal::Output> final
@@ -52,23 +59,30 @@ public:
     auto ExtractElements(const filter::Type style) const noexcept
         -> std::vector<Space> final;
     auto FindMatches(
+        const api::client::Blockchain& blockchain,
         const ReadView txid,
         const FilterType type,
         const Patterns& patterns) const noexcept -> Matches final;
     auto GetPatterns() const noexcept -> std::vector<PatternID> final;
     auto Keys() const noexcept -> std::vector<KeyID> final;
-    auto NetBalanceChange(const identifier::Nym& nym) const noexcept
-        -> opentxs::Amount final;
-    auto Note() const noexcept -> std::string final;
-    auto Payee() const noexcept -> ContactID final;
-    auto Payer() const noexcept -> ContactID final;
+    auto NetBalanceChange(
+        const api::client::Blockchain& blockchain,
+        const identifier::Nym& nym) const noexcept -> opentxs::Amount final;
+    auto Note(const api::client::Blockchain& blockchain) const noexcept
+        -> std::string final;
+    auto Payee(const api::client::Blockchain& blockchain) const noexcept
+        -> ContactID final;
+    auto Payer(const api::client::Blockchain& blockchain) const noexcept
+        -> ContactID final;
     auto PrintScript() const noexcept -> std::string final
     {
         return script_->str();
     }
     auto Serialize(const AllocateOutput destination) const noexcept
         -> std::optional<std::size_t>;
-    auto Serialize(SerializeType& destination) const noexcept -> bool;
+    auto Serialize(
+        const api::client::Blockchain& blockchain,
+        SerializeType& destination) const noexcept -> bool;
     auto SigningSubscript() const noexcept
         -> std::unique_ptr<internal::Script> final
     {
@@ -95,7 +109,8 @@ public:
     }
 
     Output(
-        const api::client::Manager& api,
+        const api::Core& api,
+        const api::client::Blockchain& blockchain,
         const blockchain::Type chain,
         const std::uint32_t index,
         const std::int64_t value,
@@ -103,7 +118,8 @@ public:
         const ReadView script,
         const VersionNumber version = default_version_) noexcept(false);
     Output(
-        const api::client::Manager& api,
+        const api::Core& api,
+        const api::client::Blockchain& blockchain,
         const blockchain::Type chain,
         const std::uint32_t index,
         const std::int64_t value,
@@ -111,7 +127,8 @@ public:
         boost::container::flat_set<KeyID>&& keys,
         const VersionNumber version = default_version_) noexcept(false);
     Output(
-        const api::client::Manager& api,
+        const api::Core& api,
+        const api::client::Blockchain& blockchain,
         const blockchain::Type chain,
         const VersionNumber version,
         const std::uint32_t index,
@@ -130,7 +147,7 @@ private:
     static const VersionNumber default_version_;
     static const VersionNumber key_version_;
 
-    const api::client::Manager& api_;
+    const api::Core& api_;
     const blockchain::Type chain_;
     const VersionNumber serialize_version_;
     const std::uint32_t index_;
@@ -143,10 +160,13 @@ private:
     mutable OTIdentifier payer_;
     mutable boost::container::flat_set<KeyID> keys_;
 
-    auto set_payee() const noexcept -> void;
-    auto set_payer() const noexcept -> void;
+    auto set_payee(const api::client::Blockchain& blockchain) const noexcept
+        -> void;
+    auto set_payer(const api::client::Blockchain& blockchain) const noexcept
+        -> void;
 
-    auto index_elements() noexcept -> void;
+    auto index_elements(const api::client::Blockchain& blockchain) noexcept
+        -> void;
 
     Output() = delete;
     Output(Output&&) = delete;

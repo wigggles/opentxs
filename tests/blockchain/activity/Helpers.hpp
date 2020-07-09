@@ -188,6 +188,7 @@ struct Test_BlockchainActivity : public ::testing::Test {
     {
         auto output = ot::factory::BitcoinTransaction(
             api_,
+            api_.Blockchain(),
             ot::blockchain::Type::Bitcoin,
             false,
             time,
@@ -221,6 +222,7 @@ struct Test_BlockchainActivity : public ::testing::Test {
     {
         auto output = ot::factory::BitcoinTransaction(
             api_,
+            api_.Blockchain(),
             ot::blockchain::Type::Bitcoin,
             false,
             time,
@@ -238,15 +240,15 @@ struct Test_BlockchainActivity : public ::testing::Test {
 
         OT_ASSERT(added);
 
-        added = output->AssociatePreviousOutput(0, prevOut1);
+        added = output->AssociatePreviousOutput(api_.Blockchain(), 0, prevOut1);
 
         OT_ASSERT(added);
 
-        added = output->AssociatePreviousOutput(1, prevOut2);
+        added = output->AssociatePreviousOutput(api_.Blockchain(), 1, prevOut2);
 
         OT_ASSERT(added);
 
-        added = output->AssociatePreviousOutput(2, prevOut3);
+        added = output->AssociatePreviousOutput(api_.Blockchain(), 2, prevOut3);
 
         OT_ASSERT(added);
 

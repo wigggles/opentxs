@@ -9,6 +9,7 @@
 
 #include "2_Factory.hpp"
 #include "internal/api/client/Client.hpp"
+#include "internal/api/client/Factory.hpp"
 #if OT_BLOCKCHAIN
 #include "internal/blockchain/block/Block.hpp"
 #include "internal/blockchain/block/bitcoin/Bitcoin.hpp"
@@ -53,7 +54,7 @@ auto Factory::BitcoinBlock(
     const ReadView bytes) const noexcept
     -> std::shared_ptr<const opentxs::blockchain::block::bitcoin::Block>
 {
-    return factory::BitcoinBlock(client_, chain, bytes);
+    return factory::BitcoinBlock(client_, client_.Blockchain(), chain, bytes);
 }
 
 auto Factory::BlockHeader(const proto::BlockchainBlockHeader& serialized) const

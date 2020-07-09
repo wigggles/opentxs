@@ -12,7 +12,6 @@
 #include <chrono>
 #include <cstddef>
 #include <cstring>
-#include <functional>
 #include <stdexcept>
 #include <type_traits>
 

@@ -11,6 +11,7 @@
 #include <map>
 #include <ostream>
 #include <string>
+#include <vector>
 
 #include "network/zeromq/socket/Bidirectional.hpp"
 #include "network/zeromq/socket/Receiver.tpp"

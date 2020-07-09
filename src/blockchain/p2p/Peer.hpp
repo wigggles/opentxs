@@ -39,6 +39,14 @@
 #include "opentxs/network/zeromq/Pipeline.hpp"
 #include "opentxs/network/zeromq/socket/Dealer.hpp"
 
+namespace boost
+{
+namespace system
+{
+class error_code;
+}  // namespace system
+}  // namespace boost
+
 namespace opentxs
 {
 namespace api

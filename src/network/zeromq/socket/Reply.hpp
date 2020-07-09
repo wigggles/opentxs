@@ -10,6 +10,7 @@
 
 #include <map>
 #include <ostream>
+#include <vector>
 
 #include "network/zeromq/curve/Server.hpp"
 #include "network/zeromq/socket/Receiver.hpp"

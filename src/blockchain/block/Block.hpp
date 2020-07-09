@@ -17,6 +17,8 @@ namespace client
 {
 class Manager;
 }  // namespace client
+
+class Core;
 }  // namespace api
 }  // namespace opentxs
 
@@ -35,11 +37,9 @@ public:
     }
 
 protected:
-    const api::client::Manager& api_;
+    const api::Core& api_;
 
-    Block(
-        const api::client::Manager& api,
-        const block::Header& header) noexcept;
+    Block(const api::Core& api, const block::Header& header) noexcept;
 
 private:
     const block::Header& base_header_;

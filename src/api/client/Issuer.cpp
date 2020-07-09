@@ -14,7 +14,7 @@
 #include <ostream>
 #include <type_traits>
 
-#include "internal/api/client/Client.hpp"
+#include "internal/api/client/Factory.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/api/client/Issuer.hpp"

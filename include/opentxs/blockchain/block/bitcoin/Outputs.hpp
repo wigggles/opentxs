@@ -43,6 +43,7 @@ public:
     OPENTXS_EXPORT virtual auto ExtractElements(
         const filter::Type style) const noexcept -> std::vector<Space> = 0;
     OPENTXS_EXPORT virtual auto FindMatches(
+        const api::client::Blockchain& blockchain,
         const ReadView txid,
         const FilterType type,
         const Patterns& elements) const noexcept -> Matches = 0;
@@ -51,6 +52,7 @@ public:
     OPENTXS_EXPORT virtual auto Serialize(const AllocateOutput destination)
         const noexcept -> std::optional<std::size_t> = 0;
     OPENTXS_EXPORT virtual auto Serialize(
+        const api::client::Blockchain& blockchain,
         proto::BlockchainTransaction& destination) const noexcept -> bool = 0;
     OPENTXS_EXPORT virtual auto size() const noexcept -> std::size_t = 0;
 

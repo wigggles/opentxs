@@ -17,7 +17,7 @@
 #include "2_Factory.hpp"
 #include "Exclusive.tpp"
 #include "internal/api/Api.hpp"
-#include "internal/api/client/Client.hpp"
+#include "internal/api/client/Factory.hpp"
 #include "internal/core/Core.hpp"
 #include "internal/identity/Identity.hpp"
 #include "internal/otx/consensus/Consensus.hpp"

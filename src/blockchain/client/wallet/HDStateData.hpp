@@ -70,6 +70,7 @@ struct HDStateData {
     const internal::Network& network_;
     const internal::WalletDatabase& db_;
     const api::client::blockchain::HD& node_;
+    const SimpleCallback& task_finished_;
     const filter::Type filter_type_;
     const Subchain subchain_;
     std::atomic<bool> running_;
@@ -89,6 +90,7 @@ struct HDStateData {
         const internal::Network& network,
         const WalletDatabase& db,
         const api::client::blockchain::HD& node,
+        const SimpleCallback& taskFinished,
         const filter::Type filter,
         const Subchain subchain) noexcept;
 

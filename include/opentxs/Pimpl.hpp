@@ -66,6 +66,12 @@ public:
         assert(pimpl_);
     }
 
+    OPENTXS_EXPORT Pimpl(std::unique_ptr<C>&& rhs) noexcept
+        : pimpl_(std::move(rhs))
+    {
+        assert(pimpl_);
+    }
+
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wnull-dereference"
     OPENTXS_EXPORT Pimpl& operator=(const Pimpl& rhs) noexcept

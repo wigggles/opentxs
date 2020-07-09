@@ -138,7 +138,7 @@ auto BlockchainAccountActivity::load_thread() noexcept -> void
         if (false == contains(tx.Chains(), chain_)) { continue; }
 
         const auto sortKey{tx.Timestamp()};
-        balance_ += tx.NetBalanceChange(primary_id_);
+        balance_ += tx.NetBalanceChange(api_.Blockchain(), primary_id_);
         auto custom = CustomData{
             new proto::PaymentWorkflow(),
             new proto::PaymentEvent(),

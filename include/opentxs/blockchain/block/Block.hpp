@@ -40,6 +40,7 @@ public:
     OPENTXS_EXPORT virtual auto ExtractElements(
         const FilterType style) const noexcept -> std::vector<Space> = 0;
     OPENTXS_EXPORT virtual auto FindMatches(
+        const api::client::Blockchain& blockchain,
         const FilterType type,
         const Patterns& txos,
         const Patterns& elements) const noexcept -> Matches = 0;

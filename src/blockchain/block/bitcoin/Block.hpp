@@ -27,8 +27,11 @@ namespace api
 {
 namespace client
 {
+class Blockchain;
 class Manager;
 }  // namespace client
+
+class Core;
 }  // namespace api
 }  // namespace opentxs
 
@@ -65,6 +68,7 @@ public:
     auto ExtractElements(const FilterType style) const noexcept
         -> std::vector<Space> final;
     auto FindMatches(
+        const api::client::Blockchain& blockchain,
         const FilterType type,
         const Patterns& outpoints,
         const Patterns& scripts) const noexcept -> Matches final;
@@ -72,7 +76,7 @@ public:
     auto size() const noexcept -> std::size_t final { return index_.size(); }
 
     Block(
-        const api::client::Manager& api,
+        const api::Core& api,
         const blockchain::Type chain,
         std::unique_ptr<const internal::Header> header,
         TxidIndex&& index,

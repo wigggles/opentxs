@@ -70,21 +70,23 @@ Outputs::Outputs(const Outputs& rhs) noexcept
 {
 }
 
-auto Outputs::AssociatedLocalNyms(std::vector<OTNymID>& output) const noexcept
-    -> void
+auto Outputs::AssociatedLocalNyms(
+    const api::client::Blockchain& blockchain,
+    std::vector<OTNymID>& output) const noexcept -> void
 {
     std::for_each(
         std::begin(outputs_), std::end(outputs_), [&](const auto& item) {
-            item->AssociatedLocalNyms(output);
+            item->AssociatedLocalNyms(blockchain, output);
         });
 }
 
 auto Outputs::AssociatedRemoteContacts(
+    const api::client::Blockchain& blockchain,
     std::vector<OTIdentifier>& output) const noexcept -> void
 {
     std::for_each(
         std::begin(outputs_), std::end(outputs_), [&](const auto& item) {
-            item->AssociatedRemoteContacts(output);
+            item->AssociatedRemoteContacts(blockchain, output);
         });
 }
 
@@ -139,6 +141,7 @@ auto Outputs::ExtractElements(const filter::Type style) const noexcept
 }
 
 auto Outputs::FindMatches(
+    const api::client::Blockchain& blockchain,
     const ReadView txid,
     const FilterType type,
     const Patterns& patterns) const noexcept -> Matches
@@ -146,7 +149,7 @@ auto Outputs::FindMatches(
     auto output = Matches{};
 
     for (const auto& txout : *this) {
-        auto temp = txout.FindMatches(txid, type, patterns);
+        auto temp = txout.FindMatches(blockchain, txid, type, patterns);
         output.insert(
             output.end(),
             std::make_move_iterator(temp.begin()),
@@ -184,15 +187,16 @@ auto Outputs::GetPatterns() const noexcept -> std::vector<PatternID>
     return output;
 }
 
-auto Outputs::NetBalanceChange(const identifier::Nym& nym) const noexcept
-    -> opentxs::Amount
+auto Outputs::NetBalanceChange(
+    const api::client::Blockchain& blockchain,
+    const identifier::Nym& nym) const noexcept -> opentxs::Amount
 {
     return std::accumulate(
         std::begin(outputs_),
         std::end(outputs_),
         opentxs::Amount{0},
         [&](const auto prev, const auto& output) -> auto {
-            return prev + output->NetBalanceChange(nym);
+            return prev + output->NetBalanceChange(blockchain, nym);
         });
 }
 
@@ -261,6 +265,7 @@ auto Outputs::Serialize(const AllocateOutput destination) const noexcept
 }
 
 auto Outputs::Serialize(
+    const api::client::Blockchain& blockchain,
     proto::BlockchainTransaction& destination) const noexcept -> bool
 {
     for (const auto& output : outputs_) {
@@ -268,7 +273,7 @@ auto Outputs::Serialize(
 
         auto& out = *destination.add_output();
 
-        if (false == output->Serialize(out)) { return false; }
+        if (false == output->Serialize(blockchain, out)) { return false; }
     }
 
     return true;

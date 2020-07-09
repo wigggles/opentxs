@@ -86,31 +86,34 @@ auto Inputs::AnyoneCanPay(const std::size_t index) noexcept -> bool
     }
 }
 
-auto Inputs::AssociatedLocalNyms(std::vector<OTNymID>& output) const noexcept
-    -> void
+auto Inputs::AssociatedLocalNyms(
+    const api::client::Blockchain& blockchain,
+    std::vector<OTNymID>& output) const noexcept -> void
 {
     std::for_each(
         std::begin(inputs_), std::end(inputs_), [&](const auto& item) {
-            item->AssociatedLocalNyms(output);
+            item->AssociatedLocalNyms(blockchain, output);
         });
 }
 
 auto Inputs::AssociatedRemoteContacts(
+    const api::client::Blockchain& blockchain,
     std::vector<OTIdentifier>& output) const noexcept -> void
 {
     std::for_each(
         std::begin(inputs_), std::end(inputs_), [&](const auto& item) {
-            item->AssociatedRemoteContacts(output);
+            item->AssociatedRemoteContacts(blockchain, output);
         });
 }
 
 auto Inputs::AssociatePreviousOutput(
+    const api::client::Blockchain& blockchain,
     const std::size_t index,
     const proto::BlockchainTransactionOutput& output) noexcept -> bool
 {
     try {
 
-        return inputs_.at(index)->AssociatePreviousOutput(output);
+        return inputs_.at(index)->AssociatePreviousOutput(blockchain, output);
     } catch (...) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid index").Flush();
 
@@ -203,15 +206,16 @@ auto Inputs::GetPatterns() const noexcept -> std::vector<PatternID>
     return output;
 }
 
-auto Inputs::NetBalanceChange(const identifier::Nym& nym) const noexcept
-    -> opentxs::Amount
+auto Inputs::NetBalanceChange(
+    const api::client::Blockchain& blockchain,
+    const identifier::Nym& nym) const noexcept -> opentxs::Amount
 {
     return std::accumulate(
         std::begin(inputs_),
         std::end(inputs_),
         opentxs::Amount{0},
         [&](const auto prev, const auto& input) -> auto {
-            return prev + input->NetBalanceChange(nym);
+            return prev + input->NetBalanceChange(blockchain, nym);
         });
 }
 
@@ -282,8 +286,9 @@ auto Inputs::Serialize(const AllocateOutput destination) const noexcept
     return serialize(destination, false);
 }
 
-auto Inputs::Serialize(proto::BlockchainTransaction& destination) const noexcept
-    -> bool
+auto Inputs::Serialize(
+    const api::client::Blockchain& blockchain,
+    proto::BlockchainTransaction& destination) const noexcept -> bool
 {
     auto index = std::uint32_t{0};
 
@@ -292,7 +297,7 @@ auto Inputs::Serialize(proto::BlockchainTransaction& destination) const noexcept
 
         auto& out = *destination.add_input();
 
-        if (false == input->Serialize(index, out)) { return false; }
+        if (false == input->Serialize(blockchain, index, out)) { return false; }
 
         ++index;
     }

@@ -133,7 +133,7 @@ auto Wallet::Proposals::build_transaction_bitcoin(
     }
 
     const auto& transaction = *pTransaction;
-    auto proto = transaction.Serialize();
+    auto proto = transaction.Serialize(api_.Blockchain());
 
     if (false == proto.has_value()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to serialize transaction")
@@ -221,8 +221,8 @@ auto Wallet::Proposals::rebroadcast(const Lock& lock) noexcept -> void
 
         if (false == proposal.has_value()) { continue; }
 
-        auto pTx =
-            factory::BitcoinTransaction(api_, proposal.value().finished());
+        auto pTx = factory::BitcoinTransaction(
+            api_, api_.Blockchain(), proposal.value().finished());
 
         if (false == bool(pTx)) { continue; }
 

@@ -30,7 +30,6 @@
 #include "internal/blockchain/block/bitcoin/Bitcoin.hpp"
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
-#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/blockchain/block/bitcoin/Block.hpp"
 #include "opentxs/blockchain/block/bitcoin/Transaction.hpp"
@@ -49,7 +48,8 @@ namespace opentxs::factory
 using ReturnType = blockchain::block::bitcoin::implementation::Block;
 
 auto BitcoinBlock(
-    const api::client::Manager& api,
+    const api::Core& api,
+    const api::client::Blockchain& blockchain,
     const blockchain::Type chain,
     const ReadView in) noexcept
     -> std::shared_ptr<blockchain::block::bitcoin::Block>
@@ -118,6 +118,7 @@ auto BitcoinBlock(
                 reader(txid),
                 BitcoinTransaction(
                     api,
+                    blockchain,
                     chain,
                     (0 == ++counter),
                     header.Timestamp(),
@@ -234,7 +235,7 @@ const std::size_t Block::header_bytes_{80};
 const Block::value_type Block::null_tx_{};
 
 Block::Block(
-    const api::client::Manager& api,
+    const api::Core& api,
     const blockchain::Type chain,
     std::unique_ptr<const internal::Header> header,
     TxidIndex&& index,
@@ -330,6 +331,7 @@ auto Block::ExtractElements(const FilterType style) const noexcept
 }
 
 auto Block::FindMatches(
+    const api::client::Blockchain& blockchain,
     const FilterType style,
     const Patterns& outpoints,
     const Patterns& patterns) const noexcept -> Matches
@@ -339,7 +341,7 @@ auto Block::FindMatches(
     auto output = Matches{};
 
     for (const auto& [txid, tx] : transactions_) {
-        auto temp = tx->FindMatches(style, outpoints, patterns);
+        auto temp = tx->FindMatches(blockchain, style, outpoints, patterns);
         output.insert(
             output.end(),
             std::make_move_iterator(temp.begin()),

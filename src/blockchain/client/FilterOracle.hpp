@@ -76,11 +76,21 @@ public:
     {
         return default_type_;
     }
+    auto FilterTip(const filter::Type type) const noexcept
+        -> block::Position final
+    {
+        return database_.FilterTip(type);
+    }
+    auto Heartbeat() const noexcept -> void final { trigger(); }
     auto LoadFilter(const filter::Type type, const block::Hash& block)
         const noexcept -> std::unique_ptr<const blockchain::internal::GCS> final
     {
         return database_.LoadFilter(type, block.Bytes());
     }
+    auto LoadFilterOrResetTip(
+        const filter::Type type,
+        const block::Position& position) const noexcept
+        -> std::unique_ptr<const blockchain::internal::GCS> final;
 
     auto Shutdown() noexcept -> std::shared_future<void> final
     {
@@ -104,6 +114,7 @@ private:
     enum class Work : OTZMQWorkType {
         cfilter = 0,
         cfheader = 1,
+        reset_filter_tip = 2,
         peer = OT_ZMQ_NEW_PEER_SIGNAL,
         block = OT_ZMQ_NEW_BLOCK_HEADER_SIGNAL,
         reorg = OT_ZMQ_REORG_SIGNAL,
@@ -258,9 +269,10 @@ private:
     auto flush_filters() noexcept -> void;
     auto pipeline(const zmq::Message& in) noexcept -> void;
     auto process_cfheader(const zmq::Message& in) noexcept -> void;
-    auto process_cfilter(const zmq::Message& in) noexcept -> void;
+    auto process_cfilter(const zmq::Message& in) noexcept -> bool;
     auto process_reorg(const zmq::Message& in) noexcept -> void;
     auto process_reorg(const block::Position& parent) noexcept -> void;
+    auto process_reset_filter_tip(const zmq::Message& in) noexcept -> void;
     auto reset_tips_to(const block::Position position) noexcept -> bool;
     auto shutdown(std::promise<void>& promise) noexcept -> void;
     auto state_machine() noexcept -> bool;

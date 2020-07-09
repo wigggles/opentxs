@@ -41,22 +41,36 @@ Wallet::Account::Account(
     const BalanceTree& ref,
     const internal::Network& network,
     const internal::WalletDatabase& db,
-    const zmq::socket::Push& socket) noexcept
+    const zmq::socket::Push& socket,
+    const SimpleCallback& taskFinished) noexcept
     : api_(api)
     , ref_(ref)
     , network_(network)
     , db_(db)
     , filter_type_(network.FilterOracle().DefaultType())
     , socket_(socket)
+    , task_finished_(taskFinished)
     , internal_()
     , external_()
 {
     for (const auto& subaccount : ref_.GetHD()) {
         const auto& id = subaccount.ID();
         internal_.try_emplace(
-            id, network_, db_, subaccount, filter_type_, Subchain::Internal);
+            id,
+            network_,
+            db_,
+            subaccount,
+            task_finished_,
+            filter_type_,
+            Subchain::Internal);
         external_.try_emplace(
-            id, network_, db_, subaccount, filter_type_, Subchain::External);
+            id,
+            network_,
+            db_,
+            subaccount,
+            task_finished_,
+            filter_type_,
+            Subchain::External);
     }
 }
 
@@ -67,6 +81,7 @@ Wallet::Account::Account(Account&& rhs) noexcept
     , db_(rhs.db_)
     , filter_type_(rhs.filter_type_)
     , socket_(rhs.socket_)
+    , task_finished_(rhs.task_finished_)
     , internal_(std::move(rhs.internal_))
     , external_(std::move(rhs.external_))
 {
@@ -102,6 +117,7 @@ auto Wallet::Account::reorg(const block::Position& parent) noexcept -> bool
                     network_,
                     db_,
                     subaccount,
+                    task_finished_,
                     filter_type_,
                     Subchain::Internal);
                 it = it2;
@@ -119,6 +135,7 @@ auto Wallet::Account::reorg(const block::Position& parent) noexcept -> bool
                     network_,
                     db_,
                     subaccount,
+                    task_finished_,
                     filter_type_,
                     Subchain::External);
                 it = it2;
@@ -156,6 +173,7 @@ auto Wallet::Account::state_machine() noexcept -> bool
                     network_,
                     db_,
                     subaccount,
+                    task_finished_,
                     filter_type_,
                     Subchain::Internal);
                 it = it2;
@@ -173,6 +191,7 @@ auto Wallet::Account::state_machine() noexcept -> bool
                     network_,
                     db_,
                     subaccount,
+                    task_finished_,
                     filter_type_,
                     Subchain::External);
                 it = it2;
@@ -197,13 +216,18 @@ auto Wallet::Account::state_machine_hd(HDStateData& data) noexcept -> bool
     auto& outstanding = data.outstanding_blocks_;
     auto& queue = data.process_block_queue_;
 
-    if (running) { return true; }
+    if (running) {
+        LogTrace(OT_METHOD)(__FUNCTION__)(": Task is running").Flush();
+
+        return false;
+    }
 
     if (false == reorg.Empty()) {
         running.store(true);
         queue_work(Task::reorg, data);
+        LogTrace(OT_METHOD)(__FUNCTION__)(": Reorg queued").Flush();
 
-        return true;
+        return false;
     }
 
     {
@@ -239,8 +263,9 @@ auto Wallet::Account::state_machine_hd(HDStateData& data) noexcept -> bool
                     .Flush();
                 running.store(true);
                 queue_work(Task::index, data);
+                LogTrace(OT_METHOD)(__FUNCTION__)(": Index queued").Flush();
 
-                return true;
+                return false;
             } else {
                 LogVerbose(OT_METHOD)(__FUNCTION__)(": All ")(
                     generated.value() + 1)(" generated keys have been indexed.")
@@ -253,22 +278,33 @@ auto Wallet::Account::state_machine_hd(HDStateData& data) noexcept -> bool
         auto needScan{false};
 
         if (lastScanned.has_value()) {
-            const auto [ancestor, best] =
-                network_.HeaderOracle().CommonParent(lastScanned.value());
-            lastScanned = ancestor;
+            const auto bestFilter =
+                network_.FilterOracle().FilterTip(filter_type_);
 
-            if (lastScanned == best) {
+            if (lastScanned == bestFilter) {
                 LogVerbose(OT_METHOD)(__FUNCTION__)(
-                    ": Subchain has been scanned to current best block ")(
-                    best.second->asHex())(" at height ")(best.first)
+                    ": Subchain has been scanned to the newest downloaded "
+                    "filter ")(bestFilter.second->asHex())(" at height ")(
+                    bestFilter.first)
                     .Flush();
             } else {
-                needScan = true;
-                LogVerbose(OT_METHOD)(__FUNCTION__)(
-                    ": Subchain scanning progress: ")(lastScanned.value().first)
-                    .Flush();
-            }
+                const auto [ancestor, best] =
+                    network_.HeaderOracle().CommonParent(lastScanned.value());
+                lastScanned = ancestor;
 
+                if (lastScanned == best) {
+                    LogVerbose(OT_METHOD)(__FUNCTION__)(
+                        ": Subchain has been scanned to current best block ")(
+                        best.second->asHex())(" at height ")(best.first)
+                        .Flush();
+                } else {
+                    needScan = true;
+                    LogVerbose(OT_METHOD)(__FUNCTION__)(
+                        ": Subchain scanning progress: ")(
+                        lastScanned.value().first)
+                        .Flush();
+                }
+            }
         } else {
             needScan = true;
             LogVerbose(OT_METHOD)(__FUNCTION__)(
@@ -279,8 +315,9 @@ auto Wallet::Account::state_machine_hd(HDStateData& data) noexcept -> bool
         if (needScan) {
             running.store(true);
             queue_work(Task::scan, data);
+            LogTrace(OT_METHOD)(__FUNCTION__)(": Scan queued").Flush();
 
-            return true;
+            return false;
         }
     }
 
@@ -293,8 +330,9 @@ auto Wallet::Account::state_machine_hd(HDStateData& data) noexcept -> bool
                 .Flush();
             running.store(true);
             queue_work(Task::process, data);
+            LogTrace(OT_METHOD)(__FUNCTION__)(": Process queued").Flush();
 
-            return true;
+            return false;
         } else {
             LogVerbose(OT_METHOD)(__FUNCTION__)(": Waiting for block download")
                 .Flush();

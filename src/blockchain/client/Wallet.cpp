@@ -72,7 +72,10 @@ auto Wallet::ProcessTask(const zmq::Message& in) noexcept -> void
     OT_ASSERT(nullptr != pData);
 
     auto& data = *pData;
-    auto postcondition = ScopeGuard{[&] { data.running_.store(false); }};
+    auto postcondition = ScopeGuard{[&] {
+        data.running_.store(false);
+        data.task_finished_();
+    }};
 
     switch (body.at(1).as<Task>()) {
         case Task::index: {
@@ -107,10 +110,18 @@ Wallet::Wallet(
     , db_(parent_.DB())
     , blockchain_api_(blockchain)
     , chain_(chain)
+    , task_finished_([this]() { trigger(); })
     , init_promise_()
     , init_(init_promise_.get_future())
     , socket_(api_.ZeroMQ().PushSocket(zmq::socket::Socket::Direction::Connect))
-    , accounts_(api, blockchain_api_, parent_, db_, socket_, chain_)
+    , accounts_(
+          api,
+          blockchain_api_,
+          parent_,
+          db_,
+          socket_,
+          chain_,
+          task_finished_)
     , proposals_(api, parent_, db_, chain_)
 {
     auto zmq = socket_->Start(blockchain.ThreadPool().Endpoint());
@@ -144,7 +155,8 @@ auto Wallet::Init() noexcept -> void
 
 auto Wallet::pipeline(const zmq::Message& in) noexcept -> void
 {
-    init_.get();
+    const auto ready =
+        std::future_status::ready == init_.wait_for(std::chrono::seconds{0});
 
     if (false == running_.get()) { return; }
 
@@ -175,7 +187,7 @@ auto Wallet::pipeline(const zmq::Message& in) noexcept -> void
         case Work::key:
         case Work::filter:
         case Work::statemachine: {
-            do_work();
+            if (ready) { do_work(); }
         } break;
         case Work::shutdown: {
             shutdown(shutdown_promise_);

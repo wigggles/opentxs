@@ -163,7 +163,8 @@ auto Wallet::AddConfirmedTransaction(
         if (auto out = find_output(lock, outpoint); out.has_value()) {
             const auto& proto = std::get<2>(out.value()->second);
 
-            if (!copy.AssociatePreviousOutput(inputIndex, proto)) {
+            if (!copy.AssociatePreviousOutput(
+                    api_.Blockchain(), inputIndex, proto)) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(
                     ": Error associating previous output to input")
                     .Flush();
@@ -488,7 +489,7 @@ auto Wallet::create_state(
 
     auto data = block::bitcoin::Output::SerializeType{};
 
-    if (false == output.Serialize(data)) {
+    if (false == output.Serialize(api_.Blockchain(), data)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to serialize output")
             .Flush();
 
@@ -1300,6 +1301,7 @@ auto Wallet::TransactionLoadBitcoin(const ReadView txid) const noexcept
 
     if (false == serialized.has_value()) { return {}; }
 
-    return factory::BitcoinTransaction(api_, serialized.value());
+    return factory::BitcoinTransaction(
+        api_, api_.Blockchain(), serialized.value());
 }
 }  // namespace opentxs::blockchain::database

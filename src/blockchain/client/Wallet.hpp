@@ -117,7 +117,8 @@ public:
             const BalanceTree& ref,
             const internal::Network& network,
             const internal::WalletDatabase& db,
-            const zmq::socket::Push& socket) noexcept;
+            const zmq::socket::Push& socket,
+            const SimpleCallback& taskFinished) noexcept;
         Account(Account&&) noexcept;
 
     private:
@@ -127,6 +128,7 @@ public:
         const internal::WalletDatabase& db_;
         const filter::Type filter_type_;
         const zmq::socket::Push& socket_;
+        const SimpleCallback& task_finished_;
         std::map<OTIdentifier, HDStateData> internal_;
         std::map<OTIdentifier, HDStateData> external_;
 
@@ -181,7 +183,8 @@ private:
             const internal::Network& network,
             const internal::WalletDatabase& db,
             const zmq::socket::Push& socket,
-            const Type chain) noexcept;
+            const Type chain,
+            const SimpleCallback& taskFinished) noexcept;
 
     private:
         using AccountMap = std::map<OTNymID, Account>;
@@ -191,6 +194,7 @@ private:
         const internal::Network& network_;
         const internal::WalletDatabase& db_;
         const zmq::socket::Push& socket_;
+        const SimpleCallback& task_finished_;
         const Type chain_;
         AccountMap map_;
 
@@ -200,7 +204,8 @@ private:
             const internal::Network& network,
             const internal::WalletDatabase& db,
             const zmq::socket::Push& socket,
-            const Type chain) noexcept -> AccountMap;
+            const Type chain,
+            const SimpleCallback& taskFinished) noexcept -> AccountMap;
     };
 
     struct Proposals {
@@ -336,6 +341,7 @@ private:
     const internal::WalletDatabase& db_;
     const api::client::internal::Blockchain& blockchain_api_;
     const Type chain_;
+    const SimpleCallback task_finished_;
     std::promise<void> init_promise_;
     std::shared_future<void> init_;
     OTZMQPushSocket socket_;

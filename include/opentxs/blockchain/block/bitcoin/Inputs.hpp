@@ -52,6 +52,7 @@ public:
     OPENTXS_EXPORT virtual auto Serialize(const AllocateOutput destination)
         const noexcept -> std::optional<std::size_t> = 0;
     OPENTXS_EXPORT virtual auto Serialize(
+        const api::client::Blockchain& blockchain,
         proto::BlockchainTransaction& destination) const noexcept -> bool = 0;
     OPENTXS_EXPORT virtual auto SerializeNormalized(
         const AllocateOutput destination) const noexcept

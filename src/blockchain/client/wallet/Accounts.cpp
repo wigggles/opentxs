@@ -32,14 +32,16 @@ Wallet::Accounts::Accounts(
     const internal::Network& network,
     const internal::WalletDatabase& db,
     const zmq::socket::Push& socket,
-    const Type chain) noexcept
+    const Type chain,
+    const SimpleCallback& taskFinished) noexcept
     : api_(api)
     , blockchain_api_(blockchain)
     , network_(network)
     , db_(db)
     , socket_(socket)
+    , task_finished_(taskFinished)
     , chain_(chain)
-    , map_(init(api, blockchain, network, db_, socket_, chain))
+    , map_(init(api, blockchain, network, db, socket, chain, taskFinished))
 {
 }
 
@@ -51,7 +53,8 @@ auto Wallet::Accounts::Add(const identifier::Nym& nym) noexcept -> bool
         blockchain_api_.BalanceTree(nym, chain_),
         network_,
         db_,
-        socket_);
+        socket_,
+        task_finished_);
 
     if (added) {
         LogNormal("Initializing ")(blockchain::internal::DisplayString(chain_))(
@@ -78,7 +81,8 @@ auto Wallet::Accounts::init(
     const internal::Network& network,
     const internal::WalletDatabase& db,
     const zmq::socket::Push& socket,
-    const Type chain) noexcept -> AccountMap
+    const Type chain,
+    const SimpleCallback& taskFinished) noexcept -> AccountMap
 {
     auto output = AccountMap{};
 
@@ -87,7 +91,13 @@ auto Wallet::Accounts::init(
             " wallet for ")(nym)
             .Flush();
         output.try_emplace(
-            nym, api, blockchain.BalanceTree(nym, chain), network, db, socket);
+            nym,
+            api,
+            blockchain.BalanceTree(nym, chain),
+            network,
+            db,
+            socket,
+            taskFinished);
     }
 
     return output;

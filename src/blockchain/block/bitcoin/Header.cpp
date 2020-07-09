@@ -18,8 +18,8 @@
 #include "internal/blockchain/block/bitcoin/Bitcoin.hpp"
 #include "internal/blockchain/client/Client.hpp"
 #include "opentxs/Pimpl.hpp"
+#include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
-#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/blockchain/NumericHash.hpp"
 #include "opentxs/blockchain/Work.hpp"
 #include "opentxs/blockchain/block/bitcoin/Header.hpp"
@@ -38,7 +38,7 @@
 namespace opentxs::factory
 {
 auto BitcoinBlockHeader(
-    const api::client::Manager& api,
+    const api::Core& api,
     const proto::BlockchainBlockHeader& serialized) noexcept
     -> std::unique_ptr<blockchain::block::bitcoin::internal::Header>
 {
@@ -48,7 +48,7 @@ auto BitcoinBlockHeader(
 }
 
 auto BitcoinBlockHeader(
-    const api::client::Manager& api,
+    const api::Core& api,
     const blockchain::Type chain,
     const ReadView raw) noexcept
     -> std::unique_ptr<blockchain::block::bitcoin::internal::Header>
@@ -95,7 +95,7 @@ auto BitcoinBlockHeader(
 }
 
 auto BitcoinBlockHeader(
-    const api::client::Manager& api,
+    const api::Core& api,
     const blockchain::Type chain,
     const blockchain::block::Hash& hash,
     const blockchain::block::Hash& parent,
@@ -114,7 +114,7 @@ const VersionNumber Header::local_data_version_{1};
 const VersionNumber Header::subversion_default_{1};
 
 Header::Header(
-    const api::client::Manager& api,
+    const api::Core& api,
     const blockchain::Type chain,
     const VersionNumber subversion,
     const block::Hash& hash,
@@ -144,7 +144,7 @@ Header::Header(
 }
 
 Header::Header(
-    const api::client::Manager& api,
+    const api::Core& api,
     const blockchain::Type chain,
     const block::Hash& hash,
     const block::Hash& parentHash,
@@ -161,9 +161,7 @@ Header::Header(
     const_cast<OTData&>(hash_) = calculate_hash(api, Serialize());
 }
 
-Header::Header(
-    const api::client::Manager& api,
-    const SerializedType& serialized) noexcept
+Header::Header(const api::Core& api, const SerializedType& serialized) noexcept
     : bitcoin::Header()
     , ot_super(
           api,
@@ -234,7 +232,7 @@ Header::BitcoinFormat::BitcoinFormat(
 }
 
 auto Header::calculate_hash(
-    const api::client::Manager& api,
+    const api::Core& api,
     const blockchain::Type chain,
     const ReadView serialized) -> block::pHash
 {
@@ -245,7 +243,7 @@ auto Header::calculate_hash(
 }
 
 auto Header::calculate_hash(
-    const api::client::Manager& api,
+    const api::Core& api,
     const SerializedType& serialized) -> block::pHash
 {
     auto bitcoinFormat = BitcoinFormat{};

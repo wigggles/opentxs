@@ -133,6 +133,7 @@ TEST_F(Test_BitcoinTransaction, serialization)
 {
     const auto transaction = ot::factory::BitcoinTransaction(
         api_,
+        api_.Blockchain(),
         ot::blockchain::Type::Bitcoin,
         false,
         ot::Clock::now(),
@@ -289,12 +290,12 @@ TEST_F(Test_BitcoinTransaction, serialization)
     EXPECT_EQ(tx_bytes_->size(), raw->size());
     EXPECT_EQ(tx_bytes_.get(), raw.get());
 
-    const auto serialized = transaction->Serialize();
+    const auto serialized = transaction->Serialize(api_.Blockchain());
 
     ASSERT_TRUE(serialized.has_value());
 
-    auto transaction2 =
-        ot::factory::BitcoinTransaction(api_, serialized.value());
+    auto transaction2 = ot::factory::BitcoinTransaction(
+        api_, api_.Blockchain(), serialized.value());
 
     ASSERT_TRUE(transaction2);
     EXPECT_EQ(transaction2->Locktime(), 0);
@@ -461,6 +462,7 @@ TEST_F(Test_BitcoinTransaction, normalized_id)
 {
     const auto transaction1 = ot::factory::BitcoinTransaction(
         api_,
+        api_.Blockchain(),
         ot::blockchain::Type::Bitcoin,
         false,
         ot::Clock::now(),
@@ -468,6 +470,7 @@ TEST_F(Test_BitcoinTransaction, normalized_id)
             api_, ot::blockchain::Type::Bitcoin, tx_bytes_->Bytes()));
     const auto transaction2 = ot::factory::BitcoinTransaction(
         api_,
+        api_.Blockchain(),
         ot::blockchain::Type::Bitcoin,
         false,
         ot::Clock::now(),

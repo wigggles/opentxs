@@ -56,6 +56,7 @@ public:
 
 #if OT_BLOCKCHAIN
     OPENTXS_EXPORT virtual bool AddBlockchainTransaction(
+        const Blockchain& api,
         const BlockchainTransaction& transaction) const noexcept = 0;
 #endif  // OT_BLOCKCHAIN
     OPENTXS_EXPORT virtual bool AddPaymentEvent(

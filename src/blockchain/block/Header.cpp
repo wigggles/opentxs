@@ -30,7 +30,7 @@
 namespace opentxs::factory
 {
 auto GenesisBlockHeader(
-    const api::client::Manager& api,
+    const api::Core& api,
     const blockchain::Type type) noexcept
     -> std::unique_ptr<blockchain::block::Header>
 {
@@ -95,7 +95,7 @@ const Header::GenesisBlockMap Header::genesis_blocks_{
 };
 
 Header::Header(
-    const api::client::Manager& api,
+    const api::Core& api,
     const VersionNumber version,
     const blockchain::Type type,
     const block::Hash& hash,
@@ -119,7 +119,7 @@ Header::Header(
 }
 
 Header::Header(
-    const api::client::Manager& api,
+    const api::Core& api,
     const block::Hash& hash,
     const block::Hash& parentHash,
     const SerializedType& serialized) noexcept
@@ -138,7 +138,7 @@ Header::Header(
 }
 
 Header::Header(
-    const api::client::Manager& api,
+    const api::Core& api,
     const blockchain::Type type,
     const block::Hash& hash,
     const block::Hash& parentHash,
