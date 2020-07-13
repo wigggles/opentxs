@@ -21,10 +21,7 @@ namespace opentxs
 {
 namespace api
 {
-namespace client
-{
-class Manager;
-}  // namespace client
+class Core;
 }  // namespace api
 
 namespace blockchain
@@ -46,16 +43,14 @@ class Nopayload final : virtual public InterfaceType
 {
 public:
     Nopayload(
-        const api::client::Manager& api,
+        const api::Core& api,
         const blockchain::Type network,
         const bitcoin::Command command) noexcept
         : Message(api, network, command)
     {
         Message::init_hash();
     }
-    Nopayload(
-        const api::client::Manager& api,
-        std::unique_ptr<Header> header) noexcept
+    Nopayload(const api::Core& api, std::unique_ptr<Header> header) noexcept
         : Message(api, std::move(header))
     {
     }

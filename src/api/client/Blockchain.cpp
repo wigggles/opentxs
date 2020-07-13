@@ -26,6 +26,7 @@
 #if OT_BLOCKCHAIN
 #include "internal/blockchain/Blockchain.hpp"
 #include "internal/blockchain/block/bitcoin/Bitcoin.hpp"
+#include "internal/blockchain/client/Factory.hpp"
 #endif  // OT_BLOCKCHAIN
 #include "opentxs/Pimpl.hpp"
 #if OT_BLOCKCHAIN
@@ -83,7 +84,7 @@ using ReturnType = opentxs::api::client::implementation::Blockchain;
 namespace opentxs::factory
 {
 auto BlockchainAPI(
-    const api::client::internal::Manager& api,
+    const api::internal::Core& api,
     const api::client::Activity& activity,
     const api::client::Contacts& contacts,
     const api::Legacy& legacy,
@@ -133,7 +134,7 @@ const Blockchain::StyleReverseMap Blockchain::address_style_reverse_map_{
     ReturnType::reverse(address_style_map_)};
 
 Blockchain::Blockchain(
-    const api::client::internal::Manager& api,
+    const api::internal::Core& api,
     [[maybe_unused]] const api::client::Activity& activity,
     const api::client::Contacts& contacts,
     [[maybe_unused]] const api::Legacy& legacy,
@@ -147,20 +148,20 @@ Blockchain::Blockchain(
     , lock_()
     , nym_lock_()
     , accounts_(api_)
-    , balance_lists_(*this)
+    , balance_lists_(api_, *this)
 #if OT_BLOCKCHAIN
     , key_generated_endpoint_(
           std::string{"inproc://"} + Identifier::Random()->str())
-    , thread_pool_(api)
-    , io_(api)
-    , db_(api, legacy, dataFolder, args)
+    , thread_pool_(api_)
+    , io_(api_)
+    , db_(api_, *this, legacy, dataFolder, args)
     , reorg_(api_.ZeroMQ().PublishSocket())
     , transaction_updates_(api_.ZeroMQ().PublishSocket())
     , peer_updates_(api_.ZeroMQ().PublishSocket())
     , key_updates_(api_.ZeroMQ().PublishSocket())
     , sync_updates_(api_.ZeroMQ().PublishSocket())
     , networks_()
-    , balances_(*this, api)
+    , balances_(*this, api_)
     , running_(true)
     , heartbeat_(&Blockchain::heartbeat, this)
 #endif  // OT_BLOCKCHAIN

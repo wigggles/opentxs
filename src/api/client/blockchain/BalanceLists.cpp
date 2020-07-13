@@ -9,8 +9,8 @@
 
 #include <map>
 
-#include "2_Factory.hpp"
 #include "internal/api/client/blockchain/Blockchain.hpp"
+#include "internal/api/client/blockchain/Factory.hpp"
 #include "opentxs/core/Log.hpp"
 
 // #define OT_METHOD
@@ -19,8 +19,10 @@
 namespace opentxs::api::client::implementation
 {
 Blockchain::BalanceLists::BalanceLists(
+    const api::internal::Core& api,
     api::client::internal::Blockchain& parent) noexcept
-    : parent_(parent)
+    : api_(api)
+    , parent_(parent)
     , lock_()
     , lists_()
 {
@@ -35,7 +37,7 @@ auto Blockchain::BalanceLists::Get(const Chain chain) noexcept
     if (lists_.end() != it) { return *it->second; }
 
     auto [it2, added] = lists_.emplace(
-        chain, opentxs::Factory::BlockchainBalanceList(parent_, chain));
+        chain, factory::BlockchainBalanceList(api_, parent_, chain));
 
     OT_ASSERT(added);
     OT_ASSERT(it2->second);

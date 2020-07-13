@@ -17,7 +17,6 @@
 
 #include "internal/blockchain/p2p/P2P.hpp"
 #include "opentxs/Proto.tpp"
-#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/blockchain/p2p/Address.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
@@ -32,9 +31,8 @@
 
 namespace opentxs::api::client::blockchain::database::implementation
 {
-Peers::Peers(
-    const api::client::Manager& api,
-    opentxs::storage::lmdb::LMDB& lmdb) noexcept(false)
+Peers::Peers(const api::Core& api, opentxs::storage::lmdb::LMDB& lmdb) noexcept(
+    false)
     : api_(api)
     , lmdb_(lmdb)
     , lock_()

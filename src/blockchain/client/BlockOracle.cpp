@@ -8,10 +8,13 @@
 #include "blockchain/client/BlockOracle.hpp"  // IWYU pragma: associated
 
 #include <memory>
+#include <vector>
 
 #include "core/Worker.hpp"
 #include "internal/blockchain/client/Client.hpp"
+#include "internal/blockchain/client/Factory.hpp"
 #include "opentxs/Pimpl.hpp"
+#include "opentxs/api/Core.hpp"
 #include "opentxs/blockchain/client/BlockOracle.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Log.hpp"
@@ -27,7 +30,7 @@ namespace api
 {
 namespace client
 {
-class Manager;
+class Blockchain;
 }  // namespace client
 }  // namespace api
 }  // namespace opentxs
@@ -37,7 +40,8 @@ class Manager;
 namespace opentxs::factory
 {
 auto BlockOracle(
-    const api::client::Manager& api,
+    const api::Core& api,
+    const api::client::Blockchain& blockchain,
     const blockchain::client::internal::Network& network,
     const blockchain::client::internal::BlockDatabase& db,
     const blockchain::Type chain,
@@ -46,14 +50,16 @@ auto BlockOracle(
 {
     using ReturnType = blockchain::client::implementation::BlockOracle;
 
-    return std::make_unique<ReturnType>(api, network, db, chain, shutdown);
+    return std::make_unique<ReturnType>(
+        api, blockchain, network, db, chain, shutdown);
 }
 }  // namespace opentxs::factory
 
 namespace opentxs::blockchain::client::implementation
 {
 BlockOracle::BlockOracle(
-    const api::client::Manager& api,
+    const api::Core& api,
+    const api::client::Blockchain& blockchain,
     const internal::Network& network,
     const internal::BlockDatabase& db,
     const blockchain::Type chain,
@@ -62,7 +68,7 @@ BlockOracle::BlockOracle(
     , network_(network)
     , init_promise_()
     , init_(init_promise_.get_future())
-    , cache_(network, db, chain)
+    , cache_(api, blockchain, network, db, chain)
 {
     init_executor({shutdown});
 }
@@ -74,6 +80,17 @@ auto BlockOracle::LoadBitcoin(const block::Hash& block) const noexcept
 {
     auto output = cache_.Request(block);
     trigger();
+
+    return output;
+}
+
+auto BlockOracle::LoadBitcoin(const BlockHashes& hashes) const noexcept
+    -> BitcoinBlockFutures
+{
+    auto output = cache_.Request(hashes);
+    trigger();
+
+    OT_ASSERT(hashes.size() == output.size());
 
     return output;
 }

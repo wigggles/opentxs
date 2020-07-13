@@ -15,7 +15,6 @@
 #include "internal/blockchain/Blockchain.hpp"
 #include "internal/blockchain/p2p/bitcoin/Bitcoin.hpp"
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/blockchain/BloomFilter.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
@@ -26,7 +25,7 @@
 namespace opentxs::factory
 {
 auto BitcoinP2PFilterload(
-    const api::client::Manager& api,
+    const api::Core& api,
     std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
     const blockchain::p2p::bitcoin::ProtocolVersion version,
     const void* payload,
@@ -57,7 +56,7 @@ auto BitcoinP2PFilterload(
 }
 
 auto BitcoinP2PFilterload(
-    const api::client::Manager& api,
+    const api::Core& api,
     const blockchain::Type network,
     const blockchain::BloomFilter& filter)
     -> blockchain::p2p::bitcoin::message::internal::Filterload*
@@ -72,7 +71,7 @@ auto BitcoinP2PFilterload(
 namespace opentxs::blockchain::p2p::bitcoin::message::implementation
 {
 Filterload::Filterload(
-    const api::client::Manager& api,
+    const api::Core& api,
     const blockchain::Type network,
     const blockchain::BloomFilter& filter) noexcept
     : Message(api, network, bitcoin::Command::filterload)
@@ -82,7 +81,7 @@ Filterload::Filterload(
 }
 
 Filterload::Filterload(
-    const api::client::Manager& api,
+    const api::Core& api,
     std::unique_ptr<Header> header,
     const blockchain::BloomFilter& filter) noexcept
     : Message(api, std::move(header))

@@ -37,7 +37,6 @@ namespace proto
 class HDPath;
 }  // namespace proto
 
-class Factory;
 class PasswordPrompt;
 }  // namespace opentxs
 
@@ -46,7 +45,6 @@ namespace opentxs::api::client::blockchain::implementation
 class BalanceTree final : public internal::BalanceTree
 {
 public:
-    auto API() const noexcept -> const api::internal::Core& { return api_; }
     auto AssociateTransaction(
         const std::vector<Activity>& unspent,
         const std::vector<Activity>& spent,
@@ -97,11 +95,15 @@ public:
         return hd_.Construct(path, id);
     }
 
+    BalanceTree(
+        const api::internal::Core& api,
+        const internal::BalanceList& parent,
+        const identifier::Nym& nym,
+        const std::set<OTIdentifier>& accounts) noexcept;
+
     ~BalanceTree() final = default;
 
 private:
-    friend opentxs::Factory;
-
     template <typename InterfaceType, typename PayloadType>
     class NodeGroup final : virtual public InterfaceType
     {
@@ -163,8 +165,9 @@ private:
             return construct(lock, data, id);
         }
 
-        NodeGroup(BalanceTree& parent) noexcept
-            : parent_(parent)
+        NodeGroup(const api::internal::Core& api, BalanceTree& parent) noexcept
+            : api_(api)
+            , parent_(parent)
             , lock_()
             , nodes_()
             , index_()
@@ -172,6 +175,7 @@ private:
         }
 
     private:
+        const api::internal::Core& api_;
         BalanceTree& parent_;
         mutable std::mutex lock_;
         std::vector<std::unique_ptr<PayloadType>> nodes_;
@@ -187,8 +191,8 @@ private:
             const ArgumentType& data,
             Identifier& id) noexcept -> bool
         {
-            std::unique_ptr<PayloadType> node{
-                Factory<PayloadType, ArgumentType>::get(parent_, data, id)};
+            auto node{Factory<PayloadType, ArgumentType>::get(
+                api_, parent_, data, id)};
 
             if (false == bool(node)) { return false; }
 
@@ -205,9 +209,10 @@ private:
     template <typename ReturnType, typename ArgumentType>
     struct Factory {
         static auto get(
+            const api::internal::Core& api,
             const BalanceTree& parent,
             const ArgumentType& data,
-            Identifier& id) noexcept -> ReturnType*;
+            Identifier& id) noexcept -> std::unique_ptr<ReturnType>;
     };
 
     struct NodeIndex {
@@ -249,10 +254,6 @@ private:
     auto find_best_deposit_address() const noexcept
         -> const blockchain::BalanceNode::Element&;
 
-    BalanceTree(
-        const internal::BalanceList& parent,
-        const identifier::Nym& nym,
-        const std::set<OTIdentifier>& accounts) noexcept;
     BalanceTree() = delete;
     BalanceTree(const BalanceTree&) = delete;
     BalanceTree(BalanceTree&&) = delete;

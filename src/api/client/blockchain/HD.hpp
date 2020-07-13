@@ -48,7 +48,6 @@ class HDAccount;
 class HDPath;
 }  // namespace proto
 
-class Factory;
 class PasswordPrompt;
 }  // namespace opentxs
 
@@ -58,6 +57,7 @@ class HD final : public internal::HD, public Deterministic
 {
 public:
     using Element = implementation::BalanceNode::Element;
+    using SerializedType = proto::HDAccount;
 
     auto BalanceElement(const Subchain type, const Bip32Index index) const
         noexcept(false) -> const Element& final;
@@ -70,14 +70,24 @@ public:
         const PasswordPrompt& reason) const noexcept -> ECKey override;
 #endif  // OT_CRYPTO_WITH_BIP32
 
+    HD(const api::internal::Core& api,
+       const internal::BalanceTree& parent,
+       const proto::HDPath& path,
+       const PasswordPrompt& reason,
+       Identifier& id)
+    noexcept(false);
+    HD(const api::internal::Core& api,
+       const internal::BalanceTree& parent,
+       const SerializedType& serialized,
+       const PasswordPrompt& reason,
+       Identifier& id)
+    noexcept(false);
+
     ~HD() final = default;
 
 private:
-    friend opentxs::Factory;
-
     using AddressMap = std::map<Bip32Index, Element>;
     using Revision = std::uint64_t;
-    using SerializedType = proto::HDAccount;
 
     static const VersionNumber DefaultVersion{1};
 
@@ -127,16 +137,6 @@ private:
         const Identifier& contact,
         const std::string& label) const noexcept final;
 
-    HD(const internal::BalanceTree& parent,
-       const proto::HDPath& path,
-       const PasswordPrompt& reason,
-       Identifier& id)
-    noexcept(false);
-    HD(const internal::BalanceTree& parent,
-       const SerializedType& serialized,
-       const PasswordPrompt& reason,
-       Identifier& id)
-    noexcept(false);
     HD(const HD&) = delete;
     HD(HD&&) = delete;
     auto operator=(const HD&) -> HD& = delete;

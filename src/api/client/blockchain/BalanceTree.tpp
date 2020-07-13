@@ -5,7 +5,7 @@
 
 #include "BalanceTree.hpp"  // IWYU pragma: associated
 
-#include "2_Factory.hpp"
+#include "internal/api/client/blockchain/Factory.hpp"
 
 namespace opentxs
 {
@@ -21,21 +21,23 @@ namespace opentxs::api::client::blockchain::implementation
 template <>
 struct BalanceTree::Factory<internal::HD, proto::HDPath> {
     static auto get(
+        const api::internal::Core& api,
         const BalanceTree& parent,
         const proto::HDPath& data,
-        Identifier& id) noexcept -> internal::HD*
+        Identifier& id) noexcept -> std::unique_ptr<internal::HD>
     {
-        return opentxs::Factory::BlockchainHDBalanceNode(parent, data, id);
+        return factory::BlockchainHDBalanceNode(api, parent, data, id);
     }
 };
 template <>
 struct BalanceTree::Factory<internal::HD, proto::HDAccount> {
     static auto get(
+        const api::internal::Core& api,
         const BalanceTree& parent,
         const proto::HDAccount& data,
-        Identifier& id) noexcept -> internal::HD*
+        Identifier& id) noexcept -> std::unique_ptr<internal::HD>
     {
-        return opentxs::Factory::BlockchainHDBalanceNode(parent, data, id);
+        return factory::BlockchainHDBalanceNode(api, parent, data, id);
     }
 };
 

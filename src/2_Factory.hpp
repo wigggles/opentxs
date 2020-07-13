@@ -372,25 +372,6 @@ public:
     static auto Bitcoin(const api::Crypto& crypto) -> crypto::Bitcoin*;
     static auto Bip39(const api::Crypto& api) noexcept
         -> std::unique_ptr<crypto::Bip39>;
-    static auto BlockchainBalanceList(
-        const api::client::internal::Blockchain& parent,
-        const blockchain::Type chain)
-        -> api::client::blockchain::internal::BalanceList*;
-    static auto BlockchainBalanceTree(
-        const api::client::blockchain::internal::BalanceList& parent,
-        const identifier::Nym& id,
-        const std::set<OTIdentifier>& hdAccounts,
-        const std::set<OTIdentifier>& importedAccounts,
-        const std::set<OTIdentifier>& paymentCodeAccounts)
-        -> api::client::blockchain::internal::BalanceTree*;
-    static auto BlockchainHDBalanceNode(
-        const api::client::blockchain::internal::BalanceTree& parent,
-        const proto::HDPath& path,
-        Identifier& id) -> api::client::blockchain::internal::HD*;
-    static auto BlockchainHDBalanceNode(
-        const api::client::blockchain::internal::BalanceTree& parent,
-        const proto::HDAccount& serialized,
-        Identifier& id) -> api::client::blockchain::internal::HD*;
     static auto ConnectionReply(
         const api::internal::Core& api,
         const Nym_p& nym,

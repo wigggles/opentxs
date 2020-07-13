@@ -24,14 +24,6 @@
 
 namespace opentxs
 {
-namespace api
-{
-namespace client
-{
-class Manager;
-}  // namespace client
-}  // namespace api
-
 namespace blockchain
 {
 namespace bitcoin

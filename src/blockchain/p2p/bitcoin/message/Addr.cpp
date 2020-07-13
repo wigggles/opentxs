@@ -18,7 +18,6 @@
 #include "internal/blockchain/p2p/P2P.hpp"
 #include "opentxs/Forward.hpp"
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 
@@ -28,7 +27,7 @@
 namespace opentxs::factory
 {
 auto BitcoinP2PAddr(
-    const api::client::Manager& api,
+    const api::Core& api,
     std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
     const blockchain::p2p::bitcoin::ProtocolVersion version,
     const void* payload,
@@ -134,7 +133,7 @@ auto BitcoinP2PAddr(
 }
 
 auto BitcoinP2PAddr(
-    const api::client::Manager& api,
+    const api::Core& api,
     const blockchain::Type network,
     const blockchain::p2p::bitcoin::ProtocolVersion version,
     std::vector<std::unique_ptr<blockchain::p2p::internal::Address>>&&
@@ -150,7 +149,7 @@ auto BitcoinP2PAddr(
 namespace opentxs::blockchain::p2p::bitcoin::message::implementation
 {
 Addr::Addr(
-    const api::client::Manager& api,
+    const api::Core& api,
     const blockchain::Type network,
     const ProtocolVersion version,
     AddressVector&& addresses) noexcept
@@ -162,7 +161,7 @@ Addr::Addr(
 }
 
 Addr::Addr(
-    const api::client::Manager& api,
+    const api::Core& api,
     std::unique_ptr<Header> header,
     const ProtocolVersion version,
     AddressVector&& addresses) noexcept

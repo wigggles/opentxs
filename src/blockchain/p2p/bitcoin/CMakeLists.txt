@@ -16,6 +16,7 @@ set(
 set(
   cxx-headers
   "${opentxs_SOURCE_DIR}/src/internal/blockchain/p2p/bitcoin/Bitcoin.hpp"
+  "${opentxs_SOURCE_DIR}/src/internal/blockchain/p2p/bitcoin/Factory.hpp"
   Header.hpp
   Message.hpp
   Peer.hpp

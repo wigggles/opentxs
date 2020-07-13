@@ -28,8 +28,10 @@ namespace api
 {
 namespace client
 {
-class Manager;
+class Blockchain;
 }  // namespace client
+
+class Core;
 }  // namespace api
 
 namespace network
@@ -45,12 +47,14 @@ class Message;
 namespace opentxs::blockchain::client::implementation
 {
 class BlockOracle final : public internal::BlockOracle,
-                          public Worker<BlockOracle>
+                          public Worker<BlockOracle, api::Core>
 {
 public:
     auto Heartbeat() const noexcept -> void final { trigger(); }
     auto LoadBitcoin(const block::Hash& block) const noexcept
         -> BitcoinBlockFuture final;
+    auto LoadBitcoin(const BlockHashes& hashes) const noexcept
+        -> BitcoinBlockFutures final;
     auto SubmitBlock(const zmq::Frame& in) const noexcept -> void final;
 
     auto Init() noexcept -> void final;
@@ -60,7 +64,8 @@ public:
     }
 
     BlockOracle(
-        const api::client::Manager& api,
+        const api::Core& api,
+        const api::client::Blockchain& blockchain,
         const internal::Network& network,
         const internal::BlockDatabase& db,
         const blockchain::Type chain,
@@ -69,7 +74,7 @@ public:
     ~BlockOracle() final;
 
 private:
-    friend Worker<BlockOracle>;
+    friend Worker<BlockOracle, api::Core>;
 
     using Promise = std::promise<BitcoinBlock_p>;
     using PendingData = std::tuple<Time, Promise, BitcoinBlockFuture, bool>;
@@ -80,11 +85,15 @@ private:
         auto ReceiveBlock(const zmq::Frame& in) const noexcept -> void;
         auto Request(const block::Hash& block) const noexcept
             -> BitcoinBlockFuture;
+        auto Request(const BlockHashes& hashes) const noexcept
+            -> BitcoinBlockFutures;
         auto StateMachine() const noexcept -> bool;
 
         auto Shutdown() noexcept -> void;
 
         Cache(
+            const api::Core& api_,
+            const api::client::Blockchain& blockchain,
             const internal::Network& network,
             const internal::BlockDatabase& db,
             const blockchain::Type chain) noexcept;
@@ -94,6 +103,8 @@ private:
         static const std::size_t cache_limit_;
         static const std::chrono::seconds download_timeout_;
 
+        const api::Core& api_;
+        const api::client::Blockchain& blockchain_;
         const internal::Network& network_;
         const internal::BlockDatabase& db_;
         const blockchain::Type chain_;

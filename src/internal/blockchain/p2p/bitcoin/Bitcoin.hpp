@@ -24,14 +24,6 @@
 
 namespace opentxs
 {
-namespace api
-{
-namespace client
-{
-class Manager;
-}  // namespace client
-}  // namespace api
-
 namespace blockchain
 {
 namespace client
@@ -257,24 +249,3 @@ auto TranslateServices(
 auto convert_service_bit(BitVector8 value) noexcept -> bitcoin::Service;
 auto convert_service_bit(const bitcoin::Service value) noexcept -> BitVector8;
 }  // namespace opentxs::blockchain::p2p::bitcoin
-
-namespace opentxs::factory
-{
-OPENTXS_EXPORT auto BitcoinP2PHeader(
-    const api::client::Manager& api,
-    const network::zeromq::Frame& bytes) -> blockchain::p2p::bitcoin::Header*;
-OPENTXS_EXPORT auto BitcoinP2PMessage(
-    const api::client::Manager& api,
-    std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
-    const blockchain::p2p::bitcoin::ProtocolVersion version,
-    const void* payload = nullptr,
-    const std::size_t size = 0) -> blockchain::p2p::bitcoin::Message*;
-auto BitcoinP2PPeerLegacy(
-    const api::client::Manager& api,
-    const blockchain::client::internal::Network& network,
-    const blockchain::client::internal::PeerManager& manager,
-    const blockchain::client::internal::IO& io,
-    const int id,
-    std::unique_ptr<blockchain::p2p::internal::Address> address,
-    const std::string& shutdown) -> blockchain::p2p::internal::Peer*;
-}  // namespace opentxs::factory

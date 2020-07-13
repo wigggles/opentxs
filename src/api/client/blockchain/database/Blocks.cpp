@@ -268,7 +268,7 @@ auto Blocks::Store(const Hash& block, const std::size_t bytes) const noexcept
     const auto replace = bytes == index.size_;
 
     if (replace) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Replacing existing block ")(
+        LogVerbose(OT_METHOD)(__FUNCTION__)(": Replacing existing block ")(
             block.asHex())
             .Flush();
     } else {

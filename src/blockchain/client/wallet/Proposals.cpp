@@ -15,8 +15,8 @@
 
 #include "internal/blockchain/block/bitcoin/Bitcoin.hpp"
 #include "opentxs/Pimpl.hpp"
+#include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
-#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
@@ -30,11 +30,13 @@
 namespace opentxs::blockchain::client::implementation
 {
 Wallet::Proposals::Proposals(
-    const api::client::Manager& api,
+    const api::Core& api,
+    const api::client::Blockchain& blockchain,
     const internal::Network& network,
     const internal::WalletDatabase& db,
     const Type chain) noexcept
     : api_(api)
+    , blockchain_(blockchain)
     , network_(network)
     , db_(db)
     , chain_(chain)
@@ -79,8 +81,8 @@ auto Wallet::Proposals::build_transaction_bitcoin(
     Proposal& proposal,
     std::promise<block::pTxid>& promise) const noexcept -> BuildResult
 {
-    auto builder =
-        BitcoinTransactionBuilder{api_, db_, id, chain_, network_.FeeRate()};
+    auto builder = BitcoinTransactionBuilder{
+        api_, blockchain_, db_, id, chain_, network_.FeeRate()};
 
     if (false == builder.CreateOutputs(proposal)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to create outputs")
@@ -133,7 +135,7 @@ auto Wallet::Proposals::build_transaction_bitcoin(
     }
 
     const auto& transaction = *pTransaction;
-    auto proto = transaction.Serialize(api_.Blockchain());
+    auto proto = transaction.Serialize(blockchain_);
 
     if (false == proto.has_value()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to serialize transaction")
@@ -225,7 +227,7 @@ auto Wallet::Proposals::rebroadcast(const Lock& lock) noexcept -> void
         if (false == proposal.has_value()) { continue; }
 
         auto pTx = factory::BitcoinTransaction(
-            api_, api_.Blockchain(), proposal.value().finished());
+            api_, blockchain_, proposal.value().finished());
 
         if (false == bool(pTx)) { continue; }
 

@@ -20,9 +20,8 @@
 #include "internal/api/client/Client.hpp"
 #include "internal/blockchain/block/bitcoin/Bitcoin.hpp"
 #include "opentxs/Pimpl.hpp"
+#include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
-#include "opentxs/api/client/Blockchain.hpp"
-#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/client/blockchain/BalanceNode.hpp"
 #include "opentxs/api/client/blockchain/BalanceTree.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
@@ -64,7 +63,7 @@ auto delete_from_vector(std::vector<Key>& vector, const Key& key) noexcept
 namespace opentxs::blockchain::database
 {
 Wallet::Wallet(
-    const api::client::Manager& api,
+    const api::Core& api,
     const api::client::internal::Blockchain& blockchain,
     const Common& common,
     const blockchain::Type chain) noexcept
@@ -128,7 +127,7 @@ auto Wallet::add_transaction(
     const auto reason =
         api_.Factory().PasswordPrompt("Save a received blockchain transaction");
 
-    return api_.Blockchain().ProcessTransaction(chain, transaction, reason);
+    return blockchain_.ProcessTransaction(chain, transaction, reason);
 }
 
 auto Wallet::AddConfirmedTransaction(
@@ -163,8 +162,7 @@ auto Wallet::AddConfirmedTransaction(
         if (auto out = find_output(lock, outpoint); out.has_value()) {
             const auto& proto = std::get<2>(out.value()->second);
 
-            if (!copy.AssociatePreviousOutput(
-                    api_.Blockchain(), inputIndex, proto)) {
+            if (!copy.AssociatePreviousOutput(blockchain_, inputIndex, proto)) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(
                     ": Error associating previous output to input")
                     .Flush();
@@ -489,7 +487,7 @@ auto Wallet::create_state(
 
     auto data = block::bitcoin::Output::SerializeType{};
 
-    if (false == output.Serialize(api_.Blockchain(), data)) {
+    if (false == output.Serialize(blockchain_, data)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to serialize output")
             .Flush();
 
@@ -909,7 +907,7 @@ auto Wallet::ReserveChangeKey(const Identifier& proposal) const noexcept
         const auto nym = api_.Factory().NymID(data.initiator());
 
         try {
-            const auto& account = api_.Blockchain().Account(nym, chain_);
+            const auto& account = blockchain_.Account(nym, chain_);
             const auto reason =
                 api_.Factory().PasswordPrompt("Send a blockchain transaction");
             const auto& node = account.GetNextChangeKey(reason);
@@ -1301,7 +1299,6 @@ auto Wallet::TransactionLoadBitcoin(const ReadView txid) const noexcept
 
     if (false == serialized.has_value()) { return {}; }
 
-    return factory::BitcoinTransaction(
-        api_, api_.Blockchain(), serialized.value());
+    return factory::BitcoinTransaction(api_, blockchain_, serialized.value());
 }
 }  // namespace opentxs::blockchain::database

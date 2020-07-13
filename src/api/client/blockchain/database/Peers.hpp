@@ -25,10 +25,7 @@ namespace opentxs
 {
 namespace api
 {
-namespace client
-{
-class Manager;
-}  // namespace client
+class Core;
 }  // namespace api
 
 namespace storage
@@ -54,9 +51,8 @@ public:
     auto Import(std::vector<Address_p> peers) noexcept -> bool;
     auto Insert(Address_p address) noexcept -> bool;
 
-    Peers(
-        const api::client::Manager& api,
-        opentxs::storage::lmdb::LMDB& lmdb) noexcept(false);
+    Peers(const api::Core& api, opentxs::storage::lmdb::LMDB& lmdb) noexcept(
+        false);
 
 private:
     using ChainIndexMap = std::map<Chain, std::set<std::string>>;
@@ -65,7 +61,7 @@ private:
     using TypeIndexMap = std::map<Type, std::set<std::string>>;
     using ConnectedIndexMap = std::map<std::string, Time>;
 
-    const api::client::Manager& api_;
+    const api::Core& api_;
     opentxs::storage::lmdb::LMDB& lmdb_;
     mutable std::mutex lock_;
     ChainIndexMap chains_;

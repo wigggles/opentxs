@@ -15,6 +15,7 @@
 #include <utility>
 
 #include "internal/blockchain/Params.hpp"
+#include "internal/blockchain/p2p/bitcoin/Factory.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
@@ -25,9 +26,8 @@
 
 namespace opentxs::factory
 {
-auto BitcoinP2PHeader(
-    const api::client::Manager& api,
-    const network::zeromq::Frame& bytes) -> blockchain::p2p::bitcoin::Header*
+auto BitcoinP2PHeader(const api::Core& api, const network::zeromq::Frame& bytes)
+    -> blockchain::p2p::bitcoin::Header*
 {
     using ReturnType = opentxs::blockchain::p2p::bitcoin::Header;
     const ReturnType::BitcoinFormat raw{bytes};
@@ -40,7 +40,7 @@ auto BitcoinP2PHeader(
 namespace opentxs::blockchain::p2p::bitcoin
 {
 Header::Header(
-    const api::client::Manager& api,
+    const api::Core& api,
     const blockchain::Type network,
     const bitcoin::Command command,
     const std::size_t payload,
@@ -53,7 +53,7 @@ Header::Header(
 }
 
 Header::Header(
-    const api::client::Manager& api,
+    const api::Core& api,
     const blockchain::Type network,
     const bitcoin::Command command) noexcept
     : Header(api, network, command, 0, Data::Factory())

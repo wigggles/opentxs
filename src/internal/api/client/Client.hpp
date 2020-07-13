@@ -132,7 +132,6 @@ struct Activity : virtual public api::client::Activity {
     virtual ~Activity() = default;
 };
 struct Blockchain : virtual public api::client::Blockchain {
-    virtual auto API() const noexcept -> const api::internal::Core& = 0;
     /// Throws std::runtime_error if type is invalid
     OPENTXS_EXPORT virtual auto BalanceTree(
         const identifier::Nym& nymID,

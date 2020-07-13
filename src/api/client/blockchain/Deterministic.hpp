@@ -104,6 +104,7 @@ protected:
 #endif  // OT_CRYPTO_WITH_BIP32
 
     Deterministic(
+        const api::internal::Core& api,
         const internal::BalanceTree& parent,
         const BalanceNodeType type,
         const OTIdentifier id,

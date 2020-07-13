@@ -38,10 +38,7 @@ namespace opentxs
 {
 namespace api
 {
-namespace client
-{
-class Manager;
-}  // namespace client
+class Core;
 }  // namespace api
 
 namespace blockchain
@@ -93,14 +90,14 @@ public:
     auto ApplyUpdate(const client::UpdateTransaction& update) noexcept -> bool;
 
     Headers(
-        const api::client::Manager& api,
+        const api::Core& api,
         const client::internal::Network& network,
         const Common& common,
         const opentxs::storage::lmdb::LMDB& lmdb,
         const blockchain::Type type) noexcept;
 
 private:
-    const api::client::Manager& api_;
+    const api::Core& api_;
     const client::internal::Network& network_;
     const Common& common_;
     const opentxs::storage::lmdb::LMDB& lmdb_;

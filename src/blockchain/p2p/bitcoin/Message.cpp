@@ -22,9 +22,9 @@
 #include "blockchain/p2p/bitcoin/message/Reject.hpp"
 #include "blockchain/p2p/bitcoin/message/Sendcmpct.hpp"
 #include "blockchain/p2p/bitcoin/message/Tx.hpp"
+#include "internal/blockchain/p2p/bitcoin/Factory.hpp"
 #include "internal/blockchain/p2p/bitcoin/message/Message.hpp"
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
@@ -34,7 +34,7 @@
 namespace opentxs::factory
 {
 auto BitcoinP2PMessage(
-    const api::client::Manager& api,
+    const api::Core& api,
     std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
     const blockchain::p2p::bitcoin::ProtocolVersion version,
     const void* payload,
@@ -196,7 +196,7 @@ auto BitcoinP2PMessage(
 namespace opentxs::blockchain::p2p::bitcoin
 {
 Message::Message(
-    const api::client::Manager& api,
+    const api::Core& api,
     const blockchain::Type network,
     const bitcoin::Command command) noexcept
     : api_(api)
@@ -205,9 +205,7 @@ Message::Message(
     OT_ASSERT(header_);
 }
 
-Message::Message(
-    const api::client::Manager& api,
-    std::unique_ptr<Header> header) noexcept
+Message::Message(const api::Core& api, std::unique_ptr<Header> header) noexcept
     : api_(api)
     , header_(std::move(header))
 {

@@ -23,7 +23,7 @@
 namespace opentxs::factory
 {
 auto BitcoinP2PGetcfheaders(
-    const api::client::Manager& api,
+    const api::Core& api,
     std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
     const blockchain::p2p::bitcoin::ProtocolVersion version,
     const void* payload,
@@ -64,7 +64,7 @@ auto BitcoinP2PGetcfheaders(
 }
 
 auto BitcoinP2PGetcfheaders(
-    const api::client::Manager& api,
+    const api::Core& api,
     const blockchain::Type network,
     const blockchain::filter::Type type,
     const blockchain::block::Height start,
@@ -81,7 +81,7 @@ auto BitcoinP2PGetcfheaders(
 namespace opentxs::blockchain::p2p::bitcoin::message::implementation
 {
 Getcfheaders::Getcfheaders(
-    const api::client::Manager& api,
+    const api::Core& api,
     const blockchain::Type network,
     const filter::Type type,
     const block::Height start,
@@ -95,7 +95,7 @@ Getcfheaders::Getcfheaders(
 }
 
 Getcfheaders::Getcfheaders(
-    const api::client::Manager& api,
+    const api::Core& api,
     std::unique_ptr<Header> header,
     const filter::Type type,
     const block::Height start,

@@ -21,13 +21,11 @@
 #include "blockchain/client/wallet/HDStateData.hpp"
 #include "internal/blockchain/client/Client.hpp"
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/client/blockchain/BalanceTree.hpp"
 #include "opentxs/api/client/blockchain/HD.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
-#include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/socket/Push.hpp"
 
@@ -37,13 +35,15 @@
 namespace opentxs::blockchain::client::implementation
 {
 Wallet::Account::Account(
-    const api::client::Manager& api,
+    const api::Core& api,
+    const api::client::Blockchain& blockchain,
     const BalanceTree& ref,
     const internal::Network& network,
     const internal::WalletDatabase& db,
     const zmq::socket::Push& socket,
     const SimpleCallback& taskFinished) noexcept
     : api_(api)
+    , blockchain_(blockchain)
     , ref_(ref)
     , network_(network)
     , db_(db)
@@ -57,6 +57,8 @@ Wallet::Account::Account(
         const auto& id = subaccount.ID();
         internal_.try_emplace(
             id,
+            api_,
+            blockchain_,
             network_,
             db_,
             subaccount,
@@ -65,6 +67,8 @@ Wallet::Account::Account(
             Subchain::Internal);
         external_.try_emplace(
             id,
+            api_,
+            blockchain_,
             network_,
             db_,
             subaccount,
@@ -76,6 +80,7 @@ Wallet::Account::Account(
 
 Wallet::Account::Account(Account&& rhs) noexcept
     : api_(rhs.api_)
+    , blockchain_(rhs.blockchain_)
     , ref_(rhs.ref_)
     , network_(rhs.network_)
     , db_(rhs.db_)
@@ -91,11 +96,11 @@ auto Wallet::Account::queue_work(
     const Task task,
     const HDStateData& data) noexcept -> void
 {
-    auto work = api_.ZeroMQ().Message(network_.Chain());
-    work->AddFrame(internal::ThreadPool::Work::Wallet);
-    work->AddFrame();
-    work->AddFrame(reinterpret_cast<std::uintptr_t>(&data));
+    using Pool = internal::ThreadPool;
+
+    auto work = Pool::MakeWork(api_, network_.Chain(), Pool::Work::Wallet);
     work->AddFrame(task);
+    work->AddFrame(reinterpret_cast<std::uintptr_t>(&data));
     socket_.Send(work);
 }
 
@@ -114,6 +119,8 @@ auto Wallet::Account::reorg(const block::Position& parent) noexcept -> bool
             if (internal_.end() == it) {
                 auto [it2, added] = internal_.try_emplace(
                     id,
+                    api_,
+                    blockchain_,
                     network_,
                     db_,
                     subaccount,
@@ -132,6 +139,8 @@ auto Wallet::Account::reorg(const block::Position& parent) noexcept -> bool
             if (external_.end() == it) {
                 auto [it2, added] = external_.try_emplace(
                     id,
+                    api_,
+                    blockchain_,
                     network_,
                     db_,
                     subaccount,
@@ -170,6 +179,8 @@ auto Wallet::Account::state_machine() noexcept -> bool
             if (internal_.end() == it) {
                 auto [it2, added] = internal_.try_emplace(
                     id,
+                    api_,
+                    blockchain_,
                     network_,
                     db_,
                     subaccount,
@@ -188,6 +199,8 @@ auto Wallet::Account::state_machine() noexcept -> bool
             if (external_.end() == it) {
                 auto [it2, added] = external_.try_emplace(
                     id,
+                    api_,
+                    blockchain_,
                     network_,
                     db_,
                     subaccount,

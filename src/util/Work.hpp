@@ -5,9 +5,9 @@
 
 #pragma once
 
-#include <opentxs/util/WorkType.hpp>
-
 #include <cstdint>
+
+#include "opentxs/util/WorkType.hpp"
 
 namespace opentxs
 {

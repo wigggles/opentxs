@@ -25,7 +25,7 @@ using FeeRateField = be::little_uint64_buf_t;
 namespace opentxs::factory
 {
 auto BitcoinP2PFeefilter(
-    const api::client::Manager& api,
+    const api::Core& api,
     std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
     const blockchain::p2p::bitcoin::ProtocolVersion version,
     const void* payload,
@@ -70,7 +70,7 @@ auto BitcoinP2PFeefilter(
 }
 
 auto BitcoinP2PFeefilter(
-    const api::client::Manager& api,
+    const api::Core& api,
     const blockchain::Type network,
     const std::uint64_t fee_rate)
     -> blockchain::p2p::bitcoin::message::Feefilter*
@@ -85,7 +85,7 @@ auto BitcoinP2PFeefilter(
 namespace opentxs::blockchain::p2p::bitcoin::message
 {
 Feefilter::Feefilter(
-    const api::client::Manager& api,
+    const api::Core& api,
     const blockchain::Type network,
     const std::uint64_t fee_rate) noexcept
     : Message(api, network, bitcoin::Command::feefilter)
@@ -95,7 +95,7 @@ Feefilter::Feefilter(
 }
 
 Feefilter::Feefilter(
-    const api::client::Manager& api,
+    const api::Core& api,
     std::unique_ptr<Header> header,
     const std::uint64_t fee_rate) noexcept(false)
     : Message(api, std::move(header))

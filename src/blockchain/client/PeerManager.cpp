@@ -14,9 +14,11 @@
 
 #include "core/Worker.hpp"
 #include "internal/blockchain/client/Client.hpp"
+#include "internal/blockchain/client/Factory.hpp"
 #include "internal/blockchain/p2p/P2P.hpp"  // IWYU pragma: keep
 #include "opentxs/Bytes.hpp"
 #include "opentxs/Pimpl.hpp"
+#include "opentxs/api/Core.hpp"
 #include "opentxs/blockchain/block/bitcoin/Transaction.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Log.hpp"
@@ -31,7 +33,7 @@
 namespace opentxs::factory
 {
 auto BlockchainPeerManager(
-    const api::client::Manager& api,
+    const api::Core& api,
     const blockchain::client::internal::Network& network,
     const blockchain::client::internal::PeerDatabase& database,
     const blockchain::client::internal::IO& io,
@@ -50,7 +52,7 @@ auto BlockchainPeerManager(
 namespace opentxs::blockchain::client::implementation
 {
 PeerManager::PeerManager(
-    const api::client::Manager& api,
+    const api::Core& api,
     const internal::Network& network,
     const internal::PeerDatabase& database,
     const blockchain::client::internal::IO& io,
@@ -71,7 +73,8 @@ PeerManager::PeerManager(
           shutdown,
           chain,
           seednode,
-          io_context_)
+          io_context_,
+          peer_target(database_))
     , init_promise_()
     , init_(init_promise_.get_future())
 {
@@ -140,6 +143,26 @@ auto PeerManager::init() noexcept -> void
     trigger();
 }
 
+auto PeerManager::peer_target(const internal::PeerDatabase& db) noexcept
+    -> std::size_t
+{
+    switch (db.BlockPolicy()) {
+        case api::client::blockchain::BlockStorage::All: {
+
+            return 8;
+        }
+        case api::client::blockchain::BlockStorage::Cache: {
+
+            return 2;
+        }
+        case api::client::blockchain::BlockStorage::None:
+        default: {
+
+            return 1;
+        }
+    }
+}
+
 auto PeerManager::pipeline(zmq::Message& message) noexcept -> void
 {
     if (false == running_.get()) { return; }
@@ -186,12 +209,22 @@ auto PeerManager::pipeline(zmq::Message& message) noexcept -> void
 
 auto PeerManager::RequestBlock(const block::Hash& block) const noexcept -> bool
 {
+    return RequestBlocks({block.Bytes()});
+}
+
+auto PeerManager::RequestBlocks(
+    const std::vector<ReadView>& hashes) const noexcept -> bool
+{
     if (false == running_.get()) { return false; }
 
     if (0 == peers_.Count()) { return false; }
 
     auto work = jobs_.Work(Task::Getblock);
-    work->AddFrame(block);
+
+    for (const auto& block : hashes) {
+        work->AddFrame(block.data(), block.size());
+    }
+
     jobs_.Dispatch(work);
 
     return true;

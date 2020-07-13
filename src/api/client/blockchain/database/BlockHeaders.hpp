@@ -16,10 +16,7 @@ namespace opentxs
 {
 namespace api
 {
-namespace client
-{
-class Manager;
-}  // namespace client
+class Core;
 }  // namespace api
 
 namespace blockchain
@@ -53,11 +50,11 @@ public:
     auto StoreBlockHeaders(const UpdatedHeader& headers) const noexcept -> bool;
 
     BlockHeader(
-        const api::client::Manager& api,
+        const api::Core& api,
         opentxs::storage::lmdb::LMDB& lmdb) noexcept(false);
 
 private:
-    const api::client::Manager& api_;
+    const api::Core& api_;
     opentxs::storage::lmdb::LMDB& lmdb_;
 };
 }  // namespace opentxs::api::client::blockchain::database::implementation

@@ -24,7 +24,7 @@
 namespace opentxs::factory
 {
 auto BitcoinP2PBlock(
-    const api::client::Manager& api,
+    const api::Core& api,
     std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
     const blockchain::p2p::bitcoin::ProtocolVersion version,
     const void* payload,
@@ -47,7 +47,7 @@ auto BitcoinP2PBlock(
 }
 
 auto BitcoinP2PBlock(
-    const api::client::Manager& api,
+    const api::Core& api,
     const blockchain::Type network,
     const Data& raw_block)
     -> blockchain::p2p::bitcoin::message::internal::Block*
@@ -62,7 +62,7 @@ auto BitcoinP2PBlock(
 namespace opentxs::blockchain::p2p::bitcoin::message::implementation
 {
 Block::Block(
-    const api::client::Manager& api,
+    const api::Core& api,
     const blockchain::Type network,
     const Data& block) noexcept
     : Message(api, network, bitcoin::Command::block)
@@ -72,7 +72,7 @@ Block::Block(
 }
 
 Block::Block(
-    const api::client::Manager& api,
+    const api::Core& api,
     std::unique_ptr<Header> header,
     const Data& block) noexcept
     : Message(api, std::move(header))

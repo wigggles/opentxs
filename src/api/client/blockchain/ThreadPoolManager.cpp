@@ -7,6 +7,7 @@
 #include "1_Internal.hpp"             // IWYU pragma: associated
 #include "api/client/Blockchain.hpp"  // IWYU pragma: associated
 
+#include <iosfwd>
 #include <map>
 #include <set>
 #include <thread>
@@ -27,6 +28,26 @@
 
 #define OT_METHOD                                                              \
     "opentxs::api::client::implementation::Blockchain::ThreadPoolManager::"
+
+namespace opentxs::blockchain::client::internal
+{
+auto ThreadPool::Capacity() noexcept -> std::size_t
+{
+    return std::thread::hardware_concurrency();
+}
+
+auto ThreadPool::MakeWork(
+    const api::Core& api,
+    const blockchain::Type chain,
+    const Work type) noexcept -> OTZMQMessage
+{
+    auto work = api.ZeroMQ().Message(chain);
+    work->AddFrame(type);
+    work->StartBody();
+
+    return work;
+}
+}  // namespace opentxs::blockchain::client::internal
 
 namespace opentxs::api::client::implementation
 {
@@ -60,7 +81,12 @@ auto Blockchain::ThreadPoolManager::callback(zmq::Message& in) noexcept -> void
 
     switch (header.at(1).as<Work>()) {
         case Work::Wallet: {
-            opentxs::blockchain::client::internal::Wallet::ProcessTask(in);
+            opentxs::blockchain::client::internal::Wallet::ProcessThreadPool(
+                in);
+        } break;
+        case Work::FilterOracle: {
+            opentxs::blockchain::client::internal::FilterOracle::
+                ProcessThreadPool(in);
         } break;
         default: {
             OT_FAIL;
@@ -139,7 +165,7 @@ auto Blockchain::ThreadPoolManager::startup() const noexcept -> void
 
     if (init_) { return; }
 
-    const auto target = std::thread::hardware_concurrency();
+    const auto target = Capacity();
     workers_.reserve(target);
     const auto random = Identifier::Random();
     const auto endpoint = std::string{"inproc://"} + random->str();

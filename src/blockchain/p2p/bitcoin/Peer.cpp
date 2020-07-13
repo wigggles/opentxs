@@ -28,12 +28,13 @@
 #include "blockchain/p2p/bitcoin/message/Tx.hpp"
 #include "internal/blockchain/Blockchain.hpp"
 #include "internal/blockchain/p2p/P2P.hpp"
+#include "internal/blockchain/p2p/bitcoin/Factory.hpp"
 #include "internal/blockchain/p2p/bitcoin/message/Message.hpp"
 #include "opentxs/Bytes.hpp"
 #include "opentxs/Forward.hpp"
 #include "opentxs/Pimpl.hpp"
+#include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
-#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Util.hpp"
 #include "opentxs/blockchain/block/Header.hpp"
@@ -54,7 +55,7 @@
 namespace opentxs::factory
 {
 auto BitcoinP2PPeerLegacy(
-    const api::client::Manager& api,
+    const api::Core& api,
     const blockchain::client::internal::Network& network,
     const blockchain::client::internal::PeerManager& manager,
     const blockchain::client::internal::IO& io,
@@ -131,7 +132,7 @@ const std::map<Command, Peer::CommandFunction> Peer::command_map_{
 const std::string Peer::user_agent_{"/opentxs:" OPENTXS_VERSION_STRING "/"};
 
 Peer::Peer(
-    const api::client::Manager& api,
+    const api::Core& api,
     const client::internal::Network& network,
     const client::internal::PeerManager& manager,
     const blockchain::client::internal::IO& io,
@@ -233,7 +234,7 @@ auto Peer::get_local_services(
     return output;
 }
 
-auto Peer::nonce(const api::client::Manager& api) noexcept -> Nonce
+auto Peer::nonce(const api::Core& api) noexcept -> Nonce
 {
     Nonce output{0};
     const auto random =
@@ -1236,11 +1237,13 @@ auto Peer::request_block(zmq::Message& in) noexcept -> void
         OT_FAIL;
     }
 
-    auto id = api_.Factory().Data(body.at(1));
     using Inventory = blockchain::bitcoin::Inventory;
     using Type = Inventory::Type;
     auto blocks = std::vector<Inventory>{};
-    blocks.emplace_back(Type::MsgBlock, std::move(id));
+
+    for (auto i = std::size_t{1}; i < body.size(); ++i) {
+        blocks.emplace_back(Type::MsgBlock, api_.Factory().Data(body.at(1)));
+    }
 
     auto pMessage = std::unique_ptr<Message>{
         factory::BitcoinP2PGetdata(api_, chain_, std::move(blocks))};

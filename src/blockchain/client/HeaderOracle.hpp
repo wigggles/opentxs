@@ -27,10 +27,7 @@ namespace opentxs
 {
 namespace api
 {
-namespace client
-{
-class Manager;
-}  // namespace client
+class Core;
 }  // namespace api
 
 namespace blockchain
@@ -87,8 +84,7 @@ public:
     auto Init() noexcept -> void;
 
     HeaderOracle(
-        const api::client::Manager& api,
-        const internal::Network& network,
+        const api::Core& api,
         const internal::HeaderDatabase& database,
         const blockchain::Type type) noexcept;
 
@@ -102,7 +98,7 @@ private:
 
     using Candidates = std::vector<Candidate>;
 
-    const api::client::Manager& api_;
+    const api::Core& api_;
     const internal::HeaderDatabase& database_;
     const blockchain::Type chain_;
     mutable std::mutex lock_;

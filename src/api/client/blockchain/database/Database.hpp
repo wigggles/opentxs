@@ -38,12 +38,10 @@ namespace api
 {
 namespace client
 {
-namespace internal
-{
-struct Manager;
-}  // namespace internal
+class Blockchain;
 }  // namespace client
 
+class Core;
 class Legacy;
 }  // namespace api
 
@@ -193,6 +191,13 @@ public:
     {
         return filters_.StoreFilters(type, filters);
     }
+    auto StoreFilters(
+        const FilterType type,
+        const std::vector<FilterHeader>& headers,
+        const std::vector<FilterData>& filters) const noexcept -> bool
+    {
+        return filters_.StoreFilters(type, headers, filters);
+    }
     auto StoreTransaction(const proto::BlockchainTransaction& tx) const noexcept
         -> bool
     {
@@ -210,7 +215,8 @@ public:
     }
 
     Database(
-        const api::client::internal::Manager& api,
+        const api::Core& api,
+        const api::client::Blockchain& blockchain,
         const api::Legacy& legacy,
         const std::string& dataFolder,
         const ArgList& args) noexcept(false);
@@ -220,7 +226,8 @@ private:
 
     static const opentxs::storage::lmdb::TableNames table_names_;
 
-    const api::client::internal::Manager& api_;
+    const api::Core& api_;
+    const api::Legacy& legacy_;
     const OTString blockchain_path_;
     const OTString common_path_;
 #if OPENTXS_BLOCK_STORAGE_ENABLED

@@ -11,6 +11,7 @@ set(
   filteroracle/BlockQueue.cpp
   filteroracle/FilterQueue.cpp
   filteroracle/HeaderQueue.cpp
+  filteroracle/IndexBlockJob.cpp
   peermanager/Jobs.cpp
   peermanager/Peers.cpp
   wallet/Account.cpp
@@ -38,6 +39,7 @@ set(
   cxx-headers
   ${cxx-install-headers}
   "${opentxs_SOURCE_DIR}/src/internal/blockchain/client/Client.hpp"
+  "${opentxs_SOURCE_DIR}/src/internal/blockchain/client/Factory.hpp"
   filteroracle/FilterCheckpoints.hpp
   wallet/HDStateData.hpp
   BlockOracle.hpp

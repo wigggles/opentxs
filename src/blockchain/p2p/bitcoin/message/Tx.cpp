@@ -13,8 +13,8 @@
 #include "blockchain/p2p/bitcoin/Header.hpp"
 #include "internal/blockchain/p2p/bitcoin/Bitcoin.hpp"
 #include "internal/blockchain/p2p/bitcoin/message/Message.hpp"
+#include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
-#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 
@@ -24,7 +24,7 @@ namespace opentxs::factory
 {
 // We have a header and a raw payload. Parse it.
 auto BitcoinP2PTx(
-    const api::client::Manager& api,
+    const api::Core& api,
     std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
     const blockchain::p2p::bitcoin::ProtocolVersion version,
     const void* payload,
@@ -55,7 +55,7 @@ auto BitcoinP2PTx(
 
 // We have all the data members to create the message from scratch (for sending)
 auto BitcoinP2PTx(
-    const api::client::Manager& api,
+    const api::Core& api,
     const blockchain::Type network,
     const ReadView transaction) -> blockchain::p2p::bitcoin::message::Tx*
 {
@@ -80,7 +80,7 @@ auto Tx::payload() const noexcept -> OTData
 
 // We have all the data members to create the message from scratch (for sending)
 Tx::Tx(
-    const api::client::Manager& api,
+    const api::Core& api,
     const blockchain::Type network,
     const ReadView transaction) noexcept
     : Message(api, network, bitcoin::Command::tx)
@@ -92,7 +92,7 @@ Tx::Tx(
 // We have a header and the data members. They've been parsed, so now we are
 // instantiating the message from them.
 Tx::Tx(
-    const api::client::Manager& api,
+    const api::Core& api,
     std::unique_ptr<Header> header,
     const ReadView transaction) noexcept(false)
     : Message(api, std::move(header))

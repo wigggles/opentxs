@@ -23,10 +23,7 @@ namespace opentxs
 {
 namespace api
 {
-namespace client
-{
-class Manager;
-}  // namespace client
+class Core;
 }  // namespace api
 
 namespace blockchain
@@ -49,11 +46,11 @@ public:
     auto feeRate() const noexcept -> std::uint64_t { return fee_rate_; }
 
     Feefilter(
-        const api::client::Manager& api,
+        const api::Core& api,
         const blockchain::Type network,
         const std::uint64_t fee_rate) noexcept;
     Feefilter(
-        const api::client::Manager& api,
+        const api::Core& api,
         std::unique_ptr<Header> header,
         const std::uint64_t fee_rate) noexcept(false);
 

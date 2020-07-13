@@ -13,7 +13,6 @@
 
 #include "opentxs/Types.hpp"
 #include "opentxs/api/client/Blockchain.hpp"
-#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/contact/Contact.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
@@ -26,9 +25,9 @@
 namespace opentxs::api::client::blockchain::database::implementation
 {
 Wallet::Wallet(
-    const api::client::Manager& api,
+    const api::client::Blockchain& blockchain,
     [[maybe_unused]] opentxs::storage::lmdb::LMDB& lmdb) noexcept(false)
-    : api_(api)
+    : blockchain_(blockchain)
     // TODO , lmdb_(lmdb)
     , lock_()
     , transaction_map_()
@@ -169,7 +168,7 @@ auto Wallet::update_contact(
         std::end(removedAddresses),
         [&](const auto& element) {
             element_to_contact_[element].erase(contactID);
-            const auto pattern = api_.Blockchain().IndexItem(element->Bytes());
+            const auto pattern = blockchain_.IndexItem(element->Bytes());
 
             try {
                 const auto& transactions = pattern_to_transactions_.at(pattern);
@@ -185,7 +184,7 @@ auto Wallet::update_contact(
         std::end(newAddresses),
         [&](const auto& element) {
             element_to_contact_[element].insert(contactID);
-            const auto pattern = api_.Blockchain().IndexItem(element->Bytes());
+            const auto pattern = blockchain_.IndexItem(element->Bytes());
 
             try {
                 const auto& transactions = pattern_to_transactions_.at(pattern);
@@ -254,7 +253,7 @@ auto Wallet::UpdateMergedContact(const Contact& parent, const Contact& child)
     std::for_each(
         std::begin(deleted), std::end(deleted), [&](const auto& element) {
             element_to_contact_[element].erase(deletedID);
-            const auto pattern = api_.Blockchain().IndexItem(element->Bytes());
+            const auto pattern = blockchain_.IndexItem(element->Bytes());
 
             try {
                 const auto& transactions = pattern_to_transactions_.at(pattern);

@@ -28,7 +28,7 @@
 namespace opentxs::factory
 {
 auto BitcoinP2PNotfound(
-    const api::client::Manager& api,
+    const api::Core& api,
     std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
     const blockchain::p2p::bitcoin::ProtocolVersion version,
     const void* payload,
@@ -89,7 +89,7 @@ auto BitcoinP2PNotfound(
 }
 
 auto BitcoinP2PNotfound(
-    const api::client::Manager& api,
+    const api::Core& api,
     const blockchain::Type network,
     std::vector<blockchain::bitcoin::Inventory>&& payload)
     -> blockchain::p2p::bitcoin::message::internal::Notfound*
@@ -104,7 +104,7 @@ auto BitcoinP2PNotfound(
 namespace opentxs::blockchain::p2p::bitcoin::message::implementation
 {
 Notfound::Notfound(
-    const api::client::Manager& api,
+    const api::Core& api,
     const blockchain::Type network,
     std::vector<blockchain::bitcoin::Inventory>&& payload) noexcept
     : Message(api, network, bitcoin::Command::inv)
@@ -114,7 +114,7 @@ Notfound::Notfound(
 }
 
 Notfound::Notfound(
-    const api::client::Manager& api,
+    const api::Core& api,
     std::unique_ptr<Header> header,
     std::vector<blockchain::bitcoin::Inventory>&& payload) noexcept
     : Message(api, std::move(header))

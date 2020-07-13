@@ -26,7 +26,7 @@
 namespace opentxs::factory
 {
 auto BitcoinP2PVersion(
-    const api::client::Manager& api,
+    const api::Core& api,
     std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
     const blockchain::p2p::bitcoin::ProtocolVersion,
     const void* payload,
@@ -177,7 +177,7 @@ auto BitcoinP2PVersion(
 }
 
 auto BitcoinP2PVersion(
-    const api::client::Manager& api,
+    const api::Core& api,
     const blockchain::Type network,
     const std::int32_t version,
     const std::set<blockchain::p2p::Service>& localServices,
@@ -225,7 +225,7 @@ auto BitcoinP2PVersion(
 namespace opentxs::blockchain::p2p::bitcoin::message::implementation
 {
 Version::Version(
-    const api::client::Manager& api,
+    const api::Core& api,
     const blockchain::Type network,
     const bitcoin::ProtocolVersion version,
     const tcp::endpoint localAddress,
@@ -255,7 +255,7 @@ Version::Version(
 }
 
 Version::Version(
-    const api::client::Manager& api,
+    const api::Core& api,
     std::unique_ptr<Header> header,
     const bitcoin::ProtocolVersion version,
     const tcp::endpoint localAddress,

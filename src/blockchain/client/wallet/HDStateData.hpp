@@ -32,7 +32,11 @@ namespace blockchain
 {
 class HD;
 }  // namespace blockchain
+
+class Blockchain;
 }  // namespace client
+
+class Core;
 }  // namespace api
 
 namespace blockchain
@@ -67,6 +71,8 @@ struct HDStateData {
         std::queue<block::Position> parents_{};
     };
 
+    const api::Core& api_;
+    const api::client::Blockchain& blockchain_;
     const internal::Network& network_;
     const internal::WalletDatabase& db_;
     const api::client::blockchain::HD& node_;
@@ -87,6 +93,8 @@ struct HDStateData {
     auto scan() noexcept -> void;
 
     HDStateData(
+        const api::Core& api,
+        const api::client::Blockchain& blockchain,
         const internal::Network& network,
         const WalletDatabase& db,
         const api::client::blockchain::HD& node,

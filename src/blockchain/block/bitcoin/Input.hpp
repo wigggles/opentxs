@@ -31,7 +31,6 @@ namespace api
 namespace client
 {
 class Blockchain;
-class Manager;
 }  // namespace client
 
 class Core;

@@ -10,9 +10,9 @@
 #include "opentxs/crypto/library/AsymmetricProvider.hpp"
 #include "opentxs/crypto/library/EcdsaProvider.hpp"
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
+#include "internal/crypto/library/Scrypt.hpp"
 #include "opentxs/crypto/library/HashingProvider.hpp"
 #include "opentxs/crypto/library/SymmetricProvider.hpp"
-#include "internal/crypto/library/Scrypt.hpp"
 
 namespace opentxs::crypto
 {

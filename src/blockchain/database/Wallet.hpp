@@ -46,8 +46,6 @@ namespace internal
 {
 struct Blockchain;
 }  // namespace internal
-
-class Manager;
 }  // namespace client
 
 class Core;
@@ -204,7 +202,7 @@ public:
         -> std::unique_ptr<block::bitcoin::Transaction>;
 
     Wallet(
-        const api::client::Manager& api,
+        const api::Core& api,
         const api::client::internal::Blockchain& blockchain,
         const Common& common,
         const blockchain::Type chain) noexcept;
@@ -257,7 +255,7 @@ private:
     using FinishedProposals = std::set<OTIdentifier>;
     using ChangeKeyMap = std::map<OTIdentifier, std::vector<KeyID>>;
 
-    const api::client::Manager& api_;
+    const api::Core& api_;
     const api::client::internal::Blockchain& blockchain_;
     const Common& common_;
     const blockchain::Type chain_;

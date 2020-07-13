@@ -18,8 +18,8 @@
 #include "internal/api/client/Client.hpp"
 #include "internal/blockchain/Blockchain.hpp"
 #include "opentxs/Pimpl.hpp"
+#include "opentxs/api/Core.hpp"
 #include "opentxs/api/Endpoints.hpp"
-#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Log.hpp"
@@ -46,7 +46,7 @@ namespace zmq = opentxs::network::zeromq;
 namespace opentxs::blockchain::p2p::implementation
 {
 Peer::Peer(
-    const api::client::Manager& api,
+    const api::Core& api,
     const client::internal::Network& network,
     const client::internal::PeerManager& manager,
     const blockchain::client::internal::IO& context,

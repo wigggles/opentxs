@@ -8,6 +8,7 @@
 #include "OTTestEnvironment.hpp"  // IWYU pragma: keep
 #include "internal/api/client/Client.hpp"
 #include "internal/blockchain/Blockchain.hpp"
+#include "internal/blockchain/client/Factory.hpp"
 #include "opentxs/OT.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/blockchain/block/bitcoin/Header.hpp"

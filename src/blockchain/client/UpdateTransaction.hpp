@@ -15,10 +15,7 @@ namespace opentxs
 {
 namespace api
 {
-namespace client
-{
-class Manager;
-}  // namespace client
+class Core;
 }  // namespace api
 
 namespace blockchain
@@ -86,14 +83,12 @@ public:
     // Stages an existing header for possible metadata update
     auto Stage(const block::Height& height) noexcept(false) -> block::Header&;
 
-    UpdateTransaction(
-        const api::client::Manager& api,
-        const internal::HeaderDatabase& db);
+    UpdateTransaction(const api::Core& api, const internal::HeaderDatabase& db);
 
 private:
     friend opentxs::Factory;
 
-    const api::client::Manager& api_;
+    const api::Core& api_;
     const internal::HeaderDatabase& db_;
     bool have_reorg_;
     bool have_checkpoint_;

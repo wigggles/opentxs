@@ -19,9 +19,10 @@
 #include "blockchain/client/UpdateTransaction.hpp"
 #include "internal/blockchain/Blockchain.hpp"
 #include "internal/blockchain/Params.hpp"
+#include "internal/blockchain/client/Factory.hpp"
 #include "internal/core/Core.hpp"
+#include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
-#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/blockchain/Work.hpp"
 #include "opentxs/blockchain/block/Header.hpp"
 #include "opentxs/blockchain/client/HeaderOracle.hpp"
@@ -34,15 +35,14 @@
 namespace opentxs::factory
 {
 auto HeaderOracle(
-    const api::client::Manager& api,
-    const blockchain::client::internal::Network& network,
+    const api::Core& api,
     const blockchain::client::internal::HeaderDatabase& database,
     const blockchain::Type type) noexcept
     -> std::unique_ptr<blockchain::client::internal::HeaderOracle>
 {
     using ReturnType = blockchain::client::implementation::HeaderOracle;
 
-    return std::make_unique<ReturnType>(api, network, database, type);
+    return std::make_unique<ReturnType>(api, database, type);
 }
 }  // namespace opentxs::factory
 
@@ -80,8 +80,7 @@ auto HeaderOracle::GenesisBlockHash(const blockchain::Type type)
 namespace opentxs::blockchain::client::implementation
 {
 HeaderOracle::HeaderOracle(
-    const api::client::Manager& api,
-    [[maybe_unused]] const internal::Network& network,
+    const api::Core& api,
     const internal::HeaderDatabase& database,
     const blockchain::Type type) noexcept
     : internal::HeaderOracle()

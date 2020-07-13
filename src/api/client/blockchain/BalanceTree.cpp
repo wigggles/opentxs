@@ -20,6 +20,7 @@
 #include "internal/api/Api.hpp"
 #include "internal/api/client/Client.hpp"
 #include "internal/api/client/blockchain/Blockchain.hpp"
+#include "internal/api/client/blockchain/Factory.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/api/client/blockchain/HD.hpp"
 #include "opentxs/api/storage/Storage.hpp"
@@ -29,35 +30,37 @@
 #define OT_METHOD                                                              \
     "opentxs::api::client::blockchain::implementation::BalanceTree::"
 
-namespace opentxs
+namespace opentxs::factory
 {
-auto Factory::BlockchainBalanceTree(
+auto BlockchainBalanceTree(
+    const api::internal::Core& api,
     const api::client::blockchain::internal::BalanceList& parent,
     const identifier::Nym& id,
     const std::set<OTIdentifier>& hdAccounts,
     [[maybe_unused]] const std::set<OTIdentifier>& importedAccounts,
-    [[maybe_unused]] const std::set<OTIdentifier>& paymentCodeAccounts)
-    -> api::client::blockchain::internal::BalanceTree*
+    [[maybe_unused]] const std::set<OTIdentifier>& paymentCodeAccounts) noexcept
+    -> std::unique_ptr<api::client::blockchain::internal::BalanceTree>
 {
     using ReturnType = api::client::blockchain::implementation::BalanceTree;
 
-    return new ReturnType(parent, id, hdAccounts);
+    return std::make_unique<ReturnType>(api, parent, id, hdAccounts);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::api::client::blockchain::implementation
 {
 BalanceTree::BalanceTree(
+    const api::internal::Core& api,
     const internal::BalanceList& parent,
     const identifier::Nym& nym,
     const std::set<OTIdentifier>& accounts) noexcept
-    : api_(parent.API())
+    : api_(api)
     , parent_(parent)
     , chain_(parent.Chain())
     , nym_id_(nym)
-    , hd_(*this)
-    , imported_(*this)
-    , payment_code_(*this)
+    , hd_(api_, *this)
+    , imported_(api_, *this)
+    , payment_code_(api_, *this)
     , node_index_()
     , lock_()
     , unspent_()

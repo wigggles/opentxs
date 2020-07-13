@@ -23,10 +23,7 @@ namespace opentxs
 {
 namespace api
 {
-namespace client
-{
-class Manager;
-}  // namespace client
+class Core;
 }  // namespace api
 
 namespace blockchain
@@ -56,12 +53,12 @@ public:
     }
 
     Getblocktxn(
-        const api::client::Manager& api,
+        const api::Core& api,
         const blockchain::Type network,
         const Data& block_hash,
         const std::vector<std::size_t>& txn_indices) noexcept;
     Getblocktxn(
-        const api::client::Manager& api,
+        const api::Core& api,
         std::unique_ptr<Header> header,
         const Data& block_hash,
         const std::vector<std::size_t>& txn_indices) noexcept(false);

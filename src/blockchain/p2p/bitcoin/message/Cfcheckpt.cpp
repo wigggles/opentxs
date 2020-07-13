@@ -27,7 +27,7 @@
 namespace opentxs::factory
 {
 auto BitcoinP2PCfcheckpt(
-    const api::client::Manager& api,
+    const api::Core& api,
     std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
     const blockchain::p2p::bitcoin::ProtocolVersion version,
     const void* payload,
@@ -108,7 +108,7 @@ auto BitcoinP2PCfcheckpt(
 }
 
 auto BitcoinP2PCfcheckpt(
-    const api::client::Manager& api,
+    const api::Core& api,
     const blockchain::Type network,
     const blockchain::filter::Type type,
     const blockchain::filter::Hash& stop,
@@ -125,7 +125,7 @@ auto BitcoinP2PCfcheckpt(
 namespace opentxs::blockchain::p2p::bitcoin::message::implementation
 {
 Cfcheckpt::Cfcheckpt(
-    const api::client::Manager& api,
+    const api::Core& api,
     const blockchain::Type network,
     const filter::Type type,
     const filter::Hash& stop,
@@ -139,7 +139,7 @@ Cfcheckpt::Cfcheckpt(
 }
 
 Cfcheckpt::Cfcheckpt(
-    const api::client::Manager& api,
+    const api::Core& api,
     std::unique_ptr<Header> header,
     const filter::Type type,
     const filter::Hash& stop,

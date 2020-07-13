@@ -51,10 +51,7 @@ namespace opentxs
 {
 namespace api
 {
-namespace client
-{
-class Manager;
-}  // namespace client
+class Core;
 }  // namespace api
 
 namespace network
@@ -74,7 +71,7 @@ namespace opentxs::blockchain::p2p::implementation
 {
 using tcp = asio::ip::tcp;
 
-class Peer : virtual public internal::Peer, public Worker<Peer>
+class Peer : virtual public internal::Peer, public Worker<Peer, api::Core>
 {
 public:
     using SendStatus = std::future<bool>;
@@ -263,7 +260,7 @@ protected:
     }
 
     Peer(
-        const api::client::Manager& api,
+        const api::Core& api,
         const client::internal::Network& network,
         const client::internal::PeerManager& manager,
         const blockchain::client::internal::IO& io,
@@ -274,7 +271,7 @@ protected:
         std::unique_ptr<internal::Address> address) noexcept;
 
 private:
-    friend Worker<Peer>;
+    friend Worker<Peer, api::Core>;
 
     struct Activity {
         auto get() const noexcept -> Time;

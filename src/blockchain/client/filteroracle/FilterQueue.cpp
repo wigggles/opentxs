@@ -7,13 +7,13 @@
 #include "1_Internal.hpp"                      // IWYU pragma: associated
 #include "blockchain/client/FilterOracle.hpp"  // IWYU pragma: associated
 
+#include <algorithm>
 #include <iterator>
 #include <type_traits>
 
 #include "internal/blockchain/Blockchain.hpp"  // IWYU pragma: keep
 #include "opentxs/Bytes.hpp"
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/blockchain/block/Header.hpp"
 #include "opentxs/blockchain/client/HeaderOracle.hpp"
 #include "opentxs/core/Log.hpp"
@@ -26,7 +26,7 @@ namespace opentxs::blockchain::client::implementation
 {
 const std::chrono::seconds FilterOracle::FilterQueue::timeout_{20};
 
-FilterOracle::FilterQueue::FilterQueue(const api::client::Manager& api) noexcept
+FilterOracle::FilterQueue::FilterQueue(const api::Core& api) noexcept
     : error_(false)
     , type_()
     , api_(api)

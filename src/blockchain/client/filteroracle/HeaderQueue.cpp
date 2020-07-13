@@ -16,7 +16,7 @@ namespace opentxs::blockchain::client::implementation
 {
 const std::chrono::seconds FilterOracle::HeaderQueue::limit_{15};
 
-FilterOracle::HeaderQueue::HeaderQueue(const api::client::Manager& api) noexcept
+FilterOracle::HeaderQueue::HeaderQueue(const api::Core& api) noexcept
     : hashes_()
 {
 }

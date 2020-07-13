@@ -22,10 +22,7 @@ namespace opentxs
 {
 namespace api
 {
-namespace client
-{
-class Manager;
-}  // namespace client
+class Core;
 }  // namespace api
 
 namespace blockchain
@@ -68,14 +65,14 @@ public:
     }
 
     Merkleblock(
-        const api::client::Manager& api,
+        const api::Core& api,
         const blockchain::Type network,
         const Data& block_header,
         const TxnCount txn_count,
         const std::vector<OTData>& hashes,
         const std::vector<std::byte>& flags) noexcept;
     Merkleblock(
-        const api::client::Manager& api,
+        const api::Core& api,
         std::unique_ptr<Header> header,
         const Data& block_header,
         const TxnCount txn_count,

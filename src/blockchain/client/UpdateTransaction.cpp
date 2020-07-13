@@ -14,7 +14,6 @@
 #include <utility>
 
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/blockchain/block/Header.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
@@ -22,7 +21,7 @@
 namespace opentxs::blockchain::client
 {
 UpdateTransaction::UpdateTransaction(
-    const api::client::Manager& api,
+    const api::Core& api,
     const internal::HeaderDatabase& db)
     : api_(api)
     , db_(db)

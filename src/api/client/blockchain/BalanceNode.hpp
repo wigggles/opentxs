@@ -238,6 +238,7 @@ protected:
         -> internal::BalanceElement& = 0;
 
     BalanceNode(
+        const api::internal::Core& api,
         const internal::BalanceTree& parent,
         const BalanceNodeType type,
         const OTIdentifier id,
