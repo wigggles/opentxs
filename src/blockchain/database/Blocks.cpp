@@ -11,6 +11,7 @@
 
 #include "internal/blockchain/block/bitcoin/Bitcoin.hpp"
 #include "opentxs/Bytes.hpp"
+#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/blockchain/block/Block.hpp"
 #include "opentxs/core/Log.hpp"
@@ -43,7 +44,7 @@ auto Blocks::LoadBitcoin(const block::Hash& block) const noexcept
         return {};
     }
 
-    return factory::BitcoinBlock(api_, chain_, bytes.get());
+    return factory::BitcoinBlock(api_, api_.Blockchain(), chain_, bytes.get());
 }
 
 auto Blocks::Store(const block::Block& block) const noexcept -> bool

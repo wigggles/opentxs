@@ -150,7 +150,6 @@ PeerManager::PeerManager(
           io_context_)
     , init_promise_()
     , init_(init_promise_.get_future())
-    , heartbeat_task_()
 {
     init_executor({shutdown});
 }
@@ -650,8 +649,6 @@ auto PeerManager::Disconnect(const int id) const noexcept -> void
 
 auto PeerManager::init() noexcept -> void
 {
-    heartbeat_task_ = api_.Schedule(
-        std::chrono::seconds(10), [this]() -> void { this->Heartbeat(); });
     init_promise_.set_value();
     trigger();
 }
@@ -769,7 +766,6 @@ auto PeerManager::shutdown(std::promise<void>& promise) noexcept -> void
     init_.get();
 
     if (running_->Off()) {
-        api_.Cancel(heartbeat_task_);
         jobs_.Shutdown();
         peers_.Shutdown();
 

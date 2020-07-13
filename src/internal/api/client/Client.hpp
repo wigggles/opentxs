@@ -56,6 +56,11 @@ struct BalanceTree;
 }  // namespace internal
 }  // namespace blockchain
 
+namespace internal
+{
+struct Blockchain;
+}  // namespace internal
+
 class Issuer;
 class ServerAction;
 class Workflow;
@@ -103,6 +108,7 @@ namespace proto
 class Issuer;
 }  // namespace proto
 
+class Contact;
 class Flag;
 class Identifier;
 class OTClient;
@@ -145,6 +151,10 @@ struct Blockchain : virtual public api::client::Blockchain {
         -> const opentxs::blockchain::client::internal::IO& = 0;
     virtual auto KeyEndpoint() const noexcept -> const std::string& = 0;
     virtual auto KeyGenerated(const Chain chain) const noexcept -> void = 0;
+    virtual bool ProcessContact(const Contact& contact) const noexcept = 0;
+    virtual bool ProcessMergedContact(
+        const Contact& parent,
+        const Contact& child) const noexcept = 0;
 #endif  // OT_BLOCKCHAIN
     virtual auto PubkeyHash(
         const opentxs::blockchain::Type chain,
@@ -169,7 +179,13 @@ struct Blockchain : virtual public api::client::Blockchain {
     virtual ~Blockchain() = default;
 };
 struct Contacts : virtual public api::client::Contacts {
-    virtual void start() = 0;
+#if OT_BLOCKCHAIN
+    virtual auto init(
+        const std::shared_ptr<const internal::Blockchain>& blockchain)
+        -> void = 0;
+    virtual auto prepare_shutdown() -> void = 0;
+#endif  // OT_BLOCKCHAIN
+    virtual auto start() -> void = 0;
 
     virtual ~Contacts() = default;
 };
@@ -221,61 +237,3 @@ struct UI : virtual public opentxs::api::client::UI {
     virtual ~UI() = default;
 };
 }  // namespace opentxs::api::client::internal
-
-namespace opentxs::factory
-{
-auto Activity(
-    const api::internal::Core& api,
-    const api::client::Contacts& contact) -> api::client::internal::Activity*;
-auto BlockchainAPI(
-    const api::client::internal::Manager& api,
-    const api::client::Activity& activity,
-    const api::client::Contacts& contacts,
-    const api::Legacy& legacy,
-    const std::string& dataFolder,
-    const ArgList& args) noexcept -> std::unique_ptr<api::client::Blockchain>;
-auto ClientManager(
-    const api::internal::Context& parent,
-    Flag& running,
-    const ArgList& args,
-    const api::Settings& config,
-    const api::Crypto& crypto,
-    const network::zeromq::Context& context,
-    const std::string& dataFolder,
-    const int instance) -> api::client::internal::Manager*;
-auto ContactAPI(const api::client::internal::Manager& api)
-    -> api::client::internal::Contacts*;
-auto FactoryAPIClient(const api::client::internal::Manager& api)
-    -> api::internal::Factory*;
-auto Issuer(
-    const api::Wallet& wallet,
-    const identifier::Nym& nymID,
-    const proto::Issuer& serialized) -> api::client::Issuer*;
-auto Issuer(
-    const api::Wallet& wallet,
-    const identifier::Nym& nymID,
-    const identifier::Nym& issuerID) -> api::client::Issuer*;
-auto OTX(
-    const Flag& running,
-    const api::client::internal::Manager& api,
-    OTClient& otclient,
-    const ContextLockCallback& lockCallback) -> api::client::OTX*;
-auto PairAPI(const Flag& running, const api::client::internal::Manager& client)
-    -> api::client::internal::Pair*;
-auto ServerAction(
-    const api::client::internal::Manager& api,
-    const ContextLockCallback& lockCallback) -> api::client::ServerAction*;
-auto UI(
-    const api::client::internal::Manager& api,
-    const Flag& running
-#if OT_QT
-    ,
-    const bool qt
-#endif
-    ) noexcept -> std::unique_ptr<api::client::internal::UI>;
-auto Wallet(const api::client::internal::Manager& client) -> api::Wallet*;
-auto Workflow(
-    const api::internal::Core& api,
-    const api::client::Activity& activity,
-    const api::client::Contacts& contact) -> api::client::Workflow*;
-}  // namespace opentxs::factory

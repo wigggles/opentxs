@@ -16,6 +16,7 @@
 #include <optional>
 #include <set>
 #include <string>
+#include <thread>
 #include <tuple>
 #include <utility>
 #include <vector>
@@ -480,6 +481,8 @@ private:
         std::unique_ptr<opentxs::blockchain::client::internal::Network>>
         networks_;
     BalanceOracle balances_;
+    std::atomic_bool running_;
+    std::thread heartbeat_;
 #endif  // OT_BLOCKCHAIN
 
     auto address_prefix(const Style style, const Chain chain) const
@@ -502,6 +505,7 @@ private:
     auto broadcast_update_signal(
         const opentxs::blockchain::block::bitcoin::internal::Transaction& tx)
         const noexcept -> void;
+    auto heartbeat() const noexcept -> void;
     auto load_transaction(const Lock& lock, const Txid& id) const noexcept
         -> std::unique_ptr<
             opentxs::blockchain::block::bitcoin::internal::Transaction>;

@@ -18,7 +18,7 @@ namespace mp = boost::multiprecision;
 
 namespace opentxs::blockchain::implementation
 {
-class NumericHash : virtual public blockchain::NumericHash
+class NumericHash final : public blockchain::NumericHash
 {
 public:
     using Type = mp::checked_cpp_int;

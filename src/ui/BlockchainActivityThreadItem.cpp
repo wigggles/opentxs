@@ -45,8 +45,8 @@ auto BlockchainActivityThreadItem(
     OT_ASSERT(pTx);
 
     const auto& tx = *pTx;
-    const auto amount = tx.NetBalanceChange(nymID);
-    const auto memo = tx.Memo();
+    const auto amount = tx.NetBalanceChange(api.Blockchain(), nymID);
+    const auto memo = tx.Memo(api.Blockchain());
     auto* text = static_cast<std::string*>(custom.at(0));
 
     OT_ASSERT(nullptr != text);

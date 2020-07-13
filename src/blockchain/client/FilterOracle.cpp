@@ -67,7 +67,7 @@ FilterOracle::FilterOracle(
     const blockchain::Type chain,
     const std::string& shutdown) noexcept
     : internal::FilterOracle()
-    , Worker(api, std::chrono::milliseconds{100})
+    , Worker(api, std::chrono::milliseconds{0})
     , network_(network)
     , header_(header)
     , database_(database)
@@ -149,7 +149,7 @@ auto FilterOracle::check_blocks(
         return;
     }
 
-    repeat = true;
+    // repeat = true;
     const auto capacity = block_requests_.Capacity();
 
     if (0 == capacity) { return; }
@@ -201,7 +201,7 @@ void FilterOracle::check_filters(
         OT_ASSERT(start.first >= floor);  // TODO
     }
 
-    repeat = true;
+    // repeat = true;
 
     if (outstanding_filters_.IsRunning()) {
         if (outstanding_filters_.IsFull()) { flush_filters(); }
@@ -248,7 +248,7 @@ void FilterOracle::check_headers(
         return;
     }
 
-    repeat = true;
+    // repeat = true;
     const auto begin{start.first + static_cast<block::Height>(1)};
     const auto target{begin + maxRequests - static_cast<block::Height>(1)};
     const auto stopHeight = std::min(target, best.first);
@@ -349,6 +349,23 @@ auto FilterOracle::flush_filters() noexcept -> void
         .Flush();
 }
 
+auto FilterOracle::LoadFilterOrResetTip(
+    const filter::Type type,
+    const block::Position& position) const noexcept
+    -> std::unique_ptr<const blockchain::internal::GCS>
+{
+    auto output = LoadFilter(type, position.second);
+
+    if (output) { return output; }
+
+    auto work = MakeWork(Work::reset_filter_tip);
+    work->AddFrame(type);
+    work->AddFrame(position.first);
+    pipeline_->Push(work);
+
+    return {};
+}
+
 auto FilterOracle::oldest_checkpoint_before(
     const block::Height height) const noexcept -> block::Height
 {
@@ -379,17 +396,23 @@ auto FilterOracle::pipeline(const zmq::Message& in) noexcept -> void
 
     switch (work) {
         case Work::cfilter: {
-            process_cfilter(in);
+            if (process_cfilter(in)) { do_work(); }
         } break;
         case Work::cfheader: {
             process_cfheader(in);
+            do_work();
         } break;
         case Work::reorg: {
             process_reorg(in);
+            do_work();
         } break;
         case Work::peer:
         case Work::block:
         case Work::statemachine: {
+            do_work();
+        } break;
+        case Work::reset_filter_tip: {
+            process_reset_filter_tip(in);
             do_work();
         } break;
         case Work::shutdown: {
@@ -556,9 +579,9 @@ auto FilterOracle::process_cfheader(const zmq::Message& in) noexcept -> void
     }
 }
 
-auto FilterOracle::process_cfilter(const zmq::Message& in) noexcept -> void
+auto FilterOracle::process_cfilter(const zmq::Message& in) noexcept -> bool
 {
-    if (false == running_.get()) { return; }
+    if (false == running_.get()) { return false; }
 
     const auto body = in.Body();
 
@@ -585,7 +608,7 @@ auto FilterOracle::process_cfilter(const zmq::Message& in) noexcept -> void
     if (false == bool(gcs)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid GCS").Flush();
 
-        return;
+        return false;
     }
 
     const auto pHeader = header_.LoadHeader(block);
@@ -596,7 +619,7 @@ auto FilterOracle::process_cfilter(const zmq::Message& in) noexcept -> void
             block->asHex())
             .Flush();
 
-        return;
+        return false;
     }
 
     const auto hash = gcs->Hash();
@@ -610,7 +633,7 @@ auto FilterOracle::process_cfilter(const zmq::Message& in) noexcept -> void
             .Flush();
         outstanding_filters_.Reset();
 
-        return;
+        return false;
     }
 
     outstanding_filters_.AddFilter(
@@ -618,6 +641,8 @@ auto FilterOracle::process_cfilter(const zmq::Message& in) noexcept -> void
 
     if (outstanding_filters_.IsFull()) {
         flush_filters();
+
+        return true;
     } else {
         LogVerbose(blockchain::internal::DisplayString(chain_))(
             " filter for block ")(header.Hash().asHex())(" at height ")(
@@ -625,7 +650,7 @@ auto FilterOracle::process_cfilter(const zmq::Message& in) noexcept -> void
             .Flush();
     }
 
-    trigger();
+    return false;
 }
 
 auto FilterOracle::process_reorg(const zmq::Message& in) noexcept -> void
@@ -659,7 +684,32 @@ auto FilterOracle::process_reorg(const block::Position& parent) noexcept -> void
         " filter chain tips reset to reorg parent ")(parent.second->asHex())(
         " at height ")(parent.first)
         .Flush();
-    state_machine();
+}
+
+auto FilterOracle::process_reset_filter_tip(const zmq::Message& in) noexcept
+    -> void
+{
+    const auto body = in.Body();
+
+    if (2 > body.size()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid message").Flush();
+
+        OT_FAIL;
+    }
+
+    const auto type = body.at(0).as<filter::Type>();
+    const auto missing = body.at(1).as<block::Height>();
+
+    OT_ASSERT(0 < missing);
+
+    const auto parent = missing - 1;
+    const auto hash = header_.BestHash(parent);
+
+    OT_ASSERT(false == hash->empty());
+
+    outstanding_filters_.Reset();
+    block_requests_.Reset();
+    database_.SetFilterTip(type, block::Position{parent, hash});
 }
 
 auto FilterOracle::reset_tips_to(const block::Position position) noexcept
@@ -716,7 +766,9 @@ auto FilterOracle::state_machine() noexcept -> bool
         check_filters(default_type_, 1000, repeat);
     }
 
-    return repeat;
+    // return repeat;
+
+    return false;
 }
 
 auto FilterOracle::Start() noexcept -> void

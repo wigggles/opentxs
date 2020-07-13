@@ -38,6 +38,7 @@ set(
   cxx-headers
   ${cxx-install-headers}
   "${opentxs_SOURCE_DIR}/src/internal/api/client/Client.hpp"
+  "${opentxs_SOURCE_DIR}/src/internal/api/client/Factory.hpp"
   Activity.hpp
   Blockchain.hpp
   Contacts.hpp

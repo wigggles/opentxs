@@ -29,6 +29,8 @@ namespace client
 {
 class Manager;
 }  // namespace client
+
+class Core;
 }  // namespace api
 
 class Factory;
@@ -64,7 +66,7 @@ public:
     static const VersionNumber subversion_default_;
 
     static auto calculate_hash(
-        const api::client::Manager& api,
+        const api::Core& api,
         const blockchain::Type chain,
         const ReadView serialized) -> block::pHash;
 
@@ -86,7 +88,7 @@ public:
     }
 
     Header(
-        const api::client::Manager& api,
+        const api::Core& api,
         const blockchain::Type chain,
         const VersionNumber subversion,
         const block::Hash& hash,
@@ -97,14 +99,12 @@ public:
         const std::int32_t nbits,
         const std::uint32_t nonce) noexcept;
     Header(
-        const api::client::Manager& api,
+        const api::Core& api,
         const blockchain::Type chain,
         const block::Hash& hash,
         const block::Hash& parentHash,
         const block::Height height) noexcept;
-    Header(
-        const api::client::Manager& api,
-        const SerializedType& serialized) noexcept;
+    Header(const api::Core& api, const SerializedType& serialized) noexcept;
 
     ~Header() final = default;
 
@@ -119,7 +119,7 @@ private:
     const std::uint32_t nonce_;
 
     static auto calculate_hash(
-        const api::client::Manager& api,
+        const api::Core& api,
         const SerializedType& serialized) -> block::pHash;
     static auto calculate_work(const std::int32_t nbits) -> OTWork;
 

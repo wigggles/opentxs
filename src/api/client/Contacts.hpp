@@ -92,6 +92,9 @@ private:
     using ContactNameMap = std::map<OTIdentifier, std::string>;
 
     const api::client::internal::Manager& api_;
+#if OT_BLOCKCHAIN
+    std::weak_ptr<const internal::Blockchain> blockchain_;
+#endif  // OT_BLOCKCHAIN
     mutable std::recursive_mutex lock_{};
     mutable ContactMap contact_map_{};
     mutable ContactNameMap contact_name_map_;
@@ -116,6 +119,13 @@ private:
     auto contact(const rLock& lock, const Identifier& id) const
         -> std::shared_ptr<const opentxs::Contact>;
     void import_contacts(const rLock& lock);
+#if OT_BLOCKCHAIN
+    auto init(const std::shared_ptr<const internal::Blockchain>& blockchain)
+        -> void final
+    {
+        blockchain_ = blockchain;
+    }
+#endif  // OT_BLOCKCHAIN
     void init_nym_map(const rLock& lock);
     auto load_contact(const rLock& lock, const Identifier& id) const
         -> ContactMap::iterator;
@@ -129,6 +139,9 @@ private:
         const identifier::Nym& nymID,
         const PaymentCode& paymentCode) const
         -> std::shared_ptr<const opentxs::Contact>;
+#if OT_BLOCKCHAIN
+    void prepare_shutdown() final { blockchain_.reset(); }
+#endif  // OT_BLOCKCHAIN
     void refresh_indices(const rLock& lock, opentxs::Contact& contact) const;
     void save(opentxs::Contact* contact) const;
     void start() final;

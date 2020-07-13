@@ -45,7 +45,7 @@ Network::Network(
     const Type type,
     const std::string& seednode,
     const std::string& shutdown) noexcept
-    : Worker(api, std::chrono::milliseconds(100))
+    : Worker(api, std::chrono::seconds(0))
     , shutdown_sender_(api.ZeroMQ(), shutdown_endpoint())
     , database_p_(factory::BlockchainDatabase(
           api,
@@ -92,7 +92,10 @@ Network::Network(
     , parent_(blockchain)
     , local_chain_height_(0)
     , remote_chain_height_(0)
+    , waiting_for_headers_(Flag::Factory(false))
     , processing_headers_(Flag::Factory(false))
+    , headers_requested_(Clock::now())
+    , wallet_initialized_(false)
     , init_promise_()
     , init_(init_promise_.get_future())
 {
@@ -202,7 +205,6 @@ auto Network::init() noexcept -> void
     peer_.init();
     block_.Init();
     filters_.Start();
-    wallet_.Init();
     init_promise_.set_value();
     trigger();
 }
@@ -230,6 +232,12 @@ auto Network::pipeline(zmq::Message& in) noexcept -> void
             [[fallthrough]];
         }
         case Task::StateMachine: {
+            do_work();
+        } break;
+        case Task::Heartbeat: {
+            block_.Heartbeat();
+            filters_.Heartbeat();
+            peer_.Heartbeat();
             do_work();
         } break;
         case Task::Shutdown: {
@@ -275,6 +283,7 @@ auto Network::process_header(network::zeromq::Message& in) noexcept -> void
     if (false == running_.get()) { return; }
 
     processing_headers_->On();
+    waiting_for_headers_->Off();
     auto postcondition = ScopeGuard{[&] { processing_headers_->Off(); }};
     using Promise = std::promise<void>;
     auto pPromise = std::unique_ptr<Promise>{};
@@ -399,7 +408,11 @@ auto Network::shutdown(std::promise<void>& promise) noexcept -> void
 
     if (running_->Off()) {
         shutdown_sender_.Activate();
+
+        if (false == wallet_initialized_) { wallet_.Init(); }
+
         wallet_.Shutdown().get();
+        wallet_initialized_ = false;
         block_.Shutdown().get();
         peer_.Shutdown().get();
         filters_.Shutdown().get();
@@ -423,14 +436,27 @@ auto Network::state_machine() noexcept -> bool
 
     if (false == running_.get()) { return false; }
 
-    if (IsSynchronized()) {
+    if (processing_headers_.get()) { return false; }
+
+    if (IsSynchronized() && (0 < GetHeight())) {
+        if (false == wallet_initialized_) {
+            wallet_.Init();
+            wallet_initialized_ = true;
+        }
 
         return false;
-    } else if (false == processing_headers_.get()) {
-        peer_.RequestHeaders();
-
-        return true;
     }
+
+    if (waiting_for_headers_.get()) {
+        const auto timeout =
+            (Clock::now() - headers_requested_) > std::chrono::seconds{10};
+
+        if (false == timeout) { return false; }
+    }
+
+    waiting_for_headers_->On();
+    headers_requested_ = Clock::now();
+    peer_.RequestHeaders();
 
     return false;
 }

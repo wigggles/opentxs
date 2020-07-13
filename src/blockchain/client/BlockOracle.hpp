@@ -48,6 +48,7 @@ class BlockOracle final : public internal::BlockOracle,
                           public Worker<BlockOracle>
 {
 public:
+    auto Heartbeat() const noexcept -> void final { trigger(); }
     auto LoadBitcoin(const block::Hash& block) const noexcept
         -> BitcoinBlockFuture final;
     auto SubmitBlock(const zmq::Frame& in) const noexcept -> void final;

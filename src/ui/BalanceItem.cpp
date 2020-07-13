@@ -71,8 +71,8 @@ auto BalanceItem(
             accountID,
             ui::implementation::extract_custom<blockchain::Type>(custom, 3),
             ui::implementation::extract_custom<OTData>(custom, 5),
-            tx.NetBalanceChange(nymID),
-            tx.Memo(),
+            tx.NetBalanceChange(api.Blockchain(), nymID),
+            tx.Memo(api.Blockchain()),
             ui::implementation::extract_custom<std::string>(custom, 4));
     }
 #endif  // OT_BLOCKCHAIN

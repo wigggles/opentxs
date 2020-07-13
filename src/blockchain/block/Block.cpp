@@ -11,9 +11,7 @@
 
 namespace opentxs::blockchain::block::implementation
 {
-Block::Block(
-    const api::client::Manager& api,
-    const block::Header& header) noexcept
+Block::Block(const api::Core& api, const block::Header& header) noexcept
     : api_(api)
     , base_header_(header)
 {

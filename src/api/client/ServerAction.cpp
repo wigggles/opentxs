@@ -9,6 +9,7 @@
 
 #include "client/OTAPI_Func.hpp"
 #include "internal/api/client/Client.hpp"
+#include "internal/api/client/Factory.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Shared.hpp"
 #include "opentxs/api/Wallet.hpp"

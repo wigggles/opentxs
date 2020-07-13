@@ -14,6 +14,7 @@
 #include <tuple>
 
 #include "internal/api/client/Client.hpp"
+#include "internal/api/client/Factory.hpp"
 #include "internal/ui/UI.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Types.hpp"

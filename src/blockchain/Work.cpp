@@ -9,6 +9,7 @@
 
 #include <boost/exception/exception.hpp>
 #include <iterator>
+#include <memory>
 #include <utility>
 #include <vector>
 

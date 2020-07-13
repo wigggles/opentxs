@@ -22,6 +22,7 @@ namespace api
 {
 namespace client
 {
+class Blockchain;
 class Manager;
 }  // namespace client
 
@@ -76,8 +77,10 @@ public:
     OPENTXS_EXPORT virtual auto end() const noexcept -> const_iterator = 0;
     OPENTXS_EXPORT virtual auto ExtractElements(
         const filter::Type style) const noexcept -> std::vector<Space> = 0;
-    OPENTXS_EXPORT virtual auto ExtractPatterns(const api::client::Manager& api)
-        const noexcept -> std::vector<PatternID> = 0;
+    OPENTXS_EXPORT virtual auto ExtractPatterns(
+        const api::Core& api,
+        const api::client::Blockchain& blockchain) const noexcept
+        -> std::vector<PatternID> = 0;
     /// Value only present for Multisig patterns
     OPENTXS_EXPORT virtual auto M() const noexcept
         -> std::optional<std::uint8_t> = 0;

@@ -13,6 +13,7 @@
 #include <queue>
 #include <set>
 #include <string>
+#include <vector>
 
 #include "opentxs/Types.hpp"
 #include "opentxs/core/Flag.hpp"

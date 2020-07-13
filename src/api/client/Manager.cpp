@@ -20,6 +20,7 @@
 #include "api/StorageParent.hpp"
 #include "internal/api/Api.hpp"
 #include "internal/api/client/Client.hpp"
+#include "internal/api/client/Factory.hpp"
 #include "internal/api/storage/Storage.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/api/client/Activity.hpp"
@@ -165,6 +166,9 @@ void Manager::Cleanup()
     otapi_exec_.reset();
     ot_api_.reset();
     workflow_.reset();
+#if OT_BLOCKCHAIN
+    contacts_->prepare_shutdown();
+#endif  // OT_BLOCKCHAIN
     blockchain_.reset();
     activity_.reset();
     contacts_.reset();
@@ -193,8 +197,37 @@ auto Manager::Exec(const std::string&) const -> const OTAPI_Exec&
     return *otapi_exec_;
 }
 
+auto Manager::init(
+    const api::Legacy& legacy,
+    const internal::Manager& parent,
+    const std::string& dataFolder,
+    const ArgList& args,
+    std::shared_ptr<internal::Blockchain>& blockchain,
+    std::unique_ptr<internal::Contacts>& contacts) noexcept
+    -> std::unique_ptr<internal::Activity>
+{
+    contacts = factory::ContactAPI(parent);
+
+    OT_ASSERT(contacts);
+
+    auto activity = factory::Activity(parent, *contacts);
+
+    OT_ASSERT(activity);
+
+    blockchain = factory::BlockchainAPI(
+        parent, *activity, *contacts, legacy, dataFolder, args);
+
+    OT_ASSERT(blockchain);
+
+    return activity;
+}
+
 void Manager::Init()
 {
+#if OT_BLOCKCHAIN
+    contacts_->init(blockchain_);
+#endif  // OT_BLOCKCHAIN
+
 #if OT_CRYPTO_WITH_BIP32
     OT_ASSERT(seeds_)
 #endif  // OT_CRYPTO_WITH_BIP32

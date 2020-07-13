@@ -487,9 +487,9 @@ TEST_F(Test_BlockchainActivity, outgoing_transaction)
     auto input2 = ot::proto::BlockchainTransactionOutput{};
     auto input3 = ot::proto::BlockchainTransactionOutput{};
 
-    ASSERT_TRUE(tx1->Outputs().at(1).Serialize(input1));
-    ASSERT_TRUE(tx1->Outputs().at(0).Serialize(input2));
-    ASSERT_TRUE(tx2->Outputs().at(0).Serialize(input3));
+    ASSERT_TRUE(tx1->Outputs().at(1).Serialize(api_.Blockchain(), input1));
+    ASSERT_TRUE(tx1->Outputs().at(0).Serialize(api_.Blockchain(), input2));
+    ASSERT_TRUE(tx2->Outputs().at(0).Serialize(api_.Blockchain(), input3));
 
     input2.set_index(18);
     input3.set_index(27);

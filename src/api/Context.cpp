@@ -26,6 +26,7 @@ extern "C" {
 #include "2_Factory.hpp"
 #include "internal/api/Api.hpp"
 #include "internal/api/client/Client.hpp"
+#include "internal/api/client/Factory.hpp"
 #include "internal/rpc/RPC.hpp"
 #include "opentxs/OT.hpp"
 #include "opentxs/Pimpl.hpp"

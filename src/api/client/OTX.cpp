@@ -21,6 +21,7 @@
 
 #include "core/StateMachine.hpp"
 #include "internal/api/client/Client.hpp"
+#include "internal/api/client/Factory.hpp"
 #include "opentxs/Forward.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Proto.tpp"

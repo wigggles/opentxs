@@ -28,8 +28,12 @@ namespace api
 {
 namespace client
 {
+class Blockchain;
+class Contacts;
 class Manager;
 }  // namespace client
+
+class Core;
 }  // namespace api
 
 namespace blockchain
@@ -53,8 +57,12 @@ class Transaction final : public internal::Transaction
 public:
     static const VersionNumber default_version_;
 
-    auto AssociatedLocalNyms() const noexcept -> std::vector<OTNymID> final;
-    auto AssociatedRemoteContacts(const identifier::Nym& nym) const noexcept
+    auto AssociatedLocalNyms(const api::client::Blockchain& blockchain)
+        const noexcept -> std::vector<OTNymID> final;
+    auto AssociatedRemoteContacts(
+        const api::client::Blockchain& blockchain,
+        const api::client::Contacts& contacts,
+        const identifier::Nym& nym) const noexcept
         -> std::vector<OTIdentifier> final;
     auto CalculateSize() const noexcept -> std::size_t final
     {
@@ -71,6 +79,7 @@ public:
     auto ExtractElements(const filter::Type style) const noexcept
         -> std::vector<Space> final;
     auto FindMatches(
+        const api::client::Blockchain& blockchain,
         const FilterType type,
         const Patterns& txos,
         const Patterns& elements) const noexcept -> Matches final;
@@ -86,9 +95,11 @@ public:
         return *inputs_;
     }
     auto Locktime() const noexcept -> std::uint32_t final { return lock_time_; }
-    auto Memo() const noexcept -> std::string final;
-    auto NetBalanceChange(const identifier::Nym& nym) const noexcept
-        -> opentxs::Amount final;
+    auto Memo(const api::client::Blockchain& blockchain) const noexcept
+        -> std::string final;
+    auto NetBalanceChange(
+        const api::client::Blockchain& blockchain,
+        const identifier::Nym& nym) const noexcept -> opentxs::Amount final;
     auto Outputs() const noexcept -> const bitcoin::Outputs& final
     {
         return *outputs_;
@@ -96,16 +107,18 @@ public:
     auto SegwitFlag() const noexcept -> std::byte final { return segwit_flag_; }
     auto Serialize(const AllocateOutput destination) const noexcept
         -> std::optional<std::size_t> final;
-    auto Serialize() const noexcept -> std::optional<SerializeType> final;
+    auto Serialize(const api::client::Blockchain& blockchain) const noexcept
+        -> std::optional<SerializeType> final;
     auto Timestamp() const noexcept -> Time final { return time_; }
     auto Version() const noexcept -> std::int32_t final { return version_; }
     auto WTXID() const noexcept -> const Txid& final { return wtxid_; }
 
     auto AssociatePreviousOutput(
+        const api::client::Blockchain& blockchain,
         const std::size_t index,
         const proto::BlockchainTransactionOutput& output) noexcept -> bool final
     {
-        return inputs_->AssociatePreviousOutput(index, output);
+        return inputs_->AssociatePreviousOutput(blockchain, index, output);
     }
     auto ForTestingOnlyAddKey(
         const std::size_t index,
@@ -114,6 +127,7 @@ public:
         return outputs_->ForTestingOnlyAddKey(index, key);
     }
     auto MergeMetadata(
+        const api::client::Blockchain& blockchain,
         const blockchain::Type chain,
         const SerializeType& rhs) noexcept -> void final;
     auto SetMemo(const std::string& memo) noexcept -> void final
@@ -122,7 +136,7 @@ public:
     }
 
     Transaction(
-        const api::client::Manager& api,
+        const api::Core& api,
         const VersionNumber serializeVersion,
         const bool isGeneration,
         const std::int32_t version,
@@ -140,7 +154,7 @@ public:
     ~Transaction() final = default;
 
 private:
-    const api::client::Manager& api_;
+    const api::Core& api_;
     const VersionNumber serialize_version_;
     const bool is_generation_;
     const std::int32_t version_;

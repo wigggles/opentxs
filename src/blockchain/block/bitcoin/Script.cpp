@@ -20,9 +20,9 @@
 #include <vector>
 
 #include "opentxs/Pimpl.hpp"
+#include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/client/Blockchain.hpp"
-#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/blockchain/block/bitcoin/Script.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
@@ -659,7 +659,9 @@ auto Script::ExtractElements(const filter::Type style) const noexcept
     return output;
 }
 
-auto Script::ExtractPatterns(const api::client::Manager& api) const noexcept
+auto Script::ExtractPatterns(
+    const api::Core& api,
+    const api::client::Blockchain& blockchain) const noexcept
     -> std::vector<PatternID>
 {
     auto output = std::vector<PatternID>{};
@@ -669,7 +671,7 @@ auto Script::ExtractPatterns(const api::client::Manager& api) const noexcept
         std::end(hashes),
         std::back_inserter(output),
         [&](const auto& hash) -> auto {
-            return api.Blockchain().IndexItem(hash->Bytes());
+            return blockchain.IndexItem(hash->Bytes());
         });
 
     return output;
@@ -795,7 +797,7 @@ auto Script::last_opcode(const ScriptElements& script) noexcept -> OP
     return script.crbegin()->opcode_;
 }
 
-auto Script::LikelyPubkeyHashes(const api::client::Manager& api) const noexcept
+auto Script::LikelyPubkeyHashes(const api::Core& api) const noexcept
     -> std::vector<OTData>
 {
     auto output = std::vector<OTData>{};

@@ -107,7 +107,10 @@ public:
     {
         return peers_.Count();
     }
-    auto Heartbeat() const noexcept -> void { jobs_.Dispatch(Task::Heartbeat); }
+    auto Heartbeat() const noexcept -> void final
+    {
+        jobs_.Dispatch(Task::Heartbeat);
+    }
     auto RequestBlock(const block::Hash& block) const noexcept -> bool final;
     auto RequestFilterHeaders(
         const filter::Type type,
@@ -251,7 +254,6 @@ private:
     mutable Peers peers_;
     std::promise<void> init_promise_;
     std::shared_future<void> init_;
-    int heartbeat_task_;
 
     auto pipeline(zmq::Message& message) noexcept -> void;
     auto shutdown(std::promise<void>& promise) noexcept -> void;

@@ -22,6 +22,8 @@ namespace client
 {
 class Manager;
 }  // namespace client
+
+class Core;
 }  // namespace api
 }  // namespace opentxs
 
@@ -63,21 +65,21 @@ public:
     ~Header() override = default;
 
 protected:
-    const api::client::Manager& api_;
+    const api::Core& api_;
     const OTData hash_;
     const OTData parent_hash_;
 
     static auto minimum_work() -> OTWork;
 
     Header(
-        const api::client::Manager& api,
+        const api::Core& api,
         const blockchain::Type type,
         const block::Hash& hash,
         const block::Hash& parentHash,
         const block::Height height,
         const blockchain::Work& work) noexcept;
     Header(
-        const api::client::Manager& api,
+        const api::Core& api,
         const block::Hash& hash,
         const block::Hash& parentHash,
         const SerializedType& serialized) noexcept;
@@ -96,7 +98,7 @@ private:
     OTWork inherit_work_;
 
     Header(
-        const api::client::Manager& api,
+        const api::Core& api,
         const VersionNumber version,
         const blockchain::Type type,
         const block::Hash& hash,

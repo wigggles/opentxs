@@ -46,11 +46,13 @@ HDStateData::HDStateData(
     const internal::Network& network,
     const WalletDatabase& db,
     const api::client::blockchain::HD& node,
+    const SimpleCallback& taskFinished,
     const filter::Type filter,
     const Subchain subchain) noexcept
     : network_(network)
     , db_(db)
     , node_(node)
+    , task_finished_(taskFinished)
     , filter_type_(filter)
     , subchain_(subchain)
     , running_(false)
@@ -61,6 +63,7 @@ HDStateData::HDStateData(
     , outstanding_blocks_()
     , process_block_queue_()
 {
+    OT_ASSERT(task_finished_);
 }
 
 auto HDStateData::ReorgQueue::Empty() const noexcept -> bool
@@ -243,7 +246,8 @@ auto HDStateData::process() noexcept -> void
         potential.emplace_back(std::move(id), std::move(element));
     }
 
-    const auto confirmed = block.FindMatches(filter_type_, {}, potential);
+    const auto confirmed = block.FindMatches(
+        network_.API().Blockchain(), filter_type_, {}, potential);
     const auto& oracle = network_.HeaderOracle();
     const auto pHeader = oracle.LoadHeader(blockHash);
 
@@ -308,9 +312,19 @@ auto HDStateData::scan() noexcept -> void
         last_scanned_.has_value()
             ? block::Position{startHeight, headers.BestHash(startHeight)}
             : block::Position{1, headers.BestHash(1)};
-    const auto stopHeight = std::min(startHeight + 9999, best.first);
+    const auto stopHeight = std::min(
+        std::min(startHeight + 9999, best.first),
+        filters.FilterTip(filter_type_).first);
 
-    if (first.second->empty()) { return; }  // Reorg occured while processing
+    if (first.second->empty()) {
+        LogVerbose(OT_METHOD)(__FUNCTION__)(": Resetting due to reorg").Flush();
+
+        return;
+    } else {
+        LogVerbose(OT_METHOD)(__FUNCTION__)(": Scanning filters from ")(
+            startHeight)(" to ")(stopHeight)
+            .Flush();
+    }
 
     const auto elements = db_.GetPatterns(node_.ID(), subchain_, filter_type_);
     const auto utxos = db_.GetUnspentOutputs();
@@ -320,9 +334,16 @@ auto HDStateData::scan() noexcept -> void
 
     for (auto i{startHeight}; i <= stopHeight; ++i) {
         auto blockHash = headers.BestHash(i);
-        const auto pFilter = filters.LoadFilter(filter_type_, blockHash);
+        const auto pFilter = filters.LoadFilterOrResetTip(
+            filter_type_, block::Position{i, blockHash});
 
-        if (false == bool(pFilter)) { break; }
+        if (false == bool(pFilter)) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Filter at height ")(i)(
+                " not found ")
+                .Flush();
+
+            break;
+        }
 
         atLeastOnce = true;
         highestTested.first = i;
@@ -363,7 +384,7 @@ auto HDStateData::scan() noexcept -> void
         last_scanned_ = std::move(highestTested);
     } else {
         LogVerbose(OT_METHOD)(__FUNCTION__)(
-            ": Missing filter for block at height ")(startHeight)
+            ": Scan interrupted due to missing filter")
             .Flush();
     }
 }

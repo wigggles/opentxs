@@ -22,9 +22,9 @@
 #include "internal/api/client/Client.hpp"
 #include "internal/blockchain/block/Block.hpp"
 #include "opentxs/Bytes.hpp"
+#include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/client/Blockchain.hpp"
-#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/client/blockchain/BalanceNode.hpp"
 #include "opentxs/blockchain/block/bitcoin/Output.hpp"
 #include "opentxs/core/Log.hpp"
@@ -41,7 +41,8 @@ namespace opentxs::factory
 using ReturnType = blockchain::block::bitcoin::implementation::Output;
 
 auto BitcoinTransactionOutput(
-    const api::client::Manager& api,
+    const api::Core& api,
+    const api::client::Blockchain& blockchain,
     const blockchain::Type chain,
     const std::uint32_t index,
     const std::int64_t value,
@@ -56,7 +57,13 @@ auto BitcoinTransactionOutput(
         });
 
         return std::make_unique<ReturnType>(
-            api, chain, index, value, std::move(script), std::move(keySet));
+            api,
+            blockchain,
+            chain,
+            index,
+            value,
+            std::move(script),
+            std::move(keySet));
     } catch (const std::exception& e) {
         LogOutput("opentxs::factory::")(__FUNCTION__)(": ")(e.what()).Flush();
 
@@ -65,7 +72,8 @@ auto BitcoinTransactionOutput(
 }
 
 auto BitcoinTransactionOutput(
-    const api::client::Manager& api,
+    const api::Core& api,
+    const api::client::Blockchain& blockchain,
     const blockchain::Type chain,
     const std::uint32_t index,
     const std::int64_t value,
@@ -75,7 +83,13 @@ auto BitcoinTransactionOutput(
 {
     try {
         return std::make_unique<ReturnType>(
-            api, chain, index, value, sizeof(value) + cs.Total(), script);
+            api,
+            blockchain,
+            chain,
+            index,
+            value,
+            sizeof(value) + cs.Total(),
+            script);
     } catch (const std::exception& e) {
         LogOutput("opentxs::factory::")(__FUNCTION__)(": ")(e.what()).Flush();
 
@@ -84,7 +98,8 @@ auto BitcoinTransactionOutput(
 }
 
 auto BitcoinTransactionOutput(
-    const api::client::Manager& api,
+    const api::Core& api,
+    const api::client::Blockchain& blockchain,
     const blockchain::Type chain,
     const proto::BlockchainTransactionOutput in) noexcept
     -> std::unique_ptr<blockchain::block::bitcoin::internal::Output>
@@ -107,6 +122,7 @@ auto BitcoinTransactionOutput(
 
         return std::make_unique<ReturnType>(
             api,
+            blockchain,
             chain,
             in.version(),
             in.index(),
@@ -133,7 +149,8 @@ const VersionNumber Output::default_version_{1};
 const VersionNumber Output::key_version_{1};
 
 Output::Output(
-    const api::client::Manager& api,
+    const api::Core& api,
+    const api::client::Blockchain& blockchain,
     const blockchain::Type chain,
     const VersionNumber version,
     const std::uint32_t index,
@@ -163,11 +180,12 @@ Output::Output(
 
     if (0 > value_) { throw std::runtime_error("Invalid output value"); }
 
-    if (false == indexed) { index_elements(); }
+    if (false == indexed) { index_elements(blockchain); }
 }
 
 Output::Output(
-    const api::client::Manager& api,
+    const api::Core& api,
+    const api::client::Blockchain& blockchain,
     const blockchain::Type chain,
     const std::uint32_t index,
     const std::int64_t value,
@@ -176,6 +194,7 @@ Output::Output(
     const VersionNumber version) noexcept(false)
     : Output(
           api,
+          blockchain,
           chain,
           version,
           index,
@@ -190,7 +209,8 @@ Output::Output(
 }
 
 Output::Output(
-    const api::client::Manager& api,
+    const api::Core& api,
+    const api::client::Blockchain& blockchain,
     const blockchain::Type chain,
     const std::uint32_t index,
     const std::int64_t value,
@@ -199,6 +219,7 @@ Output::Output(
     const VersionNumber version) noexcept(false)
     : Output(
           api,
+          blockchain,
           chain,
           version,
           index,
@@ -228,20 +249,22 @@ Output::Output(const Output& rhs) noexcept
 {
 }
 
-auto Output::AssociatedLocalNyms(std::vector<OTNymID>& output) const noexcept
-    -> void
+auto Output::AssociatedLocalNyms(
+    const api::client::Blockchain& blockchain,
+    std::vector<OTNymID>& output) const noexcept -> void
 {
     std::for_each(std::begin(keys_), std::end(keys_), [&](const auto& key) {
-        output.emplace_back(api_.Blockchain().Owner(key));
+        output.emplace_back(blockchain.Owner(key));
     });
 }
 
 auto Output::AssociatedRemoteContacts(
+    const api::client::Blockchain& blockchain,
     std::vector<OTIdentifier>& output) const noexcept -> void
 {
     const auto hashes = script_->LikelyPubkeyHashes(api_);
     std::for_each(std::begin(hashes), std::end(hashes), [&](const auto& hash) {
-        auto contacts = api_.Blockchain().LookupContacts(hash);
+        auto contacts = blockchain.LookupContacts(hash);
         std::move(
             std::begin(contacts),
             std::end(contacts),
@@ -249,7 +272,7 @@ auto Output::AssociatedRemoteContacts(
     });
     std::for_each(std::begin(keys_), std::end(keys_), [&](const auto& id) {
         try {
-            const auto& key = api_.Blockchain().GetKey(id);
+            const auto& key = blockchain.GetKey(id);
             auto contact = key.Contact();
 
             if (false == contact->empty()) {
@@ -280,6 +303,7 @@ auto Output::ExtractElements(const filter::Type style) const noexcept
 }
 
 auto Output::FindMatches(
+    const api::client::Blockchain& blockchain,
     const ReadView txid,
     const FilterType type,
     const Patterns& patterns) const noexcept -> Matches
@@ -293,8 +317,8 @@ auto Output::FindMatches(
             const auto& [subchain, account] = subchainID;
             keys_.emplace(KeyID{account->str(), subchain, index});
         });
-    set_payee();
-    set_payer();
+    set_payee(blockchain);
+    set_payer(blockchain);
 
     return output;
 }
@@ -304,11 +328,12 @@ auto Output::GetPatterns() const noexcept -> std::vector<PatternID>
     return {std::begin(pubkey_hashes_), std::end(pubkey_hashes_)};
 }
 
-auto Output::index_elements() noexcept -> void
+auto Output::index_elements(const api::client::Blockchain& blockchain) noexcept
+    -> void
 {
     auto& hashes =
         const_cast<boost::container::flat_set<PatternID>&>(pubkey_hashes_);
-    const auto patterns = script_->ExtractPatterns(api_);
+    const auto patterns = script_->ExtractPatterns(api_, blockchain);
     LogTrace(OT_METHOD)(__FUNCTION__)(": ")(patterns.size())(
         " pubkey hashes found:")
         .Flush();
@@ -321,7 +346,7 @@ auto Output::index_elements() noexcept -> void
 
     if (scriptHash.has_value()) {
         const_cast<std::optional<PatternID>&>(script_hash_) =
-            api_.Blockchain().IndexItem(scriptHash.value());
+            blockchain.IndexItem(scriptHash.value());
     }
 }
 
@@ -347,21 +372,23 @@ auto Output::MergeMetadata(const SerializeType& rhs) noexcept -> void
         });
 }
 
-auto Output::NetBalanceChange(const identifier::Nym& nym) const noexcept
-    -> opentxs::Amount
+auto Output::NetBalanceChange(
+    const api::client::Blockchain& blockchain,
+    const identifier::Nym& nym) const noexcept -> opentxs::Amount
 {
     for (const auto& key : keys_) {
-        if (nym == api_.Blockchain().Owner(key)) { return value_; }
+        if (nym == blockchain.Owner(key)) { return value_; }
     }
 
     return 0;
 }
 
-auto Output::Note() const noexcept -> std::string
+auto Output::Note(const api::client::Blockchain& blockchain) const noexcept
+    -> std::string
 {
     for (const auto& id : keys_) {
         try {
-            const auto& element = api_.Blockchain().GetKey(id);
+            const auto& element = blockchain.GetKey(id);
             const auto note = element.Label();
 
             if (false == note.empty()) { return note; }
@@ -372,16 +399,18 @@ auto Output::Note() const noexcept -> std::string
     return {};
 }
 
-auto Output::Payee() const noexcept -> ContactID
+auto Output::Payee(const api::client::Blockchain& blockchain) const noexcept
+    -> ContactID
 {
-    if (payee_->empty()) { set_payee(); }
+    if (payee_->empty()) { set_payee(blockchain); }
 
     return payee_;
 }
 
-auto Output::Payer() const noexcept -> ContactID
+auto Output::Payer(const api::client::Blockchain& blockchain) const noexcept
+    -> ContactID
 {
-    if (payer_->empty()) { set_payer(); }
+    if (payer_->empty()) { set_payer(blockchain); }
 
     return payer_;
 }
@@ -426,7 +455,9 @@ auto Output::Serialize(const AllocateOutput destination) const noexcept
     }
 }
 
-auto Output::Serialize(SerializeType& out) const noexcept -> bool
+auto Output::Serialize(
+    const api::client::Blockchain& blockchain,
+    SerializeType& out) const noexcept -> bool
 {
     OT_ASSERT(0 <= value_);
 
@@ -443,7 +474,7 @@ auto Output::Serialize(SerializeType& out) const noexcept -> bool
         auto& serializedKey = *out.add_key();
         serializedKey.set_version(key_version_);
         serializedKey.set_chain(Translate(chain_));
-        serializedKey.set_nym(api_.Blockchain().Owner(key).str());
+        serializedKey.set_nym(blockchain.Owner(key).str());
         serializedKey.set_subaccount(accountID);
         serializedKey.set_subchain(static_cast<std::uint32_t>(subchain));
         serializedKey.set_index(index);
@@ -458,17 +489,19 @@ auto Output::Serialize(SerializeType& out) const noexcept -> bool
     return true;
 }
 
-auto Output::set_payee() const noexcept -> void
+auto Output::set_payee(const api::client::Blockchain& blockchain) const noexcept
+    -> void
 {
     // TODO handle multisig and other strange cases
     // TODO handle BIP-47
 
     if (1 != keys_.size()) { return; }
 
-    payee_ = api_.Blockchain().Owner(*keys_.cbegin());
+    payee_ = blockchain.Owner(*keys_.cbegin());
 }
 
-auto Output::set_payer() const noexcept -> void
+auto Output::set_payer(const api::client::Blockchain& blockchain) const noexcept
+    -> void
 {
     // TODO handle multisig and other strange cases
     // TODO handle BIP-47
@@ -476,7 +509,7 @@ auto Output::set_payer() const noexcept -> void
     if (1 != keys_.size()) { return; }
 
     try {
-        const auto& key = api_.Blockchain().GetKey(*keys_.cbegin());
+        const auto& key = blockchain.GetKey(*keys_.cbegin());
         payer_ = key.Contact();
     } catch (...) {
     }

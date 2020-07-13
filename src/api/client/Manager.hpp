@@ -36,6 +36,7 @@ struct Context;
 }  // namespace internal
 
 class Crypto;
+class Legacy;
 class Settings;
 }  // namespace api
 
@@ -109,7 +110,7 @@ private:
     std::unique_ptr<network::ZMQ> zeromq_;
     std::unique_ptr<internal::Contacts> contacts_;
     std::unique_ptr<internal::Activity> activity_;
-    std::unique_ptr<client::Blockchain> blockchain_;
+    std::shared_ptr<internal::Blockchain> blockchain_;
     std::unique_ptr<client::Workflow> workflow_;
     std::unique_ptr<OT_API> ot_api_;
     std::unique_ptr<OTAPI_Exec> otapi_exec_;
@@ -119,6 +120,15 @@ private:
     std::unique_ptr<internal::UI> ui_;
     mutable std::mutex map_lock_;
     mutable std::map<ContextID, std::recursive_mutex> context_locks_;
+
+    static auto init(
+        const api::Legacy& legacy,
+        const internal::Manager& parent,
+        const std::string& dataFolder,
+        const ArgList& args,
+        std::shared_ptr<internal::Blockchain>& blockchain,
+        std::unique_ptr<internal::Contacts>& contacts) noexcept
+        -> std::unique_ptr<internal::Activity>;
 
     auto get_lock(const ContextID context) const -> std::recursive_mutex&;
 

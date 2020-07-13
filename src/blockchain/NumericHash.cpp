@@ -12,6 +12,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <iterator>
+#include <memory>
 #include <vector>
 
 #include "internal/blockchain/Blockchain.hpp"
@@ -29,9 +30,11 @@ namespace be = boost::endian;
 
 namespace opentxs::factory
 {
-auto NumericHashNBits(const std::int32_t input) -> blockchain::NumericHash*
+using ReturnType = blockchain::implementation::NumericHash;
+
+auto NumericHashNBits(const std::int32_t input) noexcept
+    -> std::unique_ptr<blockchain::NumericHash>
 {
-    using ReturnType = blockchain::implementation::NumericHash;
     using ArgumentType = ReturnType::Type;
     using MantissaType = mp::checked_cpp_int;
 
@@ -43,7 +46,7 @@ auto NumericHashNBits(const std::int32_t input) -> blockchain::NumericHash*
     ++it;
     mp::import_bits(mantissa, it, nBits->end(), 8, true);
 
-    if (mantissa < 0) { return new ReturnType(); }
+    if (mantissa < 0) { return std::make_unique<ReturnType>(); }
 
     ArgumentType value{};
 
@@ -54,19 +57,18 @@ auto NumericHashNBits(const std::int32_t input) -> blockchain::NumericHash*
             ": Failed to calculate target")
             .Flush();
 
-        return new ReturnType();
+        return std::make_unique<ReturnType>();
     }
 
-    return new ReturnType(value);
+    return std::make_unique<ReturnType>(value);
 }
 
-auto NumericHash(const blockchain::block::Hash& hash)
-    -> blockchain::NumericHash*
+auto NumericHash(const blockchain::block::Hash& hash) noexcept
+    -> std::unique_ptr<blockchain::NumericHash>
 {
-    using ReturnType = blockchain::implementation::NumericHash;
     ReturnType::Type value{};
 
-    if (hash.empty()) { return new ReturnType(); }
+    if (hash.empty()) { return std::make_unique<ReturnType>(); }
 
     try {
         // Interpret hash as little endian
@@ -75,10 +77,10 @@ auto NumericHash(const blockchain::block::Hash& hash)
         LogOutput("opentxs::factory::")(__FUNCTION__)(": Failed to decode hash")
             .Flush();
 
-        return new ReturnType();
+        return std::make_unique<ReturnType>();
     }
 
-    return new ReturnType(value);
+    return std::make_unique<ReturnType>(value);
 }
 }  // namespace opentxs::factory
 

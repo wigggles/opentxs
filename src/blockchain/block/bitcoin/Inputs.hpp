@@ -22,6 +22,14 @@
 
 namespace opentxs
 {
+namespace api
+{
+namespace client
+{
+class Blockchain;
+}  // namespace client
+}  // namespace api
+
 namespace proto
 {
 class BlockchainTransaction;
@@ -36,9 +44,11 @@ class Inputs final : public internal::Inputs
 public:
     using InputList = std::vector<std::unique_ptr<internal::Input>>;
 
-    auto AssociatedLocalNyms(std::vector<OTNymID>& output) const noexcept
-        -> void final;
+    auto AssociatedLocalNyms(
+        const api::client::Blockchain& blockchain,
+        std::vector<OTNymID>& output) const noexcept -> void final;
     auto AssociatedRemoteContacts(
+        const api::client::Blockchain& blockchain,
         std::vector<OTIdentifier>& output) const noexcept -> void final;
     auto at(const std::size_t position) const noexcept(false)
         -> const value_type& final
@@ -69,18 +79,21 @@ public:
         const Patterns& txos,
         const Patterns& elements) const noexcept -> Matches final;
     auto GetPatterns() const noexcept -> std::vector<PatternID> final;
-    auto NetBalanceChange(const identifier::Nym& nym) const noexcept
-        -> opentxs::Amount final;
+    auto NetBalanceChange(
+        const api::client::Blockchain& blockchain,
+        const identifier::Nym& nym) const noexcept -> opentxs::Amount final;
     auto Serialize(const AllocateOutput destination) const noexcept
         -> std::optional<std::size_t> final;
-    auto Serialize(proto::BlockchainTransaction& destination) const noexcept
-        -> bool final;
+    auto Serialize(
+        const api::client::Blockchain& blockchain,
+        proto::BlockchainTransaction& destination) const noexcept -> bool final;
     auto SerializeNormalized(const AllocateOutput destination) const noexcept
         -> std::optional<std::size_t> final;
     auto size() const noexcept -> std::size_t final { return inputs_.size(); }
 
     auto AnyoneCanPay(const std::size_t index) noexcept -> bool final;
     auto AssociatePreviousOutput(
+        const api::client::Blockchain& blockchain,
         const std::size_t inputIndex,
         const proto::BlockchainTransactionOutput& output) noexcept
         -> bool final;
@@ -88,10 +101,11 @@ public:
     {
         return *inputs_.at(position);
     }
-    auto MergeMetadata(const Input::SerializeType& rhs) noexcept(false)
-        -> void final
+    auto MergeMetadata(
+        const api::client::Blockchain& blockchain,
+        const Input::SerializeType& rhs) noexcept(false) -> void final
     {
-        inputs_.at(rhs.index())->MergeMetadata(rhs);
+        inputs_.at(rhs.index())->MergeMetadata(blockchain, rhs);
     }
     auto ReplaceScript(const std::size_t index) noexcept -> bool final;
 

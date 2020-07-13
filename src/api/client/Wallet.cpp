@@ -12,6 +12,7 @@
 #include "api/Wallet.hpp"
 #include "internal/api/Api.hpp"
 #include "internal/api/client/Client.hpp"
+#include "internal/api/client/Factory.hpp"
 #include "internal/otx/consensus/Consensus.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/api/Endpoints.hpp"

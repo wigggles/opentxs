@@ -32,6 +32,7 @@ namespace api
 {
 namespace client
 {
+class Blockchain;
 class Contacts;
 }  // namespace client
 
@@ -61,6 +62,7 @@ class Activity final : virtual public api::client::internal::Activity, Lockable
 public:
 #if OT_BLOCKCHAIN
     auto AddBlockchainTransaction(
+        const Blockchain& api,
         const BlockchainTransaction& transaction) const noexcept -> bool final;
 #endif  // OT_BLOCKCHAIN
     auto AddPaymentEvent(
@@ -175,6 +177,7 @@ private:
 #if OT_BLOCKCHAIN
     auto add_blockchain_transaction(
         const eLock& lock,
+        const Blockchain& blockchain,
         const identifier::Nym& nym,
         const BlockchainTransaction& transaction) const noexcept -> bool;
 #endif  // OT_BLOCKCHAIN

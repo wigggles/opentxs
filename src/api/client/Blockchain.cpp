@@ -8,6 +8,7 @@
 #include "api/client/Blockchain.hpp"  // IWYU pragma: associated
 
 #include <algorithm>
+#include <chrono>
 #include <cstdint>
 #include <iterator>
 #include <map>
@@ -22,6 +23,7 @@
 #include "core/Worker.hpp"
 #endif  // OT_BLOCKCHAIN
 #include "internal/api/client/Client.hpp"
+#include "internal/api/client/Factory.hpp"
 #include "internal/api/client/blockchain/Blockchain.hpp"
 #if OT_BLOCKCHAIN
 #include "internal/blockchain/Blockchain.hpp"
@@ -92,9 +94,10 @@ auto BlockchainAPI(
     const api::client::Contacts& contacts,
     const api::Legacy& legacy,
     const std::string& dataFolder,
-    const ArgList& args) noexcept -> std::unique_ptr<api::client::Blockchain>
+    const ArgList& args) noexcept
+    -> std::shared_ptr<api::client::internal::Blockchain>
 {
-    return std::make_unique<ReturnType>(
+    return std::make_shared<ReturnType>(
         api, activity, contacts, legacy, dataFolder, args);
 }
 }  // namespace opentxs::factory
@@ -163,6 +166,8 @@ Blockchain::Blockchain(
     , key_updates_(api_.ZeroMQ().PublishSocket())
     , networks_()
     , balances_(*this, api)
+    , running_(true)
+    , heartbeat_(&Blockchain::heartbeat, this)
 #endif  // OT_BLOCKCHAIN
 {
     // WARNING: do not access api_.Wallet() during construction
@@ -597,8 +602,8 @@ auto Blockchain::ActivityDescription(
     const Tx& transaction) const noexcept -> std::string
 {
     auto output = std::stringstream{};
-    const auto amount = transaction.NetBalanceChange(nym);
-    const auto memo = transaction.Memo();
+    const auto amount = transaction.NetBalanceChange(*this, nym);
+    const auto memo = transaction.Memo(*this);
 
     if (0 < amount) {
         output << "Incoming ";
@@ -714,7 +719,7 @@ auto Blockchain::AssignTransactionMemo(
 
     auto& transaction = *pTransaction;
     transaction.SetMemo(label);
-    const auto serialized = transaction.Serialize();
+    const auto serialized = transaction.Serialize(*this);
 
     OT_ASSERT(serialized.has_value());
 
@@ -798,7 +803,8 @@ auto Blockchain::broadcast_update_signal(
 
             OT_ASSERT(data.has_value());
 
-            const auto tx = factory::BitcoinTransaction(api_, data.value());
+            const auto tx =
+                factory::BitcoinTransaction(api_, *this, data.value());
 
             OT_ASSERT(tx);
 
@@ -968,6 +974,23 @@ auto Blockchain::HDSubaccount(
 }
 
 #if OT_BLOCKCHAIN
+auto Blockchain::heartbeat() const noexcept -> void
+{
+    while (running_) {
+        auto counter{-1};
+
+        while (20 > ++counter) { Sleep(std::chrono::milliseconds{250}); }
+
+        Lock lock(lock_);
+
+        for (const auto& [key, value] : networks_) {
+            if (false == running_) { return; }
+
+            value->Heartbeat();
+        }
+    }
+}
+
 auto Blockchain::IndexItem(const ReadView bytes) const noexcept -> PatternID
 {
     auto output = PatternID{};
@@ -1039,7 +1062,7 @@ auto Blockchain::load_transaction(const Lock& lock, const Txid& txid)
         return {};
     }
 
-    return factory::BitcoinTransaction(api_, serialized.value());
+    return factory::BitcoinTransaction(api_, *this, serialized.value());
 }
 
 auto Blockchain::LoadTransactionBitcoin(const TxidHex& txid) const noexcept
@@ -1216,14 +1239,14 @@ auto Blockchain::ProcessTransaction(
     const auto txid = id.Bytes();
 
     if (const auto tx = db_.LoadTransaction(txid); tx.has_value()) {
-        transaction.MergeMetadata(chain, tx.value());
-        auto updated = transaction.Serialize();
+        transaction.MergeMetadata(*this, chain, tx.value());
+        auto updated = transaction.Serialize(*this);
 
         OT_ASSERT(updated.has_value());
 
         if (false == db_.StoreTransaction(updated.value())) { return false; }
     } else {
-        auto serialized = transaction.Serialize();
+        auto serialized = transaction.Serialize(*this);
 
         OT_ASSERT(serialized.has_value());
 
@@ -1292,7 +1315,7 @@ auto Blockchain::reconcile_activity_threads(
     const opentxs::blockchain::block::bitcoin::internal::Transaction& tx)
     const noexcept -> bool
 {
-    if (false == activity_.AddBlockchainTransaction(tx)) { return false; }
+    if (!activity_.AddBlockchainTransaction(*this, tx)) { return false; }
 
     broadcast_update_signal(tx);
 
@@ -1418,6 +1441,10 @@ Blockchain::ThreadPoolManager::~ThreadPoolManager()
 Blockchain::~Blockchain()
 {
 #if OT_BLOCKCHAIN
+    running_ = false;
+
+    if (heartbeat_.joinable()) { heartbeat_.join(); }
+
     LogVerbose("Shutting down ")(networks_.size())(" blockchain clients")
         .Flush();
     thread_pool_.Shutdown();
@@ -1426,6 +1453,7 @@ Blockchain::~Blockchain()
 
     networks_.clear();
     io_.Shutdown();
+
 #endif  // OT_BLOCKCHAIN
 }
 }  // namespace opentxs::api::client::implementation
