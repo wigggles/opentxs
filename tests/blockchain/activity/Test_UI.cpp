@@ -18,6 +18,7 @@
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/SharedPimpl.hpp"
 #include "opentxs/Types.hpp"
+#include "opentxs/Version.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/client/Blockchain.hpp"
 #include "opentxs/api/client/Contacts.hpp"
@@ -191,6 +192,61 @@ TEST_F(Test_BlockchainActivity, initial_state_account_list)
     EXPECT_TRUE(row->Last());
 }
 
+#if OT_QT
+TEST_F(Test_BlockchainActivity, initial_state_account_list_qt)
+{
+    ASSERT_TRUE(wait_for_counter(account_list_));
+
+    const auto* pWidget = api_.UI().AccountListQt(nym_1_id());
+
+    ASSERT_NE(pWidget, nullptr);
+
+    const auto& widget = *pWidget;
+
+    EXPECT_EQ(widget.columnCount(), 4);
+    EXPECT_EQ(widget.rowCount(), 1);
+
+    using Model = ot::ui::AccountListQt;
+
+    {
+        ASSERT_TRUE(widget.hasIndex(0, 0));
+        ASSERT_TRUE(widget.hasIndex(0, 1));
+        ASSERT_TRUE(widget.hasIndex(0, 2));
+        ASSERT_TRUE(widget.hasIndex(0, 3));
+
+        const auto notaryID =
+            widget.data(widget.index(0, 0), Model::NotaryIDRole);
+        const auto unit = widget.data(widget.index(0, 0), Model::UnitRole);
+        const auto accountID =
+            widget.data(widget.index(0, 0), Model::AccountIDRole);
+        const auto balance =
+            widget.data(widget.index(0, 0), Model::BalanceRole);
+        const auto polarity =
+            widget.data(widget.index(0, 0), Model::PolarityRole);
+        const auto type =
+            widget.data(widget.index(0, 0), Model::AccountTypeRole);
+        const auto contractID =
+            widget.data(widget.index(0, 0), Model::ContractIdRole);
+        const auto notaryName = widget.data(widget.index(0, 0));
+        const auto unitName = widget.data(widget.index(0, 1));
+        const auto accountName = widget.data(widget.index(0, 2));
+        const auto displayBalance = widget.data(widget.index(0, 3));
+
+        EXPECT_EQ(notaryID.toString(), btc_notary_id_);
+        EXPECT_EQ(unit.toInt(), static_cast<int>(ot::proto::CITEMTYPE_BTC));
+        EXPECT_EQ(accountID.toString(), btc_account_id_);
+        EXPECT_EQ(balance.toInt(), 0);
+        EXPECT_EQ(polarity.toInt(), 0);
+        EXPECT_EQ(type.toInt(), static_cast<int>(ot::AccountType::Blockchain));
+        EXPECT_EQ(contractID.toString(), btc_unit_id_);
+        EXPECT_EQ(notaryName.toString(), "Bitcoin");
+        EXPECT_EQ(unitName.toString(), "BTC");
+        EXPECT_EQ(accountName.toString(), "This device");
+        EXPECT_EQ(displayBalance.toString(), "0.00000000 BTC");
+    }
+}
+#endif  // OT_QT
+
 TEST_F(Test_BlockchainActivity, initial_state_account_activity)
 {
     ASSERT_TRUE(wait_for_counter(account_activity_));
@@ -219,6 +275,34 @@ TEST_F(Test_BlockchainActivity, initial_state_account_activity)
 
     EXPECT_FALSE(row->Valid());
 }
+
+#if OT_QT
+TEST_F(Test_BlockchainActivity, initial_state_account_activity_qt)
+{
+    ASSERT_TRUE(wait_for_counter(account_activity_));
+
+    const auto* pWidget = api_.UI().AccountActivityQt(
+        nym_1_id(), api_.Factory().Identifier(std::string{btc_account_id_}));
+
+    ASSERT_NE(pWidget, nullptr);
+
+    const auto& widget = *pWidget;
+
+    EXPECT_EQ(widget.columnCount(), 5);
+    EXPECT_EQ(widget.rowCount(), 0);
+    EXPECT_EQ(widget.accountID(), btc_account_id_);
+    EXPECT_EQ(widget.balancePolarity(), 0);
+    EXPECT_EQ(widget.displayBalance(), "0.00000000 BTC");
+
+    {
+        const auto chains = widget.depositChains();
+
+        ASSERT_EQ(chains.size(), 1);
+        EXPECT_EQ(
+            *chains.begin(), static_cast<int>(ot::blockchain::Type::Bitcoin));
+    }
+}
+#endif  // OT_QT
 
 TEST_F(Test_BlockchainActivity, initial_state_account_summary)
 {
@@ -381,6 +465,124 @@ TEST_F(Test_BlockchainActivity, final_account_activity)
     EXPECT_FALSE(row->UUID().empty());
     EXPECT_TRUE(row->Last());
 }
+
+#if OT_QT
+TEST_F(Test_BlockchainActivity, final_account_activity_qt)
+{
+    ASSERT_TRUE(wait_for_counter(account_activity_));
+
+    const auto* pWidget = api_.UI().AccountActivityQt(
+        nym_1_id(), api_.Factory().Identifier(std::string{btc_account_id_}));
+
+    ASSERT_NE(pWidget, nullptr);
+
+    const auto& widget = *pWidget;
+
+    EXPECT_EQ(widget.columnCount(), 5);
+    EXPECT_EQ(widget.rowCount(), 2);
+    EXPECT_EQ(widget.accountID(), btc_account_id_);
+    EXPECT_EQ(widget.balancePolarity(), 1);
+    EXPECT_EQ(widget.displayBalance(), "0.02761918 BTC");
+
+    {
+        const auto chains = widget.depositChains();
+
+        ASSERT_EQ(chains.size(), 1);
+        EXPECT_EQ(
+            *chains.begin(), static_cast<int>(ot::blockchain::Type::Bitcoin));
+    }
+
+    using Model = ot::ui::AccountActivityQt;
+
+    {
+        ASSERT_TRUE(widget.hasIndex(0, 0));
+        ASSERT_TRUE(widget.hasIndex(0, 1));
+        ASSERT_TRUE(widget.hasIndex(0, 2));
+        ASSERT_TRUE(widget.hasIndex(0, 3));
+        ASSERT_TRUE(widget.hasIndex(0, 4));
+
+        const auto contacts =
+            widget.data(widget.index(0, 0), Model::ContactsRole);
+        const auto polarity =
+            widget.data(widget.index(0, 0), Model::PolarityRole);
+        const auto workflow =
+            widget.data(widget.index(0, 0), Model::WorkflowRole);
+        const auto type = widget.data(widget.index(0, 0), Model::TypeRole);
+        const auto amount = widget.data(widget.index(0, 0));
+        const auto text = widget.data(widget.index(0, 1));
+        const auto memo = widget.data(widget.index(0, 2));
+        const auto time = widget.data(widget.index(0, 3));
+        const auto uuid = widget.data(widget.index(0, 4));
+
+        {
+            const auto ids = contacts.toStringList();
+
+            ASSERT_EQ(ids.size(), 1);
+            EXPECT_EQ(ids.at(0).toStdString(), contact_5_id().str());
+        }
+
+        EXPECT_EQ(polarity.toInt(), 1);
+        EXPECT_EQ(workflow.toString(), "");
+        EXPECT_EQ(type.toInt(), static_cast<int>(ot::StorageBox::BLOCKCHAIN));
+        EXPECT_EQ(amount.toString(), "0.01380959 BTC");
+        EXPECT_EQ(text.toString(), "Incoming Bitcoin transaction");
+        EXPECT_EQ(memo.toString(), "");
+
+        {
+            auto expected = QDateTime{};
+            expected.setSecsSinceEpoch(ot::Clock::to_time_t(time_1_));
+
+            EXPECT_EQ(time.toDateTime(), expected);
+        }
+
+        EXPECT_FALSE(uuid.toString().isEmpty());
+    }
+
+    {
+        ASSERT_TRUE(widget.hasIndex(1, 0));
+        ASSERT_TRUE(widget.hasIndex(1, 1));
+        ASSERT_TRUE(widget.hasIndex(1, 2));
+        ASSERT_TRUE(widget.hasIndex(1, 3));
+        ASSERT_TRUE(widget.hasIndex(1, 4));
+
+        const auto contacts =
+            widget.data(widget.index(1, 0), Model::ContactsRole);
+        const auto polarity =
+            widget.data(widget.index(1, 0), Model::PolarityRole);
+        const auto workflow =
+            widget.data(widget.index(1, 0), Model::WorkflowRole);
+        const auto type = widget.data(widget.index(1, 0), Model::TypeRole);
+        const auto amount = widget.data(widget.index(1, 0));
+        const auto text = widget.data(widget.index(1, 1));
+        const auto memo = widget.data(widget.index(1, 2));
+        const auto time = widget.data(widget.index(1, 3));
+        const auto uuid = widget.data(widget.index(1, 4));
+
+        {
+            const auto ids = contacts.toStringList();
+
+            ASSERT_EQ(ids.size(), 1);
+            EXPECT_EQ(ids.at(0).toStdString(), contact_6_id().str());
+        }
+
+        EXPECT_EQ(polarity.toInt(), 1);
+        EXPECT_EQ(workflow.toString(), "");
+        EXPECT_EQ(type.toInt(), static_cast<int>(ot::StorageBox::BLOCKCHAIN));
+        EXPECT_EQ(amount.toString(), "0.01380959 BTC");
+        EXPECT_EQ(text.toString(), "Incoming Bitcoin transaction: Free Ross");
+        EXPECT_EQ(memo.toString(), "Free Ross");
+
+        {
+            auto expected = QDateTime{};
+            expected.setSecsSinceEpoch(ot::Clock::to_time_t(time_2_));
+
+            EXPECT_EQ(time.toDateTime(), expected);
+        }
+
+        EXPECT_FALSE(uuid.toString().isEmpty());
+    }
+}
+#endif  // OT_QT
 
 TEST_F(Test_BlockchainActivity, final_account_summary)
 {
@@ -591,6 +793,168 @@ TEST_F(Test_BlockchainActivity, post_send_account_activity)
     EXPECT_FALSE(row->UUID().empty());
     EXPECT_TRUE(row->Last());
 }
+
+#if OT_QT
+TEST_F(Test_BlockchainActivity, post_send_account_activity_qt)
+{
+    ASSERT_TRUE(wait_for_counter(account_activity_));
+
+    const auto* pWidget = api_.UI().AccountActivityQt(
+        nym_1_id(), api_.Factory().Identifier(std::string{btc_account_id_}));
+
+    ASSERT_NE(pWidget, nullptr);
+
+    const auto& widget = *pWidget;
+
+    EXPECT_EQ(widget.columnCount(), 5);
+    EXPECT_EQ(widget.rowCount(), 3);
+    EXPECT_EQ(widget.accountID(), btc_account_id_);
+    EXPECT_EQ(widget.balancePolarity(), 1);
+    EXPECT_EQ(widget.displayBalance(), "0.01380959 BTC");
+
+    {
+        const auto chains = widget.depositChains();
+
+        ASSERT_EQ(chains.size(), 1);
+        EXPECT_EQ(
+            *chains.begin(), static_cast<int>(ot::blockchain::Type::Bitcoin));
+    }
+
+    using Model = ot::ui::AccountActivityQt;
+
+    {
+        ASSERT_TRUE(widget.hasIndex(0, 0));
+        ASSERT_TRUE(widget.hasIndex(0, 1));
+        ASSERT_TRUE(widget.hasIndex(0, 2));
+        ASSERT_TRUE(widget.hasIndex(0, 3));
+        ASSERT_TRUE(widget.hasIndex(0, 4));
+
+        const auto contacts =
+            widget.data(widget.index(0, 0), Model::ContactsRole);
+        const auto polarity =
+            widget.data(widget.index(0, 0), Model::PolarityRole);
+        const auto workflow =
+            widget.data(widget.index(0, 0), Model::WorkflowRole);
+        const auto type = widget.data(widget.index(0, 0), Model::TypeRole);
+        const auto amount = widget.data(widget.index(0, 0));
+        const auto text = widget.data(widget.index(0, 1));
+        const auto memo = widget.data(widget.index(0, 2));
+        const auto time = widget.data(widget.index(0, 3));
+        const auto uuid = widget.data(widget.index(0, 4));
+
+        {
+            const auto ids = contacts.toStringList();
+
+            ASSERT_EQ(ids.size(), 1);
+            EXPECT_EQ(ids.at(0).toStdString(), contact_5_id().str());
+        }
+
+        EXPECT_EQ(polarity.toInt(), 1);
+        EXPECT_EQ(workflow.toString(), "");
+        EXPECT_EQ(type.toInt(), static_cast<int>(ot::StorageBox::BLOCKCHAIN));
+        EXPECT_EQ(amount.toString(), "0.01380959 BTC");
+        EXPECT_EQ(text.toString(), "Incoming Bitcoin transaction");
+        EXPECT_EQ(memo.toString(), "");
+
+        {
+            auto expected = QDateTime{};
+            expected.setSecsSinceEpoch(ot::Clock::to_time_t(time_1_));
+
+            EXPECT_EQ(time.toDateTime(), expected);
+        }
+
+        EXPECT_FALSE(uuid.toString().isEmpty());
+    }
+
+    {
+        ASSERT_TRUE(widget.hasIndex(1, 0));
+        ASSERT_TRUE(widget.hasIndex(1, 1));
+        ASSERT_TRUE(widget.hasIndex(1, 2));
+        ASSERT_TRUE(widget.hasIndex(1, 3));
+        ASSERT_TRUE(widget.hasIndex(1, 4));
+
+        const auto contacts =
+            widget.data(widget.index(1, 0), Model::ContactsRole);
+        const auto polarity =
+            widget.data(widget.index(1, 0), Model::PolarityRole);
+        const auto workflow =
+            widget.data(widget.index(1, 0), Model::WorkflowRole);
+        const auto type = widget.data(widget.index(1, 0), Model::TypeRole);
+        const auto amount = widget.data(widget.index(1, 0));
+        const auto text = widget.data(widget.index(1, 1));
+        const auto memo = widget.data(widget.index(1, 2));
+        const auto time = widget.data(widget.index(1, 3));
+        const auto uuid = widget.data(widget.index(1, 4));
+
+        {
+            const auto ids = contacts.toStringList();
+
+            ASSERT_EQ(ids.size(), 1);
+            EXPECT_EQ(ids.at(0).toStdString(), contact_6_id().str());
+        }
+
+        EXPECT_EQ(polarity.toInt(), 1);
+        EXPECT_EQ(workflow.toString(), "");
+        EXPECT_EQ(type.toInt(), static_cast<int>(ot::StorageBox::BLOCKCHAIN));
+        EXPECT_EQ(amount.toString(), "0.01380959 BTC");
+        EXPECT_EQ(text.toString(), "Incoming Bitcoin transaction: Free Ross");
+        EXPECT_EQ(memo.toString(), "Free Ross");
+
+        {
+            auto expected = QDateTime{};
+            expected.setSecsSinceEpoch(ot::Clock::to_time_t(time_2_));
+
+            EXPECT_EQ(time.toDateTime(), expected);
+        }
+
+        EXPECT_FALSE(uuid.toString().isEmpty());
+    }
+
+    {
+        ASSERT_TRUE(widget.hasIndex(2, 0));
+        ASSERT_TRUE(widget.hasIndex(2, 1));
+        ASSERT_TRUE(widget.hasIndex(2, 2));
+        ASSERT_TRUE(widget.hasIndex(2, 3));
+        ASSERT_TRUE(widget.hasIndex(2, 4));
+
+        const auto contacts =
+            widget.data(widget.index(2, 0), Model::ContactsRole);
+        const auto polarity =
+            widget.data(widget.index(2, 0), Model::PolarityRole);
+        const auto workflow =
+            widget.data(widget.index(2, 0), Model::WorkflowRole);
+        const auto type = widget.data(widget.index(2, 0), Model::TypeRole);
+        const auto amount = widget.data(widget.index(2, 0));
+        const auto text = widget.data(widget.index(2, 1));
+        const auto memo = widget.data(widget.index(2, 2));
+        const auto time = widget.data(widget.index(2, 3));
+        const auto uuid = widget.data(widget.index(2, 4));
+
+        {
+            const auto ids = contacts.toStringList();
+
+            ASSERT_EQ(ids.size(), 1);
+            EXPECT_EQ(ids.at(0).toStdString(), contact_7_id().str());
+        }
+
+        EXPECT_EQ(polarity.toInt(), -1);
+        EXPECT_EQ(workflow.toString(), "");
+        EXPECT_EQ(type.toInt(), static_cast<int>(ot::StorageBox::BLOCKCHAIN));
+        EXPECT_EQ(amount.toString(), "-0.01380959 BTC");
+        EXPECT_EQ(text.toString(), "Outgoing Bitcoin transaction");
+        EXPECT_EQ(memo.toString(), "");
+
+        {
+            auto expected = QDateTime{};
+            expected.setSecsSinceEpoch(ot::Clock::to_time_t(time_3_));
+
+            EXPECT_EQ(time.toDateTime(), expected);
+        }
+
+        EXPECT_FALSE(uuid.toString().isEmpty());
+    }
+}
+#endif  // OT_QT
 
 TEST_F(Test_BlockchainActivity, post_send_activity_summary)
 {

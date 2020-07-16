@@ -86,6 +86,7 @@ private:
 class opentxs::ui::AccountActivityQt final : public QIdentityProxyModel
 {
     Q_OBJECT
+    Q_PROPERTY(QString accountID READ accountID NOTIFY updated)
     Q_PROPERTY(int balancePolarity READ balancePolarity NOTIFY updated)
 #if OT_BLOCKCHAIN
     Q_PROPERTY(QList<int> depositChains READ depositChains NOTIFY updated)
@@ -96,7 +97,19 @@ signals:
     void updated() const;
 
 public:
-    // Table layout
+    // User roles return the same data for all columns
+    //
+    // PolarityRole: int (-1, 0, or 1)
+    // ContactsRole: QStringList
+    // WorkflowRole: QString
+    // TypeRole: int (opentxs::StorageBox)
+    //
+    // Qt::DisplayRole, AmountColumn: QString
+    // Qt::DisplayRole, TextColumn: QString
+    // Qt::DisplayRole, MemoColumn: QString
+    // Qt::DisplayRole, TimeColumn: QDateTime
+    // Qt::DisplayRole, UUIDColumn: QString
+
     enum Roles {
         PolarityRole = Qt::UserRole + 0,
         ContactsRole = Qt::UserRole + 1,
@@ -111,6 +124,7 @@ public:
         UUIDColumn = 4,
     };
 
+    OPENTXS_EXPORT QString accountID() const noexcept;
     OPENTXS_EXPORT int balancePolarity() const noexcept;
 #if OT_BLOCKCHAIN
     OPENTXS_EXPORT QList<int> depositChains() const noexcept;

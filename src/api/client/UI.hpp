@@ -14,6 +14,7 @@
 #include <mutex>
 #include <optional>
 #include <utility>
+#include <vector>
 
 #include "internal/api/client/Client.hpp"
 #include "opentxs/Forward.hpp"
@@ -279,7 +280,7 @@ private:
     private:
         const api::client::internal::Manager& api_;
         mutable std::mutex lock_;
-        mutable std::map<OTIdentifier, SimpleCallback> map_;
+        mutable std::map<OTIdentifier, std::vector<SimpleCallback>> map_;
         OTZMQPublishSocket publisher_;
         OTZMQPipeline pipeline_;
 

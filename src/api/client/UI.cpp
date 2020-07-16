@@ -173,17 +173,21 @@ auto UI::UpdateManager::pipeline(zmq::Message& in) noexcept -> void
 
     if (map_.end() == it) { return; }
 
-    const auto& cb = it->second;
+    const auto& callbacks = it->second;
 
-    if (cb) { cb(); }
+    for (const auto& cb : callbacks) {
+        if (cb) { cb(); }
+    }
 }
 
 auto UI::UpdateManager::RegisterUICallback(
     const Identifier& widget,
     const SimpleCallback& cb) const noexcept -> void
 {
-    Lock lock(lock_);
-    map_[widget] = cb;
+    if (cb) {
+        Lock lock(lock_);
+        map_[widget].emplace_back(cb);
+    }
 }
 
 auto UI::account_activity(
