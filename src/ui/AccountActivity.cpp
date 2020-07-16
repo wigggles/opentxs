@@ -35,6 +35,10 @@ namespace opentxs::ui
 {
 QT_PROXY_MODEL_WRAPPER(AccountActivityQt, implementation::AccountActivity)
 
+auto AccountActivityQt::accountID() const noexcept -> QString
+{
+    return parent_.AccountID().c_str();
+}
 auto AccountActivityQt::balancePolarity() const noexcept -> int
 {
     return parent_.BalancePolarity();

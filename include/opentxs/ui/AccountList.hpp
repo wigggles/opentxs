@@ -73,6 +73,21 @@ signals:
     void updated() const;
 
 public:
+    // User roles return the same data for all columns
+    //
+    // NotaryIDRole: QString
+    // UnitRole: int (proto::ContactItemType)
+    // AccountIDRole: QString
+    // BalanceRole: int
+    // PolarityRole: int (-1, 0, or 1)
+    // AccountTypeRole: int (opentxs::AccountType)
+    // ContractIdRole: QString
+    //
+    // Qt::DisplayRole, NotaryNameColumn: QString
+    // Qt::DisplayRole, DisplayUnitColumn: QString
+    // Qt::DisplayRole, AccountNameColumn: QString
+    // Qt::DisplayRole, DisplayBalanceColumn: QString
+
     enum Columns {
         NotaryNameColumn = 0,
         DisplayUnitColumn = 1,

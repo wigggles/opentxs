@@ -245,17 +245,13 @@ QVariant BalanceItem::qt_data(const int column, int role) const noexcept
             return polarity(Amount());
         }
         case AccountActivityQt::ContactsRole: {
-            std::string contacts;
-            auto contact = Contacts().cbegin();
+            auto output = QStringList{};
 
-            if (contact != Contacts().cend()) {
-                contacts = *contact;
-                while (++contact != Contacts().cend()) {
-                    contacts += ", " + *contact;
-                }
+            for (const auto& contact : Contacts()) {
+                output << contact.c_str();
             }
 
-            return contacts.c_str();
+            return output;
         }
         case AccountActivityQt::WorkflowRole: {
             return Workflow().c_str();
