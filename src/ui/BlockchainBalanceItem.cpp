@@ -7,8 +7,6 @@
 #include "1_Internal.hpp"                // IWYU pragma: associated
 #include "ui/BlockchainBalanceItem.hpp"  // IWYU pragma: associated
 
-#include <algorithm>
-#include <iterator>
 #include <string>
 
 #include "internal/api/client/Client.hpp"
@@ -50,11 +48,11 @@ BlockchainBalanceItem::BlockchainBalanceItem(
 auto BlockchainBalanceItem::Contacts() const noexcept
     -> std::vector<std::string>
 {
-    const auto threads = api_.Storage().BlockchainThreadMap(nym_id_, txid_);
     auto output = std::vector<std::string>{};
-    std::transform(
-        std::begin(threads), std::end(threads), std::back_inserter(output), [
-        ](const auto& id) -> auto { return id->str(); });
+
+    for (const auto& id : api_.Storage().BlockchainThreadMap(nym_id_, txid_)) {
+        if (0 < id->size()) { output.emplace_back(id->str()); }
+    }
 
     return output;
 }

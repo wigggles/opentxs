@@ -130,7 +130,10 @@ auto Activity::add_blockchain_transaction(
     auto output{true};
     const auto& txid = transaction.ID();
     const auto chains = transaction.Chains();
-    std::for_each(std::begin(added), std::end(added), [&](const auto& thread) {
+
+    for (const auto& thread : added) {
+        if (thread->empty()) { continue; }
+
         const auto sThreadID = thread->str();
 
         if (verify_thread_exists(nym.str(), sThreadID)) {
@@ -147,32 +150,35 @@ auto Activity::add_blockchain_transaction(
         } else {
             output = false;
         }
-    });
-    std::for_each(
-        std::begin(removed), std::end(removed), [&](const auto& thread) {
-            auto saved{true};
-            const auto chains = transaction.Chains();
-            std::for_each(
-                std::begin(chains), std::end(chains), [&](const auto& chain) {
-                    saved &= api_.Storage().RemoveBlockchainThreadItem(
-                        nym, thread, chain, txid);
-                });
+    }
 
-            if (saved) { publish(nym, thread->str()); }
+    for (const auto& thread : removed) {
+        if (thread->empty()) { continue; }
 
-            output &= saved;
-        });
-
-    if (0 < added.size() + removed.size()) {
+        auto saved{true};
+        const auto chains = transaction.Chains();
         std::for_each(
             std::begin(chains), std::end(chains), [&](const auto& chain) {
-                auto out = api_.ZeroMQ().Message();
-                out->AddFrame();
-                out->AddFrame(txid);
-                out->AddFrame(chain);
-                get_blockchain(lock, nym).Send(out);
+                saved &= api_.Storage().RemoveBlockchainThreadItem(
+                    nym, thread, chain, txid);
             });
+
+        if (saved) { publish(nym, thread->str()); }
+
+        output &= saved;
     }
+
+    if (0 == incoming.size()) {
+        api_.Storage().UnaffiliatedBlockchainTransaction(nym, txid);
+    }
+
+    std::for_each(std::begin(chains), std::end(chains), [&](const auto& chain) {
+        auto out = api_.ZeroMQ().Message();
+        out->AddFrame();
+        out->AddFrame(txid);
+        out->AddFrame(chain);
+        get_blockchain(lock, nym).Send(out);
+    });
 
     return output;
 }
