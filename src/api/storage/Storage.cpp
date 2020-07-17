@@ -2589,6 +2589,25 @@ auto Storage::ThreadAlias(const std::string& nymID, const std::string& threadID)
     return Root().Tree().Nyms().Nym(nymID).Threads().Thread(threadID).Alias();
 }
 
+auto Storage::UnaffiliatedBlockchainTransaction(
+    const identifier::Nym& nym,
+    const Data& txid) const noexcept -> bool
+{
+    static const auto blank = Identifier::Factory();
+
+    return mutable_Root()
+        .get()
+        .mutable_Tree()
+        .get()
+        .mutable_Nyms()
+        .get()
+        .mutable_Nym(nym.str())
+        .get()
+        .mutable_Threads()
+        .get()
+        .AddIndex(txid, blank);
+}
+
 auto Storage::UnitDefinitionAlias(const std::string& id) const -> std::string
 {
     return Root().Tree().Units().Alias(id);

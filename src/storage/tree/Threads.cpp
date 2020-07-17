@@ -19,6 +19,8 @@
 #include <type_traits>
 #include <utility>
 
+#include "opentxs/Bytes.hpp"
+#include "opentxs/Pimpl.hpp"
 #include "opentxs/api/storage/Driver.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
@@ -65,10 +67,26 @@ Threads::Threads(
 }
 
 auto Threads::AddIndex(const Data& txid, const Identifier& thread) noexcept
-    -> void
+    -> bool
 {
     Lock lock(blockchain_.lock_);
-    blockchain_.map_[txid].emplace(thread);
+    auto& vector = blockchain_.map_[txid];
+
+    if (thread.empty()) {
+        if (0 < vector.size()) { vector.clear(); }
+    } else {
+        for (auto i = vector.begin(); i != vector.end();) {
+            if ((*i)->empty()) {
+                i = vector.erase(i);
+            } else {
+                ++i;
+            }
+        }
+    }
+
+    vector.emplace(thread);
+
+    return true;
 }
 
 auto Threads::BlockchainThreadMap(const Data& txid) const noexcept
@@ -196,11 +214,14 @@ void Threads::init(const std::string& hash)
 
         OT_ASSERT(loaded && index);
 
-        auto& data =
-            blockchain_.map_[Data::Factory(index->txid(), Data::Mode::Raw)];
+        auto txid = Data::Factory();
+        txid->Assign(index->txid());
+        auto& data = blockchain_.map_[std::move(txid)];
 
         for (const auto& thread : index->thread()) {
-            data.emplace(Identifier::Factory(thread));
+            auto threadID = Identifier::Factory();
+            threadID->Assign(thread);
+            data.emplace(std::move(threadID));
         }
     }
 }
@@ -416,9 +437,9 @@ auto Threads::serialize() const -> proto::StorageNymList
 
         auto index = proto::StorageBlockchainTransactions{};
         index.set_version(1);
-        index.set_txid(txid->str());
+        index.set_txid(std::string{txid->Bytes()});
         std::for_each(std::begin(data), std::end(data), [&](const auto& id) {
-            index.add_thread(id->str());
+            index.add_thread(std::string{id->Bytes()});
         });
 
         OT_ASSERT(static_cast<std::size_t>(index.thread_size()) == data.size());

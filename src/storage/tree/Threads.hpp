@@ -57,7 +57,7 @@ public:
     auto Migrate(const opentxs::api::storage::Driver& to) const -> bool final;
     auto Thread(const std::string& id) const -> const storage::Thread&;
 
-    auto AddIndex(const Data& txid, const Identifier& thread) noexcept -> void;
+    auto AddIndex(const Data& txid, const Identifier& thread) noexcept -> bool;
     auto Create(
         const std::string& id,
         const std::set<std::string>& participants) -> std::string;

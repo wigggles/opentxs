@@ -464,6 +464,9 @@ public:
         -> ObjectList final;
     auto ThreadAlias(const std::string& nymID, const std::string& threadID)
         const -> std::string final;
+    auto UnaffiliatedBlockchainTransaction(
+        const identifier::Nym& recipient,
+        const Data& txid) const noexcept -> bool final;
     auto UnitDefinitionAlias(const std::string& id) const -> std::string final;
     auto UnitDefinitionList() const -> ObjectList final;
     auto UnreadCount(const std::string& nymId, const std::string& threadId)

@@ -446,6 +446,9 @@ public:
     OPENTXS_EXPORT virtual std::string ThreadAlias(
         const std::string& nymID,
         const std::string& threadID) const = 0;
+    OPENTXS_EXPORT virtual bool UnaffiliatedBlockchainTransaction(
+        const identifier::Nym& recipient,
+        const Data& txid) const noexcept = 0;
     OPENTXS_EXPORT virtual std::string UnitDefinitionAlias(
         const std::string& id) const = 0;
     OPENTXS_EXPORT virtual ObjectList UnitDefinitionList() const = 0;
