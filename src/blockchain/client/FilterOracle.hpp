@@ -28,6 +28,7 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/socket/Publish.hpp"
+#include "opentxs/util/WorkType.hpp"
 #include "util/Work.hpp"
 
 namespace opentxs
@@ -112,14 +113,14 @@ private:
     friend Worker<FilterOracle>;
 
     enum class Work : OTZMQWorkType {
-        cfilter = 0,
-        cfheader = 1,
-        reset_filter_tip = 2,
+        cfilter = OT_ZMQ_INTERNAL_SIGNAL + 0,
+        cfheader = OT_ZMQ_INTERNAL_SIGNAL + 1,
+        reset_filter_tip = OT_ZMQ_INTERNAL_SIGNAL + 2,
         peer = OT_ZMQ_NEW_PEER_SIGNAL,
         block = OT_ZMQ_NEW_BLOCK_HEADER_SIGNAL,
         reorg = OT_ZMQ_REORG_SIGNAL,
         statemachine = OT_ZMQ_STATE_MACHINE_SIGNAL,
-        shutdown = OT_ZMQ_SHUTDOWN_SIGNAL,
+        shutdown = value(WorkType::Shutdown),
     };
 
     struct BlockQueue {

@@ -65,7 +65,11 @@ public:
     auto as() const noexcept(false) -> Output
     {
         if (sizeof(Output) != size()) {
-            throw std::runtime_error("Invalid frame");
+            auto error = std::string{"Invalid frame size: "} +
+                         std::to_string(size()) +
+                         " expected: " + std::to_string(sizeof(Output));
+
+            throw std::runtime_error(error);
         }
 
         Output output{};

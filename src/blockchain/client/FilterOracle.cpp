@@ -105,15 +105,15 @@ auto FilterOracle::AddFilter(zmq::Message& work) const noexcept -> void
 {
     if (false == running_.get()) { return; }
 
-    auto header = work.Header();
+    auto body = work.Body();
 
-    if (1 > header.size()) {
-        LogNormal(OT_METHOD)(__FUNCTION__)(": Invalid work header").Flush();
+    if (1 > body.size()) {
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Invalid work").Flush();
 
-        return;
+        OT_FAIL;
     }
 
-    header.Replace(0, api_.ZeroMQ().Frame(Work::cfilter));
+    body.Replace(0, api_.ZeroMQ().Frame(Work::cfilter));
     pipeline_->Push(work);
 }
 
@@ -121,15 +121,15 @@ auto FilterOracle::AddHeaders(zmq::Message& work) const noexcept -> void
 {
     if (false == running_.get()) { return; }
 
-    auto header = work.Header();
+    auto body = work.Body();
 
-    if (1 > header.size()) {
-        LogNormal(OT_METHOD)(__FUNCTION__)(": Invalid work header").Flush();
+    if (1 > body.size()) {
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Invalid work").Flush();
 
-        return;
+        OT_FAIL;
     }
 
-    header.Replace(0, api_.ZeroMQ().Frame(Work::cfheader));
+    body.Replace(0, api_.ZeroMQ().Frame(Work::cfheader));
     pipeline_->Push(work);
 }
 
@@ -339,7 +339,7 @@ auto FilterOracle::flush_filters() noexcept -> void
     }
 
     database_.SetFilterTip(type, position);
-    auto work = MakeWork(OTZMQWorkType{OT_ZMQ_NEW_FILTER_SIGNAL});
+    auto work = MakeWork(OT_ZMQ_NEW_FILTER_SIGNAL);
     work->AddFrame(type);
     work->AddFrame(position.first);
     work->AddFrame(position.second);
@@ -384,15 +384,15 @@ auto FilterOracle::pipeline(const zmq::Message& in) noexcept -> void
 
     if (false == running_.get()) { return; }
 
-    const auto header = in.Header();
+    const auto body = in.Body();
 
-    if (1 > header.size()) {
+    if (1 > body.size()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid message").Flush();
 
         OT_FAIL;
     }
 
-    const auto work = header.at(0).as<Work>();
+    const auto work = body.at(0).as<Work>();
 
     switch (work) {
         case Work::cfilter: {
@@ -436,10 +436,10 @@ auto FilterOracle::process_cfheader(const zmq::Message& in) noexcept -> void
     auto hashes = std::vector<ReadView>{};
 
     {
-        auto counter{0};
+        auto counter{-1};
         const auto body = in.Body();
 
-        if (body.size() < 3) {
+        if (body.size() < 4) {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid cfheader").Flush();
 
             return;
@@ -447,6 +447,8 @@ auto FilterOracle::process_cfheader(const zmq::Message& in) noexcept -> void
 
         for (const auto& frame : in.Body()) {
             switch (++counter) {
+                case 0: {
+                } break;
                 case 1: {
                     type = frame.as<filter::Type>();
                 } break;
@@ -585,18 +587,18 @@ auto FilterOracle::process_cfilter(const zmq::Message& in) noexcept -> bool
 
     const auto body = in.Body();
 
-    if (6 > body.size()) {
+    if (7 > body.size()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid message").Flush();
 
         OT_FAIL;
     }
 
-    const auto type = body.at(0).as<filter::Type>();
-    const auto block = Data::Factory(body.at(1));
-    const auto bits = body.at(2).as<std::uint8_t>();
-    const auto fpRate = body.at(3).as<std::uint32_t>();
-    const auto count = body.at(4).as<std::uint32_t>();
-    const auto bytes = body.at(5).Bytes();
+    const auto type = body.at(1).as<filter::Type>();
+    const auto block = Data::Factory(body.at(2));
+    const auto bits = body.at(3).as<std::uint8_t>();
+    const auto fpRate = body.at(4).as<std::uint32_t>();
+    const auto count = body.at(5).as<std::uint32_t>();
+    const auto bytes = body.at(6).Bytes();
     auto gcs = std::unique_ptr<const blockchain::internal::GCS>{factory::GCS(
         api_,
         bits,
@@ -657,20 +659,19 @@ auto FilterOracle::process_reorg(const zmq::Message& in) noexcept -> void
 {
     const auto body = in.Body();
 
-    if (3 > body.size()) {
+    if (4 > body.size()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid message").Flush();
 
         OT_FAIL;
     }
 
-    const auto chain = body.at(0).as<blockchain::Type>();
+    const auto chain = body.at(1).as<blockchain::Type>();
 
     if (chain_ != chain) { return; }
 
     const auto parent = block::Position{
-        body.at(2).as<block::Height>(),
-        api_.Factory().Data(body.at(1).Bytes())};
-
+        body.at(3).as<block::Height>(),
+        api_.Factory().Data(body.at(2).Bytes())};
     process_reorg(parent);
 }
 
@@ -691,14 +692,14 @@ auto FilterOracle::process_reset_filter_tip(const zmq::Message& in) noexcept
 {
     const auto body = in.Body();
 
-    if (2 > body.size()) {
+    if (3 > body.size()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid message").Flush();
 
         OT_FAIL;
     }
 
-    const auto type = body.at(0).as<filter::Type>();
-    const auto missing = body.at(1).as<block::Height>();
+    const auto type = body.at(1).as<filter::Type>();
+    const auto missing = body.at(2).as<block::Height>();
 
     OT_ASSERT(0 < missing);
 
@@ -722,7 +723,7 @@ auto FilterOracle::reset_tips_to(const block::Position position) noexcept
 
     if (currentHeight >= targetHeight) {
         database_.SetFilterTip(default_type_, position);
-        auto work = MakeWork(OTZMQWorkType{OT_ZMQ_NEW_FILTER_SIGNAL});
+        auto work = MakeWork(OT_ZMQ_NEW_FILTER_SIGNAL);
         work->AddFrame(default_type_);
         work->AddFrame(targetHeight);
         work->AddFrame(targetHash);

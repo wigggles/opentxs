@@ -8,6 +8,7 @@
 #include "ui/BlockchainAccountActivity.hpp"  // IWYU pragma: associated
 
 #include <atomic>
+#include <functional>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -21,6 +22,7 @@
 #include "opentxs/api/client/Blockchain.hpp"
 #include "opentxs/api/client/blockchain/BalanceTree.hpp"
 #include "opentxs/api/storage/Storage.hpp"
+#include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/blockchain/block/bitcoin/Transaction.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -87,8 +89,13 @@ BlockchainAccountActivity::BlockchainAccountActivity(
               {api.Endpoints().BlockchainTransactions(nymID),
                new MessageProcessor<BlockchainAccountActivity>(
                    &BlockchainAccountActivity::process_txid)},
+              {api.Endpoints().BlockchainSyncProgress(),
+               new MessageProcessor<BlockchainAccountActivity>(
+                   &BlockchainAccountActivity::process_sync)},
           })
     , chain_(ui::Chain(api_, accountID))
+    , sync_(0)
+    , sync_cb_()
 {
     startup_.reset(new std::thread(&BlockchainAccountActivity::startup, this));
 
@@ -151,6 +158,27 @@ auto BlockchainAccountActivity::load_thread() noexcept -> void
     }
 }
 
+auto BlockchainAccountActivity::process_sync(
+    const network::zeromq::Message& in) noexcept -> void
+{
+    const auto& body = in.Body();
+
+    OT_ASSERT(3 < body.size());
+
+    const auto chain = body.at(1).as<blockchain::Type>();
+
+    if (chain != chain_) { return; }
+
+    const auto height = body.at(2).as<blockchain::block::Height>();
+    const auto target = body.at(3).as<blockchain::block::Height>();
+    const auto progress = (double(height) / double(target)) * double{100};
+    sync_.store(progress);
+    Lock lock(sync_cb_.lock_);
+    const auto& cb = sync_cb_.cb_;
+
+    if (cb) { cb(); }
+}
+
 auto BlockchainAccountActivity::process_txid(
     const network::zeromq::Message& in) noexcept -> void
 {
@@ -181,6 +209,13 @@ auto BlockchainAccountActivity::process_txid(
     }
 
     load_thread();
+}
+
+auto BlockchainAccountActivity::SetSyncCallback(
+    const SimpleCallback cb) noexcept -> void
+{
+    Lock lock(sync_cb_.lock_);
+    sync_cb_.cb_ = cb;
 }
 
 auto BlockchainAccountActivity::startup() noexcept -> void

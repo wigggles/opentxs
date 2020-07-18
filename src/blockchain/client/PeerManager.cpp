@@ -234,11 +234,11 @@ auto PeerManager::Jobs::Dispatch(const Task type) noexcept -> void
 
 auto PeerManager::Jobs::Dispatch(zmq::Message& work) noexcept -> void
 {
-    const auto header = work.Header();
+    const auto body = work.Body();
 
-    OT_ASSERT(0 < header.size());
+    OT_ASSERT(0 < body.size());
 
-    socket_map_.at(header.at(0).as<Task>())->Send(work);
+    socket_map_.at(body.at(0).as<Task>())->Send(work);
 }
 
 auto PeerManager::Jobs::Endpoint(const Task type) const noexcept -> std::string
@@ -277,15 +277,12 @@ auto PeerManager::Jobs::Shutdown() noexcept -> void
 auto PeerManager::Jobs::Work(const Task task, std::promise<void>* promise)
     const noexcept -> OTZMQMessage
 {
-    auto output = zmq_.Message(task);
-
     if (nullptr != promise) {
-        output->AddFrame(reinterpret_cast<std::uintptr_t>(promise));
+        return zmq_.TaggedReply(
+            ReadView{reinterpret_cast<char*>(promise), sizeof(promise)}, task);
+    } else {
+        return zmq_.TaggedMessage(task);
     }
-
-    output->AddFrame();
-
-    return output;
 }
 
 auto PeerManager::Peers::add_peer(Endpoint endpoint) noexcept -> void
@@ -657,28 +654,24 @@ auto PeerManager::pipeline(zmq::Message& message) noexcept -> void
 {
     if (false == running_.get()) { return; }
 
-    const auto header = message.Header();
+    const auto body = message.Body();
 
-    OT_ASSERT(0 < header.size());
+    OT_ASSERT(0 < body.size());
 
-    switch (header.at(0).as<Work>()) {
+    switch (body.at(0).as<Work>()) {
         case Work::Disconnect: {
-            const auto body = message.Body();
+            OT_ASSERT(1 < body.size());
 
-            OT_ASSERT(0 < body.size());
-
-            peers_.Disconnect(body.at(0).as<int>());
+            peers_.Disconnect(body.at(1).as<int>());
             do_work();
         } break;
         case Work::AddPeer: {
-            const auto body = message.Body();
-
-            OT_ASSERT(1 < body.size());
+            OT_ASSERT(2 < body.size());
 
             auto* address_p = reinterpret_cast<const p2p::Address*>(
-                body.at(0).as<std::uintptr_t>());
-            auto* promise_p = reinterpret_cast<std::promise<bool>*>(
                 body.at(1).as<std::uintptr_t>());
+            auto* promise_p = reinterpret_cast<std::promise<bool>*>(
+                body.at(2).as<std::uintptr_t>());
 
             OT_ASSERT(nullptr != address_p);
             OT_ASSERT(nullptr != promise_p);

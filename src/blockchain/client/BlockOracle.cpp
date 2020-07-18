@@ -84,24 +84,23 @@ auto BlockOracle::pipeline(const zmq::Message& in) noexcept -> void
 
     if (false == running_.get()) { return; }
 
-    const auto header = in.Header();
     const auto body = in.Body();
 
-    if (1 > header.size()) {
+    if (1 > body.size()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid message").Flush();
 
         OT_FAIL;
     }
 
-    switch (header.at(0).as<Task>()) {
+    switch (body.at(0).as<Task>()) {
         case Task::ProcessBlock: {
-            if (1 > body.size()) {
+            if (2 > body.size()) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(": No block").Flush();
 
                 OT_FAIL;
             }
 
-            cache_.ReceiveBlock(body.at(0));
+            cache_.ReceiveBlock(body.at(1));
             [[fallthrough]];
         }
         case Task::StateMachine: {

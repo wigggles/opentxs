@@ -12,6 +12,7 @@
 #include <iosfwd>
 #include <string>
 
+#include "opentxs/Bytes.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
@@ -115,6 +116,8 @@ public:
         -> OTZMQPushSocket final;
     auto ReplyMessage(const zeromq::Message& request) const noexcept
         -> OTZMQMessage final;
+    auto ReplyMessage(const ReadView connectionID) const noexcept
+        -> OTZMQMessage final;
     auto ReplySocket(
         const ReplyCallback& callback,
         const socket::Socket::Direction direction) const noexcept
@@ -126,6 +129,16 @@ public:
         -> OTZMQRouterSocket final;
     auto SubscribeSocket(const ListenCallback& callback) const noexcept
         -> OTZMQSubscribeSocket final;
+    auto TaggedMessage(const void* tag, const std::size_t size) const noexcept
+        -> OTZMQMessage final;
+    auto TaggedReply(
+        const zeromq::Message& request,
+        const void* tag,
+        const std::size_t size) const noexcept -> OTZMQMessage final;
+    auto TaggedReply(
+        const ReadView connectionID,
+        const void* tag,
+        const std::size_t size) const noexcept -> OTZMQMessage final;
 
     ~Context();
 

@@ -648,6 +648,17 @@ struct UnitListItem : virtual public Row, virtual public ui::UnitListItem {
 };
 
 #if OT_QT
+#define QT_PROXY_MODEL_WRAPPER_EXTRA(WrapperType, InterfaceType)               \
+    WrapperType::WrapperType(InterfaceType& parent) noexcept                   \
+        : parent_(parent)                                                      \
+    {                                                                          \
+        QQmlEngine::setObjectOwnership(this, QQmlEngine::CppOwnership);        \
+        parent_.SetCallback([this]() -> void { notify(); });                   \
+        setSourceModel(&parent_);                                              \
+        init();                                                                \
+    }                                                                          \
+                                                                               \
+    void WrapperType::notify() const noexcept { emit updated(); }
 #define QT_PROXY_MODEL_WRAPPER(WrapperType, InterfaceType)                     \
     WrapperType::WrapperType(InterfaceType& parent) noexcept                   \
         : parent_(parent)                                                      \

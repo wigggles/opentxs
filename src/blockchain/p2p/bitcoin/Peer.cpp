@@ -165,13 +165,13 @@ auto Peer::broadcast_transaction(zmq::Message& in) noexcept -> void
 {
     const auto body = in.Body();
 
-    if (1 > body.size()) {
+    if (2 > body.size()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid command").Flush();
 
         OT_FAIL;
     }
 
-    auto& bytes = body.at(0);
+    auto& bytes = body.at(1);
 
     {
         auto raw = api_.Factory().Data(bytes);
@@ -318,7 +318,7 @@ auto Peer::process_block(
     }
 
     using Task = client::internal::Network::Task;
-    auto work = network_.Work(Task::SubmitBlock);
+    auto work = MakeWork(Task::SubmitBlock);
     work->AddFrame(payload);
     network_.Submit(work);
 }
@@ -438,7 +438,7 @@ auto Peer::process_cfheaders(
     } else {
         const auto type = message.Type();
         using Task = client::internal::Network::Task;
-        auto work = network_.Work(Task::SubmitFilterHeader);
+        auto work = MakeWork(Task::SubmitFilterHeader);
         work->AddFrame(type);
         work->AddFrame(message.Stop());
         work->AddFrame(message.Previous());
@@ -471,7 +471,7 @@ auto Peer::process_cfilter(
     const auto& message = *pMessage;
     const auto type = message.Type();
     using Task = client::internal::Network::Task;
-    auto work = network_.Work(Task::SubmitFilter);
+    auto work = MakeWork(Task::SubmitFilter);
     work->AddFrame(type);
     work->AddFrame(message.Hash());
     work->AddFrame(message.Bits());
@@ -833,7 +833,7 @@ auto Peer::process_headers(
         auto future = promise->get_future();
         auto pointer = reinterpret_cast<std::uintptr_t>(promise);
         using Task = client::internal::Network::Task;
-        auto work = network_.Work(Task::SubmitBlockHeader);
+        auto work = MakeWork(Task::SubmitBlockHeader);
         work->AddFrame(pointer);
 
         for (const auto& header : message) {
@@ -936,14 +936,14 @@ auto Peer::process_message(const zmq::Message& message) noexcept -> void
 
     const auto body = message.Body();
 
-    if (2 > body.size()) {
+    if (3 > body.size()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid message").Flush();
 
         OT_FAIL;
     }
 
-    const auto& headerBytes = body.at(0);
-    const auto& payloadBytes = body.at(1);
+    const auto& headerBytes = body.at(1);
+    const auto& payloadBytes = body.at(2);
     std::unique_ptr<HeaderType> pHeader{
         factory::BitcoinP2PHeader(api_, headerBytes)};
 
@@ -1237,13 +1237,13 @@ auto Peer::request_block(zmq::Message& in) noexcept -> void
 {
     const auto body = in.Body();
 
-    if (1 > body.size()) {
+    if (2 > body.size()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid command").Flush();
 
         OT_FAIL;
     }
 
-    auto id = api_.Factory().Data(body.at(0));
+    auto id = api_.Factory().Data(body.at(1));
     using Inventory = blockchain::bitcoin::Inventory;
     using Type = Inventory::Type;
     auto blocks = std::vector<Inventory>{};
@@ -1269,7 +1269,7 @@ auto Peer::request_cfheaders(zmq::Message& in) noexcept -> void
 
     const auto body = in.Body();
 
-    if (3 > body.size()) {
+    if (4 > body.size()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid work").Flush();
 
         return;
@@ -1280,9 +1280,9 @@ auto Peer::request_cfheaders(zmq::Message& in) noexcept -> void
             std::unique_ptr<Message>{factory::BitcoinP2PGetcfheaders(
                 api_,
                 chain_,
-                body.at(0).as<filter::Type>(),
-                body.at(1).as<block::Height>(),
-                Data::Factory(body.at(2)))};
+                body.at(1).as<filter::Type>(),
+                body.at(2).as<block::Height>(),
+                Data::Factory(body.at(3)))};
 
         if (false == bool(pMessage)) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -1305,7 +1305,7 @@ auto Peer::request_cfilter(zmq::Message& in) noexcept -> void
 
     const auto body = in.Body();
 
-    if (3 > body.size()) {
+    if (4 > body.size()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid work").Flush();
 
         return;
@@ -1315,9 +1315,9 @@ auto Peer::request_cfilter(zmq::Message& in) noexcept -> void
         auto pMessage = std::unique_ptr<Message>{factory::BitcoinP2PGetcfilters(
             api_,
             chain_,
-            body.at(0).as<filter::Type>(),
-            body.at(1).as<block::Height>(),
-            Data::Factory(body.at(2)))};
+            body.at(1).as<filter::Type>(),
+            body.at(2).as<block::Height>(),
+            Data::Factory(body.at(3)))};
 
         if (false == bool(pMessage)) {
             LogOutput(OT_METHOD)(__FUNCTION__)(

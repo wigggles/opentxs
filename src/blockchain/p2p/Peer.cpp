@@ -31,6 +31,7 @@
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/Pipeline.hpp"
 #include "opentxs/network/zeromq/socket/Socket.hpp"
+#include "opentxs/util/WorkType.hpp"
 #include "util/ScopeGuard.hpp"
 #include "util/Work.hpp"
 
@@ -93,7 +94,7 @@ Peer::Peer(
 
     OT_ASSERT(zmq);
 
-    auto message = MakeWork(OTZMQWorkType{OT_ZMQ_REGISTER_SIGNAL});
+    auto message = MakeWork(OT_ZMQ_REGISTER_SIGNAL);
     message->AddFrame(id_);
     zmq = dealer_->Send(message);
 
@@ -181,10 +182,12 @@ auto Peer::check_verify() noexcept -> void
 
 auto Peer::connect() noexcept -> void
 {
-    LogVerbose(OT_METHOD)(__FUNCTION__)(": Connecting to ")(
-        endpoint_.address().to_string())(":")(endpoint_.port())
-        .Flush();
-    context_.Connect(connection_id_, endpoint_, socket_);
+    if (0 < connection_id_.size()) {
+        LogVerbose(OT_METHOD)(__FUNCTION__)(": Connecting to ")(
+            endpoint_.address().to_string())(":")(endpoint_.port())
+            .Flush();
+        context_.Connect(connection_id_, endpoint_, socket_);
+    }
 }
 
 auto Peer::disconnect() noexcept -> void
@@ -271,18 +274,20 @@ auto Peer::pipeline(zmq::Message& message) noexcept -> void
 
     const auto header = message.Header();
 
-    OT_ASSERT(0 < header.size());
-
-    if (1 < header.size()) {
+    if (0 < header.size()) {
         auto* promise = reinterpret_cast<std::promise<void>*>(
-            header.at(1).as<std::uintptr_t>());
+            header.at(0).as<std::uintptr_t>());
 
         OT_ASSERT(nullptr != promise);
 
         promise->set_value();
     }
 
-    switch (header.at(0).as<Task>()) {
+    const auto body = message.Body();
+
+    OT_ASSERT(0 < body.size());
+
+    switch (body.at(0).as<Task>()) {
         case Task::Getheaders: {
             if (State::Run == state_.value_.load()) { request_headers(); }
         } break;
@@ -325,19 +330,22 @@ auto Peer::pipeline_d(zmq::Message& message) noexcept -> void
 {
     if (false == running_.get()) { return; }
 
-    const auto header = message.Header();
+    const auto body = message.Body();
 
-    OT_ASSERT(0 < header.size());
+    OT_ASSERT(0 < body.size());
 
-    switch (header.at(0).as<Task>()) {
+    switch (body.at(0).as<Task>()) {
         case Task::Register: {
-            const auto body = message.Body();
+            OT_ASSERT(1 < body.size());
 
-            OT_ASSERT(0 < body.size());
+            const auto& id = body.at(1);
 
-            const auto& id = body.at(0);
+            OT_ASSERT(0 < id.size());
+
             const auto start = static_cast<const std::byte*>(id.data());
             const_cast<Space&>(connection_id_).assign(start, start + id.size());
+
+            OT_ASSERT(0 < connection_id_.size());
 
             try {
                 connection_id_promise_.set_value();
@@ -365,11 +373,9 @@ auto Peer::pipeline_d(zmq::Message& message) noexcept -> void
             disconnect();
         } break;
         case Task::Header: {
-            const auto body = message.Body();
+            OT_ASSERT(1 < body.size());
 
-            OT_ASSERT(0 < body.size());
-
-            const auto& messageHeader = body.at(0);
+            const auto& messageHeader = body.at(1);
             activity_.Bump();
             const auto size = get_body_size(messageHeader);
 
@@ -389,13 +395,11 @@ auto Peer::pipeline_d(zmq::Message& message) noexcept -> void
             }
         } break;
         case Task::Body: {
-            const auto body = message.Body();
-
-            OT_ASSERT(0 < body.size());
+            OT_ASSERT(1 < body.size());
 
             auto message = MakeWork(Task::ReceiveMessage);
             message->AddFrame(header_);
-            message->AddFrame(body.at(0));
+            message->AddFrame(body.at(1));
             pipeline_->Push(message);
             run();
         } break;
@@ -568,14 +572,14 @@ auto Peer::transmit(zmq::Message& message) noexcept -> void
 {
     if (false == running_.get()) { return; }
 
-    if (2 < message.Body().size()) {
+    if (3 < message.Body().size()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid message").Flush();
 
         return;
     }
 
-    const auto& payload = message.Body_at(0);
-    const auto& promiseFrame = message.Body_at(1);
+    const auto& payload = message.Body_at(1);
+    const auto& promiseFrame = message.Body_at(2);
     const auto index = promiseFrame.as<int>();
     auto success = bool{false};
     auto postcondition =
@@ -583,7 +587,7 @@ auto Peer::transmit(zmq::Message& message) noexcept -> void
     LogTrace(OT_METHOD)(__FUNCTION__)(": Sending ")(payload.size())(
         " byte message:")
         .Flush();
-    LogTrace(Data::Factory(message.at(0))->asHex()).Flush();
+    LogTrace(Data::Factory(payload)->asHex()).Flush();
     init_send_promise();
     auto work = [this, &payload]() -> void {
         auto cb = [this](auto& error, auto bytes) -> void {

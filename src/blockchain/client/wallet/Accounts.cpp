@@ -68,7 +68,7 @@ auto Wallet::Accounts::Add(const identifier::Nym& nym) noexcept -> bool
 auto Wallet::Accounts::Add(const zmq::Frame& message) noexcept -> bool
 {
     auto id = api_.Factory().NymID();
-    id->SetString(message);
+    id->Assign(message.Bytes());
 
     if (0 == id->size()) { return false; }
 

@@ -22,6 +22,7 @@
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/network/zeromq/socket/Sender.tpp"  // IWYU pragma: keep
 #include "opentxs/network/zeromq/socket/Socket.hpp"
 #include "util/Work.hpp"
 
@@ -58,13 +59,19 @@ auto IO::callback(zmq::Message& in) noexcept -> void
 {
     const auto header = in.Header();
 
-    OT_ASSERT(1 < header.size());
+    OT_ASSERT(0 < header.size());
 
-    const auto& connectionID = header.at(0);
+    const auto& connectionID = header.at(header.size() - 1);
 
-    switch (header.at(1).as<OTZMQWorkType>()) {
+    OT_ASSERT(0 < connectionID.size());
+
+    const auto body = in.Body();
+
+    OT_ASSERT(0 < body.size());
+
+    switch (body.at(0).as<OTZMQWorkType>()) {
         case OT_ZMQ_REGISTER_SIGNAL: {
-            auto reply = api_.ZeroMQ().ReplyMessage(in);
+            auto reply = api_.ZeroMQ().TaggedReply(in, OT_ZMQ_REGISTER_SIGNAL);
             reply->AddFrame(connectionID);
             socket_->Send(reply);
         } break;
@@ -85,21 +92,13 @@ auto IO::Connect(
     const tcp::endpoint& endpoint,
     tcp::socket& socket) const noexcept -> void
 {
+    OT_ASSERT(0 < id.size());
+
     socket.async_connect(endpoint, [this, id](const auto& e) {
-        auto work = api_.ZeroMQ().Message(id);
+        if (e) { LogVerbose("asio connect error: ")(e.message()).Flush(); }
 
-        if (e) {
-            LogVerbose("asio connect error: ")(e.message()).Flush();
-            work->AddFrame(OTZMQWorkType{OT_ZMQ_DISCONNECT_SIGNAL});
-            work->AddFrame();
-            work->AddFrame();
-        } else {
-            work->AddFrame(OTZMQWorkType{OT_ZMQ_CONNECT_SIGNAL});
-            work->AddFrame();
-            work->AddFrame();
-        }
-
-        socket_->Send(work);
+        socket_->Send(api_.ZeroMQ().TaggedReply(
+            reader(id), e ? OT_ZMQ_DISCONNECT_SIGNAL : OT_ZMQ_CONNECT_SIGNAL));
     });
 }
 
@@ -119,6 +118,8 @@ auto IO::Receive(
     const std::size_t bytes,
     tcp::socket& socket) const noexcept -> void
 {
+    OT_ASSERT(0 < id.size());
+
     auto space = get_buffer(bytes);
     auto asioBuffer =
         boost::asio::buffer(space.second.data(), space.second.size());
@@ -126,18 +127,13 @@ auto IO::Receive(
         socket,
         asioBuffer,
         [this, id, type, space{std::move(space)}](const auto& e, auto size) {
-            auto work = api_.ZeroMQ().Message(id);
-            auto& buffer = space.second;
+            auto work = api_.ZeroMQ().TaggedReply(
+                reader(id), e ? OT_ZMQ_DISCONNECT_SIGNAL : type);
 
             if (e) {
                 LogVerbose("asio receive error: ")(e.message()).Flush();
-                work->AddFrame(OTZMQWorkType{OT_ZMQ_DISCONNECT_SIGNAL});
-                work->AddFrame();
-                work->AddFrame();
             } else {
-                work->AddFrame(type);
-                work->AddFrame();
-                work->AddFrame(buffer.data(), buffer.size());
+                work->AddFrame(space.second);
             }
 
             socket_->Send(work);

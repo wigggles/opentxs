@@ -106,8 +106,13 @@ public:
     {
         return {};
     }
+    auto SyncPercentage() const noexcept -> double override { return 100; }
 #endif  // OT_BLOCKCHAIN
     auto Type() const noexcept -> AccountType final { return type_; }
+
+#if OT_BLOCKCHAIN
+    virtual auto SetSyncCallback(const SimpleCallback) noexcept -> void {}
+#endif  // OT_BLOCKCHAIN
 
     ~AccountActivity() override;
 

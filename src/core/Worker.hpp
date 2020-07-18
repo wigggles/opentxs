@@ -26,10 +26,7 @@ namespace opentxs
 template <typename Enum>
 auto MakeWork(const api::Core& api, const Enum type) noexcept -> OTZMQMessage
 {
-    auto output = api.ZeroMQ().Message(type);
-    output->AddFrame();
-
-    return output;
+    return api.ZeroMQ().TaggedMessage(type);
 }
 
 template <typename Child, typename API = api::client::Manager>
@@ -56,9 +53,7 @@ protected:
         const auto running = state_machine_queued_.exchange(true);
 
         if (false == running) {
-            auto work = api_.ZeroMQ().Message(
-                OTZMQWorkType{OT_ZMQ_STATE_MACHINE_SIGNAL});
-            work->AddFrame();
+            auto work = MakeWork(OT_ZMQ_STATE_MACHINE_SIGNAL);
             pipeline_->Push(work);
         }
     }

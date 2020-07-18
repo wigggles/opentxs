@@ -256,6 +256,11 @@ public:
     {
         return reorg_;
     }
+    auto ReportProgress(
+        const Chain chain,
+        const opentxs::blockchain::block::Height current,
+        const opentxs::blockchain::block::Height target) const noexcept
+        -> void final;
     auto Start(const Chain type, const std::string& seednode) const noexcept
         -> bool final;
     auto Stop(const Chain type) const noexcept -> bool final;
@@ -476,6 +481,7 @@ private:
     OTZMQPublishSocket transaction_updates_;
     OTZMQPublishSocket peer_updates_;
     OTZMQPublishSocket key_updates_;
+    OTZMQPublishSocket sync_updates_;
     mutable std::map<
         Chain,
         std::unique_ptr<opentxs::blockchain::client::internal::Network>>

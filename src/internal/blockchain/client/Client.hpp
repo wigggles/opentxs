@@ -40,6 +40,7 @@
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/socket/Router.hpp"
+#include "opentxs/util/WorkType.hpp"
 #include "util/Blank.hpp"
 #include "util/Work.hpp"
 #endif  // OT_BLOCKCHAIN
@@ -118,6 +119,7 @@ namespace network
 namespace zeromq
 {
 class Frame;
+class Message;
 
 namespace socket
 {
@@ -203,9 +205,9 @@ struct BlockDatabase {
 
 struct BlockOracle : virtual public opentxs::blockchain::client::BlockOracle {
     enum class Task : OTZMQWorkType {
-        ProcessBlock = 0,
+        ProcessBlock = OT_ZMQ_INTERNAL_SIGNAL + 0,
         StateMachine = OT_ZMQ_STATE_MACHINE_SIGNAL,
-        Shutdown = OT_ZMQ_SHUTDOWN_SIGNAL,
+        Shutdown = value(WorkType::Shutdown),
     };
 
     virtual auto Heartbeat() const noexcept -> void = 0;
@@ -369,13 +371,14 @@ private:
 
 struct Network : virtual public opentxs::blockchain::Network {
     enum class Task : OTZMQWorkType {
-        SubmitBlockHeader = 0,
-        SubmitFilterHeader = 1,
-        SubmitFilter = 2,
-        SubmitBlock = 3,
-        Heartbeat = 4,
+        Shutdown = value(WorkType::Shutdown),
+        SubmitBlockHeader = OT_ZMQ_INTERNAL_SIGNAL + 0,
+        SubmitFilterHeader = OT_ZMQ_INTERNAL_SIGNAL + 1,
+        SubmitFilter = OT_ZMQ_INTERNAL_SIGNAL + 2,
+        SubmitBlock = OT_ZMQ_INTERNAL_SIGNAL + 3,
+        Heartbeat = OT_ZMQ_INTERNAL_SIGNAL + 4,
         StateMachine = OT_ZMQ_STATE_MACHINE_SIGNAL,
-        Shutdown = OT_ZMQ_SHUTDOWN_SIGNAL,
+        FilterUpdate = OT_ZMQ_NEW_FILTER_SIGNAL,
     };
 
     virtual auto API() const noexcept -> const api::client::Manager& = 0;
@@ -413,7 +416,6 @@ struct Network : virtual public opentxs::blockchain::Network {
         -> void = 0;
     virtual auto UpdateLocalHeight(
         const block::Position position) const noexcept -> void = 0;
-    virtual auto Work(const Task type) const noexcept -> OTZMQMessage = 0;
 
     virtual auto HeaderOracle() noexcept -> client::HeaderOracle& = 0;
     virtual auto Shutdown() noexcept -> std::shared_future<void> = 0;
@@ -439,21 +441,21 @@ struct PeerDatabase {
 
 struct PeerManager {
     enum class Task : OTZMQWorkType {
-        Getheaders = 0,
-        Getcfheaders = 1,
-        Getcfilters = 2,
-        Heartbeat = 3,
-        Getblock = 4,
-        BroadcastTransaction = 5,
-        Body = 126,
-        Header = 127,
+        Getheaders = OT_ZMQ_INTERNAL_SIGNAL + 0,
+        Getcfheaders = OT_ZMQ_INTERNAL_SIGNAL + 1,
+        Getcfilters = OT_ZMQ_INTERNAL_SIGNAL + 2,
+        Heartbeat = OT_ZMQ_INTERNAL_SIGNAL + 3,
+        Getblock = OT_ZMQ_INTERNAL_SIGNAL + 4,
+        BroadcastTransaction = OT_ZMQ_INTERNAL_SIGNAL + 5,
+        Body = OT_ZMQ_INTERNAL_SIGNAL + 126,
+        Header = OT_ZMQ_INTERNAL_SIGNAL + 127,
         Connect = OT_ZMQ_CONNECT_SIGNAL,
         Disconnect = OT_ZMQ_DISCONNECT_SIGNAL,
         ReceiveMessage = OT_ZMQ_RECEIVE_SIGNAL,
         SendMessage = OT_ZMQ_SEND_SIGNAL,
         Register = OT_ZMQ_REGISTER_SIGNAL,
         StateMachine = OT_ZMQ_STATE_MACHINE_SIGNAL,
-        Shutdown = OT_ZMQ_SHUTDOWN_SIGNAL,
+        Shutdown = value(WorkType::Shutdown),
     };
 
     virtual auto AddPeer(const p2p::Address& address) const noexcept
@@ -488,7 +490,7 @@ struct ThreadPool {
     using Future = std::shared_future<void>;
 
     enum class Work : OTZMQWorkType {
-        Wallet = 0,
+        Wallet = OT_ZMQ_INTERNAL_SIGNAL + 0,
     };
 
     virtual auto Endpoint() const noexcept -> std::string = 0;
@@ -500,10 +502,10 @@ struct ThreadPool {
 
 struct Wallet {
     enum class Task : OTZMQWorkType {
-        index = 0,
-        scan = 1,
-        process = 2,
-        reorg = 3,
+        index = OT_ZMQ_INTERNAL_SIGNAL + 0,
+        scan = OT_ZMQ_INTERNAL_SIGNAL + 1,
+        process = OT_ZMQ_INTERNAL_SIGNAL + 2,
+        reorg = OT_ZMQ_INTERNAL_SIGNAL + 3,
     };
 
     static auto ProcessTask(const zmq::Message& task) noexcept -> void;
