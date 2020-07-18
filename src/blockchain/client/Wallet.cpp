@@ -160,16 +160,15 @@ auto Wallet::pipeline(const zmq::Message& in) noexcept -> void
 
     if (false == running_.get()) { return; }
 
-    const auto header = in.Header();
+    const auto body = in.Body();
 
-    if (1 > header.size()) {
+    if (1 > body.size()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid message").Flush();
 
         OT_FAIL;
     }
 
-    const auto work = header.at(0).as<Work>();
-    const auto body = in.Body();
+    const auto work = body.at(0).as<Work>();
 
     switch (work) {
         case Work::block: {
@@ -179,9 +178,9 @@ auto Wallet::pipeline(const zmq::Message& in) noexcept -> void
             process_reorg(in);
         } break;
         case Work::nym: {
-            OT_ASSERT(0 < body.size());
+            OT_ASSERT(1 < body.size());
 
-            accounts_.Add(body.at(0));
+            accounts_.Add(body.at(1));
             [[fallthrough]];
         }
         case Work::key:
@@ -204,19 +203,19 @@ auto Wallet::process_reorg(const zmq::Message& in) noexcept -> void
 {
     const auto body = in.Body();
 
-    if (3 > body.size()) {
+    if (4 > body.size()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid message").Flush();
 
         OT_FAIL;
     }
 
-    const auto chain = body.at(0).as<blockchain::Type>();
+    const auto chain = body.at(1).as<blockchain::Type>();
 
     if (chain_ != chain) { return; }
 
     const auto parent = block::Position{
-        body.at(2).as<block::Height>(),
-        api_.Factory().Data(body.at(1).Bytes())};
+        body.at(3).as<block::Height>(),
+        api_.Factory().Data(body.at(2).Bytes())};
     accounts_.Reorg(parent);
     do_work();
 }

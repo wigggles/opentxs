@@ -14,7 +14,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
-#include "util/Work.hpp"
+#include "opentxs/util/WorkType.hpp"
 
 namespace zmq = opentxs::network::zeromq;
 
@@ -41,9 +41,7 @@ ShutdownSender::ShutdownSender(
 
 auto ShutdownSender::Activate() const noexcept -> void
 {
-    auto message = zmq_.Message();
-    message->AddFrame(OTZMQWorkType{OT_ZMQ_SHUTDOWN_SIGNAL});
-    message->AddFrame();
+    auto message = zmq_.TaggedMessage(WorkType::Shutdown);
     message->AddFrame("shutdown");
     socket_->Send(message);
 }

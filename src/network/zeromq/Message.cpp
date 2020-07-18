@@ -244,5 +244,14 @@ auto Message::set_field(const std::size_t position, const zeromq::Frame& input)
     return true;
 }
 
+auto Message::StartBody() noexcept -> void
+{
+    if (0 == messages_.size()) {
+        messages_.emplace_back(Factory::ZMQFrame());
+    } else if (0 < (*messages_.crbegin())->size()) {
+        messages_.emplace_back(Factory::ZMQFrame());
+    }
+}
+
 auto Message::size() const -> std::size_t { return messages_.size(); }
 }  // namespace opentxs::network::zeromq::implementation

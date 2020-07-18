@@ -64,6 +64,9 @@ public:
         const noexcept = 0;
     OPENTXS_EXPORT virtual std::string NotaryID() const noexcept = 0;
     OPENTXS_EXPORT virtual std::string NotaryName() const noexcept = 0;
+#if OT_BLOCKCHAIN
+    OPENTXS_EXPORT virtual double SyncPercentage() const noexcept = 0;
+#endif  // OT_BLOCKCHAIN
     OPENTXS_EXPORT virtual AccountType Type() const noexcept = 0;
     OPENTXS_EXPORT virtual proto::ContactItemType Unit() const noexcept = 0;
 
@@ -92,9 +95,13 @@ class opentxs::ui::AccountActivityQt final : public QIdentityProxyModel
     Q_PROPERTY(QList<int> depositChains READ depositChains NOTIFY updated)
 #endif  // OT_BLOCKCHAIN
     Q_PROPERTY(QString displayBalance READ displayBalance NOTIFY updated)
+#if OT_BLOCKCHAIN
+    Q_PROPERTY(double syncPercentage READ syncPercentage NOTIFY sync_progress)
+#endif  // OT_BLOCKCHAIN
 
 signals:
     void updated() const;
+    void sync_progress() const;
 
 public:
     // User roles return the same data for all columns
@@ -133,6 +140,7 @@ public:
 #if OT_BLOCKCHAIN
     OPENTXS_EXPORT Q_INVOKABLE QString
     getDepositAddress(const int chain = 0) const noexcept;
+    OPENTXS_EXPORT double syncPercentage() const noexcept;
 #endif  // OT_BLOCKCHAIN
 
     AccountActivityQt(implementation::AccountActivity& parent) noexcept;
@@ -145,6 +153,8 @@ private:
     implementation::AccountActivity& parent_;
 
     void notify() const noexcept;
+
+    void init() noexcept;
 
     AccountActivityQt() = delete;
     AccountActivityQt(const AccountActivityQt&) = delete;

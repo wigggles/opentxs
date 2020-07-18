@@ -88,6 +88,18 @@ public:
      */
     OPENTXS_EXPORT virtual std::string BlockchainReorg() const noexcept = 0;
 
+    /** Blockchain wallet sync progress
+     *
+     *  A subscribe socket can connect to this endpoint to receive
+     *  BlockchainSyncProgress tagged messages
+     *
+     *  See opentxs/util/WorkTypes.hpp for message format documentation
+     *
+     *  This endpoint is active for client sessions only.
+     */
+    OPENTXS_EXPORT virtual std::string BlockchainSyncProgress()
+        const noexcept = 0;
+
     /** Blockchain transaction notifications
      *
      *  A subscribe socket can connect to this endpoint to be notified when
@@ -289,11 +301,10 @@ public:
 
     /** Nym created notifications
      *
-     *  A subscribe socket can connect to this endpoint to be notified when
-     *  a new nym is created
+     *  A subscribe socket can connect to this endpoint to receive
+     *  NymCreated tagged messages
      *
-     *  Messages bodies consist of one frame.
-     *   * The frame contains the nym ID as a serialized string
+     *  See opentxs/util/WorkTypes.hpp for message format documentation
      *
      *  This endpoint is active for all session types.
      */

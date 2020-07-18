@@ -28,6 +28,7 @@
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/socket/Publish.hpp"
 #include "opentxs/network/zeromq/socket/Push.hpp"
+#include "opentxs/util/WorkType.hpp"
 #include "util/Work.hpp"
 
 namespace opentxs
@@ -240,10 +241,10 @@ private:
     };
 
     enum class Work : OTZMQWorkType {
-        Disconnect = 0,
-        AddPeer = 1,
+        Disconnect = OT_ZMQ_INTERNAL_SIGNAL + 0,
+        AddPeer = OT_ZMQ_INTERNAL_SIGNAL + 1,
         StateMachine = OT_ZMQ_STATE_MACHINE_SIGNAL,
-        Shutdown = OT_ZMQ_SHUTDOWN_SIGNAL,
+        Shutdown = value(WorkType::Shutdown),
     };
 
     static const unsigned int peer_target_{2};

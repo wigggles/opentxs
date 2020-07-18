@@ -10,11 +10,14 @@
 #include <algorithm>
 #include <chrono>
 #include <cstdint>
+#include <iomanip>
+#include <sstream>
 #include <type_traits>
 #include <utility>
 #include <vector>
 
 #include "opentxs/Pimpl.hpp"
+#include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/client/Manager.hpp"
 #include "opentxs/blockchain/block/Header.hpp"
@@ -23,7 +26,6 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
-#include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
@@ -108,8 +110,7 @@ Network::Network(
 
     database_.SetDefaultFilterType(filters_.DefaultType());
     header_.Init();
-
-    init_executor({});
+    init_executor({api_.Endpoints().InternalBlockchainFilterUpdated(chain_)});
 }
 
 auto Network::AddPeer(const p2p::Address& address) const noexcept -> bool
@@ -213,11 +214,11 @@ auto Network::pipeline(zmq::Message& in) noexcept -> void
 {
     if (false == running_.get()) { return; }
 
-    const auto header = in.Header();
+    const auto body = in.Body();
 
-    OT_ASSERT(0 < header.size());
+    OT_ASSERT(0 < body.size());
 
-    switch (header.at(0).as<Task>()) {
+    switch (body.at(0).as<Task>()) {
         case Task::SubmitFilterHeader: {
             process_cfheader(in);
         } break;
@@ -233,6 +234,9 @@ auto Network::pipeline(zmq::Message& in) noexcept -> void
         }
         case Task::StateMachine: {
             do_work();
+        } break;
+        case Task::FilterUpdate: {
+            process_filter_update(in);
         } break;
         case Task::Heartbeat: {
             block_.Heartbeat();
@@ -255,13 +259,13 @@ auto Network::process_block(network::zeromq::Message& in) noexcept -> void
 
     const auto body = in.Body();
 
-    if (1 > body.size()) {
+    if (2 > body.size()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid block").Flush();
 
         return;
     }
 
-    block_.SubmitBlock(body.at(0));
+    block_.SubmitBlock(body.at(1));
 }
 
 auto Network::process_cfheader(network::zeromq::Message& in) noexcept -> void
@@ -278,6 +282,31 @@ auto Network::process_filter(network::zeromq::Message& in) noexcept -> void
     filters_.AddFilter(in);
 }
 
+auto Network::process_filter_update(network::zeromq::Message& in) noexcept
+    -> void
+{
+    if (false == running_.get()) { return; }
+
+    const auto& body = in.Body();
+
+    OT_ASSERT(2 < body.size());
+
+    const auto height = body.at(2).as<block::Height>();
+    const auto target =
+        std::max(local_chain_height_.load(), remote_chain_height_.load());
+
+    {
+        const auto progress = (double(height) / double(target)) * double{100};
+        auto display = std::stringstream{};
+        display << std::setprecision(3) << progress << "%";
+        LogNormal(blockchain::internal::DisplayString(chain_))(
+            " chain sync progress: ")(display.str())
+            .Flush();
+    }
+
+    blockchain_.ReportProgress(chain_, height, target);
+}
+
 auto Network::process_header(network::zeromq::Message& in) noexcept -> void
 {
     if (false == running_.get()) { return; }
@@ -290,17 +319,20 @@ auto Network::process_header(network::zeromq::Message& in) noexcept -> void
     auto input = std::vector<ReadView>{};
 
     {
-        auto counter{0};
+        auto counter{-1};
         const auto body = in.Body();
 
-        if (1 > body.size()) {
+        if (2 > body.size()) {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid message").Flush();
 
             return;
         }
 
-        for (const auto& frame : in.Body()) {
+        for (const auto& frame : body) {
             switch (++counter) {
+                case 0: {
+                    break;
+                }
                 case 1: {
                     pPromise.reset(
                         reinterpret_cast<Promise*>(frame.as<std::uintptr_t>()));
@@ -488,14 +520,6 @@ auto Network::UpdateLocalHeight(const block::Position position) const noexcept
         .Flush();
     local_chain_height_.store(height);
     trigger();
-}
-
-auto Network::Work(const Task type) const noexcept -> OTZMQMessage
-{
-    auto output = api_.ZeroMQ().Message(type);
-    output->AddFrame();
-
-    return output;
 }
 
 Network::~Network() { Shutdown().get(); }

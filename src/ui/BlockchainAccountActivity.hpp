@@ -9,6 +9,7 @@
 #pragma once
 
 #include <atomic>
+#include <mutex>
 #include <set>
 #include <string>
 #include <utility>
@@ -106,10 +107,16 @@ public:
     {
         return blockchain::internal::DisplayString(chain_);
     }
+    auto SyncPercentage() const noexcept -> double final
+    {
+        return sync_.load();
+    }
     auto Unit() const noexcept -> proto::ContactItemType final
     {
         return Translate(chain_);
     }
+
+    auto SetSyncCallback(const SimpleCallback cb) noexcept -> void final;
 
     BlockchainAccountActivity(
         const api::client::internal::Manager& api,
@@ -123,9 +130,17 @@ public:
     ~BlockchainAccountActivity() final = default;
 
 private:
+    struct SyncCB {
+        std::mutex lock_{};
+        SimpleCallback cb_{};
+    };
+
     const blockchain::Type chain_;
+    std::atomic<double> sync_;
+    SyncCB sync_cb_;
 
     auto load_thread() noexcept -> void;
+    auto process_sync(const network::zeromq::Message& in) noexcept -> void;
     auto process_txid(const network::zeromq::Message& in) noexcept -> void;
     auto startup() noexcept -> void final;
 

@@ -273,6 +273,14 @@ auto Context::ReplyMessage(const zeromq::Message& request) const noexcept
     return output;
 }
 
+auto Context::ReplyMessage(const ReadView id) const noexcept -> OTZMQMessage
+{
+    auto output = Message(id.data(), id.size());
+    output->StartBody();
+
+    return output;
+}
+
 auto Context::ReplySocket(
     const ReplyCallback& callback,
     const socket::Socket::Direction direction) const noexcept
@@ -300,6 +308,40 @@ auto Context::SubscribeSocket(const ListenCallback& callback) const noexcept
     -> OTZMQSubscribeSocket
 {
     return OTZMQSubscribeSocket{factory::SubscribeSocket(*this, callback)};
+}
+
+auto Context::TaggedMessage(const void* tag, const std::size_t size)
+    const noexcept -> OTZMQMessage
+{
+    auto output = Message();
+    output->StartBody();
+    output->AddFrame(tag, size);
+
+    return output;
+}
+
+auto Context::TaggedReply(
+    const zeromq::Message& request,
+    const void* tag,
+    const std::size_t size) const noexcept -> OTZMQMessage
+{
+    auto output = ReplyMessage(request);
+    output->StartBody();
+    output->AddFrame(tag, size);
+
+    return output;
+}
+
+auto Context::TaggedReply(
+    const ReadView connectionID,
+    const void* tag,
+    const std::size_t size) const noexcept -> OTZMQMessage
+{
+    auto output = ReplyMessage(connectionID);
+    output->StartBody();
+    output->AddFrame(tag, size);
+
+    return output;
 }
 
 Context::~Context()

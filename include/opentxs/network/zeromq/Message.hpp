@@ -106,6 +106,7 @@ public:
     OPENTXS_EXPORT virtual Frame& Replace(
         const std::size_t index,
         OTZMQFrame&& frame) = 0;
+    OPENTXS_EXPORT virtual void StartBody() noexcept = 0;
 
     OPENTXS_EXPORT virtual ~Message() = default;
 

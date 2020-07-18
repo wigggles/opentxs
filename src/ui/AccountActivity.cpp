@@ -33,7 +33,7 @@ auto AccountActivityQtModel(
 #if OT_QT
 namespace opentxs::ui
 {
-QT_PROXY_MODEL_WRAPPER(AccountActivityQt, implementation::AccountActivity)
+QT_PROXY_MODEL_WRAPPER_EXTRA(AccountActivityQt, implementation::AccountActivity)
 
 auto AccountActivityQt::accountID() const noexcept -> QString
 {
@@ -59,11 +59,21 @@ auto AccountActivityQt::displayBalance() const noexcept -> QString
 {
     return parent_.DisplayBalance().c_str();
 }
+auto AccountActivityQt::init() noexcept -> void
+{
+#if OT_BLOCKCHAIN
+    parent_.SetSyncCallback([this]() { emit sync_progress(); });
+#endif  // OT_BLOCKCHAIN
+}
 #if OT_BLOCKCHAIN
 auto AccountActivityQt::getDepositAddress(const int chain) const noexcept
     -> QString
 {
     return parent_.DepositAddress(static_cast<blockchain::Type>(chain)).c_str();
+}
+auto AccountActivityQt::syncPercentage() const noexcept -> double
+{
+    return parent_.SyncPercentage();
 }
 #endif  // OT_BLOCKCHAIN
 }  // namespace opentxs::ui

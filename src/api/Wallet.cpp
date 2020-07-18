@@ -71,7 +71,7 @@
 #include "opentxs/protobuf/UnitDefinition.pb.h"
 #include "opentxs/protobuf/verify/Nym.hpp"
 #include "opentxs/protobuf/verify/Purse.hpp"
-#include "util/Work.hpp"
+#include "opentxs/util/WorkType.hpp"
 
 template class opentxs::Exclusive<opentxs::Account>;
 template class opentxs::Shared<opentxs::Account>;
@@ -1183,10 +1183,8 @@ auto Wallet::Nym(
             pMapNym = pNym;
 
             {
-                auto work =
-                    api_.ZeroMQ().Message(OTZMQWorkType{OT_ZMQ_NEW_NYM_SIGNAL});
-                work->AddFrame();
-                work->AddFrame(pNym->ID().str());
+                auto work = api_.ZeroMQ().TaggedMessage(WorkType::NymCreated);
+                work->AddFrame(pNym->ID());
                 nym_created_publisher_->Send(work);
             }
 

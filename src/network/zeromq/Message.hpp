@@ -50,6 +50,7 @@ public:
     auto Header() -> FrameSection final;
     auto PrependEmptyFrame() -> void final;
     auto Replace(const std::size_t index, OTZMQFrame&& frame) -> Frame& final;
+    auto StartBody() noexcept -> void final;
 
     ~Message() override = default;
 

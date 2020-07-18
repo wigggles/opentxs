@@ -25,6 +25,7 @@
 #include "opentxs/api/client/OTX.hpp"
 #include "opentxs/api/client/Pair.hpp"
 #include "opentxs/api/client/UI.hpp"
+#include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/UniqueQueue.hpp"
@@ -162,6 +163,11 @@ struct Blockchain : virtual public api::client::Blockchain {
 #if OT_BLOCKCHAIN
     virtual auto Reorg() const noexcept
         -> const opentxs::network::zeromq::socket::Publish& = 0;
+    virtual auto ReportProgress(
+        const Chain chain,
+        const opentxs::blockchain::block::Height current,
+        const opentxs::blockchain::block::Height target) const noexcept
+        -> void = 0;
     virtual auto ThreadPool() const noexcept
         -> const opentxs::blockchain::client::internal::ThreadPool& = 0;
     virtual auto UpdateBalance(

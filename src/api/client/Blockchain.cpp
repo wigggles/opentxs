@@ -62,6 +62,9 @@
 #include "opentxs/protobuf/HDPath.pb.h"
 #include "opentxs/protobuf/StorageThread.pb.h"
 #include "opentxs/protobuf/StorageThreadItem.pb.h"
+#if OT_BLOCKCHAIN
+#include "opentxs/util/WorkType.hpp"
+#endif  // OT_BLOCKCHAIN
 #include "util/Container.hpp"
 #if OT_BLOCKCHAIN
 #include "util/ScopeGuard.hpp"
@@ -164,6 +167,7 @@ Blockchain::Blockchain(
     , transaction_updates_(api_.ZeroMQ().PublishSocket())
     , peer_updates_(api_.ZeroMQ().PublishSocket())
     , key_updates_(api_.ZeroMQ().PublishSocket())
+    , sync_updates_(api_.ZeroMQ().PublishSocket())
     , networks_()
     , balances_(*this, api)
     , running_(true)
@@ -186,6 +190,10 @@ Blockchain::Blockchain(
     OT_ASSERT(listen);
 
     listen = key_updates_->Start(key_generated_endpoint_);
+
+    OT_ASSERT(listen);
+
+    listen = sync_updates_->Start(api_.Endpoints().BlockchainSyncProgress());
 
     OT_ASSERT(listen);
 #endif  // OT_BLOCKCHAIN
@@ -1035,8 +1043,7 @@ auto Blockchain::init_path(
 #if OT_BLOCKCHAIN
 auto Blockchain::KeyGenerated(const Chain chain) const noexcept -> void
 {
-    auto work =
-        MakeWork(api_, OTZMQWorkType{OT_ZMQ_NEW_BLOCKCHAIN_WALLET_KEY_SIGNAL});
+    auto work = MakeWork(api_, OT_ZMQ_NEW_BLOCKCHAIN_WALLET_KEY_SIGNAL);
     work->AddFrame(chain);
     key_updates_->Send(work);
 }
@@ -1322,6 +1329,17 @@ auto Blockchain::reconcile_activity_threads(
     return true;
 }
 
+auto Blockchain::ReportProgress(
+    const Chain chain,
+    const opentxs::blockchain::block::Height current,
+    const opentxs::blockchain::block::Height target) const noexcept -> void
+{
+    auto work = api_.ZeroMQ().TaggedMessage(WorkType::BlockchainSyncProgress);
+    work->AddFrame(current);
+    work->AddFrame(target);
+    sync_updates_->Send(work);
+}
+
 auto Blockchain::Start(const Chain type, const std::string& seednode)
     const noexcept -> bool
 {
@@ -1414,7 +1432,7 @@ auto Blockchain::UpdatePeer(
     const opentxs::blockchain::Type chain,
     const std::string& address) const noexcept -> void
 {
-    auto work = MakeWork(api_, OTZMQWorkType{OT_ZMQ_NEW_PEER_SIGNAL});
+    auto work = MakeWork(api_, OT_ZMQ_NEW_PEER_SIGNAL);
     work->AddFrame(chain);
     work->AddFrame(address);
     peer_updates_->Send(work);

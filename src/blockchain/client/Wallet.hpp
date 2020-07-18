@@ -38,6 +38,7 @@
 #include "opentxs/protobuf/BlockchainTransactionOutput.pb.h"
 #include "opentxs/protobuf/BlockchainTransactionProposal.pb.h"
 #include "opentxs/protobuf/Enums.pb.h"
+#include "opentxs/util/WorkType.hpp"
 #include "util/Work.hpp"
 
 namespace opentxs
@@ -164,10 +165,10 @@ private:
         key = OT_ZMQ_NEW_BLOCKCHAIN_WALLET_KEY_SIGNAL,
         block = OT_ZMQ_NEW_BLOCK_HEADER_SIGNAL,
         filter = OT_ZMQ_NEW_FILTER_SIGNAL,
-        nym = OT_ZMQ_NEW_NYM_SIGNAL,
+        nym = value(WorkType::NymCreated),
         reorg = OT_ZMQ_REORG_SIGNAL,
         statemachine = OT_ZMQ_STATE_MACHINE_SIGNAL,
-        shutdown = OT_ZMQ_SHUTDOWN_SIGNAL,
+        shutdown = value(WorkType::Shutdown),
     };
 
     struct Accounts {
