@@ -87,10 +87,6 @@ class PeerManager final : virtual public internal::PeerManager,
                           public Worker<PeerManager>
 {
 public:
-    static const std::map<Type, std::uint16_t> default_port_map_;
-    static const std::map<Type, std::vector<std::string>> dns_seeds_;
-    static const std::map<Type, p2p::Protocol> protocol_map_;
-
     auto AddPeer(const p2p::Address& address) const noexcept -> bool final;
     auto BroadcastTransaction(
         const block::bitcoin::Transaction& tx) const noexcept -> bool final;

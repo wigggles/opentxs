@@ -18,139 +18,25 @@
 #include <limits>
 #include <map>
 #include <memory>
-#include <set>
 #include <sstream>
 #include <stdexcept>
 #include <string_view>
 #include <thread>
+#include <type_traits>
 #include <utility>
 
+#include "internal/blockchain/Params.hpp"
 #include "internal/blockchain/bitcoin/Bitcoin.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
-#include "opentxs/api/crypto/Crypto.hpp"
-#include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/protobuf/Enums.pb.h"
 
 #define BITMASK(n) ((1 << (n)) - 1)
 
 namespace mp = boost::multiprecision;
-
-namespace opentxs::blockchain
-{
-auto BlockHash(
-    const api::Core& api,
-    const Type chain,
-    const ReadView input,
-    const AllocateOutput output) noexcept -> bool
-{
-    switch (chain) {
-        default: {
-            return api.Crypto().Hash().Digest(
-                proto::HASHTYPE_SHA256D, input, output);
-        }
-    }
-}
-
-auto FilterHash(
-    const api::Core& api,
-    const Type chain,
-    const ReadView input,
-    const AllocateOutput output) noexcept -> bool
-{
-    switch (chain) {
-        default: {
-            return api.Crypto().Hash().Digest(
-                proto::HASHTYPE_SHA256D, input, output);
-        }
-    }
-}
-
-auto P2PMessageHash(
-    const api::Core& api,
-    const Type chain,
-    const ReadView input,
-    const AllocateOutput output) noexcept -> bool
-{
-    switch (chain) {
-        default: {
-            return api.Crypto().Hash().Digest(
-                proto::HASHTYPE_SHA256DC, input, output);
-        }
-    }
-}
-
-auto ProofOfWorkHash(
-    const api::Core& api,
-    const Type chain,
-    const ReadView input,
-    const AllocateOutput output) noexcept -> bool
-{
-    switch (chain) {
-        default: {
-            return BlockHash(api, chain, input, output);
-        }
-    }
-}
-
-auto PubkeyHash(
-    const api::Core& api,
-    const Type chain,
-    const ReadView input,
-    const AllocateOutput output) noexcept -> bool
-{
-    switch (chain) {
-        default: {
-            return api.Crypto().Hash().Digest(
-                proto::HASHTYPE_BITCOIN, input, output);
-        }
-    }
-}
-
-auto ScriptHash(
-    const api::Core& api,
-    const Type chain,
-    const ReadView input,
-    const AllocateOutput output) noexcept -> bool
-{
-    switch (chain) {
-        default: {
-            return api.Crypto().Hash().Digest(
-                proto::HASHTYPE_BITCOIN, input, output);
-        }
-    }
-}
-
-auto SupportedChains() noexcept -> const std::set<Type>&
-{
-    static const auto output = std::set<Type>{
-        Type::Bitcoin,
-        Type::Bitcoin_testnet3,
-        Type::BitcoinCash,
-        Type::BitcoinCash_testnet3,
-    };
-
-    return output;
-}
-
-auto TransactionHash(
-    const api::Core& api,
-    const Type chain,
-    const ReadView input,
-    const AllocateOutput output) noexcept -> bool
-{
-    switch (chain) {
-        default: {
-            return api.Crypto().Hash().Digest(
-                proto::HASHTYPE_SHA256D, input, output);
-        }
-    }
-}
-}  // namespace opentxs::blockchain
 
 namespace opentxs::blockchain::internal
 {
@@ -385,31 +271,12 @@ SerializedBloomFilter::SerializedBloomFilter() noexcept
 
 auto DisplayString(const Type type) noexcept -> std::string
 {
-    switch (type) {
-        case Type::Unknown: {
-            return "Unknown";
-        }
-        case Type::Bitcoin: {
-            return "Bitcoin";
-        }
-        case Type::Bitcoin_testnet3: {
-            return "Bitcoin (testnet3)";
-        }
-        case Type::BitcoinCash: {
-            return "Bitcoin Cash";
-        }
-        case Type::BitcoinCash_testnet3: {
-            return "Bitcoin Cash (testnet3)";
-        }
-        case Type::Ethereum_frontier: {
-            return "Ethereum (frontier)";
-        }
-        case Type::Ethereum_ropsten: {
-            return "Ethereumn (ropsten testnet)";
-        }
-        default: {
-            return std::to_string(static_cast<std::uint32_t>(type));
-        }
+    try {
+
+        return params::Data::chains_.at(type).display_string_;
+    } catch (...) {
+
+        return "Unknown";
     }
 }
 
@@ -457,14 +324,11 @@ auto DecodeSerializedCfilter(const ReadView bytes) noexcept(false)
 
 auto DefaultFilter(const Type type) noexcept -> filter::Type
 {
-    switch (type) {
-        case Type::BitcoinCash:
-        case Type::BitcoinCash_testnet3: {
-            return filter::Type::Basic_BCHVariant;
-        }
-        default: {
-            return filter::Type::Basic_BIP158;
-        }
+    try {
+
+        return params::Data::chains_.at(type).default_filter_type_;
+    } catch (...) {
+        return filter::Type::Unknown;
     }
 }
 
@@ -552,15 +416,9 @@ auto FilterToHeader(
 auto Format(const Type chain, const opentxs::Amount amount) noexcept
     -> std::string
 {
-    static const auto map = std::map<Type, unsigned int>{
-        {Type::Bitcoin, 8},
-        {Type::Bitcoin_testnet3, 8},
-        {Type::BitcoinCash, 8},
-        {Type::BitcoinCash_testnet3, 8},
-    };
-
     try {
-        const auto& precision = map.at(chain);
+        const auto& precision =
+            params::Data::chains_.at(chain).display_precision_;
         const auto scaled = mp::cpp_dec_float_100{amount} /
                             mp::cpp_dec_float_100{std::pow(10, precision)};
         auto output = std::stringstream{};
@@ -606,43 +464,7 @@ auto Grind(const std::function<void()> function) noexcept -> void
 auto Serialize(const Type chain, const filter::Type type) noexcept(false)
     -> std::uint8_t
 {
-    static const auto map =
-        std::map<Type, std::map<filter::Type, std::uint8_t>>{
-            {Type::Bitcoin,
-             {
-                 {filter::Type::Basic_BIP158, 0x0},
-                 {filter::Type::Extended_opentxs, 0x58},
-             }},
-            {Type::Bitcoin_testnet3,
-             {
-                 {filter::Type::Basic_BIP158, 0x0},
-                 {filter::Type::Extended_opentxs, 0x58},
-             }},
-            {Type::BitcoinCash,
-             {
-                 {filter::Type::Basic_BCHVariant, 0x0},
-                 {filter::Type::Extended_opentxs, 0x58},
-             }},
-            {Type::BitcoinCash_testnet3,
-             {
-                 {filter::Type::Basic_BCHVariant, 0x0},
-                 {filter::Type::Extended_opentxs, 0x58},
-             }},
-            {Type::Ethereum_frontier, {}},
-            {Type::Ethereum_ropsten, {}},
-            {Type::Litecoin,
-             {
-                 {filter::Type::Basic_BIP158, 0x0},
-                 {filter::Type::Extended_opentxs, 0x58},
-             }},
-            {Type::Litecoin_testnet4,
-             {
-                 {filter::Type::Basic_BIP158, 0x0},
-                 {filter::Type::Extended_opentxs, 0x58},
-             }},
-        };
-
-    return map.at(chain).at(type);
+    return params::Data::bip158_types_.at(chain).at(type);
 }
 
 auto Serialize(const block::Position& in) noexcept -> Space
@@ -658,16 +480,9 @@ auto Serialize(const block::Position& in) noexcept -> Space
 
 auto Ticker(const Type chain) noexcept -> std::string
 {
-    static const auto map = std::map<Type, std::string>{
-        {Type::Bitcoin, "BTC"},
-        {Type::Bitcoin_testnet3, "tnBTC"},
-        {Type::BitcoinCash, "BCH"},
-        {Type::BitcoinCash_testnet3, "tnBCH"},
-    };
-
     try {
 
-        return map.at(chain);
+        return params::Data::chains_.at(chain).display_ticker_;
     } catch (...) {
 
         return {};

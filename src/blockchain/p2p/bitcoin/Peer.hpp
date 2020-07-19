@@ -123,7 +123,6 @@ private:
 
     std::atomic<ProtocolVersion> protocol_;
     const Nonce nonce_;
-    const Magic magic_;
     const std::set<p2p::Service> local_services_;
     std::atomic<bool> relay_;
     Request get_headers_;

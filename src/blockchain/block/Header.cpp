@@ -13,9 +13,12 @@
 #include <utility>
 
 #include "internal/blockchain/Blockchain.hpp"
+#include "internal/blockchain/Params.hpp"
 #include "internal/blockchain/block/Block.hpp"
 #include "internal/blockchain/block/bitcoin/Bitcoin.hpp"
 #include "opentxs/Pimpl.hpp"
+#include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/blockchain/NumericHash.hpp"
 #include "opentxs/blockchain/Work.hpp"
 #include "opentxs/blockchain/block/Header.hpp"
@@ -34,16 +37,22 @@ auto GenesisBlockHeader(
     const blockchain::Type type) noexcept
     -> std::unique_ptr<blockchain::block::Header>
 {
-    using ReturnType = blockchain::block::implementation::Header;
-
     switch (type) {
         case blockchain::Type::Bitcoin:
         case blockchain::Type::BitcoinCash:
         case blockchain::Type::Bitcoin_testnet3:
         case blockchain::Type::BitcoinCash_testnet3: {
-            return factory::BitcoinBlockHeader(
-                api, type, ReturnType::genesis_blocks_.at(type)->Bytes());
+            const auto& hex =
+                blockchain::params::Data::chains_.at(type).genesis_header_hex_;
+            const auto data = api.Factory().Data(hex, StringStyle::Hex);
+
+            return factory::BitcoinBlockHeader(api, type, data->Bytes());
         }
+        case opentxs::blockchain::Type::Unknown:
+        case opentxs::blockchain::Type::Ethereum_frontier:
+        case opentxs::blockchain::Type::Ethereum_ropsten:
+        case opentxs::blockchain::Type::Litecoin:
+        case opentxs::blockchain::Type::Litecoin_testnet4:
         default: {
             LogOutput("opentxs::factory::")(__FUNCTION__)(
                 ": Unsupported type (")(static_cast<std::uint32_t>(type))(")")
@@ -67,33 +76,6 @@ auto BlankHash() noexcept -> pHash
 
 namespace opentxs::blockchain::block::implementation
 {
-const Header::GenesisBlockMap Header::genesis_blocks_{
-    {Type::Bitcoin,
-     Data::Factory(
-         "0x010000000000000000000000000000000000000000000000000000000000000000"
-         "0000003ba3edfd7a7b12b27ac72c3e67768f617fc81bc3888a51323a9fb8aa4b1e5e"
-         "4a29ab5f49ffff001d1dac2b7c",
-         Data::Mode::Hex)},
-    {Type::BitcoinCash,
-     Data::Factory(
-         "0x010000000000000000000000000000000000000000000000000000000000000000"
-         "0000003ba3edfd7a7b12b27ac72c3e67768f617fc81bc3888a51323a9fb8aa4b1e5e"
-         "4a29ab5f49ffff001d1dac2b7c",
-         Data::Mode::Hex)},
-    {Type::Bitcoin_testnet3,
-     Data::Factory(
-         "0x0100000000000000000000000000000000000000000000000000000000000000000"
-         "000003ba3edfd7a7b12b27ac72c3e67768f617fc81bc3888a51323a9fb8aa4b1e5e4a"
-         "dae5494dffff001d1aa4ae18",
-         Data::Mode::Hex)},
-    {Type::BitcoinCash_testnet3,
-     Data::Factory(
-         "0x0100000000000000000000000000000000000000000000000000000000000000000"
-         "000003ba3edfd7a7b12b27ac72c3e67768f617fc81bc3888a51323a9fb8aa4b1e5e4a"
-         "dae5494dffff001d1aa4ae18",
-         Data::Mode::Hex)},
-};
-
 Header::Header(
     const api::Core& api,
     const VersionNumber version,

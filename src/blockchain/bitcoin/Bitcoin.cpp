@@ -630,6 +630,13 @@ SigHash::SigHash(
         case blockchain::Type::BitcoinCash_testnet3: {
             flags_ |= Fork_ID;
         } break;
+        case opentxs::blockchain::Type::Unknown:
+        case opentxs::blockchain::Type::Bitcoin:
+        case opentxs::blockchain::Type::Bitcoin_testnet3:
+        case opentxs::blockchain::Type::Ethereum_frontier:
+        case opentxs::blockchain::Type::Ethereum_ropsten:
+        case opentxs::blockchain::Type::Litecoin:
+        case opentxs::blockchain::Type::Litecoin_testnet4:
         default: {
         }
     }

@@ -166,6 +166,11 @@ auto VerifyChecksum(
                     checksum->WriteInto());
             }
         } break;
+        case Type::Unknown:
+        case Type::Ethereum_frontier:
+        case Type::Ethereum_ropsten:
+        case Type::Litecoin:
+        case Type::Litecoin_testnet4:
         default: {
             LogOutput(__FUNCTION__)(": Unsupported type").Flush();
         }

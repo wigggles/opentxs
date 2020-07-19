@@ -7,12 +7,14 @@
 #include "1_Internal.hpp"                   // IWYU pragma: associated
 #include "blockchain/database/Filters.hpp"  // IWYU pragma: associated
 
+#include <boost/container/flat_map.hpp>
 #include <algorithm>
 #include <iosfwd>
-#include <map>
 #include <memory>
+#include <utility>
 
 #include "internal/blockchain/Blockchain.hpp"
+#include "internal/blockchain/Params.hpp"
 #include "internal/blockchain/block/Block.hpp"
 #include "internal/blockchain/database/Database.hpp"
 #include "opentxs/Pimpl.hpp"
@@ -28,56 +30,6 @@
 
 namespace opentxs::blockchain::database
 {
-const std::map<
-    blockchain::Type,
-    std::map<filter::Type, std::pair<std::string, std::string>>>
-    Filters::genesis_filters_{
-        {blockchain::Type::Bitcoin,
-         {
-             {filter::Type::Basic_BIP158,
-              {"9f3c30f0c37fb977cf3e1a3173c631e8ff119ad3088b6f5b2bced0802139c20"
-               "2",
-               "017fa880"}},
-             {filter::Type::Extended_opentxs,
-              {"0354578634dd178058ad5f3addf0d97c45911f483c99a1022ce51502e142e99"
-               "f",
-               "049dc75e0d584a300293ef3d3980"}},
-         }},
-        {blockchain::Type::BitcoinCash,
-         {
-             {filter::Type::Basic_BCHVariant,
-              {"9f3c30f0c37fb977cf3e1a3173c631e8ff119ad3088b6f5b2bced0802139c20"
-               "2",
-               "017fa880"}},
-             {filter::Type::Extended_opentxs,
-              {"0354578634dd178058ad5f3addf0d97c45911f483c99a1022ce51502e142e99"
-               "f",
-               "049dc75e0d584a300293ef3d3980"}},
-         }},
-        {blockchain::Type::Bitcoin_testnet3,
-         {
-             {filter::Type::Basic_BIP158,
-              {"50b781aed7b7129012a6d20e2d040027937f3affaee573779908ebb77945582"
-               "1",
-               "019dfca8"}},
-             {filter::Type::Extended_opentxs,
-              {"a1310188d76ce653283a3086aa6f1ba30b6934990a093e1789a78a43b926131"
-               "5",
-               "04e2f587e146bf6c662d35278a40"}},
-         }},
-        {blockchain::Type::BitcoinCash_testnet3,
-         {
-             {filter::Type::Basic_BCHVariant,
-              {"50b781aed7b7129012a6d20e2d040027937f3affaee573779908ebb77945582"
-               "1",
-               "019dfca8"}},
-             {filter::Type::Extended_opentxs,
-              {"a1310188d76ce653283a3086aa6f1ba30b6934990a093e1789a78a43b926131"
-               "5",
-               "04e2f587e146bf6c662d35278a40"}},
-         }},
-    };
-
 Filters::Filters(
     const api::client::Manager& api,
     const Common& common,
@@ -137,7 +89,7 @@ auto Filters::import_genesis(
 
     const auto& block = *pBlock;
     const auto& blockHash = block.Hash();
-    const auto& genesis = genesis_filters_.at(chain).at(style);
+    const auto& genesis = params::Data::genesis_filters_.at(chain).at(style);
     const auto bytes = api_.Factory().Data(genesis.second, StringStyle::Hex);
     auto gcs = std::unique_ptr<const blockchain::internal::GCS>{factory::GCS(
         api_,

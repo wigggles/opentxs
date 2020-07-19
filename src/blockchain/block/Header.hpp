@@ -32,11 +32,6 @@ namespace opentxs::blockchain::block::implementation
 class Header : virtual public block::Header
 {
 public:
-    using GenesisBlock = OTData;
-    using GenesisBlockMap = std::map<blockchain::Type, GenesisBlock>;
-
-    static const GenesisBlockMap genesis_blocks_;
-
     auto Difficulty() const noexcept -> OTWork final { return work_; }
     auto EffectiveState() const noexcept -> Status final;
     auto Hash() const noexcept -> const block::Hash& final;

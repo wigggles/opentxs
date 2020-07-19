@@ -194,6 +194,7 @@ auto Wallet::Proposals::get_builder() const noexcept -> Builder
                 return build_transaction_bitcoin(id, in, out);
             };
         }
+        case Type::Unknown:
         case Type::Ethereum_frontier:
         case Type::Ethereum_ropsten:
         default: {

@@ -9,9 +9,12 @@
 
 #include <cstdint>
 #include <cstring>
+#include <map>
 #include <stdexcept>
+#include <type_traits>
 #include <utility>
 
+#include "internal/blockchain/Params.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
@@ -30,11 +33,7 @@ auto BitcoinP2PHeader(
     const ReturnType::BitcoinFormat raw{bytes};
 
     return new ReturnType(
-        api,
-        GetNetwork(raw.Magic()),
-        raw.Command(),
-        raw.PayloadSize(),
-        raw.Checksum());
+        api, raw.Network(), raw.Command(), raw.PayloadSize(), raw.Checksum());
 }
 }  // namespace opentxs::factory
 
@@ -83,7 +82,7 @@ Header::BitcoinFormat::BitcoinFormat(
     const bitcoin::Command command,
     const std::size_t payload,
     const OTData checksum) noexcept(false)
-    : magic_(static_cast<std::uint32_t>(GetMagic(network)))
+    : magic_(params::Data::chains_.at(network).p2p_magic_bits_)
     , command_(SerializeCommand(command))
     , length_(payload)
     , checksum_()
@@ -117,9 +116,29 @@ auto Header::BitcoinFormat::Command() const noexcept -> bitcoin::Command
     return GetCommand(command_);
 }
 
-auto Header::BitcoinFormat::Magic() const noexcept -> bitcoin::Magic
+auto Header::BitcoinFormat::Network() const noexcept -> blockchain::Type
 {
-    return GetMagic(magic_.value());
+    static const auto build = []() -> auto
+    {
+        auto output = std::map<std::uint32_t, blockchain::Type>{};
+
+        for (const auto& [chain, data] : params::Data::chains_) {
+            if (0 != data.p2p_magic_bits_) {
+                output.emplace(data.p2p_magic_bits_, chain);
+            }
+        }
+
+        return output;
+    };
+    static const auto map{build()};
+
+    try {
+
+        return map.at(magic_.value());
+    } catch (...) {
+
+        return blockchain::Type::Unknown;
+    }
 }
 
 auto Header::BitcoinFormat::PayloadSize() const noexcept -> std::size_t

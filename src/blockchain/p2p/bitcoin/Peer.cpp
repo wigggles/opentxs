@@ -153,7 +153,6 @@ Peer::Peer(
           std::move(address))
     , protocol_((0 == protocol) ? default_protocol_version_ : protocol)
     , nonce_(nonce(api_))
-    , magic_(GetMagic(chain_))
     , local_services_(get_local_services(protocol_, chain_, localServices))
     , relay_(relay)
     , get_headers_()
@@ -221,6 +220,11 @@ auto Peer::get_local_services(
         case blockchain::Type::BitcoinCash_testnet3: {
             output.emplace(p2p::Service::BitcoinCash);
         } break;
+        case blockchain::Type::Unknown:
+        case blockchain::Type::Ethereum_frontier:
+        case blockchain::Type::Ethereum_ropsten:
+        case blockchain::Type::Litecoin:
+        case blockchain::Type::Litecoin_testnet4:
         default: {
         }
     }

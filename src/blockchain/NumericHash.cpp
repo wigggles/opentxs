@@ -12,11 +12,11 @@
 #include <cstddef>
 #include <cstdint>
 #include <iterator>
-#include <map>
 #include <memory>
 #include <vector>
 
 #include "internal/blockchain/Blockchain.hpp"
+#include "internal/blockchain/Params.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
@@ -121,16 +121,9 @@ namespace opentxs::blockchain
 {
 std::int32_t NumericHash::MaxTarget(const blockchain::Type chain) noexcept
 {
-    static const auto map = std::map<Type, std::int32_t>{
-        {Type::Bitcoin, 486604799},               // 0x1d00ffff
-        {Type::Bitcoin_testnet3, 486604799},      // 0x1d00ffff
-        {Type::BitcoinCash, 486604799},           // 0x1d00ffff
-        {Type::BitcoinCash_testnet3, 486604799},  // 0x1d00ffff
-    };
-
     try {
 
-        return map.at(chain);
+        return params::Data::chains_.at(chain).nBits_;
     } catch (...) {
 
         return {};

@@ -55,7 +55,7 @@ public:
 
         auto Checksum() const noexcept -> OTData;
         auto Command() const noexcept -> bitcoin::Command;
-        auto Magic() const noexcept -> bitcoin::Magic;
+        auto Network() const noexcept -> blockchain::Type;
         auto PayloadSize() const noexcept -> std::size_t;
 
         BitcoinFormat(const Data& in) noexcept(false);

@@ -20,8 +20,10 @@
 #include <random>
 #include <string_view>
 #include <utility>
+#include <vector>
 
 #include "core/Worker.hpp"
+#include "internal/blockchain/Params.hpp"
 #include "internal/blockchain/client/Client.hpp"
 #include "internal/blockchain/p2p/P2P.hpp"
 #include "internal/blockchain/p2p/bitcoin/Bitcoin.hpp"
@@ -68,63 +70,6 @@ auto BlockchainPeerManager(
 
 namespace opentxs::blockchain::client::implementation
 {
-const std::map<Type, std::uint16_t> PeerManager::default_port_map_{
-    {Type::Unknown, 0},
-    {Type::Bitcoin, 8333},
-    {Type::Bitcoin_testnet3, 18333},
-    {Type::BitcoinCash, 8333},
-    {Type::BitcoinCash_testnet3, 18333},
-    {Type::Ethereum_frontier, 30303},
-    {Type::Ethereum_ropsten, 30303},
-};
-const std::map<Type, std::vector<std::string>> PeerManager::dns_seeds_{
-    {Type::Bitcoin,
-     {
-         "seed.bitcoin.sipa.be",
-         "dnsseed.bluematt.me",
-         "dnsseed.bitcoin.dashjr.org",
-         "seed.bitcoinstats.com",
-         "seed.bitcoin.jonasschnelli.ch",
-         "seed.btc.petertodd.org",
-         "seed.bitcoin.sprovoost.nl",
-         "dnsseed.emzy.de",
-     }},
-    {Type::Bitcoin_testnet3,
-     {
-         "testnet-seed.bitcoin.jonasschnelli.ch",
-         "seed.tbtc.petertodd.org",
-         "seed.testnet.bitcoin.sprovoost.nl",
-         "testnet-seed.bluematt.me",
-         "testnet-seed.bitcoin.schildbach.de",
-     }},
-    {Type::BitcoinCash,
-     {
-         "seed.bitcoinabc.org",
-         "seed-abc.bitcoinforks.org",
-         "btccash-seeder.bitcoinunlimited.info",
-         "seed.deadalnix.me",
-         "seed.bchd.cash",
-         "dnsseed.electroncash.de",
-     }},
-    {Type::BitcoinCash_testnet3,
-     {
-         "testnet-seed.bitcoinabc.org",
-         "testnet-seed-abc.bitcoinforks.org",
-         "testnet-seed.bitprim.org",
-         "testnet-seed.deadalnix.me",
-         "testnet-seed.bchd.cash",
-     }},
-};
-const std::map<Type, p2p::Protocol> PeerManager::protocol_map_{
-    {Type::Unknown, p2p::Protocol::bitcoin},
-    {Type::Bitcoin, p2p::Protocol::bitcoin},
-    {Type::Bitcoin_testnet3, p2p::Protocol::bitcoin},
-    {Type::BitcoinCash, p2p::Protocol::bitcoin},
-    {Type::BitcoinCash_testnet3, p2p::Protocol::bitcoin},
-    {Type::Ethereum_frontier, p2p::Protocol::ethereum},
-    {Type::Ethereum_ropsten, p2p::Protocol::ethereum},
-};
-
 PeerManager::PeerManager(
     const api::client::Manager& api,
     const internal::Network& network,
@@ -216,12 +161,13 @@ PeerManager::Peers::Peers(
     , count_()
     , connected_()
 {
+    const auto& data = params::Data::chains_.at(chain_);
     database_.AddOrUpdate(Endpoint{factory::BlockchainAddress(
         api_,
-        protocol_map_.at(chain_),
+        data.p2p_protocol_,
         p2p::Network::ipv4,
         default_peer_,
-        default_port_map_.at(chain_),
+        data.default_port_,
         chain_,
         Time{},
         {})});
@@ -358,12 +304,14 @@ auto PeerManager::Peers::get_default_peer() const noexcept -> Endpoint
 {
     if (localhost_peer_.get() == default_peer_) { return {}; }
 
+    const auto& data = params::Data::chains_.at(chain_);
+
     return Endpoint{factory::BlockchainAddress(
         api_,
-        protocol_map_.at(chain_),
+        data.p2p_protocol_,
         p2p::Network::ipv4,
         default_peer_,
-        default_port_map_.at(chain_),
+        data.default_port_,
         chain_,
         Time{},
         {})};
@@ -372,7 +320,8 @@ auto PeerManager::Peers::get_default_peer() const noexcept -> Endpoint
 auto PeerManager::Peers::get_dns_peer() const noexcept -> Endpoint
 {
     try {
-        const auto& dns = dns_seeds_.at(chain_);
+        const auto& data = params::Data::chains_.at(chain_);
+        const auto& dns = data.dns_seeds_;
         auto seeds = std::vector<std::string>{};
         const auto count = std::size_t{1};
         std::sample(
@@ -390,7 +339,7 @@ auto PeerManager::Peers::get_dns_peer() const noexcept -> Endpoint
         }
 
         const auto& seed = *seeds.cbegin();
-        const auto port = default_port_map_.at(chain_);
+        const auto port = data.default_port_;
         LogVerbose(OT_METHOD)(__FUNCTION__)(": Using DNS seed: ")(seed).Flush();
         const auto results = resolver_.resolve(
             seed, std::to_string(port), Resolver::query::numeric_service);
@@ -406,7 +355,7 @@ auto PeerManager::Peers::get_dns_peer() const noexcept -> Endpoint
                 const auto bytes = address.to_v4().to_bytes();
                 output = factory::BlockchainAddress(
                     api_,
-                    protocol_map_.at(chain_),
+                    data.p2p_protocol_,
                     p2p::Network::ipv4,
                     api_.Factory().Data(ReadView{
                         reinterpret_cast<const char*>(bytes.data()),
@@ -419,7 +368,7 @@ auto PeerManager::Peers::get_dns_peer() const noexcept -> Endpoint
                 const auto bytes = address.to_v6().to_bytes();
                 output = factory::BlockchainAddress(
                     api_,
-                    protocol_map_.at(chain_),
+                    data.p2p_protocol_,
                     p2p::Network::ipv6,
                     api_.Factory().Data(ReadView{
                         reinterpret_cast<const char*>(bytes.data()),
@@ -460,7 +409,7 @@ auto PeerManager::Peers::get_fallback_peer(
 
 auto PeerManager::Peers::get_peer() const noexcept -> Endpoint
 {
-    const auto protocol = protocol_map_.at(chain_);
+    const auto protocol = params::Data::chains_.at(chain_).p2p_protocol_;
     auto pAddress = get_default_peer();
 
     if (pAddress && is_not_connected(*pAddress)) {
