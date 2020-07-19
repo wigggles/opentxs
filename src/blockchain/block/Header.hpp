@@ -70,7 +70,7 @@ protected:
     const OTData pow_;
     const OTData parent_hash_;
 
-    static auto minimum_work() -> OTWork;
+    static auto minimum_work(const blockchain::Type chain) -> OTWork;
 
     Header(
         const api::Core& api,

@@ -130,7 +130,9 @@ private:
     static auto calculate_pow(
         const api::Core& api,
         const SerializedType& serialized) -> block::pHash;
-    static auto calculate_work(const std::int32_t nbits) -> OTWork;
+    static auto calculate_work(
+        const blockchain::Type chain,
+        const std::int32_t nbits) -> OTWork;
     static auto preimage(const SerializedType& in) -> BitcoinFormat;
 
     Header() = delete;

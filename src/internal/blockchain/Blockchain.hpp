@@ -247,7 +247,8 @@ OPENTXS_EXPORT auto NumericHash(const blockchain::block::Hash& hash) noexcept
 OPENTXS_EXPORT auto NumericHashNBits(const std::int32_t nBits) noexcept
     -> std::unique_ptr<blockchain::NumericHash>;
 OPENTXS_EXPORT auto Work(const std::string& hex) -> blockchain::Work*;
-OPENTXS_EXPORT auto Work(const blockchain::NumericHash& target)
-    -> blockchain::Work*;
+OPENTXS_EXPORT auto Work(
+    const blockchain::Type chain,
+    const blockchain::NumericHash& target) -> blockchain::Work*;
 #endif  // OT_BLOCKCHAIN
 }  // namespace opentxs::factory

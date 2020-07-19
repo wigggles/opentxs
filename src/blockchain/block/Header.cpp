@@ -160,7 +160,7 @@ Header::Header(
           (0 == height) ? Status::Checkpoint : Status::Normal,
           Status::Normal,
           work,
-          minimum_work())
+          minimum_work(type))
 {
 }
 
@@ -250,12 +250,12 @@ auto Header::IsBlacklisted() const noexcept -> bool
 
 auto Header::LocalState() const noexcept -> Header::Status { return status_; }
 
-auto Header::minimum_work() -> OTWork
+auto Header::minimum_work(const blockchain::Type chain) -> OTWork
 {
     const auto maxTarget =
-        OTNumericHash{factory::NumericHashNBits(NumericHash::MaxTarget)};
+        OTNumericHash{factory::NumericHashNBits(NumericHash::MaxTarget(chain))};
 
-    return OTWork{factory::Work(maxTarget)};
+    return OTWork{factory::Work(chain, maxTarget)};
 }
 
 auto Header::NumericHash() const noexcept -> OTNumericHash

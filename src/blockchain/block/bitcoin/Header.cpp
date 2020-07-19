@@ -139,7 +139,7 @@ Header::Header(
           ((client::HeaderOracle::GenesisBlockHash(chain) == hash)
                ? 0
                : make_blank<block::Height>::value(api)),
-          calculate_work(nbits))
+          calculate_work(chain, nbits))
     , subversion_(subversion)
     , block_version_(version)
     , merkle_root_(merkle)
@@ -157,12 +157,12 @@ Header::Header(
     const block::Hash& parentHash,
     const block::Height height) noexcept
     : bitcoin::Header()
-    , ot_super(api, chain, hash, pow, parentHash, height, minimum_work())
+    , ot_super(api, chain, hash, pow, parentHash, height, minimum_work(chain))
     , subversion_(subversion_default_)
     , block_version_(0)
     , merkle_root_(hash)
     , timestamp_(make_blank<Time>::value(api))
-    , nbits_(NumericHash::MaxTarget)
+    , nbits_(NumericHash::MaxTarget(chain))
     , nonce_(0)
 {
     const_cast<OTData&>(hash_) = calculate_hash(api, Serialize());
@@ -297,11 +297,13 @@ auto Header::calculate_pow(
     }
 }
 
-auto Header::calculate_work(const std::int32_t nbits) -> OTWork
+auto Header::calculate_work(
+    const blockchain::Type chain,
+    const std::int32_t nbits) -> OTWork
 {
     const auto hash = OTNumericHash{factory::NumericHashNBits(nbits)};
 
-    return OTWork{factory::Work(hash)};
+    return OTWork{factory::Work(chain, hash)};
 }
 
 auto Header::clone() const noexcept -> std::unique_ptr<block::Header>
