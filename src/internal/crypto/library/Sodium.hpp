@@ -12,6 +12,7 @@
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 #include "opentxs/crypto/library/HashingProvider.hpp"
 #include "opentxs/crypto/library/SymmetricProvider.hpp"
+#include "internal/crypto/library/Scrypt.hpp"
 
 namespace opentxs::crypto
 {
@@ -22,7 +23,8 @@ class Sodium : virtual public api::crypto::Util
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
     ,
                virtual public HashingProvider,
-               virtual public SymmetricProvider
+               virtual public SymmetricProvider,
+               virtual public Scrypt
 {
 public:
     ~Sodium() override = default;

@@ -32,6 +32,7 @@ namespace crypto
 class HashingProvider;
 class Pbkdf2;
 class Ripemd160;
+class Scrypt;
 }  // namespace crypto
 
 namespace network
@@ -95,13 +96,22 @@ public:
         const proto::HashType hashType,
         const std::size_t bytes,
         Data& output) const noexcept -> bool final;
+    auto Scrypt(
+        const ReadView input,
+        const ReadView salt,
+        const std::uint64_t N,
+        const std::uint32_t r,
+        const std::uint32_t p,
+        const std::size_t bytes,
+        AllocateOutput writer) const noexcept -> bool final;
 
     Hash(
         const api::crypto::Encode& encode,
         const opentxs::crypto::HashingProvider& ssl,
         const opentxs::crypto::HashingProvider& sodium,
         const opentxs::crypto::Pbkdf2& pbkdf2,
-        const opentxs::crypto::Ripemd160& ripe) noexcept;
+        const opentxs::crypto::Ripemd160& ripe,
+        const opentxs::crypto::Scrypt& scrypt) noexcept;
 
     ~Hash() = default;
 
@@ -113,6 +123,7 @@ private:
     const opentxs::crypto::HashingProvider& sodium_;
     const opentxs::crypto::Pbkdf2& pbkdf2_;
     const opentxs::crypto::Ripemd160& ripe_;
+    const opentxs::crypto::Scrypt& scrypt_;
 
     static auto allocate(
         const proto::HashType hashType,

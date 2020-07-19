@@ -248,6 +248,61 @@ auto Sodium::Encrypt(
     return result;
 }
 
+auto Sodium::Generate(
+    const ReadView input,
+    const ReadView salt,
+    const std::uint64_t N,
+    const std::uint32_t r,
+    const std::uint32_t p,
+    const std::size_t bytes,
+    AllocateOutput writer) const noexcept -> bool
+{
+    if (false == bool(writer)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid writer").Flush();
+
+        return false;
+    }
+
+    if (bytes < crypto_pwhash_scryptsalsa208sha256_BYTES_MIN) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Too few bytes requested: ")(
+            bytes)(" vs minimum: ")(
+            crypto_pwhash_scryptsalsa208sha256_BYTES_MIN)
+            .Flush();
+
+        return false;
+    }
+
+    if (bytes > crypto_pwhash_scryptsalsa208sha256_BYTES_MAX) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Too many bytes requested: ")(
+            bytes)(" vs maximum: ")(
+            crypto_pwhash_scryptsalsa208sha256_BYTES_MAX)
+            .Flush();
+
+        return false;
+    }
+
+    auto output = writer(bytes);
+
+    if (false == output.valid(bytes)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to allocated requested ")(
+            bytes)(" bytes")
+            .Flush();
+
+        return false;
+    }
+
+    return 0 == ::crypto_pwhash_scryptsalsa208sha256_ll(
+                    reinterpret_cast<const std::uint8_t*>(input.data()),
+                    input.size(),
+                    reinterpret_cast<const std::uint8_t*>(salt.data()),
+                    salt.size(),
+                    N,
+                    r,
+                    p,
+                    output.as<std::uint8_t>(),
+                    output.size());
+}
+
 auto Sodium::HMAC(
     const proto::HashType hashType,
     const std::uint8_t* input,

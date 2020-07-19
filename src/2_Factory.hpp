@@ -128,6 +128,7 @@ namespace crypto
 {
 class Pbkdf2;
 class Ripemd160;
+class Scrypt;
 
 namespace implementation
 {
@@ -526,7 +527,8 @@ public:
         const crypto::HashingProvider& ssl,
         const crypto::HashingProvider& sodium,
         const crypto::Pbkdf2& pbkdf2,
-        const crypto::Ripemd160& ripe) noexcept
+        const crypto::Ripemd160& ripe,
+        const crypto::Scrypt& scrypt) noexcept
         -> std::unique_ptr<api::crypto::Hash>;
     static auto Keypair() noexcept -> std::unique_ptr<crypto::key::Keypair>;
     static auto Keypair(

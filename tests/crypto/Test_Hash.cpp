@@ -10,6 +10,8 @@
 #include <iosfwd>
 #include <string>
 #include <tuple>
+#include <type_traits>
+#include <utility>
 #include <vector>
 
 #include "OTTestEnvironment.hpp"  // IWYU pragma: keep
@@ -33,10 +35,21 @@ public:
         tuple<std::string, std::string, std::size_t, std::size_t, std::string>;
     using SiphashVector =
         std::tuple<int, int, std::string, std::string, std::uint64_t>;
+    // input, salt, N, r, p, size, expected hex
+    using ScryptVector = std::tuple<
+        std::string,
+        std::string,
+        std::uint64_t,
+        std::uint32_t,
+        std::uint32_t,
+        std::size_t,
+        std::string>;
 
     static const std::vector<HMACVector> hmac_sha2_;
     static const std::vector<MurmurVector> murmur_;
     static const std::vector<PbkdfVector> pbkdf_;
+    static const std::vector<ScryptVector> scrypt_rfc7914_;
+    static const std::vector<ScryptVector> scrypt_litecoin_;
 
     const ot::api::Crypto& crypto_;
 
@@ -119,6 +132,55 @@ const std::vector<Test_Hash::PbkdfVector> Test_Hash::pbkdf_{
      "0x3d2eec4fe41c849b80c8d83662c0e44a8b291a964cf2f07038"},
 };
 
+// https://tools.ietf.org/html/rfc7914
+const std::vector<Test_Hash::ScryptVector> Test_Hash::scrypt_rfc7914_{
+    {"",
+     "",
+     16,
+     1,
+     1,
+     64,
+     "77d6576238657b203b19ca42c18a0497f16b4844e3074ae8dfdffa3fede21442fcd0069de"
+     "d0948f8326a753a0fc81f17e8d3e0fb2e0d3628cf35e20c38d18906"},
+    {"password",
+     "NaCl",
+     1024,
+     8,
+     16,
+     64,
+     "fdbabe1c9d3472007856e7190d01e9fe7c6ad7cbc8237830e77376634b3731622eaf30d92"
+     "e22a3886ff109279d9830dac727afb94a83ee6d8360cbdfa2cc0640"},
+    {"pleaseletmein",
+     "SodiumChloride",
+     16384,
+     8,
+     1,
+     64,
+     "7023bdcb3afd7348461c06cd81fd38ebfda8fbba904f8e3ea9b543f6545da1f2d54329556"
+     "13f0fcf62d49705242a9af9e61e85dc0d651e40dfcf017b45575887"},
+    {"pleaseletmein",
+     "SodiumChloride",
+     1048576,
+     8,
+     1,
+     64,
+     "2101cb9b6a511aaeaddbbe09cf70f881ec568d574a2ffd4dabe5ee9820adaa478e56fd8f4"
+     "ba5d09ffa1c6d927c40f4c337304049e8a952fbcbf45c6fa77a41a4"},
+};
+
+// https://www.litecoin.info/index.php/Block_hashing_algorithm
+const std::vector<Test_Hash::ScryptVector> Test_Hash::scrypt_litecoin_{
+    {"01000000ae178934851bfa0e83ccb6a3fc4bfddff3641e104b6c4680c31509074e699be2b"
+     "d672d8d2199ef37a59678f92443083e3b85edef8b45c71759371f823bab59a97126614f44"
+     "d5001d45920180",
+     "",
+     1024,
+     1,
+     1,
+     32,
+     "01796dae1f78a72dfb09356db6f027cd884ba0201e6365b72aa54b3b00000000"},
+};
+
 TEST_F(Test_Hash, MurmurHash3)
 {
     for (const auto& [input, seed, expected] : murmur_) {
@@ -166,6 +228,43 @@ TEST_F(Test_Hash, HMAC_SHA2)
 
         EXPECT_EQ(output256, expected256);
         EXPECT_EQ(output512, expected512);
+    }
+}
+
+TEST_F(Test_Hash, scrypt_rfc7914)
+{
+    for (const auto& [input, salt, N, r, p, size, hex] : scrypt_rfc7914_) {
+        const auto expected = ot::Data::Factory(hex, ot::Data::Mode::Hex);
+        auto hash = ot::Data::Factory();
+        const auto success = crypto_.Hash().Scrypt(
+            input, salt, N, r, p, size, hash->WriteInto());
+
+        EXPECT_TRUE(success);
+        EXPECT_EQ(hash, expected);
+    }
+}
+
+TEST_F(Test_Hash, scrypt_litecoin)
+{
+    for (const auto& [input, salt, N, r, p, size, hex] : scrypt_litecoin_) {
+        const auto expected = ot::Data::Factory(hex, ot::Data::Mode::Hex);
+        const auto preimage = ot::Data::Factory(input, ot::Data::Mode::Hex);
+        auto hash = ot::Data::Factory();
+
+        ASSERT_EQ(preimage->size(), 80);
+        ASSERT_EQ(expected->size(), 32);
+
+        const auto success = crypto_.Hash().Scrypt(
+            preimage->Bytes(),
+            preimage->Bytes(),
+            N,
+            r,
+            p,
+            size,
+            hash->WriteInto());
+
+        EXPECT_TRUE(success);
+        EXPECT_EQ(hash, expected);
     }
 }
 }  // namespace

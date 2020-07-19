@@ -70,8 +70,13 @@ Crypto::Crypto(const api::Settings& settings)
 #endif  // OT_CRYPTO_USING_LIBSECP256K1
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
     , encode_(opentxs::Factory::Encode(*this))
-    , hash_(
-          opentxs::Factory::Hash(*encode_, *ssl_, *sodium_, *ssl_, ripemd160_))
+    , hash_(opentxs::Factory::Hash(
+          *encode_,
+          *ssl_,
+          *sodium_,
+          *ssl_,
+          ripemd160_,
+          *sodium_))
 {
     OT_ASSERT(bip32_p_)
     OT_ASSERT(sodium_)

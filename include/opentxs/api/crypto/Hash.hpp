@@ -73,6 +73,14 @@ public:
         const proto::HashType hashType,
         const std::size_t bytes,
         Data& output) const noexcept = 0;
+    OPENTXS_EXPORT virtual auto Scrypt(
+        const ReadView input,
+        const ReadView salt,
+        const std::uint64_t N,
+        const std::uint32_t r,
+        const std::uint32_t p,
+        const std::size_t bytes,
+        AllocateOutput writer) const noexcept -> bool = 0;
 
     OPENTXS_EXPORT virtual ~Hash() = default;
 
