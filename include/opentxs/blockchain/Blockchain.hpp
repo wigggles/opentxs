@@ -40,6 +40,11 @@ OPENTXS_EXPORT auto P2PMessageHash(
     const Type chain,
     const ReadView input,
     const AllocateOutput output) noexcept -> bool;
+OPENTXS_EXPORT auto ProofOfWorkHash(
+    const api::Core& api,
+    const Type chain,
+    const ReadView input,
+    const AllocateOutput output) noexcept -> bool;
 OPENTXS_EXPORT auto PubkeyHash(
     const api::Core& api,
     const Type chain,

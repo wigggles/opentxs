@@ -84,6 +84,19 @@ auto P2PMessageHash(
     }
 }
 
+auto ProofOfWorkHash(
+    const api::Core& api,
+    const Type chain,
+    const ReadView input,
+    const AllocateOutput output) noexcept -> bool
+{
+    switch (chain) {
+        default: {
+            return BlockHash(api, chain, input, output);
+        }
+    }
+}
+
 auto PubkeyHash(
     const api::Core& api,
     const Type chain,

@@ -99,6 +99,7 @@ Header::Header(
     const VersionNumber version,
     const blockchain::Type type,
     const block::Hash& hash,
+    const block::Hash& pow,
     const block::Hash& parentHash,
     const block::Height height,
     const Status status,
@@ -107,6 +108,7 @@ Header::Header(
     const blockchain::Work& inheritWork) noexcept
     : api_(api)
     , hash_(hash)
+    , pow_(pow)
     , parent_hash_(parentHash)
     , version_(version)
     , type_(type)
@@ -121,6 +123,7 @@ Header::Header(
 Header::Header(
     const api::Core& api,
     const block::Hash& hash,
+    const block::Hash& pow,
     const block::Hash& parentHash,
     const SerializedType& serialized) noexcept
     : Header(
@@ -128,6 +131,7 @@ Header::Header(
           serialized.version(),
           static_cast<blockchain::Type>(serialized.type()),
           hash,
+          pow,
           parentHash,
           serialized.local().height(),
           static_cast<Status>(serialized.local().status()),
@@ -141,6 +145,7 @@ Header::Header(
     const api::Core& api,
     const blockchain::Type type,
     const block::Hash& hash,
+    const block::Hash& pow,
     const block::Hash& parentHash,
     const block::Height height,
     const blockchain::Work& work) noexcept
@@ -149,6 +154,7 @@ Header::Header(
           default_version_,
           type,
           hash,
+          pow,
           parentHash,
           height,
           (0 == height) ? Status::Checkpoint : Status::Normal,
@@ -164,6 +170,7 @@ Header::Header(const Header& rhs) noexcept
           rhs.default_version_,
           rhs.type_,
           rhs.hash_,
+          rhs.pow_,
           rhs.parent_hash_,
           rhs.height_,
           rhs.status_,
@@ -253,7 +260,7 @@ auto Header::minimum_work() -> OTWork
 
 auto Header::NumericHash() const noexcept -> OTNumericHash
 {
-    return OTNumericHash{factory::NumericHash(hash_)};
+    return OTNumericHash{factory::NumericHash(pow_)};
 }
 
 auto Header::ParentHash() const noexcept -> const block::Hash&

@@ -67,6 +67,7 @@ public:
 protected:
     const api::Core& api_;
     const OTData hash_;
+    const OTData pow_;
     const OTData parent_hash_;
 
     static auto minimum_work() -> OTWork;
@@ -75,12 +76,14 @@ protected:
         const api::Core& api,
         const blockchain::Type type,
         const block::Hash& hash,
+        const block::Hash& pow,
         const block::Hash& parentHash,
         const block::Height height,
         const blockchain::Work& work) noexcept;
     Header(
         const api::Core& api,
         const block::Hash& hash,
+        const block::Hash& pow,
         const block::Hash& parentHash,
         const SerializedType& serialized) noexcept;
     Header(const Header& rhs) noexcept;
@@ -102,6 +105,7 @@ private:
         const VersionNumber version,
         const blockchain::Type type,
         const block::Hash& hash,
+        const block::Hash& pow,
         const block::Hash& parentHash,
         const block::Height height,
         const Status status,

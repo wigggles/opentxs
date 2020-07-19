@@ -201,7 +201,7 @@ public:
     OPENTXS_EXPORT virtual std::unique_ptr<blockchain::block::Header>
     BlockHeader(const blockchain::Type type, const Data& raw) const = 0;
     OPENTXS_EXPORT virtual std::unique_ptr<blockchain::block::Header>
-    BlockHeader(
+    BlockHeaderOnlyForUnitTests(
         const blockchain::Type type,
         const blockchain::block::Hash& hash,
         const blockchain::block::Hash& parent,

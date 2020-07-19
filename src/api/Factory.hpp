@@ -280,7 +280,7 @@ public:
     {
         return {};
     }
-    auto BlockHeader(
+    auto BlockHeaderOnlyForUnitTests(
         const blockchain::Type type,
         const blockchain::block::Hash& hash,
         const blockchain::block::Hash& parent,

@@ -104,7 +104,7 @@ auto Factory::BlockHeader(
     }
 }
 
-auto Factory::BlockHeader(
+auto Factory::BlockHeaderOnlyForUnitTests(
     const opentxs::blockchain::Type type,
     const opentxs::blockchain::block::Hash& hash,
     const opentxs::blockchain::block::Hash& parent,
