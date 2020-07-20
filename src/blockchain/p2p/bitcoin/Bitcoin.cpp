@@ -12,9 +12,11 @@
 #include <cstring>
 #include <iterator>
 #include <memory>
+#include <mutex>
 #include <utility>
 #include <vector>
 
+#include "internal/blockchain/Params.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
@@ -22,77 +24,6 @@
 
 namespace opentxs::blockchain::p2p::bitcoin
 {
-const std::map<blockchain::Type, std::map<bitcoin::Service, p2p::Service>>
-    service_bit_map_{
-        {blockchain::Type::Bitcoin,
-         {
-             {bitcoin::Service::None, p2p::Service::None},
-             {bitcoin::Service::Bit1, p2p::Service::Network},
-             {bitcoin::Service::Bit2, p2p::Service::UTXO},
-             {bitcoin::Service::Bit3, p2p::Service::Bloom},
-             {bitcoin::Service::Bit4, p2p::Service::Witness},
-             {bitcoin::Service::Bit5, p2p::Service::XThin},
-             {bitcoin::Service::Bit6, p2p::Service::BitcoinCash},
-             {bitcoin::Service::Bit7, p2p::Service::CompactFilters},
-             {bitcoin::Service::Bit8, p2p::Service::Segwit2X},
-             {bitcoin::Service::Bit11, p2p::Service::Limited},
-         }},
-        {blockchain::Type::Bitcoin_testnet3,
-         {
-             {bitcoin::Service::None, p2p::Service::None},
-             {bitcoin::Service::Bit1, p2p::Service::Network},
-             {bitcoin::Service::Bit2, p2p::Service::UTXO},
-             {bitcoin::Service::Bit3, p2p::Service::Bloom},
-             {bitcoin::Service::Bit4, p2p::Service::Witness},
-             {bitcoin::Service::Bit5, p2p::Service::XThin},
-             {bitcoin::Service::Bit6, p2p::Service::BitcoinCash},
-             {bitcoin::Service::Bit7, p2p::Service::CompactFilters},
-             {bitcoin::Service::Bit8, p2p::Service::Segwit2X},
-             {bitcoin::Service::Bit11, p2p::Service::Limited},
-         }},
-        {blockchain::Type::BitcoinCash,
-         {
-             {bitcoin::Service::None, p2p::Service::None},
-             {bitcoin::Service::Bit1, p2p::Service::Network},
-             {bitcoin::Service::Bit2, p2p::Service::UTXO},
-             {bitcoin::Service::Bit3, p2p::Service::Bloom},
-             {bitcoin::Service::Bit4, p2p::Service::Witness},
-             {bitcoin::Service::Bit5, p2p::Service::XThin},
-             {bitcoin::Service::Bit6, p2p::Service::BitcoinCash},
-             {bitcoin::Service::Bit7, p2p::Service::Graphene},
-             {bitcoin::Service::Bit8, p2p::Service::WeakBlocks},
-             {bitcoin::Service::Bit9, p2p::Service::CompactFilters},
-             {bitcoin::Service::Bit10, p2p::Service::XThinner},
-             {bitcoin::Service::Bit11, p2p::Service::Limited},
-             {bitcoin::Service::Bit25, p2p::Service::Avalanche},
-         }},
-        {blockchain::Type::BitcoinCash_testnet3,
-         {
-             {bitcoin::Service::None, p2p::Service::None},
-             {bitcoin::Service::Bit1, p2p::Service::Network},
-             {bitcoin::Service::Bit2, p2p::Service::UTXO},
-             {bitcoin::Service::Bit3, p2p::Service::Bloom},
-             {bitcoin::Service::Bit4, p2p::Service::Witness},
-             {bitcoin::Service::Bit5, p2p::Service::XThin},
-             {bitcoin::Service::Bit6, p2p::Service::BitcoinCash},
-             {bitcoin::Service::Bit7, p2p::Service::Graphene},
-             {bitcoin::Service::Bit8, p2p::Service::WeakBlocks},
-             {bitcoin::Service::Bit9, p2p::Service::CompactFilters},
-             {bitcoin::Service::Bit10, p2p::Service::XThinner},
-             {bitcoin::Service::Bit11, p2p::Service::Limited},
-             {bitcoin::Service::Bit25, p2p::Service::Avalanche},
-         }},
-    };
-const std::map<blockchain::Type, std::map<p2p::Service, bitcoin::Service>>
-    service_bit_reverse_map_{reverse_nested_map(service_bit_map_)};
-
-const MagicMap network_map_{
-    {blockchain::Type::Bitcoin, Magic::Bitcoin},
-    {blockchain::Type::Bitcoin_testnet3, Magic::BTCTestnet3},
-    {blockchain::Type::BitcoinCash, Magic::BitcoinCash},
-    {blockchain::Type::BitcoinCash_testnet3, Magic::BCHTestnet3},
-};
-const MagicReverseMap network_reverse_map_{reverse_map(network_map_)};
 const CommandMap command_map_{
     {Command::addr, "addr"},
     {Command::alert, "alert"},
@@ -132,12 +63,6 @@ const CommandMap command_map_{
     {Command::version, "version"},
 };
 const CommandReverseMap command_reverse_map_{reverse_map(command_map_)};
-const std::map<std::uint32_t, Magic> magic_map_{
-    {static_cast<std::uint32_t>(Magic::BTCTestnet3), Magic::BTCTestnet3},
-    {static_cast<std::uint32_t>(Magic::Bitcoin), Magic::Bitcoin},
-    {static_cast<std::uint32_t>(Magic::BitcoinCash), Magic::BitcoinCash},
-    {static_cast<std::uint32_t>(Magic::BCHTestnet3), Magic::BCHTestnet3},
-};
 
 const OTData AddressVersion::cjdns_prefix_{
     Data::Factory("0xfc", Data::Mode::Hex)};
@@ -268,33 +193,6 @@ auto GetCommand(const CommandField& bytes) noexcept -> Command
     }
 }
 
-auto GetMagic(const blockchain::Type type) noexcept -> Magic
-{
-    try {
-        return network_map_.at(type);
-    } catch (...) {
-        return Magic::Unknown;
-    }
-}
-
-auto GetMagic(const std::uint32_t magic) noexcept -> Magic
-{
-    try {
-        return magic_map_.at(magic);
-    } catch (...) {
-        return Magic::Unknown;
-    }
-}
-
-auto GetNetwork(const Magic magic) noexcept -> blockchain::Type
-{
-    try {
-        return network_reverse_map_.at(magic);
-    } catch (...) {
-        return blockchain::Type::Unknown;
-    }
-}
-
 auto GetServiceBytes(const std::set<bitcoin::Service>& services) noexcept
     -> BitVector8
 {
@@ -348,13 +246,40 @@ auto TranslateServices(
     [[maybe_unused]] const ProtocolVersion version,
     const std::set<p2p::Service>& input) noexcept -> std::set<bitcoin::Service>
 {
-    std::set<bitcoin::Service> output{};
+    using InnerMap = std::map<p2p::Service, bitcoin::Service>;
+    using Map = std::map<blockchain::Type, InnerMap>;
+
+    static std::mutex lock_{};
+    static auto cache = Map{};
+    auto it{cache.end()};
+
+    {
+        Lock lock(lock_);
+        it = cache.find(chain);
+
+        if (cache.end() == it) {
+            const auto& bits = params::Data::service_bits_.at(chain);
+            auto [it2, added] = cache.emplace(chain, InnerMap{});
+
+            OT_ASSERT(added);
+
+            for (const auto& [s, b] : bits) { it2->second.emplace(b, s); }
+
+            it = it2;
+        }
+    }
+
+    OT_ASSERT(cache.end() != it);
+
+    auto output = std::set<bitcoin::Service>{};
+    const auto& map = it->second;
+
     std::for_each(
         std::begin(input),
         std::end(input),
-        [&output, chain](const auto& in) -> void {
+        [&output, &map](const auto& in) -> void {
             try {
-                output.emplace(service_bit_reverse_map_.at(chain).at(in));
+                output.emplace(map.at(in));
             } catch (...) {
             }
         });
@@ -373,7 +298,7 @@ auto TranslateServices(
         std::end(input),
         [&output, chain](const auto& in) -> void {
             try {
-                output.emplace(service_bit_map_.at(chain).at(in));
+                output.emplace(params::Data::service_bits_.at(chain).at(in));
             } catch (...) {
             }
         });

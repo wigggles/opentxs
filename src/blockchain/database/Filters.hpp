@@ -117,11 +117,6 @@ public:
         const blockchain::Type chain) noexcept;
 
 private:
-    static const std::map<
-        blockchain::Type,
-        std::map<filter::Type, std::pair<std::string, std::string>>>
-        genesis_filters_;
-
     const api::client::Manager& api_;
     const Common& common_;
     const opentxs::storage::lmdb::LMDB& lmdb_;

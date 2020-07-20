@@ -132,14 +132,6 @@ enum class Command : int {
     version,
 };
 
-enum class Magic : std::uint32_t {
-    Unknown = 0,
-    BTCTestnet3 = 118034699,
-    Bitcoin = 3652501241,
-    BitcoinCash = 3908297187,
-    BCHTestnet3 = 4109624820,
-};
-
 enum class RejectCode : std::uint8_t {
     None = 0x00,
     DecodeFailed = 0x01,
@@ -242,17 +234,12 @@ struct AddressVersion {
     AddressVersion() noexcept;
 };
 
-using MagicMap = std::map<blockchain::Type, Magic>;
-using MagicReverseMap = std::map<Magic, blockchain::Type>;
 using CommandMap = std::map<Command, std::string>;
 using CommandReverseMap = std::map<std::string, Command>;
 
 auto BitcoinString(const std::string& in) noexcept -> OTData;
 auto CommandName(const Command command) noexcept -> std::string;
 auto GetCommand(const CommandField& bytes) noexcept -> Command;
-auto GetMagic(const blockchain::Type type) noexcept -> Magic;
-auto GetMagic(const std::uint32_t magic) noexcept -> Magic;
-auto GetNetwork(const Magic magic) noexcept -> blockchain::Type;
 OPENTXS_EXPORT auto GetServiceBytes(
     const std::set<bitcoin::Service>& services) noexcept -> BitVector8;
 OPENTXS_EXPORT auto GetServices(const BitVector8 data) noexcept
@@ -269,23 +256,6 @@ auto TranslateServices(
 
 auto convert_service_bit(BitVector8 value) noexcept -> bitcoin::Service;
 auto convert_service_bit(const bitcoin::Service value) noexcept -> BitVector8;
-template <typename OuterKey, typename InnerKey, typename InnerValue>
-auto reverse_nested_map(
-    const std::map<OuterKey, std::map<InnerKey, InnerValue>>& map) noexcept
-    -> std::map<OuterKey, std::map<InnerValue, InnerKey>>
-{
-    std::map<OuterKey, std::map<InnerValue, InnerKey>> output{};
-
-    for (const auto& [outerKey, innerMap] : map) {
-        auto& outputMap = output[outerKey];
-
-        for (const auto& [innerKey, innerValue] : innerMap) {
-            outputMap.emplace(innerValue, innerKey);
-        }
-    }
-
-    return output;
-}
 }  // namespace opentxs::blockchain::p2p::bitcoin
 
 namespace opentxs::factory

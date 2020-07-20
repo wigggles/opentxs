@@ -155,7 +155,9 @@ auto VerifyChecksum(
         case Type::Bitcoin:
         case Type::Bitcoin_testnet3:
         case Type::BitcoinCash:
-        case Type::BitcoinCash_testnet3: {
+        case Type::BitcoinCash_testnet3:
+        case Type::Litecoin:
+        case Type::Litecoin_testnet4: {
             if (0 == payload.size()) {
                 checksum = Data::Factory("0x5df6e0e2", Data::Mode::Hex);
             } else {
@@ -166,6 +168,9 @@ auto VerifyChecksum(
                     checksum->WriteInto());
             }
         } break;
+        case Type::Unknown:
+        case Type::Ethereum_frontier:
+        case Type::Ethereum_ropsten:
         default: {
             LogOutput(__FUNCTION__)(": Unsupported type").Flush();
         }

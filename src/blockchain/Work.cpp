@@ -15,6 +15,7 @@
 
 #include "internal/blockchain/Blockchain.hpp"
 #include "opentxs/Pimpl.hpp"
+#include "opentxs/Types.hpp"
 #include "opentxs/blockchain/NumericHash.hpp"
 #include "opentxs/blockchain/Work.hpp"
 #include "opentxs/core/Data.hpp"
@@ -51,7 +52,8 @@ auto Work(const std::string& hex) -> blockchain::Work*
     return new ReturnType(std::move(value));
 }
 
-auto Work(const blockchain::NumericHash& input) -> blockchain::Work*
+auto Work(const blockchain::Type chain, const blockchain::NumericHash& input)
+    -> blockchain::Work*
 {
     using ReturnType = blockchain::implementation::Work;
     using TargetType = mp::checked_cpp_int;
@@ -59,8 +61,8 @@ auto Work(const blockchain::NumericHash& input) -> blockchain::Work*
     ValueType value{};
 
     try {
-        const auto maxTarget =
-            factory::NumericHashNBits(blockchain::NumericHash::MaxTarget);
+        const auto maxTarget = factory::NumericHashNBits(
+            blockchain::NumericHash::MaxTarget(chain));
         const TargetType targetOne{maxTarget->Decimal()};
         const TargetType target{input.Decimal()};
         value = ValueType{targetOne} / ValueType{target};

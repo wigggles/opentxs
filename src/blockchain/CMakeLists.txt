@@ -15,6 +15,7 @@ set(
   BloomFilter.cpp
   GCS.cpp
   NumericHash.cpp
+  Params.cpp
   Work.cpp
 )
 
@@ -31,6 +32,7 @@ set(
   cxx-headers
   ${cxx-install-headers}
   "${opentxs_SOURCE_DIR}/src/internal/blockchain/Blockchain.hpp"
+  "${opentxs_SOURCE_DIR}/src/internal/blockchain/Params.hpp"
   GCS.hpp
   NumericHash.hpp
   Work.hpp

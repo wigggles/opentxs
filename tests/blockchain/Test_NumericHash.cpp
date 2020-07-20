@@ -15,6 +15,7 @@
 #include "internal/blockchain/Blockchain.hpp"
 #include "opentxs/OT.hpp"
 #include "opentxs/Pimpl.hpp"
+#include "opentxs/Types.hpp"
 #include "opentxs/api/Context.hpp"
 #include "opentxs/api/client/Manager.hpp"
 #include "opentxs/blockchain/NumericHash.hpp"
@@ -155,6 +156,10 @@ TEST_F(Test_NumericHash, nBits_5)
 
     EXPECT_EQ(decimal, number->Decimal());
     EXPECT_EQ(hex, number->asHex());
-    EXPECT_STREQ("1", ot::factory::Work(number)->Decimal().c_str());
+    EXPECT_STREQ(
+        "1",
+        ot::factory::Work(ot::blockchain::Type::Bitcoin, number)
+            ->Decimal()
+            .c_str());
 }
 }  // namespace

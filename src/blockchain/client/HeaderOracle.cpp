@@ -18,6 +18,7 @@
 
 #include "blockchain/client/UpdateTransaction.hpp"
 #include "internal/blockchain/Blockchain.hpp"
+#include "internal/blockchain/Params.hpp"
 #include "internal/core/Core.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/client/Manager.hpp"
@@ -47,65 +48,37 @@ auto HeaderOracle(
 
 namespace opentxs::blockchain::client
 {
-const std::map<Type, block::pHash> genesis_hashes_{
-    {Type::Bitcoin,
-     Data::Factory(
-         "0x6fe28c0ab6f1b372c1a6a246ae63f74f931e8365e15a089c68d6190000000000",
-         Data::Mode::Hex)},
-    {Type::Bitcoin_testnet3,
-     Data::Factory(
-         "0x43497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea330900000000",
-         Data::Mode::Hex)},
-    {Type::BitcoinCash,
-     Data::Factory(
-         "0x6fe28c0ab6f1b372c1a6a246ae63f74f931e8365e15a089c68d6190000000000",
-         Data::Mode::Hex)},
-    {Type::BitcoinCash_testnet3,
-     Data::Factory(
-         "0x43497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea330900000000",
-         Data::Mode::Hex)},
-    {Type::Ethereum_frontier,
-     Data::Factory(
-         "0xd4e56740f876aef8c010b86a40d5f56745a118d0906a34e69aec8c0db1cb8fa3",
-         Data::Mode::Hex)},
-    {Type::Ethereum_ropsten,
-     Data::Factory(
-         "0x41941023680923e0fe4d74a34bdac8141f2540e3ae90623718e47d66d1ca4a2d",
-         Data::Mode::Hex)},
-};
-
 auto HeaderOracle::GenesisBlockHash(const blockchain::Type type)
     -> const block::Hash&
 {
-    return genesis_hashes_.at(type);
+    static std::mutex lock_{};
+    static auto cache = std::map<blockchain::Type, block::pHash>{};
+
+    try {
+        Lock lock(lock_);
+        {
+            auto it = cache.find(type);
+
+            if (cache.end() != it) { return it->second; }
+        }
+
+        const auto& data = params::Data::chains_.at(type);
+        const auto [it, added] = cache.emplace(
+            type, Data::Factory(data.genesis_hash_hex_, Data::Mode::Hex));
+
+        return it->second;
+    } catch (...) {
+        LogOutput("opentxs::factory::")(__FUNCTION__)(
+            ": Genesis hash not found")
+            .Flush();
+
+        throw;
+    }
 }
 }  // namespace opentxs::blockchain::client
 
 namespace opentxs::blockchain::client::implementation
 {
-const HeaderOracle::CheckpointMap HeaderOracle::checkpoints_{
-    {blockchain::Type::Bitcoin,
-     {630000,
-      "6de9d737a62ea1c197000edb02c252089969dfd8ea4b02000000000000000000",
-      "1e2b96b120a73bacb0667279bd231bdb95b08be16b650d000000000000000000",
-      "63059e205633ebffb7d35e737611a6be5d1d3f904fa9c86a756afa7e0aee02f2"}},
-    {blockchain::Type::Bitcoin_testnet3,
-     {1740000,
-      "f758e6307382affd044c64e2bead2efdd2d9222bce9d232ae3fc000000000000",
-      "b7b063b8908b78d83c837c53bfa1222dc141fab18537d525f5f6000000000000",
-      "6ae92c333eafd91b2a995064f249fe558ea7569fdc723b5e008637362829c1e0"}},
-    {blockchain::Type::BitcoinCash,
-     {635259,
-      "f73075b2c598f49b3a19558c070b52d5a5d6c21fefdf33000000000000000000",
-      "1a78f5c89b05a56167066be9b0a36ac8f1781ed0472c30030000000000000000",
-      "15ceed5cc33ecfdda722164b81b43e4e95ba7e1d65eaf94f7c2e3707343bf4c5"}},
-    {blockchain::Type::BitcoinCash_testnet3,
-     {1378461,
-      "d715e9fab7bbdf301081eeadbe6e931db282cf6b92b1365f9b50f59900000000",
-      "24b33d026d36cbff3a693ea754a3be177dc5fb80966294cb643cf37000000000",
-      "ee4ac1f50b0fba7dd9d2c5145fb4dd6a7e66b516c08a9b505cad8c2da53263fa"}},
-};
-
 HeaderOracle::HeaderOracle(
     const api::client::Manager& api,
     [[maybe_unused]] const internal::Network& network,
@@ -573,13 +546,13 @@ auto HeaderOracle::evaluate_candidate(
 
 auto HeaderOracle::GetDefaultCheckpoint() const noexcept -> CheckpointData
 {
-    const auto& [height, block, previous, filter] = checkpoints_.at(chain_);
+    const auto& checkpoint = params::Data::chains_.at(chain_).checkpoint_;
 
     return CheckpointData{
-        height,
-        api_.Factory().Data(block, StringStyle::Hex),
-        api_.Factory().Data(previous, StringStyle::Hex),
-        api_.Factory().Data(filter, StringStyle::Hex)};
+        checkpoint.height_,
+        api_.Factory().Data(checkpoint.block_hash_, StringStyle::Hex),
+        api_.Factory().Data(checkpoint.previous_block_hash_, StringStyle::Hex),
+        api_.Factory().Data(checkpoint.filter_header_, StringStyle::Hex)};
 }
 
 auto HeaderOracle::GetCheckpoint() const noexcept -> block::Position

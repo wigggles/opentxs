@@ -11,6 +11,7 @@
 #include <string>
 
 #include "opentxs/Pimpl.hpp"
+#include "opentxs/Types.hpp"
 
 namespace opentxs
 {
@@ -42,7 +43,7 @@ namespace blockchain
 class NumericHash
 {
 public:
-    OPENTXS_EXPORT static const std::int32_t MaxTarget;
+    OPENTXS_EXPORT static std::int32_t MaxTarget(const Type chain) noexcept;
 
     OPENTXS_EXPORT virtual bool operator==(
         const blockchain::NumericHash& rhs) const noexcept = 0;

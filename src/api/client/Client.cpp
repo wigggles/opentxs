@@ -8,36 +8,17 @@
 #include "internal/api/client/Client.hpp"  // IWYU pragma: associated
 
 #include <map>
+#include <type_traits>
 
+#include "internal/blockchain/Params.hpp"
 #include "opentxs/protobuf/ContactEnums.pb.h"
-#include "util/Container.hpp"
 
 namespace opentxs
 {
-const std::map<opentxs::blockchain::Type, opentxs::proto::ContactItemType>
-    type_map_{
-        {opentxs::blockchain::Type::Unknown, opentxs::proto::CITEMTYPE_UNKNOWN},
-        {opentxs::blockchain::Type::Bitcoin, opentxs::proto::CITEMTYPE_BTC},
-        {opentxs::blockchain::Type::Bitcoin_testnet3,
-         opentxs::proto::CITEMTYPE_TNBTC},
-        {opentxs::blockchain::Type::BitcoinCash, opentxs::proto::CITEMTYPE_BCH},
-        {opentxs::blockchain::Type::BitcoinCash_testnet3,
-         opentxs::proto::CITEMTYPE_TNBCH},
-        {opentxs::blockchain::Type::Ethereum_frontier,
-         opentxs::proto::CITEMTYPE_ETH},
-        {opentxs::blockchain::Type::Ethereum_ropsten,
-         opentxs::proto::CITEMTYPE_ETHEREUM_ROPSTEN},
-        {opentxs::blockchain::Type::Litecoin, opentxs::proto::CITEMTYPE_LTC},
-        {opentxs::blockchain::Type::Litecoin_testnet4,
-         opentxs::proto::CITEMTYPE_TNLTC},
-    };
-const std::map<opentxs::proto::ContactItemType, opentxs::blockchain::Type>
-    type_reverse_map_{opentxs::reverse_map(type_map_)};
-
 auto Translate(const blockchain::Type type) noexcept -> proto::ContactItemType
 {
     try {
-        return type_map_.at(type);
+        return blockchain::params::Data::chains_.at(type).proto_;
     } catch (...) {
         return proto::CITEMTYPE_UNKNOWN;
     }
@@ -45,8 +26,23 @@ auto Translate(const blockchain::Type type) noexcept -> proto::ContactItemType
 
 auto Translate(const proto::ContactItemType type) noexcept -> blockchain::Type
 {
+    using Map =
+        std::map<opentxs::proto::ContactItemType, opentxs::blockchain::Type>;
+
+    static const auto build = []() -> auto
+    {
+        auto output = Map{};
+
+        for (const auto& [chain, data] : blockchain::params::Data::chains_) {
+            output.emplace(data.proto_, chain);
+        }
+
+        return output;
+    };
+    static const auto map{build()};
+
     try {
-        return type_reverse_map_.at(type);
+        return map.at(type);
     } catch (...) {
         return blockchain::Type::Unknown;
     }

@@ -101,17 +101,6 @@ private:
     };
 
     using Candidates = std::vector<Candidate>;
-    using BlockHashHex = std::string;
-    using PreviousBlockHashHex = std::string;
-    using FilterHeaderHex = std::string;
-    using CheckpointRawData = std::tuple<
-        block::Height,
-        BlockHashHex,
-        PreviousBlockHashHex,
-        FilterHeaderHex>;
-    using CheckpointMap = std::map<blockchain::Type, CheckpointRawData>;
-
-    static const CheckpointMap checkpoints_;
 
     const api::client::Manager& api_;
     const internal::HeaderDatabase& database_;

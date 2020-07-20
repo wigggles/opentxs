@@ -13,9 +13,12 @@
 #include <utility>
 
 #include "internal/blockchain/Blockchain.hpp"
+#include "internal/blockchain/Params.hpp"
 #include "internal/blockchain/block/Block.hpp"
 #include "internal/blockchain/block/bitcoin/Bitcoin.hpp"
 #include "opentxs/Pimpl.hpp"
+#include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/blockchain/NumericHash.hpp"
 #include "opentxs/blockchain/Work.hpp"
 #include "opentxs/blockchain/block/Header.hpp"
@@ -34,16 +37,22 @@ auto GenesisBlockHeader(
     const blockchain::Type type) noexcept
     -> std::unique_ptr<blockchain::block::Header>
 {
-    using ReturnType = blockchain::block::implementation::Header;
-
     switch (type) {
         case blockchain::Type::Bitcoin:
         case blockchain::Type::BitcoinCash:
         case blockchain::Type::Bitcoin_testnet3:
-        case blockchain::Type::BitcoinCash_testnet3: {
-            return factory::BitcoinBlockHeader(
-                api, type, ReturnType::genesis_blocks_.at(type)->Bytes());
+        case blockchain::Type::BitcoinCash_testnet3:
+        case opentxs::blockchain::Type::Litecoin:
+        case opentxs::blockchain::Type::Litecoin_testnet4: {
+            const auto& hex =
+                blockchain::params::Data::chains_.at(type).genesis_header_hex_;
+            const auto data = api.Factory().Data(hex, StringStyle::Hex);
+
+            return factory::BitcoinBlockHeader(api, type, data->Bytes());
         }
+        case opentxs::blockchain::Type::Unknown:
+        case opentxs::blockchain::Type::Ethereum_frontier:
+        case opentxs::blockchain::Type::Ethereum_ropsten:
         default: {
             LogOutput("opentxs::factory::")(__FUNCTION__)(
                 ": Unsupported type (")(static_cast<std::uint32_t>(type))(")")
@@ -67,38 +76,12 @@ auto BlankHash() noexcept -> pHash
 
 namespace opentxs::blockchain::block::implementation
 {
-const Header::GenesisBlockMap Header::genesis_blocks_{
-    {Type::Bitcoin,
-     Data::Factory(
-         "0x010000000000000000000000000000000000000000000000000000000000000000"
-         "0000003ba3edfd7a7b12b27ac72c3e67768f617fc81bc3888a51323a9fb8aa4b1e5e"
-         "4a29ab5f49ffff001d1dac2b7c",
-         Data::Mode::Hex)},
-    {Type::BitcoinCash,
-     Data::Factory(
-         "0x010000000000000000000000000000000000000000000000000000000000000000"
-         "0000003ba3edfd7a7b12b27ac72c3e67768f617fc81bc3888a51323a9fb8aa4b1e5e"
-         "4a29ab5f49ffff001d1dac2b7c",
-         Data::Mode::Hex)},
-    {Type::Bitcoin_testnet3,
-     Data::Factory(
-         "0x0100000000000000000000000000000000000000000000000000000000000000000"
-         "000003ba3edfd7a7b12b27ac72c3e67768f617fc81bc3888a51323a9fb8aa4b1e5e4a"
-         "dae5494dffff001d1aa4ae18",
-         Data::Mode::Hex)},
-    {Type::BitcoinCash_testnet3,
-     Data::Factory(
-         "0x0100000000000000000000000000000000000000000000000000000000000000000"
-         "000003ba3edfd7a7b12b27ac72c3e67768f617fc81bc3888a51323a9fb8aa4b1e5e4a"
-         "dae5494dffff001d1aa4ae18",
-         Data::Mode::Hex)},
-};
-
 Header::Header(
     const api::Core& api,
     const VersionNumber version,
     const blockchain::Type type,
     const block::Hash& hash,
+    const block::Hash& pow,
     const block::Hash& parentHash,
     const block::Height height,
     const Status status,
@@ -107,6 +90,7 @@ Header::Header(
     const blockchain::Work& inheritWork) noexcept
     : api_(api)
     , hash_(hash)
+    , pow_(pow)
     , parent_hash_(parentHash)
     , version_(version)
     , type_(type)
@@ -121,6 +105,7 @@ Header::Header(
 Header::Header(
     const api::Core& api,
     const block::Hash& hash,
+    const block::Hash& pow,
     const block::Hash& parentHash,
     const SerializedType& serialized) noexcept
     : Header(
@@ -128,6 +113,7 @@ Header::Header(
           serialized.version(),
           static_cast<blockchain::Type>(serialized.type()),
           hash,
+          pow,
           parentHash,
           serialized.local().height(),
           static_cast<Status>(serialized.local().status()),
@@ -141,6 +127,7 @@ Header::Header(
     const api::Core& api,
     const blockchain::Type type,
     const block::Hash& hash,
+    const block::Hash& pow,
     const block::Hash& parentHash,
     const block::Height height,
     const blockchain::Work& work) noexcept
@@ -149,12 +136,13 @@ Header::Header(
           default_version_,
           type,
           hash,
+          pow,
           parentHash,
           height,
           (0 == height) ? Status::Checkpoint : Status::Normal,
           Status::Normal,
           work,
-          minimum_work())
+          minimum_work(type))
 {
 }
 
@@ -164,6 +152,7 @@ Header::Header(const Header& rhs) noexcept
           rhs.default_version_,
           rhs.type_,
           rhs.hash_,
+          rhs.pow_,
           rhs.parent_hash_,
           rhs.height_,
           rhs.status_,
@@ -243,17 +232,17 @@ auto Header::IsBlacklisted() const noexcept -> bool
 
 auto Header::LocalState() const noexcept -> Header::Status { return status_; }
 
-auto Header::minimum_work() -> OTWork
+auto Header::minimum_work(const blockchain::Type chain) -> OTWork
 {
     const auto maxTarget =
-        OTNumericHash{factory::NumericHashNBits(NumericHash::MaxTarget)};
+        OTNumericHash{factory::NumericHashNBits(NumericHash::MaxTarget(chain))};
 
-    return OTWork{factory::Work(maxTarget)};
+    return OTWork{factory::Work(chain, maxTarget)};
 }
 
 auto Header::NumericHash() const noexcept -> OTNumericHash
 {
-    return OTNumericHash{factory::NumericHash(hash_)};
+    return OTNumericHash{factory::NumericHash(pow_)};
 }
 
 auto Header::ParentHash() const noexcept -> const block::Hash&

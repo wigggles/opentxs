@@ -182,8 +182,8 @@ public:
         const bb::Hash& parent)
     {
         const auto child = ot::Data::Factory(hash, ot::Data::Mode::Raw);
-        auto pHeader =
-            api_.Factory().BlockHeader(b::Type::Bitcoin, child, parent, -1);
+        auto pHeader = api_.Factory().BlockHeaderOnlyForUnitTests(
+            b::Type::Bitcoin, child, parent, -1);
 
         if (false == bool(pHeader)) { return false; }
 

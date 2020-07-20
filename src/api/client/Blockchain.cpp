@@ -1361,7 +1361,9 @@ auto Blockchain::Start(const Chain type, const std::string& seednode)
         case Chain::Bitcoin:
         case Chain::Bitcoin_testnet3:
         case Chain::BitcoinCash:
-        case Chain::BitcoinCash_testnet3: {
+        case Chain::BitcoinCash_testnet3:
+        case Chain::Litecoin:
+        case Chain::Litecoin_testnet4: {
             thread_pool_.Reset(type);
             auto [it, added] = networks_.emplace(
                 type,
@@ -1370,6 +1372,9 @@ auto Blockchain::Start(const Chain type, const std::string& seednode)
 
             return it->second->Connect();
         }
+        case Chain::Unknown:
+        case Chain::Ethereum_frontier:
+        case Chain::Ethereum_ropsten:
         default: {
         }
     }

@@ -11,6 +11,7 @@
 #include <string>
 #include <type_traits>
 
+#include "Helpers.hpp"
 #include "OTTestEnvironment.hpp"  // IWYU pragma: keep
 #include "internal/api/client/Client.hpp"
 #include "internal/blockchain/block/Block.hpp"
@@ -29,13 +30,6 @@
 #include "opentxs/protobuf/BitcoinBlockHeaderFields.pb.h"
 #include "opentxs/protobuf/BlockchainBlockHeader.pb.h"
 #include "opentxs/protobuf/BlockchainBlockLocalData.pb.h"
-
-#define BTC_GENESIS_HASH_NUMERIC                                               \
-    "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"
-#define BTC_GENESIS_HASH                                                       \
-    "0x6fe28c0ab6f1b372c1a6a246ae63f74f931e8365e15a089c68d6190000000000"
-#define BLANK_HASH                                                             \
-    "0x0000000000000000000000000000000000000000000000000000000000000000"
 
 namespace b = ot::blockchain;
 namespace bb = b::block;
@@ -57,25 +51,65 @@ public:
 
 TEST_F(Test_BlockHeader, init_opentxs) {}
 
-TEST_F(Test_BlockHeader, genesis_block_hash_oracle)
+TEST_F(Test_BlockHeader, btc_genesis_block_hash_oracle)
 {
     const auto expectedHash =
-        ot::Data::Factory(BTC_GENESIS_HASH, ot::Data::Mode::Hex);
+        ot::Data::Factory(btc_genesis_hash_, ot::Data::Mode::Hex);
     const auto& genesisHash =
         bc::HeaderOracle::GenesisBlockHash(b::Type::Bitcoin);
 
     EXPECT_EQ(expectedHash.get(), genesisHash);
 }
 
-TEST_F(Test_BlockHeader, genesis_block_header)
+TEST_F(Test_BlockHeader, ltc_genesis_block_hash_oracle)
+{
+    const auto expectedHash =
+        ot::Data::Factory(ltc_genesis_hash_, ot::Data::Mode::Hex);
+    const auto& genesisHash =
+        bc::HeaderOracle::GenesisBlockHash(b::Type::Litecoin);
+
+    EXPECT_EQ(expectedHash.get(), genesisHash);
+}
+
+TEST_F(Test_BlockHeader, btc_genesis_block_header)
 {
     const auto blankHash =
-        ot::Data::Factory(std::string(BLANK_HASH), ot::Data::Mode::Hex);
+        ot::Data::Factory(std::string(blank_hash_), ot::Data::Mode::Hex);
     const auto expectedHash =
-        ot::Data::Factory(BTC_GENESIS_HASH, ot::Data::Mode::Hex);
-    const std::string numericHash{BTC_GENESIS_HASH_NUMERIC};
+        ot::Data::Factory(btc_genesis_hash_, ot::Data::Mode::Hex);
+    const std::string numericHash{btc_genesis_hash_numeric_};
     std::unique_ptr<const bb::Header> pHeader{
         ot::factory::GenesisBlockHeader(api_, b::Type::Bitcoin)};
+
+    ASSERT_TRUE(pHeader);
+
+    const auto& header = *pHeader;
+
+    EXPECT_EQ(header.EffectiveState(), bb::Header::Status::Normal);
+    EXPECT_EQ(expectedHash.get(), header.Hash());
+    EXPECT_EQ(header.Height(), 0);
+    EXPECT_EQ(header.InheritedState(), bb::Header::Status::Normal);
+    EXPECT_FALSE(header.IsBlacklisted());
+    EXPECT_FALSE(header.IsDisconnected());
+    EXPECT_EQ(header.LocalState(), bb::Header::Status::Checkpoint);
+    EXPECT_EQ(numericHash, header.NumericHash()->asHex());
+    EXPECT_EQ(header.ParentHash(), blankHash.get());
+
+    const auto [height, hash] = header.Position();
+
+    EXPECT_EQ(header.Hash(), hash.get());
+    EXPECT_EQ(header.Height(), height);
+}
+
+TEST_F(Test_BlockHeader, ltc_genesis_block_header)
+{
+    const auto blankHash =
+        ot::Data::Factory(std::string(blank_hash_), ot::Data::Mode::Hex);
+    const auto expectedHash =
+        ot::Data::Factory(ltc_genesis_hash_, ot::Data::Mode::Hex);
+    const std::string numericHash{ltc_genesis_hash_numeric_};
+    std::unique_ptr<const bb::Header> pHeader{
+        ot::factory::GenesisBlockHeader(api_, b::Type::Litecoin)};
 
     ASSERT_TRUE(pHeader);
 
@@ -124,7 +158,7 @@ TEST_F(Test_BlockHeader, Serialize)
 TEST_F(Test_BlockHeader, Deserialize)
 {
     const auto expectedHash =
-        ot::Data::Factory(BTC_GENESIS_HASH, ot::Data::Mode::Hex);
+        ot::Data::Factory(btc_genesis_hash_, ot::Data::Mode::Hex);
     std::unique_ptr<const bb::Header> pHeader{
         ot::factory::GenesisBlockHeader(api_, b::Type::Bitcoin)};
 

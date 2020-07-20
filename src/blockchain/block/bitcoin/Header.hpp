@@ -69,6 +69,10 @@ public:
         const api::Core& api,
         const blockchain::Type chain,
         const ReadView serialized) -> block::pHash;
+    static auto calculate_pow(
+        const api::Core& api,
+        const blockchain::Type chain,
+        const ReadView serialized) -> block::pHash;
 
     auto clone() const noexcept -> std::unique_ptr<block::Header> final;
     auto Encode() const noexcept -> OTData final;
@@ -92,6 +96,7 @@ public:
         const blockchain::Type chain,
         const VersionNumber subversion,
         const block::Hash& hash,
+        const block::Hash& pow,
         const std::int32_t version,
         const block::Hash& previous,
         const block::Hash& merkle,
@@ -102,6 +107,7 @@ public:
         const api::Core& api,
         const blockchain::Type chain,
         const block::Hash& hash,
+        const block::Hash& pow,
         const block::Hash& parentHash,
         const block::Height height) noexcept;
     Header(const api::Core& api, const SerializedType& serialized) noexcept;
@@ -121,7 +127,13 @@ private:
     static auto calculate_hash(
         const api::Core& api,
         const SerializedType& serialized) -> block::pHash;
-    static auto calculate_work(const std::int32_t nbits) -> OTWork;
+    static auto calculate_pow(
+        const api::Core& api,
+        const SerializedType& serialized) -> block::pHash;
+    static auto calculate_work(
+        const blockchain::Type chain,
+        const std::int32_t nbits) -> OTWork;
+    static auto preimage(const SerializedType& in) -> BitcoinFormat;
 
     Header() = delete;
     Header(const Header& rhs) noexcept;

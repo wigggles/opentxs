@@ -15,6 +15,7 @@
 #include "2_Factory.hpp"
 #include "internal/crypto/library/Pbkdf2.hpp"
 #include "internal/crypto/library/Ripemd160.hpp"
+#include "internal/crypto/library/Scrypt.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
@@ -38,10 +39,11 @@ auto Factory::Hash(
     const crypto::HashingProvider& ssl,
     const crypto::HashingProvider& sodium,
     const crypto::Pbkdf2& pbkdf2,
-    const crypto::Ripemd160& ripe) noexcept
-    -> std::unique_ptr<api::crypto::Hash>
+    const crypto::Ripemd160& ripe,
+    const crypto::Scrypt& scrypt) noexcept -> std::unique_ptr<api::crypto::Hash>
 {
-    return std::make_unique<ReturnType>(encode, ssl, sodium, pbkdf2, ripe);
+    return std::make_unique<ReturnType>(
+        encode, ssl, sodium, pbkdf2, ripe, scrypt);
 }
 }  // namespace opentxs
 
@@ -54,12 +56,14 @@ Hash::Hash(
     const Provider& ssl,
     const Provider& sodium,
     const opentxs::crypto::Pbkdf2& pbkdf2,
-    const opentxs::crypto::Ripemd160& ripe) noexcept
+    const opentxs::crypto::Ripemd160& ripe,
+    const opentxs::crypto::Scrypt& scrypt) noexcept
     : encode_(encode)
     , ssl_(ssl)
     , sodium_(sodium)
     , pbkdf2_(pbkdf2)
     , ripe_(ripe)
+    , scrypt_(scrypt)
 {
 }
 
@@ -342,6 +346,18 @@ auto Hash::PKCS5_PBKDF2_HMAC(
         type,
         bytes,
         output.data());
+}
+
+auto Hash::Scrypt(
+    const ReadView input,
+    const ReadView salt,
+    const std::uint64_t N,
+    const std::uint32_t r,
+    const std::uint32_t p,
+    const std::size_t bytes,
+    AllocateOutput writer) const noexcept -> bool
+{
+    return scrypt_.Generate(input, salt, N, r, p, bytes, writer);
 }
 
 auto Hash::sha_256_double(

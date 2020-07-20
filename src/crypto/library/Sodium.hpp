@@ -66,6 +66,14 @@ public:
         const std::uint8_t* input,
         const size_t inputSize,
         std::uint8_t* output) const -> bool final;
+    auto Generate(
+        const ReadView input,
+        const ReadView salt,
+        const std::uint64_t N,
+        const std::uint32_t r,
+        const std::uint32_t p,
+        const std::size_t bytes,
+        AllocateOutput writer) const noexcept -> bool final;
     auto HMAC(
         const proto::HashType hashType,
         const std::uint8_t* input,

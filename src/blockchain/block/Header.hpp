@@ -32,11 +32,6 @@ namespace opentxs::blockchain::block::implementation
 class Header : virtual public block::Header
 {
 public:
-    using GenesisBlock = OTData;
-    using GenesisBlockMap = std::map<blockchain::Type, GenesisBlock>;
-
-    static const GenesisBlockMap genesis_blocks_;
-
     auto Difficulty() const noexcept -> OTWork final { return work_; }
     auto EffectiveState() const noexcept -> Status final;
     auto Hash() const noexcept -> const block::Hash& final;
@@ -67,20 +62,23 @@ public:
 protected:
     const api::Core& api_;
     const OTData hash_;
+    const OTData pow_;
     const OTData parent_hash_;
 
-    static auto minimum_work() -> OTWork;
+    static auto minimum_work(const blockchain::Type chain) -> OTWork;
 
     Header(
         const api::Core& api,
         const blockchain::Type type,
         const block::Hash& hash,
+        const block::Hash& pow,
         const block::Hash& parentHash,
         const block::Height height,
         const blockchain::Work& work) noexcept;
     Header(
         const api::Core& api,
         const block::Hash& hash,
+        const block::Hash& pow,
         const block::Hash& parentHash,
         const SerializedType& serialized) noexcept;
     Header(const Header& rhs) noexcept;
@@ -102,6 +100,7 @@ private:
         const VersionNumber version,
         const blockchain::Type type,
         const block::Hash& hash,
+        const block::Hash& pow,
         const block::Hash& parentHash,
         const block::Height height,
         const Status status,

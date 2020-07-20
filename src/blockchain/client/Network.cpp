@@ -16,6 +16,7 @@
 #include <utility>
 #include <vector>
 
+#include "internal/blockchain/Params.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Factory.hpp"
@@ -144,31 +145,12 @@ auto Network::Disconnect() noexcept -> bool
 
 auto Network::FeeRate() const noexcept -> Amount
 {
-    switch (chain_) {
-        case Type::Bitcoin: {
-            // TODO stop hardcoding this value
+    try {
 
-            return 25000;
-        }
-        case Type::Bitcoin_testnet3: {
-            // TODO stop hardcoding this value
+        return params::Data::chains_.at(chain_).default_fee_rate_;
+    } catch (...) {
 
-            return 3113;
-        }
-        case Type::BitcoinCash: {
-            // TODO stop hardcoding this value
-
-            return 1000;
-        }
-        case Type::BitcoinCash_testnet3: {
-            // TODO stop hardcoding this value
-
-            return 1000;
-        }
-        default: {
-
-            return 0;
-        }
+        return 0;
     }
 }
 

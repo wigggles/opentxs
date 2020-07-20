@@ -16,7 +16,9 @@
 #include <vector>
 
 #include "internal/blockchain/Blockchain.hpp"
+#include "internal/blockchain/Params.hpp"
 #include "opentxs/Pimpl.hpp"
+#include "opentxs/Types.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/blockchain/NumericHash.hpp"
 #include "opentxs/core/Data.hpp"
@@ -117,7 +119,16 @@ auto operator<=(
 
 namespace opentxs::blockchain
 {
-const std::int32_t NumericHash::MaxTarget{486604799};  // 0x1d00ffff
+std::int32_t NumericHash::MaxTarget(const blockchain::Type chain) noexcept
+{
+    try {
+
+        return params::Data::chains_.at(chain).nBits_;
+    } catch (...) {
+
+        return {};
+    }
+}
 }  // namespace opentxs::blockchain
 
 namespace opentxs::blockchain::implementation

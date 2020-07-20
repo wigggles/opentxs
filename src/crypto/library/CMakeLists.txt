@@ -23,6 +23,7 @@ set(
   ${cxx-install-headers}
   "${opentxs_SOURCE_DIR}/src/internal/crypto/library/Pbkdf2.hpp"
   "${opentxs_SOURCE_DIR}/src/internal/crypto/library/Ripemd160.hpp"
+  "${opentxs_SOURCE_DIR}/src/internal/crypto/library/Scrypt.hpp"
   "${opentxs_SOURCE_DIR}/src/internal/crypto/library/Sodium.hpp"
   AsymmetricProvider.hpp
   AsymmetricProviderNull.hpp
