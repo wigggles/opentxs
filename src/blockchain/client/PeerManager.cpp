@@ -473,7 +473,9 @@ auto PeerManager::Peers::peer_factory(Endpoint endpoint, const int id) noexcept
         case Type::Bitcoin:
         case Type::Bitcoin_testnet3:
         case Type::BitcoinCash:
-        case Type::BitcoinCash_testnet3: {
+        case Type::BitcoinCash_testnet3:
+        case Type::Litecoin:
+        case Type::Litecoin_testnet4: {
             return factory::BitcoinP2PPeerLegacy(
                 api_,
                 network_,
@@ -483,6 +485,9 @@ auto PeerManager::Peers::peer_factory(Endpoint endpoint, const int id) noexcept
                 std::move(endpoint),
                 shutdown_endpoint_);
         }
+        case opentxs::blockchain::Type::Unknown:
+        case opentxs::blockchain::Type::Ethereum_frontier:
+        case opentxs::blockchain::Type::Ethereum_ropsten:
         default: {
             OT_FAIL;
         }

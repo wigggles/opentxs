@@ -213,7 +213,9 @@ auto Peer::get_local_services(
 
     switch (network) {
         case blockchain::Type::Bitcoin:
-        case blockchain::Type::Bitcoin_testnet3: {
+        case blockchain::Type::Bitcoin_testnet3:
+        case blockchain::Type::Litecoin:
+        case blockchain::Type::Litecoin_testnet4: {
             output.emplace(p2p::Service::Witness);
         } break;
         case blockchain::Type::BitcoinCash:
@@ -223,8 +225,6 @@ auto Peer::get_local_services(
         case blockchain::Type::Unknown:
         case blockchain::Type::Ethereum_frontier:
         case blockchain::Type::Ethereum_ropsten:
-        case blockchain::Type::Litecoin:
-        case blockchain::Type::Litecoin_testnet4:
         default: {
         }
     }

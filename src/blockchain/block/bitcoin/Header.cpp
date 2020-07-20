@@ -57,7 +57,8 @@ auto BitcoinBlockHeader(
 
     if (OT_BITCOIN_BLOCK_HEADER_SIZE != raw.size()) {
         LogOutput("opentxs::factory::")(__FUNCTION__)(
-            ": Invalid serialized block")
+            ": Invalid serialized block size. Got: ")(raw.size())(" expected ")(
+            OT_BITCOIN_BLOCK_HEADER_SIZE)
             .Flush();
 
         return nullptr;

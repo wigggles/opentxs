@@ -41,7 +41,9 @@ auto GenesisBlockHeader(
         case blockchain::Type::Bitcoin:
         case blockchain::Type::BitcoinCash:
         case blockchain::Type::Bitcoin_testnet3:
-        case blockchain::Type::BitcoinCash_testnet3: {
+        case blockchain::Type::BitcoinCash_testnet3:
+        case opentxs::blockchain::Type::Litecoin:
+        case opentxs::blockchain::Type::Litecoin_testnet4: {
             const auto& hex =
                 blockchain::params::Data::chains_.at(type).genesis_header_hex_;
             const auto data = api.Factory().Data(hex, StringStyle::Hex);
@@ -51,8 +53,6 @@ auto GenesisBlockHeader(
         case opentxs::blockchain::Type::Unknown:
         case opentxs::blockchain::Type::Ethereum_frontier:
         case opentxs::blockchain::Type::Ethereum_ropsten:
-        case opentxs::blockchain::Type::Litecoin:
-        case opentxs::blockchain::Type::Litecoin_testnet4:
         default: {
             LogOutput("opentxs::factory::")(__FUNCTION__)(
                 ": Unsupported type (")(static_cast<std::uint32_t>(type))(")")

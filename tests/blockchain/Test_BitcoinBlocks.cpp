@@ -113,7 +113,7 @@ TEST_F(Test_BitcoinBlock, init) {}
 TEST_F(Test_BitcoinBlock, genesis_mainnet)
 {
     const auto bytes =
-        api_.Factory().Data(genesis_block_mainnet_, ot::StringStyle::Hex);
+        api_.Factory().Data(btc_genesis_block_mainnet_, ot::StringStyle::Hex);
     const auto block = api_.Factory().BitcoinBlock(
         ot::blockchain::Type::Bitcoin, bytes->Bytes());
 
@@ -128,14 +128,14 @@ TEST_F(Test_BitcoinBlock, genesis_mainnet)
     const auto header =
         ot::blockchain::internal::FilterToHeader(api_, filter->Bytes());
 
-    EXPECT_EQ(filter->asHex(), genesis_block_filter_mainnet_);
-    EXPECT_EQ(header->asHex(), genesis_block_filter_header_mainnet_);
+    EXPECT_EQ(filter->asHex(), btc_genesis_block_filter_mainnet_);
+    EXPECT_EQ(header->asHex(), btc_genesis_block_filter_header_mainnet_);
 }
 
 TEST_F(Test_BitcoinBlock, genesis_testnet)
 {
     const auto bytes =
-        api_.Factory().Data(genesis_block_testnet_, ot::StringStyle::Hex);
+        api_.Factory().Data(btc_genesis_block_testnet_, ot::StringStyle::Hex);
     const auto block = api_.Factory().BitcoinBlock(
         ot::blockchain::Type::Bitcoin_testnet3, bytes->Bytes());
 
@@ -150,8 +150,8 @@ TEST_F(Test_BitcoinBlock, genesis_testnet)
     const auto header =
         ot::blockchain::internal::FilterToHeader(api_, filter->Bytes());
 
-    EXPECT_EQ(filter->asHex(), genesis_block_filter_testnet_);
-    EXPECT_EQ(header->asHex(), genesis_block_filter_header_testnet_);
+    EXPECT_EQ(filter->asHex(), btc_genesis_block_filter_testnet_);
+    EXPECT_EQ(header->asHex(), btc_genesis_block_filter_header_testnet_);
 }
 
 TEST_F(Test_BitcoinBlock, bip158)

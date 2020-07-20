@@ -97,6 +97,11 @@ auto ProofOfWorkHash(
     const AllocateOutput output) noexcept -> bool
 {
     switch (chain) {
+        case Type::Litecoin:
+        case Type::Litecoin_testnet4: {
+            return api.Crypto().Hash().Scrypt(
+                input, input, 1024, 1, 1, 32, output);
+        }
         case Type::Unknown:
         case Type::Bitcoin:
         case Type::Bitcoin_testnet3:
@@ -104,8 +109,6 @@ auto ProofOfWorkHash(
         case Type::BitcoinCash_testnet3:
         case Type::Ethereum_frontier:
         case Type::Ethereum_ropsten:
-        case Type::Litecoin:
-        case Type::Litecoin_testnet4:
         default: {
             return BlockHash(api, chain, input, output);
         }
@@ -244,10 +247,10 @@ const Data::ChainData Data::chains_{
       "3ba3edfd7a7b12b27ac72c3e67768f617fc81bc3888a51323a9fb8aa4b1e5e4adae5494d"
       "ffff001d1aa4ae18",
       "43497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea330900000000",
-      {1740000,
-       "f758e6307382affd044c64e2bead2efdd2d9222bce9d232ae3fc000000000000",
-       "b7b063b8908b78d83c837c53bfa1222dc141fab18537d525f5f6000000000000",
-       "6ae92c333eafd91b2a995064f249fe558ea7569fdc723b5e008637362829c1e0"},
+      {1775000,
+       "ee03a42e71e08b0ec11f4a41b3dd49eb033a02d91c9e62607c00000000000000",
+       "e34b7a89fd357ab76c784ad25dce9751aec2147407b520e9a21a9f2a00000000",
+       "7a9e7964ffdf67007431fc592d3debd5e12a43dbf55a140ad51dfe5caae6ada1"},
       filter::Type::Basic_BIP158,
       p2p::Protocol::bitcoin,
       118034699,
@@ -334,7 +337,7 @@ const Data::ChainData Data::chains_{
     {blockchain::Type::Ethereum_ropsten,
      {false,
       opentxs::proto::CITEMTYPE_ETHEREUM_ROPSTEN,
-      "Ethereumn (ropsten testnet)",
+      "Ethereum (ropsten testnet)",
       "",
       0,
       0,
@@ -348,37 +351,56 @@ const Data::ChainData Data::chains_{
       {},
       0}},
     {blockchain::Type::Litecoin,
-     {false,
+     {true,
       opentxs::proto::CITEMTYPE_LTC,
-      "",
-      "",
-      0,
-      0,
-      "",
-      "",
-      {0, "", "", ""},
-      {},
+      "Litecoin",
+      "LTC",
+      8,
+      504365040,  // 0x1e0ffff0
+      "010000000000000000000000000000000000000000000000000000000000000000000000"
+      "d9ced4ed1130f7b7faad9be25323ffafa33232a17c3edf6cfd97bee6bafbdd97b9aa8e4e"
+      "f0ff0f1ecd513f7c",
+      "e2bf047e7e5a191aa4ef34d314979dc9986e0f19251edaba5940fd1fe365a712",
+      {1725000,
+       "75086858fbea5c6782ff65a4eb5fa338e9d930d0320786abc707df00d30f41e3",
+       "7014a9b68e409dddf51892d63f84183476268768a77fcbfb9ce11e4e28ad2610",
+       "8bf7e9466b1be7a01a5106fe18b1402964e54fe843a92365f3f9012489b35859"},
+      filter::Type::Basic_BIP158,
       p2p::Protocol::bitcoin,
-      0,
-      0,
-      {},
-      0}},
+      3686187259,
+      9333,
+      {
+          "seed-a.litecoin.loshan.co.uk",
+          "dnsseed.thrasher.io",
+          "dnsseed.litecointools.com",
+          "dnsseed.litecoinpool.org",
+      },
+      25000}},
     {blockchain::Type::Litecoin_testnet4,
-     {false,
+     {true,
       opentxs::proto::CITEMTYPE_TNLTC,
-      "",
-      "",
-      0,
-      0,
-      "",
-      "",
-      {0, "", "", ""},
-      {},
+      "Litecoin (testnet4)",
+      "tnLTC",
+      8,
+      504365040,  // 0x1e0ffff0
+      "010000000000000000000000000000000000000000000000000000000000000000000000"
+      "d9ced4ed1130f7b7faad9be25323ffafa33232a17c3edf6cfd97bee6bafbdd97f60ba158"
+      "f0ff0f1ee1790400",
+      "a0293e4eeb3da6e6f56f81ed595f57880d1a21569e13eefdd951284b5a626649",
+      {1550000,
+       "8aef627831d5128695fcda8bc34b0d9780ad8f58d7a869f31f54af3acbbe7fff",
+       "8295f3dcb3fea7b3536e6b8ed598c056edc6c5a23bc4efaf821086b56f24dda2",
+       "2081dcdef3c741e20033a348a35d1b2952f31a9eee2285ea4f5cdb8c1c8decfe"},
+      filter::Type::Basic_BIP158,
       p2p::Protocol::bitcoin,
-      0,
-      0,
-      {},
-      0}},
+      4056470269,
+      19335,
+      {
+          "testnet-seed.litecointools.com",
+          "seed-b.litecoin.loshan.co.uk",
+          "dnsseed-testnet.thrasher.io",
+      },
+      25000}},
 };
 
 const Data::FilterData Data::genesis_filters_{
@@ -391,14 +413,19 @@ const Data::FilterData Data::genesis_filters_{
           {"0354578634dd178058ad5f3addf0d97c45911f483c99a1022ce51502e142e99f",
            "049dc75e0d584a300293ef3d3980"}},
      }},
+    {blockchain::Type::Litecoin,
+     {
+         {filter::Type::Basic_BIP158,
+          {"8aa75530308cf8247a151c37c24e7aaa281ae3b5cecedb581aacb3a0d07c2451",
+           "019e8738"}},
+     }},
     {blockchain::Type::BitcoinCash,
      {
          {filter::Type::Basic_BCHVariant,
           {"9f3c30f0c37fb977cf3e1a3173c631e8ff119ad3088b6f5b2bced0802139c202",
            "017fa880"}},
          {filter::Type::Extended_opentxs,
-          {"0354578634dd178058ad5f3addf0d97c45911f483c99a1022ce51502e142e99"
-           "f",
+          {"0354578634dd178058ad5f3addf0d97c45911f483c99a1022ce51502e142e99f",
            "049dc75e0d584a300293ef3d3980"}},
      }},
     {blockchain::Type::Bitcoin_testnet3,
@@ -407,8 +434,7 @@ const Data::FilterData Data::genesis_filters_{
           {"50b781aed7b7129012a6d20e2d040027937f3affaee573779908ebb779455821",
            "019dfca8"}},
          {filter::Type::Extended_opentxs,
-          {"a1310188d76ce653283a3086aa6f1ba30b6934990a093e1789a78a43b926131"
-           "5",
+          {"a1310188d76ce653283a3086aa6f1ba30b6934990a093e1789a78a43b9261315",
            "04e2f587e146bf6c662d35278a40"}},
      }},
     {blockchain::Type::BitcoinCash_testnet3,
@@ -417,9 +443,14 @@ const Data::FilterData Data::genesis_filters_{
           {"50b781aed7b7129012a6d20e2d040027937f3affaee573779908ebb779455821",
            "019dfca8"}},
          {filter::Type::Extended_opentxs,
-          {"a1310188d76ce653283a3086aa6f1ba30b6934990a093e1789a78a43b926131"
-           "5",
+          {"a1310188d76ce653283a3086aa6f1ba30b6934990a093e1789a78a43b9261315",
            "04e2f587e146bf6c662d35278a40"}},
+     }},
+    {blockchain::Type::Litecoin_testnet4,
+     {
+         {filter::Type::Basic_BIP158,
+          {"02d023da9d271b849f717089aad7e03a515dac982c9fb2cfd952e2ce1c618792",
+           "014c8c60"}},
      }},
 };
 
@@ -516,6 +547,32 @@ const Data::ServiceBits Data::service_bits_{
          {p2p::bitcoin::Service::Bit10, p2p::Service::XThinner},
          {p2p::bitcoin::Service::Bit11, p2p::Service::Limited},
          {p2p::bitcoin::Service::Bit25, p2p::Service::Avalanche},
+     }},
+    {blockchain::Type::Litecoin,
+     {
+         {p2p::bitcoin::Service::None, p2p::Service::None},
+         {p2p::bitcoin::Service::Bit1, p2p::Service::Network},
+         {p2p::bitcoin::Service::Bit2, p2p::Service::UTXO},
+         {p2p::bitcoin::Service::Bit3, p2p::Service::Bloom},
+         {p2p::bitcoin::Service::Bit4, p2p::Service::Witness},
+         {p2p::bitcoin::Service::Bit5, p2p::Service::XThin},
+         {p2p::bitcoin::Service::Bit6, p2p::Service::BitcoinCash},
+         {p2p::bitcoin::Service::Bit7, p2p::Service::CompactFilters},
+         {p2p::bitcoin::Service::Bit8, p2p::Service::Segwit2X},
+         {p2p::bitcoin::Service::Bit11, p2p::Service::Limited},
+     }},
+    {blockchain::Type::Litecoin_testnet4,
+     {
+         {p2p::bitcoin::Service::None, p2p::Service::None},
+         {p2p::bitcoin::Service::Bit1, p2p::Service::Network},
+         {p2p::bitcoin::Service::Bit2, p2p::Service::UTXO},
+         {p2p::bitcoin::Service::Bit3, p2p::Service::Bloom},
+         {p2p::bitcoin::Service::Bit4, p2p::Service::Witness},
+         {p2p::bitcoin::Service::Bit5, p2p::Service::XThin},
+         {p2p::bitcoin::Service::Bit6, p2p::Service::BitcoinCash},
+         {p2p::bitcoin::Service::Bit7, p2p::Service::CompactFilters},
+         {p2p::bitcoin::Service::Bit8, p2p::Service::Segwit2X},
+         {p2p::bitcoin::Service::Bit11, p2p::Service::Limited},
      }},
 };
 }  // namespace opentxs::blockchain::params

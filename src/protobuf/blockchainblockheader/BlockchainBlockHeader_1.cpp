@@ -30,7 +30,9 @@ auto CheckProto_1(const BlockchainBlockHeader& input, const bool silent) -> bool
         case 1:
         case 2:
         case 3:
-        case 4: {
+        case 4:
+        case 7:
+        case 8: {
             bitcoin = true;
         } break;
         case 5:
