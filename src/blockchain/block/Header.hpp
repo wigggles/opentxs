@@ -60,53 +60,40 @@ public:
     ~Header() override = default;
 
 protected:
+    static const VersionNumber default_version_{1};
+
     const api::Core& api_;
     const OTData hash_;
     const OTData pow_;
     const OTData parent_hash_;
+    const blockchain::Type type_;
 
     static auto minimum_work(const blockchain::Type chain) -> OTWork;
 
     Header(
         const api::Core& api,
+        const VersionNumber version,
         const blockchain::Type type,
-        const block::Hash& hash,
-        const block::Hash& pow,
-        const block::Hash& parentHash,
+        block::pHash&& hash,
+        block::pHash&& pow,
+        block::pHash&& parentHash,
         const block::Height height,
-        const blockchain::Work& work) noexcept;
-    Header(
-        const api::Core& api,
-        const block::Hash& hash,
-        const block::Hash& pow,
-        const block::Hash& parentHash,
-        const SerializedType& serialized) noexcept;
+        const Status status,
+        const Status inheritStatus,
+        const blockchain::Work& work,
+        const blockchain::Work& inheritWork) noexcept;
     Header(const Header& rhs) noexcept;
 
 private:
-    static const VersionNumber default_version_{1};
     static const VersionNumber local_data_version_{1};
 
     const VersionNumber version_;
-    const blockchain::Type type_;
     const OTWork work_;
     block::Height height_;
     Status status_;
     Status inherit_status_;
     OTWork inherit_work_;
 
-    Header(
-        const api::Core& api,
-        const VersionNumber version,
-        const blockchain::Type type,
-        const block::Hash& hash,
-        const block::Hash& pow,
-        const block::Hash& parentHash,
-        const block::Height height,
-        const Status status,
-        const Status inheritStatus,
-        const blockchain::Work& work,
-        const blockchain::Work& inheritWork) noexcept;
     Header() = delete;
     Header(Header&&) = delete;
     auto operator=(const Header&) -> Header& = delete;

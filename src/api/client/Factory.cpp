@@ -70,7 +70,8 @@ auto Factory::BlockHeader(const proto::BlockchainBlockHeader& serialized) const
         case opentxs::blockchain::Type::BitcoinCash:
         case opentxs::blockchain::Type::BitcoinCash_testnet3:
         case opentxs::blockchain::Type::Litecoin:
-        case opentxs::blockchain::Type::Litecoin_testnet4: {
+        case opentxs::blockchain::Type::Litecoin_testnet4:
+        case opentxs::blockchain::Type::UnitTest: {
             return std::unique_ptr<opentxs::blockchain::block::Header>(
                 factory::BitcoinBlockHeader(client_, serialized));
         }
@@ -98,7 +99,8 @@ auto Factory::BlockHeader(
         case opentxs::blockchain::Type::BitcoinCash:
         case opentxs::blockchain::Type::BitcoinCash_testnet3:
         case opentxs::blockchain::Type::Litecoin:
-        case opentxs::blockchain::Type::Litecoin_testnet4: {
+        case opentxs::blockchain::Type::Litecoin_testnet4:
+        case opentxs::blockchain::Type::UnitTest: {
             return factory::BitcoinBlockHeader(client_, type, raw.Bytes());
         }
         case opentxs::blockchain::Type::Unknown:
@@ -114,35 +116,19 @@ auto Factory::BlockHeader(
     }
 }
 
-auto Factory::BlockHeaderOnlyForUnitTests(
-    const opentxs::blockchain::Type type,
+auto Factory::BlockHeaderForUnitTests(
     const opentxs::blockchain::block::Hash& hash,
     const opentxs::blockchain::block::Hash& parent,
     const opentxs::blockchain::block::Height height) const
     -> std::unique_ptr<opentxs::blockchain::block::Header>
 {
-    switch (type) {
-        case opentxs::blockchain::Type::Bitcoin:
-        case opentxs::blockchain::Type::Bitcoin_testnet3:
-        case opentxs::blockchain::Type::BitcoinCash:
-        case opentxs::blockchain::Type::BitcoinCash_testnet3: {
-            return std::unique_ptr<opentxs::blockchain::block::Header>(
-                factory::BitcoinBlockHeader(
-                    client_, type, hash, parent, height));
-        }
-        case opentxs::blockchain::Type::Unknown:
-        case opentxs::blockchain::Type::Ethereum_frontier:
-        case opentxs::blockchain::Type::Ethereum_ropsten:
-        case opentxs::blockchain::Type::Litecoin:
-        case opentxs::blockchain::Type::Litecoin_testnet4:
-        default: {
-            LogOutput(OT_METHOD)(__FUNCTION__)(": Unsupported type (")(
-                static_cast<std::uint32_t>(type))(")")
-                .Flush();
-
-            return {};
-        }
-    }
+    return std::unique_ptr<opentxs::blockchain::block::Header>(
+        factory::BitcoinBlockHeader(
+            client_,
+            opentxs::blockchain::Type::UnitTest,
+            hash,
+            parent,
+            height));
 }
 #endif  // OT_BLOCKCHAIN
 

@@ -134,8 +134,7 @@ public:
         const opentxs::blockchain::Type type,
         const opentxs::Data& raw) const
         -> std::unique_ptr<opentxs::blockchain::block::Header> final;
-    auto BlockHeaderOnlyForUnitTests(
-        const opentxs::blockchain::Type type,
+    auto BlockHeaderForUnitTests(
         const opentxs::blockchain::block::Hash& hash,
         const opentxs::blockchain::block::Hash& parent,
         const opentxs::blockchain::block::Height height) const

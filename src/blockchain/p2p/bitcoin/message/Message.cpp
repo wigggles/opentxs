@@ -171,6 +171,7 @@ auto VerifyChecksum(
         case Type::Unknown:
         case Type::Ethereum_frontier:
         case Type::Ethereum_ropsten:
+        case Type::UnitTest:
         default: {
             LogOutput(__FUNCTION__)(": Unsupported type").Flush();
         }

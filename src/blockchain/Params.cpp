@@ -11,6 +11,7 @@
 #include <set>
 #include <type_traits>
 
+#if OT_BLOCKCHAIN
 #include "opentxs/Bytes.hpp"
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
@@ -18,7 +19,9 @@
 #include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/protobuf/ContactEnums.pb.h"
 #include "opentxs/protobuf/Enums.pb.h"
+#endif  // OT_BLOCKCHAIN
 
+#if OT_BLOCKCHAIN
 namespace opentxs::blockchain
 {
 auto BlockHash(
@@ -37,6 +40,7 @@ auto BlockHash(
         case Type::Ethereum_ropsten:
         case Type::Litecoin:
         case Type::Litecoin_testnet4:
+        case Type::UnitTest:
         default: {
             return api.Crypto().Hash().Digest(
                 proto::HASHTYPE_SHA256D, input, output);
@@ -60,9 +64,9 @@ auto FilterHash(
         case Type::Ethereum_ropsten:
         case Type::Litecoin:
         case Type::Litecoin_testnet4:
+        case Type::UnitTest:
         default: {
-            return api.Crypto().Hash().Digest(
-                proto::HASHTYPE_SHA256D, input, output);
+            return BlockHash(api, chain, input, output);
         }
     }
 }
@@ -83,6 +87,7 @@ auto P2PMessageHash(
         case Type::Ethereum_ropsten:
         case Type::Litecoin:
         case Type::Litecoin_testnet4:
+        case Type::UnitTest:
         default: {
             return api.Crypto().Hash().Digest(
                 proto::HASHTYPE_SHA256DC, input, output);
@@ -102,6 +107,7 @@ auto ProofOfWorkHash(
             return api.Crypto().Hash().Scrypt(
                 input, input, 1024, 1, 1, 32, output);
         }
+        case Type::UnitTest:
         case Type::Unknown:
         case Type::Bitcoin:
         case Type::Bitcoin_testnet3:
@@ -131,6 +137,7 @@ auto PubkeyHash(
         case Type::Ethereum_ropsten:
         case Type::Litecoin:
         case Type::Litecoin_testnet4:
+        case Type::UnitTest:
         default: {
             return api.Crypto().Hash().Digest(
                 proto::HASHTYPE_BITCOIN, input, output);
@@ -154,6 +161,7 @@ auto ScriptHash(
         case Type::Ethereum_ropsten:
         case Type::Litecoin:
         case Type::Litecoin_testnet4:
+        case Type::UnitTest:
         default: {
             return api.Crypto().Hash().Digest(
                 proto::HASHTYPE_BITCOIN, input, output);
@@ -195,13 +203,14 @@ auto TransactionHash(
         case Type::Ethereum_ropsten:
         case Type::Litecoin:
         case Type::Litecoin_testnet4:
+        case Type::UnitTest:
         default: {
-            return api.Crypto().Hash().Digest(
-                proto::HASHTYPE_SHA256D, input, output);
+            return BlockHash(api, chain, input, output);
         }
     }
 }
 }  // namespace opentxs::blockchain
+#endif  // OT_BLOCKCHAIN
 
 namespace opentxs::blockchain::params
 {
@@ -401,8 +410,30 @@ const Data::ChainData Data::chains_{
           "dnsseed-testnet.thrasher.io",
       },
       25000}},
+    {blockchain::Type::UnitTest,
+     {false,
+      opentxs::proto::CITEMTYPE_ERROR,
+      "Unit Test Simulation",
+      "UNITTEST",
+      8,
+      545259519,  // 0x207fffff
+      "010000000000000000000000000000000000000000000000000000000000000000000000"
+      "3ba3edfd7a7b12b27ac72c3e67768f617fc81bc3888a51323a9fb8aa4b1e5e4adae5494d"
+      "ffff7f2002000000",
+      "06226e46111a0b59caaf126043eb5bbf28c34f3a5e332a1fc7b2b73cf188910f",
+      {630000,
+       "6de9d737a62ea1c197000edb02c252089969dfd8ea4b02000000000000000000",
+       "1e2b96b120a73bacb0667279bd231bdb95b08be16b650d000000000000000000",
+       "63059e205633ebffb7d35e737611a6be5d1d3f904fa9c86a756afa7e0aee02f2"},
+      filter::Type::Basic_BIP158,
+      p2p::Protocol::bitcoin,
+      3669344250,
+      18444,
+      {},
+      0}},
 };
 
+#if OT_BLOCKCHAIN
 const Data::FilterData Data::genesis_filters_{
     {blockchain::Type::Bitcoin,
      {
@@ -452,6 +483,12 @@ const Data::FilterData Data::genesis_filters_{
           {"02d023da9d271b849f717089aad7e03a515dac982c9fb2cfd952e2ce1c618792",
            "014c8c60"}},
      }},
+    {blockchain::Type::UnitTest,
+     {
+         {filter::Type::Basic_BIP158,
+          {"9f3c30f0c37fb977cf3e1a3173c631e8ff119ad3088b6f5b2bced0802139c202",
+           "017fa880"}},
+     }},
 };
 
 const Data::FilterTypes Data::bip158_types_{
@@ -483,6 +520,11 @@ const Data::FilterTypes Data::bip158_types_{
          {filter::Type::Extended_opentxs, 0x58},
      }},
     {Type::Litecoin_testnet4,
+     {
+         {filter::Type::Basic_BIP158, 0x0},
+         {filter::Type::Extended_opentxs, 0x58},
+     }},
+    {Type::UnitTest,
      {
          {filter::Type::Basic_BIP158, 0x0},
          {filter::Type::Extended_opentxs, 0x58},
@@ -574,5 +616,19 @@ const Data::ServiceBits Data::service_bits_{
          {p2p::bitcoin::Service::Bit8, p2p::Service::Segwit2X},
          {p2p::bitcoin::Service::Bit11, p2p::Service::Limited},
      }},
+    {blockchain::Type::UnitTest,
+     {
+         {p2p::bitcoin::Service::None, p2p::Service::None},
+         {p2p::bitcoin::Service::Bit1, p2p::Service::Network},
+         {p2p::bitcoin::Service::Bit2, p2p::Service::UTXO},
+         {p2p::bitcoin::Service::Bit3, p2p::Service::Bloom},
+         {p2p::bitcoin::Service::Bit4, p2p::Service::Witness},
+         {p2p::bitcoin::Service::Bit5, p2p::Service::XThin},
+         {p2p::bitcoin::Service::Bit6, p2p::Service::BitcoinCash},
+         {p2p::bitcoin::Service::Bit7, p2p::Service::CompactFilters},
+         {p2p::bitcoin::Service::Bit8, p2p::Service::Segwit2X},
+         {p2p::bitcoin::Service::Bit11, p2p::Service::Limited},
+     }},
 };
+#endif  // OT_BLOCKCHAIN
 }  // namespace opentxs::blockchain::params

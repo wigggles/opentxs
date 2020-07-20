@@ -42,17 +42,18 @@ auto GenesisBlockHeader(
         case blockchain::Type::BitcoinCash:
         case blockchain::Type::Bitcoin_testnet3:
         case blockchain::Type::BitcoinCash_testnet3:
-        case opentxs::blockchain::Type::Litecoin:
-        case opentxs::blockchain::Type::Litecoin_testnet4: {
+        case blockchain::Type::Litecoin:
+        case blockchain::Type::Litecoin_testnet4:
+        case blockchain::Type::UnitTest: {
             const auto& hex =
                 blockchain::params::Data::chains_.at(type).genesis_header_hex_;
             const auto data = api.Factory().Data(hex, StringStyle::Hex);
 
             return factory::BitcoinBlockHeader(api, type, data->Bytes());
         }
-        case opentxs::blockchain::Type::Unknown:
-        case opentxs::blockchain::Type::Ethereum_frontier:
-        case opentxs::blockchain::Type::Ethereum_ropsten:
+        case blockchain::Type::Unknown:
+        case blockchain::Type::Ethereum_frontier:
+        case blockchain::Type::Ethereum_ropsten:
         default: {
             LogOutput("opentxs::factory::")(__FUNCTION__)(
                 ": Unsupported type (")(static_cast<std::uint32_t>(type))(")")
@@ -80,20 +81,20 @@ Header::Header(
     const api::Core& api,
     const VersionNumber version,
     const blockchain::Type type,
-    const block::Hash& hash,
-    const block::Hash& pow,
-    const block::Hash& parentHash,
+    block::pHash&& hash,
+    block::pHash&& pow,
+    block::pHash&& parentHash,
     const block::Height height,
     const Status status,
     const Status inheritStatus,
     const blockchain::Work& work,
     const blockchain::Work& inheritWork) noexcept
     : api_(api)
-    , hash_(hash)
-    , pow_(pow)
-    , parent_hash_(parentHash)
-    , version_(version)
+    , hash_(std::move(hash))
+    , pow_(std::move(pow))
+    , parent_hash_(std::move(parentHash))
     , type_(type)
+    , version_(version)
     , work_(work)
     , height_(height)
     , status_(status)
@@ -102,63 +103,18 @@ Header::Header(
 {
 }
 
-Header::Header(
-    const api::Core& api,
-    const block::Hash& hash,
-    const block::Hash& pow,
-    const block::Hash& parentHash,
-    const SerializedType& serialized) noexcept
-    : Header(
-          api,
-          serialized.version(),
-          static_cast<blockchain::Type>(serialized.type()),
-          hash,
-          pow,
-          parentHash,
-          serialized.local().height(),
-          static_cast<Status>(serialized.local().status()),
-          static_cast<Status>(serialized.local().inherit_status()),
-          OTWork{factory::Work(serialized.local().work())},
-          OTWork{factory::Work(serialized.local().inherit_work())})
-{
-}
-
-Header::Header(
-    const api::Core& api,
-    const blockchain::Type type,
-    const block::Hash& hash,
-    const block::Hash& pow,
-    const block::Hash& parentHash,
-    const block::Height height,
-    const blockchain::Work& work) noexcept
-    : Header(
-          api,
-          default_version_,
-          type,
-          hash,
-          pow,
-          parentHash,
-          height,
-          (0 == height) ? Status::Checkpoint : Status::Normal,
-          Status::Normal,
-          work,
-          minimum_work(type))
-{
-}
-
 Header::Header(const Header& rhs) noexcept
-    : Header(
-          rhs.api_,
-          rhs.default_version_,
-          rhs.type_,
-          rhs.hash_,
-          rhs.pow_,
-          rhs.parent_hash_,
-          rhs.height_,
-          rhs.status_,
-          rhs.inherit_status_,
-          rhs.work_,
-          rhs.inherit_work_)
+    : api_(rhs.api_)
+    , hash_(rhs.hash_)
+    , pow_(rhs.pow_)
+    , parent_hash_(rhs.parent_hash_)
+    , type_(rhs.type_)
+    , version_(rhs.version_)
+    , work_(rhs.work_)
+    , height_(rhs.height_)
+    , status_(rhs.status_)
+    , inherit_status_(rhs.inherit_status_)
+    , inherit_work_(rhs.inherit_work_)
 {
 }
 

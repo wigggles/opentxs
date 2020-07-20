@@ -16,7 +16,6 @@
 #include "Helpers.hpp"
 #include "internal/api/client/Client.hpp"
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/Types.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/blockchain/Work.hpp"
 #include "opentxs/blockchain/block/Header.hpp"
@@ -25,14 +24,13 @@
 
 std::vector<std::unique_ptr<bb::Header>> headers_{};
 
-TEST_F(Test_HeaderOracle, init_opentxs) {}
+TEST_F(Test_HeaderOracle_btc, init_opentxs) {}
 
-TEST_F(Test_HeaderOracle, stage_headers)
+TEST_F(Test_HeaderOracle_btc, stage_headers)
 {
     for (const auto& hex : bitcoin_) {
         const auto raw = ot::Data::Factory(hex, ot::Data::Mode::Hex);
-        auto pHeader =
-            api_.Factory().BlockHeader(ot::blockchain::Type::Bitcoin, raw);
+        auto pHeader = api_.Factory().BlockHeader(type_, raw);
 
         ASSERT_TRUE(pHeader);
 
@@ -40,7 +38,7 @@ TEST_F(Test_HeaderOracle, stage_headers)
     }
 }
 
-TEST_F(Test_HeaderOracle, receive)
+TEST_F(Test_HeaderOracle_btc, receive)
 {
     EXPECT_TRUE(header_oracle_.AddHeaders(headers_));
 

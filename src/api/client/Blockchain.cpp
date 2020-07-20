@@ -1375,6 +1375,7 @@ auto Blockchain::Start(const Chain type, const std::string& seednode)
         case Chain::Unknown:
         case Chain::Ethereum_frontier:
         case Chain::Ethereum_ropsten:
+        case Chain::UnitTest:
         default: {
         }
     }

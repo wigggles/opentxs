@@ -95,22 +95,23 @@ public:
         const api::Core& api,
         const blockchain::Type chain,
         const VersionNumber subversion,
-        const block::Hash& hash,
-        const block::Hash& pow,
+        block::pHash&& hash,
+        block::pHash&& pow,
         const std::int32_t version,
-        const block::Hash& previous,
-        const block::Hash& merkle,
+        block::pHash&& previous,
+        block::pHash&& merkle,
         const Time timestamp,
         const std::int32_t nbits,
-        const std::uint32_t nonce) noexcept;
+        const std::uint32_t nonce,
+        const bool isGenesis) noexcept(false);
     Header(
         const api::Core& api,
         const blockchain::Type chain,
-        const block::Hash& hash,
-        const block::Hash& pow,
-        const block::Hash& parentHash,
-        const block::Height height) noexcept;
-    Header(const api::Core& api, const SerializedType& serialized) noexcept;
+        const blockchain::block::Hash& merkle,
+        const blockchain::block::Hash& parent,
+        const block::Height height) noexcept(false);
+    Header(const api::Core& api, const SerializedType& serialized) noexcept(
+        false);
 
     ~Header() final = default;
 
@@ -135,6 +136,29 @@ private:
         const std::int32_t nbits) -> OTWork;
     static auto preimage(const SerializedType& in) -> BitcoinFormat;
 
+    auto check_pow() const noexcept -> bool;
+
+    auto find_nonce() noexcept(false) -> void;
+
+    Header(
+        const api::Core& api,
+        const VersionNumber version,
+        const blockchain::Type chain,
+        block::pHash&& hash,
+        block::pHash&& pow,
+        block::pHash&& previous,
+        const block::Height height,
+        const Status status,
+        const Status inheritStatus,
+        const blockchain::Work& work,
+        const blockchain::Work& inheritWork,
+        const VersionNumber subversion,
+        const std::int32_t blockVersion,
+        block::pHash&& merkle,
+        const Time timestamp,
+        const std::int32_t nbits,
+        const std::uint32_t nonce,
+        const bool validate) noexcept(false);
     Header() = delete;
     Header(const Header& rhs) noexcept;
     Header(Header&&) = delete;
