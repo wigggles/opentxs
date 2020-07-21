@@ -14,8 +14,11 @@
 #include <utility>
 #include <vector>
 
+#if OT_BLOCKCHAIN
 #include "internal/blockchain/p2p/bitcoin/Bitcoin.hpp"
+#endif  // OT_BLOCKCHAIN
 #include "opentxs/Types.hpp"
+#include "opentxs/Version.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/protobuf/ContactEnums.pb.h"
 
@@ -23,6 +26,7 @@ namespace opentxs::blockchain::params
 {
 struct Data {
     using ChainData = boost::container::flat_map<blockchain::Type, Data>;
+#if OT_BLOCKCHAIN
     using FilterData = boost::container::flat_map<
         blockchain::Type,
         boost::container::
@@ -30,6 +34,7 @@ struct Data {
     using FilterTypes = std::map<Type, std::map<filter::Type, std::uint8_t>>;
     using ServiceBits = std::
         map<blockchain::Type, std::map<p2p::bitcoin::Service, p2p::Service>>;
+#endif  // OT_BLOCKCHAIN
 
     struct Checkpoint {
         block::Height height_{};
@@ -39,9 +44,11 @@ struct Data {
     };
 
     static const ChainData chains_;
+#if OT_BLOCKCHAIN
     static const FilterData genesis_filters_;
     static const FilterTypes bip158_types_;
     static const ServiceBits service_bits_;
+#endif  // OT_BLOCKCHAIN
 
     bool supported_{};
     proto::ContactItemType proto_{};

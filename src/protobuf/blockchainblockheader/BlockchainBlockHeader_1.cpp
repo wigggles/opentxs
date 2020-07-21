@@ -5,6 +5,7 @@
 
 #include "opentxs/protobuf/verify/BlockchainBlockHeader.hpp"  // IWYU pragma: associated
 
+#include <limits>
 #include <string>
 
 #include "opentxs/protobuf/Basic.hpp"
@@ -32,7 +33,8 @@ auto CheckProto_1(const BlockchainBlockHeader& input, const bool silent) -> bool
         case 3:
         case 4:
         case 7:
-        case 8: {
+        case 8:
+        case std::numeric_limits<std::uint32_t>::max(): {
             bitcoin = true;
         } break;
         case 5:

@@ -280,8 +280,7 @@ public:
     {
         return {};
     }
-    auto BlockHeaderOnlyForUnitTests(
-        const blockchain::Type type,
+    auto BlockHeaderForUnitTests(
         const blockchain::block::Hash& hash,
         const blockchain::block::Hash& parent,
         const blockchain::block::Height height) const

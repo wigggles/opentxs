@@ -225,6 +225,7 @@ auto Peer::get_local_services(
         case blockchain::Type::Unknown:
         case blockchain::Type::Ethereum_frontier:
         case blockchain::Type::Ethereum_ropsten:
+        case blockchain::Type::UnitTest:
         default: {
         }
     }

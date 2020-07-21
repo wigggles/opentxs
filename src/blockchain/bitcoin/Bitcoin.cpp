@@ -637,6 +637,7 @@ SigHash::SigHash(
         case opentxs::blockchain::Type::Ethereum_ropsten:
         case opentxs::blockchain::Type::Litecoin:
         case opentxs::blockchain::Type::Litecoin_testnet4:
+        case opentxs::blockchain::Type::UnitTest:
         default: {
         }
     }

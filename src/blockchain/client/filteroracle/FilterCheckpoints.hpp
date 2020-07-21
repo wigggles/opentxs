@@ -2559,5 +2559,21 @@ const FilterOracle::CheckpointMap FilterOracle::filter_checkpoints_{
                 79_B, 92_B,  219_B, 140_B, 28_B,  141_B, 236_B, 254_B}},
           }},
      }},
+    {blockchain::Type::UnitTest,
+     {
+         {0,
+          {
+              {filter::Type::Basic_BIP158,
+               {159_B, 60_B,  48_B,  240_B, 195_B, 127_B, 185_B, 119_B,
+                207_B, 62_B,  26_B,  49_B,  115_B, 198_B, 49_B,  232_B,
+                255_B, 17_B,  154_B, 211_B, 8_B,   139_B, 111_B, 91_B,
+                43_B,  206_B, 208_B, 128_B, 33_B,  57_B,  194_B, 2_B}},
+              {filter::Type::Extended_opentxs,
+               {3_B,  84_B,  87_B, 134_B, 52_B,  221_B, 23_B,  128_B,
+                88_B, 173_B, 95_B, 58_B,  221_B, 240_B, 217_B, 124_B,
+                69_B, 145_B, 31_B, 72_B,  60_B,  153_B, 161_B, 2_B,
+                44_B, 229_B, 21_B, 2_B,   225_B, 66_B,  233_B, 159_B}},
+          }},
+     }},
 };
 }  // namespace opentxs::blockchain::client::implementation

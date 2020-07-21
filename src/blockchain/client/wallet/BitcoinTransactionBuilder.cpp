@@ -588,6 +588,7 @@ auto Wallet::Proposals::BitcoinTransactionBuilder::sign_input(
         case Type::Unknown:
         case Type::Ethereum_frontier:
         case Type::Ethereum_ropsten:
+        case Type::UnitTest:
         default: {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Unsupported chain").Flush();
 

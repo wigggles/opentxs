@@ -36,8 +36,10 @@ if(OPENSSL_EXPORT)
   list(APPEND object-deps $<TARGET_OBJECTS:opentxs-crypto-library-openssl>)
 endif()
 
+add_subdirectory(blockchain)
+list(APPEND object-deps $<TARGET_OBJECTS:opentxs-blockchain>)
+
 if(OT_BLOCKCHAIN_EXPORT)
-  add_subdirectory(blockchain)
   list(
     APPEND
       object-deps
@@ -51,7 +53,6 @@ if(OT_BLOCKCHAIN_EXPORT)
       $<TARGET_OBJECTS:opentxs-blockchain-p2p-bitcoin-message>
       $<TARGET_OBJECTS:opentxs-blockchain-p2p-bitcoin>
       $<TARGET_OBJECTS:opentxs-blockchain-p2p>
-      $<TARGET_OBJECTS:opentxs-blockchain>
   )
 endif()
 

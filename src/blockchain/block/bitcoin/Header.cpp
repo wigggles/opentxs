@@ -11,7 +11,10 @@
 #include <array>
 #include <cstring>
 #include <ctime>
+#include <limits>
 #include <stdexcept>
+#include <string_view>
+#include <utility>
 
 #include "internal/blockchain/Blockchain.hpp"
 #include "internal/blockchain/block/Block.hpp"
@@ -29,6 +32,7 @@
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/protobuf/BitcoinBlockHeaderFields.pb.h"
 #include "opentxs/protobuf/BlockchainBlockHeader.pb.h"
+#include "opentxs/protobuf/BlockchainBlockLocalData.pb.h"
 #include "util/Blank.hpp"
 
 #define OT_BITCOIN_BLOCK_HEADER_SIZE 80
@@ -44,7 +48,13 @@ auto BitcoinBlockHeader(
 {
     using ReturnType = blockchain::block::bitcoin::implementation::Header;
 
-    return std::make_unique<ReturnType>(api, serialized);
+    try {
+        return std::make_unique<ReturnType>(api, serialized);
+    } catch (const std::exception& e) {
+        LogOutput("opentxs::factory::")(__FUNCTION__)(": ")(e.what()).Flush();
+
+        return {};
+    }
 }
 
 auto BitcoinBlockHeader(
@@ -82,34 +92,50 @@ auto BitcoinBlockHeader(
         return nullptr;
     }
 
-    return std::make_unique<ReturnType>(
-        api,
-        chain,
-        ReturnType::subversion_default_,
-        ReturnType::calculate_hash(api, chain, raw),
-        ReturnType::calculate_pow(api, chain, raw),
-        serialized.version_.value(),
-        Data::Factory(serialized.previous_.data(), serialized.previous_.size()),
-        Data::Factory(serialized.merkle_.data(), serialized.merkle_.size()),
-        Clock::from_time_t(std::time_t(serialized.time_.value())),
-        serialized.nbits_.value(),
-        serialized.nonce_.value());
+    auto hash = ReturnType::calculate_hash(api, chain, raw);
+    const auto isGenesis =
+        blockchain::client::HeaderOracle::GenesisBlockHash(chain) == hash;
+
+    try {
+        return std::make_unique<ReturnType>(
+            api,
+            chain,
+            ReturnType::subversion_default_,
+            std::move(hash),
+            ReturnType::calculate_pow(api, chain, raw),
+            serialized.version_.value(),
+            api.Factory().Data(ReadView{
+                serialized.previous_.data(), serialized.previous_.size()}),
+            api.Factory().Data(
+                ReadView{serialized.merkle_.data(), serialized.merkle_.size()}),
+            Clock::from_time_t(std::time_t(serialized.time_.value())),
+            serialized.nbits_.value(),
+            serialized.nonce_.value(),
+            isGenesis);
+    } catch (const std::exception& e) {
+        LogOutput("opentxs::factory::")(__FUNCTION__)(": ")(e.what()).Flush();
+
+        return {};
+    }
 }
 
 auto BitcoinBlockHeader(
     const api::Core& api,
     const blockchain::Type chain,
-    const blockchain::block::Hash& hash,
+    const blockchain::block::Hash& merkle,
     const blockchain::block::Hash& parent,
     const blockchain::block::Height height) noexcept
     -> std::unique_ptr<blockchain::block::bitcoin::internal::Header>
 {
     using ReturnType = blockchain::block::bitcoin::implementation::Header;
 
-    // NOTE: this function is only for unit tests so we'll pretend the hash and
-    // pow are the same
+    try {
+        return std::make_unique<ReturnType>(api, chain, merkle, parent, height);
+    } catch (const std::exception& e) {
+        LogOutput("opentxs::factory::")(__FUNCTION__)(": ")(e.what()).Flush();
 
-    return std::make_unique<ReturnType>(api, chain, hash, hash, parent, height);
+        return {};
+    }
 }
 }  // namespace opentxs::factory
 
@@ -120,72 +146,137 @@ const VersionNumber Header::subversion_default_{1};
 
 Header::Header(
     const api::Core& api,
+    const VersionNumber version,
     const blockchain::Type chain,
+    block::pHash&& hash,
+    block::pHash&& pow,
+    block::pHash&& previous,
+    const block::Height height,
+    const Status status,
+    const Status inheritStatus,
+    const blockchain::Work& work,
+    const blockchain::Work& inheritWork,
     const VersionNumber subversion,
-    const block::Hash& hash,
-    const block::Hash& pow,
-    const std::int32_t version,
-    const block::Hash& previous,
-    const block::Hash& merkle,
+    const std::int32_t blockVersion,
+    block::pHash&& merkle,
     const Time timestamp,
     const std::int32_t nbits,
-    const std::uint32_t nonce) noexcept
+    const std::uint32_t nonce,
+    const bool validate) noexcept(false)
     : bitcoin::Header()
     , ot_super(
           api,
+          version,
           chain,
-          hash,
-          pow,
-          previous,
-          ((client::HeaderOracle::GenesisBlockHash(chain) == hash)
-               ? 0
-               : make_blank<block::Height>::value(api)),
-          calculate_work(chain, nbits))
+          std::move(hash),
+          std::move(pow),
+          std::move(previous),
+          height,
+          status,
+          inheritStatus,
+          work,
+          inheritWork)
     , subversion_(subversion)
-    , block_version_(version)
-    , merkle_root_(merkle)
+    , block_version_(blockVersion)
+    , merkle_root_(std::move(merkle))
     , timestamp_(timestamp)
     , nbits_(nbits)
     , nonce_(nonce)
+{
+    if (validate && (false == check_pow())) {
+        throw std::runtime_error("Invalid proof of work");
+    }
+}
+
+Header::Header(
+    const api::Core& api,
+    const blockchain::Type chain,
+    const VersionNumber subversion,
+    block::pHash&& hash,
+    block::pHash&& pow,
+    const std::int32_t version,
+    block::pHash&& previous,
+    block::pHash&& merkle,
+    const Time timestamp,
+    const std::int32_t nbits,
+    const std::uint32_t nonce,
+    const bool isGenesis) noexcept(false)
+    : Header(
+          api,
+          default_version_,
+          chain,
+          std::move(hash),
+          std::move(pow),
+          std::move(previous),
+          (isGenesis ? 0 : make_blank<block::Height>::value(api)),
+          (isGenesis ? Status::Checkpoint : Status::Normal),
+          Status::Normal,
+          calculate_work(chain, nbits),
+          minimum_work(chain),
+          subversion,
+          version,
+          std::move(merkle),
+          timestamp,
+          nbits,
+          nonce,
+          true)
 {
 }
 
 Header::Header(
     const api::Core& api,
     const blockchain::Type chain,
-    const block::Hash& hash,
-    const block::Hash& pow,
-    const block::Hash& parentHash,
-    const block::Height height) noexcept
-    : bitcoin::Header()
-    , ot_super(api, chain, hash, pow, parentHash, height, minimum_work(chain))
-    , subversion_(subversion_default_)
-    , block_version_(0)
-    , merkle_root_(hash)
-    , timestamp_(make_blank<Time>::value(api))
-    , nbits_(NumericHash::MaxTarget(chain))
-    , nonce_(0)
+    const blockchain::block::Hash& merkle,
+    const blockchain::block::Hash& parent,
+    const block::Height height) noexcept(false)
+    : Header(
+          api,
+          default_version_,
+          chain,
+          OTData{BlankHash()},
+          OTData{BlankHash()},
+          OTData{parent},
+          height,
+          (0 == height) ? Status::Checkpoint : Status::Normal,
+          Status::Normal,
+          minimum_work(chain),
+          minimum_work(chain),
+          subversion_default_,
+          0,
+          OTData{merkle},
+          make_blank<Time>::value(api),
+          NumericHash::MaxTarget(chain),
+          0,
+          false)
 {
-    const_cast<OTData&>(hash_) = calculate_hash(api, Serialize());
+    find_nonce();
 }
 
-Header::Header(const api::Core& api, const SerializedType& serialized) noexcept
-    : bitcoin::Header()
-    , ot_super(
+Header::Header(const api::Core& api, const SerializedType& serialized) noexcept(
+    false)
+    : Header(
           api,
+          serialized.version(),
+          static_cast<blockchain::Type>(serialized.type()),
           calculate_hash(api, serialized),
           calculate_pow(api, serialized),
-          Data::Factory(
+          api.Factory().Data(
               serialized.bitcoin().previous_header(),
-              Data::Mode::Raw),
-          serialized)
-    , subversion_(serialized.bitcoin().version())
-    , block_version_(serialized.bitcoin().block_version())
-    , merkle_root_(
-          Data::Factory(serialized.bitcoin().merkle_hash(), Data::Mode::Raw))
-    , timestamp_(Clock::from_time_t(serialized.bitcoin().timestamp()))
-    , nbits_(serialized.bitcoin().nbits())
-    , nonce_(serialized.bitcoin().nonce())
+              StringStyle::Raw),
+          serialized.local().height(),
+          static_cast<Status>(serialized.local().status()),
+          static_cast<Status>(serialized.local().inherit_status()),
+          OTWork{factory::Work(serialized.local().work())},
+          OTWork{factory::Work(serialized.local().inherit_work())},
+          serialized.bitcoin().version(),
+          serialized.bitcoin().block_version(),
+          api.Factory().Data(
+              serialized.bitcoin().merkle_hash(),
+              StringStyle::Raw),
+          Clock::from_time_t(serialized.bitcoin().timestamp()),
+          serialized.bitcoin().nbits(),
+          serialized.bitcoin().nonce(),
+          true)
 {
 }
 
@@ -307,6 +398,11 @@ auto Header::calculate_work(
     return OTWork{factory::Work(chain, hash)};
 }
 
+auto Header::check_pow() const noexcept -> bool
+{
+    return NumericHash() < Target();
+}
+
 auto Header::clone() const noexcept -> std::unique_ptr<block::Header>
 {
     return std::unique_ptr<block::Header>(new Header(*this));
@@ -318,6 +414,31 @@ auto Header::Encode() const noexcept -> OTData
     Serialize(output->WriteInto());
 
     return output;
+}
+
+auto Header::find_nonce() noexcept(false) -> void
+{
+    auto& hash = const_cast<OTData&>(hash_);
+    auto& pow = const_cast<OTData&>(pow_);
+    auto& nonce = const_cast<std::uint32_t&>(nonce_);
+    auto bytes = BitcoinFormat{};
+    auto view = ReadView{};
+
+    while (true) {
+        bytes = preimage(Serialize());
+        view = ReadView{reinterpret_cast<const char*>(&bytes), sizeof(bytes)};
+        pow = calculate_pow(api_, type_, view);
+
+        if (check_pow()) {
+            break;
+        } else if (std::numeric_limits<std::uint32_t>::max() == nonce) {
+            throw std::runtime_error("Nonce not found");
+        } else {
+            ++nonce;
+        }
+    }
+
+    hash = calculate_hash(api_, type_, view);
 }
 
 auto Header::preimage(const SerializedType& in) -> BitcoinFormat

@@ -34,7 +34,7 @@ namespace bc = b::client;
 
 namespace
 {
-class Test_HeaderOracle : public ::testing::Test
+class Test_HeaderOracle_base : public ::testing::Test
 {
 public:
     using Block = std::pair<std::string, std::string>;
@@ -105,6 +105,19 @@ public:
     bc::HeaderOracle& header_oracle_;
     std::map<std::string, std::unique_ptr<bb::Header>> test_blocks_;
 
+    static auto init_network(
+        const ot::api::client::internal::Manager& api,
+        const b::Type type) noexcept -> std::unique_ptr<bc::internal::Network>
+    {
+        return ot::factory::BlockchainNetworkBitcoin(
+            api,
+            dynamic_cast<const ot::api::client::internal::Blockchain&>(
+                api.Blockchain()),
+            type,
+            "do not init peers",
+            "inproc://empty");
+    }
+
     [[maybe_unused]] bool apply_blocks(const std::vector<Test>& vector)
     {
         for (const auto& [block, position, best] : vector) {
@@ -137,9 +150,8 @@ public:
     {
         for (const auto& [parent, child] : vector) {
             const bb::pHash previous{
-                parent.empty()
-                    ? bc::HeaderOracle::GenesisBlockHash(b::Type::Bitcoin)
-                    : get_block_hash(parent).get()};
+                parent.empty() ? bc::HeaderOracle::GenesisBlockHash(type_)
+                               : get_block_hash(parent).get()};
 
             if (false == make_test_block(child, previous)) { return false; }
         }
@@ -182,8 +194,8 @@ public:
         const bb::Hash& parent)
     {
         const auto child = ot::Data::Factory(hash, ot::Data::Mode::Raw);
-        auto pHeader = api_.Factory().BlockHeaderOnlyForUnitTests(
-            b::Type::Bitcoin, child, parent, -1);
+        auto pHeader =
+            api_.Factory().BlockHeaderForUnitTests(child, parent, -1);
 
         if (false == bool(pHeader)) { return false; }
 
@@ -198,9 +210,8 @@ public:
 
         for (const auto& expectedHash : vector) {
             const bb::pHash compareHash{
-                expectedHash.empty()
-                    ? bc::HeaderOracle::GenesisBlockHash(b::Type::Bitcoin)
-                    : get_block_hash(expectedHash).get()};
+                expectedHash.empty() ? bc::HeaderOracle::GenesisBlockHash(type_)
+                                     : get_block_hash(expectedHash).get()};
             const auto hash = header_oracle_.BestHash(i);
 
             EXPECT_EQ(compareHash, hash);
@@ -240,9 +251,8 @@ public:
         for (const auto& [sHash, spHash, height, status, pStatus] : vector) {
             const auto hash = get_block_hash(sHash);
             const bb::pHash pHash{
-                spHash.empty()
-                    ? bc::HeaderOracle::GenesisBlockHash(b::Type::Bitcoin)
-                    : get_block_hash(spHash).get()};
+                spHash.empty() ? bc::HeaderOracle::GenesisBlockHash(type_)
+                               : get_block_hash(spHash).get()};
             const auto pBlock = header_oracle_.LoadHeader(hash);
 
             EXPECT_TRUE(pBlock);
@@ -274,496 +284,546 @@ public:
         return true;
     }
 
-    [[maybe_unused]] Test_HeaderOracle()
+    Test_HeaderOracle_base(const b::Type type)
         : api_(dynamic_cast<const ot::api::client::internal::Manager&>(
               ot::Context().StartClient({}, 0)))
-        , type_(b::Type::Bitcoin)
-        , network_(ot::factory::BlockchainNetworkBitcoin(
-              api_,
-              dynamic_cast<const ot::api::client::internal::Blockchain&>(
-                  api_.Blockchain()),
-              type_,
-              "do not init peers",
-              "inproc://empty"))
+        , type_(type)
+        , network_(init_network(api_, type_))
         , header_oracle_(network_->HeaderOracle())
         , test_blocks_()
     {
         header_oracle_.DeleteCheckpoint();
+    }
+
+    virtual ~Test_HeaderOracle_base() = default;
+};
+
+struct Test_HeaderOracle_btc : public Test_HeaderOracle_base {
+    [[maybe_unused]] Test_HeaderOracle_btc()
+        : Test_HeaderOracle_base(b::Type::Bitcoin)
+    {
+    }
+};
+
+struct Test_HeaderOracle : public Test_HeaderOracle_base {
+    [[maybe_unused]] Test_HeaderOracle()
+        : Test_HeaderOracle_base(b::Type::UnitTest)
+    {
     }
 };
 
 //  basic_sequence
 //
 //  1   2   3   4   5   6   7   8   9   10
-const std::vector<Test_HeaderOracle::Block> Test_HeaderOracle::create_1_{
-    {"", BLOCK_1},
-    {BLOCK_1, BLOCK_2},
-    {BLOCK_2, BLOCK_3},
-    {BLOCK_3, BLOCK_4},
-    {BLOCK_4, BLOCK_5},
-    {BLOCK_5, BLOCK_6},
-    {BLOCK_6, BLOCK_7},
-    {BLOCK_7, BLOCK_8},
-    {BLOCK_8, BLOCK_9},
-    {BLOCK_9, BLOCK_10}};
-const std::vector<Test_HeaderOracle::Test> Test_HeaderOracle::sequence_1_{
-    {BLOCK_1, {1, BLOCK_1}, {"", BLOCK_1}},
-    {BLOCK_2, {2, BLOCK_2}, {"", BLOCK_1, BLOCK_2}},
-    {BLOCK_3, {3, BLOCK_3}, {"", BLOCK_1, BLOCK_2, BLOCK_3}},
-    {BLOCK_4, {4, BLOCK_4}, {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_4}},
-    {BLOCK_5, {5, BLOCK_5}, {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_4, BLOCK_5}},
-    {BLOCK_6,
-     {6, BLOCK_6},
-     {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_4, BLOCK_5, BLOCK_6}},
-    {BLOCK_7,
-     {7, BLOCK_7},
-     {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_4, BLOCK_5, BLOCK_6, BLOCK_7}},
-    {BLOCK_8,
-     {8, BLOCK_8},
-     {"",
-      BLOCK_1,
-      BLOCK_2,
-      BLOCK_3,
-      BLOCK_4,
-      BLOCK_5,
-      BLOCK_6,
-      BLOCK_7,
-      BLOCK_8}},
-    {BLOCK_9,
-     {9, BLOCK_9},
-     {"",
-      BLOCK_1,
-      BLOCK_2,
-      BLOCK_3,
-      BLOCK_4,
-      BLOCK_5,
-      BLOCK_6,
-      BLOCK_7,
-      BLOCK_8,
-      BLOCK_9}},
-    {BLOCK_10,
-     {10, BLOCK_10},
-     {"",
-      BLOCK_1,
-      BLOCK_2,
-      BLOCK_3,
-      BLOCK_4,
-      BLOCK_5,
-      BLOCK_6,
-      BLOCK_7,
-      BLOCK_8,
-      BLOCK_9,
-      BLOCK_10}},
-};
-const Test_HeaderOracle::PostStateVector Test_HeaderOracle::post_state_1_{
-    {BLOCK_1, "", 1, Status::Normal, Status::Normal},
-    {BLOCK_2, BLOCK_1, 2, Status::Normal, Status::Normal},
-    {BLOCK_3, BLOCK_2, 3, Status::Normal, Status::Normal},
-    {BLOCK_4, BLOCK_3, 4, Status::Normal, Status::Normal},
-    {BLOCK_5, BLOCK_4, 5, Status::Normal, Status::Normal},
-    {BLOCK_6, BLOCK_5, 6, Status::Normal, Status::Normal},
-    {BLOCK_7, BLOCK_6, 7, Status::Normal, Status::Normal},
-    {BLOCK_8, BLOCK_7, 8, Status::Normal, Status::Normal},
-    {BLOCK_9, BLOCK_8, 9, Status::Normal, Status::Normal},
-    {BLOCK_10, BLOCK_9, 10, Status::Normal, Status::Normal},
-};
-const Test_HeaderOracle::BestChainVector Test_HeaderOracle::best_chain_1_{
-    "",
-    BLOCK_1,
-    BLOCK_2,
-    BLOCK_3,
-    BLOCK_4,
-    BLOCK_5,
-    BLOCK_6,
-    BLOCK_7,
-    BLOCK_8,
-    BLOCK_9,
-    BLOCK_10,
-};
-const Test_HeaderOracle::ExpectedSiblings Test_HeaderOracle::siblings_1_{};
+const std::vector<Test_HeaderOracle_base::Block>
+    Test_HeaderOracle_base::create_1_{
+        {"", BLOCK_1},
+        {BLOCK_1, BLOCK_2},
+        {BLOCK_2, BLOCK_3},
+        {BLOCK_3, BLOCK_4},
+        {BLOCK_4, BLOCK_5},
+        {BLOCK_5, BLOCK_6},
+        {BLOCK_6, BLOCK_7},
+        {BLOCK_7, BLOCK_8},
+        {BLOCK_8, BLOCK_9},
+        {BLOCK_9, BLOCK_10}};
+const std::vector<Test_HeaderOracle_base::Test>
+    Test_HeaderOracle_base::sequence_1_{
+        {BLOCK_1, {1, BLOCK_1}, {"", BLOCK_1}},
+        {BLOCK_2, {2, BLOCK_2}, {"", BLOCK_1, BLOCK_2}},
+        {BLOCK_3, {3, BLOCK_3}, {"", BLOCK_1, BLOCK_2, BLOCK_3}},
+        {BLOCK_4, {4, BLOCK_4}, {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_4}},
+        {BLOCK_5,
+         {5, BLOCK_5},
+         {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_4, BLOCK_5}},
+        {BLOCK_6,
+         {6, BLOCK_6},
+         {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_4, BLOCK_5, BLOCK_6}},
+        {BLOCK_7,
+         {7, BLOCK_7},
+         {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_4, BLOCK_5, BLOCK_6, BLOCK_7}},
+        {BLOCK_8,
+         {8, BLOCK_8},
+         {"",
+          BLOCK_1,
+          BLOCK_2,
+          BLOCK_3,
+          BLOCK_4,
+          BLOCK_5,
+          BLOCK_6,
+          BLOCK_7,
+          BLOCK_8}},
+        {BLOCK_9,
+         {9, BLOCK_9},
+         {"",
+          BLOCK_1,
+          BLOCK_2,
+          BLOCK_3,
+          BLOCK_4,
+          BLOCK_5,
+          BLOCK_6,
+          BLOCK_7,
+          BLOCK_8,
+          BLOCK_9}},
+        {BLOCK_10,
+         {10, BLOCK_10},
+         {"",
+          BLOCK_1,
+          BLOCK_2,
+          BLOCK_3,
+          BLOCK_4,
+          BLOCK_5,
+          BLOCK_6,
+          BLOCK_7,
+          BLOCK_8,
+          BLOCK_9,
+          BLOCK_10}},
+    };
+const Test_HeaderOracle_base::PostStateVector
+    Test_HeaderOracle_base::post_state_1_{
+        {BLOCK_1, "", 1, Status::Normal, Status::Normal},
+        {BLOCK_2, BLOCK_1, 2, Status::Normal, Status::Normal},
+        {BLOCK_3, BLOCK_2, 3, Status::Normal, Status::Normal},
+        {BLOCK_4, BLOCK_3, 4, Status::Normal, Status::Normal},
+        {BLOCK_5, BLOCK_4, 5, Status::Normal, Status::Normal},
+        {BLOCK_6, BLOCK_5, 6, Status::Normal, Status::Normal},
+        {BLOCK_7, BLOCK_6, 7, Status::Normal, Status::Normal},
+        {BLOCK_8, BLOCK_7, 8, Status::Normal, Status::Normal},
+        {BLOCK_9, BLOCK_8, 9, Status::Normal, Status::Normal},
+        {BLOCK_10, BLOCK_9, 10, Status::Normal, Status::Normal},
+    };
+const Test_HeaderOracle_base::BestChainVector
+    Test_HeaderOracle_base::best_chain_1_{
+        "",
+        BLOCK_1,
+        BLOCK_2,
+        BLOCK_3,
+        BLOCK_4,
+        BLOCK_5,
+        BLOCK_6,
+        BLOCK_7,
+        BLOCK_8,
+        BLOCK_9,
+        BLOCK_10,
+    };
+const Test_HeaderOracle_base::ExpectedSiblings
+    Test_HeaderOracle_base::siblings_1_{};
 
 //  basic_reorg
 //
 //  1   2   3   7   8
 //          4
 //          5   6
-const std::vector<Test_HeaderOracle::Block> Test_HeaderOracle::create_2_{
-    {"", BLOCK_1},
-    {BLOCK_1, BLOCK_2},
-    {BLOCK_2, BLOCK_3},
-    {BLOCK_2, BLOCK_4},
-    {BLOCK_2, BLOCK_5},
-    {BLOCK_5, BLOCK_6},
-    {BLOCK_3, BLOCK_7},
-    {BLOCK_7, BLOCK_8},
-};
-const std::vector<Test_HeaderOracle::Test> Test_HeaderOracle::sequence_2_{
-    {BLOCK_1, {1, BLOCK_1}, {"", BLOCK_1}},
-    {BLOCK_2, {2, BLOCK_2}, {"", BLOCK_1, BLOCK_2}},
-    {BLOCK_3, {3, BLOCK_3}, {"", BLOCK_1, BLOCK_2, BLOCK_3}},
-    {BLOCK_4, {3, BLOCK_3}, {"", BLOCK_1, BLOCK_2, BLOCK_3}},
-    {BLOCK_5, {3, BLOCK_3}, {"", BLOCK_1, BLOCK_2, BLOCK_3}},
-    {BLOCK_6, {4, BLOCK_6}, {"", BLOCK_1, BLOCK_2, BLOCK_5, BLOCK_6}},
-    {BLOCK_7, {4, BLOCK_6}, {"", BLOCK_1, BLOCK_2, BLOCK_5, BLOCK_6}},
-    {BLOCK_8, {5, BLOCK_8}, {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_7, BLOCK_8}},
-};
-const Test_HeaderOracle::PostStateVector Test_HeaderOracle::post_state_2_{
-    {BLOCK_1, "", 1, Status::Normal, Status::Normal},
-    {BLOCK_2, BLOCK_1, 2, Status::Normal, Status::Normal},
-    {BLOCK_3, BLOCK_2, 3, Status::Normal, Status::Normal},
-    {BLOCK_4, BLOCK_2, 3, Status::Normal, Status::Normal},
-    {BLOCK_5, BLOCK_2, 3, Status::Normal, Status::Normal},
-    {BLOCK_6, BLOCK_5, 4, Status::Normal, Status::Normal},
-    {BLOCK_7, BLOCK_3, 4, Status::Normal, Status::Normal},
-    {BLOCK_8, BLOCK_7, 5, Status::Normal, Status::Normal},
-};
-const Test_HeaderOracle::BestChainVector Test_HeaderOracle::best_chain_2_{
-    "",
-    BLOCK_1,
-    BLOCK_2,
-    BLOCK_3,
-    BLOCK_7,
-    BLOCK_8,
-};
-const Test_HeaderOracle::ExpectedSiblings Test_HeaderOracle::siblings_2_{
-    BLOCK_4,
-    BLOCK_6};
+const std::vector<Test_HeaderOracle_base::Block>
+    Test_HeaderOracle_base::create_2_{
+        {"", BLOCK_1},
+        {BLOCK_1, BLOCK_2},
+        {BLOCK_2, BLOCK_3},
+        {BLOCK_2, BLOCK_4},
+        {BLOCK_2, BLOCK_5},
+        {BLOCK_5, BLOCK_6},
+        {BLOCK_3, BLOCK_7},
+        {BLOCK_7, BLOCK_8},
+    };
+const std::vector<Test_HeaderOracle_base::Test>
+    Test_HeaderOracle_base::sequence_2_{
+        {BLOCK_1, {1, BLOCK_1}, {"", BLOCK_1}},
+        {BLOCK_2, {2, BLOCK_2}, {"", BLOCK_1, BLOCK_2}},
+        {BLOCK_3, {3, BLOCK_3}, {"", BLOCK_1, BLOCK_2, BLOCK_3}},
+        {BLOCK_4, {3, BLOCK_3}, {"", BLOCK_1, BLOCK_2, BLOCK_3}},
+        {BLOCK_5, {3, BLOCK_3}, {"", BLOCK_1, BLOCK_2, BLOCK_3}},
+        {BLOCK_6, {4, BLOCK_6}, {"", BLOCK_1, BLOCK_2, BLOCK_5, BLOCK_6}},
+        {BLOCK_7, {4, BLOCK_6}, {"", BLOCK_1, BLOCK_2, BLOCK_5, BLOCK_6}},
+        {BLOCK_8,
+         {5, BLOCK_8},
+         {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_7, BLOCK_8}},
+    };
+const Test_HeaderOracle_base::PostStateVector
+    Test_HeaderOracle_base::post_state_2_{
+        {BLOCK_1, "", 1, Status::Normal, Status::Normal},
+        {BLOCK_2, BLOCK_1, 2, Status::Normal, Status::Normal},
+        {BLOCK_3, BLOCK_2, 3, Status::Normal, Status::Normal},
+        {BLOCK_4, BLOCK_2, 3, Status::Normal, Status::Normal},
+        {BLOCK_5, BLOCK_2, 3, Status::Normal, Status::Normal},
+        {BLOCK_6, BLOCK_5, 4, Status::Normal, Status::Normal},
+        {BLOCK_7, BLOCK_3, 4, Status::Normal, Status::Normal},
+        {BLOCK_8, BLOCK_7, 5, Status::Normal, Status::Normal},
+    };
+const Test_HeaderOracle_base::BestChainVector
+    Test_HeaderOracle_base::best_chain_2_{
+        "",
+        BLOCK_1,
+        BLOCK_2,
+        BLOCK_3,
+        BLOCK_7,
+        BLOCK_8,
+    };
+const Test_HeaderOracle_base::ExpectedSiblings
+    Test_HeaderOracle_base::siblings_2_{BLOCK_4, BLOCK_6};
 
 //  checkpoint_prevents_update
 //
 //  1   2   3   4   5   6
 //              7
 //             (8)  9   10
-const std::vector<Test_HeaderOracle::Block> Test_HeaderOracle::create_3_{
-    {"", BLOCK_1},
-    {BLOCK_1, BLOCK_2},
-    {BLOCK_2, BLOCK_3},
-    {BLOCK_3, BLOCK_4},
-    {BLOCK_4, BLOCK_5},
-    {BLOCK_5, BLOCK_6},
-    {BLOCK_3, BLOCK_7},
-    {BLOCK_3, BLOCK_8},
-    {BLOCK_8, BLOCK_9},
-    {BLOCK_9, BLOCK_10},
-};
-const std::vector<Test_HeaderOracle::Test> Test_HeaderOracle::sequence_3_{
-    {BLOCK_1, {1, BLOCK_1}, {"", BLOCK_1}},
-    {BLOCK_2, {2, BLOCK_2}, {"", BLOCK_1, BLOCK_2}},
-    {BLOCK_3, {3, BLOCK_3}, {"", BLOCK_1, BLOCK_2, BLOCK_3}},
-    {BLOCK_4, {3, BLOCK_3}, {"", BLOCK_1, BLOCK_2, BLOCK_3}},
-    {BLOCK_5, {3, BLOCK_3}, {"", BLOCK_1, BLOCK_2, BLOCK_3}},
-    {BLOCK_6, {3, BLOCK_3}, {"", BLOCK_1, BLOCK_2, BLOCK_3}},
-    {BLOCK_7, {3, BLOCK_3}, {"", BLOCK_1, BLOCK_2, BLOCK_3}},
-    {BLOCK_8, {4, BLOCK_8}, {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_8}},
-    {BLOCK_9, {5, BLOCK_9}, {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_8, BLOCK_9}},
-    {BLOCK_10,
-     {6, BLOCK_10},
-     {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_8, BLOCK_9, BLOCK_10}},
-};
-const Test_HeaderOracle::PostStateVector Test_HeaderOracle::post_state_3_{
-    {BLOCK_1, "", 1, Status::Normal, Status::Normal},
-    {BLOCK_2, BLOCK_1, 2, Status::Normal, Status::Normal},
-    {BLOCK_3, BLOCK_2, 3, Status::Normal, Status::Normal},
-    {BLOCK_4, BLOCK_3, 4, Status::CheckpointBanned, Status::Normal},
-    {BLOCK_5, BLOCK_4, 5, Status::Normal, Status::CheckpointBanned},
-    {BLOCK_6, BLOCK_5, 6, Status::Normal, Status::CheckpointBanned},
-    {BLOCK_7, BLOCK_3, 4, Status::CheckpointBanned, Status::Normal},
-    {BLOCK_8, BLOCK_3, 4, Status::Checkpoint, Status::Normal},
-    {BLOCK_9, BLOCK_8, 5, Status::Normal, Status::Normal},
-    {BLOCK_10, BLOCK_9, 6, Status::Normal, Status::Normal},
-};
-const Test_HeaderOracle::BestChainVector Test_HeaderOracle::best_chain_3_{
-    "",
-    BLOCK_1,
-    BLOCK_2,
-    BLOCK_3,
-    BLOCK_8,
-    BLOCK_9,
-    BLOCK_10,
-};
-const Test_HeaderOracle::ExpectedSiblings Test_HeaderOracle::siblings_3_{
-    BLOCK_6,
-    BLOCK_7};
+const std::vector<Test_HeaderOracle_base::Block>
+    Test_HeaderOracle_base::create_3_{
+        {"", BLOCK_1},
+        {BLOCK_1, BLOCK_2},
+        {BLOCK_2, BLOCK_3},
+        {BLOCK_3, BLOCK_4},
+        {BLOCK_4, BLOCK_5},
+        {BLOCK_5, BLOCK_6},
+        {BLOCK_3, BLOCK_7},
+        {BLOCK_3, BLOCK_8},
+        {BLOCK_8, BLOCK_9},
+        {BLOCK_9, BLOCK_10},
+    };
+const std::vector<Test_HeaderOracle_base::Test>
+    Test_HeaderOracle_base::sequence_3_{
+        {BLOCK_1, {1, BLOCK_1}, {"", BLOCK_1}},
+        {BLOCK_2, {2, BLOCK_2}, {"", BLOCK_1, BLOCK_2}},
+        {BLOCK_3, {3, BLOCK_3}, {"", BLOCK_1, BLOCK_2, BLOCK_3}},
+        {BLOCK_4, {3, BLOCK_3}, {"", BLOCK_1, BLOCK_2, BLOCK_3}},
+        {BLOCK_5, {3, BLOCK_3}, {"", BLOCK_1, BLOCK_2, BLOCK_3}},
+        {BLOCK_6, {3, BLOCK_3}, {"", BLOCK_1, BLOCK_2, BLOCK_3}},
+        {BLOCK_7, {3, BLOCK_3}, {"", BLOCK_1, BLOCK_2, BLOCK_3}},
+        {BLOCK_8, {4, BLOCK_8}, {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_8}},
+        {BLOCK_9,
+         {5, BLOCK_9},
+         {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_8, BLOCK_9}},
+        {BLOCK_10,
+         {6, BLOCK_10},
+         {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_8, BLOCK_9, BLOCK_10}},
+    };
+const Test_HeaderOracle_base::PostStateVector
+    Test_HeaderOracle_base::post_state_3_{
+        {BLOCK_1, "", 1, Status::Normal, Status::Normal},
+        {BLOCK_2, BLOCK_1, 2, Status::Normal, Status::Normal},
+        {BLOCK_3, BLOCK_2, 3, Status::Normal, Status::Normal},
+        {BLOCK_4, BLOCK_3, 4, Status::CheckpointBanned, Status::Normal},
+        {BLOCK_5, BLOCK_4, 5, Status::Normal, Status::CheckpointBanned},
+        {BLOCK_6, BLOCK_5, 6, Status::Normal, Status::CheckpointBanned},
+        {BLOCK_7, BLOCK_3, 4, Status::CheckpointBanned, Status::Normal},
+        {BLOCK_8, BLOCK_3, 4, Status::Checkpoint, Status::Normal},
+        {BLOCK_9, BLOCK_8, 5, Status::Normal, Status::Normal},
+        {BLOCK_10, BLOCK_9, 6, Status::Normal, Status::Normal},
+    };
+const Test_HeaderOracle_base::BestChainVector
+    Test_HeaderOracle_base::best_chain_3_{
+        "",
+        BLOCK_1,
+        BLOCK_2,
+        BLOCK_3,
+        BLOCK_8,
+        BLOCK_9,
+        BLOCK_10,
+    };
+const Test_HeaderOracle_base::ExpectedSiblings
+    Test_HeaderOracle_base::siblings_3_{BLOCK_6, BLOCK_7};
 
 //  checkpoint_prevents_reorg
 //
 //  1   2   3  (4)  10
 //              5
 //              6   7   8   9
-const std::vector<Test_HeaderOracle::Block> Test_HeaderOracle::create_4_{
-    {"", BLOCK_1},
-    {BLOCK_1, BLOCK_2},
-    {BLOCK_2, BLOCK_3},
-    {BLOCK_3, BLOCK_4},
-    {BLOCK_3, BLOCK_5},
-    {BLOCK_3, BLOCK_6},
-    {BLOCK_6, BLOCK_7},
-    {BLOCK_7, BLOCK_8},
-    {BLOCK_8, BLOCK_9},
-    {BLOCK_4, BLOCK_10},
-};
-const std::vector<Test_HeaderOracle::Test> Test_HeaderOracle::sequence_4_{
-    {BLOCK_1, {1, BLOCK_1}, {"", BLOCK_1}},
-    {BLOCK_2, {2, BLOCK_2}, {"", BLOCK_1, BLOCK_2}},
-    {BLOCK_3, {3, BLOCK_3}, {"", BLOCK_1, BLOCK_2, BLOCK_3}},
-    {BLOCK_4, {4, BLOCK_4}, {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_4}},
-    {BLOCK_5, {4, BLOCK_4}, {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_4}},
-    {BLOCK_6, {4, BLOCK_4}, {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_4}},
-    {BLOCK_7, {4, BLOCK_4}, {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_4}},
-    {BLOCK_8, {4, BLOCK_4}, {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_4}},
-    {BLOCK_9, {4, BLOCK_4}, {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_4}},
-    {BLOCK_10,
-     {5, BLOCK_10},
-     {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_4, BLOCK_10}},
-};
-const Test_HeaderOracle::PostStateVector Test_HeaderOracle::post_state_4_{
-    {BLOCK_1, "", 1, Status::Normal, Status::Normal},
-    {BLOCK_2, BLOCK_1, 2, Status::Normal, Status::Normal},
-    {BLOCK_3, BLOCK_2, 3, Status::Normal, Status::Normal},
-    {BLOCK_4, BLOCK_3, 4, Status::Checkpoint, Status::Normal},
-    {BLOCK_5, BLOCK_3, 4, Status::CheckpointBanned, Status::Normal},
-    {BLOCK_6, BLOCK_3, 4, Status::CheckpointBanned, Status::Normal},
-    {BLOCK_7, BLOCK_6, 5, Status::Normal, Status::CheckpointBanned},
-    {BLOCK_8, BLOCK_7, 6, Status::Normal, Status::CheckpointBanned},
-    {BLOCK_9, BLOCK_8, 7, Status::Normal, Status::CheckpointBanned},
-    {BLOCK_10, BLOCK_4, 5, Status::Normal, Status::Normal},
-};
-const Test_HeaderOracle::BestChainVector Test_HeaderOracle::best_chain_4_{
-    "",
-    BLOCK_1,
-    BLOCK_2,
-    BLOCK_3,
-    BLOCK_4,
-    BLOCK_10,
-};
-const Test_HeaderOracle::ExpectedSiblings Test_HeaderOracle::siblings_4_{
-    BLOCK_5,
-    BLOCK_9};
+const std::vector<Test_HeaderOracle_base::Block>
+    Test_HeaderOracle_base::create_4_{
+        {"", BLOCK_1},
+        {BLOCK_1, BLOCK_2},
+        {BLOCK_2, BLOCK_3},
+        {BLOCK_3, BLOCK_4},
+        {BLOCK_3, BLOCK_5},
+        {BLOCK_3, BLOCK_6},
+        {BLOCK_6, BLOCK_7},
+        {BLOCK_7, BLOCK_8},
+        {BLOCK_8, BLOCK_9},
+        {BLOCK_4, BLOCK_10},
+    };
+const std::vector<Test_HeaderOracle_base::Test>
+    Test_HeaderOracle_base::sequence_4_{
+        {BLOCK_1, {1, BLOCK_1}, {"", BLOCK_1}},
+        {BLOCK_2, {2, BLOCK_2}, {"", BLOCK_1, BLOCK_2}},
+        {BLOCK_3, {3, BLOCK_3}, {"", BLOCK_1, BLOCK_2, BLOCK_3}},
+        {BLOCK_4, {4, BLOCK_4}, {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_4}},
+        {BLOCK_5, {4, BLOCK_4}, {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_4}},
+        {BLOCK_6, {4, BLOCK_4}, {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_4}},
+        {BLOCK_7, {4, BLOCK_4}, {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_4}},
+        {BLOCK_8, {4, BLOCK_4}, {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_4}},
+        {BLOCK_9, {4, BLOCK_4}, {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_4}},
+        {BLOCK_10,
+         {5, BLOCK_10},
+         {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_4, BLOCK_10}},
+    };
+const Test_HeaderOracle_base::PostStateVector
+    Test_HeaderOracle_base::post_state_4_{
+        {BLOCK_1, "", 1, Status::Normal, Status::Normal},
+        {BLOCK_2, BLOCK_1, 2, Status::Normal, Status::Normal},
+        {BLOCK_3, BLOCK_2, 3, Status::Normal, Status::Normal},
+        {BLOCK_4, BLOCK_3, 4, Status::Checkpoint, Status::Normal},
+        {BLOCK_5, BLOCK_3, 4, Status::CheckpointBanned, Status::Normal},
+        {BLOCK_6, BLOCK_3, 4, Status::CheckpointBanned, Status::Normal},
+        {BLOCK_7, BLOCK_6, 5, Status::Normal, Status::CheckpointBanned},
+        {BLOCK_8, BLOCK_7, 6, Status::Normal, Status::CheckpointBanned},
+        {BLOCK_9, BLOCK_8, 7, Status::Normal, Status::CheckpointBanned},
+        {BLOCK_10, BLOCK_4, 5, Status::Normal, Status::Normal},
+    };
+const Test_HeaderOracle_base::BestChainVector
+    Test_HeaderOracle_base::best_chain_4_{
+        "",
+        BLOCK_1,
+        BLOCK_2,
+        BLOCK_3,
+        BLOCK_4,
+        BLOCK_10,
+    };
+const Test_HeaderOracle_base::ExpectedSiblings
+    Test_HeaderOracle_base::siblings_4_{BLOCK_5, BLOCK_9};
 
 //  receive_headers_out_of_order
 //
 //                      7   8   9
 //  1   2   3   12  4   5   6   13  14
 //              10  11
-const std::vector<Test_HeaderOracle::Block> Test_HeaderOracle::create_5_{
-    {"", BLOCK_1},
-    {BLOCK_1, BLOCK_2},
-    {BLOCK_2, BLOCK_3},
-    {BLOCK_3, BLOCK_10},
-    {BLOCK_10, BLOCK_11},
-    {BLOCK_3, BLOCK_12},
-    {BLOCK_12, BLOCK_4},
-    {BLOCK_4, BLOCK_5},
-    {BLOCK_5, BLOCK_6},
-    {BLOCK_6, BLOCK_13},
-    {BLOCK_13, BLOCK_14},
-    {BLOCK_4, BLOCK_7},
-    {BLOCK_7, BLOCK_8},
-    {BLOCK_8, BLOCK_9},
-};
-const std::vector<Test_HeaderOracle::Test> Test_HeaderOracle::sequence_5_{
-    {BLOCK_1, {1, BLOCK_1}, {"", BLOCK_1}},
-    {BLOCK_2, {2, BLOCK_2}, {"", BLOCK_1, BLOCK_2}},
-    {BLOCK_3, {3, BLOCK_3}, {"", BLOCK_1, BLOCK_2, BLOCK_3}},
-    {BLOCK_4, {3, BLOCK_3}, {"", BLOCK_1, BLOCK_2, BLOCK_3}},
-    {BLOCK_5, {3, BLOCK_3}, {"", BLOCK_1, BLOCK_2, BLOCK_3}},
-    {BLOCK_6, {3, BLOCK_3}, {"", BLOCK_1, BLOCK_2, BLOCK_3}},
-    {BLOCK_7, {3, BLOCK_3}, {"", BLOCK_1, BLOCK_2, BLOCK_3}},
-    {BLOCK_8, {3, BLOCK_3}, {"", BLOCK_1, BLOCK_2, BLOCK_3}},
-    {BLOCK_9, {3, BLOCK_3}, {"", BLOCK_1, BLOCK_2, BLOCK_3}},
-    {BLOCK_10, {4, BLOCK_10}, {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_10}},
-    {BLOCK_11,
-     {5, BLOCK_11},
-     {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_10, BLOCK_11}},
-    {BLOCK_12,
-     {8, BLOCK_9},
-     {"",
-      BLOCK_1,
-      BLOCK_2,
-      BLOCK_3,
-      BLOCK_12,
-      BLOCK_4,
-      BLOCK_7,
-      BLOCK_8,
-      BLOCK_9}},
-    {BLOCK_13,
-     {8, BLOCK_9},
-     {"",
-      BLOCK_1,
-      BLOCK_2,
-      BLOCK_3,
-      BLOCK_12,
-      BLOCK_4,
-      BLOCK_7,
-      BLOCK_8,
-      BLOCK_9}},
-    {BLOCK_14,
-     {9, BLOCK_14},
-     {"",
-      BLOCK_1,
-      BLOCK_2,
-      BLOCK_3,
-      BLOCK_12,
-      BLOCK_4,
-      BLOCK_5,
-      BLOCK_6,
-      BLOCK_13,
-      BLOCK_14}},
-};
-const Test_HeaderOracle::PostStateVector Test_HeaderOracle::post_state_5_{
-    {BLOCK_1, "", 1, Status::Normal, Status::Normal},
-    {BLOCK_2, BLOCK_1, 2, Status::Normal, Status::Normal},
-    {BLOCK_3, BLOCK_2, 3, Status::Normal, Status::Normal},
-    {BLOCK_4, BLOCK_12, 5, Status::Normal, Status::Normal},
-    {BLOCK_5, BLOCK_4, 6, Status::Normal, Status::Normal},
-    {BLOCK_6, BLOCK_5, 7, Status::Normal, Status::Normal},
-    {BLOCK_7, BLOCK_4, 6, Status::Normal, Status::Normal},
-    {BLOCK_8, BLOCK_7, 7, Status::Normal, Status::Normal},
-    {BLOCK_9, BLOCK_8, 8, Status::Normal, Status::Normal},
-    {BLOCK_10, BLOCK_3, 4, Status::Normal, Status::Normal},
-    {BLOCK_11, BLOCK_10, 5, Status::Normal, Status::Normal},
-    {BLOCK_12, BLOCK_3, 4, Status::Normal, Status::Normal},
-    {BLOCK_13, BLOCK_6, 8, Status::Normal, Status::Normal},
-    {BLOCK_14, BLOCK_13, 9, Status::Normal, Status::Normal},
-};
-const Test_HeaderOracle::BestChainVector Test_HeaderOracle::best_chain_5_{
-    "",
-    BLOCK_1,
-    BLOCK_2,
-    BLOCK_3,
-    BLOCK_12,
-    BLOCK_4,
-    BLOCK_5,
-    BLOCK_6,
-    BLOCK_13,
-    BLOCK_14,
-};
-const Test_HeaderOracle::ExpectedSiblings Test_HeaderOracle::siblings_5_{
-    BLOCK_9,
-    BLOCK_11};
+const std::vector<Test_HeaderOracle_base::Block>
+    Test_HeaderOracle_base::create_5_{
+        {"", BLOCK_1},
+        {BLOCK_1, BLOCK_2},
+        {BLOCK_2, BLOCK_3},
+        {BLOCK_3, BLOCK_10},
+        {BLOCK_10, BLOCK_11},
+        {BLOCK_3, BLOCK_12},
+        {BLOCK_12, BLOCK_4},
+        {BLOCK_4, BLOCK_5},
+        {BLOCK_5, BLOCK_6},
+        {BLOCK_6, BLOCK_13},
+        {BLOCK_13, BLOCK_14},
+        {BLOCK_4, BLOCK_7},
+        {BLOCK_7, BLOCK_8},
+        {BLOCK_8, BLOCK_9},
+    };
+const std::vector<Test_HeaderOracle_base::Test>
+    Test_HeaderOracle_base::sequence_5_{
+        {BLOCK_1, {1, BLOCK_1}, {"", BLOCK_1}},
+        {BLOCK_2, {2, BLOCK_2}, {"", BLOCK_1, BLOCK_2}},
+        {BLOCK_3, {3, BLOCK_3}, {"", BLOCK_1, BLOCK_2, BLOCK_3}},
+        {BLOCK_4, {3, BLOCK_3}, {"", BLOCK_1, BLOCK_2, BLOCK_3}},
+        {BLOCK_5, {3, BLOCK_3}, {"", BLOCK_1, BLOCK_2, BLOCK_3}},
+        {BLOCK_6, {3, BLOCK_3}, {"", BLOCK_1, BLOCK_2, BLOCK_3}},
+        {BLOCK_7, {3, BLOCK_3}, {"", BLOCK_1, BLOCK_2, BLOCK_3}},
+        {BLOCK_8, {3, BLOCK_3}, {"", BLOCK_1, BLOCK_2, BLOCK_3}},
+        {BLOCK_9, {3, BLOCK_3}, {"", BLOCK_1, BLOCK_2, BLOCK_3}},
+        {BLOCK_10, {4, BLOCK_10}, {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_10}},
+        {BLOCK_11,
+         {5, BLOCK_11},
+         {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_10, BLOCK_11}},
+        {BLOCK_12,
+         {8, BLOCK_9},
+         {"",
+          BLOCK_1,
+          BLOCK_2,
+          BLOCK_3,
+          BLOCK_12,
+          BLOCK_4,
+          BLOCK_7,
+          BLOCK_8,
+          BLOCK_9}},
+        {BLOCK_13,
+         {8, BLOCK_9},
+         {"",
+          BLOCK_1,
+          BLOCK_2,
+          BLOCK_3,
+          BLOCK_12,
+          BLOCK_4,
+          BLOCK_7,
+          BLOCK_8,
+          BLOCK_9}},
+        {BLOCK_14,
+         {9, BLOCK_14},
+         {"",
+          BLOCK_1,
+          BLOCK_2,
+          BLOCK_3,
+          BLOCK_12,
+          BLOCK_4,
+          BLOCK_5,
+          BLOCK_6,
+          BLOCK_13,
+          BLOCK_14}},
+    };
+const Test_HeaderOracle_base::PostStateVector
+    Test_HeaderOracle_base::post_state_5_{
+        {BLOCK_1, "", 1, Status::Normal, Status::Normal},
+        {BLOCK_2, BLOCK_1, 2, Status::Normal, Status::Normal},
+        {BLOCK_3, BLOCK_2, 3, Status::Normal, Status::Normal},
+        {BLOCK_4, BLOCK_12, 5, Status::Normal, Status::Normal},
+        {BLOCK_5, BLOCK_4, 6, Status::Normal, Status::Normal},
+        {BLOCK_6, BLOCK_5, 7, Status::Normal, Status::Normal},
+        {BLOCK_7, BLOCK_4, 6, Status::Normal, Status::Normal},
+        {BLOCK_8, BLOCK_7, 7, Status::Normal, Status::Normal},
+        {BLOCK_9, BLOCK_8, 8, Status::Normal, Status::Normal},
+        {BLOCK_10, BLOCK_3, 4, Status::Normal, Status::Normal},
+        {BLOCK_11, BLOCK_10, 5, Status::Normal, Status::Normal},
+        {BLOCK_12, BLOCK_3, 4, Status::Normal, Status::Normal},
+        {BLOCK_13, BLOCK_6, 8, Status::Normal, Status::Normal},
+        {BLOCK_14, BLOCK_13, 9, Status::Normal, Status::Normal},
+    };
+const Test_HeaderOracle_base::BestChainVector
+    Test_HeaderOracle_base::best_chain_5_{
+        "",
+        BLOCK_1,
+        BLOCK_2,
+        BLOCK_3,
+        BLOCK_12,
+        BLOCK_4,
+        BLOCK_5,
+        BLOCK_6,
+        BLOCK_13,
+        BLOCK_14,
+    };
+const Test_HeaderOracle_base::ExpectedSiblings
+    Test_HeaderOracle_base::siblings_5_{BLOCK_9, BLOCK_11};
 
 //  add_checkpoint_already_in_best_chain
 //
 //  1   2   3   4   5  (6)  7   8   9   10
-const std::vector<Test_HeaderOracle::Block> Test_HeaderOracle::create_6_{
-    Test_HeaderOracle::create_1_};
-const std::vector<Test_HeaderOracle::Test> Test_HeaderOracle::sequence_6_{
-    Test_HeaderOracle::sequence_1_};
-const Test_HeaderOracle::PostStateVector Test_HeaderOracle::post_state_6_{
-    {BLOCK_1, "", 1, Status::Normal, Status::Normal},
-    {BLOCK_2, BLOCK_1, 2, Status::Normal, Status::Normal},
-    {BLOCK_3, BLOCK_2, 3, Status::Normal, Status::Normal},
-    {BLOCK_4, BLOCK_3, 4, Status::Normal, Status::Normal},
-    {BLOCK_5, BLOCK_4, 5, Status::Normal, Status::Normal},
-    {BLOCK_6, BLOCK_5, 6, Status::Checkpoint, Status::Normal},
-    {BLOCK_7, BLOCK_6, 7, Status::Normal, Status::Normal},
-    {BLOCK_8, BLOCK_7, 8, Status::Normal, Status::Normal},
-    {BLOCK_9, BLOCK_8, 9, Status::Normal, Status::Normal},
-    {BLOCK_10, BLOCK_9, 10, Status::Normal, Status::Normal},
-};
-const Test_HeaderOracle::BestChainVector Test_HeaderOracle::best_chain_6_{
-    Test_HeaderOracle::best_chain_1_};
-const Test_HeaderOracle::ExpectedSiblings Test_HeaderOracle::siblings_6_{
-    Test_HeaderOracle::siblings_1_};
+const std::vector<Test_HeaderOracle_base::Block>
+    Test_HeaderOracle_base::create_6_{Test_HeaderOracle_base::create_1_};
+const std::vector<Test_HeaderOracle_base::Test>
+    Test_HeaderOracle_base::sequence_6_{Test_HeaderOracle_base::sequence_1_};
+const Test_HeaderOracle_base::PostStateVector
+    Test_HeaderOracle_base::post_state_6_{
+        {BLOCK_1, "", 1, Status::Normal, Status::Normal},
+        {BLOCK_2, BLOCK_1, 2, Status::Normal, Status::Normal},
+        {BLOCK_3, BLOCK_2, 3, Status::Normal, Status::Normal},
+        {BLOCK_4, BLOCK_3, 4, Status::Normal, Status::Normal},
+        {BLOCK_5, BLOCK_4, 5, Status::Normal, Status::Normal},
+        {BLOCK_6, BLOCK_5, 6, Status::Checkpoint, Status::Normal},
+        {BLOCK_7, BLOCK_6, 7, Status::Normal, Status::Normal},
+        {BLOCK_8, BLOCK_7, 8, Status::Normal, Status::Normal},
+        {BLOCK_9, BLOCK_8, 9, Status::Normal, Status::Normal},
+        {BLOCK_10, BLOCK_9, 10, Status::Normal, Status::Normal},
+    };
+const Test_HeaderOracle_base::BestChainVector
+    Test_HeaderOracle_base::best_chain_6_{
+        Test_HeaderOracle_base::best_chain_1_};
+const Test_HeaderOracle_base::ExpectedSiblings
+    Test_HeaderOracle_base::siblings_6_{Test_HeaderOracle_base::siblings_1_};
 
 //  reorg_to_checkpoint
 //
 //  1   2   3   7   8
 //         (4)
 //          5   6
-const std::vector<Test_HeaderOracle::Block> Test_HeaderOracle::create_7_{
-    Test_HeaderOracle::create_2_};
-const std::vector<Test_HeaderOracle::Test> Test_HeaderOracle::sequence_7_{
-    Test_HeaderOracle::sequence_2_};
-const Test_HeaderOracle::PostStateVector Test_HeaderOracle::post_state_7_{
-    {BLOCK_1, "", 1, Status::Normal, Status::Normal},
-    {BLOCK_2, BLOCK_1, 2, Status::Normal, Status::Normal},
-    {BLOCK_3, BLOCK_2, 3, Status::CheckpointBanned, Status::Normal},
-    {BLOCK_4, BLOCK_2, 3, Status::Checkpoint, Status::Normal},
-    {BLOCK_5, BLOCK_2, 3, Status::CheckpointBanned, Status::Normal},
-    {BLOCK_6, BLOCK_5, 4, Status::Normal, Status::CheckpointBanned},
-    {BLOCK_7, BLOCK_3, 4, Status::Normal, Status::CheckpointBanned},
-    {BLOCK_8, BLOCK_7, 5, Status::Normal, Status::CheckpointBanned},
-};
-const Test_HeaderOracle::BestChainVector Test_HeaderOracle::best_chain_7_{
-    "",
-    BLOCK_1,
-    BLOCK_2,
-    BLOCK_4,
-};
-const Test_HeaderOracle::ExpectedSiblings Test_HeaderOracle::siblings_7_{
-    BLOCK_6,
-    BLOCK_8};
+const std::vector<Test_HeaderOracle_base::Block>
+    Test_HeaderOracle_base::create_7_{Test_HeaderOracle_base::create_2_};
+const std::vector<Test_HeaderOracle_base::Test>
+    Test_HeaderOracle_base::sequence_7_{Test_HeaderOracle_base::sequence_2_};
+const Test_HeaderOracle_base::PostStateVector
+    Test_HeaderOracle_base::post_state_7_{
+        {BLOCK_1, "", 1, Status::Normal, Status::Normal},
+        {BLOCK_2, BLOCK_1, 2, Status::Normal, Status::Normal},
+        {BLOCK_3, BLOCK_2, 3, Status::CheckpointBanned, Status::Normal},
+        {BLOCK_4, BLOCK_2, 3, Status::Checkpoint, Status::Normal},
+        {BLOCK_5, BLOCK_2, 3, Status::CheckpointBanned, Status::Normal},
+        {BLOCK_6, BLOCK_5, 4, Status::Normal, Status::CheckpointBanned},
+        {BLOCK_7, BLOCK_3, 4, Status::Normal, Status::CheckpointBanned},
+        {BLOCK_8, BLOCK_7, 5, Status::Normal, Status::CheckpointBanned},
+    };
+const Test_HeaderOracle_base::BestChainVector
+    Test_HeaderOracle_base::best_chain_7_{
+        "",
+        BLOCK_1,
+        BLOCK_2,
+        BLOCK_4,
+    };
+const Test_HeaderOracle_base::ExpectedSiblings
+    Test_HeaderOracle_base::siblings_7_{BLOCK_6, BLOCK_8};
 
 //  reorg_to_checkpoint_descendent
 //          8   9
 //     (6)  7
 //  1   2   3   4   5
-const std::vector<Test_HeaderOracle::Block> Test_HeaderOracle::create_8_{
-    {"", BLOCK_1},
-    {BLOCK_1, BLOCK_2},
-    {BLOCK_2, BLOCK_3},
-    {BLOCK_3, BLOCK_4},
-    {BLOCK_4, BLOCK_5},
-    {BLOCK_1, BLOCK_6},
-    {BLOCK_6, BLOCK_7},
-    {BLOCK_6, BLOCK_8},
-    {BLOCK_8, BLOCK_9},
-};
-const std::vector<Test_HeaderOracle::Test> Test_HeaderOracle::sequence_8_{
-    {BLOCK_1, {1, BLOCK_1}, {"", BLOCK_1}},
-    {BLOCK_2, {2, BLOCK_2}, {"", BLOCK_1, BLOCK_2}},
-    {BLOCK_3, {3, BLOCK_3}, {"", BLOCK_1, BLOCK_2, BLOCK_3}},
-    {BLOCK_4, {4, BLOCK_4}, {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_4}},
-    {BLOCK_5, {5, BLOCK_5}, {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_4, BLOCK_5}},
-    {BLOCK_6, {5, BLOCK_5}, {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_4, BLOCK_5}},
-    {BLOCK_7, {5, BLOCK_5}, {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_4, BLOCK_5}},
-    {BLOCK_8, {5, BLOCK_5}, {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_4, BLOCK_5}},
-    {BLOCK_9, {5, BLOCK_5}, {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_4, BLOCK_5}},
-};
-const Test_HeaderOracle::PostStateVector Test_HeaderOracle::post_state_8a_{
-    {BLOCK_1, "", 1, Status::Normal, Status::Normal},
-    {BLOCK_2, BLOCK_1, 2, Status::Normal, Status::Normal},
-    {BLOCK_3, BLOCK_2, 3, Status::Normal, Status::Normal},
-    {BLOCK_4, BLOCK_3, 4, Status::Normal, Status::Normal},
-    {BLOCK_5, BLOCK_4, 5, Status::Normal, Status::Normal},
-    {BLOCK_6, BLOCK_1, 2, Status::Normal, Status::Normal},
-    {BLOCK_7, BLOCK_6, 3, Status::Normal, Status::Normal},
-    {BLOCK_8, BLOCK_6, 3, Status::Normal, Status::Normal},
-    {BLOCK_9, BLOCK_8, 4, Status::Normal, Status::Normal},
-};
-const Test_HeaderOracle::PostStateVector Test_HeaderOracle::post_state_8b_{
-    {BLOCK_1, "", 1, Status::Normal, Status::Normal},
-    {BLOCK_2, BLOCK_1, 2, Status::CheckpointBanned, Status::Normal},
-    {BLOCK_3, BLOCK_2, 3, Status::Normal, Status::CheckpointBanned},
-    {BLOCK_4, BLOCK_3, 4, Status::Normal, Status::CheckpointBanned},
-    {BLOCK_5, BLOCK_4, 5, Status::Normal, Status::CheckpointBanned},
-    {BLOCK_6, BLOCK_1, 2, Status::Checkpoint, Status::Normal},
-    {BLOCK_7, BLOCK_6, 3, Status::Normal, Status::Normal},
-    {BLOCK_8, BLOCK_6, 3, Status::Normal, Status::Normal},
-    {BLOCK_9, BLOCK_8, 4, Status::Normal, Status::Normal},
-};
-const Test_HeaderOracle::BestChainVector Test_HeaderOracle::best_chain_8a_{
-    "",
-    BLOCK_1,
-    BLOCK_2,
-    BLOCK_3,
-    BLOCK_4,
-    BLOCK_5,
-};
-const Test_HeaderOracle::BestChainVector Test_HeaderOracle::best_chain_8b_{
-    "",
-    BLOCK_1,
-    BLOCK_6,
-    BLOCK_8,
-    BLOCK_9,
-};
-const Test_HeaderOracle::ExpectedSiblings Test_HeaderOracle::siblings_8a_{
-    BLOCK_7,
-    BLOCK_9};
-const Test_HeaderOracle::ExpectedSiblings Test_HeaderOracle::siblings_8b_{
-    BLOCK_5,
-    BLOCK_7};
+const std::vector<Test_HeaderOracle_base::Block>
+    Test_HeaderOracle_base::create_8_{
+        {"", BLOCK_1},
+        {BLOCK_1, BLOCK_2},
+        {BLOCK_2, BLOCK_3},
+        {BLOCK_3, BLOCK_4},
+        {BLOCK_4, BLOCK_5},
+        {BLOCK_1, BLOCK_6},
+        {BLOCK_6, BLOCK_7},
+        {BLOCK_6, BLOCK_8},
+        {BLOCK_8, BLOCK_9},
+    };
+const std::vector<Test_HeaderOracle_base::Test>
+    Test_HeaderOracle_base::sequence_8_{
+        {BLOCK_1, {1, BLOCK_1}, {"", BLOCK_1}},
+        {BLOCK_2, {2, BLOCK_2}, {"", BLOCK_1, BLOCK_2}},
+        {BLOCK_3, {3, BLOCK_3}, {"", BLOCK_1, BLOCK_2, BLOCK_3}},
+        {BLOCK_4, {4, BLOCK_4}, {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_4}},
+        {BLOCK_5,
+         {5, BLOCK_5},
+         {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_4, BLOCK_5}},
+        {BLOCK_6,
+         {5, BLOCK_5},
+         {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_4, BLOCK_5}},
+        {BLOCK_7,
+         {5, BLOCK_5},
+         {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_4, BLOCK_5}},
+        {BLOCK_8,
+         {5, BLOCK_5},
+         {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_4, BLOCK_5}},
+        {BLOCK_9,
+         {5, BLOCK_5},
+         {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_4, BLOCK_5}},
+    };
+const Test_HeaderOracle_base::PostStateVector
+    Test_HeaderOracle_base::post_state_8a_{
+        {BLOCK_1, "", 1, Status::Normal, Status::Normal},
+        {BLOCK_2, BLOCK_1, 2, Status::Normal, Status::Normal},
+        {BLOCK_3, BLOCK_2, 3, Status::Normal, Status::Normal},
+        {BLOCK_4, BLOCK_3, 4, Status::Normal, Status::Normal},
+        {BLOCK_5, BLOCK_4, 5, Status::Normal, Status::Normal},
+        {BLOCK_6, BLOCK_1, 2, Status::Normal, Status::Normal},
+        {BLOCK_7, BLOCK_6, 3, Status::Normal, Status::Normal},
+        {BLOCK_8, BLOCK_6, 3, Status::Normal, Status::Normal},
+        {BLOCK_9, BLOCK_8, 4, Status::Normal, Status::Normal},
+    };
+const Test_HeaderOracle_base::PostStateVector
+    Test_HeaderOracle_base::post_state_8b_{
+        {BLOCK_1, "", 1, Status::Normal, Status::Normal},
+        {BLOCK_2, BLOCK_1, 2, Status::CheckpointBanned, Status::Normal},
+        {BLOCK_3, BLOCK_2, 3, Status::Normal, Status::CheckpointBanned},
+        {BLOCK_4, BLOCK_3, 4, Status::Normal, Status::CheckpointBanned},
+        {BLOCK_5, BLOCK_4, 5, Status::Normal, Status::CheckpointBanned},
+        {BLOCK_6, BLOCK_1, 2, Status::Checkpoint, Status::Normal},
+        {BLOCK_7, BLOCK_6, 3, Status::Normal, Status::Normal},
+        {BLOCK_8, BLOCK_6, 3, Status::Normal, Status::Normal},
+        {BLOCK_9, BLOCK_8, 4, Status::Normal, Status::Normal},
+    };
+const Test_HeaderOracle_base::BestChainVector
+    Test_HeaderOracle_base::best_chain_8a_{
+        "",
+        BLOCK_1,
+        BLOCK_2,
+        BLOCK_3,
+        BLOCK_4,
+        BLOCK_5,
+    };
+const Test_HeaderOracle_base::BestChainVector
+    Test_HeaderOracle_base::best_chain_8b_{
+        "",
+        BLOCK_1,
+        BLOCK_6,
+        BLOCK_8,
+        BLOCK_9,
+    };
+const Test_HeaderOracle_base::ExpectedSiblings
+    Test_HeaderOracle_base::siblings_8a_{BLOCK_7, BLOCK_9};
+const Test_HeaderOracle_base::ExpectedSiblings
+    Test_HeaderOracle_base::siblings_8b_{BLOCK_5, BLOCK_7};
 
 //  add_checkpoint_disconnected
 //
@@ -772,57 +832,59 @@ const Test_HeaderOracle::ExpectedSiblings Test_HeaderOracle::siblings_8b_{
 //          5   6
 //
 //     (9)
-const std::vector<Test_HeaderOracle::Block> Test_HeaderOracle::create_9_{
-    Test_HeaderOracle::create_2_};
-const std::vector<Test_HeaderOracle::Test> Test_HeaderOracle::sequence_9_{
-    Test_HeaderOracle::sequence_2_};
-const Test_HeaderOracle::PostStateVector Test_HeaderOracle::post_state_9_{
-    {BLOCK_1, "", 1, Status::Normal, Status::Normal},
-    {BLOCK_2, BLOCK_1, 2, Status::CheckpointBanned, Status::Normal},
-    {BLOCK_3, BLOCK_2, 3, Status::Normal, Status::CheckpointBanned},
-    {BLOCK_4, BLOCK_2, 3, Status::Normal, Status::CheckpointBanned},
-    {BLOCK_5, BLOCK_2, 3, Status::Normal, Status::CheckpointBanned},
-    {BLOCK_6, BLOCK_5, 4, Status::Normal, Status::CheckpointBanned},
-    {BLOCK_7, BLOCK_3, 4, Status::Normal, Status::CheckpointBanned},
-    {BLOCK_8, BLOCK_7, 5, Status::Normal, Status::CheckpointBanned},
-};
-const Test_HeaderOracle::BestChainVector Test_HeaderOracle::best_chain_9_{
-    "",
-    BLOCK_1,
-};
-const Test_HeaderOracle::ExpectedSiblings Test_HeaderOracle::siblings_9_{
-    BLOCK_4,
-    BLOCK_6,
-    BLOCK_8};
+const std::vector<Test_HeaderOracle_base::Block>
+    Test_HeaderOracle_base::create_9_{Test_HeaderOracle_base::create_2_};
+const std::vector<Test_HeaderOracle_base::Test>
+    Test_HeaderOracle_base::sequence_9_{Test_HeaderOracle_base::sequence_2_};
+const Test_HeaderOracle_base::PostStateVector
+    Test_HeaderOracle_base::post_state_9_{
+        {BLOCK_1, "", 1, Status::Normal, Status::Normal},
+        {BLOCK_2, BLOCK_1, 2, Status::CheckpointBanned, Status::Normal},
+        {BLOCK_3, BLOCK_2, 3, Status::Normal, Status::CheckpointBanned},
+        {BLOCK_4, BLOCK_2, 3, Status::Normal, Status::CheckpointBanned},
+        {BLOCK_5, BLOCK_2, 3, Status::Normal, Status::CheckpointBanned},
+        {BLOCK_6, BLOCK_5, 4, Status::Normal, Status::CheckpointBanned},
+        {BLOCK_7, BLOCK_3, 4, Status::Normal, Status::CheckpointBanned},
+        {BLOCK_8, BLOCK_7, 5, Status::Normal, Status::CheckpointBanned},
+    };
+const Test_HeaderOracle_base::BestChainVector
+    Test_HeaderOracle_base::best_chain_9_{
+        "",
+        BLOCK_1,
+    };
+const Test_HeaderOracle_base::ExpectedSiblings
+    Test_HeaderOracle_base::siblings_9_{BLOCK_4, BLOCK_6, BLOCK_8};
 
 //  delete_checkpoint
 //          8   9
 //     (6)  7
 //  1   2   3   4   5
-const std::vector<Test_HeaderOracle::Block> Test_HeaderOracle::create_10_{
-    {"", BLOCK_1},
-    {BLOCK_1, BLOCK_2},
-    {BLOCK_2, BLOCK_3},
-    {BLOCK_3, BLOCK_4},
-    {BLOCK_4, BLOCK_5},
-    {BLOCK_1, BLOCK_6},
-    {BLOCK_6, BLOCK_7},
-    {BLOCK_6, BLOCK_8},
-    {BLOCK_8, BLOCK_9},
-};
-const std::vector<Test_HeaderOracle::Test> Test_HeaderOracle::sequence_10_{
-    {BLOCK_1, {1, BLOCK_1}, {"", BLOCK_1}},
-    {BLOCK_2, {1, BLOCK_1}, {"", BLOCK_1}},
-    {BLOCK_3, {1, BLOCK_1}, {"", BLOCK_1}},
-    {BLOCK_4, {1, BLOCK_1}, {"", BLOCK_1}},
-    {BLOCK_5, {1, BLOCK_1}, {"", BLOCK_1}},
-    {BLOCK_6, {2, BLOCK_6}, {"", BLOCK_1, BLOCK_6}},
-    {BLOCK_7, {3, BLOCK_7}, {"", BLOCK_1, BLOCK_6, BLOCK_7}},
-    {BLOCK_8, {3, BLOCK_7}, {"", BLOCK_1, BLOCK_6, BLOCK_7}},
-    {BLOCK_9, {4, BLOCK_9}, {"", BLOCK_1, BLOCK_6, BLOCK_8, BLOCK_9}},
-};
+const std::vector<Test_HeaderOracle_base::Block>
+    Test_HeaderOracle_base::create_10_{
+        {"", BLOCK_1},
+        {BLOCK_1, BLOCK_2},
+        {BLOCK_2, BLOCK_3},
+        {BLOCK_3, BLOCK_4},
+        {BLOCK_4, BLOCK_5},
+        {BLOCK_1, BLOCK_6},
+        {BLOCK_6, BLOCK_7},
+        {BLOCK_6, BLOCK_8},
+        {BLOCK_8, BLOCK_9},
+    };
+const std::vector<Test_HeaderOracle_base::Test>
+    Test_HeaderOracle_base::sequence_10_{
+        {BLOCK_1, {1, BLOCK_1}, {"", BLOCK_1}},
+        {BLOCK_2, {1, BLOCK_1}, {"", BLOCK_1}},
+        {BLOCK_3, {1, BLOCK_1}, {"", BLOCK_1}},
+        {BLOCK_4, {1, BLOCK_1}, {"", BLOCK_1}},
+        {BLOCK_5, {1, BLOCK_1}, {"", BLOCK_1}},
+        {BLOCK_6, {2, BLOCK_6}, {"", BLOCK_1, BLOCK_6}},
+        {BLOCK_7, {3, BLOCK_7}, {"", BLOCK_1, BLOCK_6, BLOCK_7}},
+        {BLOCK_8, {3, BLOCK_7}, {"", BLOCK_1, BLOCK_6, BLOCK_7}},
+        {BLOCK_9, {4, BLOCK_9}, {"", BLOCK_1, BLOCK_6, BLOCK_8, BLOCK_9}},
+    };
 // clang-format off
-const std::vector<std::string> Test_HeaderOracle::bitcoin_{
+const std::vector<std::string> Test_HeaderOracle_base::bitcoin_{
     {"010000006fe28c0ab6f1b372c1a6a246ae63f74f931e8365e15a089c68d6190000000000982051fd1e4ba744bbbe680e1fee14677ba1a3c3540bf7b1cdb606e857233e0e61bc6649ffff001d01e36299"},
     {"010000004860eb18bf1b1620e37e9490fc8a427514416fd75159ab86688e9a8300000000d5fdcc541e25de1c7a5addedf24858b8bb665c9f36ef744ee42c316022c90f9bb0bc6649ffff001d08d2bd61"},
     {"01000000bddd99ccfda39da1b108ce1a5d70038d0a967bacb68b6b63065f626a0000000044f672226090d85db9a9f2fbfe5f0f9609b387af7be5b7fbb7a1767c831c9e995dbe6649ffff001d05e0ed6d"},

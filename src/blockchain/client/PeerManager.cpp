@@ -485,9 +485,10 @@ auto PeerManager::Peers::peer_factory(Endpoint endpoint, const int id) noexcept
                 std::move(endpoint),
                 shutdown_endpoint_);
         }
-        case opentxs::blockchain::Type::Unknown:
-        case opentxs::blockchain::Type::Ethereum_frontier:
-        case opentxs::blockchain::Type::Ethereum_ropsten:
+        case Type::Unknown:
+        case Type::Ethereum_frontier:
+        case Type::Ethereum_ropsten:
+        case Type::UnitTest:
         default: {
             OT_FAIL;
         }

@@ -60,15 +60,20 @@ Headers::Headers(
     , lock_()
 {
     import_genesis(type);
-    const auto best = this->best();
 
-    OT_ASSERT(0 <= best.first);
-    OT_ASSERT(HeaderExists(best.second));
+    {
+        const auto best = this->best();
 
-    const auto header = CurrentBest();
+        OT_ASSERT(HeaderExists(best.second));
+        OT_ASSERT(0 <= best.first);
+    }
 
-    OT_ASSERT(header);
-    OT_ASSERT(0 <= header->Position().first);
+    {
+        const auto header = CurrentBest();
+
+        OT_ASSERT(header);
+        OT_ASSERT(0 <= header->Position().first);
+    }
 }
 
 auto Headers::ApplyUpdate(const client::UpdateTransaction& update) noexcept
@@ -412,6 +417,7 @@ auto Headers::import_genesis(const blockchain::Type type) const noexcept -> void
             factory::GenesisBlockHeader(api_, type)};
 
         OT_ASSERT(genesis);
+        OT_ASSERT(hash == genesis->Hash());
 
         success = common_.StoreBlockHeader(*genesis);
 
@@ -427,6 +433,8 @@ auto Headers::import_genesis(const blockchain::Type type) const noexcept -> void
         OT_ASSERT(success);
     }
 
+    OT_ASSERT(HeaderExists(hash));
+
     if (0 > best().first) {
         auto transaction = lmdb_.TransactionRW();
         success = push_best({0, hash}, true, transaction);
@@ -436,7 +444,14 @@ auto Headers::import_genesis(const blockchain::Type type) const noexcept -> void
         success = transaction.Finalize(true);
 
         OT_ASSERT(success);
+
+        const auto best = this->best();
+
+        OT_ASSERT(0 == best.first);
+        OT_ASSERT(hash == best.second);
     }
+
+    OT_ASSERT(0 <= best().first);
 }
 
 auto Headers::IsSibling(const block::Hash& hash) const noexcept -> bool

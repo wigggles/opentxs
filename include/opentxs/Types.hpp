@@ -214,6 +214,7 @@ enum class Type : std::uint32_t {
     Ethereum_ropsten = 6,
     Litecoin = 7,
     Litecoin_testnet4 = 8,
+    UnitTest = std::numeric_limits<std::uint32_t>::max(),
 };
 
 #ifdef OT_BLOCKCHAIN
