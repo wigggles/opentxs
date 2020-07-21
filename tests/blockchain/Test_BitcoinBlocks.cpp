@@ -110,7 +110,7 @@ struct Test_BitcoinBlock : public ::testing::Test {
 
 TEST_F(Test_BitcoinBlock, init) {}
 
-TEST_F(Test_BitcoinBlock, genesis_mainnet)
+TEST_F(Test_BitcoinBlock, btc_genesis_mainnet)
 {
     const auto bytes =
         api_.Factory().Data(btc_genesis_block_mainnet_, ot::StringStyle::Hex);
@@ -132,7 +132,7 @@ TEST_F(Test_BitcoinBlock, genesis_mainnet)
     EXPECT_EQ(header->asHex(), btc_genesis_block_filter_header_mainnet_);
 }
 
-TEST_F(Test_BitcoinBlock, genesis_testnet)
+TEST_F(Test_BitcoinBlock, btc_genesis_testnet)
 {
     const auto bytes =
         api_.Factory().Data(btc_genesis_block_testnet_, ot::StringStyle::Hex);
@@ -152,6 +152,50 @@ TEST_F(Test_BitcoinBlock, genesis_testnet)
 
     EXPECT_EQ(filter->asHex(), btc_genesis_block_filter_testnet_);
     EXPECT_EQ(header->asHex(), btc_genesis_block_filter_header_testnet_);
+}
+
+TEST_F(Test_BitcoinBlock, ltc_genesis_mainnet)
+{
+    const auto bytes =
+        api_.Factory().Data(ltc_genesis_block_mainnet_, ot::StringStyle::Hex);
+    const auto block = api_.Factory().BitcoinBlock(
+        ot::blockchain::Type::Litecoin, bytes->Bytes());
+
+    ASSERT_TRUE(block);
+
+    const auto gcs = ot::factory::GCS(
+        api_, ot::blockchain::filter::Type::Extended_opentxs, *block);
+
+    ASSERT_TRUE(gcs);
+
+    const auto filter = gcs->Encode();
+    const auto header =
+        ot::blockchain::internal::FilterToHeader(api_, filter->Bytes());
+
+    EXPECT_EQ(filter->asHex(), ltc_genesis_block_filter_mainnet_);
+    EXPECT_EQ(header->asHex(), ltc_genesis_block_filter_header_mainnet_);
+}
+
+TEST_F(Test_BitcoinBlock, ltc_genesis_testnet)
+{
+    const auto bytes =
+        api_.Factory().Data(ltc_genesis_block_testnet_, ot::StringStyle::Hex);
+    const auto block = api_.Factory().BitcoinBlock(
+        ot::blockchain::Type::Litecoin_testnet4, bytes->Bytes());
+
+    ASSERT_TRUE(block);
+
+    const auto gcs = ot::factory::GCS(
+        api_, ot::blockchain::filter::Type::Extended_opentxs, *block);
+
+    ASSERT_TRUE(gcs);
+
+    const auto filter = gcs->Encode();
+    const auto header =
+        ot::blockchain::internal::FilterToHeader(api_, filter->Bytes());
+
+    EXPECT_EQ(filter->asHex(), ltc_genesis_block_filter_testnet_);
+    EXPECT_EQ(header->asHex(), ltc_genesis_block_filter_header_testnet_);
 }
 
 TEST_F(Test_BitcoinBlock, bip158)

@@ -59,3 +59,11 @@ constexpr auto ltc_genesis_block_testnet_{
     "44696573206174203536ffffffff0100f2052a010000004341040184710fa689ad5023690c"
     "80f3a49c8f13f8d45b8c857fbcbc8bc4a8e4d3eb4b10f4d4604fa08dce601aaf0f470216fe"
     "1b51850b4acf21b179c45070ac7b03a9ac00000000"};
+constexpr auto ltc_genesis_block_filter_mainnet_{
+    "049de8963322099e81f3bf7c4600"};
+constexpr auto ltc_genesis_block_filter_header_mainnet_{
+    "5a71cc36ad0b35d4c99b335ff69c3ed89e667b9772dbbf40396a1b4f2b2c3080"};
+constexpr auto ltc_genesis_block_filter_testnet_{
+    "048b3d6095a4b01eb30ce44017c0"};
+constexpr auto ltc_genesis_block_filter_header_testnet_{
+    "042bce138093a271d8d7f730f7f9f9ab8c7240f297b47aea4440dceec623aca3"};
