@@ -11,6 +11,8 @@ set(
   filteroracle/BlockQueue.cpp
   filteroracle/FilterQueue.cpp
   filteroracle/HeaderQueue.cpp
+  peermanager/Jobs.cpp
+  peermanager/Peers.cpp
   wallet/Account.cpp
   wallet/Accounts.cpp
   wallet/BitcoinTransactionBuilder.cpp

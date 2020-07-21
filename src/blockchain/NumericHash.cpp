@@ -34,26 +34,22 @@ namespace opentxs::factory
 {
 using ReturnType = blockchain::implementation::NumericHash;
 
-auto NumericHashNBits(const std::int32_t input) noexcept
+auto NumericHashNBits(const std::uint32_t input) noexcept
     -> std::unique_ptr<blockchain::NumericHash>
 {
     using ArgumentType = ReturnType::Type;
     using MantissaType = mp::checked_cpp_int;
 
-    const be::big_int32_buf_t big{input};
-    const auto nBits = Data::Factory(&big, sizeof(big));
-    auto exponent{std::to_integer<std::uint8_t>(nBits->at(0))};
-    MantissaType mantissa{};
-    auto it = nBits->begin();
-    ++it;
-    mp::import_bits(mantissa, it, nBits->end(), 8, true);
-
-    if (mantissa < 0) { return std::make_unique<ReturnType>(); }
-
-    ArgumentType value{};
+    const auto mantissa = std::uint32_t{input & 0x007fffff};
+    const auto exponent = static_cast<std::uint8_t>((input & 0xff000000) >> 24);
+    auto target = ArgumentType{};
 
     try {
-        value = ArgumentType{mantissa << (8 * (exponent - 3))};
+        if (exponent > 3) {
+            target = MantissaType{mantissa} << (8 * (exponent - 3));
+        } else {
+            target = MantissaType{mantissa} << (8 * (3 - exponent));
+        }
     } catch (...) {
         LogOutput("opentxs::factory::")(__FUNCTION__)(
             ": Failed to calculate target")
@@ -62,7 +58,7 @@ auto NumericHashNBits(const std::int32_t input) noexcept
         return std::make_unique<ReturnType>();
     }
 
-    return std::make_unique<ReturnType>(value);
+    return std::make_unique<ReturnType>(target);
 }
 
 auto NumericHash(const blockchain::block::Hash& hash) noexcept

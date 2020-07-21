@@ -88,11 +88,17 @@ auto BitcoinP2PHeaders(
                 header.Network(),
                 ReadView{reinterpret_cast<const char*>(it), 80});
 
-            OT_ASSERT(pHeader);
+            if (pHeader) {
+                headers.emplace_back(std::move(pHeader));
 
-            headers.emplace_back(std::move(pHeader));
+                it += 81;
+            } else {
+                LogOutput("opentxs::factory::")(__FUNCTION__)(
+                    ": Invalid header received at index ")(i)
+                    .Flush();
 
-            it += 81;
+                break;
+            }
         }
     }
 

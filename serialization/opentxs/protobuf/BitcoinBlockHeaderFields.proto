@@ -17,6 +17,6 @@ message BitcoinBlockHeaderFields
     optional bytes previous_header = 3;
     optional bytes merkle_hash = 4;
     optional uint32 timestamp = 5;
-    optional int32 nbits = 6;
+    optional uint32 nbits = 6;
     optional uint32 nonce = 7;
 }

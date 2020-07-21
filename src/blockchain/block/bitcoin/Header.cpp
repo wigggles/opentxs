@@ -160,7 +160,7 @@ Header::Header(
     const std::int32_t blockVersion,
     block::pHash&& merkle,
     const Time timestamp,
-    const std::int32_t nbits,
+    const std::uint32_t nbits,
     const std::uint32_t nonce,
     const bool validate) noexcept(false)
     : bitcoin::Header()
@@ -183,6 +183,8 @@ Header::Header(
     , nbits_(nbits)
     , nonce_(nonce)
 {
+    OT_ASSERT(validate || (blockchain::Type::UnitTest == type_));
+
     if (validate && (false == check_pow())) {
         throw std::runtime_error("Invalid proof of work");
     }
@@ -198,7 +200,7 @@ Header::Header(
     block::pHash&& previous,
     block::pHash&& merkle,
     const Time timestamp,
-    const std::int32_t nbits,
+    const std::uint32_t nbits,
     const std::uint32_t nonce,
     const bool isGenesis) noexcept(false)
     : Header(
@@ -308,7 +310,7 @@ Header::BitcoinFormat::BitcoinFormat(
     const std::string& previous,
     const std::string& merkle,
     const std::uint32_t time,
-    const std::int32_t nbits,
+    const std::uint32_t nbits,
     const std::uint32_t nonce) noexcept(false)
     : version_(version)
     , previous_()
@@ -391,7 +393,7 @@ auto Header::calculate_pow(
 
 auto Header::calculate_work(
     const blockchain::Type chain,
-    const std::int32_t nbits) -> OTWork
+    const std::uint32_t nbits) -> OTWork
 {
     const auto hash = OTNumericHash{factory::NumericHashNBits(nbits)};
 

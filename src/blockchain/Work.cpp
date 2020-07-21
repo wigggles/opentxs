@@ -58,14 +58,23 @@ auto Work(const blockchain::Type chain, const blockchain::NumericHash& input)
     using ReturnType = blockchain::implementation::Work;
     using TargetType = mp::checked_cpp_int;
     using ValueType = ReturnType::Type;
-    ValueType value{};
+
+    auto value = ValueType{};
 
     try {
         const auto maxTarget = factory::NumericHashNBits(
             blockchain::NumericHash::MaxTarget(chain));
-        const TargetType targetOne{maxTarget->Decimal()};
-        const TargetType target{input.Decimal()};
-        value = ValueType{targetOne} / ValueType{target};
+
+        OT_ASSERT(maxTarget);
+
+        const auto max = TargetType{maxTarget->Decimal()};
+        const auto incoming = TargetType{input.Decimal()};
+
+        if (incoming > max) {
+            value = ValueType{1};
+        } else {
+            value = ValueType{max} / ValueType{incoming};
+        }
     } catch (...) {
         LogOutput("opentxs::factory::")(__FUNCTION__)(
             ": Failed to calculate difficulty")

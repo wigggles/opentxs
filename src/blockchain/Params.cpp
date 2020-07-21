@@ -444,12 +444,6 @@ const Data::FilterData Data::genesis_filters_{
           {"0354578634dd178058ad5f3addf0d97c45911f483c99a1022ce51502e142e99f",
            "049dc75e0d584a300293ef3d3980"}},
      }},
-    {blockchain::Type::Litecoin,
-     {
-         {filter::Type::Basic_BIP158,
-          {"8aa75530308cf8247a151c37c24e7aaa281ae3b5cecedb581aacb3a0d07c2451",
-           "019e8738"}},
-     }},
     {blockchain::Type::BitcoinCash,
      {
          {filter::Type::Basic_BCHVariant,
@@ -458,6 +452,15 @@ const Data::FilterData Data::genesis_filters_{
          {filter::Type::Extended_opentxs,
           {"0354578634dd178058ad5f3addf0d97c45911f483c99a1022ce51502e142e99f",
            "049dc75e0d584a300293ef3d3980"}},
+     }},
+    {blockchain::Type::Litecoin,
+     {
+         {filter::Type::Basic_BIP158,
+          {"8aa75530308cf8247a151c37c24e7aaa281ae3b5cecedb581aacb3a0d07c2451",
+           "019e8738"}},
+         {filter::Type::Extended_opentxs,
+          {"5a71cc36ad0b35d4c99b335ff69c3ed89e667b9772dbbf40396a1b4f2b2c3080",
+           "049de8963322099e81f3bf7c4600"}},
      }},
     {blockchain::Type::Bitcoin_testnet3,
      {
@@ -482,12 +485,18 @@ const Data::FilterData Data::genesis_filters_{
          {filter::Type::Basic_BIP158,
           {"02d023da9d271b849f717089aad7e03a515dac982c9fb2cfd952e2ce1c618792",
            "014c8c60"}},
+         {filter::Type::Extended_opentxs,
+          {"042bce138093a271d8d7f730f7f9f9ab8c7240f297b47aea4440dceec623aca3",
+           "048b3d6095a4b01eb30ce44017c0"}},
      }},
     {blockchain::Type::UnitTest,
      {
          {filter::Type::Basic_BIP158,
           {"9f3c30f0c37fb977cf3e1a3173c631e8ff119ad3088b6f5b2bced0802139c202",
            "017fa880"}},
+         {filter::Type::Extended_opentxs,
+          {"0354578634dd178058ad5f3addf0d97c45911f483c99a1022ce51502e142e99f",
+           "049dc75e0d584a300293ef3d3980"}},
      }},
 };
 

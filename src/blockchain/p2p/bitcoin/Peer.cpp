@@ -1195,18 +1195,6 @@ auto Peer::process_version(
     protocol_.store(std::min(protocol_.load(), version.ProtocolVersion()));
     const auto services = version.RemoteServices();
     update_address_services(services);
-    const bool unsuitable = (0 == services.count(p2p::Service::Network)) &&
-                            (0 == services.count(p2p::Service::Limited));
-
-    if (unsuitable) {
-        LogNormal("Peer ")(address_.Display())(
-            " does not advertise necessary services")
-            .Flush();
-        disconnect();
-
-        return;
-    }
-
     std::unique_ptr<Message> pVerack{factory::BitcoinP2PVerack(api_, chain_)};
 
     if (false == bool(pVerack)) {

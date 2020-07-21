@@ -244,7 +244,7 @@ OPENTXS_EXPORT auto GCS(
     -> std::unique_ptr<blockchain::internal::GCS>;
 OPENTXS_EXPORT auto NumericHash(const blockchain::block::Hash& hash) noexcept
     -> std::unique_ptr<blockchain::NumericHash>;
-OPENTXS_EXPORT auto NumericHashNBits(const std::int32_t nBits) noexcept
+OPENTXS_EXPORT auto NumericHashNBits(const std::uint32_t nBits) noexcept
     -> std::unique_ptr<blockchain::NumericHash>;
 OPENTXS_EXPORT auto Work(const std::string& hex) -> blockchain::Work*;
 OPENTXS_EXPORT auto Work(

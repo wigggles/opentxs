@@ -49,7 +49,7 @@ public:
         std::array<char, 32> previous_;
         std::array<char, 32> merkle_;
         be::little_uint32_buf_t time_;
-        be::little_int32_buf_t nbits_;
+        be::little_uint32_buf_t nbits_;
         be::little_uint32_buf_t nonce_;
 
         BitcoinFormat(
@@ -57,7 +57,7 @@ public:
             const std::string& previous,
             const std::string& merkle,
             const std::uint32_t time,
-            const std::int32_t nbits,
+            const std::uint32_t nbits,
             const std::uint32_t nonce) noexcept(false);
         BitcoinFormat() noexcept;
     };
@@ -101,7 +101,7 @@ public:
         block::pHash&& previous,
         block::pHash&& merkle,
         const Time timestamp,
-        const std::int32_t nbits,
+        const std::uint32_t nbits,
         const std::uint32_t nonce,
         const bool isGenesis) noexcept(false);
     Header(
@@ -122,7 +122,7 @@ private:
     const std::int32_t block_version_;
     const OTData merkle_root_;
     const Time timestamp_;
-    const std::int32_t nbits_;
+    const std::uint32_t nbits_;
     const std::uint32_t nonce_;
 
     static auto calculate_hash(
@@ -133,7 +133,7 @@ private:
         const SerializedType& serialized) -> block::pHash;
     static auto calculate_work(
         const blockchain::Type chain,
-        const std::int32_t nbits) -> OTWork;
+        const std::uint32_t nbits) -> OTWork;
     static auto preimage(const SerializedType& in) -> BitcoinFormat;
 
     auto check_pow() const noexcept -> bool;
@@ -156,7 +156,7 @@ private:
         const std::int32_t blockVersion,
         block::pHash&& merkle,
         const Time timestamp,
-        const std::int32_t nbits,
+        const std::uint32_t nbits,
         const std::uint32_t nonce,
         const bool validate) noexcept(false);
     Header() = delete;
