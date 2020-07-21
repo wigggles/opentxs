@@ -49,6 +49,7 @@ public:
     OPENTXS_EXPORT virtual Status EffectiveState() const noexcept = 0;
     OPENTXS_EXPORT virtual const block::Hash& Hash() const noexcept = 0;
     OPENTXS_EXPORT virtual block::Height Height() const noexcept = 0;
+    OPENTXS_EXPORT virtual OTWork IncrementalWork() const noexcept = 0;
     OPENTXS_EXPORT virtual Status InheritedState() const noexcept = 0;
     OPENTXS_EXPORT virtual bool IsBlacklisted() const noexcept = 0;
     OPENTXS_EXPORT virtual bool IsDisconnected() const noexcept = 0;

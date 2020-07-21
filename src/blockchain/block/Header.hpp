@@ -36,6 +36,7 @@ public:
     auto EffectiveState() const noexcept -> Status final;
     auto Hash() const noexcept -> const block::Hash& final;
     auto Height() const noexcept -> block::Height final;
+    auto IncrementalWork() const noexcept -> OTWork final { return work_; }
     auto InheritedState() const noexcept -> Status final;
     auto IsBlacklisted() const noexcept -> bool final;
     auto IsDisconnected() const noexcept -> bool final;

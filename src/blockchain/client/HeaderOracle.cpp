@@ -410,13 +410,26 @@ auto HeaderOracle::choose_candidate(
                             update.SetReorgParent(parent);
                             update.AddToBestChain(segment);
                             update.AddSibling(current.Position());
+                            LogVerbose(OT_METHOD)(__FUNCTION__)(": Block ")(
+                                hash->asHex())(" at position ")(height)(
+                                " causes a chain reorg.")
+                                .Flush();
                         }
                     } else {
                         update.AddToBestChain(segment);
+                        LogVerbose(OT_METHOD)(__FUNCTION__)(": Adding block ")(
+                            hash->asHex())(" to best chain at position ")(
+                            height)
+                            .Flush();
                     }
                 }
             } else {
-                update.AddSibling(tip.Position());
+                const auto orphan = tip.Position();
+                update.AddSibling(orphan);
+                const auto& [height, hash] = orphan;
+                LogVerbose(OT_METHOD)(__FUNCTION__)(": Adding block ")(
+                    hash->asHex())(" as an orphan at position ")(height)
+                    .Flush();
             }
         }
     } catch (...) {
