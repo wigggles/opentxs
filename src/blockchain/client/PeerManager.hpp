@@ -14,6 +14,7 @@
 #include <iosfwd>
 #include <map>
 #include <memory>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -201,13 +202,14 @@ private:
         const internal::Network& network_;
         const internal::PeerDatabase& database_;
         const internal::PeerManager& parent_;
+        const blockchain::client::internal::IO& context_;
         const Flag& running_;
         const std::string& shutdown_endpoint_;
         const Type chain_;
         const bool invalid_peer_;
         const OTData localhost_peer_;
         const OTData default_peer_;
-        const blockchain::client::internal::IO& context_;
+        const std::set<p2p::Service> preferred_services_;
         mutable Resolver resolver_;
         std::atomic<int> next_id_;
         std::atomic<std::size_t> minimum_peers_;
@@ -216,6 +218,9 @@ private:
         std::atomic<std::size_t> count_;
         Addresses connected_;
 
+        static auto get_preferred_services(
+            const internal::PeerDatabase& db) noexcept
+            -> std::set<p2p::Service>;
         static auto set_default_peer(
             const std::string node,
             const Data& localhost,

@@ -52,6 +52,7 @@ PeerManager::Peers::Peers(
     , network_(network)
     , database_(database)
     , parent_(parent)
+    , context_(context)
     , running_(running)
     , shutdown_endpoint_(shutdown)
     , chain_(chain)
@@ -61,7 +62,7 @@ PeerManager::Peers::Peers(
           seednode,
           localhost_peer_,
           const_cast<bool&>(invalid_peer_)))
-    , context_(context)
+    , preferred_services_(get_preferred_services(database_))
     , resolver_(context_.operator boost::asio::io_context &())
     , next_id_(0)
     , minimum_peers_(peer_target_)
@@ -308,7 +309,19 @@ auto PeerManager::Peers::get_preferred_peer(
     return database_.Get(
         protocol,
         {p2p::Network::ipv4, p2p::Network::ipv6},
-        {p2p::Service::CompactFilters});
+        preferred_services_);
+}
+
+auto PeerManager::Peers::get_preferred_services(
+    const internal::PeerDatabase& db) noexcept -> std::set<p2p::Service>
+{
+    if (api::client::blockchain::BlockStorage::All == db.BlockPolicy()) {
+
+        return {};
+    } else {
+
+        return {p2p::Service::CompactFilters};
+    }
 }
 
 auto PeerManager::Peers::is_not_connected(

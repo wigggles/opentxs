@@ -430,6 +430,8 @@ struct PeerDatabase {
     using Type = p2p::Network;
 
     virtual auto AddOrUpdate(Address address) const noexcept -> bool = 0;
+    virtual auto BlockPolicy() const noexcept
+        -> api::client::blockchain::BlockStorage = 0;
     virtual auto Get(
         const Protocol protocol,
         const std::set<Type> onNetworks,
