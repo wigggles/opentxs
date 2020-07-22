@@ -38,6 +38,21 @@
 
 namespace mp = boost::multiprecision;
 
+namespace opentxs::blockchain::block
+{
+auto operator>(const Position& lhs, const Position& rhs) noexcept -> bool
+{
+    const auto& [lHeight, lHash] = lhs;
+    const auto& [rHeight, rHash] = rhs;
+
+    if (lHeight > rHeight) { return true; }
+
+    if (lHeight < rHeight) { return false; }
+
+    return lHash != rHash;
+}
+}  // namespace opentxs::blockchain::block
+
 namespace opentxs::blockchain::internal
 {
 BitReader::BitReader(const Space& bytes)

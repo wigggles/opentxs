@@ -282,6 +282,8 @@ using Position = std::pair<Height, pHash>;
 using Txid = blockchain::Hash;
 using pTxid = blockchain::pHash;
 
+bool operator>(const Position& lhs, const Position& rhs) noexcept;
+
 pHash BlankHash() noexcept;
 }  // namespace block
 

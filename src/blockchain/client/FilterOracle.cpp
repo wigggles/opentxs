@@ -83,6 +83,7 @@ FilterOracle::FilterOracle(
           api,
           database_,
           header_,
+          *this,
           chain_,
           default_type_,
           max_block_requests_)
@@ -269,7 +270,8 @@ void FilterOracle::check_headers(
 auto FilterOracle::compare_tips_to_checkpoint() noexcept -> void
 {
     const auto& cp = filter_checkpoints_.at(chain_);
-    auto checkPosition{database_.FilterHeaderTip(default_type_)};
+    const auto headerTip = database_.FilterHeaderTip(default_type_);
+    auto checkPosition{headerTip};
     auto changed{false};
 
     for (auto i{cp.crbegin()}; i != cp.crend(); ++i) {
@@ -294,7 +296,7 @@ auto FilterOracle::compare_tips_to_checkpoint() noexcept -> void
             " filter header chain did not match checkpoint. Resetting to last "
             "known good position")
             .Flush();
-        reset_tips_to(checkPosition);
+        reset_tips_to(default_type_, headerTip, checkPosition, changed);
     } else {
         LogNormal(blockchain::internal::DisplayString(chain_))(
             " filter header chain matched checkpoint")
@@ -317,9 +319,9 @@ auto FilterOracle::compare_tips_to_header_chain() noexcept -> bool
 
     LogNormal(blockchain::internal::DisplayString(chain_))(
         " filter header chain is following a sibling chain. Resetting to "
-        "common ancestor at height ")(best.first)
+        "common ancestor at height ")(parent.first)
         .Flush();
-    reset_tips_to(parent);
+    reset_tips_to(default_type_, current, parent);
 
     return true;
 }
@@ -339,11 +341,7 @@ auto FilterOracle::flush_filters() noexcept -> void
     }
 
     database_.SetFilterTip(type, position);
-    auto work = MakeWork(OT_ZMQ_NEW_FILTER_SIGNAL);
-    work->AddFrame(type);
-    work->AddFrame(position.first);
-    work->AddFrame(position.second);
-    socket_->Send(work);
+    notify_new_filter(type, position);
     LogNormal(blockchain::internal::DisplayString(chain_))(
         " filter chain updated to height ")(position.first)
         .Flush();
@@ -364,6 +362,17 @@ auto FilterOracle::LoadFilterOrResetTip(
     pipeline_->Push(work);
 
     return {};
+}
+
+auto FilterOracle::notify_new_filter(
+    const filter::Type type,
+    const block::Position& position) const noexcept -> void
+{
+    auto work = MakeWork(OT_ZMQ_NEW_FILTER_SIGNAL);
+    work->AddFrame(type);
+    work->AddFrame(position.first);
+    work->AddFrame(position.second);
+    socket_->Send(work);
 }
 
 auto FilterOracle::oldest_checkpoint_before(
@@ -549,9 +558,7 @@ auto FilterOracle::process_cfheader(const zmq::Message& in) noexcept -> void
                         " does not match checkpoint. Resetting to previous "
                         "checkpoint at height ")(rollback.first)
                         .Flush();
-                    header_requests_.Reset();
-                    outstanding_filters_.Reset();
-                    reset_tips_to(rollback);
+                    reset_tips_to(default_type_, rollback);
 
                     return;
                 }
@@ -677,14 +684,27 @@ auto FilterOracle::process_reorg(const zmq::Message& in) noexcept -> void
 
 auto FilterOracle::process_reorg(const block::Position& parent) noexcept -> void
 {
-    header_requests_.Reset();
-    outstanding_filters_.Reset();
-    block_requests_.Reset();
-    reset_tips_to(parent);
-    LogNormal(blockchain::internal::DisplayString(chain_))(
-        " filter chain tips reset to reorg parent ")(parent.second->asHex())(
-        " at height ")(parent.first)
-        .Flush();
+    const auto headerTip = database_.FilterHeaderTip(default_type_);
+    const auto resetHeaders = headerTip > parent;
+
+    if (false == resetHeaders) { return; }
+
+    const auto filterTip = database_.FilterTip(default_type_);
+    const auto resetFilters = filterTip > parent;
+
+    if (resetFilters) {
+        reset_tips_to(
+            default_type_,
+            headerTip,
+            filterTip,
+            parent,
+            resetHeaders,
+            resetFilters);
+        LogNormal(blockchain::internal::DisplayString(chain_))(
+            " filter chain tips reset to reorg parent ")(
+            parent.second->asHex())(" at height ")(parent.first)
+            .Flush();
+    }
 }
 
 auto FilterOracle::process_reset_filter_tip(const zmq::Message& in) noexcept
@@ -708,31 +728,75 @@ auto FilterOracle::process_reset_filter_tip(const zmq::Message& in) noexcept
 
     OT_ASSERT(false == hash->empty());
 
-    outstanding_filters_.Reset();
-    block_requests_.Reset();
-    database_.SetFilterTip(type, block::Position{parent, hash});
+    reset_tips_to(type, block::Position{parent, hash}, false, true);
 }
 
-auto FilterOracle::reset_tips_to(const block::Position position) noexcept
-    -> bool
+auto FilterOracle::reset_tips_to(
+    const filter::Type type,
+    const block::Position& position,
+    const std::optional<bool> resetHeader,
+    const std::optional<bool> resetfilter) noexcept -> bool
 {
-    const auto& [targetHeight, targetHash] = position;
-    database_.SetFilterHeaderTip(default_type_, position);
-    const auto [currentHeight, currentHash] =
-        database_.FilterTip(default_type_);
+    return reset_tips_to(
+        type,
+        database_.FilterHeaderTip(default_type_),
+        database_.FilterTip(default_type_),
+        position,
+        resetHeader,
+        resetfilter);
+}
 
-    if (currentHeight >= targetHeight) {
-        database_.SetFilterTip(default_type_, position);
-        auto work = MakeWork(OT_ZMQ_NEW_FILTER_SIGNAL);
-        work->AddFrame(default_type_);
-        work->AddFrame(targetHeight);
-        work->AddFrame(targetHash);
-        socket_->Send(work);
+auto FilterOracle::reset_tips_to(
+    const filter::Type type,
+    const block::Position& headerTip,
+    const block::Position& position,
+    const std::optional<bool> resetHeader) noexcept -> bool
+{
+    return reset_tips_to(
+        type,
+        headerTip,
+        database_.FilterTip(default_type_),
+        position,
+        resetHeader);
+}
 
-        return true;
+auto FilterOracle::reset_tips_to(
+    const filter::Type type,
+    const block::Position& headerTip,
+    const block::Position& filterTip,
+    const block::Position& position,
+    std::optional<bool> resetHeader,
+    std::optional<bool> resetfilter) noexcept -> bool
+{
+    auto counter{0};
+
+    if (false == resetHeader.has_value()) {
+        resetHeader = headerTip > position;
     }
 
-    return false;
+    if (false == resetfilter.has_value()) {
+        resetfilter = filterTip > position;
+    }
+
+    OT_ASSERT(resetHeader.has_value());
+    OT_ASSERT(resetfilter.has_value());
+
+    if (resetHeader.value()) {
+        block_requests_.Reset();
+        header_requests_.Reset();
+        database_.SetFilterHeaderTip(type, position);
+        ++counter;
+    }
+
+    if (resetfilter.value()) {
+        block_requests_.Reset();
+        outstanding_filters_.Reset();
+        database_.SetFilterTip(type, position);
+        notify_new_filter(type, position);
+        ++counter;
+    }
+
+    return 0 < counter;
 }
 
 auto FilterOracle::shutdown(std::promise<void>& promise) noexcept -> void

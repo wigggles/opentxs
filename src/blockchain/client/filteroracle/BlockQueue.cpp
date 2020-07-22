@@ -28,12 +28,14 @@ FilterOracle::BlockQueue::BlockQueue(
     const api::client::Manager& api,
     const internal::FilterDatabase& db,
     const internal::HeaderOracle& header,
+    const FilterOracle& parent,
     const blockchain::Type chain,
     const filter::Type type,
     const std::size_t limit) noexcept
     : api_(api)
     , db_(db)
     , header_(header)
+    , parent_(parent)
     , chain_(chain)
     , type_(type)
     , limit_(limit)
@@ -131,6 +133,7 @@ auto FilterOracle::BlockQueue::process(
     OT_ASSERT(saved);
 
     cached_ = Cached{position.first, std::move(header)};
+    parent_.notify_new_filter(type_, position);
 }
 
 auto FilterOracle::BlockQueue::Reset() noexcept -> void

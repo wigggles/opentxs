@@ -141,6 +141,7 @@ private:
             const api::client::Manager& api,
             const internal::FilterDatabase& db,
             const internal::HeaderOracle& header,
+            const FilterOracle& parent,
             const blockchain::Type chain,
             const filter::Type type,
             const std::size_t limit) noexcept;
@@ -155,6 +156,7 @@ private:
         const api::client::Manager& api_;
         const internal::FilterDatabase& db_;
         const internal::HeaderOracle& header_;
+        const FilterOracle& parent_;
         const blockchain::Type chain_;
         const filter::Type type_;
         const std::size_t limit_;
@@ -250,6 +252,9 @@ private:
     std::promise<void> init_promise_;
     std::shared_future<void> init_;
 
+    auto notify_new_filter(
+        const filter::Type type,
+        const block::Position& position) const noexcept -> void;
     auto oldest_checkpoint_before(const block::Height height) const noexcept
         -> block::Height;
 
@@ -274,7 +279,23 @@ private:
     auto process_reorg(const zmq::Message& in) noexcept -> void;
     auto process_reorg(const block::Position& parent) noexcept -> void;
     auto process_reset_filter_tip(const zmq::Message& in) noexcept -> void;
-    auto reset_tips_to(const block::Position position) noexcept -> bool;
+    auto reset_tips_to(
+        const filter::Type type,
+        const block::Position& position,
+        const std::optional<bool> resetHeader = std::nullopt,
+        const std::optional<bool> resetfilter = std::nullopt) noexcept -> bool;
+    auto reset_tips_to(
+        const filter::Type type,
+        const block::Position& headerTip,
+        const block::Position& position,
+        const std::optional<bool> resetHeader = std::nullopt) noexcept -> bool;
+    auto reset_tips_to(
+        const filter::Type type,
+        const block::Position& headerTip,
+        const block::Position& filterTip,
+        const block::Position& position,
+        std::optional<bool> resetHeader = std::nullopt,
+        std::optional<bool> resetfilter = std::nullopt) noexcept -> bool;
     auto shutdown(std::promise<void>& promise) noexcept -> void;
     auto state_machine() noexcept -> bool;
 
