@@ -9,7 +9,9 @@ endif()
 
 set(
   cxx-sources
+  AccountCache.cpp
   BalanceList.cpp
+  BalanceLists.cpp
   BalanceNode.cpp
   BalanceTree.cpp
   BalanceTree.tpp
@@ -17,6 +19,11 @@ set(
   Deterministic.cpp
   HD.cpp
 )
+
+if(OT_BLOCKCHAIN_EXPORT)
+  list(APPEND cxx-sources BalanceOracle.cpp ThreadPoolManager.cpp)
+endif()
+
 set(
   cxx-install-headers
   "${opentxs_SOURCE_DIR}/include/opentxs/api/client/blockchain/BalanceList.hpp"

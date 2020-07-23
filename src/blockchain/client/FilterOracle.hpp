@@ -28,6 +28,7 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/socket/Publish.hpp"
+#include "opentxs/network/zeromq/socket/Push.hpp"
 #include "opentxs/util/WorkType.hpp"
 #include "util/Work.hpp"
 

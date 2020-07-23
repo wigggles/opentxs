@@ -17,6 +17,7 @@
 #include "blockchain/client/filteroracle/FilterCheckpoints.hpp"
 #include "core/Worker.hpp"
 #include "internal/blockchain/Blockchain.hpp"
+#include "internal/blockchain/client/Client.hpp"
 #include "opentxs/Bytes.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/api/Endpoints.hpp"

@@ -9,7 +9,6 @@
 
 #include <boost/endian/buffers.hpp>
 #include <algorithm>
-#include <cstddef>
 #include <cstdint>
 #include <iterator>
 #include <memory>
@@ -24,7 +23,6 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
-#include "opentxs/iterator/Bidirectional.hpp"
 
 #define OT_METHOD "opentxs::blockchain::implementation::NumericHash::"
 

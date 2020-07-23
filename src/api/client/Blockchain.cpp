@@ -17,8 +17,6 @@
 #include <stdexcept>
 #include <thread>
 #include <type_traits>
-
-#include "2_Factory.hpp"
 #if OT_BLOCKCHAIN
 #include "core/Worker.hpp"
 #endif  // OT_BLOCKCHAIN
@@ -30,7 +28,6 @@
 #include "internal/blockchain/block/bitcoin/Bitcoin.hpp"
 #endif  // OT_BLOCKCHAIN
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/api/Core.hpp"
 #if OT_BLOCKCHAIN
 #include "opentxs/api/Endpoints.hpp"
 #endif  // OT_BLOCKCHAIN
@@ -51,12 +48,9 @@
 #include "opentxs/identity/Nym.hpp"
 #if OT_BLOCKCHAIN
 #include "opentxs/network/zeromq/Context.hpp"
-#include "opentxs/network/zeromq/Frame.hpp"
-#include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/socket/Sender.tpp"  // IWYU pragma: keep
-#include "opentxs/network/zeromq/socket/Socket.hpp"
-#endif  // OT_BLOCKCHAIN
+#endif                                               // OT_BLOCKCHAIN
 #include "opentxs/protobuf/ContactEnums.pb.h"
 #include "opentxs/protobuf/Enums.pb.h"
 #include "opentxs/protobuf/HDPath.pb.h"
@@ -66,9 +60,6 @@
 #include "opentxs/util/WorkType.hpp"
 #endif  // OT_BLOCKCHAIN
 #include "util/Container.hpp"
-#if OT_BLOCKCHAIN
-#include "util/ScopeGuard.hpp"
-#endif  // OT_BLOCKCHAIN
 #include "util/HDIndex.hpp"
 #if OT_BLOCKCHAIN
 #include "util/Work.hpp"
@@ -198,364 +189,6 @@ Blockchain::Blockchain(
     OT_ASSERT(listen);
 #endif  // OT_BLOCKCHAIN
 }
-
-Blockchain::AccountCache::AccountCache(const api::Core& api) noexcept
-    : api_(api)
-    , lock_()
-    , account_map_()
-    , account_index_()
-    , account_type_()
-{
-}
-
-#if OT_BLOCKCHAIN
-Blockchain::BalanceOracle::BalanceOracle(
-    const api::client::internal::Blockchain& parent,
-    const api::Core& api) noexcept
-    : parent_(parent)
-    , api_(api)
-    , zmq_(api_.ZeroMQ())
-    , cb_(zmq::ListenCallback::Factory([this](auto& in) { cb(in); }))
-    , socket_(zmq_.RouterSocket(cb_, zmq::socket::Socket::Direction::Bind))
-    , lock_()
-    , subscribers_()
-{
-    const auto started = socket_->Start(api_.Endpoints().BlockchainBalance());
-
-    OT_ASSERT(started);
-}
-#endif  // OT_BLOCKCHAIN
-
-Blockchain::BalanceLists::BalanceLists(
-    api::client::internal::Blockchain& parent) noexcept
-    : parent_(parent)
-    , lock_()
-    , lists_()
-{
-}
-
-#if OT_BLOCKCHAIN
-Blockchain::ThreadPoolManager::ThreadPoolManager(const api::Core& api) noexcept
-    : api_(api)
-    , map_(init())
-    , running_(true)
-    , int_(api_.ZeroMQ().PushSocket(zmq::socket::Socket::Direction::Bind))
-    , workers_()
-    , cbi_(zmq::ListenCallback::Factory([this](auto& in) { callback(in); }))
-    , cbe_(zmq::ListenCallback::Factory([this](auto& in) { int_->Send(in); }))
-    , ext_(api_.ZeroMQ().PullSocket(cbe_, zmq::socket::Socket::Direction::Bind))
-    , init_(false)
-    , lock_()
-{
-}
-#endif  // OT_BLOCKCHAIN
-
-auto Blockchain::AccountCache::build_account_map(
-    const Lock&,
-    const Chain chain,
-    std::optional<NymAccountMap>& map) const noexcept -> void
-{
-    const auto nyms = api_.Wallet().LocalNyms();
-    map = NymAccountMap{};
-
-    OT_ASSERT(map.has_value());
-
-    auto& output = map.value();
-    std::for_each(std::begin(nyms), std::end(nyms), [&](const auto& nym) {
-        const auto& accounts =
-            api_.Storage().BlockchainAccountList(nym->str(), Translate(chain));
-        std::for_each(
-            std::begin(accounts), std::end(accounts), [&](const auto& account) {
-                auto& set = output[nym];
-                auto accountID = api_.Factory().Identifier(account);
-                account_index_.emplace(accountID, nym);
-                account_type_.emplace(accountID, AccountType::HD);
-                set.emplace(std::move(accountID));
-            });
-    });
-}
-
-auto Blockchain::AccountCache::get_account_map(
-    const Lock& lock,
-    const Chain chain) const noexcept -> NymAccountMap&
-{
-    auto& map = account_map_[chain];
-
-    if (false == map.has_value()) { build_account_map(lock, chain, map); }
-
-    OT_ASSERT(map.has_value());
-
-    return map.value();
-}
-
-auto Blockchain::AccountCache::List(
-    const identifier::Nym& nymID,
-    const Chain chain) const noexcept -> std::set<OTIdentifier>
-{
-    Lock lock(lock_);
-    const auto& map = get_account_map(lock, chain);
-    auto it = map.find(nymID);
-
-    if (map.end() == it) { return {}; }
-
-    return it->second;
-}
-
-auto Blockchain::AccountCache::New(
-    const Chain chain,
-    const Identifier& account,
-    const identifier::Nym& owner) const noexcept -> void
-{
-    Lock lock(lock_);
-    get_account_map(lock, chain)[owner].emplace(account);
-    account_index_.emplace(account, owner);
-    account_type_.emplace(account, AccountType::HD);
-}
-
-auto Blockchain::AccountCache::Owner(const Identifier& accountID) const noexcept
-    -> const identifier::Nym&
-{
-    static const auto blank = api_.Factory().NymID();
-
-    try {
-
-        return account_index_.at(accountID);
-    } catch (...) {
-
-        return blank;
-    }
-}
-
-auto Blockchain::AccountCache::Type(const Identifier& accountID) const noexcept
-    -> AccountType
-{
-    static const auto blank = api_.Factory().NymID();
-
-    try {
-
-        return account_type_.at(accountID);
-    } catch (...) {
-
-        return AccountType::Error;
-    }
-}
-
-auto Blockchain::BalanceLists::Get(const Chain chain) noexcept
-    -> client::blockchain::internal::BalanceList&
-{
-    Lock lock(lock_);
-    auto it = lists_.find(chain);
-
-    if (lists_.end() != it) { return *it->second; }
-
-    auto [it2, added] = lists_.emplace(
-        chain, opentxs::Factory::BlockchainBalanceList(parent_, chain));
-
-    OT_ASSERT(added);
-    OT_ASSERT(it2->second);
-
-    return *it2->second;
-}
-
-#if OT_BLOCKCHAIN
-auto Blockchain::BalanceOracle::cb(
-    opentxs::network::zeromq::Message& in) noexcept -> void
-{
-    const auto& header = in.Header();
-
-    if (0 == header.size()) { return; }
-
-    const auto& connectionID = header.at(0);
-    const auto& body = in.Body();
-
-    if (0 == body.size()) { return; }
-
-    auto output = opentxs::blockchain::Balance{};
-    const auto& chainFrame = body.at(0);
-    auto postcondition = ScopeGuard{[&]() {
-        auto message = zmq_.ReplyMessage(in);
-        message->AddFrame(chainFrame);
-        message->AddFrame(output.first);
-        message->AddFrame(output.second);
-        socket_->Send(message);
-    }};
-
-    const auto chain = chainFrame.as<Chain>();
-
-    if (0 == opentxs::blockchain::SupportedChains().count(chain)) { return; }
-
-    try {
-        output = parent_.GetChain(chain).GetBalance();
-    } catch (...) {
-
-        return;
-    }
-
-    Lock lock(lock_);
-    subscribers_[chain].emplace(api_.Factory().Data(connectionID.Bytes()));
-}
-
-auto Blockchain::BalanceOracle::UpdateBalance(
-    const Chain chain,
-    const Balance balance) const noexcept -> void
-{
-    auto cb = [this, &chain, &balance](const auto& in) {
-        auto out = zmq_.Message(in);
-        out->AddFrame();
-        out->AddFrame(chain);
-        out->AddFrame(balance.first);
-        out->AddFrame(balance.second);
-        socket_->Send(out);
-    };
-    Lock lock(lock_);
-    const auto& subscribers = subscribers_[chain];
-    std::for_each(std::begin(subscribers), std::end(subscribers), cb);
-}
-
-auto Blockchain::ThreadPoolManager::callback(zmq::Message& in) noexcept -> void
-{
-    const auto header = in.Header();
-
-    if (2 > header.size()) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid message").Flush();
-
-        OT_FAIL;
-    }
-
-    auto worker = run(header.at(0).as<Chain>());
-
-    if (false == worker.has_value()) { return; }
-
-    switch (header.at(1).as<Work>()) {
-        case Work::Wallet: {
-            opentxs::blockchain::client::internal::Wallet::ProcessTask(in);
-        } break;
-        default: {
-            OT_FAIL;
-        }
-    }
-}
-
-auto Blockchain::ThreadPoolManager::Endpoint() const noexcept -> std::string
-{
-    return api_.Endpoints().InternalBlockchainThreadPool();
-}
-
-auto Blockchain::ThreadPoolManager::init() noexcept -> NetworkMap
-{
-    auto output = NetworkMap{};
-
-    for (const auto& chain : opentxs::blockchain::SupportedChains()) {
-        auto& [active, running, promise, future, mutex] = output[chain];
-        active = true;
-        future = promise.get_future();
-    }
-
-    return output;
-}
-
-auto Blockchain::ThreadPoolManager::Reset(const Chain chain) const noexcept
-    -> void
-{
-    if (false == running_.load()) { return; }
-
-    startup();
-    auto& [active, running, promise, future, mutex] = map_.at(chain);
-    Lock lock(mutex);
-
-    if (false == active) {
-        try {
-            promise.set_value();
-        } catch (...) {
-        }
-
-        promise = {};
-        future = promise.get_future();
-        active = true;
-    }
-}
-
-auto Blockchain::ThreadPoolManager::run(const Chain chain) noexcept
-    -> std::optional<Worker>
-{
-    auto& data = map_.at(chain);
-    auto& [active, running, promise, future, mutex] = data;
-    Lock lock(mutex);
-    auto output = std::optional<Worker>{};
-
-    if (active) { output.emplace(data); }
-
-    return output;
-}
-
-auto Blockchain::ThreadPoolManager::Shutdown() noexcept -> void
-{
-    if (running_.exchange(false)) {
-        ext_->Close();
-        int_->Close();
-        auto futures = std::vector<std::shared_future<void>>{};
-
-        for (auto& [chain, data] : map_) { futures.emplace_back(Stop(chain)); }
-
-        for (auto& future : futures) { future.get(); }
-    }
-}
-
-auto Blockchain::ThreadPoolManager::startup() const noexcept -> void
-{
-    Lock lock(lock_);
-
-    if (init_) { return; }
-
-    const auto target = std::thread::hardware_concurrency();
-    workers_.reserve(target);
-    const auto random = Identifier::Random();
-    const auto endpoint = std::string{"inproc://"} + random->str();
-    auto zmq = int_->Start(endpoint);
-
-    OT_ASSERT(zmq);
-
-    for (unsigned int i{0}; i < target; ++i) {
-        auto& worker = workers_.emplace_back(api_.ZeroMQ().PullSocket(
-            cbi_, zmq::socket::Socket::Direction::Connect));
-        auto zmq = worker->Start(endpoint);
-
-        OT_ASSERT(zmq);
-
-        LogTrace("Started blockchain worker thread ")(i).Flush();
-    }
-
-    zmq = ext_->Start(Endpoint());
-
-    OT_ASSERT(zmq);
-
-    init_ = true;
-}
-
-auto Blockchain::ThreadPoolManager::Stop(const Chain chain) const noexcept
-    -> Future
-{
-    try {
-        auto& [active, running, promise, future, mutex] = map_.at(chain);
-        Lock lock(mutex);
-        active = false;
-
-        if (0 == running) {
-            try {
-                promise.set_value();
-            } catch (...) {
-            }
-        }
-
-        return future;
-    } catch (...) {
-        auto promise = std::promise<void>{};
-        promise.set_value();
-
-        return promise.get_future();
-    }
-}
-#endif  // OT_BLOCKCHAIN
 
 auto Blockchain::ActivityDescription(
     const identifier::Nym& nym,
@@ -1454,13 +1087,6 @@ auto Blockchain::validate_nym(const identifier::Nym& nymID) const noexcept
 
     return false;
 }
-
-#if OT_BLOCKCHAIN
-Blockchain::ThreadPoolManager::~ThreadPoolManager()
-{
-    if (running_.load()) { Shutdown(); }
-}
-#endif  // OT_BLOCKCHAIN
 
 Blockchain::~Blockchain()
 {
