@@ -209,6 +209,8 @@ auto PeerManager::pipeline(zmq::Message& message) noexcept -> void
 
 auto PeerManager::RequestBlock(const block::Hash& block) const noexcept -> bool
 {
+    if (block.empty()) { return false; }
+
     return RequestBlocks({block.Bytes()});
 }
 
@@ -218,6 +220,8 @@ auto PeerManager::RequestBlocks(
     if (false == running_.get()) { return false; }
 
     if (0 == peers_.Count()) { return false; }
+
+    if (0 == hashes.size()) { return false; }
 
     auto work = jobs_.Work(Task::Getblock);
 

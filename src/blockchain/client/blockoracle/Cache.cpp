@@ -155,24 +155,26 @@ auto BlockOracle::Cache::Request(const BlockHashes& hashes) const noexcept
         download.emplace(block, it);
     }
 
-    auto blockList = std::vector<ReadView>{};
-    std::transform(
-        std::begin(download),
-        std::end(download),
-        std::back_inserter(blockList),
-        [](const auto& in) -> auto {
-            const auto& [key, value] = in;
+    if (0 < download.size()) {
+        auto blockList = std::vector<ReadView>{};
+        std::transform(
+            std::begin(download),
+            std::end(download),
+            std::back_inserter(blockList),
+            [](const auto& in) -> auto {
+                const auto& [key, value] = in;
 
-            return key->Bytes();
-        });
-    const auto messageSent = network_.RequestBlocks(blockList);
+                return key->Bytes();
+            });
+        const auto messageSent = network_.RequestBlocks(blockList);
 
-    for (auto& [hash, futureOut] : download) {
-        auto& [time, promise, future, queued] = pending_[hash];
-        time = Clock::now();
-        future = promise.get_future();
-        *futureOut = future;
-        queued = messageSent;
+        for (auto& [hash, futureOut] : download) {
+            auto& [time, promise, future, queued] = pending_[hash];
+            time = Clock::now();
+            future = promise.get_future();
+            *futureOut = future;
+            queued = messageSent;
+        }
     }
 
     return output;
