@@ -316,13 +316,18 @@ auto FilterOracle::compare_tips_to_checkpoint() noexcept -> void
         checkPosition = block::Position{cpHeight, header_.BestHash(cpHeight)};
         const auto existingHeader = database_.LoadFilterHeader(
             default_type_, checkPosition.second->Bytes());
-        const auto& cpHeader = i->second.at(default_type_);
-        const auto cpBytes =
-            api_.Factory().Data(ReadView{cpHeader.data(), cpHeader.size()});
 
-        if (existingHeader == cpBytes) { break; }
+        try {
+            const auto& cpHeader = i->second.at(default_type_);
+            const auto cpBytes =
+                api_.Factory().Data(ReadView{cpHeader.data(), cpHeader.size()});
 
-        changed = true;
+            if (existingHeader == cpBytes) { break; }
+
+            changed = true;
+        } catch (...) {
+            break;
+        }
     }
 
     if (changed) {
