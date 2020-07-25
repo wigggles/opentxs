@@ -10,6 +10,7 @@
 
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
+#include <cstring>  // IWYU pragma: keep
 #include <string>
 #include <type_traits>
 

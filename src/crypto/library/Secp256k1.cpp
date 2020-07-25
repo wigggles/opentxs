@@ -8,8 +8,8 @@
 #include "crypto/library/Secp256k1.hpp"  // IWYU pragma: associated
 
 extern "C" {
-#include "secp256k1.h"
-#include "secp256k1_ecdh.h"
+#include <secp256k1.h>
+#include <secp256k1_ecdh.h>
 }
 
 #include <array>
