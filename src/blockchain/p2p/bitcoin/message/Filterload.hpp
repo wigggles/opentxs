@@ -19,10 +19,7 @@ namespace opentxs
 {
 namespace api
 {
-namespace client
-{
-class Manager;
-}  // namespace client
+class Core;
 }  // namespace api
 
 namespace blockchain
@@ -45,11 +42,11 @@ public:
     virtual auto Filter() const noexcept -> OTBloomFilter { return payload_; }
 
     Filterload(
-        const api::client::Manager& api,
+        const api::Core& api,
         const blockchain::Type network,
         const blockchain::BloomFilter& filter) noexcept;
     Filterload(
-        const api::client::Manager& api,
+        const api::Core& api,
         std::unique_ptr<Header> header,
         const blockchain::BloomFilter& filter) noexcept;
 

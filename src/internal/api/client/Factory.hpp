@@ -76,7 +76,7 @@ auto Activity(
     const api::client::Contacts& contact) noexcept
     -> std::unique_ptr<api::client::internal::Activity>;
 auto BlockchainAPI(
-    const api::client::internal::Manager& api,
+    const api::internal::Core& api,
     const api::client::Activity& activity,
     const api::client::Contacts& contacts,
     const api::Legacy& legacy,

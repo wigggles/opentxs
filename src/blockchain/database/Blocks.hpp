@@ -39,8 +39,10 @@ namespace api
 {
 namespace client
 {
-class Manager;
+class Blockchain;
 }  // namespace client
+
+class Core;
 }  // namespace api
 
 namespace blockchain
@@ -67,12 +69,14 @@ public:
     auto Store(const block::Block& block) const noexcept -> bool;
 
     Blocks(
-        const api::client::Manager& api,
+        const api::Core& api,
+        const api::client::Blockchain& blockchain,
         const Common& common,
         const blockchain::Type type) noexcept;
 
 private:
-    const api::client::Manager& api_;
+    const api::Core& api_;
+    const api::client::Blockchain& blockchain_;
     const Common& common_;
     const blockchain::Type chain_;
 };

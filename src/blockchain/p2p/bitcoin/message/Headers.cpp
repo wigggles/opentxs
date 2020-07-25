@@ -17,7 +17,6 @@
 #include "internal/blockchain/block/bitcoin/Bitcoin.hpp"
 #include "internal/blockchain/p2p/bitcoin/Bitcoin.hpp"
 #include "internal/blockchain/p2p/bitcoin/message/Message.hpp"
-#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/Bytes.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/blockchain/block/bitcoin/Header.hpp"
@@ -30,7 +29,7 @@
 namespace opentxs::factory
 {
 auto BitcoinP2PHeaders(
-    const api::client::Manager& api,
+    const api::Core& api,
     std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
     const blockchain::p2p::bitcoin::ProtocolVersion version,
     const void* payload,
@@ -106,7 +105,7 @@ auto BitcoinP2PHeaders(
 }
 
 auto BitcoinP2PHeaders(
-    const api::client::Manager& api,
+    const api::Core& api,
     const blockchain::Type network,
     std::vector<std::unique_ptr<blockchain::block::bitcoin::Header>>&& headers)
     -> blockchain::p2p::bitcoin::message::internal::Headers*
@@ -121,7 +120,7 @@ auto BitcoinP2PHeaders(
 namespace opentxs::blockchain::p2p::bitcoin::message::implementation
 {
 Headers::Headers(
-    const api::client::Manager& api,
+    const api::Core& api,
     const blockchain::Type network,
     std::vector<std::unique_ptr<value_type>>&& headers) noexcept
     : Message(api, network, bitcoin::Command::headers)
@@ -131,7 +130,7 @@ Headers::Headers(
 }
 
 Headers::Headers(
-    const api::client::Manager& api,
+    const api::Core& api,
     std::unique_ptr<Header> header,
     std::vector<std::unique_ptr<value_type>>&& headers) noexcept
     : Message(api, std::move(header))

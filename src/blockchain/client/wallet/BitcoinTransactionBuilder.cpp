@@ -20,9 +20,9 @@
 #include "internal/blockchain/block/bitcoin/Bitcoin.hpp"
 #include "opentxs/Bytes.hpp"
 #include "opentxs/Pimpl.hpp"
+#include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/client/Blockchain.hpp"
-#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/client/blockchain/BalanceNode.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Hash.hpp"  // IWYU pragma: keep
@@ -46,12 +46,14 @@ namespace be = boost::endian;
 namespace opentxs::blockchain::client::implementation
 {
 Wallet::Proposals::BitcoinTransactionBuilder::BitcoinTransactionBuilder(
-    const api::client::Manager& api,
+    const api::Core& api,
+    const api::client::Blockchain& blockchain,
     const internal::WalletDatabase& db,
     const Identifier& proposal,
     const Type chain,
     const Amount feeRate) noexcept
     : api_(api)
+    , blockchain_(blockchain)
     , db_(db)
     , proposal_(proposal)
     , chain_(chain)
@@ -85,7 +87,7 @@ auto Wallet::Proposals::BitcoinTransactionBuilder::add_signatures(
     auto views = block::bitcoin::internal::Input::Signatures{};
 
     for (const auto& id : input.Keys()) {
-        const auto& node = api_.Blockchain().GetKey(id);
+        const auto& node = blockchain_.GetKey(id);
         const auto pKey = node.PrivateKey(reason);
 
         OT_ASSERT(pKey);
@@ -133,7 +135,7 @@ auto Wallet::Proposals::BitcoinTransactionBuilder::AddChange() noexcept -> bool
     }
 
     const auto& keyID = reservedKey.value();
-    const auto& element = api_.Blockchain().GetKey(keyID);
+    const auto& element = blockchain_.GetKey(keyID);
     const auto pkh = element.PubkeyHash();
     namespace bb = opentxs::blockchain::block::bitcoin;
     namespace bi = bb::internal;
@@ -154,7 +156,7 @@ auto Wallet::Proposals::BitcoinTransactionBuilder::AddChange() noexcept -> bool
 
     auto pOutput = factory::BitcoinTransactionOutput(
         api_,
-        api_.Blockchain(),
+        blockchain_,
         chain_,
         outputs_.size(),
         0,
@@ -180,7 +182,7 @@ auto Wallet::Proposals::BitcoinTransactionBuilder::AddInput(
     const UTXO& utxo) noexcept -> bool
 {
     auto pInput =
-        factory::BitcoinTransactionInput(api_, api_.Blockchain(), chain_, utxo);
+        factory::BitcoinTransactionInput(api_, blockchain_, chain_, utxo);
 
     if (false == bool(pInput)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to construct input")
@@ -297,7 +299,7 @@ auto Wallet::Proposals::BitcoinTransactionBuilder::CreateOutputs(
 
         auto pOutput = factory::BitcoinTransactionOutput(
             api_,
-            api_.Blockchain(),
+            blockchain_,
             chain_,
             static_cast<std::uint32_t>(++index),
             static_cast<std::int64_t>(output.amount()),
@@ -377,7 +379,7 @@ auto Wallet::Proposals::BitcoinTransactionBuilder::
 
     return factory::BitcoinTransaction(
         api_,
-        api_.Blockchain(),
+        blockchain_,
         chain_,
         Clock::now(),
         version_,
@@ -530,7 +532,7 @@ auto Wallet::Proposals::BitcoinTransactionBuilder::init_txcopy(
 
     txcopy = factory::BitcoinTransaction(
         api_,
-        api_.Blockchain(),
+        blockchain_,
         chain_,
         Clock::now(),
         version_,

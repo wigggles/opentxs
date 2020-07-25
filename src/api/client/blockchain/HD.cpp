@@ -17,10 +17,10 @@
 #include <type_traits>
 #include <utility>
 
-#include "2_Factory.hpp"
 #include "api/client/blockchain/Deterministic.hpp"
 #include "internal/api/Api.hpp"
 #include "internal/api/client/Client.hpp"
+#include "internal/api/client/blockchain/Factory.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/api/Factory.hpp"
@@ -36,19 +36,22 @@
 
 #define OT_METHOD "opentxs::api::client::blockchain::implementation::HD::"
 
-namespace opentxs
+namespace opentxs::factory
 {
-auto Factory::BlockchainHDBalanceNode(
+using ReturnType = api::client::blockchain::implementation::HD;
+
+auto BlockchainHDBalanceNode(
+    const api::internal::Core& api,
     const api::client::blockchain::internal::BalanceTree& parent,
     const proto::HDPath& path,
-    Identifier& id) -> api::client::blockchain::internal::HD*
+    Identifier& id) noexcept
+    -> std::unique_ptr<api::client::blockchain::internal::HD>
 {
-    using ReturnType = api::client::blockchain::implementation::HD;
-    auto reason = parent.API().Factory().PasswordPrompt(
-        "Creating a new blockchain account");
+    auto reason =
+        api.Factory().PasswordPrompt("Creating a new blockchain account");
 
     try {
-        return new ReturnType{parent, path, reason, id};
+        return std::make_unique<ReturnType>(api, parent, path, reason, id);
     } catch (const std::exception& e) {
         LogVerbose("opentxs::Factory::")(__FUNCTION__)(": ")(e.what()).Flush();
 
@@ -56,33 +59,37 @@ auto Factory::BlockchainHDBalanceNode(
     }
 }
 
-auto Factory::BlockchainHDBalanceNode(
+auto BlockchainHDBalanceNode(
+    const api::internal::Core& api,
     const api::client::blockchain::internal::BalanceTree& parent,
     const proto::HDAccount& serialized,
-    Identifier& id) -> api::client::blockchain::internal::HD*
+    Identifier& id) noexcept
+    -> std::unique_ptr<api::client::blockchain::internal::HD>
 {
     using ReturnType = api::client::blockchain::implementation::HD;
-    auto reason =
-        parent.API().Factory().PasswordPrompt("Loading a blockchain account");
+    auto reason = api.Factory().PasswordPrompt("Loading a blockchain account");
 
     try {
-        return new ReturnType{parent, serialized, reason, id};
+        return std::make_unique<ReturnType>(
+            api, parent, serialized, reason, id);
     } catch (const std::exception& e) {
         LogOutput("opentxs::Factory::")(__FUNCTION__)(": ")(e.what()).Flush();
 
         return nullptr;
     }
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::api::client::blockchain::implementation
 {
 HD::HD(
+    const api::internal::Core& api,
     const internal::BalanceTree& parent,
     const proto::HDPath& path,
     const PasswordPrompt& reason,
     Identifier& id) noexcept(false)
     : Deterministic(
+          api,
           parent,
           BalanceNodeType::HD,
           Identifier::Factory(Translate(parent.Chain()), path),
@@ -118,11 +125,13 @@ HD::HD(
 }
 
 HD::HD(
+    const api::internal::Core& api,
     const internal::BalanceTree& parent,
     const SerializedType& serialized,
     const PasswordPrompt& reason,
     Identifier& id) noexcept(false)
     : Deterministic(
+          api,
           parent,
           BalanceNodeType::HD,
           Identifier::Factory(serialized.id()),
@@ -136,13 +145,13 @@ HD::HD(
     , version_(serialized.version())
     , revision_(serialized.revision())
     , internal_addresses_(extract_internal(
-          parent.API(),
+          api_,
           parent.Parent().Parent(),
           *this,
           chain_,
           serialized))
     , external_addresses_(extract_external(
-          parent.API(),
+          api_,
           parent.Parent().Parent(),
           *this,
           chain_,
@@ -316,7 +325,7 @@ auto HD::generate_next(
         std::piecewise_construct,
         std::forward_as_tuple(index),
         std::forward_as_tuple(
-            parent_.API(),
+            api_,
             parent_.Parent().Parent(),
             *this,
             chain_,

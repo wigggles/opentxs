@@ -24,7 +24,7 @@ namespace opentxs::factory
 {
 // We have a header and a raw payload. Parse it.
 auto BitcoinP2PMerkleblock(
-    const api::client::Manager& api,
+    const api::Core& api,
     std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
     const blockchain::p2p::bitcoin::ProtocolVersion version,
     const void* payload,
@@ -153,7 +153,7 @@ auto BitcoinP2PMerkleblock(
 
 // We have all the data members to create the message from scratch (for sending)
 auto BitcoinP2PMerkleblock(
-    const api::client::Manager& api,
+    const api::Core& api,
     const blockchain::Type network,
     const Data& block_header,
     const std::uint32_t txn_count,
@@ -208,7 +208,7 @@ Merkleblock::Raw::Raw() noexcept
 
 // We have all the data members to create the message from scratch (for sending)
 Merkleblock::Merkleblock(
-    const api::client::Manager& api,
+    const api::Core& api,
     const blockchain::Type network,
     const Data& block_header,
     const TxnCount txn_count,
@@ -226,7 +226,7 @@ Merkleblock::Merkleblock(
 // We have a header and the data members. They've been parsed, so now we are
 // instantiating the message from them.
 Merkleblock::Merkleblock(
-    const api::client::Manager& api,
+    const api::Core& api,
     std::unique_ptr<Header> header,
     const Data& block_header,
     const TxnCount txn_count,

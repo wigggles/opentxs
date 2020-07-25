@@ -165,8 +165,6 @@ namespace opentxs::api::client::blockchain::internal
 using ActivityMap = std::map<Coin, std::pair<blockchain::Key, Amount>>;
 
 struct BalanceList : virtual public blockchain::BalanceList {
-    virtual auto API() const noexcept -> const api::internal::Core& = 0;
-
     virtual auto AddHDNode(
         const identifier::Nym& nym,
         const proto::HDPath& path,
@@ -221,7 +219,6 @@ struct BalanceNode : virtual public blockchain::BalanceNode {
 };
 
 struct BalanceTree : virtual public blockchain::BalanceTree {
-    virtual auto API() const noexcept -> const api::internal::Core& = 0;
     virtual auto AssociateTransaction(
         const std::vector<Activity>& unspent,
         const std::vector<Activity>& spent,

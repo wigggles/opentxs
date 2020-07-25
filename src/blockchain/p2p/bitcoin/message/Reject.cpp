@@ -27,7 +27,7 @@ namespace be = boost::endian;
 namespace opentxs::factory
 {
 auto BitcoinP2PReject(
-    const api::client::Manager& api,
+    const api::Core& api,
     std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
     const blockchain::p2p::bitcoin::ProtocolVersion version,
     const void* payload,
@@ -158,7 +158,7 @@ auto BitcoinP2PReject(
 }
 
 auto BitcoinP2PReject(
-    const api::client::Manager& api,
+    const api::Core& api,
     const blockchain::Type network,
     const std::string& message,
     const std::uint8_t code,
@@ -182,7 +182,7 @@ namespace opentxs::blockchain::p2p::bitcoin::message
 {
 
 Reject::Reject(
-    const api::client::Manager& api,
+    const api::Core& api,
     const blockchain::Type network,
     const std::string& message,
     const bitcoin::RejectCode code,
@@ -198,7 +198,7 @@ Reject::Reject(
 }
 
 Reject::Reject(
-    const api::client::Manager& api,
+    const api::Core& api,
     std::unique_ptr<Header> header,
     const std::string& message,
     const bitcoin::RejectCode code,

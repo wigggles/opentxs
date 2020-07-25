@@ -34,12 +34,13 @@
 namespace opentxs::api::client::blockchain::implementation
 {
 BalanceNode::BalanceNode(
+    const api::internal::Core& api,
     const internal::BalanceTree& parent,
     const BalanceNodeType type,
     const OTIdentifier id,
     std::vector<Activity> unspent,
     std::vector<Activity> spent) noexcept
-    : api_(parent.API())
+    : api_(api)
     , parent_(parent)
     , chain_(parent.Chain())
     , type_(type)

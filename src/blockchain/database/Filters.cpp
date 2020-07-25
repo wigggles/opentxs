@@ -18,20 +18,21 @@
 #include "internal/blockchain/block/Block.hpp"
 #include "internal/blockchain/database/Database.hpp"
 #include "opentxs/Pimpl.hpp"
+#include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
-#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/blockchain/block/Header.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
 #include "util/LMDB.hpp"
 
-// #define OT_METHOD "opentxs::blockchain::database::Filters::"
+#define OT_METHOD "opentxs::blockchain::database::Filters::"
 
 namespace opentxs::blockchain::database
 {
 Filters::Filters(
-    const api::client::Manager& api,
+    const api::Core& api,
     const Common& common,
     const opentxs::storage::lmdb::LMDB& lmdb,
     const blockchain::Type chain) noexcept
@@ -178,5 +179,53 @@ auto Filters::SetTip(const filter::Type type, const block::Position position)
             static_cast<std::size_t>(type),
             reader(blockchain::internal::Serialize(position)))
         .first;
+}
+
+auto Filters::StoreFilters(
+    const filter::Type type,
+    const std::vector<Header>& headers,
+    const std::vector<Filter>& filters,
+    const block::Position& tip) const noexcept -> bool
+{
+    auto output = common_.StoreFilters(type, headers, filters);
+
+    if (false == output) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to save filters").Flush();
+
+        return false;
+    }
+
+    auto parentTxn = lmdb_.TransactionRW();
+    output = lmdb_
+                 .Store(
+                     Table::BlockFilterHeaderBest,
+                     static_cast<std::size_t>(type),
+                     reader(blockchain::internal::Serialize(tip)),
+                     parentTxn)
+                 .first;
+
+    if (false == output) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to set header tip")
+            .Flush();
+
+        return false;
+    }
+
+    output = lmdb_
+                 .Store(
+                     Table::BlockFilterBest,
+                     static_cast<std::size_t>(type),
+                     reader(blockchain::internal::Serialize(tip)),
+                     parentTxn)
+                 .first;
+
+    if (false == output) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to set filter tip")
+            .Flush();
+
+        return false;
+    }
+
+    return parentTxn.Finalize(true);
 }
 }  // namespace opentxs::blockchain::database

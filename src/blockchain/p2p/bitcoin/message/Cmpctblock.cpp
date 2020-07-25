@@ -23,7 +23,7 @@ namespace opentxs::factory
 {
 // We have a header and a raw payload. Parse it.
 auto BitcoinP2PCmpctblock(
-    const api::client::Manager& api,
+    const api::Core& api,
     std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
     const blockchain::p2p::bitcoin::ProtocolVersion version,
     const void* payload,
@@ -53,7 +53,7 @@ auto BitcoinP2PCmpctblock(
 
 // We have all the data members to create the message from scratch (for sending)
 auto BitcoinP2PCmpctblock(
-    const api::client::Manager& api,
+    const api::Core& api,
     const blockchain::Type network,
     const Data& raw_cmpctblock)
     -> blockchain::p2p::bitcoin::message::Cmpctblock*
@@ -78,7 +78,7 @@ auto Cmpctblock::payload() const noexcept -> OTData
 
 // We have all the data members to create the message from scratch (for sending)
 Cmpctblock::Cmpctblock(
-    const api::client::Manager& api,
+    const api::Core& api,
     const blockchain::Type network,
     const Data& raw_cmpctblock) noexcept
     : Message(api, network, bitcoin::Command::cmpctblock)
@@ -90,7 +90,7 @@ Cmpctblock::Cmpctblock(
 // We have a header and the data members. They've been parsed, so now we are
 // instantiating the message from them.
 Cmpctblock::Cmpctblock(
-    const api::client::Manager& api,
+    const api::Core& api,
     std::unique_ptr<Header> header,
     const Data& raw_cmpctblock) noexcept(false)
     : Message(api, std::move(header))

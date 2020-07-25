@@ -13,11 +13,6 @@ namespace opentxs
 {
 namespace api
 {
-namespace client
-{
-class Manager;
-}  // namespace client
-
 class Core;
 }  // namespace api
 }  // namespace opentxs

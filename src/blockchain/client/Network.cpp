@@ -17,10 +17,11 @@
 #include <vector>
 
 #include "internal/blockchain/Params.hpp"
+#include "internal/blockchain/client/Factory.hpp"
 #include "opentxs/Pimpl.hpp"
+#include "opentxs/api/Core.hpp"
 #include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Factory.hpp"
-#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/blockchain/block/Header.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -43,7 +44,7 @@ constexpr auto proposal_version_ = VersionNumber{1};
 constexpr auto output_version_ = VersionNumber{1};
 
 Network::Network(
-    const api::client::Manager& api,
+    const api::Core& api,
     const api::client::internal::Blockchain& blockchain,
     const Type type,
     const std::string& seednode,
@@ -56,7 +57,7 @@ Network::Network(
           *this,
           blockchain.BlockchainDB(),
           type))
-    , header_p_(factory::HeaderOracle(api, *this, *database_p_, type))
+    , header_p_(factory::HeaderOracle(api, *database_p_, type))
     , peer_p_(factory::BlockchainPeerManager(
           api,
           *this,
@@ -67,12 +68,14 @@ Network::Network(
           shutdown_sender_.endpoint_))
     , block_p_(factory::BlockOracle(
           api,
+          blockchain,
           *this,
           *database_p_,
           type,
           shutdown_sender_.endpoint_))
     , filter_p_(factory::BlockchainFilterOracle(
           api,
+          blockchain,
           *this,
           *header_p_,
           *database_p_,
@@ -346,6 +349,14 @@ auto Network::RequestBlock(const block::Hash& block) const noexcept -> bool
     if (false == running_.get()) { return false; }
 
     return peer_.RequestBlock(block);
+}
+
+auto Network::RequestBlocks(const std::vector<ReadView>& hashes) const noexcept
+    -> bool
+{
+    if (false == running_.get()) { return false; }
+
+    return peer_.RequestBlocks(hashes);
 }
 
 auto Network::RequestFilterHeaders(

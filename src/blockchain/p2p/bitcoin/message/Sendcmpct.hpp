@@ -22,10 +22,7 @@ namespace opentxs
 {
 namespace api
 {
-namespace client
-{
-class Manager;
-}  // namespace client
+class Core;
 }  // namespace api
 
 namespace blockchain
@@ -59,12 +56,12 @@ public:
     auto version() const noexcept -> std::uint64_t { return version_; }
 
     Sendcmpct(
-        const api::client::Manager& api,
+        const api::Core& api,
         const blockchain::Type network,
         const bool announce,
         const std::uint64_t version) noexcept;
     Sendcmpct(
-        const api::client::Manager& api,
+        const api::Core& api,
         std::unique_ptr<Header> header,
         const bool announce,
         const std::uint64_t version) noexcept(false);

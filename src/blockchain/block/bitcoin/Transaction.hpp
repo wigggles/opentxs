@@ -30,7 +30,6 @@ namespace client
 {
 class Blockchain;
 class Contacts;
-class Manager;
 }  // namespace client
 
 class Core;

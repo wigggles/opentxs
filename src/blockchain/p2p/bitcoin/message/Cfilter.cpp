@@ -31,7 +31,7 @@
 namespace opentxs::factory
 {
 auto BitcoinP2PCfilter(
-    const api::client::Manager& api,
+    const api::Core& api,
     std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
     const blockchain::p2p::bitcoin::ProtocolVersion version,
     const void* payload,
@@ -116,7 +116,7 @@ auto BitcoinP2PCfilter(
 }
 
 auto BitcoinP2PCfilter(
-    const api::client::Manager& api,
+    const api::Core& api,
     const blockchain::Type network,
     const blockchain::filter::Type type,
     const blockchain::filter::Hash& hash,
@@ -136,7 +136,7 @@ auto BitcoinP2PCfilter(
 namespace opentxs::blockchain::p2p::bitcoin::message::implementation
 {
 Cfilter::Cfilter(
-    const api::client::Manager& api,
+    const api::Core& api,
     const blockchain::Type network,
     const filter::Type type,
     const filter::Hash& hash,
@@ -153,7 +153,7 @@ Cfilter::Cfilter(
 }
 
 Cfilter::Cfilter(
-    const api::client::Manager& api,
+    const api::Core& api,
     std::unique_ptr<Header> header,
     const filter::Type type,
     const filter::Hash& hash,

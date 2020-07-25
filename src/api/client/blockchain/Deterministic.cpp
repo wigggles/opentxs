@@ -30,6 +30,7 @@
 namespace opentxs::api::client::blockchain::implementation
 {
 Deterministic::Deterministic(
+    const api::internal::Core& api,
     const internal::BalanceTree& parent,
     const BalanceNodeType type,
     const OTIdentifier id,
@@ -38,7 +39,7 @@ Deterministic::Deterministic(
     const proto::HDPath path,
     IndexMap generated,
     IndexMap used) noexcept
-    : BalanceNode(parent, type, id, unspent, spent)
+    : BalanceNode(api, parent, type, id, unspent, spent)
     , path_(path)
 #if OT_CRYPTO_WITH_BIP32
     , key_(instantiate_key(api_, const_cast<proto::HDPath&>(path_)))

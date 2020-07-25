@@ -23,7 +23,7 @@ namespace opentxs::factory
 {
 // We have a header and a raw payload. Parse it.
 auto BitcoinP2PSendcmpct(
-    const api::client::Manager& api,
+    const api::Core& api,
     std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
     const blockchain::p2p::bitcoin::ProtocolVersion,
     const void* payload,
@@ -68,7 +68,7 @@ auto BitcoinP2PSendcmpct(
 
 // We have all the data members to create the message from scratch (for sending)
 auto BitcoinP2PSendcmpct(
-    const api::client::Manager& api,
+    const api::Core& api,
     const blockchain::Type network,
     const bool announce,
     const std::uint64_t version)
@@ -85,7 +85,7 @@ namespace opentxs::blockchain::p2p::bitcoin::message
 {
 // We have all the data members to create the message from scratch (for sending)
 Sendcmpct::Sendcmpct(
-    const api::client::Manager& api,
+    const api::Core& api,
     const blockchain::Type network,
     const bool announce,
     const std::uint64_t version) noexcept
@@ -99,7 +99,7 @@ Sendcmpct::Sendcmpct(
 // We have a header and the data members. They've been parsed, so now we are
 // instantiating the message from them.
 Sendcmpct::Sendcmpct(
-    const api::client::Manager& api,
+    const api::Core& api,
     std::unique_ptr<Header> header,
     const bool announce,
     const std::uint64_t version) noexcept(false)

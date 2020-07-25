@@ -25,12 +25,18 @@
 
 namespace opentxs
 {
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
 namespace proto
 {
 class HDPath;
 }  // namespace proto
-
-class Factory;
 }  // namespace opentxs
 
 namespace opentxs::api::client::blockchain::implementation
@@ -38,7 +44,6 @@ namespace opentxs::api::client::blockchain::implementation
 class BalanceList final : virtual public internal::BalanceList
 {
 public:
-    auto API() const noexcept -> const api::internal::Core& { return api_; }
     auto at(const std::size_t position) const noexcept(false)
         -> const_iterator::value_type& final;
     auto begin() const noexcept -> const_iterator final
@@ -74,11 +79,14 @@ public:
     auto Nym(const identifier::Nym& id) noexcept
         -> internal::BalanceTree& final;
 
+    BalanceList(
+        const api::internal::Core& api,
+        const api::client::internal::Blockchain& parent,
+        const opentxs::blockchain::Type chain) noexcept;
+
     ~BalanceList() final = default;
 
 private:
-    friend opentxs::Factory;
-
     const client::internal::Blockchain& parent_;
     const api::internal::Core& api_;
     const opentxs::blockchain::Type chain_;
@@ -106,9 +114,6 @@ private:
         -> internal::BalanceTree&;
     void init() noexcept;
 
-    BalanceList(
-        const api::client::internal::Blockchain& parent,
-        const opentxs::blockchain::Type chain) noexcept;
     BalanceList(const BalanceList&) = delete;
     BalanceList(BalanceList&&) = delete;
     auto operator=(const BalanceList&) -> BalanceList& = delete;

@@ -67,7 +67,7 @@ class HD;
 
 namespace internal
 {
-struct Manager;
+struct Core;
 }  // namespace internal
 
 class Activity;
@@ -156,10 +156,6 @@ public:
         const Chain chain,
         const Tx& transaction) const noexcept -> std::string final;
 #endif  // OT_BLOCKCHAIN
-    auto API() const noexcept -> const api::internal::Core& final
-    {
-        return api_;
-    }
     auto AssignContact(
         const identifier::Nym& nymID,
         const Identifier& accountID,
@@ -284,7 +280,7 @@ public:
 #endif  // OT_BLOCKCHAIN
 
     Blockchain(
-        const api::client::internal::Manager& api,
+        const api::internal::Core& api,
         const api::client::Activity& activity,
         const api::client::Contacts& contacts,
         const api::Legacy& legacy,
@@ -349,9 +345,12 @@ private:
         auto Get(const Chain chain) noexcept
             -> client::blockchain::internal::BalanceList&;
 
-        BalanceLists(api::client::internal::Blockchain& parent) noexcept;
+        BalanceLists(
+            const api::internal::Core& api,
+            api::client::internal::Blockchain& parent) noexcept;
 
     private:
+        const api::internal::Core& api_;
         api::client::internal::Blockchain& parent_;
         std::mutex lock_;
         std::map<
@@ -463,7 +462,7 @@ private:
     static const StyleMap address_style_map_;
     static const StyleReverseMap address_style_reverse_map_;
 
-    const api::client::internal::Manager& api_;
+    const api::internal::Core& api_;
 #if OT_BLOCKCHAIN
     const api::client::Activity& activity_;
 #endif  // OT_BLOCKCHAIN

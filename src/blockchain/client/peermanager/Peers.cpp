@@ -23,10 +23,10 @@
 #include "internal/blockchain/Params.hpp"
 #include "internal/blockchain/client/Client.hpp"
 #include "internal/blockchain/p2p/P2P.hpp"
-#include "internal/blockchain/p2p/bitcoin/Bitcoin.hpp"
+#include "internal/blockchain/p2p/bitcoin/Factory.hpp"
 #include "opentxs/Bytes.hpp"
+#include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
-#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/blockchain/p2p/Address.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -39,7 +39,7 @@
 namespace opentxs::blockchain::client::implementation
 {
 PeerManager::Peers::Peers(
-    const api::client::Manager& api,
+    const api::Core& api,
     const internal::Network& network,
     const internal::PeerDatabase& database,
     const internal::PeerManager& parent,
@@ -47,7 +47,8 @@ PeerManager::Peers::Peers(
     const std::string& shutdown,
     const Type chain,
     const std::string& seednode,
-    const blockchain::client::internal::IO& context) noexcept
+    const blockchain::client::internal::IO& context,
+    const std::size_t peerTarget) noexcept
     : api_(api)
     , network_(network)
     , database_(database)
@@ -65,7 +66,7 @@ PeerManager::Peers::Peers(
     , preferred_services_(get_preferred_services(database_))
     , resolver_(context_.operator boost::asio::io_context &())
     , next_id_(0)
-    , minimum_peers_(peer_target_)
+    , minimum_peers_(peerTarget)
     , peers_()
     , active_()
     , count_()

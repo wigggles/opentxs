@@ -28,7 +28,7 @@
 namespace opentxs::factory
 {
 auto BitcoinP2PGetdata(
-    const api::client::Manager& api,
+    const api::Core& api,
     std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
     const blockchain::p2p::bitcoin::ProtocolVersion version,
     const void* payload,
@@ -89,7 +89,7 @@ auto BitcoinP2PGetdata(
 }
 
 auto BitcoinP2PGetdata(
-    const api::client::Manager& api,
+    const api::Core& api,
     const blockchain::Type network,
     std::vector<blockchain::bitcoin::Inventory>&& payload)
     -> blockchain::p2p::bitcoin::message::internal::Getdata*
@@ -104,7 +104,7 @@ auto BitcoinP2PGetdata(
 namespace opentxs::blockchain::p2p::bitcoin::message::implementation
 {
 Getdata::Getdata(
-    const api::client::Manager& api,
+    const api::Core& api,
     const blockchain::Type network,
     std::vector<blockchain::bitcoin::Inventory>&& payload) noexcept
     : Message(api, network, bitcoin::Command::getdata)
@@ -114,7 +114,7 @@ Getdata::Getdata(
 }
 
 Getdata::Getdata(
-    const api::client::Manager& api,
+    const api::Core& api,
     std::unique_ptr<Header> header,
     std::vector<blockchain::bitcoin::Inventory>&& payload) noexcept
     : Message(api, std::move(header))

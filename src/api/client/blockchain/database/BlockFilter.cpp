@@ -10,6 +10,7 @@
 #include <cstring>
 #include <stdexcept>
 #include <string>
+#include <type_traits>
 #include <utility>
 
 #include "internal/api/Api.hpp"  // IWYU pragma: keep
@@ -27,7 +28,7 @@
 namespace opentxs::api::client::blockchain::database::implementation
 {
 BlockFilter::BlockFilter(
-    const api::client::Manager& api,
+    const api::Core& api,
     opentxs::storage::lmdb::LMDB& lmdb) noexcept(false)
     : api_(api)
     , lmdb_(lmdb)
@@ -135,6 +136,21 @@ auto BlockFilter::StoreFilterHeaders(
     const FilterType type,
     const std::vector<FilterHeader>& headers) const noexcept -> bool
 {
+    return StoreFilters(type, headers, {});
+}
+
+auto BlockFilter::StoreFilters(
+    const FilterType type,
+    std::vector<FilterData>& filters) const noexcept -> bool
+{
+    return StoreFilters(type, {}, filters);
+}
+
+auto BlockFilter::StoreFilters(
+    const FilterType type,
+    const std::vector<FilterHeader>& headers,
+    const std::vector<FilterData>& filters) const noexcept -> bool
+{
     auto parentTxn = lmdb_.TransactionRW();
 
     for (const auto& [block, header, hash] : headers) {
@@ -159,15 +175,6 @@ auto BlockFilter::StoreFilterHeaders(
             return false;
         }
     }
-
-    return parentTxn.Finalize(true);
-}
-
-auto BlockFilter::StoreFilters(
-    const FilterType type,
-    std::vector<FilterData>& filters) const noexcept -> bool
-{
-    auto parentTxn = lmdb_.TransactionRW();
 
     for (auto& [block, pFilter] : filters) {
         OT_ASSERT(pFilter);

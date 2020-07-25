@@ -18,9 +18,10 @@
 #include "internal/api/client/Client.hpp"
 #include "internal/blockchain/Blockchain.hpp"
 #include "internal/blockchain/client/Client.hpp"
+#include "internal/blockchain/client/Factory.hpp"
+#include "opentxs/api/Core.hpp"
 #include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Factory.hpp"
-#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Log.hpp"
@@ -38,7 +39,7 @@
 namespace opentxs::factory
 {
 auto BlockchainWallet(
-    const api::client::Manager& api,
+    const api::Core& api,
     const api::client::internal::Blockchain& blockchain,
     const blockchain::client::internal::Network& parent,
     const blockchain::Type chain,
@@ -54,12 +55,12 @@ auto BlockchainWallet(
 
 namespace opentxs::blockchain::client::internal
 {
-auto Wallet::ProcessTask(const zmq::Message& in) noexcept -> void
+auto Wallet::ProcessThreadPool(const zmq::Message& in) noexcept -> void
 {
     const auto body = in.Body();
 
     if (2 > body.size()) {
-        LogOutput("opentxs::blockchain::client::internal:Wallet:::")(
+        LogOutput("opentxs::blockchain::client::internal:Wallet::")(
             __FUNCTION__)(": Invalid message")
             .Flush();
 
@@ -67,7 +68,7 @@ auto Wallet::ProcessTask(const zmq::Message& in) noexcept -> void
     }
 
     auto* pData = reinterpret_cast<implementation::HDStateData*>(
-        body.at(0).as<std::uintptr_t>());
+        body.at(1).as<std::uintptr_t>());
 
     OT_ASSERT(nullptr != pData);
 
@@ -77,7 +78,7 @@ auto Wallet::ProcessTask(const zmq::Message& in) noexcept -> void
         data.task_finished_();
     }};
 
-    switch (body.at(1).as<Task>()) {
+    switch (body.at(0).as<Task>()) {
         case Task::index: {
             data.index();
         } break;
@@ -100,7 +101,7 @@ auto Wallet::ProcessTask(const zmq::Message& in) noexcept -> void
 namespace opentxs::blockchain::client::implementation
 {
 Wallet::Wallet(
-    const api::client::Manager& api,
+    const api::Core& api,
     const api::client::internal::Blockchain& blockchain,
     const internal::Network& parent,
     const Type chain,
@@ -122,7 +123,7 @@ Wallet::Wallet(
           socket_,
           chain_,
           task_finished_)
-    , proposals_(api, parent_, db_, chain_)
+    , proposals_(api, blockchain_api_, parent_, db_, chain_)
 {
     auto zmq = socket_->Start(blockchain.ThreadPool().Endpoint());
 

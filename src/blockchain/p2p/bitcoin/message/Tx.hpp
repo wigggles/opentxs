@@ -21,10 +21,7 @@ namespace opentxs
 {
 namespace api
 {
-namespace client
-{
-class Manager;
-}  // namespace client
+class Core;
 }  // namespace api
 
 namespace blockchain
@@ -46,10 +43,10 @@ class Tx final : virtual public bitcoin::Message
 public:
     auto getRawTx() const noexcept -> OTData { return Data::Factory(raw_tx_); }
 
-    Tx(const api::client::Manager& api,
+    Tx(const api::Core& api,
        const blockchain::Type network,
        const ReadView transaction) noexcept;
-    Tx(const api::client::Manager& api,
+    Tx(const api::Core& api,
        std::unique_ptr<Header> header,
        const ReadView transaction) noexcept(false);
 

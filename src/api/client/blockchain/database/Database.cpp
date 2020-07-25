@@ -17,7 +17,6 @@ extern "C" {
 #include <type_traits>
 
 #include "api/client/blockchain/database/Blocks.hpp"
-#include "internal/api/client/Client.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/core/Log.hpp"
@@ -52,11 +51,13 @@ const opentxs::storage::lmdb::TableNames Database::table_names_{
 };
 
 Database::Database(
-    const api::client::internal::Manager& api,
+    const api::Core& api,
+    const api::client::Blockchain& blockchain,
     const api::Legacy& legacy,
     const std::string& dataFolder,
     const ArgList& args) noexcept(false)
     : api_(api)
+    , legacy_(legacy)
     , blockchain_path_(init_storage_path(legacy, dataFolder))
     , common_path_(
           init_folder(legacy, blockchain_path_, String::Factory("common")))
@@ -85,13 +86,13 @@ Database::Database(
           })
     , block_policy_(block_storage_level(args, lmdb_))
     , siphash_key_(siphash_key(lmdb_))
-    , headers_(api, lmdb_)
-    , peers_(api, lmdb_)
-    , filters_(api, lmdb_)
+    , headers_(api_, lmdb_)
+    , peers_(api_, lmdb_)
+    , filters_(api_, lmdb_)
 #if OPENTXS_BLOCK_STORAGE_ENABLED
     , blocks_(lmdb_, blocks_path_->Get())
 #endif  // OPENTXS_BLOCK_STORAGE_ENABLED
-    , wallet_(api, lmdb_)
+    , wallet_(blockchain, lmdb_)
 {
     OT_ASSERT(crypto_shorthash_KEYBYTES == siphash_key_.size());
 
@@ -102,8 +103,7 @@ Database::Database(
 auto Database::AllocateStorageFolder(const std::string& dir) const noexcept
     -> std::string
 {
-    return init_folder(api_.Legacy(), blockchain_path_, String::Factory(dir))
-        ->Get();
+    return init_folder(legacy_, blockchain_path_, String::Factory(dir))->Get();
 }
 
 auto Database::block_storage_enabled() noexcept -> bool

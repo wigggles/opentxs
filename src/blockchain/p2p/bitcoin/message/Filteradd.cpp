@@ -24,7 +24,7 @@
 namespace opentxs::factory
 {
 auto BitcoinP2PFilteradd(
-    const api::client::Manager& api,
+    const api::Core& api,
     std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
     const blockchain::p2p::bitcoin::ProtocolVersion version,
     const void* payload,
@@ -46,7 +46,7 @@ auto BitcoinP2PFilteradd(
 }
 
 auto BitcoinP2PFilteradd(
-    const api::client::Manager& api,
+    const api::Core& api,
     const blockchain::Type network,
     const Data& element)
     -> blockchain::p2p::bitcoin::message::internal::Filteradd*
@@ -61,7 +61,7 @@ auto BitcoinP2PFilteradd(
 namespace opentxs::blockchain::p2p::bitcoin::message::implementation
 {
 Filteradd::Filteradd(
-    const api::client::Manager& api,
+    const api::Core& api,
     const blockchain::Type network,
     const Data& element) noexcept
     : Message(api, network, bitcoin::Command::filteradd)
@@ -71,7 +71,7 @@ Filteradd::Filteradd(
 }
 
 Filteradd::Filteradd(
-    const api::client::Manager& api,
+    const api::Core& api,
     std::unique_ptr<Header> header,
     const Data& element) noexcept
     : Message(api, std::move(header))

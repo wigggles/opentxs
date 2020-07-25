@@ -24,7 +24,7 @@ namespace opentxs::factory
 {
 // We have a header and a raw payload. Parse it.
 auto BitcoinP2PGetblocktxn(
-    const api::client::Manager& api,
+    const api::Core& api,
     std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
     const blockchain::p2p::bitcoin::ProtocolVersion version,
     const void* payload,
@@ -118,7 +118,7 @@ auto BitcoinP2PGetblocktxn(
 
 // We have all the data members to create the message from scratch (for sending)
 auto BitcoinP2PGetblocktxn(
-    const api::client::Manager& api,
+    const api::Core& api,
     const blockchain::Type network,
     const Data& block_hash,
     const std::vector<std::size_t>& txn_indices)
@@ -155,7 +155,7 @@ auto Getblocktxn::payload() const noexcept -> OTData
 
 // We have all the data members to create the message from scratch (for sending)
 Getblocktxn::Getblocktxn(
-    const api::client::Manager& api,
+    const api::Core& api,
     const blockchain::Type network,
     const Data& block_hash,
     const std::vector<std::size_t>& txn_indices) noexcept
@@ -169,7 +169,7 @@ Getblocktxn::Getblocktxn(
 // We have a header and the data members. They've been parsed, so now we are
 // instantiating the message from them.
 Getblocktxn::Getblocktxn(
-    const api::client::Manager& api,
+    const api::Core& api,
     std::unique_ptr<Header> header,
     const Data& block_hash,
     const std::vector<std::size_t>& txn_indices) noexcept(false)

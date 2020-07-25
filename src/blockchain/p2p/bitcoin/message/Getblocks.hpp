@@ -27,10 +27,7 @@ namespace opentxs
 {
 namespace api
 {
-namespace client
-{
-class Manager;
-}  // namespace client
+class Core;
 }  // namespace api
 
 namespace blockchain
@@ -129,13 +126,13 @@ public:
     }
 
     Getblocks(
-        const api::client::Manager& api,
+        const api::Core& api,
         const blockchain::Type network,
         const bitcoin::ProtocolVersionUnsigned version,
         const std::vector<OTData>& header_hashes,
         const Data& stop_hash) noexcept;
     Getblocks(
-        const api::client::Manager& api,
+        const api::Core& api,
         std::unique_ptr<Header> header,
         const bitcoin::ProtocolVersionUnsigned version,
         const std::vector<OTData>& header_hashes,

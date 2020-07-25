@@ -30,10 +30,7 @@ namespace opentxs
 {
 namespace api
 {
-namespace client
-{
-class Manager;
-}  // namespace client
+class Core;
 }  // namespace api
 
 namespace blockchain
@@ -66,7 +63,7 @@ public:
     using HeaderType = bitcoin::Header;
 
     Peer(
-        const api::client::Manager& api,
+        const api::Core& api,
         const client::internal::Network& network,
         const client::internal::PeerManager& manager,
         const blockchain::client::internal::IO& io,
@@ -131,7 +128,7 @@ private:
         const ProtocolVersion version,
         const blockchain::Type network,
         const std::set<p2p::Service>& input) noexcept -> std::set<p2p::Service>;
-    static auto nonce(const api::client::Manager& api) noexcept -> Nonce;
+    static auto nonce(const api::Core& api) noexcept -> Nonce;
 
     auto get_body_size(const zmq::Frame& header) const noexcept
         -> std::size_t final;

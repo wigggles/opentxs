@@ -21,6 +21,7 @@
 #include "1_Internal.hpp"
 #include "core/Worker.hpp"
 #include "internal/blockchain/client/Client.hpp"
+#include "opentxs/Bytes.hpp"
 #include "opentxs/Forward.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
@@ -36,10 +37,7 @@ namespace opentxs
 {
 namespace api
 {
-namespace client
-{
-class Manager;
-}  // namespace client
+class Core;
 }  // namespace api
 
 namespace blockchain
@@ -85,7 +83,7 @@ namespace zmq = opentxs::network::zeromq;
 namespace opentxs::blockchain::client::implementation
 {
 class PeerManager final : virtual public internal::PeerManager,
-                          public Worker<PeerManager>
+                          public Worker<PeerManager, api::Core>
 {
 public:
     auto AddPeer(const p2p::Address& address) const noexcept -> bool final;
@@ -110,6 +108,8 @@ public:
         jobs_.Dispatch(Task::Heartbeat);
     }
     auto RequestBlock(const block::Hash& block) const noexcept -> bool final;
+    auto RequestBlocks(const std::vector<ReadView>& hashes) const noexcept
+        -> bool final;
     auto RequestFilterHeaders(
         const filter::Type type,
         const block::Height start,
@@ -127,7 +127,7 @@ public:
     auto init() noexcept -> void final;
 
     PeerManager(
-        const api::client::Manager& api,
+        const api::Core& api,
         const internal::Network& network,
         const internal::PeerDatabase& database,
         const blockchain::client::internal::IO& io,
@@ -138,7 +138,7 @@ public:
     ~PeerManager() final;
 
 private:
-    friend Worker<PeerManager>;
+    friend Worker<PeerManager, api::Core>;
 
     struct Jobs {
         auto Endpoint(const Task type) const noexcept -> std::string;
@@ -149,7 +149,7 @@ private:
         auto Dispatch(zmq::Message& work) noexcept -> void;
         auto Shutdown() noexcept -> void;
 
-        Jobs(const api::client::Manager& api) noexcept;
+        Jobs(const api::Core& api) noexcept;
 
     private:
         using EndpointMap = std::map<Task, std::string>;
@@ -182,7 +182,7 @@ private:
         auto Shutdown() noexcept -> void;
 
         Peers(
-            const api::client::Manager& api,
+            const api::Core& api,
             const internal::Network& network,
             const internal::PeerDatabase& database,
             const internal::PeerManager& parent,
@@ -190,7 +190,8 @@ private:
             const std::string& shutdown,
             const Type chain,
             const std::string& seednode,
-            const blockchain::client::internal::IO& context) noexcept;
+            const blockchain::client::internal::IO& context,
+            const std::size_t peerTarget) noexcept;
 
     private:
         using Endpoint = std::unique_ptr<p2p::internal::Address>;
@@ -198,7 +199,7 @@ private:
         using Resolver = boost::asio::ip::tcp::resolver;
         using Addresses = boost::container::flat_set<OTIdentifier>;
 
-        const api::client::Manager& api_;
+        const api::Core& api_;
         const internal::Network& network_;
         const internal::PeerDatabase& database_;
         const internal::PeerManager& parent_;
@@ -248,14 +249,15 @@ private:
         Shutdown = value(WorkType::Shutdown),
     };
 
-    static const unsigned int peer_target_{2};
-
     const internal::PeerDatabase& database_;
     const internal::IO& io_context_;
     mutable Jobs jobs_;
     mutable Peers peers_;
     std::promise<void> init_promise_;
     std::shared_future<void> init_;
+
+    static auto peer_target(const internal::PeerDatabase& db) noexcept
+        -> std::size_t;
 
     auto pipeline(zmq::Message& message) noexcept -> void;
     auto shutdown(std::promise<void>& promise) noexcept -> void;

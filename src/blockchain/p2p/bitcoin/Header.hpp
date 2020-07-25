@@ -24,10 +24,7 @@ namespace opentxs
 {
 namespace api
 {
-namespace client
-{
-class Manager;
-}  // namespace client
+class Core;
 }  // namespace api
 
 namespace network
@@ -81,11 +78,11 @@ public:
     void SetChecksum(const std::size_t payload, OTData&& checksum) noexcept;
 
     Header(
-        const api::client::Manager& api,
+        const api::Core& api,
         const blockchain::Type network,
         const bitcoin::Command command) noexcept;
     Header(
-        const api::client::Manager& api,
+        const api::Core& api,
         const blockchain::Type network,
         const bitcoin::Command command,
         const std::size_t payload,

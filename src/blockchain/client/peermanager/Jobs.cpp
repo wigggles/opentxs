@@ -31,7 +31,7 @@
 
 namespace opentxs::blockchain::client::implementation
 {
-PeerManager::Jobs::Jobs(const api::client::Manager& api) noexcept
+PeerManager::Jobs::Jobs(const api::Core& api) noexcept
     : zmq_(api.ZeroMQ())
     , getheaders_(api.ZeroMQ().PushSocket(zmq::socket::Socket::Direction::Bind))
     , getcfheaders_(

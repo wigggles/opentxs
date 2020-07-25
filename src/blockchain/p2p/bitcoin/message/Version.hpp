@@ -23,10 +23,7 @@ namespace opentxs
 {
 namespace api
 {
-namespace client
-{
-class Manager;
-}  // namespace client
+class Core;
 }  // namespace api
 
 namespace blockchain
@@ -113,7 +110,7 @@ public:
     }
 
     Version(
-        const api::client::Manager& api,
+        const api::Core& api,
         const blockchain::Type network,
         const bitcoin::ProtocolVersion version,
         const tcp::endpoint localAddress,
@@ -127,7 +124,7 @@ public:
         const bool relay,
         const Time time = Clock::now()) noexcept;
     Version(
-        const api::client::Manager& api,
+        const api::Core& api,
         std::unique_ptr<Header> header,
         const bitcoin::ProtocolVersion version,
         const tcp::endpoint localAddress,

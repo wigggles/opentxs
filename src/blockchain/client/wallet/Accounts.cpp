@@ -13,9 +13,9 @@
 #include "internal/api/client/Client.hpp"
 #include "internal/blockchain/Blockchain.hpp"
 #include "opentxs/Pimpl.hpp"
+#include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
-#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
@@ -27,7 +27,7 @@
 namespace opentxs::blockchain::client::implementation
 {
 Wallet::Accounts::Accounts(
-    const api::client::Manager& api,
+    const api::Core& api,
     const api::client::internal::Blockchain& blockchain,
     const internal::Network& network,
     const internal::WalletDatabase& db,
@@ -50,6 +50,7 @@ auto Wallet::Accounts::Add(const identifier::Nym& nym) noexcept -> bool
     auto [it, added] = map_.try_emplace(
         nym,
         api_,
+        blockchain_api_,
         blockchain_api_.BalanceTree(nym, chain_),
         network_,
         db_,
@@ -76,7 +77,7 @@ auto Wallet::Accounts::Add(const zmq::Frame& message) noexcept -> bool
 }
 
 auto Wallet::Accounts::init(
-    const api::client::Manager& api,
+    const api::Core& api,
     const api::client::internal::Blockchain& blockchain,
     const internal::Network& network,
     const internal::WalletDatabase& db,
@@ -93,6 +94,7 @@ auto Wallet::Accounts::init(
         output.try_emplace(
             nym,
             api,
+            blockchain,
             blockchain.BalanceTree(nym, chain),
             network,
             db,

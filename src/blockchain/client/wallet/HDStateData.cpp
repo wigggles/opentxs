@@ -21,8 +21,8 @@
 #include "internal/blockchain/Blockchain.hpp"
 #include "opentxs/Bytes.hpp"
 #include "opentxs/Pimpl.hpp"
+#include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
-#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/client/blockchain/HD.hpp"
 #include "opentxs/blockchain/block/Header.hpp"
 #include "opentxs/blockchain/block/bitcoin/Block.hpp"
@@ -43,13 +43,17 @@
 namespace opentxs::blockchain::client::implementation
 {
 HDStateData::HDStateData(
+    const api::Core& api,
+    const api::client::Blockchain& blockchain,
     const internal::Network& network,
     const WalletDatabase& db,
     const api::client::blockchain::HD& node,
     const SimpleCallback& taskFinished,
     const filter::Type filter,
     const Subchain subchain) noexcept
-    : network_(network)
+    : api_(api)
+    , blockchain_(blockchain)
+    , network_(network)
     , db_(db)
     , node_(node)
     , task_finished_(taskFinished)
@@ -160,16 +164,14 @@ auto HDStateData::index_element(
     auto scripts = std::vector<std::unique_ptr<const block::bitcoin::Script>>{};
     scripts.reserve(4);  // WARNING keep this number up to date if new scripts
                          // are added
-    const auto& p2pk =
-        scripts.emplace_back(network_.API().Factory().BitcoinScriptP2PK(
-            network_.Chain(), *input.Key()));
-    const auto& p2pkh =
-        scripts.emplace_back(network_.API().Factory().BitcoinScriptP2PKH(
-            network_.Chain(), *input.Key()));
+    const auto& p2pk = scripts.emplace_back(
+        api_.Factory().BitcoinScriptP2PK(network_.Chain(), *input.Key()));
+    const auto& p2pkh = scripts.emplace_back(
+        api_.Factory().BitcoinScriptP2PKH(network_.Chain(), *input.Key()));
     const auto& p2sh_p2pk = scripts.emplace_back(
-        network_.API().Factory().BitcoinScriptP2SH(network_.Chain(), *p2pk));
+        api_.Factory().BitcoinScriptP2SH(network_.Chain(), *p2pk));
     const auto& p2sh_p2pkh = scripts.emplace_back(
-        network_.API().Factory().BitcoinScriptP2SH(network_.Chain(), *p2pkh));
+        api_.Factory().BitcoinScriptP2SH(network_.Chain(), *p2pkh));
 
     OT_ASSERT(p2pk);
     OT_ASSERT(p2pkh);
@@ -246,8 +248,8 @@ auto HDStateData::process() noexcept -> void
         potential.emplace_back(std::move(id), std::move(element));
     }
 
-    const auto confirmed = block.FindMatches(
-        network_.API().Blockchain(), filter_type_, {}, potential);
+    const auto confirmed =
+        block.FindMatches(blockchain_, filter_type_, {}, potential);
     const auto& oracle = network_.HeaderOracle();
     const auto pHeader = oracle.LoadHeader(blockHash);
 
@@ -328,8 +330,8 @@ auto HDStateData::scan() noexcept -> void
 
     const auto elements = db_.GetPatterns(node_.ID(), subchain_, filter_type_);
     const auto utxos = db_.GetUnspentOutputs();
-    auto highestTested = last_scanned_.value_or(
-        make_blank<block::Position>::value(network_.API()));
+    auto highestTested =
+        last_scanned_.value_or(make_blank<block::Position>::value(api_));
     auto atLeastOnce{false};
 
     for (auto i{startHeight}; i <= stopHeight; ++i) {

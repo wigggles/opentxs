@@ -22,8 +22,8 @@
 #include "internal/blockchain/database/Database.hpp"
 #include "opentxs/Bytes.hpp"
 #include "opentxs/Proto.tpp"
+#include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
-#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/blockchain/block/Header.hpp"
 #include "opentxs/blockchain/client/HeaderOracle.hpp"
@@ -48,7 +48,7 @@ auto tsv(const Input& in) noexcept -> ReadView
 }
 
 Headers::Headers(
-    const api::client::Manager& api,
+    const api::Core& api,
     const client::internal::Network& network,
     const Common& common,
     const opentxs::storage::lmdb::LMDB& lmdb,

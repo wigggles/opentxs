@@ -19,10 +19,7 @@ namespace opentxs
 {
 namespace api
 {
-namespace client
-{
-class Manager;
-}  // namespace client
+class Core;
 }  // namespace api
 
 namespace blockchain
@@ -66,9 +63,13 @@ public:
         const std::vector<FilterHeader>& headers) const noexcept -> bool;
     auto StoreFilters(const FilterType type, std::vector<FilterData>& filters)
         const noexcept -> bool;
+    auto StoreFilters(
+        const FilterType type,
+        const std::vector<FilterHeader>& headers,
+        const std::vector<FilterData>& filters) const noexcept -> bool;
 
     BlockFilter(
-        const api::client::Manager& api,
+        const api::Core& api,
         opentxs::storage::lmdb::LMDB& lmdb) noexcept(false);
 
 private:
@@ -77,7 +78,7 @@ private:
     static const std::uint32_t blockchain_filter_version_{1};
     static const std::uint32_t blockchain_filters_version_{1};
 
-    const api::client::Manager& api_;
+    const api::Core& api_;
     opentxs::storage::lmdb::LMDB& lmdb_;
 
     static auto translate_filter(const FilterType type) noexcept(false)

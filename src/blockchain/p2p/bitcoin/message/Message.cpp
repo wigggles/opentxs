@@ -14,7 +14,6 @@
 #include "blockchain/p2p/bitcoin/Header.hpp"
 #include "internal/blockchain/Blockchain.hpp"
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
@@ -145,7 +144,7 @@ auto FilterRequest::Type(const blockchain::Type chain) const noexcept
 }
 
 auto VerifyChecksum(
-    const api::client::Manager& api,
+    const api::Core& api,
     const Header& header,
     const network::zeromq::Frame& payload) noexcept -> bool
 {

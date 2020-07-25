@@ -11,35 +11,38 @@
 #include <iterator>
 #include <utility>
 
-#include "2_Factory.hpp"
+#include "internal/api/Api.hpp"
 #include "internal/api/client/Client.hpp"
 #include "internal/api/client/blockchain/Blockchain.hpp"
+#include "internal/api/client/blockchain/Factory.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/iterator/Bidirectional.hpp"
 
-namespace opentxs
+namespace opentxs::factory
 {
-auto Factory::BlockchainBalanceList(
+auto BlockchainBalanceList(
+    const api::internal::Core& api,
     const api::client::internal::Blockchain& parent,
-    const blockchain::Type chain)
-    -> api::client::blockchain::internal::BalanceList*
+    const blockchain::Type chain) noexcept
+    -> std::unique_ptr<api::client::blockchain::internal::BalanceList>
 {
     using ReturnType = api::client::blockchain::implementation::BalanceList;
 
-    return new ReturnType(parent, chain);
+    return std::make_unique<ReturnType>(api, parent, chain);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::api::client::blockchain::implementation
 {
 BalanceList::BalanceList(
+    const api::internal::Core& api,
     const api::client::internal::Blockchain& parent,
     const opentxs::blockchain::Type chain) noexcept
     : parent_(parent)
-    , api_(parent_.API())
+    , api_(api)
     , chain_(chain)
     , lock_()
     , trees_()
@@ -99,10 +102,7 @@ auto BalanceList::factory(
     const std::set<OTIdentifier>& accounts) const noexcept
     -> std::unique_ptr<internal::BalanceTree>
 {
-    std::unique_ptr<internal::BalanceTree> output{
-        opentxs::Factory::BlockchainBalanceTree(*this, nym, accounts, {}, {})};
-
-    return output;
+    return factory::BlockchainBalanceTree(api_, *this, nym, accounts, {}, {});
 }
 
 auto BalanceList::get_or_create(

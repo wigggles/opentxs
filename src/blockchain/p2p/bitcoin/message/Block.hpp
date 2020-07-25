@@ -18,10 +18,7 @@ namespace opentxs
 {
 namespace api
 {
-namespace client
-{
-class Manager;
-}  // namespace client
+class Core;
 }  // namespace api
 
 namespace blockchain
@@ -44,11 +41,11 @@ public:
     auto GetBlock() const noexcept -> OTData final { return payload_; }
 
     Block(
-        const api::client::Manager& api,
+        const api::Core& api,
         const blockchain::Type network,
         const Data& block) noexcept;
     Block(
-        const api::client::Manager& api,
+        const api::Core& api,
         std::unique_ptr<Header> header,
         const Data& block) noexcept;
 

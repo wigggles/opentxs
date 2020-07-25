@@ -23,10 +23,7 @@ namespace opentxs
 {
 namespace api
 {
-namespace client
-{
-class Manager;
-}  // namespace client
+class Core;
 }  // namespace api
 
 namespace blockchain
@@ -59,14 +56,14 @@ public:
     auto Type() const noexcept -> filter::Type final { return type_; }
 
     Cfilter(
-        const api::client::Manager& api,
+        const api::Core& api,
         const blockchain::Type network,
         const filter::Type type,
         const filter::Hash& hash,
         const std::uint32_t count,
         const Space& compressed) noexcept;
     Cfilter(
-        const api::client::Manager& api,
+        const api::Core& api,
         std::unique_ptr<Header> header,
         const filter::Type type,
         const filter::Hash& hash,

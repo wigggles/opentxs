@@ -37,10 +37,7 @@ namespace opentxs
 {
 namespace api
 {
-namespace client
-{
-class Manager;
-}  // namespace client
+class Core;
 }  // namespace api
 
 namespace blockchain
@@ -104,6 +101,11 @@ public:
     {
         return common_.StoreFilterHeaders(type, headers);
     }
+    auto StoreFilters(
+        const filter::Type type,
+        const std::vector<Header>& headers,
+        const std::vector<Filter>& filters,
+        const block::Position& tip) const noexcept -> bool;
     auto StoreFilters(const filter::Type type, std::vector<Filter> filters)
         const noexcept -> bool
     {
@@ -111,13 +113,13 @@ public:
     }
 
     Filters(
-        const api::client::Manager& api,
+        const api::Core& api,
         const Common& common,
         const opentxs::storage::lmdb::LMDB& lmdb,
         const blockchain::Type chain) noexcept;
 
 private:
-    const api::client::Manager& api_;
+    const api::Core& api_;
     const Common& common_;
     const opentxs::storage::lmdb::LMDB& lmdb_;
     const block::Position blank_position_;

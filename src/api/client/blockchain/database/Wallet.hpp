@@ -25,8 +25,10 @@ namespace api
 {
 namespace client
 {
-class Manager;
+class Blockchain;
 }  // namespace client
+
+class Core;
 }  // namespace api
 
 namespace proto
@@ -71,7 +73,7 @@ public:
         const noexcept -> std::vector<pTxid>;
 
     Wallet(
-        const api::client::Manager& api,
+        const api::client::Blockchain& blockchain,
         opentxs::storage::lmdb::LMDB& lmdb) noexcept(false);
 
 private:
@@ -80,7 +82,7 @@ private:
     using TransactionToPattern = std::map<pTxid, std::set<PatternID>>;
     using PatternToTransaction = std::map<PatternID, std::set<pTxid>>;
 
-    const api::client::Manager& api_;
+    const api::client::Blockchain& blockchain_;
     // TODO opentxs::storage::lmdb::LMDB& lmdb_;
     mutable std::mutex lock_;
     mutable std::map<std::string, Transaction> transaction_map_;

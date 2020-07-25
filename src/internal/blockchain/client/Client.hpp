@@ -66,8 +66,6 @@ namespace internal
 {
 struct Blockchain;
 }  // namespace internal
-
-class Manager;
 }  // namespace client
 
 namespace internal
@@ -252,6 +250,11 @@ struct FilterDatabase {
     virtual auto StoreFilters(
         const filter::Type type,
         std::vector<Filter> filters) const noexcept -> bool = 0;
+    virtual auto StoreFilters(
+        const filter::Type type,
+        const std::vector<Header>& headers,
+        const std::vector<Filter>& filters,
+        const block::Position& tip) const noexcept -> bool = 0;
     virtual auto StoreFilterHeaders(
         const filter::Type type,
         const ReadView previous,
@@ -261,6 +264,8 @@ struct FilterDatabase {
 };
 
 struct FilterOracle {
+    static auto ProcessThreadPool(const zmq::Message& task) noexcept -> void;
+
     virtual auto AddFilter(zmq::Message& work) const noexcept -> void = 0;
     virtual auto AddHeaders(zmq::Message& work) const noexcept -> void = 0;
     virtual auto DefaultType() const noexcept -> filter::Type = 0;
@@ -342,11 +347,11 @@ struct IO {
     auto AddNetwork() noexcept -> void;
     auto Shutdown() noexcept -> void;
 
-    IO(const api::client::Manager& api) noexcept;
+    IO(const api::Core& api) noexcept;
     ~IO();
 
 private:
-    const api::client::Manager& api_;
+    const api::Core& api_;
     mutable std::mutex lock_;
     OTZMQListenCallback cb_;
     OTZMQRouterSocket socket_;
@@ -381,7 +386,6 @@ struct Network : virtual public opentxs::blockchain::Network {
         FilterUpdate = OT_ZMQ_NEW_FILTER_SIGNAL,
     };
 
-    virtual auto API() const noexcept -> const api::client::Manager& = 0;
     virtual auto Blockchain() const noexcept
         -> const api::client::internal::Blockchain& = 0;
     virtual auto BlockOracle() const noexcept
@@ -402,6 +406,8 @@ struct Network : virtual public opentxs::blockchain::Network {
         -> const network::zeromq::socket::Publish& = 0;
     virtual auto RequestBlock(const block::Hash& block) const noexcept
         -> bool = 0;
+    virtual auto RequestBlocks(
+        const std::vector<ReadView>& hashes) const noexcept -> bool = 0;
     virtual auto RequestFilterHeaders(
         const filter::Type type,
         const block::Height start,
@@ -472,6 +478,8 @@ struct PeerManager {
     virtual auto Heartbeat() const noexcept -> void = 0;
     virtual auto RequestBlock(const block::Hash& block) const noexcept
         -> bool = 0;
+    virtual auto RequestBlocks(
+        const std::vector<ReadView>& hashes) const noexcept -> bool = 0;
     virtual auto RequestFilterHeaders(
         const filter::Type type,
         const block::Height start,
@@ -493,7 +501,14 @@ struct ThreadPool {
 
     enum class Work : OTZMQWorkType {
         Wallet = OT_ZMQ_INTERNAL_SIGNAL + 0,
+        FilterOracle = OT_ZMQ_INTERNAL_SIGNAL + 1,
     };
+
+    static auto Capacity() noexcept -> std::size_t;
+    static auto MakeWork(
+        const api::Core& api,
+        const blockchain::Type chain,
+        const Work type) noexcept -> OTZMQMessage;
 
     virtual auto Endpoint() const noexcept -> std::string = 0;
     virtual auto Reset(const Type chain) const noexcept -> void = 0;
@@ -510,7 +525,7 @@ struct Wallet {
         reorg = OT_ZMQ_INTERNAL_SIGNAL + 3,
     };
 
-    static auto ProcessTask(const zmq::Message& task) noexcept -> void;
+    static auto ProcessThreadPool(const zmq::Message& task) noexcept -> void;
 
     virtual auto ConstructTransaction(
         const proto::BlockchainTransactionProposal& tx) const noexcept
@@ -657,60 +672,3 @@ struct WalletDatabase {
 };
 #endif  // OT_BLOCKCHAIN
 }  // namespace opentxs::blockchain::client::internal
-
-#if OT_BLOCKCHAIN
-namespace opentxs::factory
-{
-auto BlockchainDatabase(
-    const api::client::Manager& api,
-    const api::client::internal::Blockchain& blockchain,
-    const blockchain::client::internal::Network& network,
-    const api::client::blockchain::database::implementation::Database& db,
-    const blockchain::Type type) noexcept
-    -> std::unique_ptr<blockchain::internal::Database>;
-auto BlockchainFilterOracle(
-    const api::client::Manager& api,
-    const blockchain::client::internal::Network& network,
-    const blockchain::client::internal::HeaderOracle& header,
-    const blockchain::client::internal::FilterDatabase& database,
-    const blockchain::Type type,
-    const std::string& shutdown) noexcept
-    -> std::unique_ptr<blockchain::client::internal::FilterOracle>;
-OPENTXS_EXPORT auto BlockchainNetworkBitcoin(
-    const api::client::Manager& api,
-    const api::client::internal::Blockchain& blockchain,
-    const blockchain::Type type,
-    const std::string& seednode,
-    const std::string& shutdown) noexcept
-    -> std::unique_ptr<blockchain::client::internal::Network>;
-auto BlockchainPeerManager(
-    const api::client::Manager& api,
-    const blockchain::client::internal::Network& network,
-    const blockchain::client::internal::PeerDatabase& database,
-    const blockchain::client::internal::IO& io,
-    const blockchain::Type type,
-    const std::string& seednode,
-    const std::string& shutdown) noexcept
-    -> std::unique_ptr<blockchain::client::internal::PeerManager>;
-OPENTXS_EXPORT auto BlockchainWallet(
-    const api::client::Manager& api,
-    const api::client::internal::Blockchain& blockchain,
-    const blockchain::client::internal::Network& parent,
-    const blockchain::Type chain,
-    const std::string& shutdown)
-    -> std::unique_ptr<blockchain::client::internal::Wallet>;
-auto BlockOracle(
-    const api::client::Manager& api,
-    const blockchain::client::internal::Network& network,
-    const blockchain::client::internal::BlockDatabase& db,
-    const blockchain::Type chain,
-    const std::string& shutdown) noexcept
-    -> std::unique_ptr<blockchain::client::internal::BlockOracle>;
-auto HeaderOracle(
-    const api::client::Manager& api,
-    const blockchain::client::internal::Network& network,
-    const blockchain::client::internal::HeaderDatabase& database,
-    const blockchain::Type type) noexcept
-    -> std::unique_ptr<blockchain::client::internal::HeaderOracle>;
-}  // namespace opentxs::factory
-#endif  // OT_BLOCKCHAIN

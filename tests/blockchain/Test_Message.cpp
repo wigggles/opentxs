@@ -19,6 +19,7 @@
 #include "blockchain/p2p/bitcoin/message/Getblocks.hpp"
 #include "internal/api/client/Client.hpp"
 #include "internal/blockchain/p2p/bitcoin/Bitcoin.hpp"
+#include "internal/blockchain/p2p/bitcoin/Factory.hpp"
 #include "internal/blockchain/p2p/bitcoin/message/Message.hpp"
 #include "opentxs/Forward.hpp"
 #include "opentxs/OT.hpp"

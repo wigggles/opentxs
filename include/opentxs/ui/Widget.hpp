@@ -10,8 +10,8 @@
 
 #include <string>
 
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/Types.hpp"
+#include "opentxs/core/Identifier.hpp"
 
 #ifdef SWIG
 // clang-format off

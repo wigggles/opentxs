@@ -24,7 +24,7 @@
 namespace opentxs::factory
 {
 auto BitcoinP2PPong(
-    const api::client::Manager& api,
+    const api::Core& api,
     std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
     const blockchain::p2p::bitcoin::ProtocolVersion version,
     const void* payload,
@@ -66,7 +66,7 @@ auto BitcoinP2PPong(
 }
 
 auto BitcoinP2PPong(
-    const api::client::Manager& api,
+    const api::Core& api,
     const blockchain::Type network,
     const std::uint64_t nonce)
     -> blockchain::p2p::bitcoin::message::internal::Pong*
@@ -81,7 +81,7 @@ auto BitcoinP2PPong(
 namespace opentxs::blockchain::p2p::bitcoin::message::implementation
 {
 Pong::Pong(
-    const api::client::Manager& api,
+    const api::Core& api,
     const blockchain::Type network,
     const bitcoin::Nonce nonce) noexcept
     : Message(api, network, bitcoin::Command::pong)
@@ -91,7 +91,7 @@ Pong::Pong(
 }
 
 Pong::Pong(
-    const api::client::Manager& api,
+    const api::Core& api,
     std::unique_ptr<Header> header,
     const bitcoin::Nonce nonce) noexcept
     : Message(api, std::move(header))

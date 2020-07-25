@@ -9,7 +9,9 @@ endif()
 
 set(
   cxx-sources
+  AccountCache.cpp
   BalanceList.cpp
+  BalanceLists.cpp
   BalanceNode.cpp
   BalanceTree.cpp
   BalanceTree.tpp
@@ -17,6 +19,11 @@ set(
   Deterministic.cpp
   HD.cpp
 )
+
+if(OT_BLOCKCHAIN_EXPORT)
+  list(APPEND cxx-sources BalanceOracle.cpp ThreadPoolManager.cpp)
+endif()
+
 set(
   cxx-install-headers
   "${opentxs_SOURCE_DIR}/include/opentxs/api/client/blockchain/BalanceList.hpp"
@@ -32,6 +39,7 @@ set(
   cxx-headers
   ${cxx-install-headers}
   "${opentxs_SOURCE_DIR}/src/internal/api/client/blockchain/Blockchain.hpp"
+  "${opentxs_SOURCE_DIR}/src/internal/api/client/blockchain/Factory.hpp"
   BalanceList.hpp
   BalanceNode.hpp
   BalanceTree.hpp
@@ -41,6 +49,10 @@ set(
 
 add_library(opentxs-api-client-blockchain OBJECT ${cxx-sources} ${cxx-headers})
 target_link_libraries(opentxs-api-client-blockchain PRIVATE opentxs::messages)
+target_include_directories(
+  opentxs-api-client-blockchain SYSTEM
+  PRIVATE "${opentxs_SOURCE_DIR}/deps/"
+)
 set_property(
   TARGET opentxs-api-client-blockchain
   PROPERTY POSITION_INDEPENDENT_CODE 1

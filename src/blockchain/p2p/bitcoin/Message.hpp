@@ -22,10 +22,7 @@ namespace opentxs
 {
 namespace api
 {
-namespace client
-{
-class Manager;
-}  // namespace client
+class Core;
 }  // namespace api
 }  // namespace opentxs
 
@@ -46,7 +43,7 @@ public:
     virtual ~Message() = default;
 
 protected:
-    const ot::api::client::Manager& api_;
+    const ot::api::Core& api_;
     std::unique_ptr<Header> header_;
 
     void verify_checksum() const noexcept(false);
@@ -54,12 +51,10 @@ protected:
     void init_hash() noexcept;
 
     Message(
-        const api::client::Manager& api,
+        const api::Core& api,
         const blockchain::Type network,
         const bitcoin::Command command) noexcept;
-    Message(
-        const api::client::Manager& api,
-        std::unique_ptr<Header> header) noexcept;
+    Message(const api::Core& api, std::unique_ptr<Header> header) noexcept;
 
 private:
     auto calculate_checksum(const Data& payload) const noexcept -> OTData;

@@ -52,8 +52,10 @@ namespace internal
 struct Blockchain;
 }  // namespace internal
 
-class Manager;
+class Blockchain;
 }  // namespace client
+
+class Core;
 }  // namespace api
 
 namespace blockchain
@@ -100,7 +102,7 @@ namespace be = boost::endian;
 
 namespace opentxs::blockchain::client::implementation
 {
-class Wallet final : virtual public internal::Wallet, Worker<Wallet>
+class Wallet final : virtual public internal::Wallet, Worker<Wallet, api::Core>
 {
 public:
     struct Account {
@@ -114,7 +116,8 @@ public:
         auto state_machine() noexcept -> bool;
 
         Account(
-            const api::client::Manager& api,
+            const api::Core& api,
+            const api::client::Blockchain& blockchain,
             const BalanceTree& ref,
             const internal::Network& network,
             const internal::WalletDatabase& db,
@@ -123,7 +126,8 @@ public:
         Account(Account&&) noexcept;
 
     private:
-        const api::client::Manager& api_;
+        const api::Core& api_;
+        const api::client::Blockchain& blockchain_;
         const BalanceTree& ref_;
         const internal::Network& network_;
         const internal::WalletDatabase& db_;
@@ -150,7 +154,7 @@ public:
     }
 
     Wallet(
-        const api::client::Manager& api,
+        const api::Core& api,
         const api::client::internal::Blockchain& blockchain,
         const internal::Network& parent,
         const Type chain,
@@ -159,7 +163,7 @@ public:
     ~Wallet() final;
 
 private:
-    friend Worker<Wallet>;
+    friend Worker<Wallet, api::Core>;
 
     enum class Work : OTZMQWorkType {
         key = OT_ZMQ_NEW_BLOCKCHAIN_WALLET_KEY_SIGNAL,
@@ -179,7 +183,7 @@ private:
         auto state_machine() noexcept -> bool;
 
         Accounts(
-            const api::client::Manager& api,
+            const api::Core& api,
             const api::client::internal::Blockchain& blockchain,
             const internal::Network& network,
             const internal::WalletDatabase& db,
@@ -190,7 +194,7 @@ private:
     private:
         using AccountMap = std::map<OTNymID, Account>;
 
-        const api::client::Manager& api_;
+        const api::Core& api_;
         const api::client::internal::Blockchain& blockchain_api_;
         const internal::Network& network_;
         const internal::WalletDatabase& db_;
@@ -200,7 +204,7 @@ private:
         AccountMap map_;
 
         static auto init(
-            const api::client::Manager& api,
+            const api::Core& api,
             const api::client::internal::Blockchain& blockchain,
             const internal::Network& network,
             const internal::WalletDatabase& db,
@@ -218,7 +222,8 @@ private:
         auto Run() noexcept -> bool;
 
         Proposals(
-            const api::client::Manager& api,
+            const api::Core& api,
+            const api::client::Blockchain& blockchain,
             const internal::Network& network,
             const internal::WalletDatabase& db,
             const Type chain) noexcept;
@@ -247,7 +252,8 @@ private:
             auto SignInputs() noexcept -> bool;
 
             BitcoinTransactionBuilder(
-                const api::client::Manager& api,
+                const api::Core& api,
+                const api::client::Blockchain& blockchain,
                 const internal::WalletDatabase& db,
                 const Identifier& proposal,
                 const Type chain,
@@ -259,7 +265,8 @@ private:
             using Bip143 = std::optional<bitcoin::Bip143Hashes>;
             using Hash = std::array<std::byte, 32>;
 
-            const api::client::Manager& api_;
+            const api::Core& api_;
+            const api::client::Blockchain& blockchain_;
             const internal::WalletDatabase& db_;
             const Identifier& proposal_;
             const Type chain_;
@@ -318,7 +325,8 @@ private:
             Proposal&,
             std::promise<block::pTxid>&)>;
 
-        const api::client::Manager& api_;
+        const api::Core& api_;
+        const api::client::Blockchain& blockchain_;
         const internal::Network& network_;
         const internal::WalletDatabase& db_;
         const Type chain_;

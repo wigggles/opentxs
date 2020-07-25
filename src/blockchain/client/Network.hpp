@@ -10,6 +10,7 @@
 #include <iosfwd>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "core/Shutdown.hpp"
 #include "core/Worker.hpp"
@@ -41,9 +42,9 @@ namespace blockchain
 class BalanceTree;
 class PaymentCode;
 }  // namespace blockchain
-
-class Manager;
 }  // namespace client
+
+class Core;
 }  // namespace api
 
 namespace blockchain
@@ -85,13 +86,10 @@ namespace zmq = opentxs::network::zeromq;
 
 namespace opentxs::blockchain::client::implementation
 {
-class Network : virtual public internal::Network, public Worker<Network>
+class Network : virtual public internal::Network,
+                public Worker<Network, api::Core>
 {
 public:
-    auto API() const noexcept -> const api::client::Manager& final
-    {
-        return api_;
-    }
     auto AddPeer(const p2p::Address& address) const noexcept -> bool final;
     auto BlockOracle() const noexcept -> const internal::BlockOracle& final
     {
@@ -143,6 +141,8 @@ public:
         return parent_.Reorg();
     }
     auto RequestBlock(const block::Hash& block) const noexcept -> bool final;
+    auto RequestBlocks(const std::vector<ReadView>& hashes) const noexcept
+        -> bool final;
     auto RequestFilterHeaders(
         const filter::Type type,
         const block::Height start,
@@ -197,14 +197,14 @@ protected:
     auto init() noexcept -> void;
 
     Network(
-        const api::client::Manager& api,
+        const api::Core& api,
         const api::client::internal::Blockchain& blockchain,
         const Type type,
         const std::string& seednode,
         const std::string& shutdown) noexcept;
 
 private:
-    friend Worker<Network>;
+    friend Worker<Network, api::Core>;
 
     const api::client::internal::Blockchain& parent_;
     mutable std::atomic<block::Height> local_chain_height_;

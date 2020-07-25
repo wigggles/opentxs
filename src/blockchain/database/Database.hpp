@@ -62,8 +62,6 @@ namespace internal
 {
 struct Blockchain;
 }  // namespace internal
-
-class Manager;
 }  // namespace client
 
 class Core;
@@ -366,6 +364,14 @@ public:
     {
         return filters_.StoreFilters(type, std::move(filters));
     }
+    auto StoreFilters(
+        const filter::Type type,
+        const std::vector<Header>& headers,
+        const std::vector<Filter>& filters,
+        const block::Position& tip) const noexcept -> bool final
+    {
+        return filters_.StoreFilters(type, headers, filters, tip);
+    }
     auto StoreFilterHeaders(
         const filter::Type type,
         const ReadView previous,
@@ -464,7 +470,7 @@ public:
     }
 
     Database(
-        const api::client::Manager& api,
+        const api::Core& api,
         const api::client::internal::Blockchain& blockchain,
         const client::internal::Network& network,
         const database::Common& common,
