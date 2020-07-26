@@ -8,8 +8,8 @@
 #include "crypto/library/Secp256k1.hpp"  // IWYU pragma: associated
 
 extern "C" {
-#include "secp256k1.h"
-#include "secp256k1_ecdh.h"
+#include <secp256k1.h>
+#include <secp256k1_ecdh.h>
 }
 
 #include <array>
@@ -251,7 +251,9 @@ auto Secp256k1::SharedSecret(
                     context_,
                     static_cast<unsigned char*>(writer.data()),
                     &key,
-                    reinterpret_cast<const unsigned char*>(prv.data()));
+                    reinterpret_cast<const unsigned char*>(prv.data()),
+                    secp256k1_ecdh_hash_function_sha256,
+                    nullptr);
 }
 
 auto Secp256k1::Sign(

@@ -6,11 +6,14 @@
 #include <gtest/gtest-message.h>
 #include <gtest/gtest-test-part.h>
 #include <gtest/gtest.h>
+#include <cstdint>
 #include <memory>
 #include <string>
+#include <string_view>
 
 #include "OTTestEnvironment.hpp"  // IWYU pragma: keep
 #include "internal/api/client/Client.hpp"
+#include "opentxs/Bytes.hpp"
 #include "opentxs/OT.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Types.hpp"
@@ -22,6 +25,7 @@
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
 #include "opentxs/core/Data.hpp"
+#include "opentxs/core/Secret.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/crypto/key/Asymmetric.hpp"
 #include "opentxs/crypto/key/HD.hpp"
@@ -38,7 +42,9 @@ class Test_Signatures : public ::testing::Test
 {
 public:
     const ot::api::client::internal::Manager& client_;
+#if OT_CRYPTO_WITH_BIP32
     const std::string fingerprint_;
+#endif  // OT_CRYPTO_WITH_BIP32
     const proto::HashType sha256_{proto::HASHTYPE_SHA256};
     const proto::HashType sha512_{proto::HASHTYPE_SHA512};
     const proto::HashType blake160_{proto::HASHTYPE_BLAKE2B160};
@@ -56,6 +62,7 @@ public:
 #if OT_CRYPTO_WITH_BIP32
     OTAsymmetricKey ed_hd_;
 #endif  // OT_CRYPTO_WITH_BIP32
+    OTAsymmetricKey ed_2_;
     const crypto::AsymmetricProvider& ed25519_;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
@@ -63,24 +70,31 @@ public:
 #if OT_CRYPTO_WITH_BIP32
     OTAsymmetricKey secp_hd_;
 #endif  // OT_CRYPTO_WITH_BIP32
+    OTAsymmetricKey secp_2_;
     const crypto::AsymmetricProvider& secp256k1_;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
     OTAsymmetricKey rsa_;
+    OTAsymmetricKey rsa_2_;
     const crypto::AsymmetricProvider& openssl_;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
 
     [[maybe_unused]] Test_Signatures()
         : client_(dynamic_cast<const ot::api::client::internal::Manager&>(
               ot::Context().StartClient({}, 0)))
+#if OT_CRYPTO_WITH_BIP32
         , fingerprint_(client_.Exec().Wallet_ImportSeed(
               "response seminar brave tip suit recall often sound stick owner "
               "lottery motion",
               ""))
+#endif  // OT_CRYPTO_WITH_BIP32
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
         , ed_(get_key(client_, EcdsaCurve::ed25519))
 #if OT_CRYPTO_WITH_BIP32
         , ed_hd_(get_hd_key(client_, fingerprint_, EcdsaCurve::ed25519))
+        , ed_2_(get_hd_key(client_, fingerprint_, EcdsaCurve::ed25519, 1))
+#else
+        , ed_2_(get_key(client_, EcdsaCurve::ed25519))
 #endif  // OT_CRYPTO_WITH_BIP32
         , ed25519_(client_.Crypto().ED25519())
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
@@ -88,11 +102,15 @@ public:
         , secp_(get_key(client_, EcdsaCurve::secp256k1))
 #if OT_CRYPTO_WITH_BIP32
         , secp_hd_(get_hd_key(client_, fingerprint_, EcdsaCurve::secp256k1))
+        , secp_2_(get_hd_key(client_, fingerprint_, EcdsaCurve::secp256k1, 1))
+#else
+        , secp_2_(get_key(client_, EcdsaCurve::secp256k1))
 #endif  // OT_CRYPTO_WITH_BIP32
         , secp256k1_(client_.Crypto().SECP256K1())
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
         , rsa_(get_key(client_, EcdsaCurve::invalid))
+        , rsa_2_(get_key(client_, EcdsaCurve::invalid))
         , openssl_(client_.Crypto().RSA())
 #endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
     {
@@ -102,7 +120,8 @@ public:
     static OTAsymmetricKey get_hd_key(
         const ot::api::client::Manager& api,
         const std::string& fingerprint,
-        const EcdsaCurve& curve)
+        const EcdsaCurve& curve,
+        const std::uint32_t index = 0)
     {
         auto reason = api.Factory().PasswordPrompt(__FUNCTION__);
         std::string id{fingerprint};
@@ -115,7 +134,7 @@ public:
                     {HDIndex{Bip43Purpose::NYM, Bip32Child::HARDENED},
                      HDIndex{0, Bip32Child::HARDENED},
                      HDIndex{0, Bip32Child::HARDENED},
-                     HDIndex{0, Bip32Child::HARDENED},
+                     HDIndex{index, Bip32Child::HARDENED},
                      HDIndex {
                          Bip32Child::SIGN_KEY,
                          Bip32Child::HARDENED
@@ -147,6 +166,34 @@ public:
             OT_FAIL;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
         }
+    }
+
+    [[maybe_unused]] bool test_dh(
+        const crypto::AsymmetricProvider& lib,
+        const crypto::key::Asymmetric& keyOne,
+        const crypto::key::Asymmetric& keyTwo,
+        const ot::Data& expected)
+    {
+        auto reason = client_.Factory().PasswordPrompt(__FUNCTION__);
+        auto secret1 = client_.Factory().Secret(0);
+        auto secret2 = client_.Factory().Secret(0);
+        auto output = lib.SharedSecret(keyOne, keyTwo, reason, secret1);
+
+        if (false == output) { return output; }
+
+        output = lib.SharedSecret(keyTwo, keyOne, reason, secret2);
+
+        if (false == output) { return output; }
+
+        EXPECT_EQ(secret1, secret2);
+
+        if (0 < expected.size()) {
+            EXPECT_EQ(secret1->Bytes(), expected.Bytes());
+
+            output &= (secret1->Bytes() == expected.Bytes());
+        }
+
+        return output;
     }
 
     [[maybe_unused]] bool test_signature(
@@ -203,6 +250,15 @@ TEST_F(Test_Signatures, RSA_supported_hashes)
     EXPECT_TRUE(test_signature(plaintext_1, openssl_, rsa_, sha512_));
     EXPECT_TRUE(test_signature(plaintext_1, openssl_, rsa_, ripemd160_));
 }
+
+TEST_F(Test_Signatures, RSA_DH)
+{
+    const auto expected = client_.Factory().Data();
+
+    // RSA does not use the same key for encryption/signing and DH so this
+    // test should fail
+    EXPECT_FALSE(test_dh(openssl_, rsa_, rsa_2_, expected));
+}
 #endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
 
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
@@ -237,6 +293,13 @@ TEST_F(Test_Signatures, Ed25519_supported_hashes)
     EXPECT_TRUE(test_signature(plaintext_1, ed25519_, ed_hd_, blake256_));
 #endif  // OT_CRYPTO_WITH_BIP32
     EXPECT_TRUE(test_signature(plaintext_1, ed25519_, ed_, blake256_));
+}
+
+TEST_F(Test_Signatures, Ed25519_ECDH)
+{
+    const auto expected = client_.Factory().Data();
+
+    EXPECT_TRUE(test_dh(ed25519_, ed_, ed_2_, expected));
 }
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 
@@ -277,5 +340,21 @@ TEST_F(Test_Signatures, Secp256k1_supported_hashes)
     EXPECT_TRUE(test_signature(plaintext_1, secp256k1_, secp_, blake160_));
     EXPECT_TRUE(test_signature(plaintext_1, secp256k1_, secp_, ripemd160_));
 }
-#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
+
+TEST_F(Test_Signatures, Secp256k1_ECDH)
+{
+    constexpr auto hex
+    {
+#if OT_CRYPTO_WITH_BIP32
+        "a3f8385b75ab90df6f6aae81044730ec526104033f8aac662dde1f1b40453e58"
+#else
+        ""
+#endif  // OT_CRYPTO_WITH_BIP32
+    };
+
+    const auto expected = client_.Factory().Data(hex, ot::StringStyle::Hex);
+
+    EXPECT_TRUE(test_dh(secp256k1_, secp_, secp_2_, expected));
+}
+#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 }  // namespace
