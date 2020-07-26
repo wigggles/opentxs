@@ -5,8 +5,10 @@
 
 #pragma once
 
+#include <boost/container/flat_map.hpp>
 #include <chrono>
 #include <deque>
+#include <functional>
 #include <future>
 #include <iosfwd>
 #include <map>
@@ -17,6 +19,7 @@
 
 #include "core/Worker.hpp"
 #include "internal/blockchain/client/Client.hpp"
+#include "opentxs/Bytes.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/blockchain/client/BlockOracle.hpp"
@@ -79,7 +82,6 @@ private:
     using Promise = std::promise<BitcoinBlock_p>;
     using PendingData = std::tuple<Time, Promise, BitcoinBlockFuture, bool>;
     using Pending = std::map<block::pHash, PendingData>;
-    using Completed = std::deque<std::pair<block::pHash, BitcoinBlockFuture>>;
 
     struct Cache {
         auto ReceiveBlock(const zmq::Frame& in) const noexcept -> void;
@@ -103,6 +105,26 @@ private:
         static const std::size_t cache_limit_;
         static const std::chrono::seconds download_timeout_;
 
+        struct Mem {
+            auto find(const ReadView& id) const noexcept -> BitcoinBlockFuture;
+
+            auto clear() noexcept -> void;
+            auto push(block::pHash&& id, BitcoinBlockFuture&& future) noexcept
+                -> void;
+
+            Mem(const std::size_t limit) noexcept;
+
+        private:
+            using Completed =
+                std::deque<std::pair<block::pHash, BitcoinBlockFuture>>;
+            using Index = boost::container::
+                flat_map<ReadView, Completed::const_reverse_iterator>;
+
+            const std::size_t limit_;
+            Completed queue_;
+            Index index_;
+        };
+
         const api::Core& api_;
         const api::client::Blockchain& blockchain_;
         const internal::Network& network_;
@@ -110,7 +132,7 @@ private:
         const blockchain::Type chain_;
         mutable std::mutex lock_;
         mutable Pending pending_;
-        mutable Completed completed_;
+        mutable Mem mem_;
         bool running_;
 
         auto download(const block::Hash& block) const noexcept -> bool;
