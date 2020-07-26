@@ -251,7 +251,9 @@ auto Secp256k1::SharedSecret(
                     context_,
                     static_cast<unsigned char*>(writer.data()),
                     &key,
-                    reinterpret_cast<const unsigned char*>(prv.data()));
+                    reinterpret_cast<const unsigned char*>(prv.data()),
+                    secp256k1_ecdh_hash_function_sha256,
+                    nullptr);
 }
 
 auto Secp256k1::Sign(
