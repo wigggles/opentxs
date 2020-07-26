@@ -11,7 +11,6 @@
 #include <iterator>
 #include <map>
 #include <memory>
-#include <type_traits>
 #include <vector>
 
 #include "internal/blockchain/block/bitcoin/Bitcoin.hpp"
@@ -45,7 +44,7 @@ BlockOracle::Cache::Cache(
     , chain_(chain)
     , lock_()
     , pending_()
-    , completed_()
+    , mem_(cache_limit_)
     , running_(true)
 {
 }
@@ -87,9 +86,9 @@ auto BlockOracle::Cache::ReceiveBlock(const zmq::Frame& in) const noexcept
 
     auto& [time, promise, future, queued] = pending->second;
     promise.set_value(std::move(pBlock));
-    completed_.emplace_back(id, std::move(future));
-    pending_.erase(pending);
     LogVerbose(OT_METHOD)(__FUNCTION__)(": Cached block ")(id.asHex()).Flush();
+    mem_.push(std::move(id), std::move(future));
+    pending_.erase(pending);
 }
 
 auto BlockOracle::Cache::Request(const block::Hash& block) const noexcept
@@ -111,23 +110,24 @@ auto BlockOracle::Cache::Request(const BlockHashes& hashes) const noexcept
     Lock lock{lock_};
 
     if (false == running_) {
-        for (auto i = std::size_t{0}; i < hashes.size(); ++i) {
+        std::for_each(hashes.begin(), hashes.end(), [&](const auto&) {
             auto promise = Promise{};
             promise.set_value(nullptr);
             output.emplace_back(promise.get_future());
-        }
+        });
 
         return output;
     }
 
     for (const auto& block : hashes) {
-        for (const auto& [hash, future] : completed_) {
-            if (block == hash) {
-                output.emplace_back(future);
+        auto found{false};
 
-                continue;
-            }
+        if (auto future = mem_.find(block->Bytes()); future.valid()) {
+            output.emplace_back(std::move(future));
+            found = true;
         }
+
+        if (found) { continue; }
 
         {
             auto it = pending_.find(block);
@@ -135,25 +135,29 @@ auto BlockOracle::Cache::Request(const BlockHashes& hashes) const noexcept
             if (pending_.end() != it) {
                 const auto& [time, promise, future, queued] = it->second;
                 output.emplace_back(future);
-
-                continue;
+                found = true;
             }
         }
+
+        if (found) { continue; }
 
         if (auto pBlock = db_.BlockLoadBitcoin(block); bool(pBlock)) {
             auto promise = Promise{};
             promise.set_value(std::move(pBlock));
-            output.emplace_back(
-                completed_.emplace_back(block, promise.get_future()).second);
-
-            continue;
+            mem_.push(OTData{block}, promise.get_future());
+            output.emplace_back(mem_.find(block->Bytes()));
+            found = true;
         }
+
+        if (found) { continue; }
 
         output.emplace_back();
         auto it = output.begin();
         std::advance(it, output.size() - 1);
         download.emplace(block, it);
     }
+
+    OT_ASSERT(output.size() == hashes.size());
 
     if (0 < download.size()) {
         auto blockList = std::vector<ReadView>{};
@@ -186,7 +190,7 @@ auto BlockOracle::Cache::Shutdown() noexcept -> void
 
     if (running_) {
         running_ = false;
-        completed_.clear();
+        mem_.clear();
 
         for (auto& [hash, item] : pending_) {
             auto& [time, promise, future, queued] = item;
@@ -202,8 +206,6 @@ auto BlockOracle::Cache::StateMachine() const noexcept -> bool
     Lock lock{lock_};
 
     if (false == running_) { return false; }
-
-    while (completed_.size() > cache_limit_) { completed_.pop_front(); }
 
     for (auto& [hash, item] : pending_) {
         auto& [time, promise, future, queued] = item;

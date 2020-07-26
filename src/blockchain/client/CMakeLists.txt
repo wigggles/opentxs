@@ -8,6 +8,7 @@ add_subdirectory(bitcoin)
 set(
   cxx-sources
   blockoracle/Cache.cpp
+  blockoracle/Mem.cpp
   filteroracle/BlockQueue.cpp
   filteroracle/FilterQueue.cpp
   filteroracle/HeaderQueue.cpp
