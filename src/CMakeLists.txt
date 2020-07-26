@@ -256,6 +256,10 @@ if(ANDROID)
                       IMPORTED_LOCATION_${BUILD_TYPE_SUFFIX})
   get_target_property(Boost_thread_LIBRARY Boost::thread
                       IMPORTED_LOCATION_${BUILD_TYPE_SUFFIX})
+  get_target_property(Protobuf_LITE_LIBRARY protobuf::libprotobuf-lite
+                      IMPORTED_LOCATION_${BUILD_TYPE_SUFFIX})
+  get_target_property(ZLIB_LIBRARY ZLIB::ZLIB
+                      IMPORTED_LOCATION_${BUILD_TYPE_SUFFIX})
 
   install(
     FILES
@@ -265,8 +269,8 @@ if(ANDROID)
       "${Boost_thread_LIBRARY}"
       "${SODIUM_LIBRARIES}"
       "${ZMQ_LIBRARIES}"
-      "${Protobuf_LITE_LIBRARIES}"
-      "${ZLIB_LIBRARIES}"
+      "${Protobuf_LITE_LIBRARY}"
+      "${ZLIB_LIBRARY}"
     DESTINATION ${CMAKE_INSTALL_LIBDIR}
     COMPONENT main
   )
