@@ -188,7 +188,7 @@ auto FilterOracle::check_blocks(
     const auto [start, best] = headers.CommonParent(current);
 
     if (start == best) {
-        LogVerbose(blockchain::internal::DisplayString(chain_))(
+        LogVerbose(DisplayString(chain_))(
             " filter chain is caught up to block header chain")
             .Flush();
         return;
@@ -210,8 +210,8 @@ auto FilterOracle::check_blocks(
     OT_ASSERT(startHeight <= stopHeight);
     OT_ASSERT(startHeight > 0);
 
-    LogVerbose("Requesting ")(blockchain::internal::DisplayString(chain_))(
-        " blocks from ")(startHeight)(" to ")(stopHeight)
+    LogVerbose("Requesting ")(DisplayString(chain_))(" blocks from ")(
+        startHeight)(" to ")(stopHeight)
         .Flush();
     const std::size_t limit = 1u + stopHeight - startHeight;
     auto counter{startHeight - 1};
@@ -230,7 +230,7 @@ void FilterOracle::check_filters(
     const auto [start, best] = headers.CommonParent(current);
 
     if (start == best) {
-        LogVerbose(blockchain::internal::DisplayString(chain_))(
+        LogVerbose(DisplayString(chain_))(
             " filter chain is caught up to block header chain")
             .Flush();
         return;
@@ -260,8 +260,8 @@ void FilterOracle::check_filters(
     OT_ASSERT(0 < stopHeight);
     OT_ASSERT(stopHeight >= begin);
 
-    LogVerbose("Requesting ")(blockchain::internal::DisplayString(chain_))(
-        " filters from ")(begin)(" to ")(stopHeight)
+    LogVerbose("Requesting ")(DisplayString(chain_))(" filters from ")(begin)(
+        " to ")(stopHeight)
         .Flush();
     const auto stopHash = headers.BestHash(stopHeight);
     outstanding_filters_.Queue(type, begin, stopHash, headers);
@@ -277,7 +277,7 @@ void FilterOracle::check_headers(
         headers.CommonParent(database_.FilterHeaderTip(type));
 
     if (start == best) {
-        LogVerbose(blockchain::internal::DisplayString(chain_))(
+        LogVerbose(DisplayString(chain_))(
             " filter header chain is caught up to block header chain")
             .Flush();
 
@@ -294,8 +294,8 @@ void FilterOracle::check_headers(
     OT_ASSERT(0 < stopHeight);
     OT_ASSERT(stopHeight >= begin);
 
-    LogVerbose("Requesting ")(blockchain::internal::DisplayString(chain_))(
-        " filter headers from ")(begin)(" to ")(stopHeight)
+    LogVerbose("Requesting ")(DisplayString(chain_))(" filter headers from ")(
+        begin)(" to ")(stopHeight)
         .Flush();
     header_requests_.Start(stopHash);
     network_.RequestFilterHeaders(type, begin, stopHash);
@@ -331,13 +331,13 @@ auto FilterOracle::compare_tips_to_checkpoint() noexcept -> void
     }
 
     if (changed) {
-        LogNormal(blockchain::internal::DisplayString(chain_))(
+        LogNormal(DisplayString(chain_))(
             " filter header chain did not match checkpoint. Resetting to last "
             "known good position")
             .Flush();
         reset_tips_to(default_type_, headerTip, checkPosition, changed);
     } else {
-        LogNormal(blockchain::internal::DisplayString(chain_))(
+        LogNormal(DisplayString(chain_))(
             " filter header chain matched checkpoint")
             .Flush();
     }
@@ -349,14 +349,14 @@ auto FilterOracle::compare_tips_to_header_chain() noexcept -> bool
     const auto [parent, best] = header_.CommonParent(current);
 
     if ((parent.first == current.first) && (parent.second == current.second)) {
-        LogNormal(blockchain::internal::DisplayString(chain_))(
+        LogNormal(DisplayString(chain_))(
             " filter header chain is following the best chain")
             .Flush();
 
         return false;
     }
 
-    LogNormal(blockchain::internal::DisplayString(chain_))(
+    LogNormal(DisplayString(chain_))(
         " filter header chain is following a sibling chain. Resetting to "
         "common ancestor at height ")(parent.first)
         .Flush();
@@ -381,8 +381,8 @@ auto FilterOracle::flush_filters() noexcept -> void
 
     database_.SetFilterTip(type, position);
     notify_new_filter(type, position);
-    LogNormal(blockchain::internal::DisplayString(chain_))(
-        " filter chain updated to height ")(position.first)
+    LogNormal(DisplayString(chain_))(" filter chain updated to height ")(
+        position.first)
         .Flush();
 }
 
@@ -584,7 +584,7 @@ auto FilterOracle::process_cfheader(const zmq::Message& in) noexcept -> void
                     api_.Factory().Data(ReadView{bytes.data(), bytes.size()});
 
                 if (expectedHeader == receivedHeader) {
-                    LogNormal(blockchain::internal::DisplayString(chain_))(
+                    LogNormal(DisplayString(chain_))(
                         " filter header at height ")(i)(
                         " verified against checkpoint")
                         .Flush();
@@ -592,7 +592,7 @@ auto FilterOracle::process_cfheader(const zmq::Message& in) noexcept -> void
                     std::advance(it, -1);
                     const auto rollback =
                         block::Position{it->first, header_.BestHash(it->first)};
-                    LogNormal(blockchain::internal::DisplayString(chain_))(
+                    LogNormal(DisplayString(chain_))(
                         " filter header at height ")(i)(
                         " does not match checkpoint. Resetting to previous "
                         "checkpoint at height ")(rollback.first)
@@ -613,7 +613,7 @@ auto FilterOracle::process_cfheader(const zmq::Message& in) noexcept -> void
 
     if (database_.StoreFilterHeaders(type, previousHeader, std::move(output))) {
         if (database_.SetFilterHeaderTip(type, header.Position())) {
-            LogNormal(blockchain::internal::DisplayString(chain_))(
+            LogNormal(DisplayString(chain_))(
                 " filter header chain updated to height ")(header.Height())
                 .Flush();
         } else {
@@ -692,9 +692,8 @@ auto FilterOracle::process_cfilter(const zmq::Message& in) noexcept -> bool
 
         return true;
     } else {
-        LogVerbose(blockchain::internal::DisplayString(chain_))(
-            " filter for block ")(header.Hash().asHex())(" at height ")(
-            header.Height())(" cached")
+        LogVerbose(DisplayString(chain_))(" filter for block ")(
+            header.Hash().asHex())(" at height ")(header.Height())(" cached")
             .Flush();
     }
 
@@ -739,7 +738,7 @@ auto FilterOracle::process_reorg(const block::Position& parent) noexcept -> void
             parent,
             resetHeaders,
             resetFilters);
-        LogNormal(blockchain::internal::DisplayString(chain_))(
+        LogNormal(DisplayString(chain_))(
             " filter chain tips reset to reorg parent ")(
             parent.second->asHex())(" at height ")(parent.first)
             .Flush();

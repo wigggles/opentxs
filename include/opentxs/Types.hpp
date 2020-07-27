@@ -30,6 +30,7 @@
 #define OPENTXS_ARG_BINDIP "bindip"
 #define OPENTXS_ARG_BLOCK_STORAGE_LEVEL "blockstoragelevel"
 #define OPENTXS_ARG_COMMANDPORT "commandport"
+#define OPENTXS_ARG_DISABLED_BLOCKCHAINS "disabledblockchain"
 #define OPENTXS_ARG_EEP "eep"
 #define OPENTXS_ARG_ENCRYPTED_DIRECTORY "encrypteddirectory"
 #define OPENTXS_ARG_EXTERNALIP "externalip"

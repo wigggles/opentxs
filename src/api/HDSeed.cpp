@@ -16,7 +16,6 @@
 
 #include "2_Factory.hpp"
 #include "internal/api/Api.hpp"
-#include "opentxs/Bytes.hpp"
 #include "opentxs/OT.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/api/Context.hpp"
@@ -40,7 +39,7 @@
 #include "opentxs/protobuf/HDPath.pb.h"
 #include "opentxs/protobuf/Seed.pb.h"
 #include "opentxs/protobuf/verify/Seed.hpp"
-#include "util/HDIndex.hpp"
+#include "util/HDIndex.hpp"  // IWYU pragma: keep
 
 #define OT_METHOD "opentxs::api::implementation::HDSeed::"
 

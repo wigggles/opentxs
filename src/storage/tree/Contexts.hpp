@@ -33,7 +33,7 @@ namespace storage
 {
 class Nym;
 
-class Contexts : public Node
+class Contexts final : public Node
 {
 private:
     friend Nym;

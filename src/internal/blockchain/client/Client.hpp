@@ -332,7 +332,7 @@ struct HeaderDatabase {
 struct IO {
     using tcp = boost::asio::ip::tcp;
 
-    operator boost::asio::io_context &() const noexcept { return context_; }
+    operator boost::asio::io_context&() const noexcept { return context_; }
 
     auto Connect(
         const Space& id,

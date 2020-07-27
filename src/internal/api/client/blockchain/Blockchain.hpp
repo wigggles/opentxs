@@ -156,6 +156,7 @@ enum Table {
     FilterHeadersOpentxs = 12,
     Config = 13,
     BlockIndex = 14,
+    Enabled = 15,
 };
 }  // namespace opentxs::api::client::blockchain
 #endif  // OT_BLOCKCHAIN

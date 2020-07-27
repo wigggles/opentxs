@@ -8,6 +8,7 @@
 #include <boost/endian/buffers.hpp>
 #include <array>
 #include <cstddef>
+#include <cstdint>
 #include <deque>
 #include <functional>
 #include <future>

@@ -167,6 +167,7 @@ struct Blockchain : virtual public api::client::Blockchain {
         const opentxs::blockchain::block::Height current,
         const opentxs::blockchain::block::Height target) const noexcept
         -> void = 0;
+    virtual auto RestoreNetworks() const noexcept -> void = 0;
     virtual auto ThreadPool() const noexcept
         -> const opentxs::blockchain::client::internal::ThreadPool& = 0;
     virtual auto UpdateBalance(

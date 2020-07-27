@@ -102,19 +102,21 @@ BloomFilter::BloomFilter(
     : BloomFilter(api, tweak, update, 0, Filter(std::size_t(64)))
 {
     const auto pre_calc_filter_size = static_cast<std::size_t>(
-        ((-1) / (std::pow(std::log(2), 2)) * targets * std::log(rate)));
+        static_cast<std::size_t>(
+            (-1) / std::pow(std::log(2), 2) * std::log(rate)) *
+        targets);
 
     const auto ideal_filter_bytesize = static_cast<std::size_t>(std::max(
         std::size_t(1),
         (std::min(pre_calc_filter_size, BloomFilter::max_filter_bytes_ * 8) /
          8)));
 
-    filter_.resize(ideal_filter_bytesize * 8);
+    filter_.resize(ideal_filter_bytesize * 8u);
 
     // Optimal number of hash functions for given filter size and element count
     const auto precalc_hash_function_count = static_cast<std::size_t>(
-        (ideal_filter_bytesize * 8) / static_cast<double>(targets) *
-        std::log(2));
+        (ideal_filter_bytesize * 8u) /
+        static_cast<std::size_t>(static_cast<double>(targets) * std::log(2)));
 
     function_count_ = static_cast<std::size_t>(std::max(
         std::size_t(1),

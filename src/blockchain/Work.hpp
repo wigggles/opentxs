@@ -23,7 +23,7 @@ namespace mp = boost::multiprecision;
 
 namespace opentxs::blockchain::implementation
 {
-class Work : virtual public blockchain::Work
+class Work final : public blockchain::Work
 {
 public:
     using Type = mp::cpp_bin_float_double;

@@ -14,7 +14,6 @@
 #include <vector>
 
 #include "2_Factory.hpp"
-#include "opentxs/Bytes.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Hash.hpp"

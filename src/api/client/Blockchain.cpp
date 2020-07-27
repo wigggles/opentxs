@@ -24,7 +24,6 @@
 #include "internal/api/client/Factory.hpp"
 #include "internal/api/client/blockchain/Blockchain.hpp"
 #if OT_BLOCKCHAIN
-#include "internal/blockchain/Blockchain.hpp"
 #include "internal/blockchain/block/bitcoin/Bitcoin.hpp"
 #include "internal/blockchain/client/Factory.hpp"
 #endif  // OT_BLOCKCHAIN
@@ -253,7 +252,7 @@ auto Blockchain::ActivityDescription(
         output << "Outgoing ";
     }
 
-    output << opentxs::blockchain::internal::DisplayString(chain);
+    output << opentxs::blockchain::DisplayString(chain);
     output << " transaction";
 
     if (false == memo.empty()) { output << ": " << memo; }
@@ -541,6 +540,42 @@ auto Blockchain::DecodeAddress(const std::string& encoded) const noexcept
 
     return output;
 }
+
+#if OT_BLOCKCHAIN
+auto Blockchain::Disable(const Chain type) const noexcept -> bool
+{
+    if (0 == opentxs::blockchain::SupportedChains().count(type)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Unsupported chain").Flush();
+
+        return false;
+    }
+
+    Lock lock(lock_);
+    stop(lock, type);
+
+    return db_.Disable(type);
+}
+
+auto Blockchain::Enable(const Chain type, const std::string& seednode)
+    const noexcept -> bool
+{
+    if (0 == opentxs::blockchain::SupportedChains().count(type)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Unsupported chain").Flush();
+
+        return false;
+    }
+
+    Lock lock(lock_);
+
+    if (false == db_.Enable(type)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Database error").Flush();
+
+        return false;
+    }
+
+    return start(lock, type, seednode);
+}
+#endif  // OT_BLOCKCHAIN
 
 auto Blockchain::EncodeAddress(
     const Style style,
@@ -974,16 +1009,29 @@ auto Blockchain::ReportProgress(
     sync_updates_->Send(work);
 }
 
+auto Blockchain::RestoreNetworks() const noexcept -> void
+{
+    for (const auto chain : db_.LoadEnabledChains()) { Start(chain, {}); }
+}
+
 auto Blockchain::Start(const Chain type, const std::string& seednode)
     const noexcept -> bool
+{
+    Lock lock(lock_);
+
+    return start(lock, type, seednode);
+}
+
+auto Blockchain::start(
+    const Lock& lock,
+    const Chain type,
+    const std::string& seednode) const noexcept -> bool
 {
     if (0 == opentxs::blockchain::SupportedChains().count(type)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Unsupported chain").Flush();
 
         return false;
     }
-
-    Lock lock(lock_);
 
     if (0 != networks_.count(type)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Chain already running").Flush();
@@ -1019,8 +1067,13 @@ auto Blockchain::Start(const Chain type, const std::string& seednode)
 
 auto Blockchain::Stop(const Chain type) const noexcept -> bool
 {
-    thread_pool_.Stop(type).get();
     Lock lock(lock_);
+
+    return stop(lock, type);
+}
+
+auto Blockchain::stop(const Lock& lock, const Chain type) const noexcept -> bool
+{
     auto it = networks_.find(type);
 
     if (networks_.end() == it) { return false; }
@@ -1028,6 +1081,7 @@ auto Blockchain::Stop(const Chain type) const noexcept -> bool
     OT_ASSERT(it->second);
 
     it->second->Shutdown();
+    thread_pool_.Stop(type).get();
 
     networks_.erase(it);
 

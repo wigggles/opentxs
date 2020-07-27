@@ -8,7 +8,6 @@
 #include "api/server/Wallet.hpp"  // IWYU pragma: associated
 
 #include <functional>
-#include <string>
 #include <utility>
 
 #include "2_Factory.hpp"

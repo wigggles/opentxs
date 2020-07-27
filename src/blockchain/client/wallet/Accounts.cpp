@@ -11,7 +11,6 @@
 #include <set>
 
 #include "internal/api/client/Client.hpp"
-#include "internal/blockchain/Blockchain.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
@@ -58,8 +57,7 @@ auto Wallet::Accounts::Add(const identifier::Nym& nym) noexcept -> bool
         task_finished_);
 
     if (added) {
-        LogNormal("Initializing ")(blockchain::internal::DisplayString(chain_))(
-            " wallet for ")(nym)
+        LogNormal("Initializing ")(DisplayString(chain_))(" wallet for ")(nym)
             .Flush();
     }
 
@@ -88,8 +86,7 @@ auto Wallet::Accounts::init(
     auto output = AccountMap{};
 
     for (const auto& nym : api.Wallet().LocalNyms()) {
-        LogNormal("Initializing ")(blockchain::internal::DisplayString(chain))(
-            " wallet for ")(nym)
+        LogNormal("Initializing ")(DisplayString(chain))(" wallet for ")(nym)
             .Flush();
         output.try_emplace(
             nym,

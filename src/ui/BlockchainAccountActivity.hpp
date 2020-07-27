@@ -23,6 +23,7 @@
 #include "opentxs/SharedPimpl.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/Version.hpp"
+#include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/identifier/Server.hpp"
@@ -105,7 +106,7 @@ public:
     }
     auto NotaryName() const noexcept -> std::string final
     {
-        return blockchain::internal::DisplayString(chain_);
+        return blockchain::DisplayString(chain_);
     }
     auto SyncPercentage() const noexcept -> double final
     {
