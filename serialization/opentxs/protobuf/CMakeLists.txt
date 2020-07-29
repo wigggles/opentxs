@@ -188,6 +188,7 @@ if(NOT MSVC)
       -Wno-switch-enum
       -Wno-undef
       -Wno-unused-macros
+      -Wno-extra-semi
   )
 endif()
 

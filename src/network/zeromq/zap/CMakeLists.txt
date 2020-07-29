@@ -28,11 +28,11 @@ set(
 )
 
 add_library(opentxs-network-zeromq-zap OBJECT ${cxx-sources} ${cxx-headers})
-target_include_directories(
-  opentxs-network-zeromq-zap SYSTEM
-  PRIVATE ${ZMQ_INCLUDE_DIRS}
+
+target_link_libraries(
+  opentxs-network-zeromq-zap
+  PRIVATE opentxs::messages "${OT_ZMQ_TARGET}"
 )
-target_link_libraries(opentxs-network-zeromq-zap PRIVATE opentxs::messages)
 set_property(
   TARGET opentxs-network-zeromq-zap
   PROPERTY POSITION_INDEPENDENT_CODE 1

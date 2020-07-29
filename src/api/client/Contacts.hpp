@@ -92,10 +92,10 @@ private:
     using ContactNameMap = std::map<OTIdentifier, std::string>;
 
     const api::client::internal::Manager& api_;
+    mutable std::recursive_mutex lock_{};
 #if OT_BLOCKCHAIN
     std::weak_ptr<const internal::Blockchain> blockchain_;
 #endif  // OT_BLOCKCHAIN
-    mutable std::recursive_mutex lock_{};
     mutable ContactMap contact_map_{};
     mutable ContactNameMap contact_name_map_;
     OTZMQPublishSocket publisher_;
@@ -121,10 +121,7 @@ private:
     void import_contacts(const rLock& lock);
 #if OT_BLOCKCHAIN
     auto init(const std::shared_ptr<const internal::Blockchain>& blockchain)
-        -> void final
-    {
-        blockchain_ = blockchain;
-    }
+        -> void final;
 #endif  // OT_BLOCKCHAIN
     void init_nym_map(const rLock& lock);
     auto load_contact(const rLock& lock, const Identifier& id) const

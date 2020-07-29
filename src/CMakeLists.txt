@@ -22,7 +22,11 @@ add_subdirectory(iterator)
 add_subdirectory(network)
 add_subdirectory(otx)
 add_subdirectory(protobuf)
-add_subdirectory(rpc)
+
+if(OT_ENABLE_RPC)
+  add_subdirectory(rpc)
+endif()
+
 add_subdirectory(server)
 add_subdirectory(storage)
 add_subdirectory(ui)
@@ -102,7 +106,6 @@ list(
     $<TARGET_OBJECTS:opentxs-otx-consensus>
     $<TARGET_OBJECTS:opentxs-otx>
     $<TARGET_OBJECTS:opentxs-recurring>
-    $<TARGET_OBJECTS:opentxs-rpc>
     $<TARGET_OBJECTS:opentxs-script>
     $<TARGET_OBJECTS:opentxs-server>
     $<TARGET_OBJECTS:opentxs-storage-drivers>
@@ -114,6 +117,10 @@ list(
     $<TARGET_OBJECTS:otprotob>
     $<TARGET_OBJECTS:proto-verify>
 )
+
+if(OT_ENABLE_RPC)
+  list(APPEND object-deps $<TARGET_OBJECTS:opentxs-rpc>)
+endif()
 
 set(cxx-sources ${CMAKE_CURRENT_SOURCE_DIR}/Bytes.cpp
                 ${CMAKE_CURRENT_SOURCE_DIR}/OT.cpp
@@ -155,6 +162,8 @@ target_link_libraries(
     Boost::system
     Boost::filesystem
     protobuf::libprotobuf-lite
+    "${OT_ZMQ_TARGET}"
+    unofficial-sodium::sodium
 )
 
 if(Boost_stacktrace_basic_FOUND)
@@ -163,14 +172,6 @@ endif()
 
 if(OT_BLOCKCHAIN_EXPORT)
   target_link_libraries(opentxs PRIVATE Boost::thread)
-endif()
-
-if(OT_USE_VCPKG_TARGETS)
-  target_link_libraries(opentxs PRIVATE unofficial-sodium::sodium)
-  target_link_libraries(opentxs PRIVATE libzmq libzmq-static)
-else()
-  target_link_libraries(opentxs PRIVATE ${SODIUM_LIBRARIES})
-  target_link_libraries(opentxs PRIVATE ${ZMQ_LIBRARIES})
 endif()
 
 if(CMAKE_DL_LIBS)
@@ -198,15 +199,19 @@ if(SQLITE_EXPORT)
 endif()
 
 if(LMDB_EXPORT)
-  target_link_libraries(opentxs PRIVATE ${LMDB_LIBRARIES})
+  target_link_libraries(opentxs PRIVATE lmdb)
 endif()
 
 if(OPENSSL_EXPORT)
   target_link_libraries(opentxs PRIVATE OpenSSL::Crypto OpenSSL::SSL)
+
+  if(WIN32 AND OT_STATIC_DEPENDENCIES)
+    target_link_libraries(opentxs PRIVATE CRYPT32.LIB)
+  endif()
 endif()
 
 if(LIBSECP256K1_EXPORT)
-  target_link_libraries(opentxs PRIVATE ${LIBSECP256K1_LIBRARY})
+  target_link_libraries(opentxs PRIVATE unofficial::secp256k1)
 endif()
 
 if(OT_WITH_QT)
@@ -246,38 +251,94 @@ install(
   COMPONENT main
 )
 
-if(ANDROID)
+if(OT_INSTALL_LIBRARY_DEPENDENCIES)
   string(TOUPPER "${CMAKE_BUILD_TYPE}" BUILD_TYPE_SUFFIX)
-  get_target_property(Boost_filesystem_LIBRARY Boost::filesystem
-                      IMPORTED_LOCATION_${BUILD_TYPE_SUFFIX})
-  get_target_property(Boost_stacktrace_basic_LIBRARY Boost::stacktrace_basic
-                      IMPORTED_LOCATION_${BUILD_TYPE_SUFFIX})
   get_target_property(Boost_system_LIBRARY Boost::system
                       IMPORTED_LOCATION_${BUILD_TYPE_SUFFIX})
-  get_target_property(Boost_thread_LIBRARY Boost::thread
+  get_target_property(Boost_filesystem_LIBRARY Boost::filesystem
                       IMPORTED_LOCATION_${BUILD_TYPE_SUFFIX})
   get_target_property(Protobuf_LITE_LIBRARY protobuf::libprotobuf-lite
                       IMPORTED_LOCATION_${BUILD_TYPE_SUFFIX})
   get_target_property(ZLIB_LIBRARY ZLIB::ZLIB
                       IMPORTED_LOCATION_${BUILD_TYPE_SUFFIX})
 
+  if(OT_USE_VCPKG_TARGETS)
+    get_target_property(ZMQ_LIBRARY_PATH "${OT_ZMQ_TARGET}"
+                        IMPORTED_LOCATION_${BUILD_TYPE_SUFFIX})
+  else()
+    set(ZMQ_LIBRARY_PATH "${ZMQ_LIBRARY}")
+  endif()
+
+  if(OPENTXS_BUILD_TESTS)
+    install(
+      FILES "${GTEST_LIBRARY}"
+      DESTINATION ${CMAKE_INSTALL_LIBDIR}
+      COMPONENT main
+    )
+  endif(OPENTXS_BUILD_TESTS)
+
   install(
     FILES
-      "${Boost_filesystem_LIBRARY}"
-      "${Boost_stacktrace_basic_LIBRARY}"
-      "${Boost_system_LIBRARY}"
-      "${Boost_thread_LIBRARY}"
-      "${SODIUM_LIBRARIES}"
-      "${ZMQ_LIBRARIES}"
+      "${SODIUM_LIBRARY}"
+      "${ZMQ_LIBRARY_PATH}"
       "${Protobuf_LITE_LIBRARY}"
       "${ZLIB_LIBRARY}"
+      "${Boost_system_LIBRARY}"
+      "${Boost_filesystem_LIBRARY}"
     DESTINATION ${CMAKE_INSTALL_LIBDIR}
     COMPONENT main
   )
 
+  if(Boost_stacktrace_basic_FOUND)
+    get_target_property(Boost_stacktrace_basic_LIBRARY Boost::stacktrace_basic
+                        IMPORTED_LOCATION_${BUILD_TYPE_SUFFIX})
+    install(
+      FILES "${Boost_stacktrace_basic_LIBRARY}"
+      DESTINATION ${CMAKE_INSTALL_LIBDIR}
+      COMPONENT main
+    )
+  endif()
+
+  if(OT_BLOCKCHAIN_EXPORT)
+    get_target_property(Boost_thread_LIBRARY Boost::thread
+                        IMPORTED_LOCATION_${BUILD_TYPE_SUFFIX})
+
+    install(
+      FILES "${Boost_thread_LIBRARY}"
+      DESTINATION ${CMAKE_INSTALL_LIBDIR}
+      COMPONENT main
+    )
+  endif(OT_BLOCKCHAIN_EXPORT)
+
+  if(OPENTXS_BLOCK_STORAGE_ENABLED OR FS_EXPORT)
+    get_target_property(Boost_iostreams_LIBRARY Boost::iostreams
+                        IMPORTED_LOCATION_${BUILD_TYPE_SUFFIX})
+
+    install(
+      FILES "${Boost_iostreams_LIBRARY}"
+      DESTINATION ${CMAKE_INSTALL_LIBDIR}
+      COMPONENT main
+    )
+  endif(OPENTXS_BLOCK_STORAGE_ENABLED OR FS_EXPORT)
+
+  if(OT_DHT)
+    message(WARNING "Installing OpenDHT dependencies not supported yet")
+  endif(OT_DHT)
+
+  if(SQLITE_EXPORT)
+    get_target_property(SQLITE3_LIBRARY SQLite::SQLite3
+                        IMPORTED_LOCATION_${BUILD_TYPE_SUFFIX})
+
+    install(
+      FILES "${SQLITE3_LIBRARY}"
+      DESTINATION ${CMAKE_INSTALL_LIBDIR}
+      COMPONENT main
+    )
+  endif(SQLITE_EXPORT)
+
   if(LMDB_EXPORT)
     install(
-      FILES "${LMDB_LIBRARIES}"
+      FILES "${LMDB_LIBRARY}"
       DESTINATION ${CMAKE_INSTALL_LIBDIR}
       COMPONENT main
     )
@@ -293,12 +354,12 @@ if(ANDROID)
 
   if(LIBSECP256K1_EXPORT)
     install(
-      FILES "${LIBSECP256K1_LIBRARY}"
+      FILES "${SECP256K1_LIBRARY}"
       DESTINATION ${CMAKE_INSTALL_LIBDIR}
       COMPONENT main
     )
   endif()
-endif()
+endif(OT_INSTALL_LIBRARY_DEPENDENCIES)
 
 install(
   FILES

@@ -57,11 +57,11 @@ set(
 )
 
 add_library(opentxs-network-zeromq-socket OBJECT ${cxx-sources} ${cxx-headers})
-target_include_directories(
-  opentxs-network-zeromq-socket SYSTEM
-  PRIVATE ${ZMQ_INCLUDE_DIRS}
+
+target_link_libraries(
+  opentxs-network-zeromq-socket
+  PRIVATE opentxs::messages "${OT_ZMQ_TARGET}"
 )
-target_link_libraries(opentxs-network-zeromq-socket PRIVATE opentxs::messages)
 set_property(
   TARGET opentxs-network-zeromq-socket
   PROPERTY POSITION_INDEPENDENT_CODE 1

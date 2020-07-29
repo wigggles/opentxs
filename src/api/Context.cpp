@@ -27,7 +27,9 @@ extern "C" {
 #include "internal/api/Api.hpp"
 #include "internal/api/client/Client.hpp"
 #include "internal/api/client/Factory.hpp"
+#if OT_RPC
 #include "internal/rpc/RPC.hpp"
+#endif  // OT_RPC
 #include "opentxs/OT.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/api/Context.hpp"
@@ -102,7 +104,9 @@ Context::Context(
     , pid_(nullptr)
     , server_()
     , client_()
+#if OT_RPC
     , rpc_(opentxs::Factory::RPC(*this))
+#endif  // OT_RPC
 {
     // NOTE: OT_ASSERT is not available until Init() has been called
     assert(legacy_);
@@ -113,7 +117,9 @@ Context::Context(
     }
 
     assert(nullptr != external_password_callback_);
+#if OT_RPC
     assert(rpc_);
+#endif  // OT_RPC
 }
 
 auto Context::client_instance(const int count) -> int
@@ -334,9 +340,13 @@ auto Context::merge_arglist(const ArgList& args) const -> const ArgList
 
 auto Context::RPC(const proto::RPCCommand& command) const -> proto::RPCResponse
 {
+#if OT_RPC  // OT_RPC
     OT_ASSERT(rpc_);
 
     return rpc_->Process(command);
+#else   // OT_RPC
+    return {};
+#endif  // OT_RPC
 }
 
 auto Context::server_instance(const int count) -> int

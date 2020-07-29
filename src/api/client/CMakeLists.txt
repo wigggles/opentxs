@@ -56,15 +56,13 @@ set(
 add_library(opentxs-api-client OBJECT ${cxx-sources} ${cxx-headers})
 
 if(OT_BLOCKCHAIN_EXPORT)
-  target_include_directories(
-    opentxs-api-client SYSTEM
-    PRIVATE ${LMDB_INCLUDE_DIR}
-  )
+  target_link_libraries(opentxs-api-client PRIVATE lmdb)
 endif()
 
 target_link_libraries(
   opentxs-api-client
-  PRIVATE Boost::headers opentxs::messages
+  PRIVATE
+    Boost::headers opentxs::messages opentxs-api-client-blockchain-database
 )
 target_include_directories(
   opentxs-api-client SYSTEM

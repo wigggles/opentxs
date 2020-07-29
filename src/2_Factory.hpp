@@ -567,7 +567,9 @@ public:
     static auto NymIDSource(
         const api::internal::Core& api,
         const proto::NymIDSource& serialized) -> identity::Source*;
+#if OT_CRYPTO_USING_OPENSSL
     static auto OpenSSL(const api::Crypto& crypto) -> crypto::OpenSSL*;
+#endif  // OT_CRYPTO_USING_OPENSSL
     OPENTXS_EXPORT static auto Operation(
         const api::client::internal::Manager& api,
         const identifier::Nym& nym,

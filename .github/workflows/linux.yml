@@ -1,0 +1,34 @@
+name: Linux
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        compiler: [gcc-10, clang-10]
+        include:
+          - compiler: gcc-10
+            platform: ubuntu-20.04
+            command: /usr/bin/build-opentxs-gcc
+            docker: 0
+          - compiler: clang-10
+            platform: ubuntu-20.04
+            command: /usr/bin/build-opentxs-clang
+            docker: 0
+    runs-on:  ${{ matrix.platform }}
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        submodules: 'recursive'
+    - name: Setup build environment
+      run: |
+        docker pull opentransactions/ci:${{ matrix.docker }}
+    - name: Compile
+      run: |
+        mkdir -p /tmp/opentxs
+        docker run --read-only --tmpfs /tmp/build:rw,nosuid,size=2g --mount type=bind,src=${{ github.workspace }},dst=/home/src --mount type=bind,src=/tmp/opentxs,dst=/home/output -i opentransactions/ci:${{ matrix.docker }} ${{ matrix.command }}
+#    - name: Run unit tests
+#      run: |
+#        mkdir -p /tmp/opentxs
+#        docker run --tmpfs /tmp/build:rw,nosuid,size=2g --mount type=bind,src=${{ github.workspace }},dst=/home/src --mount type=bind,src=/tmp/opentxs,dst=/home/output -i opentransactions/ci:${{ matrix.docker }} /usr/bin/test-opentxs 2

@@ -3,34 +3,21 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.15)
+cmake_policy(SET CMP0091 NEW)
 project(opentxs)
 list(APPEND CMAKE_MODULE_PATH "${${PROJECT_NAME}_SOURCE_DIR}/cmake")
 
-if(APPLE)
-  set(basePoint @loader_path)
-else()
-  set(basePoint $ORIGIN)
-endif()
-
-include(open-transactions-common)
-
-file(
-  RELATIVE_PATH
-  relDir
-  ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}
-  ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR}
-)
-
-set(CMAKE_INSTALL_RPATH ${basePoint} ${basePoint}/${relDir})
-
 # -----------------------------------------------------------------------------
 # Setup
+
+include(open-transactions-common)
 
 set_version_from_git()
 set_build_type()
 set_out_of_source_build()
 update_git_submodules()
+set_rpath()
 
 # -----------------------------------------------------------------------------
 # Set option defaults
@@ -48,12 +35,13 @@ if(WIN32)
   set(OT_USE_VCPKG_TARGETS_DEFAULT ON)
   set(OT_WITH_BLOCKCHAIN_DEFAULT OFF)
   set(OT_SCRIPT_USING_CHAI_DEFAULT OFF)
+  set(OT_ENABLE_RPC_DEFAULT OFF)
 else()
   set(OT_USE_VCPKG_TARGETS_DEFAULT OFF)
   set(OT_WITH_BLOCKCHAIN_DEFAULT ON)
   set(OT_SCRIPT_USING_CHAI_DEFAULT ON)
+  set(OT_ENABLE_RPC_DEFAULT ON)
 endif()
-
 # -----------------------------------------------------------------------------
 # Options
 
@@ -81,6 +69,19 @@ option(OT_WITH_JAVA "Build with Java binding" OFF)
 option(OT_OPENSSL_FLAVOR_LIBRESSL "Assume OpenSSL library is LibreSSL" OFF)
 option(OT_USE_VCPKG_TARGETS "Assume dependencies are managed by vcpkg"
        ${OT_USE_VCPKG_TARGETS_DEFAULT})
+option(OT_STATIC_DEPENDENCIES "Link against static version of dependencies"
+       ${OT_USE_VCPKG_TARGETS})
+
+if(ANDROID OR OT_USE_VCPKG_TARGETS)
+  set(OT_INSTALL_LIBRARY_DEPENDENCIES_DEFAULT ON)
+else()
+  set(OT_INSTALL_LIBRARY_DEPENDENCIES_DEFAULT OFF)
+endif()
+
+option(OT_INSTALL_LIBRARY_DEPENDENCIES
+       "Install dependent libraries along with libopentxs"
+       ${OT_INSTALL_LIBRARY_DEPENDENCIES_DEFAULT})
+option(OT_ENABLE_RPC "Build RPC server" ${OT_ENABLE_RPC_DEFAULT})
 
 # -----------------------------------------------------------------------------
 # Set compiler options
@@ -100,6 +101,11 @@ if(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
     CMAKE_CXX_FLAGS
     "${CMAKE_CXX_FLAGS} -Wno-comma -Wno-disabled-macro-expansion -Wno-documentation -Wno-documentation-unknown-command -Wno-extra-semi-stmt -Wno-implicit-int-conversion -Wno-redundant-parens -Wno-reserved-id-macro -Wno-shorten-64-to-32 -Wno-unused-template"
   )
+endif()
+
+# Protobuf generated code will generate this warning
+if(NOT MSVC)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=extra-semi")
 endif()
 
 # -----------------------------------------------------------------------------
@@ -145,6 +151,10 @@ message(STATUS "Java binding:           ${OT_WITH_JAVA}")
 # -----------------------------------------------------------------------------
 # Dependencies
 
+if(OT_STATIC_DEPENDENCIES)
+  set(Protobuf_USE_STATIC_LIBS ON)
+endif()
+
 find_system_libraries()
 
 if(OPENTXS_BUILD_TESTS)
@@ -152,6 +162,7 @@ if(OPENTXS_BUILD_TESTS)
   enable_testing()
 endif()
 
+find_package(unofficial-sodium REQUIRED)
 find_package(Protobuf REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(
@@ -159,6 +170,18 @@ find_package(
   COMPONENTS system filesystem
   OPTIONAL_COMPONENTS stacktrace_basic
 )
+
+if(OT_USE_VCPKG_TARGETS)
+  find_package(ZeroMQ REQUIRED)
+else()
+  find_package(unofficial-zeromq REQUIRED)
+endif()
+
+if(OT_STATIC_DEPENDENCIES)
+  set(OT_ZMQ_TARGET "libzmq-static")
+else()
+  set(OT_ZMQ_TARGET "libzmq")
+endif()
 
 if(OT_WITH_BLOCKCHAIN)
   if("${CMAKE_SIZEOF_VOID_P}" EQUAL "8")
@@ -174,23 +197,11 @@ if(OT_WITH_BLOCKCHAIN)
     set(OPENTXS_DEFAULT_BLOCK_STORAGE_POLICY 0)
   endif()
 
-  find_package(Boost REQUIRED thread OPTIONAL_COMPONENTS asio)
+  find_package(Boost REQUIRED thread)
 
   if(OPENTXS_BLOCK_STORAGE_ENABLED)
     find_package(Boost REQUIRED iostreams)
   endif()
-endif()
-
-if(OT_USE_VCPKG_TARGETS)
-  find_package(unofficial-sodium CONFIG REQUIRED)
-else()
-  find_package(Sodium REQUIRED)
-endif()
-
-if(OT_USE_VCPKG_TARGETS)
-  find_package(ZeroMQ CONFIG REQUIRED)
-else()
-  find_package(ZeroMQ 4 REQUIRED)
 endif()
 
 if(OT_DHT)
@@ -207,15 +218,23 @@ if(OT_STORAGE_SQLITE)
 endif()
 
 if(OT_STORAGE_LMDB)
-  find_package(LMDB REQUIRED)
+  find_package(lmdb REQUIRED)
 endif()
 
 if(OT_CRYPTO_USING_OPENSSL)
+  if(OT_STATIC_DEPENDENCIES)
+    set(OPENSSL_USE_STATIC_LIBS ON)
+  endif()
+
+  if(CMAKE_MSVC_RUNTIME_LIBRARY STREQUAL "MultiThreaded")
+    set(OPENSSL_MSVC_STATIC_RT ON)
+  endif()
+
   find_package(OpenSSL 1.0.1 REQUIRED)
 endif()
 
 if(OT_CRYPTO_USING_LIBSECP256K1)
-  find_package(Libsecp256k1 REQUIRED)
+  find_package(unofficial-secp256k1 REQUIRED)
 endif()
 
 if(OT_WITH_QT)
@@ -358,12 +377,6 @@ else()
   set(OT_BLOCKCHAIN_EXPORT 0)
 endif()
 
-if(OPENTXS_BLOCK_STORAGE_ENABLED)
-  add_definitions(-DOPENTXS_BLOCK_STORAGE_ENABLED=1)
-else()
-  add_definitions(-DOPENTXS_BLOCK_STORAGE_ENABLED=0)
-endif()
-
 if(OT_CASH_USING_LUCRE)
   if(NOT OT_CRYPTO_USING_OPENSSL)
     message(FATAL_ERROR "Lucre support requires OpenSSL")
@@ -374,12 +387,6 @@ if(OT_CASH_USING_LUCRE)
 else()
   set(CASH_LUCRE_EXPORT 0)
   set(OT_CASH_EXPORT 0)
-endif()
-
-if(OT_LUCRE_DEBUG)
-  add_definitions(-DOT_LUCRE_DEBUG=1)
-else()
-  add_definitions(-DOT_LUCRE_DEBUG=0)
 endif()
 
 if(FALSE)
@@ -406,6 +413,11 @@ if(OT_WITH_JAVA)
   set(OT_SWIG ON)
 else()
   set(OT_SWIG OFF)
+endif()
+
+if(WIN32)
+  add_definitions(-DWIN32_LEAN_AND_MEAN)
+  add_definitions(-D_WIN32_WINNT=0x0601)
 endif()
 
 # -----------------------------------------------------------------------------
