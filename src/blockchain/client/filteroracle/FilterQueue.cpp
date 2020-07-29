@@ -12,7 +12,6 @@
 #include <type_traits>
 
 #include "internal/blockchain/Blockchain.hpp"  // IWYU pragma: keep
-#include "opentxs/Bytes.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/blockchain/block/Header.hpp"
 #include "opentxs/blockchain/client/HeaderOracle.hpp"

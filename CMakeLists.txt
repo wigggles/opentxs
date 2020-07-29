@@ -174,7 +174,7 @@ if(OT_WITH_BLOCKCHAIN)
     set(OPENTXS_DEFAULT_BLOCK_STORAGE_POLICY 0)
   endif()
 
-  find_package(Boost REQUIRED thread)
+  find_package(Boost REQUIRED thread OPTIONAL_COMPONENTS asio)
 
   if(OPENTXS_BLOCK_STORAGE_ENABLED)
     find_package(Boost REQUIRED iostreams)

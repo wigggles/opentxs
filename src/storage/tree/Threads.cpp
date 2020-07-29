@@ -19,7 +19,6 @@
 #include <type_traits>
 #include <utility>
 
-#include "opentxs/Bytes.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/api/storage/Driver.hpp"
 #include "opentxs/core/Log.hpp"

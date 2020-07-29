@@ -396,7 +396,7 @@ auto FilterOracle::BlockQueue::write_buffer() noexcept -> void
         LogTrace(OT_METHOD)(__FUNCTION__)(": Flushing ")(count)(" blocks")
             .Flush();
         const auto position = flush(count);
-        LogNormal(blockchain::internal::DisplayString(chain_))(
+        LogNormal(DisplayString(chain_))(
             " filter chain and filter header chain updated to height ")(
             position.first)
             .Flush();

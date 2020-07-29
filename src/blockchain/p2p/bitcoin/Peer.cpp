@@ -380,8 +380,7 @@ auto Peer::process_cfheaders(
     auto& success = state_.verify_.second_action_;
     auto postcondition = ScopeGuard{[this, &success] {
         if (verifying() && (false == success)) {
-            LogNormal("Disconnecting ")(
-                blockchain::internal::DisplayString(chain_))(" peer ")(
+            LogNormal("Disconnecting ")(DisplayString(chain_))(" peer ")(
                 address_.Display())(" due to filter checkpoint failure.")
                 .Flush();
             disconnect();
@@ -435,9 +434,8 @@ auto Peer::process_cfheaders(
             return;
         }
 
-        LogNormal("Filter checkpoint validated for ")(
-            blockchain::internal::DisplayString(chain_))(" peer ")(
-            address_.Display())
+        LogNormal("Filter checkpoint validated for ")(DisplayString(chain_))(
+            " peer ")(address_.Display())
             .Flush();
         success = true;
         check_verify();
@@ -768,8 +766,7 @@ auto Peer::process_headers(
     auto& success = state_.verify_.first_action_;
     auto postcondition = ScopeGuard{[this, &success] {
         if (verifying() && (false == success)) {
-            LogNormal("Disconnecting ")(
-                blockchain::internal::DisplayString(chain_))(" peer ")(
+            LogNormal("Disconnecting ")(DisplayString(chain_))(" peer ")(
                 address_.Display())(" due to block checkpoint failure.")
                 .Flush();
             disconnect();
@@ -822,9 +819,8 @@ auto Peer::process_headers(
             return;
         }
 
-        LogNormal("Block checkpoint validated for ")(
-            blockchain::internal::DisplayString(chain_))(" peer ")(
-            address_.Display())
+        LogNormal("Block checkpoint validated for ")(DisplayString(chain_))(
+            " peer ")(address_.Display())
             .Flush();
         success = true;
         check_verify();
@@ -879,8 +875,8 @@ auto Peer::process_inv(
     for (const auto& inv : message) {
         if (false == running_.get()) { return; }
 
-        LogVerbose("Received ")(blockchain::internal::DisplayString(chain_))(
-            " ")(inv.DisplayType())(" (")(inv.hash_->asHex())(")")
+        LogVerbose("Received ")(DisplayString(chain_))(" ")(inv.DisplayType())(
+            " (")(inv.hash_->asHex())(")")
             .Flush();
         using Inventory = blockchain::bitcoin::Inventory;
 
@@ -974,17 +970,16 @@ auto Peer::process_message(const zmq::Message& message) noexcept -> void
     const auto command = header.Command();
 
     if (false == message::VerifyChecksum(api_, header, payloadBytes)) {
-        LogNormal("Invalid checksum on ")(blockchain::internal::DisplayString(
-            chain_))(" ")(CommandName(command))(" message")
+        LogNormal("Invalid checksum on ")(DisplayString(chain_))(" ")(
+            CommandName(command))(" message")
             .Flush();
         disconnect();
 
         return;
     }
 
-    LogVerbose(OT_METHOD)(__FUNCTION__)(": Received ")(
-        blockchain::internal::DisplayString(chain_))(" ")(CommandName(command))(
-        " command")
+    LogVerbose(OT_METHOD)(__FUNCTION__)(": Received ")(DisplayString(chain_))(
+        " ")(CommandName(command))(" command")
         .Flush();
 
     try {
@@ -1336,13 +1331,11 @@ auto Peer::request_checkpoint_block_header() noexcept -> void
     auto postcondition = ScopeGuard{[this, &success] {
         if (success) {
             LogVerbose("Requested checkpoint block header from ")(
-                blockchain::internal::DisplayString(chain_))(" peer ")(
-                address_.Display())(".")
+                DisplayString(chain_))(" peer ")(address_.Display())(".")
                 .Flush();
         } else {
             LogNormal("Failed to request checkpoint block header from ")(
-                blockchain::internal::DisplayString(chain_))(" peer ")(
-                address_.Display())(".")
+                DisplayString(chain_))(" peer ")(address_.Display())(".")
                 .Flush();
             disconnect();
         }
@@ -1380,13 +1373,11 @@ auto Peer::request_checkpoint_filter_header() noexcept -> void
     auto postcondition = ScopeGuard{[this, &success] {
         if (success) {
             LogVerbose("Requested checkpoint filter header from ")(
-                blockchain::internal::DisplayString(chain_))(" peer ")(
-                address_.Display())(".")
+                DisplayString(chain_))(" peer ")(address_.Display())(".")
                 .Flush();
         } else {
             LogNormal("Failed to request checkpoint filter header from ")(
-                blockchain::internal::DisplayString(chain_))(" peer ")(
-                address_.Display())(".")
+                DisplayString(chain_))(" peer ")(address_.Display())(".")
                 .Flush();
             disconnect();
         }

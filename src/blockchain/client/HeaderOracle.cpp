@@ -17,7 +17,6 @@
 #include <type_traits>
 
 #include "blockchain/client/UpdateTransaction.hpp"
-#include "internal/blockchain/Blockchain.hpp"
 #include "internal/blockchain/Params.hpp"
 #include "internal/blockchain/client/Factory.hpp"
 #include "internal/core/Core.hpp"
@@ -594,7 +593,7 @@ auto HeaderOracle::Init() noexcept -> void
 
     // Remove existing checkpoint if it is set
     if (existingHeight != null.first) {
-        LogNormal(blockchain::internal::DisplayString(chain_))(
+        LogNormal(DisplayString(chain_))(
             ": Removing obsolete checkpoint at height ")(existingHeight)
             .Flush();
         const auto deleted = DeleteCheckpoint();
@@ -602,9 +601,8 @@ auto HeaderOracle::Init() noexcept -> void
         OT_ASSERT(deleted);
     }
 
-    LogNormal(blockchain::internal::DisplayString(chain_))(
-        ": Updating checkpoint to hash ")(defaultBlockhash->asHex())(
-        " at height ")(defaultHeight)
+    LogNormal(DisplayString(chain_))(": Updating checkpoint to hash ")(
+        defaultBlockhash->asHex())(" at height ")(defaultHeight)
         .Flush();
 
     const auto added = AddCheckpoint(defaultHeight, defaultBlockhash);

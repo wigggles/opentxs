@@ -87,6 +87,7 @@ public:
     using PatternID = opentxs::blockchain::PatternID;
     using Txid = opentxs::blockchain::block::Txid;
     using pTxid = opentxs::blockchain::block::pTxid;
+    using Chain = opentxs::blockchain::Type;
 
     auto AddOrUpdate(Address_p address) const noexcept -> bool
     {
@@ -109,6 +110,8 @@ public:
     auto BlockPolicy() const noexcept -> BlockStorage { return block_policy_; }
     auto BlockStore(const BlockHash& block, const std::size_t bytes)
         const noexcept -> BlockWriter;
+    auto Disable(const Chain type) const noexcept -> bool;
+    auto Enable(const Chain type) const noexcept -> bool;
     auto Find(
         const Chain chain,
         const Protocol protocol,
@@ -137,6 +140,7 @@ public:
     {
         return headers_.LoadBlockHeader(hash);
     }
+    auto LoadEnabledChains() const noexcept -> std::vector<Chain>;
     auto LoadFilter(const FilterType type, const ReadView blockHash) const
         noexcept -> std::unique_ptr<const opentxs::blockchain::internal::GCS>
     {

@@ -48,6 +48,7 @@ const opentxs::storage::lmdb::TableNames Database::table_names_{
     {FilterHeadersOpentxs, "block_filter_headers_opentxs"},
     {Config, "config"},
     {BlockIndex, "blocks"},
+    {Enabled, "enabled_chains"},
 };
 
 Database::Database(
@@ -83,6 +84,7 @@ Database::Database(
               {FilterHeadersOpentxs, 0},
               {Config, MDB_INTEGERKEY},
               {BlockIndex, 0},
+              {Enabled, MDB_INTEGERKEY},
           })
     , block_policy_(block_storage_level(args, lmdb_))
     , siphash_key_(siphash_key(lmdb_))
@@ -220,6 +222,22 @@ auto Database::BlockStore(const BlockHash& block, const std::size_t bytes)
 #endif
 }
 
+auto Database::Disable(const Chain type) const noexcept -> bool
+{
+    static const auto data{false};
+    const auto key = std::size_t{static_cast<std::uint32_t>(type)};
+
+    return lmdb_.Store(Enabled, key, tsv(data)).first;
+}
+
+auto Database::Enable(const Chain type) const noexcept -> bool
+{
+    static const auto data{true};
+    const auto key = std::size_t{static_cast<std::uint32_t>(type)};
+
+    return lmdb_.Store(Enabled, key, tsv(data)).first;
+}
+
 auto Database::init_folder(
     const api::Legacy& legacy,
     const String& parent,
@@ -244,6 +262,30 @@ auto Database::init_storage_path(
 {
     return init_folder(
         legacy, String::Factory(dataFolder), String::Factory("blockchain"));
+}
+
+auto Database::LoadEnabledChains() const noexcept -> std::vector<Chain>
+{
+    auto output = std::vector<Chain>{};
+    const auto cb = [&](const auto key, const auto value) -> bool {
+        auto chain = Chain{};
+        auto enabled{false};
+        std::memcpy(
+            static_cast<void*>(&chain),
+            key.data(),
+            std::min(key.size(), sizeof(chain)));
+        std::memcpy(
+            static_cast<void*>(&enabled),
+            value.data(),
+            std::min(value.size(), sizeof(enabled)));
+
+        if (enabled) { output.emplace_back(chain); }
+
+        return true;
+    };
+    lmdb_.Read(Enabled, cb, opentxs::storage::lmdb::LMDB::Dir::Forward);
+
+    return output;
 }
 
 auto Database::siphash_key(opentxs::storage::lmdb::LMDB& db) noexcept

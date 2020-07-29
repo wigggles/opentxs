@@ -16,6 +16,7 @@
 #include "api/Core.hpp"
 #include "internal/api/client/Client.hpp"
 #include "opentxs/Types.hpp"
+#include "opentxs/Version.hpp"
 #include "opentxs/api/client/Activity.hpp"
 #include "opentxs/api/client/Blockchain.hpp"
 #include "opentxs/api/client/Contacts.hpp"
@@ -92,6 +93,9 @@ public:
     auto ZMQ() const -> const api::network::ZMQ& final;
 
     void StartActivity() final;
+#if OT_BLOCKCHAIN
+    auto StartBlockchain() noexcept -> void;
+#endif  // OT_BLOCKCHAIN
     void StartContacts() final;
 
     Manager(

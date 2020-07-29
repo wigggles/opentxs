@@ -10,7 +10,6 @@
 #include <functional>
 #include <map>
 #include <memory>
-#include <string>
 #include <tuple>
 
 #include "internal/api/client/Client.hpp"

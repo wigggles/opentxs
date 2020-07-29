@@ -9,6 +9,7 @@
 #pragma once
 
 #include <atomic>
+#include <cstdint>
 #include <future>
 #include <map>
 #include <memory>
@@ -191,6 +192,11 @@ public:
     }
     auto DecodeAddress(const std::string& encoded) const noexcept
         -> DecodedAddress final;
+#if OT_BLOCKCHAIN
+    auto Disable(const Chain type) const noexcept -> bool final;
+    auto Enable(const Chain type, const std::string& seednode) const noexcept
+        -> bool final;
+#endif  // OT_BLOCKCHAIN
     auto EncodeAddress(const Style style, const Chain chain, const Data& data)
         const noexcept -> std::string final;
 #if OT_BLOCKCHAIN
@@ -257,6 +263,7 @@ public:
         const opentxs::blockchain::block::Height current,
         const opentxs::blockchain::block::Height target) const noexcept
         -> void final;
+    auto RestoreNetworks() const noexcept -> void final;
     auto Start(const Chain type, const std::string& seednode) const noexcept
         -> bool final;
     auto Stop(const Chain type) const noexcept -> bool final;
@@ -529,6 +536,9 @@ private:
         const Lock& lock,
         const opentxs::blockchain::block::bitcoin::internal::Transaction& tx)
         const noexcept -> bool;
+    auto start(const Lock& lock, const Chain type, const std::string& seednode)
+        const noexcept -> bool;
+    auto stop(const Lock& lock, const Chain type) const noexcept -> bool;
 #endif  // OT_BLOCKCHAIN
     auto validate_nym(const identifier::Nym& nymID) const noexcept -> bool;
 

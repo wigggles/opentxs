@@ -172,7 +172,6 @@ auto Deserialize(const Type chain, const std::uint8_t type) noexcept
     -> filter::Type;
 auto Deserialize(const api::Core& api, const ReadView bytes) noexcept
     -> block::Position;
-auto DisplayString(const Type type) noexcept -> std::string;
 OPENTXS_EXPORT auto BlockHashToFilterKey(const ReadView hash) noexcept(false)
     -> ReadView;
 OPENTXS_EXPORT auto FilterHashToHeader(

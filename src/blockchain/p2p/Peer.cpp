@@ -77,7 +77,7 @@ Peer::Peer(
     , connection_id_()
     , shutdown_endpoint_(shutdown)
     , context_(context)
-    , socket_(context_.operator boost::asio::io_context &())
+    , socket_(context_.operator boost::asio::io_context&())
     , outgoing_message_(Data::Factory())
     , connection_id_promise_()
     , send_promises_()
@@ -148,8 +148,8 @@ auto Peer::check_handshake() noexcept -> void
 
     if (state.first_action_ && state.second_action_ &&
         (false == state.done())) {
-        LogNormal("Connected to ")(blockchain::internal::DisplayString(
-            address_.Chain()))(" peer at ")(address_.Display())
+        LogNormal("Connected to ")(DisplayString(address_.Chain()))(
+            " peer at ")(address_.Display())
             .Flush();
         LogNormal("Advertised services: ").Flush();
 
@@ -600,7 +600,7 @@ auto Peer::transmit(zmq::Message& message) noexcept -> void
             this->socket_, asio::buffer(payload.data(), payload.size()), cb);
     };
 
-    auto& asio = context_.operator boost::asio::io_context &();
+    auto& asio = context_.operator boost::asio::io_context&();
     asio.post(work);
     auto result = SendResult{};
 

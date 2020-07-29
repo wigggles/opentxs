@@ -18,7 +18,6 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/crypto/key/EllipticCurve.hpp"
-#include "opentxs/crypto/key/HD.hpp"
 #include "opentxs/protobuf/Enums.pb.h"
 #include "opentxs/protobuf/HDPath.pb.h"
 

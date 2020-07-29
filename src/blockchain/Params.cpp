@@ -7,7 +7,6 @@
 #include "1_Internal.hpp"                  // IWYU pragma: associated
 #include "internal/blockchain/Params.hpp"  // IWYU pragma: associated
 
-#include <memory>
 #include <set>
 #include <type_traits>
 

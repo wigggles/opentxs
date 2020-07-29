@@ -182,9 +182,8 @@ auto Network::init() noexcept -> void
         OT_ASSERT(best);
 
         const auto position = best->Position();
-        LogNormal(blockchain::internal::DisplayString(chain_))(
-            " chain initialized with best hash ")(position.second->asHex())(
-            " at height ")(position.first)
+        LogNormal(DisplayString(chain_))(" chain initialized with best hash ")(
+            position.second->asHex())(" at height ")(position.first)
             .Flush();
     }
 
@@ -284,8 +283,8 @@ auto Network::process_filter_update(network::zeromq::Message& in) noexcept
         const auto progress = (double(height) / double(target)) * double{100};
         auto display = std::stringstream{};
         display << std::setprecision(3) << progress << "%";
-        LogNormal(blockchain::internal::DisplayString(chain_))(
-            " chain sync progress: ")(display.str())
+        LogNormal(DisplayString(chain_))(" chain sync progress: ")(
+            display.str())
             .Flush();
     }
 
@@ -389,7 +388,7 @@ auto Network::SendToAddress(
 
     if (0 == chains.count(chain_)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Address ")(address)(
-            " not valid for ")(blockchain::internal::DisplayString(chain_))
+            " not valid for ")(DisplayString(chain_))
             .Flush();
 
         return {};
@@ -507,9 +506,8 @@ auto Network::UpdateLocalHeight(const block::Position position) const noexcept
     if (false == running_.get()) { return; }
 
     const auto& [height, hash] = position;
-    LogNormal(blockchain::internal::DisplayString(chain_))(
-        " block header chain updated to hash ")(hash->asHex())(" at height ")(
-        height)
+    LogNormal(DisplayString(chain_))(" block header chain updated to hash ")(
+        hash->asHex())(" at height ")(height)
         .Flush();
     local_chain_height_.store(height);
     trigger();

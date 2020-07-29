@@ -9,7 +9,6 @@
 
 #include <boost/endian/buffers.hpp>
 #include <algorithm>
-#include <cstddef>
 #include <cstring>
 #include <iosfwd>
 #include <iterator>

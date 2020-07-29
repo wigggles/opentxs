@@ -12,6 +12,7 @@
 #include <fstream>
 #include <iterator>
 #include <memory>
+#include <ratio>
 #include <string>
 #include <tuple>
 
@@ -91,8 +92,9 @@ auto VerifyBalanceReceipt(
 
     auto strFilename = String::Factory();
     strFilename->Format("%s.success", accountID.str().c_str());
-    const char* szFolder1name = api.Legacy().Receipt();   // receipts
-    const char* szFolder2name = NOTARY_ID.str().c_str();  // receipts/NOTARY_ID
+    const char* szFolder1name = api.Legacy().Receipt();  // receipts
+    const auto sNotaryID{NOTARY_ID.str()};
+    const char* szFolder2name = sNotaryID.c_str();  // receipts/NOTARY_ID
     const char* szFilename =
         strFilename->Get();  // receipts/NOTARY_ID/accountID.success
 

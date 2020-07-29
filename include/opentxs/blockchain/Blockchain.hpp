@@ -30,6 +30,7 @@ OPENTXS_EXPORT auto BlockHash(
     const Type chain,
     const ReadView input,
     const AllocateOutput output) noexcept -> bool;
+OPENTXS_EXPORT auto DisplayString(const Type type) noexcept -> std::string;
 OPENTXS_EXPORT auto FilterHash(
     const api::Core& api,
     const Type chain,
@@ -56,6 +57,7 @@ OPENTXS_EXPORT auto ScriptHash(
     const ReadView input,
     const AllocateOutput output) noexcept -> bool;
 OPENTXS_EXPORT auto SupportedChains() noexcept -> const std::set<Type>&;
+OPENTXS_EXPORT auto TickerSymbol(const Type type) noexcept -> std::string;
 OPENTXS_EXPORT auto TransactionHash(
     const api::Core& api,
     const Type chain,

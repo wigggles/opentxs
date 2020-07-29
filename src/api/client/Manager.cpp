@@ -242,6 +242,9 @@ void Manager::Init()
     StartContacts();
     StartActivity();
     pair_->init();
+#if OT_BLOCKCHAIN
+    StartBlockchain();
+#endif  // OT_BLOCKCHAIN
 }
 
 auto Manager::Lock(
@@ -289,6 +292,26 @@ void Manager::StartActivity()
 
     Scheduler::Start(storage_.get(), dht_.get());
 }
+
+#if OT_BLOCKCHAIN
+auto Manager::StartBlockchain() noexcept -> void
+{
+    try {
+        for (const auto& s : args_.at(OPENTXS_ARG_DISABLED_BLOCKCHAINS)) {
+            try {
+                const auto chain = static_cast<opentxs::blockchain::Type>(
+                    static_cast<std::uint32_t>(std::stoul(s)));
+                blockchain_->Disable(chain);
+            } catch (...) {
+                continue;
+            }
+        }
+    } catch (...) {
+    }
+
+    blockchain_->RestoreNetworks();
+}
+#endif  // OT_BLOCKCHAIN
 
 void Manager::StartContacts()
 {

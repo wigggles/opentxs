@@ -78,6 +78,8 @@ namespace socket
 {
 class Publish;
 }  // namespace socket
+
+class Message;
 }  // namespace zeromq
 }  // namespace network
 }  // namespace opentxs

@@ -38,6 +38,30 @@
 
 namespace mp = boost::multiprecision;
 
+namespace opentxs::blockchain
+{
+auto DisplayString(const Type type) noexcept -> std::string
+{
+    try {
+
+        return params::Data::chains_.at(type).display_string_;
+    } catch (...) {
+
+        return "Unknown";
+    }
+}
+auto TickerSymbol(const Type type) noexcept -> std::string
+{
+    try {
+
+        return params::Data::chains_.at(type).display_ticker_;
+    } catch (...) {
+
+        return "Unknown";
+    }
+}
+}  // namespace opentxs::blockchain
+
 namespace opentxs::blockchain::block
 {
 auto operator>(const Position& lhs, const Position& rhs) noexcept -> bool
@@ -282,17 +306,6 @@ SerializedBloomFilter::SerializedBloomFilter() noexcept
     , flags_()
 {
     static_assert(9 == sizeof(SerializedBloomFilter));
-}
-
-auto DisplayString(const Type type) noexcept -> std::string
-{
-    try {
-
-        return params::Data::chains_.at(type).display_string_;
-    } catch (...) {
-
-        return "Unknown";
-    }
 }
 
 auto BlockHashToFilterKey(const ReadView hash) noexcept(false) -> ReadView

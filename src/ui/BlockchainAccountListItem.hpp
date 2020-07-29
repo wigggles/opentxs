@@ -18,6 +18,7 @@
 #include "opentxs/SharedPimpl.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/Version.hpp"
+#include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/contract/ServerContract.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
@@ -89,7 +90,7 @@ public:
     auto NotaryID() const noexcept -> std::string final { return notary_; }
     auto NotaryName() const noexcept -> std::string final
     {
-        return blockchain::internal::DisplayString(chain_);
+        return blockchain::DisplayString(chain_);
     }
     auto reindex(const AccountListSortKey& key, CustomData& custom) noexcept
         -> void final
