@@ -58,10 +58,7 @@ target_link_libraries(
 )
 
 if(OT_BLOCKCHAIN_EXPORT)
-  target_include_directories(
-    opentxs-blockchain SYSTEM
-    PRIVATE ${LMDB_INCLUDE_DIR}
-  )
+  target_link_libraries(opentxs-blockchain PRIVATE lmdb)
 
   install(
     FILES ${cxx-install-headers}

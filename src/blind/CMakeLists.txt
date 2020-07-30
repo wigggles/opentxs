@@ -47,6 +47,13 @@ target_include_directories(
   opentxs-blind SYSTEM
   PRIVATE "${opentxs_SOURCE_DIR}/deps/lucre/include" "${OPENSSL_INCLUDE_DIR}"
 )
+
+if(OT_LUCRE_DEBUG)
+  target_compile_definitions(opentxs-blind PRIVATE OT_LUCRE_DEBUG=1)
+else()
+  target_compile_definitions(opentxs-blind PRIVATE OT_LUCRE_DEBUG=0)
+endif()
+
 set_property(TARGET opentxs-blind PROPERTY POSITION_INDEPENDENT_CODE 1)
 
 install(

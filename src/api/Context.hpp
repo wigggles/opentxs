@@ -129,7 +129,9 @@ private:
     mutable std::vector<std::unique_ptr<api::server::Manager>> server_;
     mutable std::vector<std::unique_ptr<api::client::internal::Manager>>
         client_;
+#if OT_RPC
     std::unique_ptr<rpc::internal::RPC> rpc_;
+#endif
 
     static auto client_instance(const int count) -> int;
     static auto server_instance(const int count) -> int;

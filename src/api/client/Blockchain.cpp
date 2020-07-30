@@ -1004,6 +1004,7 @@ auto Blockchain::ReportProgress(
     const opentxs::blockchain::block::Height target) const noexcept -> void
 {
     auto work = api_.ZeroMQ().TaggedMessage(WorkType::BlockchainSyncProgress);
+    work->AddFrame(chain);
     work->AddFrame(current);
     work->AddFrame(target);
     sync_updates_->Send(work);

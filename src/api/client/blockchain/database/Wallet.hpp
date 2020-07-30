@@ -76,6 +76,8 @@ public:
         const api::client::Blockchain& blockchain,
         opentxs::storage::lmdb::LMDB& lmdb) noexcept(false);
 
+    ~Wallet();
+
 private:
     using ContactToElement = std::map<OTIdentifier, std::set<OTData>>;
     using ElementToContact = std::map<OTData, std::set<OTIdentifier>>;

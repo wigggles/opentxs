@@ -269,4 +269,6 @@ auto Wallet::UpdateMergedContact(const Contact& parent, const Contact& child)
 
     return output;
 }
+
+Wallet::~Wallet() = default;
 }  // namespace opentxs::api::client::blockchain::database::implementation

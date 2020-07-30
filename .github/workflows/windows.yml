@@ -1,0 +1,42 @@
+name: Windows
+
+on: [push, pull_request]
+
+env:
+    VCPKG_COMMIT: 6185aa76504a5025f36754324abf307cc776f3da
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        platform: [windows-2019]
+        include:
+          - platform: 'windows-2019'
+            vcpkg_triplet: 'x64-windows-static'
+            cmake_extra: '-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded'
+    runs-on: ${{ matrix.platform }}
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        submodules: 'recursive'
+    - name: Cache vcpkg artifacts
+      uses: actions/cache@v1
+      with:
+        path: ${{ runner.temp }}/vcpkg
+        key: ${{ env.VCPKG_COMMIT }}-${{ hashFiles('vcpkg/vcpkg.txt') }}-${{ matrix.vcpkg_triplet }}-0
+    - name: Run vcpkg
+      uses: lukka/run-vcpkg@v1
+      with:
+        vcpkgArguments: '--triplet ${{ matrix.vcpkg_triplet }} --overlay-ports=${{ github.workspace }}/vcpkg/ports @${{ github.workspace }}/vcpkg/vcpkg.txt'
+        vcpkgDirectory: '${{ runner.temp }}/vcpkg'
+        vcpkgGitCommitId: '${{ env.VCPKG_COMMIT }}'
+    - name: 'Compile'
+      uses: lukka/run-cmake@v1
+      with:
+        cmakeListsOrSettingsJson: CMakeListsTxtAdvanced
+        cmakeListsTxtPath: '${{ github.workspace }}/CMakeLists.txt'
+        useVcpkgToolchainFile: true
+        vcpkgTriplet: '${{ matrix.vcpkg_triplet }}'
+        buildDirectory: '${{ github.workspace }}/build'
+        cmakeAppendedArgs: '-GNinja -DCMAKE_BUILD_TYPE=Release -DOPENTXS_BUILD_TESTS=ON ${{ matrix.cmake_extra }}'
+        buildWithCMake: true

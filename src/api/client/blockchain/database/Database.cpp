@@ -15,11 +15,17 @@ extern "C" {
 #include <cstring>
 #include <stdexcept>
 #include <type_traits>
+#include <utility>
 
+#include "api/client/blockchain/database/BlockFilter.hpp"
+#include "api/client/blockchain/database/BlockHeaders.hpp"
 #include "api/client/blockchain/database/Blocks.hpp"
+#include "api/client/blockchain/database/Peers.hpp"
+#include "api/client/blockchain/database/Wallet.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/protobuf/BlockchainBlockHeader.pb.h"
 
 // #define OT_METHOD
 // "opentxs::api::client::blockchain::database::implementation::Database::"
@@ -88,24 +94,49 @@ Database::Database(
           })
     , block_policy_(block_storage_level(args, lmdb_))
     , siphash_key_(siphash_key(lmdb_))
-    , headers_(api_, lmdb_)
-    , peers_(api_, lmdb_)
-    , filters_(api_, lmdb_)
+    , headers_(std::make_unique<BlockHeader>(api_, lmdb_))
+    , peers_(std::make_unique<Peers>(api_, lmdb_))
+    , filters_(std::make_unique<BlockFilter>(api_, lmdb_))
 #if OPENTXS_BLOCK_STORAGE_ENABLED
-    , blocks_(lmdb_, blocks_path_->Get())
+    , blocks_(std::make_unique<Blocks>(lmdb_, blocks_path_->Get()))
 #endif  // OPENTXS_BLOCK_STORAGE_ENABLED
-    , wallet_(blockchain, lmdb_)
+    , wallet_(std::make_unique<Wallet>(blockchain, lmdb_))
 {
     OT_ASSERT(crypto_shorthash_KEYBYTES == siphash_key_.size());
 
     static_assert(
         sizeof(opentxs::blockchain::PatternID) == crypto_shorthash_BYTES);
+
+    OT_ASSERT(headers_)
+    OT_ASSERT(peers_)
+    OT_ASSERT(filters_)
+#if OPENTXS_BLOCK_STORAGE_ENABLED
+    OT_ASSERT(blocks_)
+#endif  // OPENTXS_BLOCK_STORAGE_ENABLED
+    OT_ASSERT(wallet_)
+}
+
+auto Database::AddOrUpdate(Address_p address) const noexcept -> bool
+{
+    return peers_->Insert(std::move(address));
 }
 
 auto Database::AllocateStorageFolder(const std::string& dir) const noexcept
     -> std::string
 {
     return init_folder(legacy_, blockchain_path_, String::Factory(dir))->Get();
+}
+
+auto Database::AssociateTransaction(
+    const Txid& txid,
+    const std::vector<PatternID>& patterns) const noexcept -> bool
+{
+    return wallet_->AssociateTransaction(txid, patterns);
+}
+
+auto Database::BlockHeaderExists(const BlockHash& hash) const noexcept -> bool
+{
+    return headers_->BlockHeaderExists(hash);
 }
 
 auto Database::block_storage_enabled() noexcept -> bool
@@ -197,7 +228,7 @@ auto Database::block_storage_level_default() noexcept -> BlockStorage
 auto Database::BlockExists(const BlockHash& block) const noexcept -> bool
 {
 #if OPENTXS_BLOCK_STORAGE_ENABLED
-    return blocks_.Exists(block);
+    return blocks_->Exists(block);
 #else
     return false;
 #endif
@@ -206,7 +237,7 @@ auto Database::BlockExists(const BlockHash& block) const noexcept -> bool
 auto Database::BlockLoad(const BlockHash& block) const noexcept -> BlockReader
 {
 #if OPENTXS_BLOCK_STORAGE_ENABLED
-    return blocks_.Load(block);
+    return blocks_->Load(block);
 #else
     return BlockReader{};
 #endif
@@ -216,7 +247,7 @@ auto Database::BlockStore(const BlockHash& block, const std::size_t bytes)
     const noexcept -> BlockWriter
 {
 #if OPENTXS_BLOCK_STORAGE_ENABLED
-    return blocks_.Store(block, bytes);
+    return blocks_->Store(block, bytes);
 #else
     return {};
 #endif
@@ -236,6 +267,32 @@ auto Database::Enable(const Chain type) const noexcept -> bool
     const auto key = std::size_t{static_cast<std::uint32_t>(type)};
 
     return lmdb_.Store(Enabled, key, tsv(data)).first;
+}
+
+auto Database::Find(
+    const Chain chain,
+    const Protocol protocol,
+    const std::set<Type> onNetworks,
+    const std::set<Service> withServices) const noexcept -> Address_p
+{
+    return peers_->Find(chain, protocol, onNetworks, withServices);
+}
+
+auto Database::HaveFilter(const FilterType type, const ReadView blockHash)
+    const noexcept -> bool
+{
+    return filters_->HaveFilter(type, blockHash);
+}
+
+auto Database::HaveFilterHeader(const FilterType type, const ReadView blockHash)
+    const noexcept -> bool
+{
+    return filters_->HaveFilterHeader(type, blockHash);
+}
+
+auto Database::Import(std::vector<Address_p> peers) const noexcept -> bool
+{
+    return peers_->Import(std::move(peers));
 }
 
 auto Database::init_folder(
@@ -262,6 +319,52 @@ auto Database::init_storage_path(
 {
     return init_folder(
         legacy, String::Factory(dataFolder), String::Factory("blockchain"));
+}
+
+auto Database::LoadBlockHeader(const BlockHash& hash) const noexcept(false)
+    -> proto::BlockchainBlockHeader
+{
+    return headers_->LoadBlockHeader(hash);
+}
+
+auto Database::LoadFilter(const FilterType type, const ReadView blockHash)
+    const noexcept -> std::unique_ptr<const opentxs::blockchain::internal::GCS>
+{
+    return filters_->LoadFilter(type, blockHash);
+}
+
+auto Database::LoadFilterHash(
+    const FilterType type,
+    const ReadView blockHash,
+    const AllocateOutput filterHash) const noexcept -> bool
+{
+    return filters_->LoadFilterHash(type, blockHash, filterHash);
+}
+
+auto Database::LoadFilterHeader(
+    const FilterType type,
+    const ReadView blockHash,
+    const AllocateOutput header) const noexcept -> bool
+{
+    return filters_->LoadFilterHeader(type, blockHash, header);
+}
+
+auto Database::LoadTransaction(const ReadView txid) const noexcept
+    -> std::optional<proto::BlockchainTransaction>
+{
+    return wallet_->LoadTransaction(txid);
+}
+
+auto Database::LookupContact(const Data& pubkeyHash) const noexcept
+    -> std::set<OTIdentifier>
+{
+    return wallet_->LookupContact(pubkeyHash);
+}
+
+auto Database::LookupTransactions(const PatternID pattern) const noexcept
+    -> std::vector<pTxid>
+{
+    return wallet_->LookupTransactions(pattern);
 }
 
 auto Database::LoadEnabledChains() const noexcept -> std::vector<Chain>
@@ -324,4 +427,58 @@ auto Database::siphash_key_configured(opentxs::storage::lmdb::LMDB& db) noexcept
 
     return std::move(output);
 }
+
+auto Database::StoreBlockHeader(
+    const opentxs::blockchain::block::Header& header) const noexcept -> bool
+{
+    return headers_->StoreBlockHeader(header);
+}
+
+auto Database::StoreBlockHeaders(const UpdatedHeader& headers) const noexcept
+    -> bool
+{
+    return headers_->StoreBlockHeaders(headers);
+}
+
+auto Database::StoreFilterHeaders(
+    const FilterType type,
+    const std::vector<FilterHeader>& headers) const noexcept -> bool
+{
+    return filters_->StoreFilterHeaders(type, headers);
+}
+
+auto Database::StoreFilters(
+    const FilterType type,
+    std::vector<FilterData>& filters) const noexcept -> bool
+{
+    return filters_->StoreFilters(type, filters);
+}
+
+auto Database::StoreFilters(
+    const FilterType type,
+    const std::vector<FilterHeader>& headers,
+    const std::vector<FilterData>& filters) const noexcept -> bool
+{
+    return filters_->StoreFilters(type, headers, filters);
+}
+
+auto Database::StoreTransaction(
+    const proto::BlockchainTransaction& tx) const noexcept -> bool
+{
+    return wallet_->StoreTransaction(tx);
+}
+
+auto Database::UpdateContact(const Contact& contact) const noexcept
+    -> std::vector<pTxid>
+{
+    return wallet_->UpdateContact(contact);
+}
+
+auto Database::UpdateMergedContact(const Contact& parent, const Contact& child)
+    const noexcept -> std::vector<pTxid>
+{
+    return wallet_->UpdateMergedContact(parent, child);
+}
+
+Database::~Database() = default;
 }  // namespace opentxs::api::client::blockchain::database::implementation

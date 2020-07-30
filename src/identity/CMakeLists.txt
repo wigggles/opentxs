@@ -18,9 +18,12 @@ set(cxx-headers ${cxx-install-headers} "Authority.hpp" "Nym.hpp")
 add_library(opentxs-identity OBJECT ${cxx-sources} ${cxx-headers})
 target_include_directories(
   opentxs-identity SYSTEM
-  PRIVATE "${opentxs_SOURCE_DIR}/deps/" "${sodium_INCLUDE_DIR}"
+  PRIVATE "${opentxs_SOURCE_DIR}/deps/"
 )
-target_link_libraries(opentxs-identity PRIVATE opentxs::messages)
+target_link_libraries(
+  opentxs-identity
+  PRIVATE opentxs::messages unofficial-sodium::sodium
+)
 set_property(TARGET opentxs-identity PROPERTY POSITION_INDEPENDENT_CODE 1)
 
 install(

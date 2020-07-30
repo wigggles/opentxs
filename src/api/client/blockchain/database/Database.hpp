@@ -14,14 +14,10 @@
 #include <utility>
 #include <vector>
 
-#include "api/client/blockchain/database/BlockFilter.hpp"
-#include "api/client/blockchain/database/BlockHeaders.hpp"
-#include "api/client/blockchain/database/Blocks.hpp"
-#include "api/client/blockchain/database/Peers.hpp"
-#include "api/client/blockchain/database/Wallet.hpp"
 #include "internal/api/client/blockchain/Blockchain.hpp"
 #include "internal/blockchain/Blockchain.hpp"
 #include "internal/blockchain/client/Client.hpp"
+#include "internal/blockchain/p2p/P2P.hpp"
 #include "opentxs/Bytes.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
@@ -30,6 +26,7 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/protobuf/BlockchainBlockHeader.pb.h"
+#include "opentxs/protobuf/BlockchainTransaction.pb.h"
 #include "util/LMDB.hpp"
 
 namespace opentxs
@@ -38,6 +35,21 @@ namespace api
 {
 namespace client
 {
+namespace blockchain
+{
+namespace database
+{
+namespace implementation
+{
+class BlockFilter;
+class BlockHeader;
+class Blocks;
+class Peers;
+class Wallet;
+}  // namespace implementation
+}  // namespace database
+}  // namespace blockchain
+
 class Blockchain;
 }  // namespace client
 
@@ -89,22 +101,13 @@ public:
     using pTxid = opentxs::blockchain::block::pTxid;
     using Chain = opentxs::blockchain::Type;
 
-    auto AddOrUpdate(Address_p address) const noexcept -> bool
-    {
-        return peers_.Insert(std::move(address));
-    }
+    auto AddOrUpdate(Address_p address) const noexcept -> bool;
     auto AllocateStorageFolder(const std::string& dir) const noexcept
         -> std::string;
     auto AssociateTransaction(
         const Txid& txid,
-        const std::vector<PatternID>& patterns) const noexcept -> bool
-    {
-        return wallet_.AssociateTransaction(txid, patterns);
-    }
-    auto BlockHeaderExists(const BlockHash& hash) const noexcept -> bool
-    {
-        return headers_.BlockHeaderExists(hash);
-    }
+        const std::vector<PatternID>& patterns) const noexcept -> bool;
+    auto BlockHeaderExists(const BlockHash& hash) const noexcept -> bool;
     auto BlockExists(const BlockHash& block) const noexcept -> bool;
     auto BlockLoad(const BlockHash& block) const noexcept -> BlockReader;
     auto BlockPolicy() const noexcept -> BlockStorage { return block_policy_; }
@@ -116,107 +119,50 @@ public:
         const Chain chain,
         const Protocol protocol,
         const std::set<Type> onNetworks,
-        const std::set<Service> withServices) const noexcept -> Address_p
-    {
-        return peers_.Find(chain, protocol, onNetworks, withServices);
-    }
+        const std::set<Service> withServices) const noexcept -> Address_p;
     auto HashKey() const noexcept { return reader(siphash_key_); }
     auto HaveFilter(const FilterType type, const ReadView blockHash)
-        const noexcept -> bool
-    {
-        return filters_.HaveFilter(type, blockHash);
-    }
+        const noexcept -> bool;
     auto HaveFilterHeader(const FilterType type, const ReadView blockHash)
-        const noexcept -> bool
-    {
-        return filters_.HaveFilterHeader(type, blockHash);
-    }
-    auto Import(std::vector<Address_p> peers) const noexcept -> bool
-    {
-        return peers_.Import(std::move(peers));
-    }
+        const noexcept -> bool;
+    auto Import(std::vector<Address_p> peers) const noexcept -> bool;
     auto LoadBlockHeader(const BlockHash& hash) const noexcept(false)
-        -> proto::BlockchainBlockHeader
-    {
-        return headers_.LoadBlockHeader(hash);
-    }
+        -> proto::BlockchainBlockHeader;
     auto LoadEnabledChains() const noexcept -> std::vector<Chain>;
     auto LoadFilter(const FilterType type, const ReadView blockHash) const
-        noexcept -> std::unique_ptr<const opentxs::blockchain::internal::GCS>
-    {
-        return filters_.LoadFilter(type, blockHash);
-    }
+        noexcept -> std::unique_ptr<const opentxs::blockchain::internal::GCS>;
     auto LoadFilterHash(
         const FilterType type,
         const ReadView blockHash,
-        const AllocateOutput filterHash) const noexcept -> bool
-    {
-        return filters_.LoadFilterHash(type, blockHash, filterHash);
-    }
+        const AllocateOutput filterHash) const noexcept -> bool;
     auto LoadFilterHeader(
         const FilterType type,
         const ReadView blockHash,
-        const AllocateOutput header) const noexcept -> bool
-    {
-        return filters_.LoadFilterHeader(type, blockHash, header);
-    }
+        const AllocateOutput header) const noexcept -> bool;
     auto LoadTransaction(const ReadView txid) const noexcept
-        -> std::optional<proto::BlockchainTransaction>
-    {
-        return wallet_.LoadTransaction(txid);
-    }
+        -> std::optional<proto::BlockchainTransaction>;
     auto LookupContact(const Data& pubkeyHash) const noexcept
-        -> std::set<OTIdentifier>
-    {
-        return wallet_.LookupContact(pubkeyHash);
-    }
+        -> std::set<OTIdentifier>;
     auto LookupTransactions(const PatternID pattern) const noexcept
-        -> std::vector<pTxid>
-    {
-        return wallet_.LookupTransactions(pattern);
-    }
-    auto StoreBlockHeader(
-        const opentxs::blockchain::block::Header& header) const noexcept -> bool
-    {
-        return headers_.StoreBlockHeader(header);
-    }
-    auto StoreBlockHeaders(const UpdatedHeader& headers) const noexcept -> bool
-    {
-        return headers_.StoreBlockHeaders(headers);
-    }
+        -> std::vector<pTxid>;
+    auto StoreBlockHeader(const opentxs::blockchain::block::Header& header)
+        const noexcept -> bool;
+    auto StoreBlockHeaders(const UpdatedHeader& headers) const noexcept -> bool;
     auto StoreFilterHeaders(
         const FilterType type,
-        const std::vector<FilterHeader>& headers) const noexcept -> bool
-    {
-        return filters_.StoreFilterHeaders(type, headers);
-    }
+        const std::vector<FilterHeader>& headers) const noexcept -> bool;
     auto StoreFilters(const FilterType type, std::vector<FilterData>& filters)
-        const noexcept -> bool
-    {
-        return filters_.StoreFilters(type, filters);
-    }
+        const noexcept -> bool;
     auto StoreFilters(
         const FilterType type,
         const std::vector<FilterHeader>& headers,
-        const std::vector<FilterData>& filters) const noexcept -> bool
-    {
-        return filters_.StoreFilters(type, headers, filters);
-    }
+        const std::vector<FilterData>& filters) const noexcept -> bool;
     auto StoreTransaction(const proto::BlockchainTransaction& tx) const noexcept
-        -> bool
-    {
-        return wallet_.StoreTransaction(tx);
-    }
+        -> bool;
     auto UpdateContact(const Contact& contact) const noexcept
-        -> std::vector<pTxid>
-    {
-        return wallet_.UpdateContact(contact);
-    }
+        -> std::vector<pTxid>;
     auto UpdateMergedContact(const Contact& parent, const Contact& child)
-        const noexcept -> std::vector<pTxid>
-    {
-        return wallet_.UpdateMergedContact(parent, child);
-    }
+        const noexcept -> std::vector<pTxid>;
 
     Database(
         const api::Core& api,
@@ -224,6 +170,8 @@ public:
         const api::Legacy& legacy,
         const std::string& dataFolder,
         const ArgList& args) noexcept(false);
+
+    ~Database();
 
 private:
     using SiphashKey = Space;
@@ -240,13 +188,13 @@ private:
     opentxs::storage::lmdb::LMDB lmdb_;
     const BlockStorage block_policy_;
     const SiphashKey siphash_key_;
-    mutable BlockHeader headers_;
-    mutable Peers peers_;
-    mutable BlockFilter filters_;
+    const std::unique_ptr<BlockHeader> headers_;
+    const std::unique_ptr<Peers> peers_;
+    const std::unique_ptr<BlockFilter> filters_;
 #if OPENTXS_BLOCK_STORAGE_ENABLED
-    mutable Blocks blocks_;
+    const std::unique_ptr<Blocks> blocks_;
 #endif  // OPENTXS_BLOCK_STORAGE_ENABLED
-    mutable Wallet wallet_;
+    const std::unique_ptr<Wallet> wallet_;
 
     static auto block_storage_enabled() noexcept -> bool;
     static auto block_storage_level(

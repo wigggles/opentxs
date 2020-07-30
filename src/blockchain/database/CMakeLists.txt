@@ -25,12 +25,13 @@ set(
 add_library(opentxs-blockchain-database OBJECT ${cxx-sources} ${cxx-headers})
 target_link_libraries(
   opentxs-blockchain-database
-  PRIVATE Boost::headers opentxs::messages
+  PRIVATE
+    Boost::headers
+    opentxs::messages
+    lmdb
+    opentxs-api-client-blockchain-database
 )
-target_include_directories(
-  opentxs-blockchain-database SYSTEM
-  PRIVATE ${LMDB_INCLUDE_DIR}
-)
+
 set_property(
   TARGET opentxs-blockchain-database
   PROPERTY POSITION_INDEPENDENT_CODE 1

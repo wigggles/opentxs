@@ -24,13 +24,9 @@ set(
 
 add_library(opentxs-api-client-blockchain-database OBJECT ${cxx-sources}
                                                           ${cxx-headers})
-target_include_directories(
-  opentxs-api-client-blockchain-database SYSTEM
-  PRIVATE "${LMDB_INCLUDE_DIR}" "${sodium_INCLUDE_DIR}"
-)
 target_link_libraries(
   opentxs-api-client-blockchain-database
-  PRIVATE opentxs::messages
+  PRIVATE opentxs::messages unofficial-sodium::sodium lmdb
 )
 
 if(OPENTXS_BLOCK_STORAGE_ENABLED)
@@ -38,6 +34,11 @@ if(OPENTXS_BLOCK_STORAGE_ENABLED)
     opentxs-api-client-blockchain-database
     PRIVATE Boost::iostreams Boost::headers Boost::filesystem
   )
+  target_compile_definitions(opentxs-api-client-blockchain-database PUBLIC
+                             OPENTXS_BLOCK_STORAGE_ENABLED=1)
+else()
+  target_compile_definitions(opentxs-api-client-blockchain-database PUBLIC
+                             OPENTXS_BLOCK_STORAGE_ENABLED=0)
 endif()
 set_property(
   TARGET opentxs-api-client-blockchain-database

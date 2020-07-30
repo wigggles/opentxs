@@ -32,11 +32,10 @@ set(
 )
 
 add_library(opentxs-crypto-library OBJECT ${cxx-sources} ${cxx-headers})
-target_include_directories(
-  opentxs-crypto-library SYSTEM
-  PRIVATE "${sodium_INCLUDE_DIR}"
+target_link_libraries(
+  opentxs-crypto-library
+  PRIVATE opentxs::messages unofficial-sodium::sodium
 )
-target_link_libraries(opentxs-crypto-library PRIVATE opentxs::messages)
 set_property(TARGET opentxs-crypto-library PROPERTY POSITION_INDEPENDENT_CODE 1)
 
 if(LIBSECP256K1_EXPORT)
@@ -47,11 +46,7 @@ if(LIBSECP256K1_EXPORT)
   )
   target_link_libraries(
     opentxs-crypto-library-libsecp256k1
-    PRIVATE opentxs::messages
-  )
-  target_include_directories(
-    opentxs-crypto-library-libsecp256k1 SYSTEM
-    PRIVATE "${LIBSECP256K1_INCLUDE_DIR}"
+    PRIVATE opentxs::messages unofficial::secp256k1
   )
   set_property(
     TARGET opentxs-crypto-library-libsecp256k1

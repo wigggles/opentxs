@@ -12,11 +12,11 @@ set(
 set(cxx-headers ${cxx-install-headers} Client.hpp Server.hpp)
 
 add_library(opentxs-network-zeromq-curve OBJECT ${cxx-sources} ${cxx-headers})
-target_include_directories(
-  opentxs-network-zeromq-curve SYSTEM
-  PRIVATE ${ZMQ_INCLUDE_DIRS}
+
+target_link_libraries(
+  opentxs-network-zeromq-curve
+  PRIVATE opentxs::messages "${OT_ZMQ_TARGET}"
 )
-target_link_libraries(opentxs-network-zeromq-curve PRIVATE opentxs::messages)
 set_property(
   TARGET opentxs-network-zeromq-curve
   PROPERTY POSITION_INDEPENDENT_CODE 1

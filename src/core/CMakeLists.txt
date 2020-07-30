@@ -98,12 +98,13 @@ add_library(opentxs-core OBJECT ${cxx-sources} ${cxx-headers})
 target_include_directories(
   opentxs-core SYSTEM
   PRIVATE
-    "${ZLIB_INCLUDE_DIRS}"
-    "${CMAKE_CURRENT_BINARY_DIR}/otprotob"
+    "${ZLIB_INCLUDE_DIRS}" "${CMAKE_CURRENT_BINARY_DIR}/otprotob"
     "${opentxs_SOURCE_DIR}/deps/"
-    "${sodium_INCLUDE_DIR}"
 )
-target_link_libraries(opentxs-core PRIVATE Boost::headers opentxs::messages)
+target_link_libraries(
+  opentxs-core
+  PRIVATE Boost::headers opentxs::messages unofficial-sodium::sodium
+)
 set_property(TARGET opentxs-core PROPERTY POSITION_INDEPENDENT_CODE 1)
 add_dependencies(opentxs-core otprotob)
 

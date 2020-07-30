@@ -48,10 +48,7 @@ if(SQLITE_EXPORT)
 endif()
 
 if(LMDB_EXPORT)
-  target_include_directories(
-    opentxs-storage-drivers SYSTEM
-    PRIVATE ${LMDB_INCLUDE_DIR}
-  )
+  target_link_libraries(opentxs-storage-drivers PRIVATE lmdb)
 endif()
 
 target_link_libraries(opentxs-storage-drivers PRIVATE opentxs::messages)

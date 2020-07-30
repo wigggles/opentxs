@@ -17,6 +17,8 @@ function(add_opentx_test_target target_name cxx-sources)
     Boost::system
     Boost::filesystem
     protobuf::libprotobuf-lite
+    "${OT_ZMQ_TARGET}"
+    unofficial-sodium::sodium
   )
 
   if(LIB_ANDROID_LOG)
@@ -29,14 +31,6 @@ function(add_opentx_test_target target_name cxx-sources)
 
   if(OT_BLOCKCHAIN_EXPORT)
     target_link_libraries(${target_name} Boost::thread)
-  endif()
-
-  if(OT_USE_VCPKG_TARGETS)
-    target_link_libraries(${target_name} unofficial-sodium::sodium)
-    target_link_libraries(${target_name} libzmq libzmq-static)
-  else()
-    target_link_libraries(${target_name} ${SODIUM_LIBRARIES})
-    target_link_libraries(${target_name} ${ZMQ_LIBRARIES})
   endif()
 
   if(DHT_EXPORT)
@@ -52,7 +46,7 @@ function(add_opentx_test_target target_name cxx-sources)
   endif()
 
   if(LMDB_EXPORT)
-    target_link_libraries(${target_name} ${LMDB_LIBRARIES})
+    target_link_libraries(${target_name} lmdb)
   endif()
 
   if(OPENSSL_EXPORT)
@@ -60,7 +54,7 @@ function(add_opentx_test_target target_name cxx-sources)
   endif()
 
   if(LIBSECP256K1_EXPORT)
-    target_link_libraries(${target_name} ${LIBSECP256K1_LIBRARY})
+    target_link_libraries(${target_name} unofficial::secp256k1)
   endif()
 
   target_include_directories(
@@ -105,5 +99,9 @@ add_subdirectory(identity)
 add_subdirectory(integration)
 add_subdirectory(network/zeromq)
 add_subdirectory(otx)
-add_subdirectory(rpc)
+
+if(NOT WIN32)
+  add_subdirectory(rpc)
+endif()
+
 add_subdirectory(ui)

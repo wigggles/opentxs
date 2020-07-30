@@ -66,6 +66,13 @@ target_include_directories(
   PRIVATE "${opentxs_SOURCE_DIR}/deps/"
 )
 target_link_libraries(opentxs-api PRIVATE Boost::headers opentxs::messages)
+
+if(OT_ENABLE_RPC)
+  target_compile_definitions(opentxs-api PRIVATE OT_RPC=1)
+else()
+  target_compile_definitions(opentxs-api PRIVATE OT_RPC=0)
+endif()
+
 set_property(TARGET opentxs-api PROPERTY POSITION_INDEPENDENT_CODE 1)
 
 install(

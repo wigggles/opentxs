@@ -50,10 +50,6 @@ if(SECP256K1_EXPORT)
 endif()
 
 add_library(opentxs-crypto-key OBJECT ${cxx-sources} ${cxx-headers})
-target_include_directories(
-  opentxs-crypto-key SYSTEM
-  PRIVATE "${sodium_INCLUDE_DIR}"
-)
 
 if(OPENSSL_EXPORT)
   target_include_directories(
@@ -62,7 +58,10 @@ if(OPENSSL_EXPORT)
   )
 endif()
 
-target_link_libraries(opentxs-crypto-key PRIVATE opentxs::messages)
+target_link_libraries(
+  opentxs-crypto-key
+  PRIVATE opentxs::messages unofficial-sodium::sodium
+)
 set_property(TARGET opentxs-crypto-key PROPERTY POSITION_INDEPENDENT_CODE 1)
 
 install(

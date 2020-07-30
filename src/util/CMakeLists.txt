@@ -32,8 +32,10 @@ set(
 )
 
 add_library(opentxs-util OBJECT ${cxx-sources} ${cxx-headers})
-target_include_directories(opentxs-util SYSTEM PRIVATE "${sodium_INCLUDE_DIR}")
-target_link_libraries(opentxs-util PRIVATE opentxs::messages)
+target_link_libraries(
+  opentxs-util
+  PRIVATE opentxs::messages unofficial-sodium::sodium
+)
 set_property(TARGET opentxs-util PROPERTY POSITION_INDEPENDENT_CODE 1)
 
 install(
@@ -43,5 +45,5 @@ install(
 )
 
 if(OT_STORAGE_LMDB)
-  target_include_directories(opentxs-util SYSTEM PRIVATE ${LMDB_INCLUDE_DIR})
+  target_link_libraries(opentxs-util PRIVATE lmdb)
 endif()

@@ -51,10 +51,10 @@ namespace opentxs::api::client::implementation
 {
 Contacts::Contacts(const api::client::internal::Manager& api)
     : api_(api)
+    , lock_()
 #if OT_BLOCKCHAIN
     , blockchain_()
 #endif  // OT_BLOCKCHAIN
-    , lock_()
     , contact_map_()
     , contact_name_map_(build_name_map(api.Storage()))
     , publisher_(api.ZeroMQ().PublishSocket())
@@ -191,7 +191,7 @@ auto Contacts::ContactName(const Identifier& contactID) const -> std::string
     return it->second;
 }
 
-void Contacts::import_contacts(const rLock& lock)
+auto Contacts::import_contacts(const rLock& lock) -> void
 {
     auto nyms = api_.Wallet().NymList();
 
@@ -222,6 +222,18 @@ void Contacts::import_contacts(const rLock& lock)
         }
     }
 }
+
+#if OT_BLOCKCHAIN
+auto Contacts::init(
+    const std::shared_ptr<const internal::Blockchain>& blockchain) -> void
+{
+    OT_ASSERT(blockchain);
+
+    blockchain_ = blockchain;
+
+    OT_ASSERT(false == blockchain_.expired());
+}
+#endif  // OT_BLOCKCHAIN
 
 void Contacts::init_nym_map(const rLock& lock)
 {

@@ -6,13 +6,14 @@ jobs:
   build:
     strategy:
       matrix:
-        docker: [v7]
-        platform: [ubuntu-18.04, ubuntu-latest]
+        binding: [qt, java]
         include:
-          - platform: ubuntu-latest
-            binding: qt
-          - platform: ubuntu-18.04
-            binding: java
+          - binding: qt
+            platform: ubuntu-20.04
+            docker: v7
+          - binding: java
+            platform: ubuntu-20.04
+            docker: v7
     runs-on: ${{ matrix.platform }}
     steps:
     - uses: actions/checkout@v1
