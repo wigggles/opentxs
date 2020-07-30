@@ -100,7 +100,7 @@ add_subdirectory(integration)
 add_subdirectory(network/zeromq)
 add_subdirectory(otx)
 
-if(NOT WIN32)
+if(OT_ENABLE_RPC)
   add_subdirectory(rpc)
 endif()
 
