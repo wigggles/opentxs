@@ -187,9 +187,10 @@ auto Envelope::calculate_requirements(const Nyms& recipients) noexcept(false)
 
 auto Envelope::calculate_solutions() noexcept -> Solutions
 {
+    constexpr auto one = std::size_t{1};
     auto output = Solutions{};
 
-    for (auto row = std::size_t{1}; row < (1u << supported_.size()); ++row) {
+    for (auto row = one; row < (one << supported_.size()); ++row) {
         auto solution = std::pair<Weight, SupportedKeys>{};
         auto& [weight, keys] = solution;
 
@@ -197,7 +198,7 @@ auto Envelope::calculate_solutions() noexcept -> Solutions
             const auto column = static_cast<std::size_t>(
                 std::distance(supported_.cbegin(), key));
 
-            if (0 != (row & (1u << column))) { keys.emplace_back(*key); }
+            if (0 != (row & (one << column))) { keys.emplace_back(*key); }
         }
 
         weight = std::accumulate(

@@ -64,7 +64,7 @@ public:
     }
     static bool is_active(const std::size_t row, const std::size_t column)
     {
-        return 0 != (row & (1u << column));
+        return 0 != (row & (std::size_t{1} << column));
     }
     static bool should_seal(const std::size_t row, const std::size_t column)
     {
@@ -197,7 +197,9 @@ TEST_F(Test_Envelope, one_recipient)
 
 TEST_F(Test_Envelope, multiple_recipients)
 {
-    for (auto row = std::size_t{0}; row < (1u << nyms_.size()); ++row) {
+    constexpr auto one = std::size_t{1};
+
+    for (auto row = std::size_t{0}; row < (one << nyms_.size()); ++row) {
         auto recipients = ot::crypto::Envelope::Recipients{};
         auto sender = sender_.Factory().Envelope();
 

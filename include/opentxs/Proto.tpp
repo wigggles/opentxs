@@ -9,7 +9,9 @@
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 #include "opentxs/Proto.hpp"    // IWYU pragma: associated
 
+#include <cassert>
 #include <iostream>
+#include <limits>
 #include <memory>
 #include <string>
 
@@ -34,8 +36,10 @@ Output Factory(const Input& input);
 template <typename Output>
 Output Factory(const void* input, const std::size_t size)
 {
-    Output serialized;
-    serialized.ParseFromArray(input, size);
+    assert(size <= std::numeric_limits<int>::max());
+
+    auto serialized = Output{};
+    serialized.ParseFromArray(input, static_cast<int>(size));
 
     return serialized;
 }

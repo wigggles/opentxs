@@ -89,7 +89,12 @@ option(OT_ENABLE_RPC "Build RPC server" ${OT_ENABLE_RPC_DEFAULT})
 set_compiler_flags(17 ${OPENTXS_PEDANTIC_BUILD})
 
 # temporarily disabled warnings
-if(NOT MSVC)
+if(MSVC)
+  set(
+    CMAKE_CXX_FLAGS
+    "${CMAKE_CXX_FLAGS} /wd4244 /wd4251 /wd4267 /wd4275 /wd4996"
+  )
+else()
   set(
     CMAKE_CXX_FLAGS
     "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations -Wno-format-nonliteral -Wno-noexcept -Wno-redundant-move -Wno-shadow -Wno-sign-conversion -Wno-switch-enum -Wno-undef -Wno-unused-parameter"
