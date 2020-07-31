@@ -131,6 +131,8 @@ if(OT_BLOCKCHAIN_EXPORT)
       BlockchainAccountListItem.cpp
       BlockchainActivityThreadItem.cpp
       BlockchainBalanceItem.cpp
+      BlockchainSelection.cpp
+      BlockchainSelectionItem.cpp
   )
   list(
     APPEND
@@ -139,6 +141,19 @@ if(OT_BLOCKCHAIN_EXPORT)
       BlockchainAccountListItem.hpp
       BlockchainActivityThreadItem.hpp
       BlockchainBalanceItem.hpp
+      BlockchainSelection.hpp
+      BlockchainSelectionItem.hpp
+  )
+  list(
+    APPEND
+      ot-qobject-install-headers
+      "${opentxs_SOURCE_DIR}/include/opentxs/ui/BlockchainSelection.hpp"
+  )
+  list(
+    APPEND
+      cxx-install-headers
+      "${opentxs_SOURCE_DIR}/include/opentxs/ui/BlockchainSelection.hpp"
+      "${opentxs_SOURCE_DIR}/include/opentxs/ui/BlockchainSelectionItem.hpp"
   )
 endif()
 

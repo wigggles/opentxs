@@ -50,6 +50,16 @@ auto DisplayString(const Type type) noexcept -> std::string
         return "Unknown";
     }
 }
+auto IsTestnet(const Type type) noexcept -> bool
+{
+    try {
+
+        return params::Data::chains_.at(type).testnet_;
+    } catch (...) {
+
+        return false;
+    }
+}
 auto TickerSymbol(const Type type) noexcept -> std::string
 {
     try {

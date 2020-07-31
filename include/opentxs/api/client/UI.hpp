@@ -53,6 +53,7 @@ class ActivitySummaryItem;
 class ActivityThread;
 class ActivityThreadItem;
 class BalanceItem;
+class BlockchainSelection;
 class Contact;
 class ContactItem;
 class ContactList;
@@ -76,6 +77,7 @@ class AccountListQt;
 class AccountSummaryQt;
 class ActivitySummaryQt;
 class ActivityThreadQt;
+class BlockchainSelectionQt;
 class ContactListQt;
 class ContactQt;
 class MessagableListQt;
@@ -113,6 +115,10 @@ public:
         const identifier::Nym& nymID,
         const Identifier& threadID,
         const SimpleCallback updateCB = {}) const noexcept = 0;
+#if OT_BLOCKCHAIN
+    OPENTXS_EXPORT virtual const ui::BlockchainSelection& BlockchainSelection()
+        const noexcept = 0;
+#endif  // OT_BLOCKCHAIN
     OPENTXS_EXPORT virtual const ui::Contact& Contact(
         const Identifier& contactID,
         const SimpleCallback updateCB = {}) const noexcept = 0;
@@ -161,6 +167,10 @@ public:
     OPENTXS_EXPORT virtual QAbstractItemModel* BlankModel(
         const std::size_t columns) const noexcept = 0;
     /// Caller does not own this pointer
+#if OT_BLOCKCHAIN
+    OPENTXS_EXPORT virtual ui::BlockchainSelectionQt* BlockchainSelectionQt()
+        const noexcept = 0;
+#endif  // OT_BLOCKCHAIN
     OPENTXS_EXPORT virtual ui::ContactQt* ContactQt(
         const Identifier& contactID,
         const SimpleCallback updateCB = {}) const noexcept = 0;

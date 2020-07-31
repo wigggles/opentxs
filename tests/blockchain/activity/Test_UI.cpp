@@ -43,6 +43,8 @@
 #include "opentxs/ui/ActivityThread.hpp"
 #include "opentxs/ui/ActivityThreadItem.hpp"
 #include "opentxs/ui/BalanceItem.hpp"
+#include "opentxs/ui/BlockchainSelection.hpp"
+#include "opentxs/ui/BlockchainSelectionItem.hpp"
 
 using Subchain = ot::api::client::blockchain::Subchain;
 
@@ -118,6 +120,227 @@ TEST_F(Test_BlockchainActivity, init)
         EXPECT_EQ(api_.Contacts().ContactName(contact_7_id()), contact_7_name_);
     }
 }
+
+TEST_F(Test_BlockchainActivity, blockchain_selection)
+{
+    const auto& widget = api_.UI().BlockchainSelection();
+    auto row = widget.First();
+    auto expected{ot::blockchain::Type::Bitcoin};
+
+    ASSERT_TRUE(row->Valid());
+
+    EXPECT_EQ(row->Name(), ot::blockchain::DisplayString(expected));
+    EXPECT_EQ(row->Type(), expected);
+    EXPECT_FALSE(row->IsEnabled());
+    EXPECT_FALSE(row->IsTestnet());
+
+    ASSERT_FALSE(row->Last());
+
+    row = widget.Next();
+    expected = ot::blockchain::Type::BitcoinCash;
+
+    EXPECT_EQ(row->Name(), ot::blockchain::DisplayString(expected));
+    EXPECT_EQ(row->Type(), expected);
+    EXPECT_FALSE(row->IsEnabled());
+    EXPECT_FALSE(row->IsTestnet());
+
+    ASSERT_FALSE(row->Last());
+
+    row = widget.Next();
+    expected = ot::blockchain::Type::Litecoin;
+
+    EXPECT_EQ(row->Name(), ot::blockchain::DisplayString(expected));
+    EXPECT_EQ(row->Type(), expected);
+    EXPECT_FALSE(row->IsEnabled());
+    EXPECT_FALSE(row->IsTestnet());
+
+    ASSERT_FALSE(row->Last());
+
+    row = widget.Next();
+    expected = ot::blockchain::Type::Bitcoin_testnet3;
+
+    EXPECT_EQ(row->Name(), ot::blockchain::DisplayString(expected));
+    EXPECT_EQ(row->Type(), expected);
+    EXPECT_FALSE(row->IsEnabled());
+    EXPECT_TRUE(row->IsTestnet());
+
+    ASSERT_FALSE(row->Last());
+
+    row = widget.Next();
+    expected = ot::blockchain::Type::BitcoinCash_testnet3;
+
+    EXPECT_EQ(row->Name(), ot::blockchain::DisplayString(expected));
+    EXPECT_EQ(row->Type(), expected);
+    EXPECT_FALSE(row->IsEnabled());
+    EXPECT_TRUE(row->IsTestnet());
+
+    ASSERT_FALSE(row->Last());
+
+    row = widget.Next();
+    expected = ot::blockchain::Type::Litecoin_testnet4;
+
+    EXPECT_EQ(row->Name(), ot::blockchain::DisplayString(expected));
+    EXPECT_EQ(row->Type(), expected);
+    EXPECT_FALSE(row->IsEnabled());
+    EXPECT_TRUE(row->IsTestnet());
+
+    EXPECT_TRUE(row->Last());
+}
+
+#if OT_QT
+TEST_F(Test_BlockchainActivity, blockchain_selection_qt)
+{
+    const auto* pWidget = api_.UI().BlockchainSelectionQt();
+
+    ASSERT_NE(pWidget, nullptr);
+
+    const auto& widget = *pWidget;
+
+    EXPECT_EQ(widget.columnCount(), 3);
+    EXPECT_EQ(widget.rowCount(), 6);
+
+    using Model = ot::ui::BlockchainSelectionQt;
+
+    {
+        const auto row{0};
+        const auto expected{ot::blockchain::Type::Bitcoin};
+
+        ASSERT_TRUE(widget.hasIndex(row, Model::NameColumn));
+        ASSERT_TRUE(widget.hasIndex(row, Model::EnabledColumn));
+        ASSERT_TRUE(widget.hasIndex(row, Model::TestnetColumn));
+
+        const auto type =
+            widget.data(widget.index(row, Model::NameColumn), Model::TypeRole);
+        const auto name = widget.data(widget.index(row, Model::NameColumn));
+        const auto enabled =
+            widget.data(widget.index(row, Model::EnabledColumn));
+        const auto testnet =
+            widget.data(widget.index(row, Model::TestnetColumn));
+
+        EXPECT_EQ(type.toInt(), static_cast<int>(expected));
+        EXPECT_EQ(
+            name.toString().toStdString(),
+            ot::blockchain::DisplayString(expected));
+        EXPECT_FALSE(enabled.toBool());
+        EXPECT_FALSE(testnet.toBool());
+    }
+    {
+        const auto row{1};
+        const auto expected{ot::blockchain::Type::BitcoinCash};
+
+        ASSERT_TRUE(widget.hasIndex(row, Model::NameColumn));
+        ASSERT_TRUE(widget.hasIndex(row, Model::EnabledColumn));
+        ASSERT_TRUE(widget.hasIndex(row, Model::TestnetColumn));
+
+        const auto type =
+            widget.data(widget.index(row, Model::NameColumn), Model::TypeRole);
+        const auto name = widget.data(widget.index(row, Model::NameColumn));
+        const auto enabled =
+            widget.data(widget.index(row, Model::EnabledColumn));
+        const auto testnet =
+            widget.data(widget.index(row, Model::TestnetColumn));
+
+        EXPECT_EQ(type.toInt(), static_cast<int>(expected));
+        EXPECT_EQ(
+            name.toString().toStdString(),
+            ot::blockchain::DisplayString(expected));
+        EXPECT_FALSE(enabled.toBool());
+        EXPECT_FALSE(testnet.toBool());
+    }
+    {
+        const auto row{2};
+        const auto expected{ot::blockchain::Type::Litecoin};
+
+        ASSERT_TRUE(widget.hasIndex(row, Model::NameColumn));
+        ASSERT_TRUE(widget.hasIndex(row, Model::EnabledColumn));
+        ASSERT_TRUE(widget.hasIndex(row, Model::TestnetColumn));
+
+        const auto type =
+            widget.data(widget.index(row, Model::NameColumn), Model::TypeRole);
+        const auto name = widget.data(widget.index(row, Model::NameColumn));
+        const auto enabled =
+            widget.data(widget.index(row, Model::EnabledColumn));
+        const auto testnet =
+            widget.data(widget.index(row, Model::TestnetColumn));
+
+        EXPECT_EQ(type.toInt(), static_cast<int>(expected));
+        EXPECT_EQ(
+            name.toString().toStdString(),
+            ot::blockchain::DisplayString(expected));
+        EXPECT_FALSE(enabled.toBool());
+        EXPECT_FALSE(testnet.toBool());
+    }
+    {
+        const auto row{3};
+        const auto expected{ot::blockchain::Type::Bitcoin_testnet3};
+
+        ASSERT_TRUE(widget.hasIndex(row, Model::NameColumn));
+        ASSERT_TRUE(widget.hasIndex(row, Model::EnabledColumn));
+        ASSERT_TRUE(widget.hasIndex(row, Model::TestnetColumn));
+
+        const auto type =
+            widget.data(widget.index(row, Model::NameColumn), Model::TypeRole);
+        const auto name = widget.data(widget.index(row, Model::NameColumn));
+        const auto enabled =
+            widget.data(widget.index(row, Model::EnabledColumn));
+        const auto testnet =
+            widget.data(widget.index(row, Model::TestnetColumn));
+
+        EXPECT_EQ(type.toInt(), static_cast<int>(expected));
+        EXPECT_EQ(
+            name.toString().toStdString(),
+            ot::blockchain::DisplayString(expected));
+        EXPECT_FALSE(enabled.toBool());
+        EXPECT_TRUE(testnet.toBool());
+    }
+    {
+        const auto row{4};
+        const auto expected{ot::blockchain::Type::BitcoinCash_testnet3};
+
+        ASSERT_TRUE(widget.hasIndex(row, Model::NameColumn));
+        ASSERT_TRUE(widget.hasIndex(row, Model::EnabledColumn));
+        ASSERT_TRUE(widget.hasIndex(row, Model::TestnetColumn));
+
+        const auto type =
+            widget.data(widget.index(row, Model::NameColumn), Model::TypeRole);
+        const auto name = widget.data(widget.index(row, Model::NameColumn));
+        const auto enabled =
+            widget.data(widget.index(row, Model::EnabledColumn));
+        const auto testnet =
+            widget.data(widget.index(row, Model::TestnetColumn));
+
+        EXPECT_EQ(type.toInt(), static_cast<int>(expected));
+        EXPECT_EQ(
+            name.toString().toStdString(),
+            ot::blockchain::DisplayString(expected));
+        EXPECT_FALSE(enabled.toBool());
+        EXPECT_TRUE(testnet.toBool());
+    }
+    {
+        const auto row{5};
+        const auto expected{ot::blockchain::Type::Litecoin_testnet4};
+
+        ASSERT_TRUE(widget.hasIndex(row, Model::NameColumn));
+        ASSERT_TRUE(widget.hasIndex(row, Model::EnabledColumn));
+        ASSERT_TRUE(widget.hasIndex(row, Model::TestnetColumn));
+
+        const auto type =
+            widget.data(widget.index(row, Model::NameColumn), Model::TypeRole);
+        const auto name = widget.data(widget.index(row, Model::NameColumn));
+        const auto enabled =
+            widget.data(widget.index(row, Model::EnabledColumn));
+        const auto testnet =
+            widget.data(widget.index(row, Model::TestnetColumn));
+
+        EXPECT_EQ(type.toInt(), static_cast<int>(expected));
+        EXPECT_EQ(
+            name.toString().toStdString(),
+            ot::blockchain::DisplayString(expected));
+        EXPECT_FALSE(enabled.toBool());
+        EXPECT_TRUE(testnet.toBool());
+    }
+}
+#endif  // OT_QT
 
 TEST_F(Test_BlockchainActivity, setup_blockchain_account)
 {

@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <chrono>
 #include <cstdint>
+#include <functional>
 #include <iterator>
 #include <map>
 #include <set>
@@ -161,6 +162,7 @@ Blockchain::Blockchain(
     , sync_updates_(api_.ZeroMQ().PublishSocket())
     , networks_()
     , balances_(*this, api_)
+    , enabled_callbacks_()
     , running_(true)
     , heartbeat_(&Blockchain::heartbeat, this)
 #endif  // OT_BLOCKCHAIN
@@ -544,20 +546,13 @@ auto Blockchain::DecodeAddress(const std::string& encoded) const noexcept
 #if OT_BLOCKCHAIN
 auto Blockchain::Disable(const Chain type) const noexcept -> bool
 {
-    if (0 == opentxs::blockchain::SupportedChains().count(type)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Unsupported chain").Flush();
-
-        return false;
-    }
-
     Lock lock(lock_);
-    stop(lock, type);
 
-    return db_.Disable(type);
+    return disable(lock, type);
 }
 
-auto Blockchain::Enable(const Chain type, const std::string& seednode)
-    const noexcept -> bool
+auto Blockchain::disable(const Lock& lock, const Chain type) const noexcept
+    -> bool
 {
     if (0 == opentxs::blockchain::SupportedChains().count(type)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Unsupported chain").Flush();
@@ -565,12 +560,48 @@ auto Blockchain::Enable(const Chain type, const std::string& seednode)
         return false;
     }
 
+    stop(lock, type);
+
+    try {
+        const auto& cb = enabled_callbacks_.at(type);
+
+        if (cb) { cb(false); }
+    } catch (...) {
+    }
+
+    return db_.Disable(type);
+}
+
+auto Blockchain::Enable(const Chain type, const std::string& seednode)
+    const noexcept -> bool
+{
     Lock lock(lock_);
+
+    return enable(lock, type, seednode);
+}
+
+auto Blockchain::enable(
+    const Lock& lock,
+    const Chain type,
+    const std::string& seednode) const noexcept -> bool
+{
+    if (0 == opentxs::blockchain::SupportedChains().count(type)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Unsupported chain").Flush();
+
+        return false;
+    }
 
     if (false == db_.Enable(type)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Database error").Flush();
 
         return false;
+    }
+
+    try {
+        const auto& cb = enabled_callbacks_.at(type);
+
+        if (cb) { cb(true); }
+    } catch (...) {
     }
 
     return start(lock, type, seednode);
@@ -710,6 +741,15 @@ auto Blockchain::init_path(
 }
 
 #if OT_BLOCKCHAIN
+auto Blockchain::IsEnabled(const opentxs::blockchain::Type chain) const noexcept
+    -> bool
+{
+    Lock lock(lock_);
+    const auto chains = db_.LoadEnabledChains();
+
+    return std::find(chains.begin(), chains.end(), chain) != chains.end();
+}
+
 auto Blockchain::KeyGenerated(const Chain chain) const noexcept -> void
 {
     auto work = MakeWork(api_, OT_ZMQ_NEW_BLOCKCHAIN_WALLET_KEY_SIGNAL);
@@ -998,6 +1038,14 @@ auto Blockchain::reconcile_activity_threads(
     return true;
 }
 
+auto Blockchain::RegisterForUpdates(
+    const opentxs::blockchain::Type type,
+    const EnabledCallback cb) const noexcept -> void
+{
+    Lock lock(lock_);
+    enabled_callbacks_[type] = cb;
+}
+
 auto Blockchain::ReportProgress(
     const Chain chain,
     const opentxs::blockchain::block::Height current,
@@ -1087,6 +1135,22 @@ auto Blockchain::stop(const Lock& lock, const Chain type) const noexcept -> bool
     networks_.erase(it);
 
     return true;
+}
+
+auto Blockchain::ToggleChain(
+    const opentxs::blockchain::Type type) const noexcept -> bool
+{
+    Lock lock(lock_);
+    const auto chains = db_.LoadEnabledChains();
+    auto output{false};
+
+    if (std::find(chains.begin(), chains.end(), type) == chains.end()) {
+        output = enable(lock, type, {});
+    } else {
+        output = disable(lock, type);
+    }
+
+    return output;
 }
 #endif  // OT_BLOCKCHAIN
 

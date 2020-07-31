@@ -116,6 +116,9 @@ auto ServerAction(
     const ContextLockCallback& lockCallback) -> api::client::ServerAction*;
 auto UI(
     const api::client::internal::Manager& api,
+#if OT_BLOCKCHAIN
+    const api::client::internal::Blockchain& blockchain,
+#endif  // OT_BLOCKCHAIN
     const Flag& running
 #if OT_QT
     ,

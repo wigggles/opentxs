@@ -116,6 +116,9 @@ Manager::Manager(
     , pair_(factory::PairAPI(running_, *this))
     , ui_(factory::UI(
           *this,
+#if OT_BLOCKCHAIN
+          *blockchain_,
+#endif  // OT_BLOCKCHAIN
           running_
 #if OT_QT
           ,
@@ -245,6 +248,7 @@ void Manager::Init()
 #if OT_BLOCKCHAIN
     StartBlockchain();
 #endif  // OT_BLOCKCHAIN
+    ui_->Init();
 }
 
 auto Manager::Lock(

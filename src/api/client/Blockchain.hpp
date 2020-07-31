@@ -214,6 +214,8 @@ public:
     {
         return io_;
     }
+    auto IsEnabled(const opentxs::blockchain::Type chain) const noexcept
+        -> bool final;
     auto KeyEndpoint() const noexcept -> const std::string& final
     {
         return key_generated_endpoint_;
@@ -253,6 +255,9 @@ public:
         const Chain chain,
         const Tx& transaction,
         const PasswordPrompt& reason) const noexcept -> bool final;
+    auto RegisterForUpdates(
+        const opentxs::blockchain::Type,
+        const EnabledCallback cb) const noexcept -> void final;
     auto Reorg() const noexcept
         -> const opentxs::network::zeromq::socket::Publish& final
     {
@@ -271,6 +276,8 @@ public:
     {
         return thread_pool_;
     }
+    auto ToggleChain(const opentxs::blockchain::Type) const noexcept
+        -> bool final;
     auto UpdateBalance(
         const opentxs::blockchain::Type chain,
         const opentxs::blockchain::Balance balance) const noexcept -> void final
@@ -493,6 +500,7 @@ private:
         std::unique_ptr<opentxs::blockchain::client::internal::Network>>
         networks_;
     BalanceOracle balances_;
+    mutable std::map<Chain, EnabledCallback> enabled_callbacks_;
     std::atomic_bool running_;
     std::thread heartbeat_;
 #endif  // OT_BLOCKCHAIN
@@ -517,6 +525,9 @@ private:
     auto broadcast_update_signal(
         const opentxs::blockchain::block::bitcoin::internal::Transaction& tx)
         const noexcept -> void;
+    auto disable(const Lock& lock, const Chain type) const noexcept -> bool;
+    auto enable(const Lock& lock, const Chain type, const std::string& seednode)
+        const noexcept -> bool;
     auto heartbeat() const noexcept -> void;
     auto load_transaction(const Lock& lock, const Txid& id) const noexcept
         -> std::unique_ptr<

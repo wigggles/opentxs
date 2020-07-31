@@ -71,6 +71,7 @@ class AccountList;
 class AccountSummary;
 class ActivitySummary;
 class ActivityThread;
+class BlockchainSelection;
 class Contact;
 class ContactList;
 class MessagableList;
@@ -114,6 +115,10 @@ public:
         const Identifier& threadID,
         const SimpleCallback cb) const noexcept
         -> const ui::ActivityThread& final;
+#if OT_BLOCKCHAIN
+    auto BlockchainSelection() const noexcept
+        -> const ui::BlockchainSelection& final;
+#endif  // OT_BLOCKCHAIN
     auto Contact(const Identifier& contactID, const SimpleCallback cb)
         const noexcept -> const ui::Contact& final;
     auto ContactList(const identifier::Nym& nymID, const SimpleCallback cb)
@@ -157,6 +162,13 @@ public:
     {
         return blank_.get(columns);
     }
+#if OT_BLOCKCHAIN
+    auto BlockchainSelectionQt() const noexcept
+        -> ui::BlockchainSelectionQt* final
+    {
+        return blockchain_selection_qt_.get();
+    }
+#endif  // OT_BLOCKCHAIN
     auto ContactQt(const Identifier& contactID, const SimpleCallback cb)
         const noexcept -> ui::ContactQt* final;
     auto ContactListQt(const identifier::Nym& nymID, const SimpleCallback cb)
@@ -173,7 +185,12 @@ public:
         const noexcept -> ui::UnitListQt* final;
 #endif  // OT_QT
 
+    auto Init() noexcept -> void final;
+
     UI(const api::client::internal::Manager& api,
+#if OT_BLOCKCHAIN
+       const api::client::internal::Blockchain& blockchain,
+#endif  // OT_BLOCKCHAIN
        const Flag& running
 #if OT_QT
        ,
@@ -229,6 +246,10 @@ private:
     using ProfileMap = std::map<ProfileKey, ProfileValue>;
     using UnitListValue = std::unique_ptr<ui::implementation::UnitList>;
     using UnitListMap = std::map<UnitListKey, UnitListValue>;
+#if OT_BLOCKCHAIN
+    using BlockchainSelectionType =
+        std::shared_ptr<ui::implementation::BlockchainSelection>;
+#endif  // OT_BLOCKCHAIN
 
 #if OT_QT
     using AccountActivityQtValue = std::unique_ptr<ui::AccountActivityQt>;
@@ -258,6 +279,10 @@ private:
     using PayableListQtMap = std::map<PayableListKey, PayableListQtValue>;
     using ProfileQtMap = std::map<ProfileKey, ProfileQtValue>;
     using UnitListQtMap = std::map<UnitListKey, UnitListQtValue>;
+#if OT_BLOCKCHAIN
+    using BlockchainSelectionQtType =
+        std::shared_ptr<ui::BlockchainSelectionQt>;
+#endif  // OT_BLOCKCHAIN
 
     struct Blank {
         auto get(const std::size_t columns) noexcept -> ui::BlankModel*;
@@ -288,6 +313,9 @@ private:
     };
 
     const api::client::internal::Manager& api_;
+#if OT_BLOCKCHAIN
+    const api::client::internal::Blockchain& blockchain_;
+#endif  // OT_BLOCKCHAIN
     const Flag& running_;
 #if OT_QT
     const bool enable_qt_;
@@ -303,6 +331,9 @@ private:
     mutable ActivityThreadMap activity_threads_;
     mutable ProfileMap profiles_;
     mutable UnitListMap unit_lists_;
+#if OT_BLOCKCHAIN
+    const BlockchainSelectionType blockchain_selection_;
+#endif  // OT_BLOCKCHAIN
 #if OT_QT
     mutable Blank blank_;
     mutable AccountActivityQtMap accounts_qt_;
@@ -316,6 +347,9 @@ private:
     mutable ActivityThreadQtMap activity_threads_qt_;
     mutable ProfileQtMap profiles_qt_;
     mutable UnitListQtMap unit_lists_qt_;
+#if OT_BLOCKCHAIN
+    const BlockchainSelectionQtType blockchain_selection_qt_;
+#endif  // OT_BLOCKCHAIN
 #endif  // OT_QT
     UpdateManager update_manager_;
 
