@@ -341,7 +341,9 @@ auto Data::check_sub(const std::size_t pos, const std::size_t target) const
 
 void Data::concatenate(const Vector& data)
 {
-    for (const auto& byte : data) { data_.emplace_back(byte); }
+    for (const auto& byte : data) {
+        data_.emplace_back(reinterpret_cast<const std::uint8_t&>(byte));
+    }
 }
 
 void Data::Concatenate(const void* data, const std::size_t& size)
@@ -368,7 +370,8 @@ auto Data::DecodeHex(const std::string& hex) -> bool
         (0 == stripped.size() % 2) ? stripped : std::string("0") + stripped;
 
     for (std::size_t i = 0; i < padded.length(); i += 2) {
-        data_.emplace_back(strtol(padded.substr(i, 2).c_str(), nullptr, 16));
+        data_.emplace_back(static_cast<std::uint8_t>(
+            strtol(padded.substr(i, 2).c_str(), nullptr, 16)));
     }
 
     return true;

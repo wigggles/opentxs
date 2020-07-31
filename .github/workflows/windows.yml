@@ -38,5 +38,5 @@ jobs:
         useVcpkgToolchainFile: true
         vcpkgTriplet: '${{ matrix.vcpkg_triplet }}'
         buildDirectory: '${{ github.workspace }}/build'
-        cmakeAppendedArgs: '-GNinja -DCMAKE_BUILD_TYPE=Release -DOPENTXS_BUILD_TESTS=ON ${{ matrix.cmake_extra }}'
+        cmakeAppendedArgs: '-GNinja -DCMAKE_BUILD_TYPE=Release -DOPENTXS_PEDANTIC_BUILD=ON -DOPENTXS_BUILD_TESTS=ON ${{ matrix.cmake_extra }}'
         buildWithCMake: true

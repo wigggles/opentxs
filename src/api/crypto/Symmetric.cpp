@@ -42,8 +42,11 @@ auto Symmetric::GetEngine(const proto::SymmetricMode mode) const
 
     // Add support for other crypto engines here
     switch (mode) {
-        default: {
+        case proto::SMODE_CHACHA20POLY1305: {
             engine = &api_.Crypto().Sodium();
+        } break;
+        default: {
+            OT_FAIL;
         }
     }
 

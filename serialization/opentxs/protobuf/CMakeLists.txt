@@ -178,7 +178,14 @@ target_include_directories(
   PUBLIC "${Protobuf_INCLUDE_DIR}" "${opentxs_BINARY_DIR}/serialization"
 )
 
-if(NOT MSVC)
+if(MSVC)
+  target_compile_options(
+    messages
+    PRIVATE
+    "/wd4244"
+    "/wd4267"
+  )
+else()
   target_compile_options(
     messages
     PRIVATE

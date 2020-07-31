@@ -15,7 +15,9 @@ protobuf_generate_cpp(
 add_library(otprotob OBJECT ${cxx-sources} ${cxx-headers})
 target_include_directories(otprotob SYSTEM PUBLIC "${Protobuf_INCLUDE_DIRS}")
 
-if(NOT MSVC)
+if(MSVC)
+  target_compile_options(otprotob PRIVATE "/wd4244" "/wd4267")
+else()
   target_compile_options(otprotob PRIVATE "-Wno-effc++")
 endif()
 

@@ -281,9 +281,9 @@ auto Socket::SetTimeouts(
 {
     OT_ASSERT(nullptr != socket_);
 
-    linger_.store(linger.count());
-    send_timeout_.store(send.count());
-    receive_timeout_.store(receive.count());
+    linger_.store(static_cast<int>(linger.count()));
+    send_timeout_.store(static_cast<int>(send.count()));
+    receive_timeout_.store(static_cast<int>(receive.count()));
     SocketCallback cb{
         [&](const Lock& lock) -> bool { return apply_timeouts(lock); }};
 

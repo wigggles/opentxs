@@ -25,6 +25,13 @@
 
 namespace
 {
+struct Nist {
+    std::string input_{};
+    std::string sha_1_{};
+    std::string sha_2_256_{};
+    std::string sha_2_512_{};
+};
+
 class Test_Hash : public ::testing::Test
 {
 public:
@@ -50,6 +57,9 @@ public:
     static const std::vector<PbkdfVector> pbkdf_;
     static const std::vector<ScryptVector> scrypt_rfc7914_;
     static const std::vector<ScryptVector> scrypt_litecoin_;
+    static const std::vector<Nist> nist_hashes_;
+    static const Nist nist_one_million_;
+    static const Nist nist_one_gigabyte_;
 
     const ot::api::Crypto& crypto_;
 
@@ -181,6 +191,43 @@ const std::vector<Test_Hash::ScryptVector> Test_Hash::scrypt_litecoin_{
      "01796dae1f78a72dfb09356db6f027cd884ba0201e6365b72aa54b3b00000000"},
 };
 
+// https://www.di-mgt.com.au/sha_testvectors.html
+const std::vector<Nist> Test_Hash::nist_hashes_{
+    {"abc",
+     "a9993e364706816aba3e25717850c26c9cd0d89d",
+     "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
+     "ddaf35a193617abacc417349ae20413112e6fa4e89a97ea20a9eeee64b55d39a2192992a2"
+     "74fc1a836ba3c23a3feebbd454d4423643ce80e2a9ac94fa54ca49f"},
+    {"",
+     "da39a3ee5e6b4b0d3255bfef95601890afd80709",
+     "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+     "cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5"
+     "d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e"},
+    {"abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq",
+     "84983e441c3bd26ebaae4aa1f95129e5e54670f1",
+     "248d6a61d20638b8e5c026930c3e6039a33ce45964ff2167f6ecedd419db06c1",
+     "204a8fc6dda82f0a0ced7beb8e08a41657c16ef468b228a8279be331a703c33596fd15c13"
+     "b1b07f9aa1d3bea57789ca031ad85c7a71dd70354ec631238ca3445"},
+    {"abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmnoijklmnopj"
+     "klmnopqklmnopqrlmnopqrsmnopqrstnopqrstu",
+     "a49b2446a02c645bf419f995b67091253a04a259",
+     "cf5b16a778af8380036ce59e7b0492370b249b11e8f07a51afac45037afee9d1",
+     "8e959b75dae313da8cf4f72814fc143f8f7779c6eb9f7fa17299aeadb6889018501d289e4"
+     "900f7e4331b99dec4b5433ac7d329eeb6dd26545e96e55b874be909"},
+};
+const Nist Test_Hash::nist_one_million_{
+    "a",
+    "34aa973cd4c4daa4f61eeb2bdbad27316534016f",
+    "cdc76e5c9914fb9281a1c7e284d73e67f1809a48a497200e046d39ccc7112cd0",
+    "e718483d0ce769644e2e42c7bc15b4638e1f98b13b2044285632a803afa973ebde0ff24487"
+    "7ea60a4cb0432ce577c31beb009c5c2c49aa2e4eadb217ad8cc09b"};
+const Nist Test_Hash::nist_one_gigabyte_{
+    "abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmno",
+    "7789f0c9ef7bfc40d93311143dfbe69e2017f592",
+    "50e72a0e26442fe2552dc3938ac58658228c0cbfb1d2ca872ae435266fcd055e",
+    "b47c933421ea2db149ad6e10fce6c7f93d0752380180ffd7f4629a712134831d77be6091b8"
+    "19ed352c2967a2e2d4fa5050723c9630691f1a05a7281dbe6c1086"};
+
 TEST_F(Test_Hash, MurmurHash3)
 {
     for (const auto& [input, seed, expected] : murmur_) {
@@ -266,5 +313,94 @@ TEST_F(Test_Hash, scrypt_litecoin)
         EXPECT_TRUE(success);
         EXPECT_EQ(hash, expected);
     }
+}
+
+TEST_F(Test_Hash, nist_short)
+{
+    for (const auto& [input, sha1, sha256, sha512] : nist_hashes_) {
+        const auto eSha1 = ot::Data::Factory(sha1, ot::Data::Mode::Hex);
+        const auto eSha256 = ot::Data::Factory(sha256, ot::Data::Mode::Hex);
+        const auto eSha512 = ot::Data::Factory(sha512, ot::Data::Mode::Hex);
+        auto calculatedSha1 = ot::Data::Factory();
+        auto calculatedSha256 = ot::Data::Factory();
+        auto calculatedSha512 = ot::Data::Factory();
+
+        EXPECT_TRUE(crypto_.Hash().Digest(
+            ot::proto::HASHTYPE_SHA1, input, calculatedSha1->WriteInto()));
+        EXPECT_TRUE(crypto_.Hash().Digest(
+            ot::proto::HASHTYPE_SHA256, input, calculatedSha256->WriteInto()));
+        EXPECT_TRUE(crypto_.Hash().Digest(
+            ot::proto::HASHTYPE_SHA512, input, calculatedSha512->WriteInto()));
+
+        EXPECT_EQ(calculatedSha1.get(), eSha1);
+        EXPECT_EQ(calculatedSha256.get(), eSha256);
+        EXPECT_EQ(calculatedSha512.get(), eSha512);
+    }
+}
+
+TEST_F(Test_Hash, nist_million_characters)
+{
+    const auto& [input, sha1, sha256, sha512] = nist_one_million_;
+    const auto eSha1 = ot::Data::Factory(sha1, ot::Data::Mode::Hex);
+    const auto eSha256 = ot::Data::Factory(sha256, ot::Data::Mode::Hex);
+    const auto eSha512 = ot::Data::Factory(sha512, ot::Data::Mode::Hex);
+    auto calculatedSha1 = ot::Data::Factory();
+    auto calculatedSha256 = ot::Data::Factory();
+    auto calculatedSha512 = ot::Data::Factory();
+    constexpr auto copies = std::size_t{1000000};
+    const auto& character = input.at(0);
+    const std::vector<char> preimage(copies, character);
+    const auto view = ot::ReadView{preimage.data(), preimage.size()};
+
+    ASSERT_EQ(preimage.size(), copies);
+    ASSERT_EQ(preimage.at(0), character);
+    ASSERT_EQ(preimage.at(copies - 1u), character);
+
+    EXPECT_TRUE(crypto_.Hash().Digest(
+        ot::proto::HASHTYPE_SHA1, view, calculatedSha1->WriteInto()));
+    EXPECT_TRUE(crypto_.Hash().Digest(
+        ot::proto::HASHTYPE_SHA256, view, calculatedSha256->WriteInto()));
+    EXPECT_TRUE(crypto_.Hash().Digest(
+        ot::proto::HASHTYPE_SHA512, view, calculatedSha512->WriteInto()));
+
+    EXPECT_EQ(calculatedSha1.get(), eSha1);
+    EXPECT_EQ(calculatedSha256.get(), eSha256);
+    EXPECT_EQ(calculatedSha512.get(), eSha512);
+}
+
+TEST_F(Test_Hash, nist_gigabyte_string)
+{
+    const auto& [input, sha1, sha256, sha512] = nist_one_gigabyte_;
+    const auto eSha1 = ot::Data::Factory(sha1, ot::Data::Mode::Hex);
+    const auto eSha256 = ot::Data::Factory(sha256, ot::Data::Mode::Hex);
+    const auto eSha512 = ot::Data::Factory(sha512, ot::Data::Mode::Hex);
+    auto calculatedSha1 = ot::Data::Factory();
+    auto calculatedSha256 = ot::Data::Factory();
+    auto calculatedSha512 = ot::Data::Factory();
+    constexpr auto copies = std::size_t{16777216u};
+    constexpr auto size = std::size_t{1073741824u};
+    auto preimage = std::vector<char>{};
+    preimage.reserve(size);
+    const auto start = input.data();
+    const auto end = input.data() + input.size();
+
+    ASSERT_EQ(size, copies * input.size());
+
+    for (auto count = std::size_t{0}; count < copies; ++count) {
+        preimage.insert(preimage.end(), start, end);
+    }
+
+    const auto view = ot::ReadView{preimage.data(), preimage.size()};
+
+    ASSERT_EQ(preimage.size(), size);
+    EXPECT_TRUE(crypto_.Hash().Digest(
+        ot::proto::HASHTYPE_SHA1, view, calculatedSha1->WriteInto()));
+    EXPECT_TRUE(crypto_.Hash().Digest(
+        ot::proto::HASHTYPE_SHA256, view, calculatedSha256->WriteInto()));
+    EXPECT_TRUE(crypto_.Hash().Digest(
+        ot::proto::HASHTYPE_SHA512, view, calculatedSha512->WriteInto()));
+    EXPECT_EQ(calculatedSha1.get(), eSha1);
+    EXPECT_EQ(calculatedSha256.get(), eSha256);
+    EXPECT_EQ(calculatedSha512.get(), eSha512);
 }
 }  // namespace
