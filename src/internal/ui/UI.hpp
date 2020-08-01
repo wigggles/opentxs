@@ -31,6 +31,10 @@
 #include "opentxs/ui/ActivityThread.hpp"
 #include "opentxs/ui/ActivityThreadItem.hpp"
 #include "opentxs/ui/BalanceItem.hpp"
+#if OT_BLOCKCHAIN
+#include "opentxs/ui/BlockchainSelection.hpp"
+#include "opentxs/ui/BlockchainSelectionItem.hpp"
+#endif  // OT_BLOCKCHAIN
 #include "opentxs/ui/Contact.hpp"
 #include "opentxs/ui/ContactItem.hpp"
 #include "opentxs/ui/ContactList.hpp"
@@ -60,6 +64,7 @@ namespace client
 {
 namespace internal
 {
+struct Blockchain;
 struct Manager;
 }  // namespace internal
 }  // namespace client
@@ -91,6 +96,7 @@ class AccountList;
 class AccountSummary;
 class ActivitySummary;
 class ActivityThread;
+class BlockchainSelection;
 class Contact;
 class ContactList;
 class MessagableList;
@@ -112,6 +118,7 @@ struct AccountSummaryItem;
 struct ActivitySummaryItem;
 struct ActivityThreadItem;
 struct BalanceItem;
+struct BlockchainSelectionItem;
 struct ContactItem;
 struct ContactListItem;
 struct ContactSection;
@@ -134,6 +141,8 @@ struct ActivitySummaryItem;
 struct ActivityThread;
 struct ActivityThreadItem;
 struct BalanceItem;
+struct BlockchainSelection;
+struct BlockchainSelectionItem;
 struct Contact;
 struct ContactItem;
 struct ContactList;
@@ -233,6 +242,18 @@ using ActivityThreadRowInternal = ui::internal::ActivityThreadItem;
 using ActivityThreadRowBlank = ui::internal::blank::ActivityThreadItem;
 /** timestamp, index */
 using ActivityThreadSortKey = std::pair<Time, std::uint64_t>;
+
+#if OT_BLOCKCHAIN
+using BlockchainSelectionPrimaryID = OTIdentifier;
+using BlockchainSelectionExternalInterface = ui::BlockchainSelection;
+using BlockchainSelectionInternalInterface = ui::internal::BlockchainSelection;
+using BlockchainSelectionRowID = blockchain::Type;
+using BlockchainSelectionRowInterface = ui::BlockchainSelectionItem;
+using BlockchainSelectionRowInternal = ui::internal::BlockchainSelectionItem;
+using BlockchainSelectionRowBlank =
+    ui::internal::blank::BlockchainSelectionItem;
+using BlockchainSelectionSortKey = std::pair<bool, std::string>;
+#endif  // OT_BLOCKCHAIN
 
 // Contact
 using ContactPrimaryID = OTIdentifier;
@@ -489,6 +510,23 @@ struct BalanceItem : virtual public Row, virtual public ui::BalanceItem {
 
     ~BalanceItem() override = default;
 };
+#if OT_BLOCKCHAIN
+struct BlockchainSelection : virtual public List,
+                             virtual public ui::BlockchainSelection {
+    virtual auto last(const implementation::BlockchainSelectionRowID& id)
+        const noexcept -> bool = 0;
+
+    ~BlockchainSelection() override = default;
+};
+struct BlockchainSelectionItem : virtual public Row,
+                                 virtual public ui::BlockchainSelectionItem {
+    virtual void reindex(
+        const implementation::BlockchainSelectionSortKey& key,
+        implementation::CustomData& custom) noexcept = 0;
+
+    ~BlockchainSelectionItem() override = default;
+};
+#endif  // OT_BLOCKCHAIN
 struct Contact : virtual public List, virtual public ui::Contact {
 #if OT_QT
     virtual int FindRow(
@@ -808,6 +846,23 @@ struct BalanceItem final : public Row, public internal::BalanceItem {
     {
     }
 };
+#if OT_BLOCKCHAIN
+struct BlockchainSelectionItem final
+    : virtual public Row,
+      virtual public internal::BlockchainSelectionItem {
+
+    auto Name() const noexcept -> std::string final { return {}; }
+    auto IsEnabled() const noexcept -> bool final { return {}; }
+    auto IsTestnet() const noexcept -> bool final { return {}; }
+    auto Type() const noexcept -> blockchain::Type final { return {}; }
+
+    void reindex(
+        const implementation::BlockchainSelectionSortKey&,
+        implementation::CustomData&) noexcept final
+    {
+    }
+};
+#endif  // OT_BLOCKCHAIN
 struct ContactItem final : public Row, public internal::ContactItem {
     auto ClaimID() const noexcept -> std::string final { return {}; }
     auto IsActive() const noexcept -> bool final { return false; }
@@ -1165,6 +1220,27 @@ auto BlockchainActivityThreadItem(
     const ui::implementation::ActivityThreadSortKey& sortKey,
     ui::implementation::CustomData& custom) noexcept
     -> std::shared_ptr<ui::implementation::ActivityThreadRowInternal>;
+auto BlockchainSelectionModel(
+    const api::client::internal::Manager& api,
+    const api::client::internal::Blockchain& blockchain
+#if OT_QT
+    ,
+    const bool qt
+#endif  // OT_QT
+    ) noexcept -> std::unique_ptr<ui::implementation::BlockchainSelection>;
+auto BlockchainSelectionItem(
+    const ui::implementation::BlockchainSelectionInternalInterface& parent,
+    const api::client::internal::Manager& api,
+    const api::client::internal::Blockchain& blockchain,
+    const ui::implementation::BlockchainSelectionRowID& rowID,
+    const ui::implementation::BlockchainSelectionSortKey& sortKey,
+    ui::implementation::CustomData& custom) noexcept
+    -> std::shared_ptr<ui::implementation::BlockchainSelectionRowInternal>;
+#if OT_QT
+auto BlockchainSelectionQtModel(
+    ui::implementation::BlockchainSelection& parent) noexcept
+    -> std::unique_ptr<ui::BlockchainSelectionQt>;
+#endif  // OT_QT
 #endif  // OT_BLOCKCHAIN
 auto BalanceItem(
     const ui::implementation::AccountActivityInternalInterface& parent,

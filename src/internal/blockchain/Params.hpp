@@ -51,6 +51,7 @@ struct Data {
 #endif  // OT_BLOCKCHAIN
 
     bool supported_{};
+    bool testnet_{};
     proto::ContactItemType proto_{};
     std::string display_string_{};
     std::string display_ticker_{};

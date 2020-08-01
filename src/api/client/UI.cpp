@@ -33,6 +33,9 @@
 #include "opentxs/ui/AccountSummary.hpp"
 #include "opentxs/ui/ActivitySummary.hpp"
 #include "opentxs/ui/ActivityThread.hpp"
+#if OT_BLOCKCHAIN
+#include "opentxs/ui/BlockchainSelection.hpp"
+#endif  // OT_BLOCKCHAIN
 #include "opentxs/ui/Contact.hpp"
 #include "opentxs/ui/ContactList.hpp"
 #include "opentxs/ui/MessagableList.hpp"
@@ -44,6 +47,9 @@
 #include "ui/AccountSummary.hpp"
 #include "ui/ActivitySummary.hpp"
 #include "ui/ActivityThread.hpp"
+#if OT_BLOCKCHAIN
+#include "ui/BlockchainSelection.hpp"
+#endif  // OT_BLOCKCHAIN
 #include "ui/Contact.hpp"
 #include "ui/ContactList.hpp"
 #include "ui/MessagableList.hpp"
@@ -57,6 +63,9 @@ namespace opentxs::factory
 {
 auto UI(
     const api::client::internal::Manager& api,
+#if OT_BLOCKCHAIN
+    const api::client::internal::Blockchain& blockchain,
+#endif  // OT_BLOCKCHAIN
     const Flag& running
 #if OT_QT
     ,
@@ -68,6 +77,9 @@ auto UI(
 
     return std::make_unique<ReturnType>(
         api,
+#if OT_BLOCKCHAIN
+        blockchain,
+#endif  // OT_BLOCKCHAIN
         running
 #if OT_QT
         ,
@@ -81,6 +93,9 @@ namespace opentxs::api::client::implementation
 {
 UI::UI(
     const api::client::internal::Manager& api,
+#if OT_BLOCKCHAIN
+    const api::client::internal::Blockchain& blockchain,
+#endif  // OT_BLOCKCHAIN
     const Flag& running
 #if OT_QT
     ,
@@ -88,6 +103,9 @@ UI::UI(
 #endif
     ) noexcept
     : api_(api)
+#if OT_BLOCKCHAIN
+    , blockchain_(blockchain)
+#endif  // OT_BLOCKCHAIN
     , running_(running)
 #if OT_QT
     , enable_qt_(qt)
@@ -103,6 +121,9 @@ UI::UI(
     , activity_threads_()
     , profiles_()
     , unit_lists_()
+#if OT_BLOCKCHAIN
+    , blockchain_selection_()
+#endif  // OT_BLOCKCHAIN
 #if OT_QT
     , blank_()
     , accounts_qt_()
@@ -116,6 +137,9 @@ UI::UI(
     , activity_threads_qt_()
     , profiles_qt_()
     , unit_lists_qt_()
+#if OT_BLOCKCHAIN
+    , blockchain_selection_qt_()
+#endif  // OT_BLOCKCHAIN
 #endif  // OT_QT
     , update_manager_(api_)
 {
@@ -200,8 +224,6 @@ auto UI::account_activity(
 #if OT_BLOCKCHAIN
     const auto chain = is_blockchain_account(accountID);
 #endif  // OT_BLOCKCHAIN
-
-    // FIXME
 
     if (accounts_.end() == it) {
         it = accounts_
@@ -519,6 +541,15 @@ auto UI::ActivityThreadQt(
 }
 #endif
 
+#if OT_BLOCKCHAIN
+auto UI::BlockchainSelection() const noexcept -> const ui::BlockchainSelection&
+{
+    OT_ASSERT(blockchain_selection_);
+
+    return *blockchain_selection_;
+}
+#endif  // OT_BLOCKCHAIN
+
 auto UI::contact(
     const Lock& lock,
     const Identifier& contactID,
@@ -636,6 +667,32 @@ auto UI::ContactListQt(const identifier::Nym& nymID, const SimpleCallback cb)
     return it->second.get();
 }
 #endif
+
+auto UI::Init() noexcept -> void
+{
+#if OT_BLOCKCHAIN
+    const_cast<BlockchainSelectionType&>(blockchain_selection_) =
+        factory::BlockchainSelectionModel(
+            api_,
+            blockchain_
+#if OT_QT
+            ,
+            enable_qt_
+#endif  // OT_QT
+        );
+
+    OT_ASSERT(blockchain_selection_);
+
+#if OT_QT
+    const_cast<BlockchainSelectionQtType&>(blockchain_selection_qt_) =
+        std::make_shared<ui::BlockchainSelectionQt>(*blockchain_selection_);
+
+    OT_ASSERT(blockchain_selection_qt_);
+#endif  // OT_QT
+
+    blockchain_selection_->init();
+#endif  // OT_BLOCKCHAIN
+}
 
 #if OT_BLOCKCHAIN
 auto UI::is_blockchain_account(const Identifier& id) const noexcept

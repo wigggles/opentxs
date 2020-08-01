@@ -496,6 +496,10 @@
 #include "opentxs/ui/ActivityThread.hpp"
 #include "opentxs/ui/ActivityThreadItem.hpp"
 #include "opentxs/ui/BalanceItem.hpp"
+#if OT_BLOCKCHAIN
+#include "opentxs/ui/BlockchainSelection.hpp"
+#include "opentxs/ui/BlockchainSelectionItem.hpp"
+#endif  // OT_BLOCKCHAIN
 #include "opentxs/ui/Contact.hpp"
 #include "opentxs/ui/ContactItem.hpp"
 #include "opentxs/ui/ContactList.hpp"

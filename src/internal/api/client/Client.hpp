@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <functional>
 #include <future>
 #include <memory>
 #include <string>
@@ -132,6 +133,10 @@ struct Activity : virtual public api::client::Activity {
     virtual ~Activity() = default;
 };
 struct Blockchain : virtual public api::client::Blockchain {
+#if OT_BLOCKCHAIN
+    using EnabledCallback = std::function<void(const bool)>;
+#endif  // OT_BLOCKCHAIN
+
     /// Throws std::runtime_error if type is invalid
     OPENTXS_EXPORT virtual auto BalanceTree(
         const identifier::Nym& nymID,
@@ -149,6 +154,8 @@ struct Blockchain : virtual public api::client::Blockchain {
 #if OT_BLOCKCHAIN
     virtual auto IO() const noexcept
         -> const opentxs::blockchain::client::internal::IO& = 0;
+    virtual auto IsEnabled(const opentxs::blockchain::Type chain) const noexcept
+        -> bool = 0;
     virtual auto KeyEndpoint() const noexcept -> const std::string& = 0;
     virtual auto KeyGenerated(const Chain chain) const noexcept -> void = 0;
     virtual bool ProcessContact(const Contact& contact) const noexcept = 0;
@@ -167,9 +174,14 @@ struct Blockchain : virtual public api::client::Blockchain {
         const opentxs::blockchain::block::Height current,
         const opentxs::blockchain::block::Height target) const noexcept
         -> void = 0;
+    virtual auto RegisterForUpdates(
+        const opentxs::blockchain::Type,
+        const EnabledCallback cb) const noexcept -> void = 0;
     virtual auto RestoreNetworks() const noexcept -> void = 0;
     virtual auto ThreadPool() const noexcept
         -> const opentxs::blockchain::client::internal::ThreadPool& = 0;
+    virtual auto ToggleChain(const opentxs::blockchain::Type) const noexcept
+        -> bool = 0;
     virtual auto UpdateBalance(
         const opentxs::blockchain::Type chain,
         const opentxs::blockchain::Balance balance) const noexcept -> void = 0;
@@ -239,6 +251,8 @@ struct UI : virtual public opentxs::api::client::UI {
     virtual auto RegisterUICallback(
         const Identifier& widget,
         const SimpleCallback& cb) const noexcept -> void = 0;
+
+    virtual auto Init() noexcept -> void = 0;
 
     virtual ~UI() = default;
 };
