@@ -14,9 +14,9 @@
 #include <string_view>
 #include <vector>
 
-#include "2_Factory.hpp"
 #include "base58/base58.h"
 #include "base64/base64.h"
+#include "internal/api/crypto/Factory.hpp"
 #include "opentxs/Bytes.hpp"
 #include "opentxs/OT.hpp"
 #include "opentxs/Pimpl.hpp"
@@ -35,17 +35,20 @@
 
 // #define OT_METHOD opentxs::api::crypto::implementation::Encode::
 
-namespace opentxs
+namespace opentxs::factory
 {
-auto Factory::Encode(const api::Crypto& crypto) -> api::crypto::Encode*
+auto Encode(const api::Crypto& crypto) noexcept
+    -> std::unique_ptr<api::crypto::Encode>
 {
-    return new api::crypto::implementation::Encode(crypto);
+    using ReturnType = api::crypto::implementation::Encode;
+
+    return std::make_unique<ReturnType>(crypto);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::api::crypto::implementation
 {
-Encode::Encode(const api::Crypto& crypto)
+Encode::Encode(const api::Crypto& crypto) noexcept
     : crypto_(crypto)
 {
 }

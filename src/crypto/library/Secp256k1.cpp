@@ -16,11 +16,12 @@ extern "C" {
 #include <cstdint>
 #include <cstring>
 #include <functional>
+#include <memory>
 #include <stdexcept>
 #include <string_view>
 
-#include "2_Factory.hpp"
 #include "crypto/library/EcdsaProvider.hpp"
+#include "internal/crypto/library/Factory.hpp"
 #include "opentxs/OT.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/api/Context.hpp"
@@ -37,21 +38,26 @@ extern "C" {
 
 #define OT_METHOD "opentxs::crypto::implementation::Secp256k1::"
 
-namespace opentxs
+namespace opentxs::factory
 {
-auto Factory::Secp256k1(
+auto Secp256k1(
     const api::Crypto& crypto,
-    const api::crypto::Util& util) -> crypto::Secp256k1*
+    const api::crypto::Util& util) noexcept
+    -> std::unique_ptr<crypto::Secp256k1>
 {
-    return new crypto::implementation::Secp256k1(crypto, util);
+    using ReturnType = crypto::implementation::Secp256k1;
+
+    return std::make_unique<ReturnType>(crypto, util);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::crypto::implementation
 {
 bool Secp256k1::Initialized_ = false;
 
-Secp256k1::Secp256k1(const api::Crypto& crypto, const api::crypto::Util& ssl)
+Secp256k1::Secp256k1(
+    const api::Crypto& crypto,
+    const api::crypto::Util& ssl) noexcept
     : EcdsaProvider(crypto)
     , context_(secp256k1_context_create(
           SECP256K1_CONTEXT_SIGN | SECP256K1_CONTEXT_VERIFY))

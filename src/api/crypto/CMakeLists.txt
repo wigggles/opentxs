@@ -44,6 +44,15 @@ target_link_libraries(
   opentxs-api-crypto
   PRIVATE Boost::headers opentxs::messages
 )
+
+if(OPENSSL_EXPORT)
+  target_compile_definitions(opentxs-api-crypto PUBLIC
+                             OT_CRYPTO_USING_OPENSSL=1)
+else()
+  target_compile_definitions(opentxs-api-crypto PUBLIC
+                             OT_CRYPTO_USING_OPENSSL=0)
+endif()
+
 set_property(TARGET opentxs-api-crypto PROPERTY POSITION_INDEPENDENT_CODE 1)
 
 install(

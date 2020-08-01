@@ -15,6 +15,8 @@ extern "C" {
 
 #include "2_Factory.hpp"
 #include "crypto/Bip32.hpp"
+#include "internal/api/crypto/Factory.hpp"
+#include "internal/crypto/library/Factory.hpp"
 #if OT_CRYPTO_USING_OPENSSL
 #include "internal/crypto/library/OpenSSL.hpp"
 #endif  // OT_CRYPTO_USING_OPENSSL
@@ -39,28 +41,35 @@ extern "C" {
 
 template class opentxs::Pimpl<opentxs::crypto::key::Symmetric>;
 
-namespace opentxs
+namespace opentxs::factory
 {
-auto Factory::Crypto(const api::Settings& settings) -> api::Crypto*
+auto Crypto(const api::Settings& settings) noexcept
+    -> std::unique_ptr<api::Crypto>
 {
-    return new api::implementation::Crypto(settings);
+    using ReturnType = api::implementation::Crypto;
+
+    return std::make_unique<ReturnType>(settings);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::api::implementation
 {
-Crypto::Crypto(const api::Settings& settings)
-    : config_(opentxs::Factory::CryptoConfig(settings))
-    , sodium_(opentxs::Factory::Sodium(*this))
+Crypto::Crypto(const api::Settings& settings) noexcept
+    : config_(factory::CryptoConfig(settings))
+    , sodium_(factory::Sodium(*this))
 #if OT_CRYPTO_USING_OPENSSL
-    , ssl_(opentxs::Factory::OpenSSL(*this))
-#endif
+    , ssl_(factory::OpenSSL())
+#endif  // OT_CRYPTO_USING_OPENSSL
     , util_(*sodium_)
 #if OT_CRYPTO_USING_LIBSECP256K1
-    , secp256k1_p_(opentxs::Factory::Secp256k1(*this, util_))
+    , secp256k1_p_(factory::Secp256k1(*this, util_))
 #endif  // OT_CRYPTO_USING_LIBSECP256K1
     , bip39_p_(opentxs::Factory::Bip39(*this))
+#if OT_CRYPTO_USING_OPENSSL
     , ripemd160_(*ssl_)
+#else   // OT_CRYPTO_USING_OPENSSL
+    , ripemd160_(*sodium_)
+#endif  // OT_CRYPTO_USING_OPENSSL
     , bip32_p_(std::make_unique<opentxs::crypto::implementation::Bip32>(*this))
     , bip32_(*bip32_p_)
     , bip39_(*bip39_p_)
@@ -69,12 +78,20 @@ Crypto::Crypto(const api::Settings& settings)
     , secp256k1_(*secp256k1_p_)
 #endif  // OT_CRYPTO_USING_LIBSECP256K1
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-    , encode_(opentxs::Factory::Encode(*this))
-    , hash_(opentxs::Factory::Hash(
+    , encode_(factory::Encode(*this))
+    , hash_(factory::Hash(
           *encode_,
+#if OT_CRYPTO_USING_OPENSSL
           *ssl_,
+#else   // OT_CRYPTO_USING_OPENSSL
           *sodium_,
+#endif  // OT_CRYPTO_USING_OPENSSL
+          *sodium_,
+#if OT_CRYPTO_USING_OPENSSL
           *ssl_,
+#else   // OT_CRYPTO_USING_OPENSSL
+          *sodium_,
+#endif  // OT_CRYPTO_USING_OPENSSL
           ripemd160_,
           *sodium_))
 {
@@ -82,10 +99,10 @@ Crypto::Crypto(const api::Settings& settings)
     OT_ASSERT(sodium_)
 #if OT_CRYPTO_USING_OPENSSL
     OT_ASSERT(ssl_)
-#endif
+#endif  // OT_CRYPTO_USING_OPENSSL
 #if OT_CRYPTO_USING_LIBSECP256K1
     OT_ASSERT(secp256k1_p_)
-#endif
+#endif  // OT_CRYPTO_USING_LIBSECP256K1
 
     Init();
 }
@@ -100,7 +117,7 @@ void Crypto::Cleanup()
     encode_.reset();
 #if OT_CRYPTO_USING_LIBSECP256K1
     secp256k1_p_.reset();
-#endif
+#endif  // OT_CRYPTO_USING_LIBSECP256K1
     sodium_.reset();
     bip32_p_.reset();
     config_.reset();
@@ -153,11 +170,11 @@ void Crypto::Init()
         OT_FAIL_MSG("Crypto::Init: ASSERT: setrlimit failed. (Used for "
                     "preventing core dumps.)\n");
     }
-#endif
+#endif  // !defined(PREDEF_MODE_DEBUG) && defined(PREDEF_PLATFORM_UNIX)
 
 #if OT_CRYPTO_USING_LIBSECP256K1
     secp256k1_p_->Init();
-#endif
+#endif  // OT_CRYPTO_USING_LIBSECP256K1
 }
 
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
@@ -167,14 +184,14 @@ auto Crypto::RSA() const -> const opentxs::crypto::AsymmetricProvider&
 
     return *ssl_;
 }
-#endif
+#endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
 
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 auto Crypto::SECP256K1() const -> const opentxs::crypto::EcdsaProvider&
 {
     return secp256k1_;
 }
-#endif
+#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 
 auto Crypto::Sodium() const -> const opentxs::crypto::SymmetricProvider&
 {

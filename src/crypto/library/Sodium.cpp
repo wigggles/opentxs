@@ -11,16 +11,19 @@ extern "C" {
 #include <sodium.h>
 }
 
+#include <SHA1/sha1.hpp>
 #include <array>
+#include <cstring>
 #include <functional>
+#include <memory>
 #include <string>
 #include <string_view>
 
-#include "2_Factory.hpp"
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
 #include "crypto/library/AsymmetricProvider.hpp"
 #include "crypto/library/EcdsaProvider.hpp"
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
+#include "internal/crypto/library/Factory.hpp"
 #include "opentxs/OT.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/api/Context.hpp"
@@ -41,17 +44,20 @@ extern "C" {
 
 #define OT_METHOD "opentxs::crypto::implementation::Sodium::"
 
-namespace opentxs
+namespace opentxs::factory
 {
-auto Factory::Sodium(const api::Crypto& crypto) -> crypto::Sodium*
+auto Sodium(const api::Crypto& crypto) noexcept
+    -> std::unique_ptr<crypto::Sodium>
 {
-    return new crypto::implementation::Sodium(crypto);
+    using ReturnType = crypto::implementation::Sodium;
+
+    return std::make_unique<ReturnType>(crypto);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::crypto::implementation
 {
-Sodium::Sodium(const api::Crypto& crypto)
+Sodium::Sodium(const api::Crypto& crypto) noexcept
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
     : AsymmetricProvider()
     , EcdsaProvider(crypto)
@@ -171,6 +177,9 @@ auto Sodium::Digest(
         }
         case (proto::HASHTYPE_SHA512): {
             return (0 == ::crypto_hash_sha512(output, input, inputSize));
+        }
+        case (proto::HASHTYPE_SHA1): {
+            return sha1(input, inputSize, output);
         }
         default: {
         }
@@ -325,35 +334,69 @@ auto Sodium::HMAC(
                          keySize));
         }
         case (proto::HASHTYPE_SHA256): {
-            if (crypto_auth_hmacsha256_KEYBYTES != keySize) {
-                LogOutput(OT_METHOD)(__FUNCTION__)(": Incorrect key size.")
+            auto success{false};
+            auto state = crypto_auth_hmacsha256_state{};
+            success = (0 == crypto_auth_hmacsha256_init(&state, key, keySize));
+
+            if (false == success) {
+                LogOutput(OT_METHOD)(__FUNCTION__)(
+                    ": Failed to initialize hash")
                     .Flush();
 
                 return false;
             }
 
-            return (
-                0 == ::crypto_auth_hmacsha256(output, input, inputSize, key));
+            success =
+                (0 == crypto_auth_hmacsha256_update(&state, input, inputSize));
+
+            if (false == success) {
+                LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to update hash")
+                    .Flush();
+
+                return false;
+            }
+
+            return (0 == ::crypto_auth_hmacsha256_final(&state, output));
         }
         case (proto::HASHTYPE_SHA512): {
-            if (crypto_auth_hmacsha512_KEYBYTES != keySize) {
-                LogOutput(OT_METHOD)(__FUNCTION__)(": Incorrect key size.")
+            auto success{false};
+            auto state = crypto_auth_hmacsha512_state{};
+            success = (0 == crypto_auth_hmacsha512_init(&state, key, keySize));
+
+            if (false == success) {
+                LogOutput(OT_METHOD)(__FUNCTION__)(
+                    ": Failed to initialize hash")
                     .Flush();
 
                 return false;
             }
 
-            return (0 == crypto_auth_hmacsha512(output, input, inputSize, key));
+            success =
+                (0 == crypto_auth_hmacsha512_update(&state, input, inputSize));
+
+            if (false == success) {
+                LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to update hash")
+                    .Flush();
+
+                return false;
+            }
+
+            return (0 == ::crypto_auth_hmacsha512_final(&state, output));
         }
         case (proto::HASHTYPE_SIPHASH24): {
-            if (crypto_shorthash_KEYBYTES != keySize) {
-                LogOutput(OT_METHOD)(__FUNCTION__)(": Incorrect key size.")
+            if (crypto_shorthash_KEYBYTES < keySize) {
+                LogOutput(OT_METHOD)(__FUNCTION__)(": Incorrect key size: ")(
+                    keySize)(" vs expected ")(crypto_shorthash_KEYBYTES)
                     .Flush();
 
                 return false;
             }
 
-            return 0 == ::crypto_shorthash(output, input, inputSize, key);
+            auto buf = std::array<std::uint8_t, crypto_shorthash_KEYBYTES>{};
+            std::memcpy(buf.data(), key, keySize);
+
+            return 0 ==
+                   ::crypto_shorthash(output, input, inputSize, buf.data());
         }
         default: {
         }
@@ -591,6 +634,19 @@ auto Sodium::SharedSecret(
                     static_cast<unsigned char*>(secretBytes.data()),
                     static_cast<const unsigned char*>(privateBytes.data()),
                     publicEd.data());
+}
+
+auto Sodium::sha1(
+    const std::uint8_t* input,
+    const size_t size,
+    std::uint8_t* output) const -> bool
+{
+    auto hex = std::array<char, SHA1_HEX_SIZE>{};
+    ::sha1().add(input, size).finalize().print_hex(hex.data());
+    const auto hash = Data::Factory(hex.data(), Data::Mode::Hex);
+    std::memcpy(output, hash->data(), hash->size());
+
+    return true;
 }
 
 auto Sodium::Sign(

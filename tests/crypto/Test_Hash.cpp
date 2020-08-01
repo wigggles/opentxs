@@ -40,6 +40,7 @@ public:
     using HMACVector =
         std::tuple<std::string, std::string, std::string, std::string>;
     using MurmurVector = std::tuple<std::string, std::uint32_t, std::uint32_t>;
+    // password, salt, iterations, bytes, expected hex
     using PbkdfVector = std::
         tuple<std::string, std::string, std::size_t, std::size_t, std::string>;
     using SiphashVector =
@@ -56,7 +57,11 @@ public:
 
     static const std::vector<HMACVector> hmac_sha2_;
     static const std::vector<MurmurVector> murmur_;
-    static const std::vector<PbkdfVector> pbkdf_;
+#if OT_CRYPTO_USING_OPENSSL
+    static const std::vector<PbkdfVector> pbkdf_sha1_;
+#endif  // OT_CRYPTO_USING_OPENSSL
+    static const std::vector<PbkdfVector> pbkdf_sha256_;
+    static const std::vector<PbkdfVector> pbkdf_sha512_;
     static const std::vector<ScryptVector> scrypt_rfc7914_;
     static const std::vector<ScryptVector> scrypt_litecoin_;
     static const std::vector<Nist> nist_hashes_;
@@ -123,8 +128,9 @@ const std::vector<Test_Hash::MurmurVector> Test_Hash::murmur_{
     {"0x00", 0, 1364076727},
 };
 
+#if OT_CRYPTO_USING_OPENSSL
 // https://tools.ietf.org/html/rfc6070
-const std::vector<Test_Hash::PbkdfVector> Test_Hash::pbkdf_{
+const std::vector<Test_Hash::PbkdfVector> Test_Hash::pbkdf_sha1_{
     {"password", "salt", 1, 20, "0x0c60c80f961f0e71f3a9b524af6012062fe037a6"},
     {"password", "salt", 2, 20, "0xea6c014dc72d6f8ccd1ed92ace1d41f0d8de8957"},
     {"password",
@@ -142,6 +148,65 @@ const std::vector<Test_Hash::PbkdfVector> Test_Hash::pbkdf_{
      4096,
      25,
      "0x3d2eec4fe41c849b80c8d83662c0e44a8b291a964cf2f07038"},
+};
+#endif  // OT_CRYPTO_USING_OPENSSL
+
+// https://github.com/Anti-weakpasswords/PBKDF2-Test-Vectors/releases
+const std::vector<Test_Hash::PbkdfVector> Test_Hash::pbkdf_sha256_{
+    {"password",
+     "salt",
+     1,
+     32,
+     "120FB6CFFCF8B32C43E7225256C4F837A86548C92CCC35480805987CB70BE17B"},
+    {"password",
+     "salt",
+     2,
+     32,
+     "AE4D0C95AF6B46D32D0ADFF928F06DD02A303F8EF3C251DFD6E2D85A95474C43"},
+    {"password",
+     "salt",
+     4096,
+     32,
+     "C5E478D59288C841AA530DB6845C4C8D962893A001CE4E11A4963873AA98134A"},
+    {"passwordPASSWORDpassword",
+     "saltSALTsaltSALTsaltSALTsaltSALTsalt",
+     4096,
+     40,
+     "348C89DBCBD32B2F32D814B8116E84CF2B17347EBC1800181C4E2A1FB8DD53E1C635518C7"
+     "DAC47E9"},
+    {"password",
+     "salt",
+     16777216,
+     32,
+     "CF81C66FE8CFC04D1F31ECB65DAB4089F7F179E89B3B0BCB17AD10E3AC6EBA46"},
+};
+
+// https://github.com/Anti-weakpasswords/PBKDF2-Test-Vectors/releases
+const std::vector<Test_Hash::PbkdfVector> Test_Hash::pbkdf_sha512_{
+    {"password",
+     "salt",
+     1,
+     64,
+     "867F70CF1ADE02CFF3752599A3A53DC4AF34C7A669815AE5D513554E1C8CF252C02D470A2"
+     "85A0501BAD999BFE943C08F050235D7D68B1DA55E63F73B60A57FCE"},
+    {"password",
+     "salt",
+     2,
+     64,
+     "E1D9C16AA681708A45F5C7C4E215CEB66E011A2E9F0040713F18AEFDB866D53CF76CAB286"
+     "8A39B9F7840EDCE4FEF5A82BE67335C77A6068E04112754F27CCF4E"},
+    {"password",
+     "salt",
+     4096,
+     64,
+     "D197B1B33DB0143E018B12F3D1D1479E6CDEBDCC97C5C0F87F6902E072F457B5143F30602"
+     "641B3D55CD335988CB36B84376060ECD532E039B742A239434AF2D5"},
+    {"passwordPASSWORDpassword",
+     "saltSALTsaltSALTsaltSALTsaltSALTsalt",
+     4096,
+     64,
+     "8C0511F4C6E597C6AC6315D8F0362E225F3C501495BA23B868C005174DC4EE71115B59F9E"
+     "60CD9532FA33E0F75AEFE30225C583A186CD82BD4DAEA9724A3D3B8"},
 };
 
 // https://tools.ietf.org/html/rfc7914
@@ -241,16 +306,44 @@ TEST_F(Test_Hash, MurmurHash3)
     }
 }
 
-TEST_F(Test_Hash, PKCS5_PBKDF2_HMAC)
+#if OT_CRYPTO_USING_OPENSSL
+TEST_F(Test_Hash, PKCS5_PBKDF2_HMAC_SHA1)
 {
-    for (const auto& [P, S, c, dkLen, DK] : pbkdf_) {
+    for (const auto& [P, S, c, dkLen, DK] : pbkdf_sha1_) {
         const auto salt = ot::Data::Factory(S, ot::Data::Mode::Raw);
         const auto expected = ot::Data::Factory(DK, ot::Data::Mode::Hex);
         auto output = ot::Data::Factory();
 
         EXPECT_TRUE(crypto_.Hash().PKCS5_PBKDF2_HMAC(
             P, salt, c, ot::proto::HASHTYPE_SHA1, dkLen, output));
-        EXPECT_EQ(output, expected);
+        EXPECT_EQ(output.get(), expected.get());
+    }
+}
+#endif  // OT_CRYPTO_USING_OPENSSL
+
+TEST_F(Test_Hash, PKCS5_PBKDF2_HMAC_SHA256)
+{
+    for (const auto& [P, S, c, dkLen, DK] : pbkdf_sha256_) {
+        const auto salt = ot::Data::Factory(S, ot::Data::Mode::Raw);
+        const auto expected = ot::Data::Factory(DK, ot::Data::Mode::Hex);
+        auto output = ot::Data::Factory();
+
+        EXPECT_TRUE(crypto_.Hash().PKCS5_PBKDF2_HMAC(
+            P, salt, c, ot::proto::HASHTYPE_SHA256, dkLen, output));
+        EXPECT_EQ(output.get(), expected.get());
+    }
+}
+
+TEST_F(Test_Hash, PKCS5_PBKDF2_HMAC_SHA512)
+{
+    for (const auto& [P, S, c, dkLen, DK] : pbkdf_sha512_) {
+        const auto salt = ot::Data::Factory(S, ot::Data::Mode::Raw);
+        const auto expected = ot::Data::Factory(DK, ot::Data::Mode::Hex);
+        auto output = ot::Data::Factory();
+
+        EXPECT_TRUE(crypto_.Hash().PKCS5_PBKDF2_HMAC(
+            P, salt, c, ot::proto::HASHTYPE_SHA512, dkLen, output));
+        EXPECT_EQ(output.get(), expected.get());
     }
 }
 

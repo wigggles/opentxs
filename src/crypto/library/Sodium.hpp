@@ -11,6 +11,8 @@
 
 #include "crypto/library/AsymmetricProvider.hpp"
 #include "crypto/library/EcdsaProvider.hpp"
+#include "crypto/library/Pbkdf2.hpp"
+#include "crypto/library/Ripemd160.hpp"
 #include "internal/crypto/library/Sodium.hpp"
 #include "opentxs/Bytes.hpp"
 #include "opentxs/Proto.hpp"
@@ -44,7 +46,6 @@ class Ciphertext;
 }  // namespace proto
 
 class Data;
-class Factory;
 class NymParameters;
 class OTPassword;
 class PasswordPrompt;
@@ -53,12 +54,13 @@ class Secret;
 
 namespace opentxs::crypto::implementation
 {
-class Sodium final : virtual public crypto::Sodium
+class Sodium final : virtual public crypto::Sodium,
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
-    ,
                      public AsymmetricProvider,
-                     public EcdsaProvider
+                     public EcdsaProvider,
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
+                     public Ripemd160,
+                     public Pbkdf2
 {
 public:
     auto Digest(
@@ -115,11 +117,11 @@ public:
         const proto::HashType hashType) const -> bool final;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 
+    Sodium(const api::Crypto& crypto) noexcept;
+
     ~Sodium() final = default;
 
 private:
-    friend opentxs::Factory;
-
     static const proto::SymmetricMode DEFAULT_MODE{
         proto::SMODE_CHACHA20POLY1305};
 
@@ -152,9 +154,12 @@ private:
     auto KeySize(const proto::SymmetricMode mode) const -> std::size_t final;
     auto SaltSize(const proto::SymmetricKeyType type) const
         -> std::size_t final;
+    auto sha1(
+        const std::uint8_t* input,
+        const size_t inputSize,
+        std::uint8_t* output) const -> bool;
     auto TagSize(const proto::SymmetricMode mode) const -> std::size_t final;
 
-    Sodium(const api::Crypto& crypto);
     Sodium() = delete;
     Sodium(const Sodium&) = delete;
     Sodium(Sodium&&) = delete;

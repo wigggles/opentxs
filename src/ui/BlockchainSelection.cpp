@@ -11,31 +11,13 @@
 #include <memory>
 #include <set>
 #include <string>
-#include <thread>
 #include <utility>
-#include <vector>
 
 #include "internal/api/client/Client.hpp"
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/Shared.hpp"
-#include "opentxs/api/Endpoints.hpp"
-#include "opentxs/api/Wallet.hpp"
-#include "opentxs/api/client/Blockchain.hpp"
-#include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
-#include "opentxs/core/Account.hpp"
 #include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/LogSource.hpp"
-#include "opentxs/core/identifier/Server.hpp"
-#include "opentxs/core/identifier/UnitDefinition.hpp"
-#include "opentxs/network/zeromq/Context.hpp"
-#include "opentxs/network/zeromq/Frame.hpp"
-#include "opentxs/network/zeromq/FrameSection.hpp"
-#include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/network/zeromq/socket/Socket.hpp"
 #include "ui/List.hpp"
-#include "util/Blank.hpp"
 
 // #define OT_METHOD "opentxs::ui::implementation::BlockchainSelection::"
 

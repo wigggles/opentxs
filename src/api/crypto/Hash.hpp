@@ -44,7 +44,6 @@ class Frame;
 }  // namespace network
 
 class Data;
-class Factory;
 class OTPassword;
 class Secret;
 }  // namespace opentxs
@@ -107,8 +106,8 @@ public:
 
     Hash(
         const api::crypto::Encode& encode,
-        const opentxs::crypto::HashingProvider& ssl,
-        const opentxs::crypto::HashingProvider& sodium,
+        const opentxs::crypto::HashingProvider& sha,
+        const opentxs::crypto::HashingProvider& blake,
         const opentxs::crypto::Pbkdf2& pbkdf2,
         const opentxs::crypto::Ripemd160& ripe,
         const opentxs::crypto::Scrypt& scrypt) noexcept;
@@ -116,11 +115,9 @@ public:
     ~Hash() = default;
 
 private:
-    friend opentxs::Factory;
-
     const api::crypto::Encode& encode_;
-    const opentxs::crypto::HashingProvider& ssl_;
-    const opentxs::crypto::HashingProvider& sodium_;
+    const opentxs::crypto::HashingProvider& sha_;
+    const opentxs::crypto::HashingProvider& blake_;
     const opentxs::crypto::Pbkdf2& pbkdf2_;
     const opentxs::crypto::Ripemd160& ripe_;
     const opentxs::crypto::Scrypt& scrypt_;

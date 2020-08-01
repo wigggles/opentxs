@@ -38,7 +38,6 @@ namespace proto
 class AsymmetricKey;
 }  // namespace proto
 
-class Factory;
 class NymParameters;
 class OTPassword;
 class PasswordPrompt;
@@ -92,11 +91,11 @@ public:
         const proto::KeyRole role,
         const VersionNumber version) const -> Key final;
 
+    Asymmetric(const api::internal::Core& api) noexcept;
+
     ~Asymmetric() final = default;
 
 private:
-    friend opentxs::Factory;
-
     using TypeMap = std::map<EcdsaCurve, proto::AsymmetricKeyType>;
 
     static const VersionNumber serialized_path_version_;
@@ -125,7 +124,6 @@ private:
     auto instantiate_serialized_key(const proto::AsymmetricKey& serialized)
         const noexcept -> std::unique_ptr<ReturnType>;
 
-    Asymmetric(const api::internal::Core& api);
     Asymmetric() = delete;
     Asymmetric(const Asymmetric&) = delete;
     Asymmetric(Asymmetric&&) = delete;

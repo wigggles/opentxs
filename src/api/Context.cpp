@@ -27,6 +27,7 @@ extern "C" {
 #include "internal/api/Api.hpp"
 #include "internal/api/client/Client.hpp"
 #include "internal/api/client/Factory.hpp"
+#include "internal/api/crypto/Factory.hpp"
 #if OT_RPC
 #include "internal/rpc/RPC.hpp"
 #endif  // OT_RPC
@@ -228,8 +229,7 @@ void Context::Init()
 
 void Context::Init_Crypto()
 {
-    crypto_.reset(
-        opentxs::Factory::Crypto(Config(legacy_->CryptoConfigFilePath())));
+    crypto_ = factory::Crypto(Config(legacy_->CryptoConfigFilePath()));
 
     OT_ASSERT(crypto_);
 }

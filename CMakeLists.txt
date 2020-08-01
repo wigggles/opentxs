@@ -57,7 +57,6 @@ option(OT_STORAGE_LMDB "Enable LMDB backend for storage" ON)
 option(OT_CRYPTO_SUPPORTED_KEY_ED25519 "Enable ed25519 key support" ON)
 option(OT_CRYPTO_SUPPORTED_KEY_RSA "Enable RSA key support" OFF)
 option(OT_CRYPTO_SUPPORTED_KEY_SECP256K1 "Enable secp256k1 key support" ON)
-option(OT_CRYPTO_USING_OPENSSL "Use OpenSSL crypto library" ON)
 option(OT_CRYPTO_USING_LIBSECP256K1 "Use libsecp256k1 crypto library" ON)
 option(OT_WITH_BLOCKCHAIN "Enable blockchain client support"
        ${OT_WITH_BLOCKCHAIN_DEFAULT})
@@ -71,6 +70,15 @@ option(OT_USE_VCPKG_TARGETS "Assume dependencies are managed by vcpkg"
        ${OT_USE_VCPKG_TARGETS_DEFAULT})
 option(OT_STATIC_DEPENDENCIES "Link against static version of dependencies"
        ${OT_USE_VCPKG_TARGETS})
+
+if(OT_CRYPTO_SUPPORTED_KEY_RSA OR OT_CASH_USING_LUCRE OR OT_WITH_BLOCKCHAIN)
+  set(OT_CRYPTO_USING_OPENSSL_DEFAULT ON)
+else()
+  set(OT_CRYPTO_USING_OPENSSL_DEFAULT OFF)
+endif()
+
+option(OT_CRYPTO_USING_OPENSSL "Use OpenSSL crypto library"
+       ${OT_CRYPTO_USING_OPENSSL_DEFAULT})
 
 if(ANDROID OR OT_USE_VCPKG_TARGETS)
   set(OT_INSTALL_LIBRARY_DEPENDENCIES_DEFAULT ON)

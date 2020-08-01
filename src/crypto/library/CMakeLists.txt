@@ -5,9 +5,16 @@
 
 set(
   cxx-sources
+  trezor/hmac.c
+  trezor/memzero.c
+  trezor/pbkdf2.c
+  trezor/ripemd160.c
+  trezor/sha2.c
   AsymmetricProvider.cpp
   EcdsaProvider.cpp
   HashingProvider.cpp
+  Pbkdf2.cpp
+  Ripemd160.cpp
   Sodium.cpp
 )
 set(
@@ -25,13 +32,25 @@ set(
   "${opentxs_SOURCE_DIR}/src/internal/crypto/library/Ripemd160.hpp"
   "${opentxs_SOURCE_DIR}/src/internal/crypto/library/Scrypt.hpp"
   "${opentxs_SOURCE_DIR}/src/internal/crypto/library/Sodium.hpp"
+  trezor/hmac.h
+  trezor/memzero.h
+  trezor/options.h
+  trezor/pbkdf2.h
+  trezor/ripemd160.h
+  trezor/sha2.h
   AsymmetricProvider.hpp
   AsymmetricProviderNull.hpp
   EcdsaProvider.hpp
+  Pbkdf2.hpp
+  Ripemd160.hpp
   Sodium.hpp
 )
 
 add_library(opentxs-crypto-library OBJECT ${cxx-sources} ${cxx-headers})
+target_include_directories(
+  opentxs-crypto-library SYSTEM
+  PRIVATE "${opentxs_SOURCE_DIR}/deps"
+)
 target_link_libraries(
   opentxs-crypto-library
   PRIVATE opentxs::messages unofficial-sodium::sodium
@@ -69,7 +88,7 @@ if(OPENSSL_EXPORT)
   )
   target_link_libraries(
     opentxs-crypto-library-openssl
-    PRIVATE Boost::headers opentxs::messages
+    PRIVATE Boost::headers opentxs::messages opentxs-api-crypto
   )
   set_property(
     TARGET opentxs-crypto-library-openssl

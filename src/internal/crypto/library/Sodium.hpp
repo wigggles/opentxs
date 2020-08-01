@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include "internal/crypto/library/Pbkdf2.hpp"
+#include "internal/crypto/library/Ripemd160.hpp"
 #include "opentxs/api/crypto/Util.hpp"
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
 #include "opentxs/crypto/library/AsymmetricProvider.hpp"
@@ -24,7 +26,9 @@ class Sodium : virtual public api::crypto::Util
     ,
                virtual public HashingProvider,
                virtual public SymmetricProvider,
-               virtual public Scrypt
+               virtual public Scrypt,
+               virtual public Ripemd160,
+               virtual public Pbkdf2
 {
 public:
     ~Sodium() override = default;
