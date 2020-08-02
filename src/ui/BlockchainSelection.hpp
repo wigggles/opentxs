@@ -35,6 +35,7 @@ namespace client
 {
 namespace internal
 {
+struct Blockchain;
 struct Manager;
 }  // namespace internal
 }  // namespace client

@@ -13,6 +13,7 @@
 #include "2_Factory.hpp"
 #include "crypto/key/Null.hpp"
 #include "internal/api/Api.hpp"
+#include "internal/api/crypto/Factory.hpp"
 #include "opentxs/api/crypto/Asymmetric.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/core/Log.hpp"
@@ -36,14 +37,16 @@
 
 #define OT_METHOD "opentxs::api::crypto::implementation::Asymmetric::"
 
-namespace opentxs
+namespace opentxs::factory
 {
-auto Factory::AsymmetricAPI(const api::internal::Core& api)
-    -> api::crypto::internal::Asymmetric*
+auto AsymmetricAPI(const api::internal::Core& api) noexcept
+    -> std::unique_ptr<api::crypto::internal::Asymmetric>
 {
-    return new api::crypto::implementation::Asymmetric(api);
+    using ReturnType = api::crypto::implementation::Asymmetric;
+
+    return std::make_unique<ReturnType>(api);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::api::crypto::implementation
 {
@@ -55,7 +58,7 @@ const Asymmetric::TypeMap Asymmetric::curve_to_key_type_{
     {EcdsaCurve::ed25519, proto::AKEYTYPE_ED25519},
 };
 
-Asymmetric::Asymmetric(const api::internal::Core& api)
+Asymmetric::Asymmetric(const api::internal::Core& api) noexcept
     : api_(api)
 {
 }

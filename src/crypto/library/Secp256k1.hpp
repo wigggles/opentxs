@@ -46,7 +46,6 @@ class Asymmetric;
 }  // namespace key
 }  // namespace crypto
 
-class Factory;
 class NymParameters;
 class OTPassword;
 class PasswordPrompt;
@@ -99,11 +98,11 @@ public:
 
     void Init() final;
 
+    Secp256k1(const api::Crypto& crypto, const api::crypto::Util& ssl) noexcept;
+
     ~Secp256k1() final;
 
 private:
-    friend opentxs::Factory;
-
     static const std::size_t PrivateKeySize{32};
     static const std::size_t PublicKeySize{33};
     static bool Initialized_;
@@ -118,7 +117,6 @@ private:
     auto parsed_signature(const ReadView bytes) const noexcept(false)
         -> ::secp256k1_ecdsa_signature;
 
-    Secp256k1(const api::Crypto& crypto, const api::crypto::Util& ssl);
     Secp256k1() = delete;
     Secp256k1(const Secp256k1&) = delete;
     Secp256k1(Secp256k1&&) = delete;

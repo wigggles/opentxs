@@ -85,16 +85,13 @@ class Settings;
 class Wallet;
 }  // namespace api
 
-#if OT_CASH
 namespace blind
 {
 class Mint;
 class Purse;
 class Token;
 }  // namespace blind
-#endif
 
-#if OT_BLOCKCHAIN
 namespace blockchain
 {
 namespace block
@@ -134,7 +131,6 @@ class Network;
 class NumericHash;
 class Work;
 }  // namespace blockchain
-#endif  // OT_BLOCKCHAIN
 
 namespace client
 {
@@ -184,18 +180,12 @@ namespace crypto
 namespace key
 {
 class Asymmetric;
-#if OT_CRYPTO_SUPPORTED_KEY_ED25519
 class Ed25519;
-#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 class EllipticCurve;
 class HD;
 class Keypair;
-#if OT_CRYPTO_SUPPORTED_KEY_RSA
 class RSA;
-#endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
-#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 class Secp256k1;
-#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 class Symmetric;
 }  // namespace key
 
@@ -207,12 +197,8 @@ class EcdsaProvider;
 class EncodingProvider;
 class Envelope;
 class HashingProvider;
-#if OT_CRYPTO_USING_OPENSSL
 class OpenSSL;
-#endif  // OT_CRYPTO_USING_OPENSSL
-#if OT_CRYPTO_USING_LIBSECP256K1
 class Secp256k1;
-#endif  // OT_CRYPTO_USING_LIBSECP256K1
 class Sodium;
 class SymmetricProvider;
 }  // namespace crypto

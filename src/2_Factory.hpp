@@ -272,14 +272,10 @@ class Units;
 }  // namespace storage
 
 class DhtConfig;
-#if OT_CRYPTO_USING_LIBSECP256K1
 class Libsecp256k1;
-#endif
 class Libsodium;
 class LowLevelKeyGenerator;
-#if OT_CRYPTO_USING_OPENSSL
 class OpenSSL;
-#endif
 class Secret;
 class StorageConfig;
 }  // namespace opentxs
@@ -308,8 +304,6 @@ public:
         const VersionNumber nymVersion,
         const opentxs::PasswordPrompt& reason)
         -> identity::internal::Authority*;
-    static auto AsymmetricAPI(const api::internal::Core& api)
-        -> api::crypto::internal::Asymmetric*;
     static auto BailmentNotice(
         const api::internal::Core& api,
         const Nym_p& nym,
@@ -438,9 +432,6 @@ public:
         const proto::Credential& serialized,
         const proto::KeyMode mode,
         const proto::CredentialRole role) -> C*;
-    static auto Crypto(const api::Settings& settings) -> api::Crypto*;
-    static auto CryptoConfig(const api::Settings& settings)
-        -> api::crypto::Config*;
     static auto CurrencyContract(
         const api::internal::Core& api,
         const Nym_p& nym,
@@ -494,7 +485,6 @@ public:
         const opentxs::PasswordPrompt& reason) -> crypto::key::Ed25519*;
 #endif  // OT_CRYPTO_WITH_BIP32
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
-    static auto Encode(const api::Crypto& crypto) -> api::crypto::Encode*;
     static auto Envelope(const api::internal::Core& api) noexcept
         -> std::unique_ptr<crypto::Envelope>;
     static auto Envelope(
@@ -503,14 +493,6 @@ public:
         -> std::unique_ptr<crypto::Envelope>;
     static auto FactoryAPIServer(const api::server::internal::Manager& api)
         -> api::internal::Factory*;
-    static auto Hash(
-        const api::crypto::Encode& encode,
-        const crypto::HashingProvider& ssl,
-        const crypto::HashingProvider& sodium,
-        const crypto::Pbkdf2& pbkdf2,
-        const crypto::Ripemd160& ripe,
-        const crypto::Scrypt& scrypt) noexcept
-        -> std::unique_ptr<api::crypto::Hash>;
     static auto Keypair() noexcept -> std::unique_ptr<crypto::key::Keypair>;
     static auto Keypair(
         const api::internal::Core& api,
@@ -567,9 +549,6 @@ public:
     static auto NymIDSource(
         const api::internal::Core& api,
         const proto::NymIDSource& serialized) -> identity::Source*;
-#if OT_CRYPTO_USING_OPENSSL
-    static auto OpenSSL(const api::Crypto& crypto) -> crypto::OpenSSL*;
-#endif  // OT_CRYPTO_USING_OPENSSL
     OPENTXS_EXPORT static auto Operation(
         const api::client::internal::Manager& api,
         const identifier::Nym& nym,
@@ -750,11 +729,6 @@ public:
         const identity::credential::internal::Primary& master,
         const proto::Credential& credential)
         -> identity::credential::internal::Secondary*;
-#if OT_CRYPTO_USING_LIBSECP256K1
-    static auto Secp256k1(
-        const api::Crypto& crypto,
-        const api::crypto::Util& util) -> crypto::Secp256k1*;
-#endif  // OT_CRYPTO_USING_LIBSECP256K1
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
     static auto Secp256k1Key(
         const api::internal::Core& api,
@@ -821,7 +795,6 @@ public:
         const network::zeromq::Context& context,
         const std::string& dataFolder,
         const int instance) -> api::server::Manager*;
-    static auto Sodium(const api::Crypto& crypto) -> crypto::Sodium*;
     static auto Storage(
         const Flag& running,
         const api::Crypto& crypto,
@@ -895,8 +868,6 @@ public:
         const Nym_p& nym,
         const proto::PeerRequest& serialized) noexcept
         -> std::shared_ptr<contract::peer::request::StoreSecret>;
-    static auto Symmetric(const api::internal::Core& api)
-        -> api::crypto::Symmetric*;
     static auto SymmetricKey() -> crypto::key::Symmetric*;
     static auto SymmetricKey(
         const api::internal::Core& api,

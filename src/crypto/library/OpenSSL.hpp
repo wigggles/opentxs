@@ -52,7 +52,6 @@ class Asymmetric;
 }  // namespace crypto
 
 class Data;
-class Factory;
 class NymParameters;
 class OTPassword;
 class PasswordPrompt;
@@ -138,11 +137,11 @@ public:
         const proto::HashType hashType) const -> bool final;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
 
+    OpenSSL() noexcept;
+
     ~OpenSSL() final = default;
 
 private:
-    friend opentxs::Factory;
-
     struct BIO {
         using Buffer = ::BIO*;
 
@@ -222,8 +221,6 @@ private:
 
     using Instantiate = std::function<::EVP_PKEY*(::BIO*)>;
 
-    const api::Crypto& crypto_;
-
     static auto init_key(
         const ReadView bytes,
         const Instantiate function,
@@ -260,8 +257,6 @@ private:
         ::EVP_PKEY* evp) const noexcept -> bool;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
 
-    OpenSSL(const api::Crypto& crypto);
-    OpenSSL() = delete;
     OpenSSL(const OpenSSL&) = delete;
     OpenSSL(OpenSSL&&) = delete;
     auto operator=(const OpenSSL&) -> OpenSSL& = delete;

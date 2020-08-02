@@ -36,7 +36,6 @@ namespace proto
 class SymmetricKey;
 }  // namespace proto
 
-class Factory;
 class OTPassword;
 class PasswordPrompt;
 class Secret;
@@ -64,17 +63,16 @@ public:
         const proto::SymmetricKeyType type = proto::SKEYTYPE_ARGON2) const
         -> OTSymmetricKey final;
 
+    Symmetric(const api::internal::Core& api) noexcept;
+
     ~Symmetric() final = default;
 
 private:
-    friend opentxs::Factory;
-
     const api::internal::Core& api_;
 
     auto GetEngine(const proto::SymmetricMode mode) const
         -> const opentxs::crypto::SymmetricProvider*;
 
-    Symmetric(const api::internal::Core& api);
     Symmetric() = delete;
     Symmetric(const Symmetric&) = delete;
     Symmetric(Symmetric&&) = delete;

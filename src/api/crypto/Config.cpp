@@ -10,7 +10,7 @@
 #include <memory>
 #include <string>
 
-#include "2_Factory.hpp"
+#include "internal/api/crypto/Factory.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/core/Log.hpp"
@@ -38,18 +38,20 @@
 #define OT_KEY_PUBLIC_KEYSIZE "public_keysize"
 #define OT_KEY_PUBLIC_KEYSIZE_MAX "public_keysize_max"
 
-namespace opentxs
+namespace opentxs::factory
 {
-auto Factory::CryptoConfig(const api::Settings& settings)
-    -> api::crypto::Config*
+auto CryptoConfig(const api::Settings& settings) noexcept
+    -> std::unique_ptr<api::crypto::Config>
 {
-    return new api::crypto::implementation::Config(settings);
+    using ReturnType = api::crypto::implementation::Config;
+
+    return std::make_unique<ReturnType>(settings);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::api::crypto::implementation
 {
-Config::Config(const api::Settings& settings)
+Config::Config(const api::Settings& settings) noexcept
     : config_(settings)
 {
     GetSetAll();

@@ -24,7 +24,6 @@ namespace api
 class Crypto;
 }  // namespace api
 
-class Factory;
 class OTPassword;
 class Secret;
 }  // namespace opentxs
@@ -51,11 +50,11 @@ public:
     auto Z85Decode(const Data& input) const -> OTData final;
     auto Z85Decode(const std::string& input) const -> std::string final;
 
+    Encode(const api::Crypto& crypto) noexcept;
+
     ~Encode() final = default;
 
 private:
-    friend opentxs::Factory;
-
     static const std::uint8_t LineWidth{72};
 
     const api::Crypto& crypto_;
@@ -69,7 +68,6 @@ private:
     auto IdentifierEncode(const void* data, const std::size_t size) const
         -> std::string;
 
-    Encode(const api::Crypto& crypto);
     Encode() = delete;
     Encode(const Encode&) = delete;
     auto operator=(const Encode&) -> Encode& = delete;

@@ -12,7 +12,7 @@
 #include <string_view>
 #include <vector>
 
-#include "2_Factory.hpp"
+#include "internal/api/crypto/Factory.hpp"
 #include "internal/crypto/library/Pbkdf2.hpp"
 #include "internal/crypto/library/Ripemd160.hpp"
 #include "internal/crypto/library/Scrypt.hpp"
@@ -30,22 +30,22 @@
 
 #define OT_METHOD "opentxs::api::crypto::implementation::Hash::"
 
-namespace opentxs
+namespace opentxs::factory
 {
 using ReturnType = api::crypto::implementation::Hash;
 
-auto Factory::Hash(
+auto Hash(
     const api::crypto::Encode& encode,
-    const crypto::HashingProvider& ssl,
-    const crypto::HashingProvider& sodium,
+    const crypto::HashingProvider& sha,
+    const crypto::HashingProvider& blake,
     const crypto::Pbkdf2& pbkdf2,
     const crypto::Ripemd160& ripe,
     const crypto::Scrypt& scrypt) noexcept -> std::unique_ptr<api::crypto::Hash>
 {
     return std::make_unique<ReturnType>(
-        encode, ssl, sodium, pbkdf2, ripe, scrypt);
+        encode, sha, blake, pbkdf2, ripe, scrypt);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::api::crypto::implementation
 {
@@ -53,14 +53,14 @@ using Provider = opentxs::crypto::HashingProvider;
 
 Hash::Hash(
     const api::crypto::Encode& encode,
-    const Provider& ssl,
-    const Provider& sodium,
+    const Provider& sha,
+    const Provider& blake,
     const opentxs::crypto::Pbkdf2& pbkdf2,
     const opentxs::crypto::Ripemd160& ripe,
     const opentxs::crypto::Scrypt& scrypt) noexcept
     : encode_(encode)
-    , ssl_(ssl)
-    , sodium_(sodium)
+    , sha_(sha)
+    , blake_(blake)
     , pbkdf2_(pbkdf2)
     , ripe_(ripe)
     , scrypt_(scrypt)
@@ -185,7 +185,7 @@ auto Hash::digest(
         case proto::HASHTYPE_SHA1:
         case proto::HASHTYPE_SHA256:
         case proto::HASHTYPE_SHA512: {
-            return ssl_.Digest(
+            return sha_.Digest(
                 type,
                 static_cast<const std::uint8_t*>(input),
                 size,
@@ -194,7 +194,7 @@ auto Hash::digest(
         case proto::HASHTYPE_BLAKE2B160:
         case proto::HASHTYPE_BLAKE2B256:
         case proto::HASHTYPE_BLAKE2B512: {
-            return sodium_.Digest(
+            return blake_.Digest(
                 type,
                 static_cast<const std::uint8_t*>(input),
                 size,
@@ -259,13 +259,13 @@ auto Hash::HMAC(
     switch (type) {
         case proto::HASHTYPE_SHA256:
         case proto::HASHTYPE_SHA512: {
-            return ssl_.HMAC(type, input, size, key, keySize, output);
+            return sha_.HMAC(type, input, size, key, keySize, output);
         }
         case proto::HASHTYPE_BLAKE2B160:
         case proto::HASHTYPE_BLAKE2B256:
         case proto::HASHTYPE_BLAKE2B512:
         case proto::HASHTYPE_SIPHASH24: {
-            return sodium_.HMAC(type, input, size, key, keySize, output);
+            return blake_.HMAC(type, input, size, key, keySize, output);
         }
         default: {
         }

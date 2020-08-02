@@ -19,8 +19,8 @@ extern "C" {
 #include <memory>
 #include <string_view>
 
-#include "2_Factory.hpp"
 #include "crypto/library/AsymmetricProvider.hpp"
+#include "internal/crypto/library/Factory.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
@@ -32,23 +32,22 @@ extern "C" {
 
 #define OT_METHOD "opentxs::OpenSSL::"
 
-namespace opentxs
+namespace opentxs::factory
 {
-auto Factory::OpenSSL(const api::Crypto& crypto) -> crypto::OpenSSL*
+auto OpenSSL() noexcept -> std::unique_ptr<crypto::OpenSSL>
 {
-    return new crypto::implementation::OpenSSL(crypto);
+    using ReturnType = crypto::implementation::OpenSSL;
+
+    return std::make_unique<ReturnType>();
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::crypto::implementation
 {
-OpenSSL::OpenSSL(const api::Crypto& crypto)
-    :
+OpenSSL::OpenSSL() noexcept
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
-    AsymmetricProvider()
-    ,
+    : AsymmetricProvider()
 #endif
-    crypto_(crypto)
 {
 }
 

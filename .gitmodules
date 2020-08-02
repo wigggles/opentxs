@@ -13,3 +13,6 @@
 [submodule "deps/smhasher"]
 	path = deps/smhasher
 	url = https://github.com/aappleby/smhasher
+[submodule "deps/SHA1"]
+	path = deps/SHA1
+	url = https://github.com/983/SHA1

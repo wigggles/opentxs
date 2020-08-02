@@ -7,3 +7,11 @@ add_opentx_test(unittests-opentxs-crypto-asymmetric Test_AsymmetricProvider.cpp)
 add_opentx_test(unittests-opentxs-crypto-bitcoin Test_BitcoinProviders.cpp)
 add_opentx_test(unittests-opentxs-crypto-envelope Test_Envelope.cpp)
 add_opentx_test(unittests-opentxs-crypto-hash Test_Hash.cpp)
+
+if(OPENSSL_EXPORT)
+  target_compile_definitions(unittests-opentxs-crypto-hash PRIVATE
+                             OT_CRYPTO_USING_OPENSSL=1)
+else()
+  target_compile_definitions(unittests-opentxs-crypto-hash PRIVATE
+                             OT_CRYPTO_USING_OPENSSL=0)
+endif()

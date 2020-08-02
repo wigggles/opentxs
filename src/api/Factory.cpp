@@ -17,6 +17,7 @@
 #include "core/crypto/PaymentCode.hpp"
 #include "crypto/key/Null.hpp"
 #include "internal/api/Api.hpp"
+#include "internal/api/crypto/Factory.hpp"
 #if OT_BLOCKCHAIN
 #include "internal/blockchain/block/Block.hpp"
 #include "internal/blockchain/block/bitcoin/Bitcoin.hpp"
@@ -113,9 +114,9 @@ Factory::Factory(const api::internal::Core& api)
     : api::internal::Factory()
     , api_(api)
     , primitives_(opentxs::Context().Factory())  // TODO pass in as argument
-    , pAsymmetric_(opentxs::Factory::AsymmetricAPI(api_))
+    , pAsymmetric_(factory::AsymmetricAPI(api_))
     , asymmetric_(*pAsymmetric_)
-    , pSymmetric_(opentxs::Factory::Symmetric(api_))
+    , pSymmetric_(factory::Symmetric(api_))
     , symmetric_(*pSymmetric_)
 {
     OT_ASSERT(pAsymmetric_);

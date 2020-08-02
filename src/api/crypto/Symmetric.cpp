@@ -7,8 +7,10 @@
 #include "1_Internal.hpp"            // IWYU pragma: associated
 #include "api/crypto/Symmetric.hpp"  // IWYU pragma: associated
 
-#include "2_Factory.hpp"
+#include <memory>
+
 #include "internal/api/Api.hpp"
+#include "internal/api/crypto/Factory.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/core/Log.hpp"
@@ -19,18 +21,20 @@
 
 #define OT_METHOD "opentxs::api::crypto::implementation::Symmetric::"
 
-namespace opentxs
+namespace opentxs::factory
 {
-auto Factory::Symmetric(const api::internal::Core& api)
-    -> api::crypto::Symmetric*
+auto Symmetric(const api::internal::Core& api) noexcept
+    -> std::unique_ptr<api::crypto::Symmetric>
 {
-    return new api::crypto::implementation::Symmetric(api);
+    using ReturnType = api::crypto::implementation::Symmetric;
+
+    return std::make_unique<ReturnType>(api);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::api::crypto::implementation
 {
-Symmetric::Symmetric(const api::internal::Core& api)
+Symmetric::Symmetric(const api::internal::Core& api) noexcept
     : api_(api)
 {
 }

@@ -19,8 +19,6 @@ namespace api
 {
 class Settings;
 }  // namespace api
-
-class Factory;
 }  // namespace opentxs
 
 namespace opentxs::api::crypto::implementation
@@ -37,9 +35,9 @@ public:
     auto PublicKeysize() const -> std::uint32_t override;
     auto PublicKeysizeMax() const -> std::uint32_t override;
 
-private:
-    friend opentxs::Factory;
+    Config(const api::Settings& settings) noexcept;
 
+private:
     const api::Settings& config_;
     mutable std::int32_t sp_nIterationCount{0};
     mutable std::int32_t sp_nSymmetricSaltSize{0};
@@ -56,7 +54,6 @@ private:
         const std::int32_t nDefaultValue,
         std::int32_t& out_nValue) const -> bool;
 
-    Config(const api::Settings& settings);
     Config() = delete;
     Config(const Config&) = delete;
     Config(Config&&) = delete;

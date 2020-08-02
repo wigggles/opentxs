@@ -52,8 +52,6 @@ class Ripemd160;
 class Secp256k1;
 class Sodium;
 }  // namespace crypto
-
-class Factory;
 }  // namespace opentxs
 
 namespace opentxs::api::implementation
@@ -85,11 +83,11 @@ public:
     auto BIP32() const -> const opentxs::crypto::Bip32& final;
     auto BIP39() const -> const opentxs::crypto::Bip39& final;
 
+    Crypto(const api::Settings& settings) noexcept;
+
     ~Crypto() final;
 
 private:
-    friend opentxs::Factory;
-
     std::unique_ptr<api::crypto::Config> config_;
     std::unique_ptr<opentxs::crypto::Sodium> sodium_;
 #if OT_CRYPTO_USING_OPENSSL
@@ -113,7 +111,6 @@ private:
     void Init();
     void Cleanup();
 
-    Crypto(const api::Settings& settings);
     Crypto() = delete;
     Crypto(const Crypto&) = delete;
     Crypto(Crypto&&) = delete;
