@@ -4,17 +4,15 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 set(cxx-sources OTPayment.cpp)
-set(
-  cxx-install-headers
-  "${opentxs_SOURCE_DIR}/include/opentxs/ext/Helpers.hpp"
-  "${opentxs_SOURCE_DIR}/include/opentxs/ext/OTPayment.hpp"
+set(cxx-install-headers
+    "${opentxs_SOURCE_DIR}/include/opentxs/ext/Helpers.hpp"
+    "${opentxs_SOURCE_DIR}/include/opentxs/ext/OTPayment.hpp"
 )
 set(cxx-headers ${cxx-install-headers})
 
 add_library(opentxs-ext OBJECT ${cxx-sources} ${cxx-headers})
 target_include_directories(
-  opentxs-ext SYSTEM
-  PRIVATE "${opentxs_SOURCE_DIR}/deps/"
+  opentxs-ext SYSTEM PRIVATE "${opentxs_SOURCE_DIR}/deps/"
 )
 target_link_libraries(opentxs-ext PRIVATE opentxs::messages)
 set_property(TARGET opentxs-ext PROPERTY POSITION_INDEPENDENT_CODE 1)

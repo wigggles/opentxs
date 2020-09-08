@@ -4,11 +4,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 protobuf_generate_cpp(
-  cxx-sources
-  cxx-headers
-  Bitcoin.proto
-  Generics.proto
-  Markets.proto
+  cxx-sources cxx-headers Bitcoin.proto Generics.proto Markets.proto
   Moneychanger.proto
 )
 

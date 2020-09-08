@@ -9,7 +9,6 @@
 
 #include <algorithm>
 #include <iterator>
-#include <type_traits>
 
 #include "internal/blockchain/Blockchain.hpp"  // IWYU pragma: keep
 #include "opentxs/Pimpl.hpp"
@@ -43,7 +42,7 @@ auto FilterOracle::FilterQueue::AddFilter(
     const filter::Type type,
     const block::Height height,
     const block::Hash& hash,
-    std::unique_ptr<const blockchain::internal::GCS> filter) noexcept -> void
+    std::unique_ptr<const GCS> filter) noexcept -> void
 {
     if (IsFull()) { return; }
 

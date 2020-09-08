@@ -56,12 +56,8 @@ namespace blockchain
 namespace client
 {
 class HeaderOracle;
-}  // namespace client
-
-namespace internal
-{
 struct GCS;
-}  // namespace internal
+}  // namespace client
 }  // namespace blockchain
 
 namespace network
@@ -97,14 +93,21 @@ public:
     }
     auto Heartbeat() const noexcept -> void final { trigger(); }
     auto LoadFilter(const filter::Type type, const block::Hash& block)
-        const noexcept -> std::unique_ptr<const blockchain::internal::GCS> final
+        const noexcept -> std::unique_ptr<const GCS> final
     {
         return database_.LoadFilter(type, block.Bytes());
+    }
+    auto LoadFilterHeader(const filter::Type type, const block::Hash& block)
+        const noexcept -> Header final
+    {
+        return database_.LoadFilterHeader(type, block.Bytes());
     }
     auto LoadFilterOrResetTip(
         const filter::Type type,
         const block::Position& position) const noexcept
-        -> std::unique_ptr<const blockchain::internal::GCS> final;
+        -> std::unique_ptr<const GCS> final;
+    auto PreviousHeader(const filter::Type type, const block::Height& block)
+        const noexcept -> Header final;
 
     auto Shutdown() noexcept -> std::shared_future<void> final
     {
@@ -189,7 +192,7 @@ private:
         struct IndexBlockJob {
             using HeaderPromise = std::shared_ptr<std::promise<block::pHash>>;
             using HeaderFuture = std::shared_future<block::pHash>;
-            using Filter = std::unique_ptr<blockchain::internal::GCS>;
+            using Filter = std::unique_ptr<GCS>;
             using FilterPromise = std::shared_ptr<std::promise<Filter>>;
             using FilterFuture = std::shared_future<Filter>;
             using Parent = const BlockQueue*;
@@ -290,8 +293,7 @@ private:
             const filter::Type type,
             const block::Height height,
             const block::Hash& hash,
-            std::unique_ptr<const blockchain::internal::GCS> filter) noexcept
-            -> void;
+            std::unique_ptr<const GCS> filter) noexcept -> void;
         // WARNING the lifetime of the objects added to filters ends the
         // next time Queue is executed
         auto Flush(Filters& filters) noexcept -> block::Position;
@@ -307,7 +309,7 @@ private:
         FilterQueue(const api::Core& api) noexcept;
 
     private:
-        using Pointer = std::unique_ptr<const blockchain::internal::GCS>;
+        using Pointer = std::unique_ptr<const GCS>;
         using FilterData = std::pair<block::pHash, Pointer>;
 
         static const std::chrono::seconds timeout_;

@@ -9,6 +9,7 @@
 
 #include "blockchain/p2p/bitcoin/Header.hpp"
 #include "internal/blockchain/p2p/bitcoin/message/Message.hpp"  // IWYU pragma: keep
+#include "opentxs/blockchain/p2p/Types.hpp"
 
 namespace bitcoin = opentxs::blockchain::p2p::bitcoin;
 namespace message = bitcoin::message;

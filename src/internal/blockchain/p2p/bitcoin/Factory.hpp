@@ -75,5 +75,6 @@ auto BitcoinP2PPeerLegacy(
     const blockchain::client::internal::IO& io,
     const int id,
     std::unique_ptr<blockchain::p2p::internal::Address> address,
-    const std::string& shutdown) -> blockchain::p2p::internal::Peer*;
+    const std::string& shutdown)
+    -> std::unique_ptr<blockchain::p2p::internal::Peer>;
 }  // namespace opentxs::factory

@@ -163,46 +163,6 @@ enum class Type : TypeEnum {
     Unknown = std::numeric_limits<TypeEnum>::max(),
 };
 }  // namespace filter
-
-namespace p2p
-{
-namespace bitcoin
-{
-using ProtocolVersion = std::int32_t;
-using ProtocolVersionUnsigned = std::uint32_t;
-}  // namespace bitcoin
-
-enum class Network : std::uint8_t {
-    ipv6 = 0,
-    ipv4 = 1,
-    onion2 = 2,
-    onion3 = 3,
-    eep = 4,
-    cjdns = 5,
-};
-enum class Protocol : std::uint8_t {
-    opentxs = 0,
-    bitcoin = 1,
-    ethereum = 2,
-};
-
-enum class Service : std::uint8_t {
-    None = 0,
-    Avalanche = 1,
-    BitcoinCash = 2,
-    Bloom = 3,
-    CompactFilters = 4,
-    Graphene = 5,
-    Limited = 6,
-    Network = 7,
-    Segwit2X = 8,
-    UTXO = 9,
-    WeakBlocks = 10,
-    Witness = 11,
-    XThin = 12,
-    XThinner = 13,
-};
-}  // namespace p2p
 #endif  // OT_BLOCKCHAIN
 
 enum class Type : std::uint32_t {

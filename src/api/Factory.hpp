@@ -26,6 +26,7 @@
 #include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/blockchain/block/Header.hpp"
 #include "opentxs/blockchain/p2p/Address.hpp"
+#include "opentxs/blockchain/p2p/Types.hpp"
 #endif  // OT_BLOCKCHAIN
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Data.hpp"
@@ -265,8 +266,8 @@ public:
         const std::uint16_t port,
         const blockchain::Type chain,
         const Time lastConnected,
-        const std::set<blockchain::p2p::Service>& services) const
-        -> OTBlockchainAddress final;
+        const std::set<blockchain::p2p::Service>& services,
+        const bool incoming) const -> OTBlockchainAddress final;
     auto BlockchainAddress(
         const blockchain::p2p::Address::SerializedType& serialized) const
         -> OTBlockchainAddress final;

@@ -45,6 +45,11 @@ namespace blockchain
 {
 namespace block
 {
+namespace bitcoin
+{
+class Header;
+}  // namespace bitcoin
+
 class Header;
 }  // namespace block
 
@@ -84,6 +89,9 @@ public:
     auto RecentHashes() const noexcept -> std::vector<block::pHash>;
     auto SiblingHashes() const noexcept -> client::Hashes;
     // Returns null pointer if the header does not exist
+    auto TryLoadBitcoinHeader(const block::Hash& hash) const noexcept
+        -> std::unique_ptr<block::bitcoin::Header>;
+    // Returns null pointer if the header does not exist
     auto TryLoadHeader(const block::Hash& hash) const noexcept
         -> std::unique_ptr<block::Header>;
 
@@ -108,6 +116,9 @@ private:
     auto checkpoint(const Lock& lock) const noexcept -> block::Position;
     auto header_exists(const Lock& lock, const block::Hash& hash) const noexcept
         -> bool;
+    // Throws std::out_of_range if the header does not exist
+    auto load_bitcoin_header(const block::Hash& hash) const noexcept(false)
+        -> std::unique_ptr<block::bitcoin::Header>;
     // Throws std::out_of_range if the header does not exist
     auto load_header(const block::Hash& hash) const noexcept(false)
         -> std::unique_ptr<block::Header>;

@@ -10,6 +10,7 @@
 #include "internal/blockchain/Blockchain.hpp"  // IWYU pragma: keep
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/blockchain/block/bitcoin/Block.hpp"
+#include "opentxs/blockchain/client/FilterOracle.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 

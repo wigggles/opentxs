@@ -5,14 +5,19 @@
 
 add_opentx_test(unittests-opentxs-blockchain-startstop-all Test_all.cpp)
 add_opentx_test(unittests-opentxs-blockchain-startstop-bch Test_bch.cpp)
-add_opentx_test(unittests-opentxs-blockchain-startstop-bch_testnet3
-                Test_bch_testnet3.cpp)
+add_opentx_test(
+  unittests-opentxs-blockchain-startstop-bch_testnet3 Test_bch_testnet3.cpp
+)
 add_opentx_test(unittests-opentxs-blockchain-startstop-btc Test_btc.cpp)
-add_opentx_test(unittests-opentxs-blockchain-startstop-btc_testnet3
-                Test_btc_testnet3.cpp)
-add_opentx_test(unittests-opentxs-blockchain-startstop-frontier
-                Test_frontier.cpp)
+add_opentx_test(
+  unittests-opentxs-blockchain-startstop-btc_testnet3 Test_btc_testnet3.cpp
+)
+add_opentx_test(
+  unittests-opentxs-blockchain-startstop-frontier Test_frontier.cpp
+)
 add_opentx_test(unittests-opentxs-blockchain-startstop-ltc Test_ltc.cpp)
-add_opentx_test(unittests-opentxs-blockchain-startstop-ltc_testnet4
-                Test_ltc_testnet4.cpp)
+add_opentx_test(
+  unittests-opentxs-blockchain-startstop-ltc_testnet4 Test_ltc_testnet4.cpp
+)
 add_opentx_test(unittests-opentxs-blockchain-startstop-ropsten Test_ropsten.cpp)
+add_opentx_test(unittests-opentxs-blockchain-startstop-regtest Test_regtest.cpp)

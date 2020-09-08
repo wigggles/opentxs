@@ -24,6 +24,7 @@
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/blockchain/Work.hpp"
 #include "opentxs/blockchain/block/Header.hpp"
+#include "opentxs/blockchain/block/bitcoin/Header.hpp"  // IWYU pragma: keep
 #include "opentxs/blockchain/client/HeaderOracle.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
@@ -292,10 +293,52 @@ auto HeaderOracle::BestHash(const block::Height height) const noexcept
 
 auto HeaderOracle::BestHashes(
     const block::Height start,
-    const std::size_t limit) const noexcept -> std::vector<block::pHash>
+    const std::size_t limit) const noexcept -> Hashes
+{
+    static const auto blank = api_.Factory().Data();
+
+    Lock lock(lock_);
+
+    return best_hashes(lock, start, blank, limit);
+}
+
+auto HeaderOracle::BestHashes(
+    const block::Height start,
+    const block::Hash& stop,
+    const std::size_t limit) const noexcept -> Hashes
 {
     Lock lock(lock_);
-    auto output = std::vector<block::pHash>{};
+
+    return best_hashes(lock, start, stop, limit);
+}
+
+auto HeaderOracle::BestHashes(
+    const Hashes& previous,
+    const block::Hash& stop,
+    const std::size_t limit) const noexcept -> Hashes
+{
+    Lock lock(lock_);
+    auto start = std::size_t{0};
+
+    for (const auto& hash : previous) {
+        const auto [best, height] = is_in_best_chain(lock, hash);
+
+        if (best) {
+            start = height;
+            break;
+        }
+    }
+
+    return best_hashes(lock, start, stop, limit);
+}
+
+auto HeaderOracle::best_hashes(
+    const Lock& lock,
+    const block::Height start,
+    const block::Hash& stop,
+    const std::size_t limit) const noexcept -> Hashes
+{
+    auto output = Hashes{};
     const auto limitIsZero = (0 == limit);
     auto current{start};
     const auto last{
@@ -310,7 +353,10 @@ auto HeaderOracle::BestHashes(
             // throw the exception documented in its declaration.
             if (hash->empty()) { break; }
 
+            const auto stopHere = stop.empty() ? false : (stop == hash);
             output.emplace_back(std::move(hash));
+
+            if (stopHere) { break; }
         } catch (...) {
             break;
         }
@@ -456,7 +502,7 @@ auto HeaderOracle::CommonParent(const block::Position& position) const noexcept
     if (false == bool(pHeader)) { return output; }
 
     while (0 < test.first) {
-        if (is_in_best_chain(lock, test.second)) {
+        if (is_in_best_chain(lock, test.second).first) {
             parent = test;
 
             return output;
@@ -601,13 +647,15 @@ auto HeaderOracle::Init() noexcept -> void
         OT_ASSERT(deleted);
     }
 
-    LogNormal(DisplayString(chain_))(": Updating checkpoint to hash ")(
-        defaultBlockhash->asHex())(" at height ")(defaultHeight)
-        .Flush();
+    if (1 < defaultHeight) {
+        LogNormal(DisplayString(chain_))(": Updating checkpoint to hash ")(
+            defaultBlockhash->asHex())(" at height ")(defaultHeight)
+            .Flush();
 
-    const auto added = AddCheckpoint(defaultHeight, defaultBlockhash);
+        const auto added = AddCheckpoint(defaultHeight, defaultBlockhash);
 
-    OT_ASSERT(added);
+        OT_ASSERT(added);
+    }
 }
 
 auto HeaderOracle::initialize_candidate(
@@ -653,7 +701,7 @@ auto HeaderOracle::IsInBestChain(const block::Hash& hash) const noexcept -> bool
 {
     Lock lock(lock_);
 
-    return is_in_best_chain(lock, hash);
+    return is_in_best_chain(lock, hash).first;
 }
 
 auto HeaderOracle::IsInBestChain(const block::Position& position) const noexcept
@@ -685,15 +733,15 @@ auto HeaderOracle::is_disconnected(
 }
 
 auto HeaderOracle::is_in_best_chain(const Lock& lock, const block::Hash& hash)
-    const noexcept -> bool
+    const noexcept -> std::pair<bool, block::Height>
 {
     const auto pHeader = database_.TryLoadHeader(hash);
 
-    if (false == bool(pHeader)) { return false; }
+    if (false == bool(pHeader)) { return {false, -1}; }
 
     const auto& header = *pHeader;
 
-    return is_in_best_chain(lock, header.Height(), hash);
+    return {is_in_best_chain(lock, header.Height(), hash), header.Height()};
 }
 
 auto HeaderOracle::is_in_best_chain(
@@ -715,6 +763,12 @@ auto HeaderOracle::is_in_best_chain(
 
         return false;
     }
+}
+
+auto HeaderOracle::LoadBitcoinHeader(const block::Hash& hash) const noexcept
+    -> std::unique_ptr<block::bitcoin::Header>
+{
+    return database_.TryLoadBitcoinHeader(hash);
 }
 
 auto HeaderOracle::LoadHeader(const block::Hash& hash) const noexcept

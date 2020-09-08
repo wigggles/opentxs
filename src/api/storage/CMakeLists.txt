@@ -4,16 +4,16 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 set(cxx-sources Storage.cpp)
-set(
-  cxx-install-headers
-  "${opentxs_SOURCE_DIR}/include/opentxs/api/storage/Driver.hpp"
-  "${opentxs_SOURCE_DIR}/include/opentxs/api/storage/Multiplex.hpp"
-  "${opentxs_SOURCE_DIR}/include/opentxs/api/storage/Plugin.hpp"
-  "${opentxs_SOURCE_DIR}/include/opentxs/api/storage/Storage.hpp"
+set(cxx-install-headers
+    "${opentxs_SOURCE_DIR}/include/opentxs/api/storage/Driver.hpp"
+    "${opentxs_SOURCE_DIR}/include/opentxs/api/storage/Multiplex.hpp"
+    "${opentxs_SOURCE_DIR}/include/opentxs/api/storage/Plugin.hpp"
+    "${opentxs_SOURCE_DIR}/include/opentxs/api/storage/Storage.hpp"
 )
-set(cxx-headers ${cxx-install-headers}
-                "${opentxs_SOURCE_DIR}/src/internal/api/storage/Storage.hpp"
-                Storage.hpp)
+set(cxx-headers
+    ${cxx-install-headers}
+    "${opentxs_SOURCE_DIR}/src/internal/api/storage/Storage.hpp" Storage.hpp
+)
 
 add_library(opentxs-api-storage OBJECT ${cxx-sources} ${cxx-headers})
 target_link_libraries(opentxs-api-storage PRIVATE opentxs::messages)

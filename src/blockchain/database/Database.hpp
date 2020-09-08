@@ -35,6 +35,7 @@
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/blockchain/block/bitcoin/Header.hpp"
 #include "opentxs/blockchain/block/bitcoin/Input.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -71,19 +72,21 @@ namespace blockchain
 {
 namespace block
 {
-class Block;
-class Header;
-
 namespace bitcoin
 {
 class Block;
+class Header;
 class Transaction;
 }  // namespace bitcoin
+
+class Block;
+class Header;
 }  // namespace block
 
 namespace client
 {
 class UpdateTransaction;
+struct GCS;
 }  // namespace client
 }  // namespace blockchain
 
@@ -277,7 +280,7 @@ public:
         return headers_.IsSibling(hash);
     }
     auto LoadFilter(const filter::Type type, const ReadView block)
-        const noexcept -> std::unique_ptr<const blockchain::internal::GCS> final
+        const noexcept -> std::unique_ptr<const client::GCS> final
     {
         return filters_.LoadFilter(type, block);
     }
@@ -461,6 +464,12 @@ public:
         -> std::unique_ptr<block::bitcoin::Transaction> final
     {
         return wallet_.TransactionLoadBitcoin(txid);
+    }
+    // Returns null pointer if the header does not exist
+    auto TryLoadBitcoinHeader(const block::Hash& hash) const noexcept
+        -> std::unique_ptr<block::bitcoin::Header> final
+    {
+        return headers_.TryLoadBitcoinHeader(hash);
     }
     // Returns null pointer if the header does not exist
     auto TryLoadHeader(const block::Hash& hash) const noexcept

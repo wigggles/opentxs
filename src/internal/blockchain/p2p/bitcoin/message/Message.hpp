@@ -24,6 +24,7 @@
 #include "opentxs/Types.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/blockchain/BloomFilter.hpp"
+#include "opentxs/blockchain/p2p/Types.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/iterator/Bidirectional.hpp"
 
@@ -54,10 +55,10 @@ class Header;
 }  // namespace bitcoin
 }  // namespace block
 
-namespace internal
+namespace client
 {
 struct GCS;
-}  // namespace internal
+}  // namespace client
 
 namespace p2p
 {
@@ -374,8 +375,8 @@ auto BitcoinP2PCfheaders(
     const api::Core& api,
     const blockchain::Type network,
     const blockchain::filter::Type type,
-    const blockchain::filter::Hash& stop,
-    const blockchain::filter::Hash& previous,
+    const blockchain::block::Hash& stop,
+    const ReadView previousHeader,
     const std::vector<blockchain::filter::pHash>& headers)
     -> blockchain::p2p::bitcoin::message::internal::Cfheaders*;
 auto BitcoinP2PCfilter(
@@ -390,7 +391,7 @@ auto BitcoinP2PCfilter(
     const blockchain::Type network,
     const blockchain::filter::Type type,
     const blockchain::filter::Hash& hash,
-    std::unique_ptr<blockchain::internal::GCS> filter)
+    std::unique_ptr<blockchain::client::GCS> filter)
     -> blockchain::p2p::bitcoin::message::internal::Cfilter*;
 auto BitcoinP2PCmpctblock(
     const api::Core& api,
@@ -499,7 +500,7 @@ auto BitcoinP2PGetcfheaders(
     const blockchain::Type network,
     const blockchain::filter::Type type,
     const blockchain::block::Height start,
-    const blockchain::filter::Hash& stop)
+    const blockchain::block::Hash& stop)
     -> blockchain::p2p::bitcoin::message::internal::Getcfheaders*;
 auto BitcoinP2PGetcfilters(
     const api::Core& api,
@@ -513,7 +514,7 @@ auto BitcoinP2PGetcfilters(
     const blockchain::Type network,
     const blockchain::filter::Type type,
     const blockchain::block::Height start,
-    const blockchain::filter::Hash& stop)
+    const blockchain::block::Hash& stop)
     -> blockchain::p2p::bitcoin::message::internal::Getcfilters*;
 auto BitcoinP2PGetdata(
     const api::Core& api,
@@ -678,6 +679,7 @@ auto BitcoinP2PVersion(
 auto BitcoinP2PVersion(
     const api::Core& api,
     const blockchain::Type network,
+    const blockchain::p2p::Network style,
     const std::int32_t version,
     const std::set<blockchain::p2p::Service>& localServices,
     const std::string& localAddress,

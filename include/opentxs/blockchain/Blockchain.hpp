@@ -16,6 +16,7 @@
 
 #include "opentxs/Bytes.hpp"
 #include "opentxs/Types.hpp"
+#include "opentxs/blockchain/p2p/Types.hpp"
 #include "opentxs/core/Data.hpp"
 
 namespace opentxs
@@ -295,13 +296,9 @@ namespace filter
 {
 using Hash = blockchain::Hash;
 using pHash = blockchain::pHash;
+using Header = Hash;
+using pHeader = pHash;
 }  // namespace filter
-
-namespace p2p
-{
-OPENTXS_EXPORT auto DisplayService(const Service service) noexcept
-    -> std::string;
-}  // namespace p2p
 }  // namespace blockchain
 }  // namespace opentxs
 #endif

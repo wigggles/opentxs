@@ -328,7 +328,7 @@ auto Database::LoadBlockHeader(const BlockHash& hash) const noexcept(false)
 }
 
 auto Database::LoadFilter(const FilterType type, const ReadView blockHash)
-    const noexcept -> std::unique_ptr<const opentxs::blockchain::internal::GCS>
+    const noexcept -> std::unique_ptr<const opentxs::blockchain::client::GCS>
 {
     return filters_->LoadFilter(type, blockHash);
 }

@@ -9,9 +9,9 @@
 #include <memory>
 
 #include "Helpers.hpp"
-#include "internal/api/client/Client.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/api/client/Blockchain.hpp"
+#include "opentxs/api/client/Manager.hpp"
 
 namespace
 {

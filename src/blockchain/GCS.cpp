@@ -21,6 +21,7 @@
 #include <optional>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -63,7 +64,7 @@ auto GCS(
     const std::uint32_t fpRate,
     const ReadView key,
     const std::vector<OTData>& elements) noexcept
-    -> std::unique_ptr<blockchain::internal::GCS>
+    -> std::unique_ptr<blockchain::client::GCS>
 {
     try {
         auto effective = std::vector<ReadView>{};
@@ -85,7 +86,7 @@ auto GCS(
 }
 
 auto GCS(const api::Core& api, const proto::GCS& in) noexcept
-    -> std::unique_ptr<blockchain::internal::GCS>
+    -> std::unique_ptr<blockchain::client::GCS>
 {
     try {
         return std::make_unique<ReturnType>(
@@ -103,8 +104,7 @@ auto GCS(
     const std::uint32_t fpRate,
     const ReadView key,
     const std::uint32_t filterElementCount,
-    const ReadView filter) noexcept
-    -> std::unique_ptr<blockchain::internal::GCS>
+    const ReadView filter) noexcept -> std::unique_ptr<blockchain::client::GCS>
 {
     try {
         return std::make_unique<ReturnType>(
@@ -120,8 +120,7 @@ auto GCS(
     const api::Core& api,
     const blockchain::filter::Type type,
     const ReadView key,
-    const ReadView encoded) noexcept
-    -> std::unique_ptr<blockchain::internal::GCS>
+    const ReadView encoded) noexcept -> std::unique_ptr<blockchain::client::GCS>
 {
     const auto params = blockchain::internal::GetFilterParams(type);
 
@@ -142,7 +141,7 @@ auto GCS(
     const api::Core& api,
     const blockchain::filter::Type type,
     const blockchain::block::Block& block) noexcept
-    -> std::unique_ptr<blockchain::internal::GCS>
+    -> std::unique_ptr<blockchain::client::GCS>
 {
     if (blockchain::filter::Type::Basic_BIP158 == type) {
         LogOutput("opentxs::factory::")(__FUNCTION__)(
@@ -474,7 +473,6 @@ auto GCS::Match(const Targets& targets) const noexcept -> Matches
 
 auto GCS::Serialize() const noexcept -> proto::GCS
 {
-    const auto encoded = Compressed();
     auto output = proto::GCS{};
     output.set_version(version_);
     output.set_bits(bits_);
@@ -482,7 +480,7 @@ auto GCS::Serialize() const noexcept -> proto::GCS
     output.set_key(key_->data(), key_->size());
     output.set_count(count_);
     output.set_filter(
-        reinterpret_cast<const char*>(encoded.data()), encoded.size());
+        static_cast<const char*>(compressed_->data()), compressed_->size());
 
     return output;
 }

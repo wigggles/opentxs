@@ -47,7 +47,7 @@ Wallet::Account::Account(
     , ref_(ref)
     , network_(network)
     , db_(db)
-    , filter_type_(network.FilterOracle().DefaultType())
+    , filter_type_(network.FilterOracleInternal().DefaultType())
     , socket_(socket)
     , task_finished_(taskFinished)
     , internal_()
@@ -292,7 +292,7 @@ auto Wallet::Account::state_machine_hd(HDStateData& data) noexcept -> bool
 
         if (lastScanned.has_value()) {
             const auto bestFilter =
-                network_.FilterOracle().FilterTip(filter_type_);
+                network_.FilterOracleInternal().FilterTip(filter_type_);
 
             if (lastScanned == bestFilter) {
                 LogVerbose(OT_METHOD)(__FUNCTION__)(
@@ -302,7 +302,8 @@ auto Wallet::Account::state_machine_hd(HDStateData& data) noexcept -> bool
                     .Flush();
             } else {
                 const auto [ancestor, best] =
-                    network_.HeaderOracle().CommonParent(lastScanned.value());
+                    network_.HeaderOracleInternal().CommonParent(
+                        lastScanned.value());
                 lastScanned = ancestor;
 
                 if (lastScanned == best) {

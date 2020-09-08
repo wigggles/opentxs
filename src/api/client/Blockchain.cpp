@@ -18,6 +18,7 @@
 #include <stdexcept>
 #include <thread>
 #include <type_traits>
+
 #if OT_BLOCKCHAIN
 #include "core/Worker.hpp"
 #endif  // OT_BLOCKCHAIN
@@ -25,6 +26,7 @@
 #include "internal/api/client/Factory.hpp"
 #include "internal/api/client/blockchain/Blockchain.hpp"
 #if OT_BLOCKCHAIN
+#include "internal/blockchain/Params.hpp"
 #include "internal/blockchain/block/bitcoin/Bitcoin.hpp"
 #include "internal/blockchain/client/Factory.hpp"
 #endif  // OT_BLOCKCHAIN
@@ -41,6 +43,7 @@
 #include "opentxs/api/storage/Storage.hpp"
 #if OT_BLOCKCHAIN
 #include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/blockchain/p2p/Types.hpp"
 #endif  // OT_BLOCKCHAIN
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -1076,26 +1079,26 @@ auto Blockchain::start(
     const Chain type,
     const std::string& seednode) const noexcept -> bool
 {
-    if (0 == opentxs::blockchain::SupportedChains().count(type)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Unsupported chain").Flush();
+    if (Chain::UnitTest != type) {
+        if (0 == opentxs::blockchain::SupportedChains().count(type)) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Unsupported chain").Flush();
 
-        return false;
+            return false;
+        }
     }
 
     if (0 != networks_.count(type)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Chain already running").Flush();
+        LogVerbose(OT_METHOD)(__FUNCTION__)(": Chain already running").Flush();
 
         return true;
     }
 
-    switch (type) {
-        case Chain::Bitcoin:
-        case Chain::Bitcoin_testnet3:
-        case Chain::BitcoinCash:
-        case Chain::BitcoinCash_testnet3:
-        case Chain::Litecoin:
-        case Chain::Litecoin_testnet4: {
-            thread_pool_.Reset(type);
+    thread_pool_.Reset(type);
+
+    namespace p2p = opentxs::blockchain::p2p;
+
+    switch (opentxs::blockchain::params::Data::chains_.at(type).p2p_protocol_) {
+        case p2p::Protocol::bitcoin: {
             auto [it, added] = networks_.emplace(
                 type,
                 factory::BlockchainNetworkBitcoin(
@@ -1103,10 +1106,8 @@ auto Blockchain::start(
 
             return it->second->Connect();
         }
-        case Chain::Unknown:
-        case Chain::Ethereum_frontier:
-        case Chain::Ethereum_ropsten:
-        case Chain::UnitTest:
+        case p2p::Protocol::opentxs:
+        case p2p::Protocol::ethereum:
         default: {
         }
     }

@@ -4,25 +4,17 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 set(cxx-sources Dht.cpp ZAP.cpp ZMQ.cpp)
-set(
-  cxx-install-headers
-  "${opentxs_SOURCE_DIR}/include/opentxs/api/network/Dht.hpp"
-  "${opentxs_SOURCE_DIR}/include/opentxs/api/network/ZAP.hpp"
-  "${opentxs_SOURCE_DIR}/include/opentxs/api/network/ZMQ.hpp"
+set(cxx-install-headers
+    "${opentxs_SOURCE_DIR}/include/opentxs/api/network/Dht.hpp"
+    "${opentxs_SOURCE_DIR}/include/opentxs/api/network/ZAP.hpp"
+    "${opentxs_SOURCE_DIR}/include/opentxs/api/network/ZMQ.hpp"
 )
-set(
-  cxx-headers
-  ${cxx-install-headers}
-  Dht.hpp
-  ZAP.hpp
-  ZMQ.hpp
-)
+set(cxx-headers ${cxx-install-headers} Dht.hpp ZAP.hpp ZMQ.hpp)
 
 add_library(opentxs-api-network OBJECT ${cxx-sources} ${cxx-headers})
 target_link_libraries(opentxs-api-network PRIVATE opentxs::messages)
 target_include_directories(
-  opentxs-api-network SYSTEM
-  PRIVATE "${opentxs_SOURCE_DIR}/deps/"
+  opentxs-api-network SYSTEM PRIVATE "${opentxs_SOURCE_DIR}/deps/"
 )
 set_property(TARGET opentxs-api-network PROPERTY POSITION_INDEPENDENT_CODE 1)
 

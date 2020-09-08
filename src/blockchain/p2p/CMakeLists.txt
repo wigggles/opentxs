@@ -5,29 +5,31 @@
 
 add_subdirectory(bitcoin)
 
-set(
-  cxx-sources
-  "peer/Activity.cpp"
-  "peer/Address.cpp"
-  "peer/DownloadPeers.cpp"
-  "peer/SendPromises.cpp"
-  "Address.cpp"
-  "Peer.cpp"
+set(cxx-sources
+    "peer/Activity.cpp"
+    "peer/Address.cpp"
+    "peer/DownloadPeers.cpp"
+    "peer/SendPromises.cpp"
+    "peer/TCP.cpp"
+    "peer/ZMQ.cpp"
+    "peer/ZMQIncoming.cpp"
+    "Address.cpp"
+    "Peer.cpp"
 )
 
 set(cxx-headers "${opentxs_SOURCE_DIR}/src/internal/blockchain/p2p/P2P.hpp"
-                "Address.hpp" "Peer.hpp")
+                "Address.hpp" "Peer.hpp"
+)
 
-set(
-  cxx-install-headers
-  "${opentxs_SOURCE_DIR}/include/opentxs/blockchain/p2p/Address.hpp"
-  "${opentxs_SOURCE_DIR}/include/opentxs/blockchain/p2p/Peer.hpp"
+set(cxx-install-headers
+    "${opentxs_SOURCE_DIR}/include/opentxs/blockchain/p2p/Address.hpp"
+    "${opentxs_SOURCE_DIR}/include/opentxs/blockchain/p2p/Peer.hpp"
+    "${opentxs_SOURCE_DIR}/include/opentxs/blockchain/p2p/Types.hpp"
 )
 
 add_library(opentxs-blockchain-p2p OBJECT ${cxx-sources} ${cxx-headers})
 target_link_libraries(
-  opentxs-blockchain-p2p
-  PRIVATE Boost::headers opentxs::messages
+  opentxs-blockchain-p2p PRIVATE Boost::headers opentxs::messages
 )
 set_property(TARGET opentxs-blockchain-p2p PROPERTY POSITION_INDEPENDENT_CODE 1)
 

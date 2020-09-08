@@ -7,8 +7,8 @@
 
 #include "1_Internal.hpp"
 #include "OTTestEnvironment.hpp"  // IWYU pragma: keep
-#include "internal/api/client/Client.hpp"
 #include "opentxs/OT.hpp"
+#include "opentxs/api/Context.hpp"
 
 namespace b = ot::blockchain;
 
@@ -17,11 +17,10 @@ namespace
 class Test_StartStop : public ::testing::Test
 {
 public:
-    const ot::api::client::internal::Manager& api_;
+    const ot::api::client::Manager& api_;
 
     Test_StartStop()
-        : api_(dynamic_cast<const ot::api::client::internal::Manager&>(
-              ot::Context().StartClient(OTTestEnvironment::test_args_, 0)))
+        : api_(ot::Context().StartClient(OTTestEnvironment::test_args_, 0))
     {
     }
 };

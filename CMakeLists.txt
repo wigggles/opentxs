@@ -7,6 +7,7 @@ cmake_minimum_required(VERSION 3.15)
 cmake_policy(SET CMP0091 NEW)
 project(opentxs)
 list(APPEND CMAKE_MODULE_PATH "${${PROJECT_NAME}_SOURCE_DIR}/cmake")
+list(APPEND CMAKE_MODULE_PATH "${${PROJECT_NAME}_SOURCE_DIR}")
 
 # -----------------------------------------------------------------------------
 # Setup
@@ -178,8 +179,10 @@ endif()
 find_package(unofficial-sodium REQUIRED)
 find_package(Protobuf REQUIRED)
 find_package(ZLIB REQUIRED)
+# Boost versions before 1.72 have a bug in the multiprecision package
+# https://github.com/boostorg/multiprecision/issues/174
 find_package(
-  Boost 1.66.0 REQUIRED
+  Boost 1.72.0 REQUIRED
   COMPONENTS system filesystem
   OPTIONAL_COMPONENTS stacktrace_basic
 )
@@ -446,6 +449,8 @@ install(
 
 # -----------------------------------------------------------------------------
 # Build source
+
+include(opentxs-link)
 
 include_directories(
   "${opentxs_BINARY_DIR}/include"

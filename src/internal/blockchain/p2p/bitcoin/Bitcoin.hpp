@@ -8,6 +8,7 @@
 #include <boost/asio.hpp>
 #include <boost/asio/ip/address_v6.hpp>
 #include <boost/endian/buffers.hpp>
+#include <boost/endian/conversion.hpp>
 #include <array>
 #include <cstddef>
 #include <cstdint>
@@ -20,6 +21,7 @@
 #include "internal/blockchain/bitcoin/Bitcoin.hpp"
 #include "internal/blockchain/p2p/P2P.hpp"
 #include "opentxs/Types.hpp"
+#include "opentxs/blockchain/p2p/Types.hpp"
 #include "opentxs/core/Data.hpp"
 
 namespace opentxs

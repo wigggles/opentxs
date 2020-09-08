@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <iosfwd>
 #include <memory>
+#include <type_traits>
 #include <utility>
 
 #include "internal/blockchain/Blockchain.hpp"
@@ -22,6 +23,7 @@
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/blockchain/block/Header.hpp"
+#include "opentxs/blockchain/client/FilterOracle.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
@@ -42,7 +44,7 @@ Filters::Filters(
     , blank_position_(make_blank<block::Position>::value(api))
     , lock_()
 {
-    import_genesis(common_.BlockPolicy(), chain);
+    import_genesis(chain);
 }
 
 auto Filters::CurrentHeaderTip(const filter::Type type) const noexcept
@@ -70,65 +72,64 @@ auto Filters::CurrentTip(const filter::Type type) const noexcept
     return output;
 }
 
-auto Filters::import_genesis(
-    const api::client::blockchain::BlockStorage mode,
-    const blockchain::Type chain) const noexcept -> void
+auto Filters::import_genesis(const blockchain::Type chain) const noexcept
+    -> void
 {
-    const auto style{
-        api::client::blockchain::BlockStorage::All == mode
-            ? filter::Type::Extended_opentxs
-            : blockchain::internal::DefaultFilter(chain)};
-    const auto needHeader =
-        blank_position_.first == CurrentHeaderTip(style).first;
-    const auto needFilter = blank_position_.first == CurrentTip(style).first;
+    for (const auto& [style, genesis] :
+         params::Data::genesis_filters_.at(chain)) {
+        const auto needHeader =
+            blank_position_.first == CurrentHeaderTip(style).first;
+        const auto needFilter =
+            blank_position_.first == CurrentTip(style).first;
 
-    if (false == (needHeader || needFilter)) { return; }
+        if (false == (needHeader || needFilter)) { return; }
 
-    const auto pBlock = factory::GenesisBlockHeader(api_, chain);
+        const auto pBlock = factory::GenesisBlockHeader(api_, chain);
 
-    OT_ASSERT(pBlock);
+        OT_ASSERT(pBlock);
 
-    const auto& block = *pBlock;
-    const auto& blockHash = block.Hash();
-    const auto& genesis = params::Data::genesis_filters_.at(chain).at(style);
-    const auto bytes = api_.Factory().Data(genesis.second, StringStyle::Hex);
-    auto gcs = std::unique_ptr<const blockchain::internal::GCS>{factory::GCS(
-        api_,
-        19,
-        784931,
-        blockchain::internal::BlockHashToFilterKey(blockHash.Bytes()),
-        1,
-        bytes->Bytes())};
+        const auto& block = *pBlock;
+        const auto& blockHash = block.Hash();
+        const auto bytes =
+            api_.Factory().Data(genesis.second, StringStyle::Hex);
+        auto gcs = std::unique_ptr<const client::GCS>{factory::GCS(
+            api_,
+            style,
+            blockchain::internal::BlockHashToFilterKey(blockHash.Bytes()),
+            bytes->Bytes())};
 
-    OT_ASSERT(gcs);
+        OT_ASSERT(gcs);
 
-    const auto filterHash = gcs->Hash();
-    auto success{false};
+        const auto filterHash = gcs->Hash();
+        auto success{false};
 
-    if (needHeader) {
-        auto header = api_.Factory().Data(genesis.first, StringStyle::Hex);
-        auto headers = std::vector<client::internal::FilterDatabase::Header>{
-            {blockHash, std::move(header), filterHash->Bytes()}};
-        success = common_.StoreFilterHeaders(style, headers);
+        if (needHeader) {
+            auto header = api_.Factory().Data(genesis.first, StringStyle::Hex);
+            auto headers =
+                std::vector<client::internal::FilterDatabase::Header>{
+                    {blockHash, std::move(header), filterHash->Bytes()}};
+            success = common_.StoreFilterHeaders(style, headers);
 
-        OT_ASSERT(success);
+            OT_ASSERT(success);
 
-        success = SetHeaderTip(style, block.Position());
+            success = SetHeaderTip(style, block.Position());
 
-        OT_ASSERT(success);
-    }
+            OT_ASSERT(success);
+        }
 
-    if (needFilter) {
-        auto filters = std::vector<client::internal::FilterDatabase::Filter>{};
-        filters.emplace_back(blockHash.Bytes(), std::move(gcs));
+        if (needFilter) {
+            auto filters =
+                std::vector<client::internal::FilterDatabase::Filter>{};
+            filters.emplace_back(blockHash.Bytes(), std::move(gcs));
 
-        success = common_.StoreFilters(style, filters);
+            success = common_.StoreFilters(style, filters);
 
-        OT_ASSERT(success);
+            OT_ASSERT(success);
 
-        success = SetTip(style, block.Position());
+            success = SetTip(style, block.Position());
 
-        OT_ASSERT(success);
+            OT_ASSERT(success);
+        }
     }
 }
 

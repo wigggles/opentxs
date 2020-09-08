@@ -6,6 +6,7 @@
 #pragma once
 
 #include <boost/endian/buffers.hpp>
+#include <boost/endian/conversion.hpp>
 #include <array>
 #include <cstdint>
 #include <functional>
@@ -39,10 +40,20 @@ namespace block
 class Block;
 }  // namespace block
 
+namespace client
+{
+struct GCS;
+}  // namespace client
+
 class BloomFilter;
 class NumericHash;
 class Work;
 }  // namespace blockchain
+
+namespace proto
+{
+class GCS;
+}  // namespace proto
 }  // namespace opentxs
 
 namespace be = boost::endian;
@@ -121,27 +132,6 @@ private:
     BitWriter() = delete;
 };
 
-struct GCS {
-    using Targets = std::vector<ReadView>;
-    using Matches = std::vector<Targets::const_iterator>;
-
-    virtual auto Compressed() const noexcept -> Space = 0;
-    virtual auto ElementCount() const noexcept -> std::uint32_t = 0;
-    virtual auto Encode() const noexcept -> OTData = 0;
-    virtual auto Hash() const noexcept -> OTData = 0;
-    virtual auto Header(const ReadView previous) const noexcept -> OTData = 0;
-    virtual auto Match(const Targets&) const noexcept -> Matches = 0;
-    virtual auto Serialize() const noexcept -> proto::GCS = 0;
-    virtual auto Test(const Data& target) const noexcept -> bool = 0;
-    virtual auto Test(const ReadView target) const noexcept -> bool = 0;
-    virtual auto Test(const std::vector<OTData>& targets) const noexcept
-        -> bool = 0;
-    virtual auto Test(const std::vector<Space>& targets) const noexcept
-        -> bool = 0;
-
-    virtual ~GCS() = default;
-};
-
 struct SerializedBloomFilter {
     be::little_uint32_buf_t function_count_;
     be::little_uint32_buf_t tweak_;
@@ -217,30 +207,29 @@ OPENTXS_EXPORT auto GCS(
     const std::uint32_t fpRate,
     const ReadView key,
     const std::vector<OTData>& elements) noexcept
-    -> std::unique_ptr<blockchain::internal::GCS>;
+    -> std::unique_ptr<blockchain::client::GCS>;
 OPENTXS_EXPORT auto GCS(
     const api::Core& api,
     const blockchain::filter::Type type,
     const blockchain::block::Block& block) noexcept
-    -> std::unique_ptr<blockchain::internal::GCS>;
+    -> std::unique_ptr<blockchain::client::GCS>;
 OPENTXS_EXPORT auto GCS(
     const api::Core& api,
     const proto::GCS& serialized) noexcept
-    -> std::unique_ptr<blockchain::internal::GCS>;
+    -> std::unique_ptr<blockchain::client::GCS>;
 OPENTXS_EXPORT auto GCS(
     const api::Core& api,
     const std::uint8_t bits,
     const std::uint32_t fpRate,
     const ReadView key,
     const std::uint32_t filterElementCount,
-    const ReadView filter) noexcept
-    -> std::unique_ptr<blockchain::internal::GCS>;
+    const ReadView filter) noexcept -> std::unique_ptr<blockchain::client::GCS>;
 OPENTXS_EXPORT auto GCS(
     const api::Core& api,
     const blockchain::filter::Type type,
     const ReadView key,
     const ReadView encoded) noexcept
-    -> std::unique_ptr<blockchain::internal::GCS>;
+    -> std::unique_ptr<blockchain::client::GCS>;
 OPENTXS_EXPORT auto NumericHash(const blockchain::block::Hash& hash) noexcept
     -> std::unique_ptr<blockchain::NumericHash>;
 OPENTXS_EXPORT auto NumericHashNBits(const std::uint32_t nBits) noexcept

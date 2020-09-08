@@ -647,11 +647,10 @@ auto Input::ExtractElements(const filter::Type style) const noexcept
 {
     auto output = std::vector<Space>{};
 
+    if (Script::Position::Coinbase == script_->Role()) { return output; }
+
     switch (style) {
         case filter::Type::Extended_opentxs: {
-            if (Script::Position::Coinbase == script_->Role()) {
-                return output;
-            }
 
             LogTrace(OT_METHOD)(__FUNCTION__)(": processing input script")
                 .Flush();

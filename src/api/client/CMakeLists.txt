@@ -5,52 +5,49 @@
 
 add_subdirectory(blockchain)
 
-set(
-  cxx-sources
-  Activity.cpp
-  Blockchain.cpp
-  Client.cpp
-  Contacts.cpp
-  Factory.cpp
-  Issuer.cpp
-  Manager.cpp
-  OTX.cpp
-  Pair.cpp
-  ServerAction.cpp
-  UI.cpp
-  Wallet.cpp
-  Workflow.cpp
+set(cxx-sources
+    Activity.cpp
+    Blockchain.cpp
+    Client.cpp
+    Contacts.cpp
+    Factory.cpp
+    Issuer.cpp
+    Manager.cpp
+    OTX.cpp
+    Pair.cpp
+    ServerAction.cpp
+    UI.cpp
+    Wallet.cpp
+    Workflow.cpp
 )
-set(
-  cxx-install-headers
-  "${opentxs_SOURCE_DIR}/include/opentxs/api/client/Activity.hpp"
-  "${opentxs_SOURCE_DIR}/include/opentxs/api/client/Blockchain.hpp"
-  "${opentxs_SOURCE_DIR}/include/opentxs/api/client/Contacts.hpp"
-  "${opentxs_SOURCE_DIR}/include/opentxs/api/client/Issuer.hpp"
-  "${opentxs_SOURCE_DIR}/include/opentxs/api/client/Manager.hpp"
-  "${opentxs_SOURCE_DIR}/include/opentxs/api/client/OTX.hpp"
-  "${opentxs_SOURCE_DIR}/include/opentxs/api/client/Pair.hpp"
-  "${opentxs_SOURCE_DIR}/include/opentxs/api/client/ServerAction.hpp"
-  "${opentxs_SOURCE_DIR}/include/opentxs/api/client/UI.hpp"
-  "${opentxs_SOURCE_DIR}/include/opentxs/api/client/Workflow.hpp"
+set(cxx-install-headers
+    "${opentxs_SOURCE_DIR}/include/opentxs/api/client/Activity.hpp"
+    "${opentxs_SOURCE_DIR}/include/opentxs/api/client/Blockchain.hpp"
+    "${opentxs_SOURCE_DIR}/include/opentxs/api/client/Contacts.hpp"
+    "${opentxs_SOURCE_DIR}/include/opentxs/api/client/Issuer.hpp"
+    "${opentxs_SOURCE_DIR}/include/opentxs/api/client/Manager.hpp"
+    "${opentxs_SOURCE_DIR}/include/opentxs/api/client/OTX.hpp"
+    "${opentxs_SOURCE_DIR}/include/opentxs/api/client/Pair.hpp"
+    "${opentxs_SOURCE_DIR}/include/opentxs/api/client/ServerAction.hpp"
+    "${opentxs_SOURCE_DIR}/include/opentxs/api/client/UI.hpp"
+    "${opentxs_SOURCE_DIR}/include/opentxs/api/client/Workflow.hpp"
 )
-set(
-  cxx-headers
-  ${cxx-install-headers}
-  "${opentxs_SOURCE_DIR}/src/internal/api/client/Client.hpp"
-  "${opentxs_SOURCE_DIR}/src/internal/api/client/Factory.hpp"
-  Activity.hpp
-  Blockchain.hpp
-  Contacts.hpp
-  Factory.hpp
-  Issuer.hpp
-  Manager.hpp
-  OTX.hpp
-  Pair.hpp
-  ServerAction.hpp
-  UI.hpp
-  Wallet.hpp
-  Workflow.hpp
+set(cxx-headers
+    ${cxx-install-headers}
+    "${opentxs_SOURCE_DIR}/src/internal/api/client/Client.hpp"
+    "${opentxs_SOURCE_DIR}/src/internal/api/client/Factory.hpp"
+    Activity.hpp
+    Blockchain.hpp
+    Contacts.hpp
+    Factory.hpp
+    Issuer.hpp
+    Manager.hpp
+    OTX.hpp
+    Pair.hpp
+    ServerAction.hpp
+    UI.hpp
+    Wallet.hpp
+    Workflow.hpp
 )
 
 add_library(opentxs-api-client OBJECT ${cxx-sources} ${cxx-headers})
@@ -60,13 +57,11 @@ if(OT_BLOCKCHAIN_EXPORT)
 endif()
 
 target_link_libraries(
-  opentxs-api-client
-  PRIVATE
-    Boost::headers opentxs::messages opentxs-api-client-blockchain-database
+  opentxs-api-client PRIVATE Boost::headers opentxs::messages
+                             opentxs-api-client-blockchain-database
 )
 target_include_directories(
-  opentxs-api-client SYSTEM
-  PRIVATE "${opentxs_SOURCE_DIR}/deps/"
+  opentxs-api-client SYSTEM PRIVATE "${opentxs_SOURCE_DIR}/deps/"
 )
 set_property(TARGET opentxs-api-client PROPERTY POSITION_INDEPENDENT_CODE 1)
 

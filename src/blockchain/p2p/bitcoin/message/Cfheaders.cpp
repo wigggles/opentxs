@@ -17,6 +17,9 @@
 #include "internal/blockchain/p2p/bitcoin/Bitcoin.hpp"
 #include "internal/blockchain/p2p/bitcoin/message/Message.hpp"
 #include "opentxs/Pimpl.hpp"
+#include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/blockchain/p2p/Types.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
@@ -112,8 +115,8 @@ auto BitcoinP2PCfheaders(
     const api::Core& api,
     const blockchain::Type network,
     const blockchain::filter::Type type,
-    const blockchain::filter::Hash& stop,
-    const blockchain::filter::Hash& previous,
+    const blockchain::block::Hash& stop,
+    const ReadView previous,
     const std::vector<blockchain::filter::pHash>& headers)
     -> blockchain::p2p::bitcoin::message::internal::Cfheaders*
 {
@@ -131,12 +134,12 @@ Cfheaders::Cfheaders(
     const blockchain::Type network,
     const filter::Type type,
     const filter::Hash& stop,
-    const filter::Hash& previous,
+    const ReadView previousHeader,
     const std::vector<filter::pHash>& headers) noexcept
     : Message(api, network, bitcoin::Command::cfheaders)
     , type_(type)
     , stop_(stop)
-    , previous_(previous)
+    , previous_(api_.Factory().Data(previousHeader))
     , payload_(headers)
 {
     init_hash();

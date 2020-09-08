@@ -635,6 +635,7 @@ auto Sodium::SharedSecret(
                     static_cast<const unsigned char*>(privateBytes.data()),
                     publicEd.data());
 }
+#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 
 auto Sodium::sha1(
     const std::uint8_t* input,
@@ -649,6 +650,7 @@ auto Sodium::sha1(
     return true;
 }
 
+#if OT_CRYPTO_SUPPORTED_KEY_ED25519
 auto Sodium::Sign(
     const api::internal::Core& api,
     const ReadView plaintext,

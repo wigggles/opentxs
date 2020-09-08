@@ -21,6 +21,7 @@
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/blockchain/client/HeaderOracle.hpp"
 #include "opentxs/core/Data.hpp"
 
 namespace opentxs
@@ -34,6 +35,11 @@ namespace blockchain
 {
 namespace block
 {
+namespace bitcoin
+{
+class Header;
+}  // namespace bitcoin
+
 class Header;
 }  // namespace block
 
@@ -55,7 +61,15 @@ public:
     auto BestHash(const block::Height height) const noexcept
         -> block::pHash final;
     auto BestHashes(const block::Height start, const std::size_t limit = 0)
-        const noexcept -> std::vector<block::pHash> final;
+        const noexcept -> Hashes final;
+    auto BestHashes(
+        const block::Height start,
+        const block::Hash& stop,
+        const std::size_t limit = 0) const noexcept -> Hashes final;
+    auto BestHashes(
+        const Hashes& previous,
+        const block::Hash& stop,
+        const std::size_t limit) const noexcept -> Hashes final;
     auto CalculateReorg(const block::Position tip) const noexcept(false)
         -> std::vector<block::Position> final;
     auto CommonParent(const block::Position& position) const noexcept
@@ -65,9 +79,11 @@ public:
     auto IsInBestChain(const block::Hash& hash) const noexcept -> bool final;
     auto IsInBestChain(const block::Position& position) const noexcept
         -> bool final;
+    auto LoadBitcoinHeader(const block::Hash& hash) const noexcept
+        -> std::unique_ptr<block::bitcoin::Header> final;
     auto LoadHeader(const block::Hash& hash) const noexcept
         -> std::unique_ptr<block::Header> final;
-    auto RecentHashes() const noexcept -> std::vector<block::pHash> final
+    auto RecentHashes() const noexcept -> Hashes final
     {
         return database_.RecentHashes();
     }
@@ -108,8 +124,13 @@ private:
         const block::Header& candidate) noexcept -> bool;
 
     auto best_chain(const Lock& lock) const noexcept -> block::Position;
+    auto best_hashes(
+        const Lock& lock,
+        const block::Height start,
+        const block::Hash& stop,
+        const std::size_t limit) const noexcept -> Hashes;
     auto is_in_best_chain(const Lock& lock, const block::Hash& hash)
-        const noexcept -> bool;
+        const noexcept -> std::pair<bool, block::Height>;
     auto is_in_best_chain(const Lock& lock, const block::Position& position)
         const noexcept -> bool;
     auto is_in_best_chain(

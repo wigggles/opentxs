@@ -6,37 +6,29 @@
 add_subdirectory(basket)
 add_subdirectory(peer)
 
-set(
-  cxx-sources
-  CurrencyContract.cpp
-  SecurityContract.cpp
-  ServerContract.cpp
-  Signable.cpp
-  UnitDefinition.cpp
+set(cxx-sources CurrencyContract.cpp SecurityContract.cpp ServerContract.cpp
+                Signable.cpp UnitDefinition.cpp
 )
-set(
-  cxx-install-headers
-  "${opentxs_SOURCE_DIR}/include/opentxs/core/contract/CurrencyContract.hpp"
-  "${opentxs_SOURCE_DIR}/include/opentxs/core/contract/SecurityContract.hpp"
-  "${opentxs_SOURCE_DIR}/include/opentxs/core/contract/ServerContract.hpp"
-  "${opentxs_SOURCE_DIR}/include/opentxs/core/contract/Signable.hpp"
-  "${opentxs_SOURCE_DIR}/include/opentxs/core/contract/UnitDefinition.hpp"
+set(cxx-install-headers
+    "${opentxs_SOURCE_DIR}/include/opentxs/core/contract/CurrencyContract.hpp"
+    "${opentxs_SOURCE_DIR}/include/opentxs/core/contract/SecurityContract.hpp"
+    "${opentxs_SOURCE_DIR}/include/opentxs/core/contract/ServerContract.hpp"
+    "${opentxs_SOURCE_DIR}/include/opentxs/core/contract/Signable.hpp"
+    "${opentxs_SOURCE_DIR}/include/opentxs/core/contract/UnitDefinition.hpp"
 )
-set(
-  cxx-headers
-  ${cxx-install-headers}
-  "${opentxs_SOURCE_DIR}/src/internal/core/contract/Contract.hpp"
-  CurrencyContract.hpp
-  SecurityContract.hpp
-  ServerContract.hpp
-  Signable.hpp
-  UnitDefinition.hpp
+set(cxx-headers
+    ${cxx-install-headers}
+    "${opentxs_SOURCE_DIR}/src/internal/core/contract/Contract.hpp"
+    CurrencyContract.hpp
+    SecurityContract.hpp
+    ServerContract.hpp
+    Signable.hpp
+    UnitDefinition.hpp
 )
 add_library(opentxs-core-contract OBJECT ${cxx-sources} ${cxx-headers})
 target_link_libraries(opentxs-core-contract PRIVATE opentxs::messages)
 target_include_directories(
-  opentxs-core-contract SYSTEM
-  PRIVATE "${opentxs_SOURCE_DIR}/deps/"
+  opentxs-core-contract SYSTEM PRIVATE "${opentxs_SOURCE_DIR}/deps/"
 )
 set_property(TARGET opentxs-core-contract PROPERTY POSITION_INDEPENDENT_CODE 1)
 

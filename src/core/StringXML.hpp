@@ -29,7 +29,7 @@ namespace opentxs::implementation
 class StringXML final : virtual public opentxs::StringXML, public String
 {
 public:
-    operator irr::io::IFileReadCallBack*() final;
+    operator irr::io::IFileReadCallBack *() final;
 
     auto read(void* buffer, std::uint32_t sizeToRead) -> std::int32_t final;
     auto getSize() -> std::int32_t final;

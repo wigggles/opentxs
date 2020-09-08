@@ -12,6 +12,15 @@
 
 namespace opentxs
 {
+namespace blockchain
+{
+namespace client
+{
+class FilterOracle;
+class HeaderOracle;
+}  // namespace client
+}  // namespace blockchain
+
 namespace identifier
 {
 class Nym;
@@ -27,22 +36,29 @@ class Network
 public:
     using PendingOutgoing = std::future<block::pTxid>;
 
-    virtual auto AddPeer(const p2p::Address& address) const noexcept
-        -> bool = 0;
-    virtual auto GetBalance() const noexcept -> Balance = 0;
-    virtual auto GetConfirmations(const std::string& txid) const noexcept
-        -> ChainHeight = 0;
-    virtual auto GetHeight() const noexcept -> ChainHeight = 0;
-    virtual auto GetPeerCount() const noexcept -> std::size_t = 0;
-    virtual auto GetType() const noexcept -> Type = 0;
-    virtual auto SendToAddress(
+    OPENTXS_EXPORT virtual auto AddPeer(
+        const p2p::Address& address) const noexcept -> bool = 0;
+    OPENTXS_EXPORT virtual auto FilterOracle() const noexcept
+        -> const client::FilterOracle& = 0;
+    OPENTXS_EXPORT virtual auto GetBalance() const noexcept -> Balance = 0;
+    OPENTXS_EXPORT virtual auto GetConfirmations(
+        const std::string& txid) const noexcept -> ChainHeight = 0;
+    OPENTXS_EXPORT virtual auto GetHeight() const noexcept -> ChainHeight = 0;
+    OPENTXS_EXPORT virtual auto GetPeerCount() const noexcept
+        -> std::size_t = 0;
+    OPENTXS_EXPORT virtual auto GetType() const noexcept -> Type = 0;
+    OPENTXS_EXPORT virtual auto HeaderOracle() const noexcept
+        -> const client::HeaderOracle& = 0;
+    OPENTXS_EXPORT virtual auto Listen(
+        const p2p::Address& address) const noexcept -> bool = 0;
+    OPENTXS_EXPORT virtual auto SendToAddress(
         const identifier::Nym& sender,
         const std::string& address,
         const Amount amount,
         const std::string& memo = {}) const noexcept -> PendingOutgoing = 0;
 
-    virtual auto Connect() noexcept -> bool = 0;
-    virtual auto Disconnect() noexcept -> bool = 0;
+    OPENTXS_EXPORT virtual auto Connect() noexcept -> bool = 0;
+    OPENTXS_EXPORT virtual auto Disconnect() noexcept -> bool = 0;
 
     virtual ~Network() = default;
 

@@ -4,22 +4,19 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 set(cxx-sources Client.cpp Server.cpp)
-set(
-  cxx-install-headers
-  "${opentxs_SOURCE_DIR}/include/opentxs/network/zeromq/curve/Client.hpp"
-  "${opentxs_SOURCE_DIR}/include/opentxs/network/zeromq/curve/Server.hpp"
+set(cxx-install-headers
+    "${opentxs_SOURCE_DIR}/include/opentxs/network/zeromq/curve/Client.hpp"
+    "${opentxs_SOURCE_DIR}/include/opentxs/network/zeromq/curve/Server.hpp"
 )
 set(cxx-headers ${cxx-install-headers} Client.hpp Server.hpp)
 
 add_library(opentxs-network-zeromq-curve OBJECT ${cxx-sources} ${cxx-headers})
 
 target_link_libraries(
-  opentxs-network-zeromq-curve
-  PRIVATE opentxs::messages "${OT_ZMQ_TARGET}"
+  opentxs-network-zeromq-curve PRIVATE opentxs::messages "${OT_ZMQ_TARGET}"
 )
 set_property(
-  TARGET opentxs-network-zeromq-curve
-  PROPERTY POSITION_INDEPENDENT_CODE 1
+  TARGET opentxs-network-zeromq-curve PROPERTY POSITION_INDEPENDENT_CODE 1
 )
 
 install(

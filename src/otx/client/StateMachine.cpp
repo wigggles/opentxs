@@ -53,6 +53,7 @@
 #include "opentxs/protobuf/ContactEnums.pb.h"
 #include "opentxs/protobuf/UnitDefinition.pb.h"
 #include "otx/client/StateMachine.hpp"
+#include "util/Blank.hpp"
 
 #define CONTRACT_DOWNLOAD_MILLISECONDS 10000
 #define NYM_REGISTRATION_MILLISECONDS 10000

@@ -5,52 +5,44 @@
 
 add_subdirectory(base58)
 
-set(
-  cxx-sources
-  Asymmetric.cpp
-  Config.cpp
-  Crypto.cpp
-  Encode.cpp
-  Hash.cpp
-  Symmetric.cpp
+set(cxx-sources Asymmetric.cpp Config.cpp Crypto.cpp Encode.cpp Hash.cpp
+                Symmetric.cpp
 )
-set(
-  cxx-install-headers
-  "${opentxs_SOURCE_DIR}/include/opentxs/api/crypto/Asymmetric.hpp"
-  "${opentxs_SOURCE_DIR}/include/opentxs/api/crypto/Config.hpp"
-  "${opentxs_SOURCE_DIR}/include/opentxs/api/crypto/Crypto.hpp"
-  "${opentxs_SOURCE_DIR}/include/opentxs/api/crypto/Encode.hpp"
-  "${opentxs_SOURCE_DIR}/include/opentxs/api/crypto/Hash.hpp"
-  "${opentxs_SOURCE_DIR}/include/opentxs/api/crypto/Symmetric.hpp"
-  "${opentxs_SOURCE_DIR}/include/opentxs/api/crypto/Util.hpp"
+set(cxx-install-headers
+    "${opentxs_SOURCE_DIR}/include/opentxs/api/crypto/Asymmetric.hpp"
+    "${opentxs_SOURCE_DIR}/include/opentxs/api/crypto/Config.hpp"
+    "${opentxs_SOURCE_DIR}/include/opentxs/api/crypto/Crypto.hpp"
+    "${opentxs_SOURCE_DIR}/include/opentxs/api/crypto/Encode.hpp"
+    "${opentxs_SOURCE_DIR}/include/opentxs/api/crypto/Hash.hpp"
+    "${opentxs_SOURCE_DIR}/include/opentxs/api/crypto/Symmetric.hpp"
+    "${opentxs_SOURCE_DIR}/include/opentxs/api/crypto/Util.hpp"
 )
-set(
-  cxx-headers
-  ${cxx-install-headers}
-  Asymmetric.hpp
-  Config.hpp
-  Crypto.hpp
-  Encode.hpp
-  Hash.hpp
-  Symmetric.hpp
+set(cxx-headers
+    ${cxx-install-headers}
+    Asymmetric.hpp
+    Config.hpp
+    Crypto.hpp
+    Encode.hpp
+    Hash.hpp
+    Symmetric.hpp
 )
 
 add_library(opentxs-api-crypto OBJECT ${cxx-sources} ${cxx-headers})
 target_include_directories(
-  opentxs-api-crypto SYSTEM
-  PRIVATE "${opentxs_SOURCE_DIR}/deps/"
+  opentxs-api-crypto SYSTEM PRIVATE "${opentxs_SOURCE_DIR}/deps/"
 )
 target_link_libraries(
-  opentxs-api-crypto
-  PRIVATE Boost::headers opentxs::messages
+  opentxs-api-crypto PRIVATE Boost::headers opentxs::messages
 )
 
 if(OPENSSL_EXPORT)
-  target_compile_definitions(opentxs-api-crypto PUBLIC
-                             OT_CRYPTO_USING_OPENSSL=1)
+  target_compile_definitions(
+    opentxs-api-crypto PUBLIC OT_CRYPTO_USING_OPENSSL=1
+  )
 else()
-  target_compile_definitions(opentxs-api-crypto PUBLIC
-                             OT_CRYPTO_USING_OPENSSL=0)
+  target_compile_definitions(
+    opentxs-api-crypto PUBLIC OT_CRYPTO_USING_OPENSSL=0
+  )
 endif()
 
 set_property(TARGET opentxs-api-crypto PROPERTY POSITION_INDEPENDENT_CODE 1)

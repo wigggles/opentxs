@@ -40,7 +40,7 @@ public:
 
     OPENTXS_EXPORT static const VersionNumber DefaultVersion;
 
-    OPENTXS_EXPORT virtual operator const crypto::key::Asymmetric&()
+    OPENTXS_EXPORT virtual operator const crypto::key::Asymmetric &()
         const noexcept = 0;
 
     OPENTXS_EXPORT virtual bool operator==(

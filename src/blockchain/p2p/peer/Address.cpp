@@ -44,6 +44,13 @@ auto Peer::Address::ID() const noexcept -> OTIdentifier
     return address_->ID();
 }
 
+auto Peer::Address::Incoming() const noexcept -> bool
+{
+    Lock lock(lock_);
+
+    return address_->Incoming();
+}
+
 auto Peer::Address::Port() const noexcept -> std::uint16_t
 {
     Lock lock(lock_);

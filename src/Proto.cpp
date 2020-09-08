@@ -5,6 +5,15 @@
 
 #include "opentxs/Proto.tpp"  // IWYU pragma: associated
 
+#include <google/protobuf/repeated_field.h>
+
+template class google::protobuf::RepeatedField<unsigned int>;
+template class google::protobuf::RepeatedField<int>;
+template class google::protobuf::RepeatedField<unsigned long>;
+
+// TODO I have no idea why those lines above are necessary to fix linking errors
+// but they are.
+
 namespace opentxs
 {
 auto operator==(const ProtobufType& lhs, const ProtobufType& rhs) noexcept

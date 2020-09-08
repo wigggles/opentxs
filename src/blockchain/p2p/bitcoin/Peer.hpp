@@ -25,6 +25,7 @@
 #include "internal/blockchain/p2p/bitcoin/Bitcoin.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/blockchain/p2p/Types.hpp"
 
 namespace opentxs
 {

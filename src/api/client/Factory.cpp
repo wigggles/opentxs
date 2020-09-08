@@ -72,8 +72,7 @@ auto Factory::BlockHeader(const proto::BlockchainBlockHeader& serialized) const
         case opentxs::blockchain::Type::Litecoin:
         case opentxs::blockchain::Type::Litecoin_testnet4:
         case opentxs::blockchain::Type::UnitTest: {
-            return std::unique_ptr<opentxs::blockchain::block::Header>(
-                factory::BitcoinBlockHeader(client_, serialized));
+            return factory::BitcoinBlockHeader(client_, serialized);
         }
         case opentxs::blockchain::Type::Unknown:
         case opentxs::blockchain::Type::Ethereum_frontier:
@@ -122,13 +121,8 @@ auto Factory::BlockHeaderForUnitTests(
     const opentxs::blockchain::block::Height height) const
     -> std::unique_ptr<opentxs::blockchain::block::Header>
 {
-    return std::unique_ptr<opentxs::blockchain::block::Header>(
-        factory::BitcoinBlockHeader(
-            client_,
-            opentxs::blockchain::Type::UnitTest,
-            hash,
-            parent,
-            height));
+    return factory::BitcoinBlockHeader(
+        client_, opentxs::blockchain::Type::UnitTest, hash, parent, height);
 }
 #endif  // OT_BLOCKCHAIN
 

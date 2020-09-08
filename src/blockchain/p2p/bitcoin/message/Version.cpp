@@ -179,6 +179,7 @@ auto BitcoinP2PVersion(
 auto BitcoinP2PVersion(
     const api::Core& api,
     const blockchain::Type network,
+    const blockchain::p2p::Network style,
     const std::int32_t version,
     const std::set<blockchain::p2p::Service>& localServices,
     const std::string& localAddress,
@@ -196,14 +197,24 @@ auto BitcoinP2PVersion(
     tcp::endpoint local{};
     tcp::endpoint remote{};
 
-    try {
-        local = tcp::endpoint(ip::make_address_v6(localAddress), localPort);
-    } catch (...) {
-    }
+    if (blockchain::p2p::Network::zmq == style) {
+        local =
+            tcp::endpoint(ip::make_address_v6("::FFFF:7f0e:5801"), localPort);
+        remote =
+            tcp::endpoint(ip::make_address_v6("::FFFF:7f0e:5802"), remotePort);
+    } else {
+        try {
+            local = tcp::endpoint(ip::make_address_v6(localAddress), localPort);
+        } catch (...) {
+            OT_FAIL;
+        }
 
-    try {
-        remote = tcp::endpoint(ip::make_address_v6(remoteAddress), remotePort);
-    } catch (...) {
+        try {
+            remote =
+                tcp::endpoint(ip::make_address_v6(remoteAddress), remotePort);
+        } catch (...) {
+            OT_FAIL;
+        }
     }
 
     return new ReturnType(

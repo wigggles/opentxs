@@ -14,6 +14,7 @@
 #include "blockchain/p2p/bitcoin/Header.hpp"
 #include "blockchain/p2p/bitcoin/Message.hpp"
 #include "internal/blockchain/p2p/bitcoin/Bitcoin.hpp"
+#include "opentxs/blockchain/p2p/Types.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
@@ -68,7 +69,7 @@ auto BitcoinP2PGetcfilters(
     const blockchain::Type network,
     const blockchain::filter::Type type,
     const blockchain::block::Height start,
-    const blockchain::filter::Hash& stop)
+    const blockchain::block::Hash& stop)
     -> blockchain::p2p::bitcoin::message::internal::Getcfilters*
 {
     namespace bitcoin = blockchain::p2p::bitcoin;
