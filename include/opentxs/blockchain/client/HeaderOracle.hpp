@@ -25,6 +25,8 @@ namespace client
 class HeaderOracle
 {
 public:
+    using Hashes = std::vector<block::pHash>;
+
     /// Throws std::out_of_range for invalid type
     OPENTXS_EXPORT static const block::Hash& GenesisBlockHash(
         const blockchain::Type type);
@@ -32,9 +34,17 @@ public:
     OPENTXS_EXPORT virtual block::Position BestChain() const noexcept = 0;
     OPENTXS_EXPORT virtual block::pHash BestHash(
         const block::Height height) const noexcept = 0;
-    OPENTXS_EXPORT virtual std::vector<block::pHash> BestHashes(
+    OPENTXS_EXPORT virtual Hashes BestHashes(
         const block::Height start,
         const std::size_t limit = 0) const noexcept = 0;
+    OPENTXS_EXPORT virtual Hashes BestHashes(
+        const block::Height start,
+        const block::Hash& stop,
+        const std::size_t limit = 0) const noexcept = 0;
+    OPENTXS_EXPORT virtual Hashes BestHashes(
+        const Hashes& previous,
+        const block::Hash& stop,
+        const std::size_t limit) const noexcept = 0;
     /** Determine how which ancestors of a orphaned tip must be rolled back
      *  due to a chain reorg
      *
@@ -68,8 +78,7 @@ public:
         const block::Position& position) const noexcept = 0;
     OPENTXS_EXPORT virtual std::unique_ptr<block::Header> LoadHeader(
         const block::Hash& hash) const noexcept = 0;
-    OPENTXS_EXPORT virtual std::vector<block::pHash> RecentHashes()
-        const noexcept = 0;
+    OPENTXS_EXPORT virtual Hashes RecentHashes() const noexcept = 0;
     OPENTXS_EXPORT virtual std::set<block::pHash> Siblings() const noexcept = 0;
 
     OPENTXS_EXPORT virtual bool AddCheckpoint(

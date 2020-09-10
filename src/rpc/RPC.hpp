@@ -29,6 +29,7 @@
 #include "opentxs/network/zeromq/socket/Pull.hpp"
 #include "opentxs/network/zeromq/socket/Subscribe.hpp"
 #include "opentxs/protobuf/RPCEnums.pb.h"
+#include "opentxs/protobuf/RPCResponse.pb.h"
 
 namespace opentxs
 {

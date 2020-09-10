@@ -29,6 +29,7 @@
 #include "opentxs/api/client/Manager.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/blockchain/BloomFilter.hpp"
+#include "opentxs/blockchain/client/FilterOracle.hpp"
 #include "opentxs/blockchain/client/HeaderOracle.hpp"
 #include "opentxs/core/Data.hpp"
 

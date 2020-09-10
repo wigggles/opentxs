@@ -7,55 +7,50 @@ if(OT_BLOCKCHAIN_EXPORT)
   add_subdirectory(database)
 endif()
 
-set(
-  cxx-sources
-  AccountCache.cpp
-  BalanceList.cpp
-  BalanceLists.cpp
-  BalanceNode.cpp
-  BalanceTree.cpp
-  BalanceTree.tpp
-  Blockchain.cpp
-  Deterministic.cpp
-  HD.cpp
+set(cxx-sources
+    AccountCache.cpp
+    BalanceList.cpp
+    BalanceLists.cpp
+    BalanceNode.cpp
+    BalanceTree.cpp
+    BalanceTree.tpp
+    Blockchain.cpp
+    Deterministic.cpp
+    HD.cpp
 )
 
 if(OT_BLOCKCHAIN_EXPORT)
   list(APPEND cxx-sources BalanceOracle.cpp ThreadPoolManager.cpp)
 endif()
 
-set(
-  cxx-install-headers
-  "${opentxs_SOURCE_DIR}/include/opentxs/api/client/blockchain/BalanceList.hpp"
-  "${opentxs_SOURCE_DIR}/include/opentxs/api/client/blockchain/BalanceNode.hpp"
-  "${opentxs_SOURCE_DIR}/include/opentxs/api/client/blockchain/BalanceTree.hpp"
-  "${opentxs_SOURCE_DIR}/include/opentxs/api/client/blockchain/Deterministic.hpp"
-  "${opentxs_SOURCE_DIR}/include/opentxs/api/client/blockchain/Ethereum.hpp"
-  "${opentxs_SOURCE_DIR}/include/opentxs/api/client/blockchain/HD.hpp"
-  "${opentxs_SOURCE_DIR}/include/opentxs/api/client/blockchain/Imported.hpp"
-  "${opentxs_SOURCE_DIR}/include/opentxs/api/client/blockchain/PaymentCode.hpp"
+set(cxx-install-headers
+    "${opentxs_SOURCE_DIR}/include/opentxs/api/client/blockchain/BalanceList.hpp"
+    "${opentxs_SOURCE_DIR}/include/opentxs/api/client/blockchain/BalanceNode.hpp"
+    "${opentxs_SOURCE_DIR}/include/opentxs/api/client/blockchain/BalanceTree.hpp"
+    "${opentxs_SOURCE_DIR}/include/opentxs/api/client/blockchain/Deterministic.hpp"
+    "${opentxs_SOURCE_DIR}/include/opentxs/api/client/blockchain/Ethereum.hpp"
+    "${opentxs_SOURCE_DIR}/include/opentxs/api/client/blockchain/HD.hpp"
+    "${opentxs_SOURCE_DIR}/include/opentxs/api/client/blockchain/Imported.hpp"
+    "${opentxs_SOURCE_DIR}/include/opentxs/api/client/blockchain/PaymentCode.hpp"
 )
-set(
-  cxx-headers
-  ${cxx-install-headers}
-  "${opentxs_SOURCE_DIR}/src/internal/api/client/blockchain/Blockchain.hpp"
-  "${opentxs_SOURCE_DIR}/src/internal/api/client/blockchain/Factory.hpp"
-  BalanceList.hpp
-  BalanceNode.hpp
-  BalanceTree.hpp
-  Deterministic.hpp
-  HD.hpp
+set(cxx-headers
+    ${cxx-install-headers}
+    "${opentxs_SOURCE_DIR}/src/internal/api/client/blockchain/Blockchain.hpp"
+    "${opentxs_SOURCE_DIR}/src/internal/api/client/blockchain/Factory.hpp"
+    BalanceList.hpp
+    BalanceNode.hpp
+    BalanceTree.hpp
+    Deterministic.hpp
+    HD.hpp
 )
 
 add_library(opentxs-api-client-blockchain OBJECT ${cxx-sources} ${cxx-headers})
 target_link_libraries(opentxs-api-client-blockchain PRIVATE opentxs::messages)
 target_include_directories(
-  opentxs-api-client-blockchain SYSTEM
-  PRIVATE "${opentxs_SOURCE_DIR}/deps/"
+  opentxs-api-client-blockchain SYSTEM PRIVATE "${opentxs_SOURCE_DIR}/deps/"
 )
 set_property(
-  TARGET opentxs-api-client-blockchain
-  PROPERTY POSITION_INDEPENDENT_CODE 1
+  TARGET opentxs-api-client-blockchain PROPERTY POSITION_INDEPENDENT_CODE 1
 )
 
 install(

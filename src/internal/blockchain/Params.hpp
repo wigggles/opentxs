@@ -20,6 +20,7 @@
 #include "opentxs/Types.hpp"
 #include "opentxs/Version.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/blockchain/p2p/Types.hpp"
 #include "opentxs/protobuf/ContactEnums.pb.h"
 
 namespace opentxs::blockchain::params

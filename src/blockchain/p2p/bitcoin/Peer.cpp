@@ -7,9 +7,10 @@
 #include "1_Internal.hpp"                   // IWYU pragma: associated
 #include "blockchain/p2p/bitcoin/Peer.hpp"  // IWYU pragma: associated
 
-#include <boost/asio.hpp>
 #include <algorithm>
+#include <array>
 #include <cstdint>
+#include <iterator>
 #include <tuple>
 #include <utility>
 #include <vector>
@@ -39,6 +40,8 @@
 #include "opentxs/api/crypto/Util.hpp"
 #include "opentxs/blockchain/block/Header.hpp"
 #include "opentxs/blockchain/block/bitcoin/Header.hpp"
+#include "opentxs/blockchain/client/FilterOracle.hpp"
+#include "opentxs/blockchain/client/HeaderOracle.hpp"
 #include "opentxs/blockchain/p2p/Peer.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Flag.hpp"
@@ -61,7 +64,8 @@ auto BitcoinP2PPeerLegacy(
     const blockchain::client::internal::IO& io,
     const int id,
     std::unique_ptr<blockchain::p2p::internal::Address> address,
-    const std::string& shutdown) -> blockchain::p2p::internal::Peer*
+    const std::string& shutdown)
+    -> std::unique_ptr<blockchain::p2p::internal::Peer>
 {
     namespace p2p = blockchain::p2p;
     using ReturnType = p2p::bitcoin::implementation::Peer;
@@ -70,12 +74,13 @@ auto BitcoinP2PPeerLegacy(
         LogOutput("opentxs::factory::")(__FUNCTION__)(": Invalid null address")
             .Flush();
 
-        return nullptr;
+        return {};
     }
 
     switch (address->Type()) {
         case p2p::Network::ipv6:
-        case p2p::Network::ipv4: {
+        case p2p::Network::ipv4:
+        case p2p::Network::zmq: {
             break;
         }
         default: {
@@ -83,11 +88,11 @@ auto BitcoinP2PPeerLegacy(
                 ": Unsupported address type")
                 .Flush();
 
-            return nullptr;
+            return {};
         }
     }
 
-    return new ReturnType(
+    return std::make_unique<ReturnType>(
         api, network, manager, io, shutdown, id, std::move(address));
 }
 }  // namespace opentxs::factory
@@ -418,7 +423,7 @@ auto Peer::process_cfheaders(
         }
 
         const auto checkpointData =
-            network_.HeaderOracle().GetDefaultCheckpoint();
+            network_.HeaderOracleInternal().GetDefaultCheckpoint();
         const auto& [height, checkpointHash, parentHash, filterHash] =
             checkpointData;
         const auto receivedFilterHeader =
@@ -677,7 +682,7 @@ auto Peer::process_getcfheaders(
     std::unique_ptr<HeaderType> header,
     const zmq::Frame& payload) -> void
 {
-    const std::unique_ptr<message::internal::Getcfheaders> pMessage{
+    const auto pIn = std::unique_ptr<message::internal::Getcfheaders>{
         factory::BitcoinP2PGetcfheaders(
             api_,
             std::move(header),
@@ -685,14 +690,62 @@ auto Peer::process_getcfheaders(
             payload.data(),
             payload.size())};
 
-    if (false == bool(pMessage)) {
+    if (false == bool(pIn)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to decode message payload")
             .Flush();
 
         return;
     }
 
-    // TODO
+    const auto& in = *pIn;
+    const auto& hOracle = network_.HeaderOracleInternal();
+
+    if (false == bool(hOracle.LoadHeader(in.Stop()))) { return; }
+
+    const auto fromGenesis = (0 == in.Start());
+    const auto blocks = hOracle.BestHashes(
+        fromGenesis ? 0 : in.Start() - 1, in.Stop(), fromGenesis ? 2000 : 2001);
+
+    if (0 == blocks.size()) { return; }
+
+    const auto& fOracle = network_.FilterOracleInternal();
+    const auto filterType = in.Type();
+    const auto previousHeader =
+        fOracle.LoadFilterHeader(filterType, *blocks.cbegin());
+
+    if (previousHeader->empty()) { return; }
+
+    auto filterHashes = std::vector<client::internal::FilterOracle::Header>{};
+    const auto start = std::size_t{fromGenesis ? 0u : 1u};
+    static const auto blank = std::array<char, 32>{};
+    const auto previous = fromGenesis ? ReadView{blank.data(), blank.size()}
+                                      : previousHeader->Bytes();
+
+    for (auto i{start}; i < blocks.size(); ++i) {
+        const auto& blockHash = blocks.at(i);
+        const auto pFilter = fOracle.LoadFilter(filterType, blockHash);
+
+        if (false == bool(pFilter)) { break; }
+
+        const auto& filter = *pFilter;
+        filterHashes.emplace_back(filter.Hash());
+    }
+
+    if (0 == filterHashes.size()) { return; }
+
+    auto pOut = std::unique_ptr<
+        message::internal::Cfheaders>{factory::BitcoinP2PCfheaders(
+        api_, chain_, in.Type(), in.Stop(), previous, std::move(filterHashes))};
+
+    if (false == bool(pOut)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to construct reply")
+            .Flush();
+
+        return;
+    }
+
+    const auto& message = *pOut;
+    send(message.Encode());
 }
 
 auto Peer::process_getcfilters(
@@ -743,7 +796,7 @@ auto Peer::process_getheaders(
     std::unique_ptr<HeaderType> header,
     const zmq::Frame& payload) -> void
 {
-    const std::unique_ptr<message::internal::Getheaders> pMessage{
+    const auto pIn = std::unique_ptr<message::internal::Getheaders>{
         factory::BitcoinP2PGetheaders(
             api_,
             std::move(header),
@@ -751,12 +804,38 @@ auto Peer::process_getheaders(
             payload.data(),
             payload.size())};
 
-    if (false == bool(pMessage)) {
+    if (false == bool(pIn)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to decode message payload")
             .Flush();
 
         return;
     }
+
+    const auto& in = *pIn;
+    auto previous = client::HeaderOracle::Hashes{};
+    std::copy(in.begin(), in.end(), std::back_inserter(previous));
+    const auto& oracle = network_.HeaderOracleInternal();
+    const auto hashes = oracle.BestHashes(previous, in.StopHash(), 2000);
+    auto headers = std::vector<std::unique_ptr<block::bitcoin::Header>>{};
+    std::transform(
+        hashes.begin(),
+        hashes.end(),
+        std::back_inserter(headers),
+        [&](const auto& hash) -> auto {
+            return oracle.LoadBitcoinHeader(hash);
+        });
+    auto pOut = std::unique_ptr<message::internal::Headers>{
+        factory::BitcoinP2PHeaders(api_, chain_, std::move(headers))};
+
+    if (false == bool(pOut)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to construct reply")
+            .Flush();
+
+        return;
+    }
+
+    const auto& message = *pOut;
+    send(message.Encode());
 }
 
 auto Peer::process_headers(
@@ -805,7 +884,7 @@ auto Peer::process_headers(
         }
 
         const auto checkpointData =
-            network_.HeaderOracle().GetDefaultCheckpoint();
+            network_.HeaderOracleInternal().GetDefaultCheckpoint();
         const auto& [height, checkpointHash, parentHash, filterHash] =
             checkpointData;
         const auto& receivedBlockHash = message.at(0).Hash();
@@ -1203,6 +1282,9 @@ auto Peer::process_version(
     const auto& verack = *pVerack;
     send(verack.Encode());
     state_.handshake_.second_action_ = true;
+
+    if (address_.Incoming()) { start_handshake(); }
+
     check_handshake();
 }
 
@@ -1342,7 +1424,8 @@ auto Peer::request_checkpoint_block_header() noexcept -> void
     }};
 
     try {
-        auto checkpointData = network_.HeaderOracle().GetDefaultCheckpoint();
+        auto checkpointData =
+            network_.HeaderOracleInternal().GetDefaultCheckpoint();
         auto [height, checkpointBlockHash, parentBlockHash, filterHash] =
             checkpointData;
         auto pMessage = std::unique_ptr<Message>{factory::BitcoinP2PGetheaders(
@@ -1384,14 +1467,15 @@ auto Peer::request_checkpoint_filter_header() noexcept -> void
     }};
 
     try {
-        auto checkpointData = network_.HeaderOracle().GetDefaultCheckpoint();
+        auto checkpointData =
+            network_.HeaderOracleInternal().GetDefaultCheckpoint();
         auto [height, checkpointBlockHash, parentBlockHash, filterHash] =
             checkpointData;
         auto pMessage =
             std::unique_ptr<Message>{factory::BitcoinP2PGetcfheaders(
                 api_,
                 chain_,
-                network_.FilterOracle().DefaultType(),
+                network_.FilterOracleInternal().DefaultType(),
                 height,
                 checkpointBlockHash)};
 
@@ -1424,7 +1508,7 @@ auto Peer::request_headers(const block::Hash& hash) noexcept -> void
         api_,
         chain_,
         protocol_.load(),
-        network_.HeaderOracle().RecentHashes(),
+        network_.HeaderOracleInternal().RecentHashes(),
         hash)};
 
     if (false == bool(pMessage)) {
@@ -1459,17 +1543,19 @@ auto Peer::start_handshake() noexcept -> void
     }
 
     try {
-        const auto local = local_endpoint();
+        const auto& address = connection();
+        const auto local = address.endpoint_data();
         std::unique_ptr<Message> pVersion{factory::BitcoinP2PVersion(
             api_,
             chain_,
+            address.style(),
             protocol_.load(),
             local_services_,
-            local.address().to_v6().to_string(),
-            local.port(),
+            local.first,
+            local.second,
             address_.Services(),
-            endpoint_.address().to_v6().to_string(),
-            endpoint_.port(),
+            address.address(),
+            address.port(),
             nonce_,
             user_agent_,
             network_.GetHeight(),

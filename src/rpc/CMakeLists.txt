@@ -5,18 +5,13 @@
 
 set(cxx-sources RPC.cpp)
 set(cxx-install-headers "")
-set(
-  cxx-headers
-  ${cxx-install-headers}
-  ${opentxs_SOURCE_DIR}/src/internal/rpc/RPC.hpp
-  RPC.hpp
-  RPC.tpp
+set(cxx-headers ${cxx-install-headers}
+                ${opentxs_SOURCE_DIR}/src/internal/rpc/RPC.hpp RPC.hpp RPC.tpp
 )
 
 add_library(opentxs-rpc OBJECT ${cxx-sources} ${cxx-headers})
 target_link_libraries(opentxs-rpc PRIVATE opentxs::messages)
 target_include_directories(
-  opentxs-rpc SYSTEM
-  PRIVATE "${opentxs_SOURCE_DIR}/deps/"
+  opentxs-rpc SYSTEM PRIVATE "${opentxs_SOURCE_DIR}/deps/"
 )
 set_property(TARGET opentxs-rpc PROPERTY POSITION_INDEPENDENT_CODE 1)

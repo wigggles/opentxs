@@ -32,7 +32,9 @@
 #include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/blockchain/Network.hpp"
 #include "opentxs/blockchain/client/BlockOracle.hpp"
+#include "opentxs/blockchain/client/FilterOracle.hpp"
 #include "opentxs/blockchain/client/HeaderOracle.hpp"
+#include "opentxs/blockchain/p2p/Types.hpp"
 #endif  // OT_BLOCKCHAIN
 #include "opentxs/core/Data.hpp"
 #if OT_BLOCKCHAIN
@@ -82,6 +84,7 @@ namespace block
 namespace bitcoin
 {
 class Block;
+class Header;
 class Transaction;
 struct Outpoint;
 }  // namespace bitcoin
@@ -98,7 +101,6 @@ class UpdateTransaction;
 namespace internal
 {
 struct Database;
-struct GCS;
 }  // namespace internal
 
 namespace p2p
@@ -221,8 +223,7 @@ struct FilterDatabase {
     using Hash = block::pHash;
     /// block hash, filter header, filter hash
     using Header = std::tuple<block::pHash, block::pHash, ReadView>;
-    using Filter =
-        std::pair<ReadView, std::unique_ptr<const blockchain::internal::GCS>>;
+    using Filter = std::pair<ReadView, std::unique_ptr<const GCS>>;
 
     virtual auto BlockPolicy() const noexcept
         -> api::client::blockchain::BlockStorage = 0;
@@ -236,7 +237,7 @@ struct FilterDatabase {
         const filter::Type type,
         const block::Hash& block) const noexcept -> bool = 0;
     virtual auto LoadFilter(const filter::Type type, const ReadView block)
-        const noexcept -> std::unique_ptr<const blockchain::internal::GCS> = 0;
+        const noexcept -> std::unique_ptr<const GCS> = 0;
     virtual auto LoadFilterHash(const filter::Type type, const ReadView block)
         const noexcept -> Hash = 0;
     virtual auto LoadFilterHeader(const filter::Type type, const ReadView block)
@@ -263,21 +264,21 @@ struct FilterDatabase {
     virtual ~FilterDatabase() = default;
 };
 
-struct FilterOracle {
+struct FilterOracle : virtual public opentxs::blockchain::client::FilterOracle {
+    using Header = FilterDatabase::Hash;
+
     static auto ProcessThreadPool(const zmq::Message& task) noexcept -> void;
 
     virtual auto AddFilter(zmq::Message& work) const noexcept -> void = 0;
     virtual auto AddHeaders(zmq::Message& work) const noexcept -> void = 0;
-    virtual auto DefaultType() const noexcept -> filter::Type = 0;
-    virtual auto FilterTip(const filter::Type type) const noexcept
-        -> block::Position = 0;
     virtual auto Heartbeat() const noexcept -> void = 0;
-    virtual auto LoadFilter(const filter::Type type, const block::Hash& block)
-        const noexcept -> std::unique_ptr<const blockchain::internal::GCS> = 0;
     virtual auto LoadFilterOrResetTip(
         const filter::Type type,
         const block::Position& position) const noexcept
-        -> std::unique_ptr<const blockchain::internal::GCS> = 0;
+        -> std::unique_ptr<const GCS> = 0;
+    virtual auto PreviousHeader(
+        const filter::Type type,
+        const block::Height& block) const noexcept -> Header = 0;
 
     virtual auto Start() noexcept -> void = 0;
     virtual auto Shutdown() noexcept -> std::shared_future<void> = 0;
@@ -297,6 +298,8 @@ struct HeaderOracle : virtual public opentxs::blockchain::client::HeaderOracle {
 
     virtual auto GetDefaultCheckpoint() const noexcept -> CheckpointData = 0;
     virtual auto Init() noexcept -> void = 0;
+    virtual auto LoadBitcoinHeader(const block::Hash& hash) const noexcept
+        -> std::unique_ptr<block::bitcoin::Header> = 0;
 
     virtual ~HeaderOracle() = default;
 };
@@ -323,6 +326,9 @@ struct HeaderDatabase {
     virtual auto RecentHashes() const noexcept -> std::vector<block::pHash> = 0;
     virtual auto SiblingHashes() const noexcept -> Hashes = 0;
     // Returns null pointer if the header does not exist
+    virtual auto TryLoadBitcoinHeader(const block::Hash& hash) const noexcept
+        -> std::unique_ptr<block::bitcoin::Header> = 0;
+    // Returns null pointer if the header does not exist
     virtual auto TryLoadHeader(const block::Hash& hash) const noexcept
         -> std::unique_ptr<block::Header> = 0;
 
@@ -332,7 +338,7 @@ struct HeaderDatabase {
 struct IO {
     using tcp = boost::asio::ip::tcp;
 
-    operator boost::asio::io_context&() const noexcept { return context_; }
+    operator boost::asio::io_context &() const noexcept { return context_; }
 
     auto Connect(
         const Space& id,
@@ -396,9 +402,17 @@ struct Network : virtual public opentxs::blockchain::Network {
     virtual auto DB() const noexcept -> blockchain::internal::Database& = 0;
     // amount represents satoshis per 1000 bytes
     virtual auto FeeRate() const noexcept -> Amount = 0;
-    virtual auto FilterOracle() const noexcept
+    auto FilterOracle() const noexcept -> const client::FilterOracle& final
+    {
+        return FilterOracleInternal();
+    }
+    virtual auto FilterOracleInternal() const noexcept
         -> const internal::FilterOracle& = 0;
-    virtual auto HeaderOracle() const noexcept
+    auto HeaderOracle() const noexcept -> const client::HeaderOracle& final
+    {
+        return HeaderOracleInternal();
+    }
+    virtual auto HeaderOracleInternal() const noexcept
         -> const internal::HeaderOracle& = 0;
     virtual auto Heartbeat() const noexcept -> void = 0;
     virtual auto IsSynchronized() const noexcept -> bool = 0;
@@ -423,7 +437,8 @@ struct Network : virtual public opentxs::blockchain::Network {
     virtual auto UpdateLocalHeight(
         const block::Position position) const noexcept -> void = 0;
 
-    virtual auto HeaderOracle() noexcept -> client::HeaderOracle& = 0;
+    virtual auto HeaderOracleInternal() noexcept -> internal::HeaderOracle& = 0;
+    virtual auto FilterOracleInternal() noexcept -> internal::FilterOracle& = 0;
     virtual auto Shutdown() noexcept -> std::shared_future<void> = 0;
 
     virtual ~Network() = default;
@@ -466,6 +481,8 @@ struct PeerManager {
         Shutdown = value(WorkType::Shutdown),
     };
 
+    virtual auto AddIncomingPeer(const int id, std::uintptr_t endpoint)
+        const noexcept -> void = 0;
     virtual auto AddPeer(const p2p::Address& address) const noexcept
         -> bool = 0;
     virtual auto BroadcastTransaction(
@@ -476,6 +493,7 @@ struct PeerManager {
     virtual auto Endpoint(const Task type) const noexcept -> std::string = 0;
     virtual auto GetPeerCount() const noexcept -> std::size_t = 0;
     virtual auto Heartbeat() const noexcept -> void = 0;
+    virtual auto Listen(const p2p::Address& address) const noexcept -> bool = 0;
     virtual auto RequestBlock(const block::Hash& block) const noexcept
         -> bool = 0;
     virtual auto RequestBlocks(

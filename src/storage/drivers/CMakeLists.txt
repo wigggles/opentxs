@@ -8,20 +8,8 @@ set(cxx-install-headers "")
 set(cxx-headers ${cxx-install-headers} StorageMemDB.hpp StorageMultiplex.hpp)
 
 if(FS_EXPORT)
-  list(
-    APPEND
-      cxx-sources
-      StorageFS.cpp
-      StorageFSGC.cpp
-      StorageFSArchive.cpp
-  )
-  list(
-    APPEND
-      cxx-headers
-      StorageFS.hpp
-      StorageFSGC.hpp
-      StorageFSArchive.hpp
-  )
+  list(APPEND cxx-sources StorageFS.cpp StorageFSGC.cpp StorageFSArchive.cpp)
+  list(APPEND cxx-headers StorageFS.hpp StorageFSGC.hpp StorageFSArchive.hpp)
 endif()
 
 if(SQLITE_EXPORT)
@@ -42,8 +30,7 @@ endif()
 
 if(SQLITE_EXPORT)
   target_include_directories(
-    opentxs-storage-drivers SYSTEM
-    PRIVATE ${SQLITE3_INCLUDE_DIRS}
+    opentxs-storage-drivers SYSTEM PRIVATE ${SQLITE3_INCLUDE_DIRS}
   )
 endif()
 
@@ -53,6 +40,5 @@ endif()
 
 target_link_libraries(opentxs-storage-drivers PRIVATE opentxs::messages)
 set_property(
-  TARGET opentxs-storage-drivers
-  PROPERTY POSITION_INDEPENDENT_CODE 1
+  TARGET opentxs-storage-drivers PROPERTY POSITION_INDEPENDENT_CODE 1
 )

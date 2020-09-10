@@ -11,18 +11,27 @@ add_opentx_test(
   unittests-opentxs-blockchain-headeroracle-add_checkpoint_disconnected
   Test_add_checkpoint_disconnected.cpp
 )
-add_opentx_test(unittests-opentxs-blockchain-headeroracle-basic_reorg
-                Test_basic_reorg.cpp)
-add_opentx_test(unittests-opentxs-blockchain-headeroracle-basic_reorg-batch
-                Test_basic_reorg-batch.cpp)
-add_opentx_test(unittests-opentxs-blockchain-headeroracle-basic_sequence
-                Test_basic_sequence.cpp)
-add_opentx_test(unittests-opentxs-blockchain-headeroracle-basic_sequence-batch
-                Test_basic_sequence-batch.cpp)
-add_opentx_test(unittests-opentxs-blockchain-headeroracle-bitcoin
-                Test_bitcoin.cpp)
-add_opentx_test(unittests-opentxs-blockchain-headeroracle-bitcoin-cash
-                Test_bitcoin_cash.cpp)
+add_opentx_test(
+  unittests-opentxs-blockchain-headeroracle-basic_reorg Test_basic_reorg.cpp
+)
+add_opentx_test(
+  unittests-opentxs-blockchain-headeroracle-basic_reorg-batch
+  Test_basic_reorg-batch.cpp
+)
+add_opentx_test(
+  unittests-opentxs-blockchain-headeroracle-basic_sequence
+  Test_basic_sequence.cpp
+)
+add_opentx_test(
+  unittests-opentxs-blockchain-headeroracle-basic_sequence-batch
+  Test_basic_sequence-batch.cpp
+)
+add_opentx_test(
+  unittests-opentxs-blockchain-headeroracle-bitcoin Test_bitcoin.cpp
+)
+add_opentx_test(
+  unittests-opentxs-blockchain-headeroracle-bitcoin-cash Test_bitcoin_cash.cpp
+)
 add_opentx_test(
   unittests-opentxs-blockchain-headeroracle-checkpoint_prevents_reorg
   Test_checkpoint_prevents_reorg.cpp
@@ -39,12 +48,15 @@ add_opentx_test(
   unittests-opentxs-blockchain-headeroracle-checkpoint_prevents_update-batch
   Test_checkpoint_prevents_update-batch.cpp
 )
-add_opentx_test(unittests-opentxs-blockchain-headeroracle-delete_checkpoint
-                Test_delete_checkpoint.cpp)
+add_opentx_test(
+  unittests-opentxs-blockchain-headeroracle-delete_checkpoint
+  Test_delete_checkpoint.cpp
+)
 
 if(NOT ANDROID)
-  add_opentx_test(unittests-opentxs-blockchain-headeroracle-random
-                  Test_random.cpp)
+  add_opentx_test(
+    unittests-opentxs-blockchain-headeroracle-random Test_random.cpp
+  )
 endif()
 
 add_opentx_test(
@@ -55,8 +67,10 @@ add_opentx_test(
   unittests-opentxs-blockchain-headeroracle-receive_headers_out_of_order-batch
   Test_receive_headers_out_of_order-batch.cpp
 )
-add_opentx_test(unittests-opentxs-blockchain-headeroracle-reorg_to_checkpoint
-                Test_reorg_to_checkpoint.cpp)
+add_opentx_test(
+  unittests-opentxs-blockchain-headeroracle-reorg_to_checkpoint
+  Test_reorg_to_checkpoint.cpp
+)
 add_opentx_test(
   unittests-opentxs-blockchain-headeroracle-reorg_to_checkpoint_descendent
   Test_reorg_to_checkpoint_descendent.cpp

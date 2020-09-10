@@ -37,7 +37,8 @@ auto BlockchainAddress(
     const std::uint16_t port,
     const blockchain::Type chain,
     const Time lastConnected,
-    const std::set<blockchain::p2p::Service>& services) noexcept
+    const std::set<blockchain::p2p::Service>& services,
+    const bool incoming) noexcept
     -> std::unique_ptr<blockchain::p2p::internal::Address>
 {
     try {
@@ -50,7 +51,8 @@ auto BlockchainAddress(
             port,
             chain,
             lastConnected,
-            services);
+            services,
+            incoming);
     } catch (const std::exception& e) {
         LogOutput("opentxs::factory::")(__FUNCTION__)(": ")(e.what()).Flush();
 
@@ -73,7 +75,8 @@ auto BlockchainAddress(
             static_cast<std::uint16_t>(serialized.port()),
             static_cast<blockchain::Type>(serialized.chain()),
             Clock::from_time_t(serialized.time()),
-            ReturnType::instantiate_services(serialized));
+            ReturnType::instantiate_services(serialized),
+            false);
     } catch (const std::exception& e) {
         LogOutput("opentxs::factory::")(__FUNCTION__)(": ")(e.what()).Flush();
 
@@ -95,7 +98,8 @@ Address::Address(
     const std::uint16_t port,
     const blockchain::Type chain,
     const Time lastConnected,
-    const std::set<Service>& services) noexcept(false)
+    const std::set<Service>& services,
+    const bool incoming) noexcept(false)
     : api_(api)
     , version_(version)
     , id_(calculate_id(api, version, protocol, network, bytes, port, chain))
@@ -106,6 +110,7 @@ Address::Address(
     , chain_(chain)
     , previous_last_connected_(lastConnected)
     , previous_services_(services)
+    , incoming_(incoming)
     , last_connected_(lastConnected)
     , services_(services)
 {
@@ -138,6 +143,8 @@ Address::Address(
                 throw std::runtime_error("Incorrect eep bytes");
             }
         } break;
+        case Network::zmq: {
+        } break;
         default: {
             OT_FAIL;
         }
@@ -155,6 +162,7 @@ Address::Address(const Address& rhs) noexcept
     , chain_(rhs.chain_)
     , previous_last_connected_(rhs.previous_last_connected_)
     , previous_services_(rhs.previous_services_)
+    , incoming_(rhs.incoming_)
     , last_connected_(rhs.last_connected_)
     , services_(rhs.services_)
 {
@@ -209,6 +217,9 @@ auto Address::Display() const noexcept -> std::string
         } break;
         case Network::eep: {
             output = api_.Crypto().Encode().DataEncode(bytes_) + ".i2p";
+        } break;
+        case Network::zmq: {
+            output = bytes_->str();
         } break;
         default: {
             OT_FAIL;

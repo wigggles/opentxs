@@ -7,33 +7,23 @@
 #include "1_Internal.hpp"           // IWYU pragma: associated
 #include "blockchain/p2p/Peer.hpp"  // IWYU pragma: associated
 
-#include <boost/asio.hpp>
-#include <array>
 #include <chrono>
-#include <cstddef>
-#include <cstring>
-#include <stdexcept>
+#include <string_view>
 #include <type_traits>
 
 #include "internal/api/client/Client.hpp"
 #include "internal/blockchain/Blockchain.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/api/Core.hpp"
-#include "opentxs/api/Endpoints.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
-#include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
-#include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/Pipeline.hpp"
-#include "opentxs/network/zeromq/socket/Socket.hpp"
-#include "opentxs/util/WorkType.hpp"
 #include "util/ScopeGuard.hpp"
-#include "util/Work.hpp"
 
 #define OT_BLOCKCHAIN_PEER_PING_SECONDS 30
 #define OT_BLOCKCHAIN_PEER_DISCONNECT_SECONDS 40
@@ -59,50 +49,33 @@ Peer::Peer(
     , network_(network)
     , manager_(manager)
     , chain_(address->Chain())
-    , endpoint_(
-          make_endpoint(address->Type(), address->Bytes(), address->Port()))
     , send_promise_()
     , send_future_(send_promise_.get_future())
     , address_(std::move(address))
     , download_peers_()
-    , header_(make_buffer(headerSize))
     , state_()
     , verify_filter_checkpoint_(
           api::client::blockchain::BlockStorage::All !=
           static_cast<const blockchain::client::internal::BlockDatabase&>(
               network.DB())
               .BlockPolicy())
-    , header_bytes_(headerSize)
     , id_(id)
-    , connection_id_()
     , shutdown_endpoint_(shutdown)
-    , context_(context)
-    , socket_(context_.operator boost::asio::io_context&())
-    , outgoing_message_(Data::Factory())
-    , connection_id_promise_()
+    , connection_(init_connection_manager(
+          api_,
+          *this,
+          running_,
+          address_,
+          headerSize,
+          context))
     , send_promises_()
     , activity_()
     , init_promise_()
     , init_(init_promise_.get_future())
-    , cb_(zmq::ListenCallback::Factory([&](auto& in) { pipeline_d(in); }))
-    , dealer_(api.ZeroMQ().DealerSocket(
-          cb_,
-          zmq::socket::Socket::Direction::Connect))
 {
-    auto future = connection_id_promise_.get_future();
-    auto zmq = dealer_->Start(api_.Endpoints().InternalBlockchainAsioContext());
+    OT_ASSERT(connection_);
 
-    OT_ASSERT(zmq);
-
-    auto message = MakeWork(OT_ZMQ_REGISTER_SIGNAL);
-    message->AddFrame(id_);
-    zmq = dealer_->Send(message);
-
-    OT_ASSERT(zmq);
-
-    const auto status = future.wait_for(std::chrono::seconds(10));
-
-    if (std::future_status::ready != status) {
+    if (false == connection_->init(id_)) {
         LogNormal("Connection to peer ")(address_.Display())(
             " timed out during connect")
             .Flush();
@@ -148,8 +121,10 @@ auto Peer::check_handshake() noexcept -> void
 
     if (state.first_action_ && state.second_action_ &&
         (false == state.done())) {
-        LogNormal("Connected to ")(DisplayString(address_.Chain()))(
-            " peer at ")(address_.Display())
+        LogNormal(
+            address_.Incoming() ? "Incoming connection from "
+                                : "Connected to ")(
+            DisplayString(address_.Chain()))(" peer at ")(address_.Display())
             .Flush();
         LogNormal("Advertised services: ").Flush();
 
@@ -174,21 +149,12 @@ auto Peer::check_verify() noexcept -> void
         (state.second_action_ || (false == verify_filter_checkpoint_)) &&
         (false == state.done())) {
         state.promise_.set_value();
-        network_.Blockchain().UpdatePeer(chain_, address_.Display());
     }
 
     trigger();
 }
 
-auto Peer::connect() noexcept -> void
-{
-    if (0 < connection_id_.size()) {
-        LogVerbose(OT_METHOD)(__FUNCTION__)(": Connecting to ")(
-            endpoint_.address().to_string())(":")(endpoint_.port())
-            .Flush();
-        context_.Connect(connection_id_, endpoint_, socket_);
-    }
-}
+auto Peer::connect() noexcept -> void { connection_->connect(); }
 
 auto Peer::disconnect() noexcept -> void
 {
@@ -197,8 +163,10 @@ auto Peer::disconnect() noexcept -> void
     } catch (...) {
     }
 
-    LogNormal("Disconnecting from ")(endpoint_.address().to_string())(":")(
-        endpoint_.port())
+    LogNormal(
+        address_.Incoming() ? "Dropping incoming connection "
+                            : "Disconnecting from ")(connection_->host())(":")(
+        connection_->port())
         .Flush();
     manager_.Disconnect(id_);
 }
@@ -209,63 +177,64 @@ auto Peer::init() noexcept -> void
     init_promise_.set_value();
 }
 
+auto Peer::init_connection_manager(
+    const api::Core& api,
+    Peer& parent,
+    const Flag& running,
+    const Address& address,
+    const std::size_t headerSize,
+    const blockchain::client::internal::IO& context) noexcept
+    -> std::unique_ptr<ConnectionManager>
+{
+    if (Network::zmq != address.Type()) {
+
+        return ConnectionManager::TCP(
+            api, parent, running, address, headerSize, context);
+    } else if (address.Incoming()) {
+
+        return ConnectionManager::ZMQIncoming(
+            api, parent, running, address, headerSize);
+    } else {
+
+        return ConnectionManager::ZMQ(
+            api, parent, running, address, headerSize);
+    }
+}
+
 auto Peer::init_send_promise() noexcept -> void
 {
     send_promise_ = SendPromise{};
     send_future_ = send_promise_.get_future();
 }
 
-auto Peer::local_endpoint() noexcept -> tcp::socket::endpoint_type
+auto Peer::on_connect() noexcept -> void
 {
     try {
-        return socket_.local_endpoint();
-    } catch (const std::exception& e) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": ")(e.what()).Flush();
-        OT_FAIL;
+        state_.connect_.promise_.set_value(true);
+    } catch (...) {
     }
+
+    state_.value_.store(
+        address_.Incoming() ? State::Listening : State::Handshake);
+    init_executor({manager_.Endpoint(Task::Heartbeat), shutdown_endpoint_});
+    trigger();
 }
 
-auto Peer::make_buffer(const std::size_t size) noexcept -> OTData
+auto Peer::on_pipeline(
+    const Task type,
+    const std::vector<ReadView>& frames) noexcept -> void
 {
-    auto output = Data::Factory();
-    output->SetSize(size);
+    auto message = MakeWork(type);
 
-    return output;
-}
-
-auto Peer::make_endpoint(
-    const Network type,
-    const Data& raw,
-    const std::uint16_t port) noexcept -> tcp::endpoint
-{
-    auto output = ip::address_v6{};
-
-    switch (type) {
-        case p2p::Network::ipv6: {
-            auto bytes = ip::address_v6::bytes_type{};
-
-            OT_ASSERT(bytes.size() == raw.size());
-
-            std::memcpy(&bytes, raw.data(), bytes.size());
-            output = ip::make_address_v6(bytes);
-        } break;
-        case p2p::Network::ipv4: {
-            auto output4 = ip::address_v4{};
-            auto bytes = ip::address_v4::bytes_type{};
-
-            OT_ASSERT(bytes.size() == raw.size());
-
-            std::memcpy(&bytes, raw.data(), bytes.size());
-            output4 = ip::make_address_v4(bytes);
-            output = ip::make_address_v6(
-                std::string("::ffff:") + output4.to_string());
-        } break;
-        default: {
-            OT_FAIL;
+    for (const auto& frame : frames) {
+        if ((nullptr != frame.data()) && (0 < frame.size())) {
+            message->AddFrame(frame.data(), frame.size());
+        } else {
+            message->AddFrame();
         }
     }
 
-    return ip::tcp::endpoint{output, port};
+    pipeline_->Push(message);
 }
 
 auto Peer::pipeline(zmq::Message& message) noexcept -> void
@@ -317,91 +286,14 @@ auto Peer::pipeline(zmq::Message& message) noexcept -> void
         case Task::StateMachine: {
             do_work();
         } break;
-        case Task::Shutdown: {
-            shutdown(shutdown_promise_);
-        } break;
-        default: {
-            OT_FAIL;
-        }
-    }
-}
-
-auto Peer::pipeline_d(zmq::Message& message) noexcept -> void
-{
-    if (false == running_.get()) { return; }
-
-    const auto body = message.Body();
-
-    OT_ASSERT(0 < body.size());
-
-    switch (body.at(0).as<Task>()) {
-        case Task::Register: {
-            OT_ASSERT(1 < body.size());
-
-            const auto& id = body.at(1);
-
-            OT_ASSERT(0 < id.size());
-
-            const auto start = static_cast<const std::byte*>(id.data());
-            const_cast<Space&>(connection_id_).assign(start, start + id.size());
-
-            OT_ASSERT(0 < connection_id_.size());
-
-            try {
-                connection_id_promise_.set_value();
-            } catch (...) {
-            }
-        } break;
-        case Task::Connect: {
-            LogVerbose(OT_METHOD)(__FUNCTION__)(": Connect to ")(
-                endpoint_.address().to_string())(":")(endpoint_.port())(
-                " successful")
-                .Flush();
-
-            try {
-                state_.connect_.promise_.set_value(true);
-            } catch (...) {
-            }
-
-            state_.value_.store(State::Handshake);
-            init_executor(
-                {manager_.Endpoint(Task::Heartbeat), shutdown_endpoint_});
-            trigger();
-            run();
+        case Task::Header: {
+            activity_.Bump();
         } break;
         case Task::Disconnect: {
             disconnect();
         } break;
-        case Task::Header: {
-            OT_ASSERT(1 < body.size());
-
-            const auto& messageHeader = body.at(1);
-            activity_.Bump();
-            const auto size = get_body_size(messageHeader);
-
-            if (0 < size) {
-                header_->Assign(messageHeader.Bytes());
-                context_.Receive(
-                    connection_id_,
-                    static_cast<OTZMQWorkType>(Task::Body),
-                    size,
-                    socket_);
-            } else {
-                auto message = MakeWork(Task::ReceiveMessage);
-                message->AddFrame(messageHeader);
-                message->AddFrame();
-                pipeline_->Push(message);
-                run();
-            }
-        } break;
-        case Task::Body: {
-            OT_ASSERT(1 < body.size());
-
-            auto message = MakeWork(Task::ReceiveMessage);
-            message->AddFrame(header_);
-            message->AddFrame(body.at(1));
-            pipeline_->Push(message);
-            run();
+        case Task::Shutdown: {
+            shutdown(shutdown_promise_);
         } break;
         default: {
             OT_FAIL;
@@ -418,17 +310,6 @@ auto Peer::process_state_machine() noexcept -> void
         } break;
         default: {
         }
-    }
-}
-
-auto Peer::run() noexcept -> void
-{
-    if (running_.get()) {
-        context_.Receive(
-            connection_id_,
-            static_cast<OTZMQWorkType>(Task::Header),
-            header_bytes_,
-            socket_);
     }
 }
 
@@ -461,7 +342,7 @@ auto Peer::send(OTData in) noexcept -> SendStatus
 
 auto Peer::Shutdown() noexcept -> std::shared_future<void>
 {
-    dealer_->Close();
+    connection_->stop_internal();
 
     return stop_worker();
 }
@@ -472,20 +353,13 @@ auto Peer::shutdown(std::promise<void>& promise) noexcept -> void
 
     if (running_->Off()) {
         const auto state = state_.value_.exchange(State::Shutdown);
-
-        try {
-            socket_.shutdown(tcp::socket::shutdown_both);
-        } catch (...) {
-        }
-
+        connection_->stop_external();
         break_promises();
+        connection_->shutdown_external();
 
-        try {
-            socket_.close();
-        } catch (...) {
+        if ((State::Handshake != state) && (State::Listening != state)) {
+            update_address_activity();
         }
-
-        if (State::Handshake != state) { update_address_activity(); }
 
         LogVerbose("Disconnected from ")(address_.Display()).Flush();
 
@@ -498,9 +372,14 @@ auto Peer::shutdown(std::promise<void>& promise) noexcept -> void
 
 auto Peer::start_verify() noexcept -> void
 {
-    request_checkpoint_block_header();
+    if (address_.Incoming()) {
+        state_.value_.store(State::Subscribe);
+        do_work();
+    } else {
+        request_checkpoint_block_header();
 
-    if (verify_filter_checkpoint_) { request_checkpoint_filter_header(); }
+        if (verify_filter_checkpoint_) { request_checkpoint_filter_header(); }
+    }
 }
 
 auto Peer::state_machine() noexcept -> bool
@@ -512,6 +391,12 @@ auto Peer::state_machine() noexcept -> bool
     auto disconnect{false};
 
     switch (state_.value_.load()) {
+        case State::Listening: {
+            OT_ASSERT(address_.Incoming());
+
+            disconnect = state_.handshake_.run(
+                std::chrono::seconds(15), [] {}, State::Verify);
+        } break;
         case State::Handshake: {
             disconnect = state_.handshake_.run(
                 std::chrono::seconds(15),
@@ -527,6 +412,7 @@ auto Peer::state_machine() noexcept -> bool
         case State::Subscribe: {
             subscribe();
             state_.value_.store(State::Run);
+            network_.Blockchain().UpdatePeer(chain_, address_.Display());
             [[fallthrough]];
         }
         case State::Run: {
@@ -589,19 +475,7 @@ auto Peer::transmit(zmq::Message& message) noexcept -> void
         .Flush();
     LogTrace(Data::Factory(payload)->asHex()).Flush();
     init_send_promise();
-    auto work = [this, &payload]() -> void {
-        auto cb = [this](auto& error, auto bytes) -> void {
-            try {
-                this->send_promise_.set_value({error, bytes});
-            } catch (...) {
-            }
-        };
-        asio::async_write(
-            this->socket_, asio::buffer(payload.data(), payload.size()), cb);
-    };
-
-    auto& asio = context_.operator boost::asio::io_context&();
-    asio.post(work);
+    connection_->transmit(payload, send_promise_);
     auto result = SendResult{};
 
     try {
@@ -611,10 +485,17 @@ auto Peer::transmit(zmq::Message& message) noexcept -> void
 
             if (std::future_status::ready == status) {
                 result = send_future_.get();
+
                 break;
+            } else {
+                disconnect();
+
+                return;
             }
         }
     } catch (...) {
+        disconnect();
+
         return;
     }
 

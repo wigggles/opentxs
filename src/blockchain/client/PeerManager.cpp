@@ -20,6 +20,7 @@
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/api/Core.hpp"
 #include "opentxs/blockchain/block/bitcoin/Transaction.hpp"
+#include "opentxs/blockchain/p2p/Address.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
@@ -74,27 +75,38 @@ PeerManager::PeerManager(
           chain,
           seednode,
           io_context_,
-          peer_target(database_))
+          peer_target(chain, database_))
     , init_promise_()
     , init_(init_promise_.get_future())
 {
     init_executor({shutdown});
 }
 
+auto PeerManager::AddIncomingPeer(const int id, std::uintptr_t endpoint)
+    const noexcept -> void
+{
+    auto work = MakeWork(Work::IncomingPeer);
+    work->AddFrame(id);
+    work->AddFrame(endpoint);
+    pipeline_->Push(work);
+}
+
 auto PeerManager::AddPeer(const p2p::Address& address) const noexcept -> bool
 {
     if (false == running_.get()) { return false; }
 
-    auto promise = std::promise<bool>{};
-    auto future = promise.get_future();
+    auto address_p = std::make_unique<OTBlockchainAddress>(address);
+    auto promise = std::make_unique<std::promise<bool>>();
+    auto future = promise->get_future();
     auto work = MakeWork(Work::AddPeer);
-    work->AddFrame(reinterpret_cast<std::uintptr_t>(&address));
-    work->AddFrame(reinterpret_cast<std::uintptr_t>(&promise));
+    work->AddFrame(reinterpret_cast<std::uintptr_t>(address_p.release()));
+    work->AddFrame(reinterpret_cast<std::uintptr_t>(promise.release()));
     pipeline_->Push(work);
 
     while (running_.get()) {
         if (std::future_status::ready ==
             future.wait_for(std::chrono::seconds(5))) {
+
             return future.get();
         }
     }
@@ -143,9 +155,38 @@ auto PeerManager::init() noexcept -> void
     trigger();
 }
 
-auto PeerManager::peer_target(const internal::PeerDatabase& db) noexcept
-    -> std::size_t
+auto PeerManager::Listen(const p2p::Address& address) const noexcept -> bool
 {
+    if (false == running_.get()) { return false; }
+
+    auto address_p = std::make_unique<OTBlockchainAddress>(address);
+    auto promise = std::make_unique<std::promise<bool>>();
+    auto future = promise->get_future();
+    auto work = MakeWork(Work::AddListener);
+    work->AddFrame(reinterpret_cast<std::uintptr_t>(address_p.release()));
+    work->AddFrame(reinterpret_cast<std::uintptr_t>(promise.release()));
+    pipeline_->Push(work);
+
+    while (running_.get()) {
+        if (std::future_status::ready ==
+            future.wait_for(std::chrono::seconds(5))) {
+
+            return future.get();
+        } else {
+
+            return false;
+        }
+    }
+
+    return false;
+}
+
+auto PeerManager::peer_target(
+    const Type chain,
+    const internal::PeerDatabase& db) noexcept -> std::size_t
+{
+    if (Type::UnitTest == chain) { return 0; }
+
     switch (db.BlockPolicy()) {
         case api::client::blockchain::BlockStorage::All: {
 
@@ -181,18 +222,55 @@ auto PeerManager::pipeline(zmq::Message& message) noexcept -> void
         case Work::AddPeer: {
             OT_ASSERT(2 < body.size());
 
-            auto* address_p = reinterpret_cast<const p2p::Address*>(
-                body.at(1).as<std::uintptr_t>());
-            auto* promise_p = reinterpret_cast<std::promise<bool>*>(
-                body.at(2).as<std::uintptr_t>());
+            using Promise = std::promise<bool>;
 
-            OT_ASSERT(nullptr != address_p);
-            OT_ASSERT(nullptr != promise_p);
+            auto address_p = std::unique_ptr<OTBlockchainAddress>{
+                reinterpret_cast<OTBlockchainAddress*>(
+                    body.at(1).as<std::uintptr_t>())};
+            auto promise_p = std::unique_ptr<Promise>{
+                reinterpret_cast<Promise*>(body.at(2).as<std::uintptr_t>())};
 
-            const auto& address = *address_p;
+            OT_ASSERT(address_p);
+            OT_ASSERT(promise_p);
+
+            const auto& address = address_p->get();
             auto& promise = *promise_p;
 
             peers_.AddPeer(address, promise);
+            do_work();
+        } break;
+        case Work::AddListener: {
+            OT_ASSERT(2 < body.size());
+
+            using Promise = std::promise<bool>;
+
+            auto address_p = std::unique_ptr<OTBlockchainAddress>{
+                reinterpret_cast<OTBlockchainAddress*>(
+                    body.at(1).as<std::uintptr_t>())};
+            auto promise_p = std::unique_ptr<Promise>{
+                reinterpret_cast<Promise*>(body.at(2).as<std::uintptr_t>())};
+
+            OT_ASSERT(address_p);
+            OT_ASSERT(promise_p);
+
+            const auto& address = address_p->get();
+            auto& promise = *promise_p;
+
+            peers_.AddListener(address, promise);
+            do_work();
+        } break;
+        case Work::IncomingPeer: {
+            OT_ASSERT(2 < body.size());
+
+            const auto id = body.at(1).as<int>();
+            auto endpoint =
+                Peers::Endpoint{reinterpret_cast<p2p::internal::Address*>(
+                    body.at(2).as<std::uintptr_t>())};
+
+            OT_ASSERT(0 <= id);
+            OT_ASSERT(endpoint);
+
+            peers_.AddIncoming(id, std::move(endpoint));
             do_work();
         } break;
         case Work::StateMachine: {

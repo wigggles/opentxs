@@ -6,9 +6,8 @@
 set(MODULE_NAME opentxs-iterator)
 
 set(cxx-sources "")
-set(
-  cxx-install-headers
-  "${opentxs_SOURCE_DIR}/include/opentxs/iterator/Bidirectional.hpp"
+set(cxx-install-headers
+    "${opentxs_SOURCE_DIR}/include/opentxs/iterator/Bidirectional.hpp"
 )
 
 set(cxx-headers "${cxx-install-headers}")

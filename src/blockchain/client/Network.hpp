@@ -110,7 +110,8 @@ public:
         return *database_p_;
     }
     auto FeeRate() const noexcept -> Amount final;
-    auto FilterOracle() const noexcept -> const internal::FilterOracle& final
+    auto FilterOracleInternal() const noexcept
+        -> const internal::FilterOracle& final
     {
         return *filter_p_;
     }
@@ -126,7 +127,8 @@ public:
     }
     auto GetPeerCount() const noexcept -> std::size_t final;
     auto GetType() const noexcept -> Type final { return chain_; }
-    auto HeaderOracle() const noexcept -> const internal::HeaderOracle& final
+    auto HeaderOracleInternal() const noexcept
+        -> const internal::HeaderOracle& final
     {
         return header_;
     }
@@ -138,6 +140,7 @@ public:
     {
         return local_chain_height_.load() >= remote_chain_height_.load();
     }
+    auto Listen(const p2p::Address& address) const noexcept -> bool final;
     auto Reorg() const noexcept -> const network::zeromq::socket::Publish& final
     {
         return parent_.Reorg();
@@ -165,7 +168,11 @@ public:
 
     auto Connect() noexcept -> bool final;
     auto Disconnect() noexcept -> bool final;
-    auto HeaderOracle() noexcept -> internal::HeaderOracle& final
+    auto FilterOracleInternal() noexcept -> internal::FilterOracle& final
+    {
+        return filters_;
+    }
+    auto HeaderOracleInternal() noexcept -> internal::HeaderOracle& final
     {
         return header_;
     }

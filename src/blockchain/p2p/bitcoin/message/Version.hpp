@@ -17,6 +17,7 @@
 #include "internal/blockchain/p2p/bitcoin/message/Message.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/blockchain/p2p/Types.hpp"
 #include "opentxs/core/Data.hpp"
 
 namespace opentxs

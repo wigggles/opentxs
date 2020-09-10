@@ -7,13 +7,12 @@ set(cxx-sources Network.cpp)
 
 set(cxx-headers Network.hpp)
 
-add_library(opentxs-blockchain-client-bitcoin OBJECT ${cxx-sources}
-                                                     ${cxx-headers})
+add_library(
+  opentxs-blockchain-client-bitcoin OBJECT ${cxx-sources} ${cxx-headers}
+)
 target_link_libraries(
-  opentxs-blockchain-client-bitcoin
-  PRIVATE Boost::headers opentxs::messages
+  opentxs-blockchain-client-bitcoin PRIVATE Boost::headers opentxs::messages
 )
 set_property(
-  TARGET opentxs-blockchain-client-bitcoin
-  PROPERTY POSITION_INDEPENDENT_CODE 1
+  TARGET opentxs-blockchain-client-bitcoin PROPERTY POSITION_INDEPENDENT_CODE 1
 )

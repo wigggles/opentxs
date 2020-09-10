@@ -19,6 +19,7 @@
 #include "blockchain/client/UpdateTransaction.hpp"
 #include "core/Worker.hpp"
 #include "internal/blockchain/block/Block.hpp"
+#include "internal/blockchain/block/bitcoin/Bitcoin.hpp"
 #include "internal/blockchain/database/Database.hpp"
 #include "opentxs/Bytes.hpp"
 #include "opentxs/Proto.tpp"
@@ -26,6 +27,7 @@
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/blockchain/block/Header.hpp"
+#include "opentxs/blockchain/block/bitcoin/Header.hpp"
 #include "opentxs/blockchain/client/HeaderOracle.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
@@ -461,6 +463,28 @@ auto Headers::IsSibling(const block::Hash& hash) const noexcept -> bool
     return lmdb_.Exists(BlockHeaderSiblings, hash.Bytes());
 }
 
+auto Headers::load_bitcoin_header(const block::Hash& hash) const
+    -> std::unique_ptr<block::bitcoin::Header>
+{
+    auto proto = common_.LoadBlockHeader(hash);
+    const auto haveMeta =
+        lmdb_.Load(BlockHeaderMetadata, hash.Bytes(), [&](const auto data) {
+            proto.mutable_local()->ParseFromArray(data.data(), data.size());
+        });
+
+    if (false == haveMeta) {
+        throw std::out_of_range("Block header metadata not found");
+    }
+
+    auto output = factory::BitcoinBlockHeader(api_, proto);
+
+    if (false == bool(output)) {
+        throw std::out_of_range("Wrong header format");
+    }
+
+    return std::move(output);
+}
+
 auto Headers::load_header(const block::Hash& hash) const
     -> std::unique_ptr<block::Header>
 {
@@ -548,6 +572,16 @@ auto Headers::SiblingHashes() const noexcept -> client::Hashes
         opentxs::storage::lmdb::LMDB::Dir::Forward);
 
     return output;
+}
+
+auto Headers::TryLoadBitcoinHeader(const block::Hash& hash) const noexcept
+    -> std::unique_ptr<block::bitcoin::Header>
+{
+    try {
+        return load_bitcoin_header(hash);
+    } catch (...) {
+        return {};
+    }
 }
 
 auto Headers::TryLoadHeader(const block::Hash& hash) const noexcept

@@ -25,6 +25,7 @@ namespace opentxs::blockchain::p2p::internal
 struct Address : virtual public p2p::Address {
     virtual auto clone_internal() const noexcept
         -> std::unique_ptr<Address> = 0;
+    virtual auto Incoming() const noexcept -> bool = 0;
     virtual auto PreviousLastConnected() const noexcept -> Time = 0;
     virtual auto PreviousServices() const noexcept -> std::set<Service> = 0;
 
@@ -49,7 +50,8 @@ auto BlockchainAddress(
     const std::uint16_t port,
     const blockchain::Type chain,
     const Time lastConnected,
-    const std::set<blockchain::p2p::Service>& services) noexcept
+    const std::set<blockchain::p2p::Service>& services,
+    const bool incoming) noexcept
     -> std::unique_ptr<blockchain::p2p::internal::Address>;
 auto BlockchainAddress(
     const api::Core& api,

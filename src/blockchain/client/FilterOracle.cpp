@@ -26,6 +26,7 @@
 #include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/blockchain/block/Header.hpp"
+#include "opentxs/blockchain/client/FilterOracle.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
@@ -389,7 +390,7 @@ auto FilterOracle::flush_filters() noexcept -> void
 auto FilterOracle::LoadFilterOrResetTip(
     const filter::Type type,
     const block::Position& position) const noexcept
-    -> std::unique_ptr<const blockchain::internal::GCS>
+    -> std::unique_ptr<const GCS>
 {
     auto output = LoadFilter(type, position.second);
 
@@ -472,6 +473,23 @@ auto FilterOracle::pipeline(const zmq::Message& in) noexcept -> void
             OT_FAIL;
         }
     }
+}
+
+auto FilterOracle::PreviousHeader(
+    const filter::Type type,
+    const block::Height& block) const noexcept -> Header
+{
+    static const auto blank = api_.Factory().Data(
+        "0x0000000000000000000000000000000000000000000000000000000000000000",
+        StringStyle::Hex);
+
+    if (0 == block) { return blank; }
+
+    const auto hash = header_.BestHash(block - 1u);
+
+    if (hash->empty()) { return api_.Factory().Data(); }
+
+    return LoadFilterHeader(type, hash);
 }
 
 auto FilterOracle::process_cfheader(const zmq::Message& in) noexcept -> void
@@ -645,7 +663,7 @@ auto FilterOracle::process_cfilter(const zmq::Message& in) noexcept -> bool
     const auto fpRate = body.at(4).as<std::uint32_t>();
     const auto count = body.at(5).as<std::uint32_t>();
     const auto bytes = body.at(6).Bytes();
-    auto gcs = std::unique_ptr<const blockchain::internal::GCS>{factory::GCS(
+    auto gcs = std::unique_ptr<const GCS>{factory::GCS(
         api_,
         bits,
         fpRate,

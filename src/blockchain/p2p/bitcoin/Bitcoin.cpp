@@ -131,6 +131,7 @@ auto AddressVersion::Encode(const Network type, const Data& bytes)
         } break;
         case Network::onion3:
         case Network::eep:
+        case Network::zmq:
         default: {
             OT_FAIL;
         }

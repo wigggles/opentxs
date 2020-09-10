@@ -15,6 +15,7 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/contract/Signable.hpp"
+#include "opentxs/protobuf/Credential.pb.h"
 #include "opentxs/protobuf/Enums.pb.h"
 
 namespace opentxs
@@ -36,6 +37,13 @@ struct Authority;
 
 class Source;
 }  // namespace identity
+
+namespace proto
+{
+class ContactData;
+class Signature;
+class VerificationSet;
+}  // namespace proto
 
 class NymParameters;
 class OTPassword;

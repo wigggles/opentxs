@@ -6,27 +6,14 @@
 add_subdirectory(key)
 add_subdirectory(library)
 
-set(
-  cxx-sources
-  Bip32.cpp
-  Bip39.cpp
-  bip39_word_list.cpp
-  Envelope.cpp
-  HDNode.cpp
+set(cxx-sources Bip32.cpp Bip39.cpp bip39_word_list.cpp Envelope.cpp HDNode.cpp)
+set(cxx-install-headers
+    "${opentxs_SOURCE_DIR}/include/opentxs/crypto/Bip32.hpp"
+    "${opentxs_SOURCE_DIR}/include/opentxs/crypto/Bip39.hpp"
+    "${opentxs_SOURCE_DIR}/include/opentxs/crypto/Envelope.hpp"
 )
-set(
-  cxx-install-headers
-  "${opentxs_SOURCE_DIR}/include/opentxs/crypto/Bip32.hpp"
-  "${opentxs_SOURCE_DIR}/include/opentxs/crypto/Bip39.hpp"
-  "${opentxs_SOURCE_DIR}/include/opentxs/crypto/Envelope.hpp"
-)
-set(
-  cxx-headers
-  ${cxx-install-headers}
-  Bip32.hpp
-  Bip39.hpp
-  Envelope.hpp
-  HDNode.hpp
+set(cxx-headers ${cxx-install-headers} Bip32.hpp Bip39.hpp Envelope.hpp
+                HDNode.hpp
 )
 
 add_library(opentxs-crypto OBJECT ${cxx-sources} ${cxx-headers})

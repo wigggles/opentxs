@@ -11,7 +11,6 @@
 #include <atomic>
 #include <chrono>
 #include <thread>
-#include <type_traits>
 
 #include "internal/network/zeromq/socket/Socket.hpp"
 #include "network/zeromq/curve/Client.hpp"

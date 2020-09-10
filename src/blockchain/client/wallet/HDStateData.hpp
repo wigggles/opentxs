@@ -20,6 +20,7 @@
 #include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/blockchain/block/Block.hpp"
 #include "opentxs/blockchain/client/BlockOracle.hpp"
+#include "opentxs/blockchain/client/FilterOracle.hpp"
 #include "opentxs/core/Data.hpp"
 
 namespace opentxs
@@ -106,7 +107,7 @@ private:
     auto get_targets(
         const internal::WalletDatabase::Patterns& keys,
         const std::vector<internal::WalletDatabase::UTXO>& unspent)
-        const noexcept -> blockchain::internal::GCS::Targets;
+        const noexcept -> client::GCS::Targets;
     auto index_element(
         const filter::Type type,
         const api::client::blockchain::BalanceNode::Element& input,

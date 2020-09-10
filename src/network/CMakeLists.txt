@@ -6,10 +6,9 @@
 add_subdirectory(zeromq)
 
 set(cxx-sources ServerConnection.cpp)
-set(
-  cxx-install-headers
-  "${opentxs_SOURCE_DIR}/include/opentxs/network/OpenDHT.hpp"
-  "${opentxs_SOURCE_DIR}/include/opentxs/network/ServerConnection.hpp"
+set(cxx-install-headers
+    "${opentxs_SOURCE_DIR}/include/opentxs/network/OpenDHT.hpp"
+    "${opentxs_SOURCE_DIR}/include/opentxs/network/ServerConnection.hpp"
 )
 set(cxx-headers ${cxx-install-headers} ServerConnection.hpp)
 
@@ -22,19 +21,16 @@ add_library(opentxs-network OBJECT ${cxx-sources} ${cxx-headers})
 
 if(DHT_EXPORT)
   target_include_directories(
-    opentxs-network SYSTEM
-    PRIVATE ${OPENDHT_INCLUDE_DIR}
+    opentxs-network SYSTEM PRIVATE ${OPENDHT_INCLUDE_DIR}
   )
   target_include_directories(
-    opentxs-network SYSTEM
-    PRIVATE ${GNUTLS_INCLUDE_DIR}
+    opentxs-network SYSTEM PRIVATE ${GNUTLS_INCLUDE_DIR}
   )
 endif()
 
 target_link_libraries(opentxs-network PRIVATE opentxs::messages)
 target_include_directories(
-  opentxs-network SYSTEM
-  PRIVATE "${opentxs_SOURCE_DIR}/deps/"
+  opentxs-network SYSTEM PRIVATE "${opentxs_SOURCE_DIR}/deps/"
 )
 set_property(TARGET opentxs-network PROPERTY POSITION_INDEPENDENT_CODE 1)
 

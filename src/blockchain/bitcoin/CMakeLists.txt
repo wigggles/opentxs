@@ -5,18 +5,15 @@
 
 set(cxx-sources Bitcoin.cpp CompactSize.cpp Inventory.cpp)
 
-set(
-  cxx-headers
-  ${opentxs_SOURCE_DIR}/src/internal/blockchain/bitcoin/Bitcoin.hpp
-  CompactSize.hpp Inventory.hpp
+set(cxx-headers
+    ${opentxs_SOURCE_DIR}/src/internal/blockchain/bitcoin/Bitcoin.hpp
+    CompactSize.hpp Inventory.hpp
 )
 
 add_library(opentxs-blockchain-bitcoin OBJECT ${cxx-sources} ${cxx-headers})
 target_link_libraries(
-  opentxs-blockchain-bitcoin
-  PRIVATE Boost::headers opentxs::messages
+  opentxs-blockchain-bitcoin PRIVATE Boost::headers opentxs::messages
 )
 set_property(
-  TARGET opentxs-blockchain-bitcoin
-  PROPERTY POSITION_INDEPENDENT_CODE 1
+  TARGET opentxs-blockchain-bitcoin PROPERTY POSITION_INDEPENDENT_CODE 1
 )

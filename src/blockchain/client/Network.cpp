@@ -194,6 +194,13 @@ auto Network::init() noexcept -> void
     trigger();
 }
 
+auto Network::Listen(const p2p::Address& address) const noexcept -> bool
+{
+    if (false == running_.get()) { return false; }
+
+    return peer_.Listen(address);
+}
+
 auto Network::pipeline(zmq::Message& in) noexcept -> void
 {
     if (false == running_.get()) { return; }

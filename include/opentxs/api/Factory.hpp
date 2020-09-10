@@ -193,7 +193,8 @@ public:
         const std::uint16_t port,
         const blockchain::Type chain,
         const Time lastConnected,
-        const std::set<blockchain::p2p::Service>& services) const = 0;
+        const std::set<blockchain::p2p::Service>& services,
+        const bool incoming = false) const = 0;
     OPENTXS_EXPORT virtual OTBlockchainAddress BlockchainAddress(
         const blockchain::p2p::Address::SerializedType& serialized) const = 0;
     OPENTXS_EXPORT virtual std::unique_ptr<blockchain::block::Header>

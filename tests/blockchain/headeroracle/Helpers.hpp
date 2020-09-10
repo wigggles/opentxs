@@ -290,7 +290,7 @@ public:
               ot::Context().StartClient({}, 0)))
         , type_(type)
         , network_(init_network(api_, type_))
-        , header_oracle_(network_->HeaderOracle())
+        , header_oracle_(network_->HeaderOracleInternal())
         , test_blocks_()
     {
         header_oracle_.DeleteCheckpoint();

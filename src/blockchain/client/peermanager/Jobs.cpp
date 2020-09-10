@@ -14,7 +14,7 @@
 #include "internal/blockchain/client/Client.hpp"
 #include "opentxs/Bytes.hpp"
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/api/client/Manager.hpp"
+#include "opentxs/api/Core.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/Context.hpp"

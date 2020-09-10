@@ -11,6 +11,7 @@
 #include <boost/multiprecision/cpp_dec_float.hpp>  // IWYU pragma: keep
 #include <boost/multiprecision/cpp_int.hpp>
 #include <algorithm>
+#include <array>
 #include <cstddef>
 #include <cstring>
 #include <iomanip>
@@ -31,6 +32,7 @@
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/blockchain/p2p/Types.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 
@@ -416,14 +418,12 @@ auto FilterHashToHeader(
     const ReadView hash,
     const ReadView previous) noexcept -> OTData
 {
-    static const auto blank = api.Factory().Data(
-        "0x0000000000000000000000000000000000000000000000000000000000000000",
-        StringStyle::Hex);
+    static const auto blank = std::array<std::uint8_t, 32>{};
     auto preimage = api.Factory().Data(hash);
     auto output = api.Factory().Data();
 
     if (0 == previous.size()) {
-        preimage->Concatenate(blank->data(), blank->size());
+        preimage->Concatenate(blank.data(), blank.size());
     } else {
         preimage->Concatenate(previous.data(), previous.size());
     }

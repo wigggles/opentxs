@@ -20,6 +20,7 @@
 #include <utility>
 #include <vector>
 
+#include "IncomingConnectionManager.hpp"
 #include "internal/blockchain/Params.hpp"
 #include "internal/blockchain/client/Client.hpp"
 #include "internal/blockchain/p2p/P2P.hpp"
@@ -49,14 +50,14 @@ PeerManager::Peers::Peers(
     const std::string& seednode,
     const blockchain::client::internal::IO& context,
     const std::size_t peerTarget) noexcept
-    : api_(api)
+    : chain_(chain)
+    , api_(api)
     , network_(network)
     , database_(database)
     , parent_(parent)
     , context_(context)
     , running_(running)
     , shutdown_endpoint_(shutdown)
-    , chain_(chain)
     , invalid_peer_(false)
     , localhost_peer_(api.Factory().Data("0x7f000001", StringStyle::Hex))
     , default_peer_(set_default_peer(
@@ -64,13 +65,14 @@ PeerManager::Peers::Peers(
           localhost_peer_,
           const_cast<bool&>(invalid_peer_)))
     , preferred_services_(get_preferred_services(database_))
-    , resolver_(context_.operator boost::asio::io_context&())
+    , resolver_(context_.operator boost::asio::io_context &())
     , next_id_(0)
     , minimum_peers_(peerTarget)
     , peers_()
     , active_()
     , count_()
     , connected_()
+    , incoming_zmq_()
 {
     const auto& data = params::Data::chains_.at(chain_);
     database_.AddOrUpdate(Endpoint{factory::BlockchainAddress(
@@ -81,10 +83,17 @@ PeerManager::Peers::Peers(
         data.default_port_,
         chain_,
         Time{},
-        {})});
+        {},
+        false)});
 }
 
-auto PeerManager::Peers::add_peer(Endpoint endpoint) noexcept -> void
+auto PeerManager::Peers::add_peer(Endpoint endpoint) noexcept -> int
+{
+    return add_peer(++next_id_, std::move(endpoint));
+}
+
+auto PeerManager::Peers::add_peer(const int id, Endpoint endpoint) noexcept
+    -> int
 {
     OT_ASSERT(endpoint);
 
@@ -93,14 +102,45 @@ auto PeerManager::Peers::add_peer(Endpoint endpoint) noexcept -> void
 
     if (0 == count) {
         auto addressID = OTIdentifier{endpoint->ID()};
-        const auto id = ++next_id_;
-        const auto [it, added] =
-            peers_.emplace(id, peer_factory(std::move(endpoint), id));
 
-        if (added) {
-            ++count;
-            ++count_;
-            connected_.emplace(std::move(addressID));
+        if (auto peer = peer_factory(std::move(endpoint), id); peer) {
+            const auto [it, added] = peers_.emplace(id, std::move(peer));
+
+            if (added) {
+                ++count;
+                ++count_;
+                connected_.emplace(std::move(addressID));
+
+                return id;
+            }
+        }
+    }
+
+    return -1;
+}
+
+auto PeerManager::Peers::AddListener(
+    const p2p::Address& address,
+    std::promise<bool>& promise) noexcept -> void
+{
+    switch (address.Type()) {
+        case p2p::Network::zmq: {
+            if (false == bool(incoming_zmq_)) {
+                incoming_zmq_ = IncomingConnectionManager::ZMQ(api_, *this);
+            }
+
+            OT_ASSERT(incoming_zmq_);
+
+            promise.set_value(incoming_zmq_->Listen(address));
+        } break;
+        case p2p::Network::ipv6:
+        case p2p::Network::ipv4:
+        case p2p::Network::onion2:
+        case p2p::Network::onion3:
+        case p2p::Network::eep:
+        case p2p::Network::cjdns:
+        default: {
+            promise.set_value(false);
         }
     }
 }
@@ -129,7 +169,8 @@ auto PeerManager::Peers::AddPeer(
         address.Port(),
         address.Chain(),
         address.LastConnected(),
-        address.Services())};
+        address.Services(),
+        false)};
 
     OT_ASSERT(endpoint);
 
@@ -137,11 +178,22 @@ auto PeerManager::Peers::AddPeer(
     promise.set_value(true);
 }
 
+auto PeerManager::Peers::ConstructPeer(Endpoint endpoint) noexcept -> int
+{
+    auto id = ++next_id_;
+    parent_.AddIncomingPeer(
+        id, reinterpret_cast<std::uintptr_t>(endpoint.release()));
+
+    return id;
+}
+
 auto PeerManager::Peers::Disconnect(const int id) noexcept -> void
 {
     auto it = peers_.find(id);
 
     if (peers_.end() == it) { return; }
+
+    if (incoming_zmq_) { incoming_zmq_->Disconnect(id); }
 
     auto& peer = *it->second;
     const auto address = peer.AddressID();
@@ -167,7 +219,8 @@ auto PeerManager::Peers::get_default_peer() const noexcept -> Endpoint
         data.default_port_,
         chain_,
         Time{},
-        {})};
+        {},
+        false)};
 }
 
 auto PeerManager::Peers::get_dns_peer() const noexcept -> Endpoint
@@ -175,6 +228,14 @@ auto PeerManager::Peers::get_dns_peer() const noexcept -> Endpoint
     try {
         const auto& data = params::Data::chains_.at(chain_);
         const auto& dns = data.dns_seeds_;
+
+        if (0 == dns.size()) {
+            LogVerbose(OT_METHOD)(__FUNCTION__)(": No dns seeds available")
+                .Flush();
+
+            return {};
+        }
+
         auto seeds = std::vector<std::string>{};
         const auto count = std::size_t{1};
         std::sample(
@@ -185,13 +246,20 @@ auto PeerManager::Peers::get_dns_peer() const noexcept -> Endpoint
             std::mt19937{std::random_device{}()});
 
         if (0 == seeds.size()) {
-            LogOutput(OT_METHOD)(__FUNCTION__)(": No dns seeds available")
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to select a dns seed")
                 .Flush();
 
             return {};
         }
 
         const auto& seed = *seeds.cbegin();
+
+        if (seed.empty()) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid dns seed").Flush();
+
+            return {};
+        }
+
         const auto port = data.default_port_;
         LogVerbose(OT_METHOD)(__FUNCTION__)(": Using DNS seed: ")(seed).Flush();
         const auto results = resolver_.resolve(
@@ -216,7 +284,8 @@ auto PeerManager::Peers::get_dns_peer() const noexcept -> Endpoint
                     port,
                     chain_,
                     Time{},
-                    {});
+                    {},
+                    false);
             } else if (address.is_v6()) {
                 const auto bytes = address.to_v6().to_bytes();
                 output = factory::BlockchainAddress(
@@ -229,7 +298,8 @@ auto PeerManager::Peers::get_dns_peer() const noexcept -> Endpoint
                     port,
                     chain_,
                     Time{},
-                    {});
+                    {},
+                    false);
             }
 
             if (output) {
@@ -332,15 +402,10 @@ auto PeerManager::Peers::is_not_connected(
 }
 
 auto PeerManager::Peers::peer_factory(Endpoint endpoint, const int id) noexcept
-    -> p2p::internal::Peer*
+    -> std::unique_ptr<p2p::internal::Peer>
 {
-    switch (chain_) {
-        case Type::Bitcoin:
-        case Type::Bitcoin_testnet3:
-        case Type::BitcoinCash:
-        case Type::BitcoinCash_testnet3:
-        case Type::Litecoin:
-        case Type::Litecoin_testnet4: {
+    switch (params::Data::chains_.at(chain_).p2p_protocol_) {
+        case p2p::Protocol::bitcoin: {
             return factory::BitcoinP2PPeerLegacy(
                 api_,
                 network_,
@@ -350,10 +415,8 @@ auto PeerManager::Peers::peer_factory(Endpoint endpoint, const int id) noexcept
                 std::move(endpoint),
                 shutdown_endpoint_);
         }
-        case Type::Unknown:
-        case Type::Ethereum_frontier:
-        case Type::Ethereum_ropsten:
-        case Type::UnitTest:
+        case p2p::Protocol::opentxs:
+        case p2p::Protocol::ethereum:
         default: {
             OT_FAIL;
         }
@@ -407,4 +470,6 @@ auto PeerManager::Peers::Shutdown() noexcept -> void
     count_.store(0);
     active_.clear();
 }
+
+PeerManager::Peers::~Peers() = default;
 }  // namespace opentxs::blockchain::client::implementation

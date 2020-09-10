@@ -42,10 +42,10 @@ class Core;
 
 namespace blockchain
 {
-namespace internal
+namespace client
 {
 struct GCS;
-}  // namespace internal
+}  // namespace client
 }  // namespace blockchain
 
 namespace storage
@@ -82,7 +82,7 @@ public:
         return common_.HaveFilterHeader(type, block.Bytes());
     }
     auto LoadFilter(const filter::Type type, const ReadView block)
-        const noexcept -> std::unique_ptr<const blockchain::internal::GCS>
+        const noexcept -> std::unique_ptr<const blockchain::client::GCS>
     {
         return common_.LoadFilter(type, block);
     }
@@ -125,8 +125,6 @@ private:
     const block::Position blank_position_;
     mutable std::mutex lock_;
 
-    auto import_genesis(
-        const api::client::blockchain::BlockStorage mode,
-        const blockchain::Type type) const noexcept -> void;
+    auto import_genesis(const blockchain::Type type) const noexcept -> void;
 };
 }  // namespace opentxs::blockchain::database

@@ -13,6 +13,7 @@
 #include <vector>
 
 #include "internal/blockchain/p2p/bitcoin/message/Message.hpp"
+#include "opentxs/Bytes.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/core/Data.hpp"
@@ -71,7 +72,7 @@ public:
         const blockchain::Type network,
         const filter::Type type,
         const filter::Hash& stop,
-        const filter::Hash& previous,
+        const ReadView previousHeader,
         const std::vector<filter::pHash>& headers) noexcept;
     Cfheaders(
         const api::Core& api,

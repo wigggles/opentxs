@@ -22,6 +22,7 @@
 #include "internal/api/client/blockchain/Blockchain.hpp"
 #include "internal/api/client/blockchain/Factory.hpp"
 #include "opentxs/Pimpl.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/client/blockchain/HD.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/core/Identifier.hpp"

@@ -6,6 +6,7 @@
 #pragma once
 
 #include <boost/endian/buffers.hpp>
+#include <boost/endian/conversion.hpp>
 #include <array>
 #include <cstddef>
 #include <cstdint>

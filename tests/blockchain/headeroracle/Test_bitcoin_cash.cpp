@@ -74,7 +74,7 @@ TEST_F(Test_HeaderOracle_btc, receive_bch)
 
     ASSERT_TRUE(network);
 
-    auto& oracle = network->HeaderOracle();
+    auto& oracle = network->HeaderOracleInternal();
 
     EXPECT_TRUE(oracle.AddHeaders(headers_bch_));
 

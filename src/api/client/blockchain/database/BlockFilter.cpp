@@ -16,6 +16,7 @@
 #include "internal/api/Api.hpp"  // IWYU pragma: keep
 #include "internal/blockchain/Blockchain.hpp"
 #include "opentxs/Proto.tpp"
+#include "opentxs/blockchain/client/FilterOracle.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/protobuf/BlockchainFilterHeader.pb.h"
@@ -59,9 +60,9 @@ auto BlockFilter::HaveFilterHeader(
 }
 
 auto BlockFilter::LoadFilter(const FilterType type, const ReadView blockHash)
-    const noexcept -> std::unique_ptr<const opentxs::blockchain::internal::GCS>
+    const noexcept -> std::unique_ptr<const opentxs::blockchain::client::GCS>
 {
-    auto output = std::unique_ptr<const opentxs::blockchain::internal::GCS>{};
+    auto output = std::unique_ptr<const opentxs::blockchain::client::GCS>{};
     auto cb = [this, &output](const auto in) {
         if ((nullptr == in.data()) || (0 == in.size())) { return; }
 

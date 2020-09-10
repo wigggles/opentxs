@@ -4,38 +4,21 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 set(cxx-sources Mint.cpp Purse.cpp Token.cpp)
-set(cxx-install-headers "${opentxs_SOURCE_DIR}/include/opentxs/blind/Mint.hpp"
-                        "${opentxs_SOURCE_DIR}/include/opentxs/blind/Purse.hpp"
-                        "${opentxs_SOURCE_DIR}/include/opentxs/blind/Token.hpp")
-set(
-  cxx-headers
-  ${cxx-install-headers}
-  Mint.hpp
-  Purse.hpp
-  Token.hpp
+set(cxx-install-headers
+    "${opentxs_SOURCE_DIR}/include/opentxs/blind/Mint.hpp"
+    "${opentxs_SOURCE_DIR}/include/opentxs/blind/Purse.hpp"
+    "${opentxs_SOURCE_DIR}/include/opentxs/blind/Token.hpp"
 )
+set(cxx-headers ${cxx-install-headers} Mint.hpp Purse.hpp Token.hpp)
 
 if(CASH_LUCRE_EXPORT)
-  list(
-    APPEND
-      cxx-sources
-      mint/Lucre.cpp
-      token/Lucre.cpp
-      Lucre.cpp
-  )
-  list(
-    APPEND
-      cxx-headers
-      mint/Lucre.hpp
-      token/Lucre.hpp
-      Lucre.hpp
-  )
+  list(APPEND cxx-sources mint/Lucre.cpp token/Lucre.cpp Lucre.cpp)
+  list(APPEND cxx-headers mint/Lucre.hpp token/Lucre.hpp Lucre.hpp)
 endif()
 
 add_library(opentxs-blind OBJECT ${cxx-sources} ${cxx-headers})
 target_link_libraries(
-  opentxs-blind
-  PRIVATE opentxs::messages opentxs-api-crypto
+  opentxs-blind PRIVATE opentxs::messages opentxs-api-crypto
 )
 
 if(OT_OPENSSL_FLAVOR_LIBRESSL)
@@ -43,12 +26,11 @@ if(OT_OPENSSL_FLAVOR_LIBRESSL)
 endif()
 
 target_include_directories(
-  opentxs-blind SYSTEM
-  PRIVATE "${opentxs_SOURCE_DIR}/deps/"
+  opentxs-blind SYSTEM PRIVATE "${opentxs_SOURCE_DIR}/deps/"
 )
 target_include_directories(
-  opentxs-blind SYSTEM
-  PRIVATE "${opentxs_SOURCE_DIR}/deps/lucre/include" "${OPENSSL_INCLUDE_DIR}"
+  opentxs-blind SYSTEM PRIVATE "${opentxs_SOURCE_DIR}/deps/lucre/include"
+                               "${OPENSSL_INCLUDE_DIR}"
 )
 
 if(OT_LUCRE_DEBUG)

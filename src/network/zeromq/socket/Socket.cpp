@@ -8,7 +8,6 @@
 #include "network/zeromq/socket/Socket.hpp"  // IWYU pragma: associated
 
 #include <zmq.h>
-#include <algorithm>
 #include <cerrno>
 #include <cstdint>
 #include <iostream>

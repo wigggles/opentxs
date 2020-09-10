@@ -577,7 +577,8 @@ auto Wallet::Proposals::BitcoinTransactionBuilder::sign_input(
         case Type::Bitcoin:
         case Type::Bitcoin_testnet3:
         case Type::Litecoin:
-        case Type::Litecoin_testnet4: {
+        case Type::Litecoin_testnet4:
+        case Type::UnitTest: {
             if (is_segwit(input)) {
                 // TODO not implemented yet
 
@@ -589,7 +590,6 @@ auto Wallet::Proposals::BitcoinTransactionBuilder::sign_input(
         case Type::Unknown:
         case Type::Ethereum_frontier:
         case Type::Ethereum_ropsten:
-        case Type::UnitTest:
         default: {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Unsupported chain").Flush();
 

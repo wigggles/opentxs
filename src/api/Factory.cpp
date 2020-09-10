@@ -498,8 +498,8 @@ auto Factory::BlockchainAddress(
     const std::uint16_t port,
     const blockchain::Type chain,
     const Time lastConnected,
-    const std::set<blockchain::p2p::Service>& services) const
-    -> OTBlockchainAddress
+    const std::set<blockchain::p2p::Service>& services,
+    const bool incoming) const -> OTBlockchainAddress
 {
     return OTBlockchainAddress{factory::BlockchainAddress(
                                    api_,
@@ -509,7 +509,8 @@ auto Factory::BlockchainAddress(
                                    port,
                                    chain,
                                    lastConnected,
-                                   services)
+                                   services,
+                                   incoming)
                                    .release()};
 }
 

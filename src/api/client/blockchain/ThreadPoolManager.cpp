@@ -109,6 +109,13 @@ auto Blockchain::ThreadPoolManager::init() noexcept -> NetworkMap
         future = promise.get_future();
     }
 
+    {
+        auto& [active, running, promise, future, mutex] =
+            output[opentxs::blockchain::Type::UnitTest];
+        active = true;
+        future = promise.get_future();
+    }
+
     return output;
 }
 

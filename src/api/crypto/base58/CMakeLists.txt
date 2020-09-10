@@ -9,6 +9,5 @@ set(cxx-headers ${cxx-install-headers} base58.h)
 
 add_library(opentxs-api-crypto-base58 OBJECT ${cxx-sources} ${cxx-headers})
 set_property(
-  TARGET opentxs-api-crypto-base58
-  PROPERTY POSITION_INDEPENDENT_CODE 1
+  TARGET opentxs-api-crypto-base58 PROPERTY POSITION_INDEPENDENT_CODE 1
 )

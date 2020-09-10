@@ -4,21 +4,18 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 set(cxx-sources Helpers.cpp)
-set(
-  cxx-install-headers
-  "${opentxs_SOURCE_DIR}/include/opentxs/core/transaction/Helpers.hpp"
+set(cxx-install-headers
+    "${opentxs_SOURCE_DIR}/include/opentxs/core/transaction/Helpers.hpp"
 )
 set(cxx-headers ${cxx-install-headers})
 
 add_library(opentxs-core-transaction OBJECT ${cxx-sources} ${cxx-headers})
 target_include_directories(
-  opentxs-core-transaction SYSTEM
-  PRIVATE "${opentxs_SOURCE_DIR}/deps/"
+  opentxs-core-transaction SYSTEM PRIVATE "${opentxs_SOURCE_DIR}/deps/"
 )
 target_link_libraries(opentxs-core-transaction PRIVATE opentxs::messages)
 set_property(
-  TARGET opentxs-core-transaction
-  PROPERTY POSITION_INDEPENDENT_CODE 1
+  TARGET opentxs-core-transaction PROPERTY POSITION_INDEPENDENT_CODE 1
 )
 
 install(

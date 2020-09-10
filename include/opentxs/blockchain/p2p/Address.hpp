@@ -15,6 +15,7 @@
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/blockchain/p2p/Types.hpp"
 #include "opentxs/protobuf/BlockchainPeerAddress.pb.h"
 
 namespace opentxs

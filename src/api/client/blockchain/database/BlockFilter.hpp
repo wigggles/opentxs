@@ -24,10 +24,10 @@ class Core;
 
 namespace blockchain
 {
-namespace internal
+namespace client
 {
 struct GCS;
-}  // namespace internal
+}  // namespace client
 }  // namespace blockchain
 
 namespace storage
@@ -49,7 +49,7 @@ public:
     auto HaveFilterHeader(const FilterType type, const ReadView blockHash)
         const noexcept -> bool;
     auto LoadFilter(const FilterType type, const ReadView blockHash) const
-        noexcept -> std::unique_ptr<const opentxs::blockchain::internal::GCS>;
+        noexcept -> std::unique_ptr<const opentxs::blockchain::client::GCS>;
     auto LoadFilterHash(
         const FilterType type,
         const ReadView blockHash,

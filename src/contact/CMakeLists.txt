@@ -3,29 +3,22 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-set(
-  cxx-sources
-  Contact.cpp
-  ContactData.cpp
-  ContactGroup.cpp
-  ContactItem.cpp
-  ContactSection.cpp
+set(cxx-sources Contact.cpp ContactData.cpp ContactGroup.cpp ContactItem.cpp
+                ContactSection.cpp
 )
-set(
-  cxx-install-headers
-  "${opentxs_SOURCE_DIR}/include/opentxs/contact/Contact.hpp"
-  "${opentxs_SOURCE_DIR}/include/opentxs/contact/ContactData.hpp"
-  "${opentxs_SOURCE_DIR}/include/opentxs/contact/ContactGroup.hpp"
-  "${opentxs_SOURCE_DIR}/include/opentxs/contact/ContactItem.hpp"
-  "${opentxs_SOURCE_DIR}/include/opentxs/contact/ContactSection.hpp"
+set(cxx-install-headers
+    "${opentxs_SOURCE_DIR}/include/opentxs/contact/Contact.hpp"
+    "${opentxs_SOURCE_DIR}/include/opentxs/contact/ContactData.hpp"
+    "${opentxs_SOURCE_DIR}/include/opentxs/contact/ContactGroup.hpp"
+    "${opentxs_SOURCE_DIR}/include/opentxs/contact/ContactItem.hpp"
+    "${opentxs_SOURCE_DIR}/include/opentxs/contact/ContactSection.hpp"
 )
 set(cxx-headers ${cxx-install-headers})
 
 add_library(opentxs-contact OBJECT ${cxx-sources} ${cxx-headers})
 target_link_libraries(opentxs-contact PRIVATE opentxs::messages)
 target_include_directories(
-  opentxs-contact SYSTEM
-  PRIVATE "${opentxs_SOURCE_DIR}/deps/"
+  opentxs-contact SYSTEM PRIVATE "${opentxs_SOURCE_DIR}/deps/"
 )
 set_property(TARGET opentxs-contact PROPERTY POSITION_INDEPENDENT_CODE 1)
 

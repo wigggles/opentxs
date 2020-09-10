@@ -17,6 +17,7 @@
 #include "opentxs/Bytes.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/blockchain/p2p/Address.hpp"
+#include "opentxs/blockchain/p2p/Types.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 
@@ -42,6 +43,7 @@ public:
     auto Chain() const noexcept -> blockchain::Type final { return chain_; }
     auto Display() const noexcept -> std::string final;
     auto ID() const noexcept -> const Identifier& final { return id_; }
+    auto Incoming() const noexcept -> bool final { return incoming_; }
     auto LastConnected() const noexcept -> Time final
     {
         return last_connected_;
@@ -89,7 +91,8 @@ public:
         const std::uint16_t port,
         const blockchain::Type chain,
         const Time lastConnected,
-        const std::set<Service>& services) noexcept(false);
+        const std::set<Service>& services,
+        const bool incoming) noexcept(false);
     Address(const Address& rhs) noexcept;
 
     ~Address() final = default;
@@ -105,6 +108,7 @@ private:
     const blockchain::Type chain_;
     const Time previous_last_connected_;
     const std::set<Service> previous_services_;
+    const bool incoming_;
     Time last_connected_;
     std::set<Service> services_;
 

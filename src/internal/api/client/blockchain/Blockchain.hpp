@@ -29,6 +29,7 @@
 #include "opentxs/api/client/blockchain/Imported.hpp"
 #include "opentxs/api/client/blockchain/PaymentCode.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/blockchain/p2p/Types.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/protobuf/BlockchainAddress.pb.h"

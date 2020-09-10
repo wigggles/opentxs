@@ -31,6 +31,7 @@
 #include "opentxs/Forward.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/blockchain/p2p/Peer.hpp"
+#include "opentxs/blockchain/p2p/Types.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -63,6 +64,8 @@ class Frame;
 class Message;
 }  // namespace zeromq
 }  // namespace network
+
+class Flag;
 }  // namespace opentxs
 
 namespace asio = boost::asio;
@@ -76,37 +79,9 @@ class Peer : virtual public internal::Peer, public Worker<Peer, api::Core>
 {
 public:
     using SendStatus = std::future<bool>;
-
-    auto AddressID() const noexcept -> OTIdentifier final
-    {
-        return address_.ID();
-    }
-    auto Connected() const noexcept -> ConnectionStatus final
-    {
-        return state_.connect_.future_;
-    }
-    auto HandshakeComplete() const noexcept -> Handshake final
-    {
-        return state_.handshake_.future_;
-    }
-    auto Shutdown() noexcept -> std::shared_future<void> final;
-
-    ~Peer() override;
-
-protected:
     using SendResult = std::pair<boost::system::error_code, std::size_t>;
     using SendPromise = std::promise<SendResult>;
-    using SendFuture = std::future<SendResult>;
     using Task = client::internal::PeerManager::Task;
-
-    enum class State : std::uint8_t {
-        Connect,
-        Handshake,
-        Verify,
-        Subscribe,
-        Run,
-        Shutdown,
-    };
 
     struct Address {
         using pointer = std::unique_ptr<internal::Address>;
@@ -115,6 +90,7 @@ protected:
         auto Chain() const noexcept -> blockchain::Type;
         auto Display() const noexcept -> std::string;
         auto ID() const noexcept -> OTIdentifier;
+        auto Incoming() const noexcept -> bool;
         auto Port() const noexcept -> std::uint16_t;
         auto Services() const noexcept -> std::set<Service>;
         auto Type() const noexcept -> Network;
@@ -128,6 +104,89 @@ protected:
     private:
         mutable std::mutex lock_;
         pointer address_;
+    };
+
+    struct ConnectionManager {
+        using EndpointData = std::pair<std::string, std::uint16_t>;
+
+        static auto TCP(
+            const api::Core& api,
+            Peer& parent,
+            const Flag& running,
+            const Address& address,
+            const std::size_t headerSize,
+            const blockchain::client::internal::IO& context) noexcept
+            -> std::unique_ptr<ConnectionManager>;
+        static auto ZMQ(
+            const api::Core& api,
+            Peer& parent,
+            const Flag& running,
+            const Address& address,
+            const std::size_t headerSize) noexcept
+            -> std::unique_ptr<ConnectionManager>;
+        static auto ZMQIncoming(
+            const api::Core& api,
+            Peer& parent,
+            const Flag& running,
+            const Address& address,
+            const std::size_t headerSize) noexcept
+            -> std::unique_ptr<ConnectionManager>;
+
+        virtual auto address() const noexcept -> std::string = 0;
+        virtual auto endpoint_data() const noexcept -> EndpointData = 0;
+        virtual auto host() const noexcept -> std::string = 0;
+        virtual auto port() const noexcept -> std::uint16_t = 0;
+        virtual auto style() const noexcept -> p2p::Network = 0;
+
+        virtual auto connect() noexcept -> void = 0;
+        virtual auto init(const int id) noexcept -> bool = 0;
+        virtual auto shutdown_external() noexcept -> void = 0;
+        virtual auto stop_external() noexcept -> void = 0;
+        virtual auto stop_internal() noexcept -> void = 0;
+        virtual auto transmit(
+            const zmq::Frame& payload,
+            SendPromise& promise) noexcept -> void = 0;
+
+        virtual ~ConnectionManager() = default;
+
+    protected:
+        ConnectionManager() = default;
+    };
+
+    auto AddressID() const noexcept -> OTIdentifier final
+    {
+        return address_.ID();
+    }
+    auto Connected() const noexcept -> ConnectionStatus final
+    {
+        return state_.connect_.future_;
+    }
+    virtual auto get_body_size(const zmq::Frame& header) const noexcept
+        -> std::size_t = 0;
+    auto HandshakeComplete() const noexcept -> Handshake final
+    {
+        return state_.handshake_.future_;
+    }
+
+    auto on_connect() noexcept -> void;
+    auto on_pipeline(
+        const Task type,
+        const std::vector<ReadView>& frames) noexcept -> void;
+    auto Shutdown() noexcept -> std::shared_future<void> final;
+
+    ~Peer() override;
+
+protected:
+    using SendFuture = std::future<SendResult>;
+
+    enum class State : std::uint8_t {
+        Connect,
+        Listening,
+        Handshake,
+        Verify,
+        Subscribe,
+        Run,
+        Shutdown,
     };
 
     struct DownloadPeers {
@@ -231,13 +290,16 @@ protected:
     const client::internal::Network& network_;
     const client::internal::PeerManager& manager_;
     const blockchain::Type chain_;
-    const tcp::endpoint endpoint_;
     SendPromise send_promise_;
     SendFuture send_future_;
     Address address_;
     DownloadPeers download_peers_;
-    OTData header_;
     States state_;
+
+    auto connection() const noexcept -> const ConnectionManager&
+    {
+        return *connection_;
+    }
 
     virtual auto broadcast_transaction(zmq::Message& message) noexcept
         -> void = 0;
@@ -246,7 +308,6 @@ protected:
     auto disconnect() noexcept -> void;
     // NOTE call init in every final child class constructor
     auto init() noexcept -> void;
-    auto local_endpoint() noexcept -> tcp::socket::endpoint_type;
     virtual auto ping() noexcept -> void = 0;
     virtual auto pong() noexcept -> void = 0;
     virtual auto request_addresses() noexcept -> void = 0;
@@ -300,30 +361,24 @@ private:
     };
 
     const bool verify_filter_checkpoint_;
-    const std::size_t header_bytes_;
     const int id_;
-    const Space connection_id_;
     const std::string shutdown_endpoint_;
-    const blockchain::client::internal::IO& context_;
-    tcp::socket socket_;
-    OTData outgoing_message_;
-    std::promise<void> connection_id_promise_;
+    std::unique_ptr<ConnectionManager> connection_;
     SendPromises send_promises_;
     Activity activity_;
     std::promise<void> init_promise_;
     std::shared_future<void> init_;
-    OTZMQListenCallback cb_;
-    OTZMQDealerSocket dealer_;
 
-    static auto make_buffer(const std::size_t size) noexcept -> OTData;
-    static auto make_endpoint(
-        const Network type,
-        const Data& bytes,
-        const std::uint16_t port) noexcept -> tcp::endpoint;
+    static auto init_connection_manager(
+        const api::Core& api,
+        Peer& parent,
+        const Flag& running,
+        const Address& address,
+        const std::size_t headerSize,
+        const blockchain::client::internal::IO& context) noexcept
+        -> std::unique_ptr<ConnectionManager>;
 
     auto get_activity() const noexcept -> Time;
-    virtual auto get_body_size(const zmq::Frame& header) const noexcept
-        -> std::size_t = 0;
 
     auto break_promises() noexcept -> void;
     auto check_activity() noexcept -> void;
@@ -331,7 +386,6 @@ private:
     auto connect() noexcept -> void;
     auto init_send_promise() noexcept -> void;
     auto pipeline(zmq::Message& message) noexcept -> void;
-    auto pipeline_d(zmq::Message& message) noexcept -> void;
     virtual auto process_message(const zmq::Message& message) noexcept
         -> void = 0;
     auto process_state_machine() noexcept -> void;
@@ -339,7 +393,6 @@ private:
     virtual auto request_cfilter(zmq::Message& message) noexcept -> void = 0;
     virtual auto request_checkpoint_block_header() noexcept -> void = 0;
     virtual auto request_checkpoint_filter_header() noexcept -> void = 0;
-    auto run() noexcept -> void;
     auto shutdown(std::promise<void>& promise) noexcept -> void;
     virtual auto start_handshake() noexcept -> void = 0;
     auto state_machine() noexcept -> bool;

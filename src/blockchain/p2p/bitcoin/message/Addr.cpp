@@ -103,7 +103,8 @@ auto BitcoinP2PAddr(
                     bitcoin::TranslateServices(
                         chain,
                         version,
-                        bitcoin::GetServices(raw.data_.services_.value()))));
+                        bitcoin::GetServices(raw.data_.services_.value())),
+                    false));
             } else {
                 bitcoin::AddressVersion raw;
                 std::memcpy(
@@ -121,7 +122,8 @@ auto BitcoinP2PAddr(
                     bitcoin::TranslateServices(
                         chain,
                         version,
-                        bitcoin::GetServices(raw.services_.value()))));
+                        bitcoin::GetServices(raw.services_.value())),
+                    false));
             }
 
             it += addressSize;

@@ -13,6 +13,7 @@
 
 #include "blockchain/p2p/bitcoin/Header.hpp"
 #include "internal/blockchain/Blockchain.hpp"
+#include "internal/blockchain/Params.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
@@ -150,13 +151,8 @@ auto VerifyChecksum(
 {
     auto checksum = Data::Factory();
 
-    switch (header.Network()) {
-        case Type::Bitcoin:
-        case Type::Bitcoin_testnet3:
-        case Type::BitcoinCash:
-        case Type::BitcoinCash_testnet3:
-        case Type::Litecoin:
-        case Type::Litecoin_testnet4: {
+    switch (params::Data::chains_.at(header.Network()).p2p_protocol_) {
+        case p2p::Protocol::bitcoin: {
             if (0 == payload.size()) {
                 checksum = Data::Factory("0x5df6e0e2", Data::Mode::Hex);
             } else {
@@ -167,10 +163,8 @@ auto VerifyChecksum(
                     checksum->WriteInto());
             }
         } break;
-        case Type::Unknown:
-        case Type::Ethereum_frontier:
-        case Type::Ethereum_ropsten:
-        case Type::UnitTest:
+        case p2p::Protocol::opentxs:
+        case p2p::Protocol::ethereum:
         default: {
             LogOutput(__FUNCTION__)(": Unsupported type").Flush();
         }

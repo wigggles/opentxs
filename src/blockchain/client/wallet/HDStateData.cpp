@@ -18,7 +18,6 @@
 #include <string_view>
 #include <utility>
 
-#include "internal/blockchain/Blockchain.hpp"
 #include "opentxs/Bytes.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/api/Core.hpp"
@@ -100,9 +99,9 @@ auto HDStateData::ReorgQueue::Next() noexcept -> block::Position
 auto HDStateData::get_targets(
     const internal::WalletDatabase::Patterns& keys,
     const std::vector<internal::WalletDatabase::UTXO>& unspent) const noexcept
-    -> blockchain::internal::GCS::Targets
+    -> client::GCS::Targets
 {
-    auto output = blockchain::internal::GCS::Targets{};
+    auto output = client::GCS::Targets{};
     output.reserve(keys.size() + unspent.size());
     std::transform(
         std::begin(keys),
@@ -203,7 +202,7 @@ auto HDStateData::index_element(
 auto HDStateData::process() noexcept -> void
 {
     const auto start = Clock::now();
-    const auto& filters = network_.FilterOracle();
+    const auto& filters = network_.FilterOracleInternal();
     auto it = process_block_queue_.front();
     auto postcondition = ScopeGuard{[&] {
         outstanding_blocks_.erase(it);
@@ -224,7 +223,7 @@ auto HDStateData::process() noexcept -> void
 
     const auto& block = *pBlock;
     auto tested = WalletDatabase::MatchingIndices{};
-    auto patterns = blockchain::internal::GCS::Targets{};
+    auto patterns = client::GCS::Targets{};
     auto elements = db_.GetUntestedPatterns(
         node_.ID(), subchain_, filter_type_, blockHash.Bytes());
     std::for_each(
@@ -250,7 +249,7 @@ auto HDStateData::process() noexcept -> void
 
     const auto confirmed =
         block.FindMatches(blockchain_, filter_type_, {}, potential);
-    const auto& oracle = network_.HeaderOracle();
+    const auto& oracle = network_.HeaderOracleInternal();
     const auto pHeader = oracle.LoadHeader(blockHash);
 
     OT_ASSERT(pHeader);
@@ -282,11 +281,11 @@ auto HDStateData::reorg() noexcept -> void
         reorg_.Next();
         const auto tip =
             db_.SubchainLastProcessed(node_.ID(), subchain_, filter_type_);
-        const auto reorg = network_.HeaderOracle().CalculateReorg(tip);
+        const auto reorg = network_.HeaderOracleInternal().CalculateReorg(tip);
         db_.ReorgTo(node_.ID(), subchain_, filter_type_, reorg);
     }
 
-    const auto scannedTarget = network_.HeaderOracle()
+    const auto scannedTarget = network_.HeaderOracleInternal()
                                    .CommonParent(db_.SubchainLastScanned(
                                        node_.ID(), subchain_, filter_type_))
                                    .first;
@@ -304,8 +303,8 @@ auto HDStateData::reorg() noexcept -> void
 auto HDStateData::scan() noexcept -> void
 {
     const auto start = Clock::now();
-    const auto& headers = network_.HeaderOracle();
-    const auto& filters = network_.FilterOracle();
+    const auto& headers = network_.HeaderOracleInternal();
+    const auto& filters = network_.FilterOracleInternal();
     const auto best = headers.BestChain();
     const auto startHeight = std::min(
         best.first,
