@@ -49,6 +49,8 @@ Peer::Peer(
     , network_(network)
     , manager_(manager)
     , chain_(address->Chain())
+    , header_probe_(false)
+    , cfilter_probe_(false)
     , address_(std::move(address))
     , download_peers_()
     , state_()
@@ -267,6 +269,9 @@ auto Peer::pipeline(zmq::Message& message) noexcept -> void
         case Task::BroadcastTransaction: {
             broadcast_transaction(message);
         } break;
+        case Task::BroadcastBlock: {
+            broadcast_block(message);
+        } break;
         case Task::SendMessage: {
             transmit(message);
         } break;
@@ -430,17 +435,18 @@ auto Peer::subscribe() noexcept -> void
     const auto cfilter =
         (1 == address_.Services().count(p2p::Service::CompactFilters));
 
-    if (network || limited) {
+    if (network || limited || header_probe_) {
         pipeline_->Start(manager_.Endpoint(Task::Getheaders));
         pipeline_->Start(manager_.Endpoint(Task::Getblock));
         pipeline_->Start(manager_.Endpoint(Task::BroadcastTransaction));
     }
 
-    if (cfilter) {
+    if (cfilter || cfilter_probe_) {
         pipeline_->Start(manager_.Endpoint(Task::Getcfheaders));
         pipeline_->Start(manager_.Endpoint(Task::Getcfilters));
     }
 
+    pipeline_->Start(manager_.Endpoint(Task::BroadcastBlock));
     request_headers();
     request_addresses();
 }

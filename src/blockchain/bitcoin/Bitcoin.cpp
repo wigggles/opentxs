@@ -473,7 +473,10 @@ auto EncodedTransaction::wtxid_preimage() const noexcept -> Space
         }
     }
 
-    return {};
+    std::memcpy(it, static_cast<const void*>(&lock_time_), sizeof(lock_time_));
+    std::advance(it, sizeof(lock_time_));
+
+    return output;
 }
 
 auto EncodedTransaction::txid_preimage() const noexcept -> Space

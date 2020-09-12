@@ -69,6 +69,7 @@ public:
 
     OPENTXS_EXPORT virtual auto CalculateSize(
         const bool normalized = false) const noexcept -> std::size_t = 0;
+    OPENTXS_EXPORT virtual auto Coinbase() const noexcept -> Space = 0;
     OPENTXS_EXPORT virtual auto ExtractElements(
         const filter::Type style) const noexcept -> std::vector<Space> = 0;
     OPENTXS_EXPORT virtual auto FindMatches(

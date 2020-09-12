@@ -143,10 +143,10 @@ auto BlockOracle::state_machine() noexcept -> bool
     return cache_.StateMachine();
 }
 
-auto BlockOracle::SubmitBlock(const zmq::Frame& in) const noexcept -> void
+auto BlockOracle::SubmitBlock(const ReadView in) const noexcept -> void
 {
     auto work = MakeWork(Task::ProcessBlock);
-    work->AddFrame(in);
+    work->AddFrame(in.data(), in.size());
     pipeline_->Push(work);
 }
 

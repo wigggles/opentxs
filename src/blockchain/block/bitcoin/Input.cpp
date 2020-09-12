@@ -276,6 +276,11 @@ auto BitcoinTransactionInput(
 
 namespace opentxs::blockchain::block::bitcoin
 {
+Outpoint::Outpoint() noexcept
+    : txid_()
+    , index_()
+{
+}
 Outpoint::Outpoint(const Outpoint& rhs) noexcept
     : txid_(rhs.txid_)
     , index_(rhs.index_)

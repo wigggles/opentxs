@@ -223,7 +223,7 @@ struct BlockOracle : virtual public opentxs::blockchain::client::BlockOracle {
     };
 
     virtual auto Heartbeat() const noexcept -> void = 0;
-    virtual auto SubmitBlock(const zmq::Frame& in) const noexcept -> void = 0;
+    virtual auto SubmitBlock(const ReadView in) const noexcept -> void = 0;
 
     virtual auto Init() noexcept -> void = 0;
     virtual auto Shutdown() noexcept -> std::shared_future<void> = 0;
@@ -235,6 +235,7 @@ struct FilterDatabase {
     using Hash = block::pHash;
     /// block hash, filter header, filter hash
     using Header = std::tuple<block::pHash, block::pHash, ReadView>;
+    /// block hash, filter
     using Filter = std::pair<ReadView, std::unique_ptr<const GCS>>;
 
     virtual auto BlockPolicy() const noexcept
@@ -291,6 +292,8 @@ struct FilterOracle : virtual public opentxs::blockchain::client::FilterOracle {
     virtual auto PreviousHeader(
         const filter::Type type,
         const block::Height& block) const noexcept -> Header = 0;
+    virtual auto ProcessBlock(const block::bitcoin::Block& block) const noexcept
+        -> bool = 0;
 
     virtual auto Start() noexcept -> void = 0;
     virtual auto Shutdown() noexcept -> std::shared_future<void> = 0;
@@ -482,6 +485,7 @@ struct PeerManager {
         Heartbeat = OT_ZMQ_INTERNAL_SIGNAL + 3,
         Getblock = OT_ZMQ_INTERNAL_SIGNAL + 4,
         BroadcastTransaction = OT_ZMQ_INTERNAL_SIGNAL + 5,
+        BroadcastBlock = OT_ZMQ_INTERNAL_SIGNAL + 6,
         Body = OT_ZMQ_INTERNAL_SIGNAL + 126,
         Header = OT_ZMQ_INTERNAL_SIGNAL + 127,
         Connect = OT_ZMQ_CONNECT_SIGNAL,
@@ -496,6 +500,8 @@ struct PeerManager {
     virtual auto AddIncomingPeer(const int id, std::uintptr_t endpoint)
         const noexcept -> void = 0;
     virtual auto AddPeer(const p2p::Address& address) const noexcept
+        -> bool = 0;
+    virtual auto BroadcastBlock(const block::Block& block) const noexcept
         -> bool = 0;
     virtual auto BroadcastTransaction(
         const block::bitcoin::Transaction& tx) const noexcept -> bool = 0;

@@ -63,14 +63,14 @@ public:
         const api::Core& api,
         const blockchain::Type network,
         const filter::Type type,
-        const filter::Hash& hash,
+        const block::Hash& hash,
         const std::uint32_t count,
         const Space& compressed) noexcept;
     Cfilter(
         const api::Core& api,
         std::unique_ptr<Header> header,
         const filter::Type type,
-        const filter::Hash& hash,
+        const block::Hash& hash,
         const std::uint32_t count,
         Space&& compressed) noexcept;
 
@@ -78,7 +78,7 @@ public:
 
 private:
     const filter::Type type_;
-    const filter::pHash hash_;
+    const block::pHash hash_;
     const std::uint32_t count_;
     const Space filter_;
     const blockchain::internal::FilterParams params_;

@@ -12,6 +12,7 @@
 #include <cstdint>
 #include <iomanip>
 #include <sstream>
+#include <stdexcept>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -24,6 +25,8 @@
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/client/blockchain/AddressStyle.hpp"
 #include "opentxs/blockchain/block/Header.hpp"
+#include "opentxs/blockchain/block/bitcoin/Block.hpp"
+#include "opentxs/blockchain/client/BlockOracle.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
@@ -115,6 +118,69 @@ Network::Network(
     database_.SetDefaultFilterType(filters_.DefaultType());
     header_.Init();
     init_executor({api_.Endpoints().InternalBlockchainFilterUpdated(chain_)});
+}
+
+auto Network::AddBlock(
+    const std::shared_ptr<const block::bitcoin::Block> pBlock) const noexcept
+    -> bool
+{
+    if (!pBlock) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": invalid ")(DisplayString(chain_))(
+            " block")
+            .Flush();
+
+        return false;
+    }
+
+    const auto& block = *pBlock;
+
+    try {
+        const auto bytes = [&] {
+            auto output = Space{};
+
+            if (false == block.Serialize(writer(output))) {
+                throw std::runtime_error("Serialization error");
+            }
+
+            return output;
+        }();
+        block_.SubmitBlock(reader(bytes));
+    } catch (...) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": failed to serialize ")(
+            DisplayString(chain_))(" block")
+            .Flush();
+
+        return false;
+    }
+
+    const auto& id = block.ID();
+
+    if (false == filters_.ProcessBlock(block)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": failed to index ")(
+            DisplayString(chain_))(" block")
+            .Flush();
+
+        return false;
+    }
+
+    if (std::future_status::ready !=
+        block_.LoadBitcoin(id).wait_for(std::chrono::seconds(10))) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": invalid ")(DisplayString(chain_))(
+            " block")
+            .Flush();
+
+        return false;
+    }
+
+    if (false == header_.AddHeader(block.Header().clone())) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": failed to process ")(
+            DisplayString(chain_))(" header")
+            .Flush();
+
+        return false;
+    }
+
+    return peer_.BroadcastBlock(block);
 }
 
 auto Network::AddPeer(const p2p::Address& address) const noexcept -> bool
@@ -256,7 +322,7 @@ auto Network::process_block(network::zeromq::Message& in) noexcept -> void
         return;
     }
 
-    block_.SubmitBlock(body.at(1));
+    block_.SubmitBlock(body.at(1).Bytes());
 }
 
 auto Network::process_cfheader(network::zeromq::Message& in) noexcept -> void

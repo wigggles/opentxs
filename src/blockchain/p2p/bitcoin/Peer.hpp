@@ -131,12 +131,14 @@ private:
     static auto get_local_services(
         const ProtocolVersion version,
         const blockchain::Type network,
+        const blockchain::client::internal::BlockDatabase& db,
         const std::set<p2p::Service>& input) noexcept -> std::set<p2p::Service>;
     static auto nonce(const api::Core& api) noexcept -> Nonce;
 
     auto get_body_size(const zmq::Frame& header) const noexcept
         -> std::size_t final;
 
+    auto broadcast_block(zmq::Message& message) noexcept -> void final;
     auto broadcast_transaction(zmq::Message& message) noexcept -> void final;
     auto ping() noexcept -> void final;
     auto pong() noexcept -> void final;

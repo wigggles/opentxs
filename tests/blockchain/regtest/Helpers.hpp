@@ -12,9 +12,13 @@
 #include <chrono>
 #include <cstdint>
 #include <future>
+#include <map>
 #include <memory>
+#include <mutex>
+#include <set>
 #include <stdexcept>
 #include <string>
+#include <utility>
 
 #include "OTTestEnvironment.hpp"  // IWYU pragma: keep
 #include "opentxs/Forward.hpp"
@@ -27,6 +31,7 @@
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/client/Blockchain.hpp"
 #include "opentxs/api/client/Manager.hpp"
+#include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/blockchain/BlockchainType.hpp"
 #include "opentxs/blockchain/Network.hpp"
 #include "opentxs/blockchain/Types.hpp"
@@ -35,10 +40,14 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
+#include "opentxs/network/zeromq/Frame.hpp"
+#include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
+#include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/socket/Subscribe.hpp"
 
 namespace b = ot::blockchain;
+namespace zmq = ot::network::zeromq;
 
 namespace
 {
@@ -94,6 +103,107 @@ private:
     }
 };
 
+class BlockListener
+{
+public:
+    using Height = ot::blockchain::block::Height;
+    using Position = ot::blockchain::block::Position;
+
+    [[maybe_unused]] auto GetFuture(const Height height) noexcept
+    {
+        auto lock = ot::Lock{lock_};
+        target_ = height;
+
+        try {
+            promise_ = {};
+        } catch (...) {
+        }
+
+        return promise_.get_future();
+    }
+
+    BlockListener(const ot::api::Core& api) noexcept
+        : api_(api)
+        , lock_()
+        , promise_()
+        , target_(-1)
+        , cb_(zmq::ListenCallback::Factory([&](const zmq::Message& msg) {
+            const auto body = msg.Body();
+
+            OT_ASSERT(body.size() == 4);
+
+            auto lock = ot::Lock{lock_};
+            auto position = Position{body.at(3).as<Height>(), [&] {
+                                         auto output = api_.Factory().Data();
+                                         output->Assign(body.at(2).Bytes());
+
+                                         return output;
+                                     }()};
+            const auto& [height, hash] = position;
+
+            if (height == target_) { promise_.set_value(std::move(position)); }
+        }))
+        , socket_(api_.ZeroMQ().SubscribeSocket(cb_))
+    {
+        OT_ASSERT(socket_->Start(api_.Endpoints().BlockchainReorg()));
+    }
+
+private:
+    const ot::api::Core& api_;
+    mutable std::mutex lock_;
+    std::promise<Position> promise_;
+    Height target_;
+    ot::OTZMQListenCallback cb_;
+    ot::OTZMQSubscribeSocket socket_;
+};
+
+class WalletListener
+{
+public:
+    using Height = ot::blockchain::block::Height;
+
+    [[maybe_unused]] auto GetFuture(const Height height) noexcept
+    {
+        auto lock = ot::Lock{lock_};
+        target_ = height;
+
+        try {
+            promise_ = {};
+        } catch (...) {
+        }
+
+        return promise_.get_future();
+    }
+
+    WalletListener(const ot::api::Core& api) noexcept
+        : api_(api)
+        , lock_()
+        , promise_()
+        , target_(-1)
+        , cb_(zmq::ListenCallback::Factory([&](const zmq::Message& msg) {
+            const auto body = msg.Body();
+
+            OT_ASSERT(body.size() == 4);
+
+            auto lock = ot::Lock{lock_};
+            const auto height = body.at(2).as<Height>();
+
+            if (height == target_) { promise_.set_value(height); }
+        }))
+        , socket_(api_.ZeroMQ().SubscribeSocket(cb_))
+    {
+        OT_ASSERT(socket_->Start(api_.Endpoints().BlockchainSyncProgress()));
+    }
+
+private:
+    const ot::api::Core& api_;
+    mutable std::mutex lock_;
+    std::promise<Height> promise_;
+    Height target_;
+    ot::OTZMQListenCallback cb_;
+    ot::OTZMQSubscribeSocket socket_;
+};
+
 class Regtest_fixture : public ::testing::Test
 {
 protected:
@@ -103,8 +213,10 @@ protected:
     const ot::api::client::Manager& client_;
     const ot::blockchain::p2p::Address& address_;
     const PeerListener& connection_;
+    BlockListener& block_;
+    WalletListener& wallet_;
 
-    auto Connect() noexcept -> bool
+    [[maybe_unused]] auto Connect() noexcept -> bool
     {
         const auto& miner = miner_.Blockchain().GetChain(chain_);
         const auto listenMiner = miner.Listen(address_);
@@ -128,8 +240,13 @@ protected:
                (1 == connection_.miner_peers_) &&
                (1 == connection_.client_peers_);
     }
-    auto Shutdown() noexcept { peer_listener_.reset(); }
-    auto Start() noexcept -> bool
+    auto Shutdown() noexcept
+    {
+        wallet_listener_.reset();
+        block_listener_.reset();
+        peer_listener_.reset();
+    }
+    [[maybe_unused]] auto Start() noexcept -> bool
     {
         const auto startMiner = miner_.Blockchain().Start(chain_);
         const auto startclient = client_.Blockchain().Start(chain_);
@@ -141,16 +258,38 @@ protected:
     }
 
     Regtest_fixture()
-        : miner_(ot::Context().StartClient(OTTestEnvironment::test_args_, 0))
-        , client_(ot::Context().StartClient(OTTestEnvironment::test_args_, 1))
+        : miner_(ot::Context().StartClient(
+              [] {
+                  auto args = OTTestEnvironment::test_args_;
+                  auto& level = args[OPENTXS_ARG_BLOCK_STORAGE_LEVEL];
+                  level.clear();
+                  level.emplace("2");
+
+                  return args;
+              }(),
+              0))
+        , client_(ot::Context().StartClient(
+              [] {
+                  auto args = OTTestEnvironment::test_args_;
+                  auto& level = args[OPENTXS_ARG_BLOCK_STORAGE_LEVEL];
+                  level.clear();
+                  level.emplace("0");
+
+                  return args;
+              }(),
+              1))
         , address_(init_address(miner_))
         , connection_(init_peer(miner_, client_))
+        , block_(init_block(client_))
+        , wallet_(init_wallet(client_))
     {
     }
 
 private:
     static std::unique_ptr<const ot::OTBlockchainAddress> listen_address_;
     static std::unique_ptr<const PeerListener> peer_listener_;
+    static std::unique_ptr<BlockListener> block_listener_;
+    static std::unique_ptr<WalletListener> wallet_listener_;
 
     static auto init_address(const ot::api::Core& api) noexcept
         -> const ot::blockchain::p2p::Address&
@@ -175,6 +314,16 @@ private:
 
         return *listen_address_;
     }
+    static auto init_block(const ot::api::Core& api) noexcept -> BlockListener&
+    {
+        if (false == bool(block_listener_)) {
+            block_listener_ = std::make_unique<BlockListener>(api);
+        }
+
+        OT_ASSERT(block_listener_);
+
+        return *block_listener_;
+    }
     static auto init_peer(
         const ot::api::client::Manager& miner,
         const ot::api::client::Manager& client) noexcept -> const PeerListener&
@@ -187,6 +336,17 @@ private:
 
         return *peer_listener_;
     }
+    static auto init_wallet(const ot::api::Core& api) noexcept
+        -> WalletListener&
+    {
+        if (false == bool(wallet_listener_)) {
+            wallet_listener_ = std::make_unique<WalletListener>(api);
+        }
+
+        OT_ASSERT(wallet_listener_);
+
+        return *wallet_listener_;
+    }
 };
 }  // namespace
 
@@ -195,4 +355,6 @@ namespace
 std::unique_ptr<const ot::OTBlockchainAddress>
     Regtest_fixture::listen_address_{};
 std::unique_ptr<const PeerListener> Regtest_fixture::peer_listener_{};
+std::unique_ptr<BlockListener> Regtest_fixture::block_listener_{};
+std::unique_ptr<WalletListener> Regtest_fixture::wallet_listener_{};
 }  // namespace

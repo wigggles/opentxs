@@ -117,7 +117,7 @@ struct FilterPrefixBasic {
     ClientFilterTypeField type_;
     HashField hash_;
 
-    auto Hash() const noexcept -> filter::pHash;
+    auto Hash() const noexcept -> block::pHash;
     auto Type(const blockchain::Type chain) const noexcept -> filter::Type;
 
     FilterPrefixBasic(
@@ -240,7 +240,7 @@ struct Getcfheaders : virtual public bitcoin::Message {
 };
 struct Getcfilters : virtual public bitcoin::Message {
     virtual auto Start() const noexcept -> block::Height = 0;
-    virtual auto Stop() const noexcept -> const filter::Hash& = 0;
+    virtual auto Stop() const noexcept -> const block::Hash& = 0;
     virtual auto Type() const noexcept -> filter::Type = 0;
 };
 struct Getdata : virtual public bitcoin::Message {
@@ -407,8 +407,8 @@ auto BitcoinP2PCfilter(
     const api::Core& api,
     const blockchain::Type network,
     const blockchain::filter::Type type,
-    const blockchain::filter::Hash& hash,
-    std::unique_ptr<blockchain::client::GCS> filter)
+    const blockchain::block::Hash& hash,
+    const blockchain::client::GCS& filter)
     -> blockchain::p2p::bitcoin::message::internal::Cfilter*;
 auto BitcoinP2PCmpctblock(
     const api::Core& api,

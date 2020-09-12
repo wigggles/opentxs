@@ -34,6 +34,7 @@
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/blockchain/BlockchainType.hpp"
+#include "opentxs/blockchain/block/Header.hpp"
 #include "opentxs/blockchain/block/bitcoin/Block.hpp"
 #include "opentxs/blockchain/block/bitcoin/Transaction.hpp"
 #include "opentxs/core/Data.hpp"
@@ -48,6 +49,96 @@ namespace be = boost::endian;
 
 namespace opentxs::factory
 {
+auto BitcoinBlock(
+    const api::Core& api,
+    const opentxs::blockchain::block::Header& previous,
+    const Transaction_p pGen,
+    const std::uint32_t nBits,
+    const std::vector<Transaction_p>& extra,
+    const std::int32_t version,
+    const AbortFunction abort) noexcept
+    -> std::shared_ptr<const opentxs::blockchain::block::bitcoin::Block>
+{
+    try {
+        using Block = blockchain::block::bitcoin::implementation::Block;
+
+        if (false == bool(pGen)) {
+            throw std::runtime_error{"Invalid generation transaction"};
+        }
+
+        const auto& gen = *pGen;
+        auto index = Block::TxidIndex{};
+        auto map = Block::TransactionMap{};
+
+        {
+            const auto& id = gen.ID();
+            index.emplace_back(id.begin(), id.end());
+            const auto& item = index.back();
+            map.emplace(reader(item), pGen);
+        }
+
+        for (const auto& tx : extra) {
+            if (false == bool(tx)) {
+                throw std::runtime_error{"Invalid transaction"};
+            }
+
+            const auto& id = tx->ID();
+            index.emplace_back(id.begin(), id.end());
+            const auto& item = index.back();
+            map.emplace(reader(item), tx);
+        }
+
+        const auto chain = previous.Type();
+        auto header = BitcoinBlockHeader(
+            api,
+            previous,
+            nBits,
+            version,
+            Block::calculate_merkle_value(api, chain, index),
+            abort);
+
+        if (false == bool(header)) {
+            throw std::runtime_error{"Failed to create block header"};
+        }
+
+        switch (chain) {
+            case blockchain::Type::Bitcoin:
+            case blockchain::Type::Bitcoin_testnet3:
+            case blockchain::Type::BitcoinCash:
+            case blockchain::Type::BitcoinCash_testnet3:
+            case blockchain::Type::Litecoin:
+            case blockchain::Type::Litecoin_testnet4:
+            case blockchain::Type::UnitTest: {
+
+                return std::make_shared<Block>(
+                    api,
+                    chain,
+                    std::move(header),
+                    std::move(index),
+                    std::move(map));
+            }
+            case blockchain::Type::PKT:
+            case blockchain::Type::PKT_testnet: {
+                // TODO
+                return {};
+            }
+            case blockchain::Type::Unknown:
+            case blockchain::Type::Ethereum_frontier:
+            case blockchain::Type::Ethereum_ropsten:
+            default: {
+                LogOutput(OT_METHOD)(__FUNCTION__)(": Unsupported type (")(
+                    static_cast<std::uint32_t>(chain))(")")
+                    .Flush();
+
+                return {};
+            }
+        }
+    } catch (const std::exception& e) {
+        LogOutput("opentxs::factory::")(__FUNCTION__)(": ")(e.what()).Flush();
+
+        return {};
+    }
+}
 auto BitcoinBlock(
     const api::Core& api,
     const api::client::Blockchain& blockchain,
@@ -228,6 +319,10 @@ Block::Block(
     , transactions_(std::move(transactions))
     , size_(std::move(size))
 {
+    if (index_.size() != transactions_.size()) {
+        throw std::runtime_error("Invalid transaction index");
+    }
+
     if (false == bool(header_p_)) {
         throw std::runtime_error("Invalid header");
     }

@@ -22,6 +22,7 @@
 #include "opentxs/blockchain/Types.hpp"
 #include "opentxs/blockchain/Work.hpp"
 #include "opentxs/blockchain/block/Header.hpp"
+#include "opentxs/blockchain/block/bitcoin/Header.hpp"
 #include "opentxs/core/Data.hpp"
 
 namespace opentxs
@@ -50,6 +51,8 @@ public:
         be::little_uint32_buf_t nbits_;
         be::little_uint32_buf_t nonce_;
 
+        auto Target() const noexcept -> OTNumericHash;
+
         BitcoinFormat(
             const std::int32_t version,
             const std::string& previous,
@@ -67,18 +70,34 @@ public:
         const api::Core& api,
         const blockchain::Type chain,
         const ReadView serialized) -> block::pHash;
+    static auto calculate_hash(
+        const api::Core& api,
+        const blockchain::Type chain,
+        const BitcoinFormat& serialized) -> block::pHash;
     static auto calculate_pow(
         const api::Core& api,
         const blockchain::Type chain,
         const ReadView serialized) -> block::pHash;
+    static auto calculate_pow(
+        const api::Core& api,
+        const blockchain::Type chain,
+        const BitcoinFormat& serialized) -> block::pHash;
 
-    auto clone() const noexcept -> std::unique_ptr<block::Header> final;
+    auto as_Bitcoin() const noexcept -> std::unique_ptr<bitcoin::Header> final
+    {
+        return std::make_unique<Header>(*this);
+    }
+    auto clone() const noexcept -> std::unique_ptr<block::Header> final
+    {
+        return std::make_unique<Header>(*this);
+    }
     auto Encode() const noexcept -> OTData final;
     auto MerkleRoot() const noexcept -> const block::Hash& final
     {
         return merkle_root_;
     }
     auto Nonce() const noexcept -> std::uint32_t final { return nonce_; }
+    auto nBits() const noexcept -> std::uint32_t final { return nbits_; }
     auto Serialize() const noexcept -> SerializedType final;
     auto Serialize(const AllocateOutput destination) const noexcept
         -> bool final;
@@ -110,6 +129,7 @@ public:
         const block::Height height) noexcept(false);
     Header(const api::Core& api, const SerializedType& serialized) noexcept(
         false);
+    Header(const Header& rhs) noexcept;
 
     ~Header() final = default;
 
@@ -158,7 +178,6 @@ private:
         const std::uint32_t nonce,
         const bool validate) noexcept(false);
     Header() = delete;
-    Header(const Header& rhs) noexcept;
     Header(Header&&) = delete;
     auto operator=(const Header&) -> Header& = delete;
     auto operator=(Header &&) -> Header& = delete;

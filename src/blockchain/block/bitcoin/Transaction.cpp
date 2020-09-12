@@ -83,10 +83,18 @@ auto BitcoinTransaction(
             &out.outpoint_,
             static_cast<const void*>(&outpoint),
             sizeof(outpoint));
-        input.Script().Serialize(writer(out.script_));
+
+        if (auto coinbase = input.Coinbase(); 0 < coinbase.size()) {
+            std::swap(out.script_, coinbase);
+        } else {
+            input.Script().Serialize(writer(out.script_));
+        }
+
         out.cs_ = out.script_.size();
         out.sequence_ = input.Sequence();
     }
+
+    raw.output_count_ = outputs->size();
 
     for (const auto& output : *outputs) {
         raw.outputs_.emplace_back();

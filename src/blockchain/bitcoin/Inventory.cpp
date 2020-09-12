@@ -47,7 +47,12 @@ Inventory::Inventory(const void* payload, const std::size_t size) noexcept
 {
 }
 
-Inventory::Inventory(Inventory&& rhs)
+Inventory::Inventory(const Inventory& rhs) noexcept
+    : Inventory(rhs.type_, rhs.hash_)
+{
+}
+
+Inventory::Inventory(Inventory&& rhs) noexcept
     : type_(std::move(rhs.type_))
     , hash_(std::move(rhs.hash_))
 {

@@ -8,6 +8,7 @@
 #include "network/zeromq/socket/Subscribe.hpp"  // IWYU pragma: associated
 
 #include <zmq.h>
+#include <stdexcept>
 
 #include "internal/network/zeromq/socket/Socket.hpp"
 #include "network/zeromq/socket/Receiver.tpp"
@@ -68,16 +69,14 @@ void Subscribe::process_incoming(const Lock& lock, Message& message) noexcept
 {
     OT_ASSERT(verify_lock(lock))
 
-    LogDetail(OT_METHOD)(__FUNCTION__)(
-        ": Incoming messaged received. Triggering callback.")
-        .Flush();
     try {
         callback_.Process(message);
+    } catch (const std::exception& e) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Callback exception: ")(e.what())
+            .Flush();
     } catch (...) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Callback failed").Flush();
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Callback exception").Flush();
     }
-
-    LogDetail(OT_METHOD)(__FUNCTION__)(" Done.").Flush();
 }
 
 auto Subscribe::SetSocksProxy(const std::string& proxy) const noexcept -> bool

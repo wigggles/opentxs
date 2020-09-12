@@ -16,6 +16,7 @@
 #include "opentxs/Bytes.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/api/Primitives.hpp"
+#include "opentxs/api/client/blockchain/Types.hpp"
 #if OT_BLOCKCHAIN
 #include "opentxs/blockchain/Blockchain.hpp"
 #endif                                   // OT_BLOCKCHAIN
@@ -61,6 +62,17 @@
 
 namespace opentxs
 {
+namespace blockchain
+{
+namespace block
+{
+namespace bitcoin
+{
+class Transaction;
+}  // namespace bitcoin
+}  // namespace block
+}  // namespace blockchain
+
 namespace otx
 {
 namespace context
@@ -165,8 +177,29 @@ public:
     OPENTXS_EXPORT virtual auto BitcoinBlock(
         const opentxs::blockchain::Type chain,
         const ReadView bytes) const noexcept
+        -> std::shared_ptr<const blockchain::block::bitcoin::Block> = 0;
+    using Transaction_p =
+        std::shared_ptr<const opentxs::blockchain::block::bitcoin::Transaction>;
+    using AbortFunction = std::function<bool()>;
+    OPENTXS_EXPORT virtual auto BitcoinBlock(
+        const opentxs::blockchain::block::Header& previous,
+        const Transaction_p generationTransaction,
+        const std::uint32_t nBits,
+        const std::vector<Transaction_p>& extraTransactions = {},
+        const std::int32_t version = 1,
+        const AbortFunction abort = {}) const noexcept
         -> std::shared_ptr<
             const opentxs::blockchain::block::bitcoin::Block> = 0;
+    using OutputBuilder = std::tuple<
+        blockchain::Amount,
+        std::unique_ptr<const opentxs::blockchain::block::bitcoin::Script>,
+        std::set<api::client::blockchain::Key>>;
+    OPENTXS_EXPORT virtual auto BitcoinGenerationTransaction(
+        const opentxs::blockchain::Type chain,
+        const opentxs::blockchain::block::Height height,
+        std::vector<OutputBuilder> outputs,
+        const std::string& coinbase = {},
+        const std::int32_t version = 1) const noexcept -> Transaction_p = 0;
     OPENTXS_EXPORT virtual auto BitcoinScriptNullData(
         const opentxs::blockchain::Type chain,
         const std::vector<ReadView>& data) const noexcept
@@ -195,6 +228,12 @@ public:
         const opentxs::blockchain::block::bitcoin::Script& script)
         const noexcept -> std::unique_ptr<
             const opentxs::blockchain::block::bitcoin::Script> = 0;
+    OPENTXS_EXPORT virtual auto BitcoinTransaction(
+        const opentxs::blockchain::Type chain,
+        const ReadView bytes,
+        const bool isGeneration) const noexcept
+        -> std::unique_ptr<
+            const opentxs::blockchain::block::bitcoin::Transaction> = 0;
     OPENTXS_EXPORT virtual OTBlockchainAddress BlockchainAddress(
         const opentxs::blockchain::p2p::Protocol protocol,
         const opentxs::blockchain::p2p::Network network,
@@ -207,13 +246,15 @@ public:
     OPENTXS_EXPORT virtual OTBlockchainAddress BlockchainAddress(
         const opentxs::blockchain::p2p::Address::SerializedType& serialized)
         const = 0;
-    OPENTXS_EXPORT virtual std::unique_ptr<opentxs::blockchain::block::Header>
-    BlockHeader(const proto::BlockchainBlockHeader& serialized) const = 0;
-    OPENTXS_EXPORT virtual std::unique_ptr<opentxs::blockchain::block::Header>
-    BlockHeader(const opentxs::blockchain::Type type, const Data& raw)
-        const = 0;
-    OPENTXS_EXPORT virtual std::unique_ptr<opentxs::blockchain::block::Header>
-    BlockHeaderForUnitTests(
+    using BlockHeaderP = std::unique_ptr<opentxs::blockchain::block::Header>;
+    OPENTXS_EXPORT virtual BlockHeaderP BlockHeader(
+        const proto::BlockchainBlockHeader& serialized) const = 0;
+    OPENTXS_EXPORT virtual BlockHeaderP BlockHeader(
+        const opentxs::blockchain::Type type,
+        const Data& raw) const = 0;
+    OPENTXS_EXPORT virtual BlockHeaderP BlockHeader(
+        const opentxs::blockchain::block::Block& block) const = 0;
+    OPENTXS_EXPORT virtual BlockHeaderP BlockHeaderForUnitTests(
         const opentxs::blockchain::block::Hash& hash,
         const opentxs::blockchain::block::Hash& parent,
         const opentxs::blockchain::block::Height height) const = 0;

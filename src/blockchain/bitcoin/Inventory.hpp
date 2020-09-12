@@ -45,7 +45,8 @@ public:
 
     Inventory(const Type type, const Hash& hash) noexcept;
     Inventory(const void* payload, const std::size_t size) noexcept;
-    Inventory(Inventory&&);
+    Inventory(const Inventory&) noexcept;
+    Inventory(Inventory&&) noexcept;
 
     ~Inventory() = default;
 
@@ -74,7 +75,6 @@ private:
         -> p2p::bitcoin::message::HashField;
 
     Inventory() = delete;
-    Inventory(const Inventory&) = delete;
     auto operator=(const Inventory&) -> Inventory& = delete;
     auto operator=(Inventory &&) -> Inventory& = delete;
 };

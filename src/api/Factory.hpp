@@ -20,6 +20,7 @@
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/Version.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Primitives.hpp"
 #include "opentxs/api/crypto/Symmetric.hpp"
 #if OT_BLOCKCHAIN
@@ -29,6 +30,8 @@
 #include "opentxs/blockchain/Types.hpp"
 #if OT_BLOCKCHAIN
 #include "opentxs/blockchain/block/Header.hpp"
+#include "opentxs/blockchain/block/bitcoin/Script.hpp"  // IWYU pragma: keep
+#include "opentxs/blockchain/block/bitcoin/Transaction.hpp"
 #include "opentxs/blockchain/p2p/Address.hpp"
 #include "opentxs/blockchain/p2p/Types.hpp"
 #endif  // OT_BLOCKCHAIN
@@ -90,6 +93,7 @@ class Block;
 class Script;
 }  // namespace bitcoin
 
+class Block;
 class Header;
 }  // namespace block
 }  // namespace blockchain
@@ -243,6 +247,28 @@ public:
     {
         return {};
     }
+    auto BitcoinBlock(
+        [[maybe_unused]] const opentxs::blockchain::block::Header& previous,
+        [[maybe_unused]] const Transaction_p generationTransaction,
+        [[maybe_unused]] const std::uint32_t nBits,
+        [[maybe_unused]] const std::vector<Transaction_p>& extraTransactions,
+        [[maybe_unused]] const std::int32_t version,
+        [[maybe_unused]] const AbortFunction abort) const noexcept
+        -> std::shared_ptr<
+            const opentxs::blockchain::block::bitcoin::Block> override
+    {
+        return {};
+    }
+    auto BitcoinGenerationTransaction(
+        [[maybe_unused]] const opentxs::blockchain::Type chain,
+        [[maybe_unused]] const opentxs::blockchain::block::Height height,
+        [[maybe_unused]] std::vector<OutputBuilder> outputs,
+        [[maybe_unused]] const std::string& coinbase,
+        [[maybe_unused]] const std::int32_t version) const noexcept
+        -> Transaction_p override
+    {
+        return {};
+    }
     auto BitcoinScriptNullData(
         const opentxs::blockchain::Type chain,
         const std::vector<ReadView>& data) const noexcept
@@ -271,6 +297,15 @@ public:
         const opentxs::blockchain::block::bitcoin::Script& script)
         const noexcept -> std::unique_ptr<
             const opentxs::blockchain::block::bitcoin::Script> final;
+    auto BitcoinTransaction(
+        const opentxs::blockchain::Type chain,
+        const ReadView bytes,
+        const bool isGeneration) const noexcept
+        -> std::unique_ptr<
+            const opentxs::blockchain::block::bitcoin::Transaction> override
+    {
+        return {};
+    }
     auto BlockchainAddress(
         const opentxs::blockchain::p2p::Protocol protocol,
         const opentxs::blockchain::p2p::Network network,
@@ -284,14 +319,18 @@ public:
         const opentxs::blockchain::p2p::Address::SerializedType& serialized)
         const -> OTBlockchainAddress final;
     auto BlockHeader(const proto::BlockchainBlockHeader& serialized) const
-        -> std::unique_ptr<opentxs::blockchain::block::Header> override
+        -> BlockHeaderP override
     {
         return {};
     }
     auto BlockHeader(
         const opentxs::blockchain::Type type,
-        const opentxs::Data& raw) const
-        -> std::unique_ptr<opentxs::blockchain::block::Header> override
+        const opentxs::Data& raw) const -> BlockHeaderP override
+    {
+        return {};
+    }
+    auto BlockHeader(const opentxs::blockchain::block::Block& block) const
+        -> BlockHeaderP override
     {
         return {};
     }
@@ -299,7 +338,7 @@ public:
         const opentxs::blockchain::block::Hash& hash,
         const opentxs::blockchain::block::Hash& parent,
         const opentxs::blockchain::block::Height height) const
-        -> std::unique_ptr<opentxs::blockchain::block::Header> override
+        -> BlockHeaderP override
     {
         return {};
     }

@@ -26,6 +26,7 @@ public:
         -> const block::Hash& = 0;
     OPENTXS_EXPORT virtual auto Encode() const noexcept -> OTData = 0;
     OPENTXS_EXPORT virtual auto Nonce() const noexcept -> std::uint32_t = 0;
+    OPENTXS_EXPORT virtual auto nBits() const noexcept -> std::uint32_t = 0;
     OPENTXS_EXPORT virtual auto Timestamp() const noexcept -> Time = 0;
     OPENTXS_EXPORT virtual auto Version() const noexcept -> std::uint32_t = 0;
     using block::Header::Serialize;

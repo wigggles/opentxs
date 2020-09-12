@@ -19,6 +19,17 @@
 
 namespace opentxs
 {
+namespace blockchain
+{
+namespace block
+{
+namespace bitcoin
+{
+class Header;
+}  // namespace bitcoin
+}  // namespace block
+}  // namespace blockchain
+
 namespace proto
 {
 class BlockchainBlockHeader;
@@ -44,6 +55,8 @@ public:
         Checkpoint
     };
 
+    OPENTXS_EXPORT virtual std::unique_ptr<bitcoin::Header> as_Bitcoin()
+        const noexcept = 0;
     OPENTXS_EXPORT virtual std::unique_ptr<Header> clone() const noexcept = 0;
     OPENTXS_EXPORT virtual OTWork Difficulty() const noexcept = 0;
     OPENTXS_EXPORT virtual Status EffectiveState() const noexcept = 0;
