@@ -9,6 +9,7 @@
 
 #include <boost/endian/buffers.hpp>
 #include <algorithm>
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
@@ -28,6 +29,7 @@
 #include "internal/blockchain/bitcoin/Bitcoin.hpp"
 #include "internal/blockchain/block/Block.hpp"
 #include "internal/blockchain/block/bitcoin/Bitcoin.hpp"
+#include "opentxs/Pimpl.hpp"
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
@@ -42,6 +44,15 @@
 #define OT_METHOD "opentxs::blockchain::block::bitcoin::implementation::Block::"
 
 namespace be = boost::endian;
+
+namespace opentxs
+{
+template <typename ArrayType>
+auto reader(const ArrayType& in) noexcept -> ReadView
+{
+    return {reinterpret_cast<const char*>(in.data()), in.size()};
+}
+}  // namespace opentxs
 
 namespace opentxs::factory
 {
@@ -123,6 +134,13 @@ auto BitcoinBlock(
                     (0 == ++counter),
                     header.Timestamp(),
                     std::move(data)));
+        }
+
+        const auto merkle =
+            ReturnType::calculate_merkle_value(api, chain, index);
+
+        if (header.MerkleRoot() != merkle) {
+            throw std::runtime_error("Invalid merkle hash");
         }
 
         return std::make_shared<ReturnType>(
@@ -286,6 +304,96 @@ auto Block::at(const ReadView txid) const noexcept -> const value_type&
             .Flush();
 
         return null_tx_;
+    }
+}
+
+template <typename HashType>
+auto Block::calculate_merkle_hash(
+    const api::Core& api,
+    const Type chain,
+    const HashType& lhs,
+    const HashType& rhs,
+    AllocateOutput out) -> bool
+{
+    auto preimage = std::array<std::byte, 64>{};
+    constexpr auto chunk = preimage.size() / 2u;
+
+    if (chunk != lhs.size()) {
+        throw std::runtime_error("Invalid lhs hash size");
+    }
+    if (chunk != rhs.size()) {
+        throw std::runtime_error("Invalid rhs hash size");
+    }
+
+    auto it = preimage.data();
+    std::memcpy(it, lhs.data(), chunk);
+    std::advance(it, chunk);
+    std::memcpy(it, rhs.data(), chunk);
+
+    return MerkleHash(
+        api,
+        chain,
+        {reinterpret_cast<const char*>(preimage.data()), preimage.size()},
+        out);
+}
+
+template <typename InputContainer, typename OutputContainer>
+auto Block::calculate_merkle_row(
+    const api::Core& api,
+    const Type chain,
+    const InputContainer& in,
+    OutputContainer& out) -> bool
+{
+    out.clear();
+    const auto count{in.size()};
+
+    for (auto i = std::size_t{0}; i < count; i += 2u) {
+        const auto offset = std::size_t{(1u == (count - i)) ? 0u : 1u};
+        auto& next = out.emplace_back();
+        const auto hashed = calculate_merkle_hash(
+            api,
+            chain,
+            in.at(i),
+            in.at(i + offset),
+            preallocated(next.size(), next.data()));
+
+        if (false == hashed) { return false; }
+    }
+
+    return true;
+}
+
+auto Block::calculate_merkle_value(
+    const api::Core& api,
+    const Type chain,
+    const TxidIndex& txids) -> block::pHash
+{
+    using Hash = std::array<std::byte, 32>;
+
+    if (0 == txids.size()) {
+        constexpr auto blank = Hash{};
+
+        return api.Factory().Data(ReadView{
+            reinterpret_cast<const char*>(blank.data()), blank.size()});
+    }
+
+    if (1 == txids.size()) { return api.Factory().Data(txids.at(0)); }
+
+    auto a = std::vector<Hash>{};
+    auto b = std::vector<Hash>{};
+    a.reserve(txids.size());
+    b.reserve(txids.size());
+    auto counter{0};
+    calculate_merkle_row(api, chain, txids, a);
+
+    if (1u == a.size()) { return api.Factory().Data(reader(a.at(0))); }
+
+    while (true) {
+        const auto& src = (1 == (++counter % 2)) ? a : b;
+        auto& dst = (0 == (counter % 2)) ? a : b;
+        calculate_merkle_row(api, chain, src, dst);
+
+        if (1u == dst.size()) { return api.Factory().Data(reader(dst.at(0))); }
     }
 }
 

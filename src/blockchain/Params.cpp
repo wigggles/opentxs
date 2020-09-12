@@ -70,6 +70,29 @@ auto FilterHash(
     }
 }
 
+auto MerkleHash(
+    const api::Core& api,
+    const Type chain,
+    const ReadView input,
+    const AllocateOutput output) noexcept -> bool
+{
+    switch (chain) {
+        case Type::Unknown:
+        case Type::Bitcoin:
+        case Type::Bitcoin_testnet3:
+        case Type::BitcoinCash:
+        case Type::BitcoinCash_testnet3:
+        case Type::Ethereum_frontier:
+        case Type::Ethereum_ropsten:
+        case Type::Litecoin:
+        case Type::Litecoin_testnet4:
+        case Type::UnitTest:
+        default: {
+            return BlockHash(api, chain, input, output);
+        }
+    }
+}
+
 auto P2PMessageHash(
     const api::Core& api,
     const Type chain,
