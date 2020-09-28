@@ -11,6 +11,7 @@
 #include <atomic>
 #include <cstdint>
 #include <future>
+#include <iosfwd>
 #include <map>
 #include <memory>
 #include <mutex>
@@ -256,8 +257,11 @@ public:
         const Tx& transaction,
         const PasswordPrompt& reason) const noexcept -> bool final;
     auto RegisterForUpdates(
-        const opentxs::blockchain::Type,
-        const EnabledCallback cb) const noexcept -> void final;
+        const opentxs::blockchain::Type type,
+        const EnabledCallback cb) const noexcept -> std::size_t final
+    {
+        return enabled_callbacks_.Add(type, cb);
+    }
     auto Reorg() const noexcept
         -> const opentxs::network::zeromq::socket::Publish& final
     {
@@ -278,6 +282,12 @@ public:
     }
     auto ToggleChain(const opentxs::blockchain::Type) const noexcept
         -> bool final;
+    auto UnregisterForUpdates(
+        const opentxs::blockchain::Type type,
+        const std::size_t index) const noexcept -> void final
+    {
+        enabled_callbacks_.Delete(type, index);
+    }
     auto UpdateBalance(
         const opentxs::blockchain::Type chain,
         const opentxs::blockchain::Balance balance) const noexcept -> void final
@@ -397,6 +407,15 @@ private:
 
         BalanceOracle() = delete;
     };
+    struct EnableCallbacks {
+        auto Add(const Chain type, EnabledCallback cb) noexcept -> std::size_t;
+        auto Delete(const Chain type, const std::size_t index) noexcept -> void;
+        auto Execute(const Chain type, const bool value) noexcept -> void;
+
+    private:
+        mutable std::mutex lock_{};
+        std::map<Chain, std::vector<EnabledCallback>> map_{};
+    };
     struct ThreadPoolManager final : virtual public ThreadPoolType {
         auto Endpoint() const noexcept -> std::string final;
         auto Reset(const Chain chain) const noexcept -> void final;
@@ -500,7 +519,7 @@ private:
         std::unique_ptr<opentxs::blockchain::client::internal::Network>>
         networks_;
     BalanceOracle balances_;
-    mutable std::map<Chain, EnabledCallback> enabled_callbacks_;
+    mutable EnableCallbacks enabled_callbacks_;
     std::atomic_bool running_;
     std::thread heartbeat_;
 #endif  // OT_BLOCKCHAIN

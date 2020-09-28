@@ -7,6 +7,7 @@
 
 #include <functional>
 #include <future>
+#include <iosfwd>
 #include <memory>
 #include <string>
 #include <tuple>
@@ -134,7 +135,7 @@ struct Activity : virtual public api::client::Activity {
 };
 struct Blockchain : virtual public api::client::Blockchain {
 #if OT_BLOCKCHAIN
-    using EnabledCallback = std::function<void(const bool)>;
+    using EnabledCallback = std::function<bool(const bool)>;
 #endif  // OT_BLOCKCHAIN
 
     /// Throws std::runtime_error if type is invalid
@@ -175,13 +176,16 @@ struct Blockchain : virtual public api::client::Blockchain {
         const opentxs::blockchain::block::Height target) const noexcept
         -> void = 0;
     virtual auto RegisterForUpdates(
-        const opentxs::blockchain::Type,
-        const EnabledCallback cb) const noexcept -> void = 0;
+        const opentxs::blockchain::Type type,
+        const EnabledCallback cb) const noexcept -> std::size_t = 0;
     virtual auto RestoreNetworks() const noexcept -> void = 0;
     virtual auto ThreadPool() const noexcept
         -> const opentxs::blockchain::client::internal::ThreadPool& = 0;
     virtual auto ToggleChain(const opentxs::blockchain::Type) const noexcept
         -> bool = 0;
+    virtual auto UnregisterForUpdates(
+        const opentxs::blockchain::Type type,
+        const std::size_t index) const noexcept -> void = 0;
     virtual auto UpdateBalance(
         const opentxs::blockchain::Type chain,
         const opentxs::blockchain::Balance balance) const noexcept -> void = 0;

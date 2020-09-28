@@ -20,7 +20,10 @@ set(cxx-sources
 )
 
 if(OT_BLOCKCHAIN_EXPORT)
-  list(APPEND cxx-sources BalanceOracle.cpp ThreadPoolManager.cpp)
+  list(
+    APPEND cxx-sources BalanceOracle.cpp EnableCallbacks.cpp
+    ThreadPoolManager.cpp
+  )
 endif()
 
 set(cxx-install-headers

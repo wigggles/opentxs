@@ -255,7 +255,7 @@ struct TCPConnectionManager final : public Peer::ConnectionManager {
                 cb);
         };
 
-        auto& asio = context_.operator boost::asio::io_context &();
+        auto& asio = context_.operator boost::asio::io_context&();
         asio.post(work);
     }
 
@@ -275,7 +275,7 @@ struct TCPConnectionManager final : public Peer::ConnectionManager {
         , connection_id_()
         , header_bytes_(headerSize)
         , connection_id_promise_()
-        , socket_(context_.operator boost::asio::io_context &())
+        , socket_(context_.operator boost::asio::io_context&())
         , header_(make_buffer(headerSize))
         , cb_(zmq::ListenCallback::Factory(
               [&](auto& in) { this->pipeline(in); }))
