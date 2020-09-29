@@ -36,7 +36,7 @@ public:
     OPENTXS_EXPORT static OTStringXML Factory();
     OPENTXS_EXPORT static OTStringXML Factory(const String& value);
 
-    OPENTXS_EXPORT virtual operator irr::io::IFileReadCallBack *() = 0;
+    OPENTXS_EXPORT virtual operator irr::io::IFileReadCallBack*() = 0;
 
     OPENTXS_EXPORT virtual std::int32_t read(
         void* buffer,

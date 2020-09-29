@@ -77,7 +77,9 @@ using BlockchainSelectionList = List<
 class BlockchainSelection final : public BlockchainSelectionList
 {
 public:
-    auto ToggleChain(const blockchain::Type type) const noexcept -> bool final;
+    auto Disable(const blockchain::Type type) const noexcept -> bool final;
+    auto Enable(const blockchain::Type type) const noexcept -> bool final;
+    auto Toggle(const blockchain::Type type) const noexcept -> bool final;
 
     BlockchainSelection(
         const api::client::internal::Manager& api,

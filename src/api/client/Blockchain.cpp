@@ -10,7 +10,6 @@
 #include <algorithm>
 #include <chrono>
 #include <cstdint>
-#include <functional>
 #include <iterator>
 #include <map>
 #include <set>
@@ -565,14 +564,13 @@ auto Blockchain::disable(const Lock& lock, const Chain type) const noexcept
 
     stop(lock, type);
 
-    try {
-        const auto& cb = enabled_callbacks_.at(type);
+    if (db_.Disable(type)) {
+        enabled_callbacks_.Execute(type, false);
 
-        if (cb) { cb(false); }
-    } catch (...) {
+        return true;
     }
 
-    return db_.Disable(type);
+    return false;
 }
 
 auto Blockchain::Enable(const Chain type, const std::string& seednode)
@@ -600,14 +598,13 @@ auto Blockchain::enable(
         return false;
     }
 
-    try {
-        const auto& cb = enabled_callbacks_.at(type);
+    if (start(lock, type, seednode)) {
+        enabled_callbacks_.Execute(type, true);
 
-        if (cb) { cb(true); }
-    } catch (...) {
+        return true;
     }
 
-    return start(lock, type, seednode);
+    return false;
 }
 #endif  // OT_BLOCKCHAIN
 
@@ -1041,14 +1038,6 @@ auto Blockchain::reconcile_activity_threads(
     return true;
 }
 
-auto Blockchain::RegisterForUpdates(
-    const opentxs::blockchain::Type type,
-    const EnabledCallback cb) const noexcept -> void
-{
-    Lock lock(lock_);
-    enabled_callbacks_[type] = cb;
-}
-
 auto Blockchain::ReportProgress(
     const Chain chain,
     const opentxs::blockchain::block::Height current,
@@ -1126,13 +1115,12 @@ auto Blockchain::stop(const Lock& lock, const Chain type) const noexcept -> bool
 {
     auto it = networks_.find(type);
 
-    if (networks_.end() == it) { return false; }
+    if (networks_.end() == it) { return true; }
 
     OT_ASSERT(it->second);
 
     it->second->Shutdown();
     thread_pool_.Stop(type).get();
-
     networks_.erase(it);
 
     return true;

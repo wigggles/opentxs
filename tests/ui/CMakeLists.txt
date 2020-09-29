@@ -6,3 +6,9 @@
 if(SECP256K1_EXPORT AND BIP32_EXPORT)
   add_opentx_test(unittests-opentxs-ui-contactlist Test_ContactList.cpp)
 endif()
+
+if(OT_BLOCKCHAIN_EXPORT)
+  add_opentx_test(
+    unittests-opentxs-ui-blockchainselector Test_BlockchainSelector.cpp
+  )
+endif()

@@ -65,9 +65,25 @@ QT_PROXY_MODEL_WRAPPER(
     BlockchainSelectionQt,
     implementation::BlockchainSelection)
 
+auto BlockchainSelectionQt::disableChain(const int chain) const noexcept -> bool
+{
+    const auto out = parent_.Disable(static_cast<blockchain::Type>(chain));
+    emit updated();
+
+    return out;
+}
+
+auto BlockchainSelectionQt::enableChain(const int chain) const noexcept -> bool
+{
+    const auto out = parent_.Enable(static_cast<blockchain::Type>(chain));
+    emit updated();
+
+    return out;
+}
+
 auto BlockchainSelectionQt::toggleChain(const int chain) const noexcept -> bool
 {
-    const auto out = parent_.ToggleChain(static_cast<blockchain::Type>(chain));
+    const auto out = parent_.Toggle(static_cast<blockchain::Type>(chain));
     emit updated();
 
     return out;
@@ -130,8 +146,20 @@ auto BlockchainSelection::init() noexcept -> void
     finish_startup();
 }
 
-auto BlockchainSelection::ToggleChain(
-    const blockchain::Type type) const noexcept -> bool
+auto BlockchainSelection::Disable(const blockchain::Type type) const noexcept
+    -> bool
+{
+    return blockchain_.Disable(type);
+}
+
+auto BlockchainSelection::Enable(const blockchain::Type type) const noexcept
+    -> bool
+{
+    return blockchain_.Enable(type);
+}
+
+auto BlockchainSelection::Toggle(const blockchain::Type type) const noexcept
+    -> bool
 {
     return blockchain_.ToggleChain(type);
 }

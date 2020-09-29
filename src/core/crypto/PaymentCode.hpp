@@ -119,7 +119,7 @@ public:
     static const std::size_t pubkey_size_;
     static const std::size_t chain_code_size_;
 
-    operator const opentxs::crypto::key::Asymmetric &() const noexcept final;
+    operator const opentxs::crypto::key::Asymmetric&() const noexcept final;
 
     auto operator==(const proto::PaymentCode& rhs) const noexcept -> bool final;
 

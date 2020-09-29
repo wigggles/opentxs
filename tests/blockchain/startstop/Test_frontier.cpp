@@ -21,6 +21,6 @@ TEST_F(Test_StartStop, frontier)
 {
     EXPECT_FALSE(
         api_.Blockchain().Start(b::Type::Ethereum_frontier, "127.0.0.2"));
-    EXPECT_FALSE(api_.Blockchain().Stop(b::Type::Ethereum_frontier));
+    EXPECT_TRUE(api_.Blockchain().Stop(b::Type::Ethereum_frontier));
 }
 }  // namespace

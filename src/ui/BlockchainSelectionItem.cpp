@@ -41,20 +41,19 @@ BlockchainSelectionItem::BlockchainSelectionItem(
     const BlockchainSelectionSortKey& sortKey,
     CustomData& custom) noexcept
     : BlockchainSelectionItemRow(parent, api, rowID, true)
+    , blockchain_(blockchain)
     , testnet_(sortKey.first)
     , name_(sortKey.second)
-    , enabled_(blockchain.IsEnabled(row_id_))
+    , enabled_(blockchain_.IsEnabled(row_id_))  // TODO race condition
+    , registration_(blockchain_.RegisterForUpdates(
+          row_id_,
+          [this](const bool value) -> auto {
+              enabled_ = value;
+              UpdateNotify();
+
+              return true;
+          }))
 {
-    auto weak = weak_from_this();
-    auto cb = [weak](const bool value) {
-        auto row = weak.lock();
-
-        if (false == bool(row)) { return; }
-
-        row->enabled_ = value;
-        row->UpdateNotify();
-    };
-    blockchain.RegisterForUpdates(row_id_, cb);
 }
 
 #if OT_QT
@@ -88,4 +87,9 @@ auto BlockchainSelectionItem::qt_data(const int column, int role) const noexcept
     return {};
 }
 #endif
+
+BlockchainSelectionItem::~BlockchainSelectionItem()
+{
+    blockchain_.UnregisterForUpdates(row_id_, registration_);
+}
 }  // namespace opentxs::ui::implementation

@@ -36,8 +36,8 @@ TEST_F(Test_StartStop, all)
     EXPECT_TRUE(api_.Blockchain().Stop(b::Type::UnitTest));
     EXPECT_TRUE(api_.Blockchain().Stop(b::Type::Litecoin_testnet4));
     EXPECT_TRUE(api_.Blockchain().Stop(b::Type::Litecoin));
-    EXPECT_FALSE(api_.Blockchain().Stop(b::Type::Ethereum_ropsten));
-    EXPECT_FALSE(api_.Blockchain().Stop(b::Type::Ethereum_frontier));
+    EXPECT_TRUE(api_.Blockchain().Stop(b::Type::Ethereum_ropsten));
+    EXPECT_TRUE(api_.Blockchain().Stop(b::Type::Ethereum_frontier));
     EXPECT_TRUE(api_.Blockchain().Stop(b::Type::BitcoinCash_testnet3));
     EXPECT_TRUE(api_.Blockchain().Stop(b::Type::BitcoinCash));
     EXPECT_TRUE(api_.Blockchain().Stop(b::Type::Bitcoin_testnet3));

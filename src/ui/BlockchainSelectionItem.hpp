@@ -9,6 +9,7 @@
 #pragma once
 
 #include <atomic>
+#include <iosfwd>
 #include <memory>
 #include <string>
 
@@ -88,12 +89,14 @@ public:
         const BlockchainSelectionSortKey& sortKey,
         CustomData& custom) noexcept;
 
-    ~BlockchainSelectionItem() = default;
+    ~BlockchainSelectionItem() final;
 
 private:
+    const api::client::internal::Blockchain& blockchain_;
     const bool testnet_;
     const std::string name_;
     std::atomic_bool enabled_;
+    const std::size_t registration_;
 
     void reindex(const BlockchainSelectionSortKey&, CustomData&) noexcept final
     {

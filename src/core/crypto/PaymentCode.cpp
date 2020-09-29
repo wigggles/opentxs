@@ -139,7 +139,7 @@ PaymentCode::PaymentCode(const PaymentCode& rhs)
 {
 }
 
-PaymentCode::operator const crypto::key::Asymmetric &() const noexcept
+PaymentCode::operator const crypto::key::Asymmetric&() const noexcept
 {
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
     return *key_;

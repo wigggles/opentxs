@@ -65,7 +65,7 @@ PeerManager::Peers::Peers(
           localhost_peer_,
           const_cast<bool&>(invalid_peer_)))
     , preferred_services_(get_preferred_services(database_))
-    , resolver_(context_.operator boost::asio::io_context &())
+    , resolver_(context_.operator boost::asio::io_context&())
     , next_id_(0)
     , minimum_peers_(peerTarget)
     , peers_()
