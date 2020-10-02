@@ -122,9 +122,38 @@ if(OT_ENABLE_RPC)
   list(APPEND object-deps $<TARGET_OBJECTS:opentxs-rpc>)
 endif()
 
+file(
+  READ "${CMAKE_CURRENT_SOURCE_DIR}/api/crypto/base58/COPYING"
+  BASE58_LICENSE_TEXT
+)
+file(READ "${opentxs_SOURCE_DIR}/deps/base64/COPYING" BASE64_LICENSE_TEXT)
+file(
+  READ "${opentxs_SOURCE_DIR}/deps/ChaiScript/LICENSE" CHAISCRIPT_LICENSE_TEXT
+)
+file(READ "${opentxs_SOURCE_DIR}/deps/irrxml/COPYING" IRRXML_LICENSE_TEXT)
+file(READ "${opentxs_SOURCE_DIR}/deps/lucre/LICENCE" LUCRE_LICENSE_TEXT)
+file(READ "${opentxs_SOURCE_DIR}/LICENSE" OPENTXS_LICENSE_TEXT)
+file(READ "${opentxs_SOURCE_DIR}/CREDITS" OPENTXS_CREDITS_TEXT)
+file(READ "${opentxs_SOURCE_DIR}/MPL-2.0" MPL20_LICENSE_TEXT)
+file(
+  READ "${opentxs_SOURCE_DIR}/serialization/LICENSE.txt" PROTOBUF_LICENSE_TEXT
+)
+file(
+  READ "${opentxs_SOURCE_DIR}/deps/simpleini/LICENCE.txt"
+  SIMPLEINI_LICENSE_TEXT
+)
+file(
+  READ "${CMAKE_CURRENT_SOURCE_DIR}/crypto/library/trezor/COPYING"
+  TREZOR_LICENSE_TEXT
+)
+
+configure_file("License.cpp.in" "${CMAKE_CURRENT_BINARY_DIR}/License.cpp" @ONLY)
+
 set(cxx-sources
-    ${CMAKE_CURRENT_SOURCE_DIR}/Bytes.cpp ${CMAKE_CURRENT_SOURCE_DIR}/OT.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Proto.cpp
+    "${CMAKE_CURRENT_SOURCE_DIR}/Bytes.cpp"
+    "${CMAKE_CURRENT_BINARY_DIR}/License.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OT.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Proto.cpp"
 )
 
 set(cxx-install-headers

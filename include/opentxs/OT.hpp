@@ -9,6 +9,8 @@
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <chrono>
+#include <map>
+#include <string>
 
 #include "opentxs/Types.hpp"
 
@@ -48,5 +50,9 @@ OPENTXS_EXPORT const api::Context& InitContext(
  *  Blocks until the context has been shut down
  */
 OPENTXS_EXPORT void Join();
+
+using LicenseMap = std::map<std::string, std::string>;
+
+OPENTXS_EXPORT const LicenseMap& LicenseData() noexcept;
 }  // namespace opentxs
 #endif
