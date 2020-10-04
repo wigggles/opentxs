@@ -162,6 +162,7 @@ Blockchain::Blockchain(
     , peer_updates_(api_.ZeroMQ().PublishSocket())
     , key_updates_(api_.ZeroMQ().PublishSocket())
     , sync_updates_(api_.ZeroMQ().PublishSocket())
+    , new_blockchain_accounts_(api_.ZeroMQ().PublishSocket())
     , networks_()
     , balances_(*this, api_)
     , enabled_callbacks_()
@@ -189,6 +190,11 @@ Blockchain::Blockchain(
     OT_ASSERT(listen);
 
     listen = sync_updates_->Start(api_.Endpoints().BlockchainSyncProgress());
+
+    OT_ASSERT(listen);
+
+    listen = new_blockchain_accounts_->Start(
+        api_.Endpoints().BlockchainAccountCreated());
 
     OT_ASSERT(listen);
 #endif  // OT_BLOCKCHAIN
@@ -867,7 +873,18 @@ auto Blockchain::NewHDSubaccount(
         auto& tree = balance_lists_.Get(chain).Nym(nymID);
         tree.AddHDNode(accountPath, accountID);
         accounts_.New(chain, accountID, nymID);
+
 #if OT_BLOCKCHAIN
+        {
+            auto work =
+                api_.ZeroMQ().TaggedMessage(WorkType::BlockchainAccountCreated);
+            work->AddFrame(chain);
+            work->AddFrame(nymID);
+            work->AddFrame(AccountType::HD);
+            work->AddFrame(accountID);
+            new_blockchain_accounts_->Send(work);
+        }
+
         balances_.UpdateBalance(chain, {});
 #endif  // OT_BLOCKCHAIN
 

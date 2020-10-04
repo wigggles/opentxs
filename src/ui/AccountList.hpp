@@ -96,7 +96,15 @@ private:
         const AccountListRowID& id,
         const AccountListSortKey& index,
         CustomData& custom) const noexcept -> void* final;
+#if OT_BLOCKCHAIN
+    auto subscribe(const blockchain::Type chain) const noexcept -> void;
+#endif  // OT_BLOCKCHAIN
 
+#if OT_BLOCKCHAIN
+    auto add_blockchain_account(
+        const blockchain::Type chain,
+        const Amount balance) noexcept -> void;
+#endif  // OT_BLOCKCHAIN
     auto process_account(const Identifier& id) noexcept -> void;
     auto process_account(const Identifier& id, const Amount balance) noexcept
         -> void;
@@ -107,6 +115,8 @@ private:
     auto process_account(const network::zeromq::Message& message) noexcept
         -> void;
 #if OT_BLOCKCHAIN
+    auto process_blockchain_account(
+        const network::zeromq::Message& message) noexcept -> void;
     auto process_blockchain_balance(
         const network::zeromq::Message& message) noexcept -> void;
     auto setup_listeners(const ListenerDefinitions& definitions) noexcept

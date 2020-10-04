@@ -73,7 +73,6 @@ Counter activity_thread_3_{};
 TEST_F(Test_BlockchainActivity, init)
 {
     EXPECT_FALSE(nym_1_id().empty());
-    EXPECT_FALSE(account_1_id().empty());
     EXPECT_FALSE(contact_1_id().empty());
     EXPECT_FALSE(contact_2_id().empty());
     EXPECT_FALSE(contact_5_id().empty());
@@ -120,6 +119,36 @@ TEST_F(Test_BlockchainActivity, init)
         EXPECT_EQ(api_.Contacts().ContactName(contact_7_id()), contact_7_name_);
     }
 }
+
+TEST_F(Test_BlockchainActivity, blank_account_list)
+{
+    const auto& widget = api_.UI().AccountList(
+        nym_1_id(), make_cb(account_list_, "account_list_"));
+    auto row = widget.First();
+
+    ASSERT_FALSE(row->Valid());
+}
+
+#if OT_QT
+TEST_F(Test_BlockchainActivity, blank_account_list_qt)
+{
+    const auto* pWidget = api_.UI().AccountListQt(nym_1_id());
+
+    ASSERT_NE(pWidget, nullptr);
+
+    const auto& widget = *pWidget;
+
+    EXPECT_EQ(widget.columnCount(), 4);
+    EXPECT_EQ(widget.rowCount(), 0);
+
+    {
+        EXPECT_FALSE(widget.hasIndex(0, 0));
+        EXPECT_FALSE(widget.hasIndex(0, 1));
+        EXPECT_FALSE(widget.hasIndex(0, 2));
+        EXPECT_FALSE(widget.hasIndex(0, 3));
+    }
+}
+#endif  // OT_QT
 
 TEST_F(Test_BlockchainActivity, blockchain_selection)
 {
@@ -344,6 +373,10 @@ TEST_F(Test_BlockchainActivity, blockchain_selection_qt)
 
 TEST_F(Test_BlockchainActivity, setup_blockchain_account)
 {
+    account_list_.expected_ += 1;
+
+    EXPECT_FALSE(account_1_id().empty());
+
     const auto& account =
         api_.Blockchain().HDSubaccount(nym_1_id(), account_1_id());
     const auto indexOne =
@@ -368,18 +401,18 @@ TEST_F(Test_BlockchainActivity, setup_blockchain_account)
     fourth_index_ = indexFour.value();
     fifth_index_ = indexFour.value();
     sixth_index_ = indexFour.value();
+
+    ASSERT_TRUE(wait_for_counter(account_list_));
 }
 
 TEST_F(Test_BlockchainActivity, setup_ui)
 {
-    account_list_.expected_ += 1;
     account_activity_.expected_ += 0;
     account_summary_.expected_ += 0;
     activity_summary_.expected_ += 0;
     activity_thread_1_.expected_ += 2;
     activity_thread_2_.expected_ += 2;
     activity_thread_3_.expected_ += 2;
-    api_.UI().AccountList(nym_1_id(), make_cb(account_list_, "account_list_"));
     api_.UI().AccountActivity(
         nym_1_id(),
         api_.Factory().Identifier(std::string{btc_account_id_}),

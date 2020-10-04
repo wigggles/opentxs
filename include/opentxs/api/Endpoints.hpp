@@ -44,6 +44,18 @@ public:
      */
     OPENTXS_EXPORT virtual std::string AccountUpdate() const noexcept = 0;
 
+    /** Blockchain account creation notification
+     *
+     *  A subscribe socket can connect to this endpoint to receive
+     *  BlockchainAccountCreated tagged messages
+     *
+     *  See opentxs/util/WorkTypes.hpp for message format documentation
+     *
+     *  This endpoint is active for client sessions only.
+     */
+    OPENTXS_EXPORT virtual std::string BlockchainAccountCreated()
+        const noexcept = 0;
+
     /** Blockchain balance notifications
      *
      *  A dealer socket can connect to this endpoint to request balance

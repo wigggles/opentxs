@@ -514,6 +514,7 @@ private:
     OTZMQPublishSocket peer_updates_;
     OTZMQPublishSocket key_updates_;
     OTZMQPublishSocket sync_updates_;
+    OTZMQPublishSocket new_blockchain_accounts_;
     mutable std::map<
         Chain,
         std::unique_ptr<opentxs::blockchain::client::internal::Network>>
