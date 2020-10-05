@@ -17,6 +17,7 @@ enum class WorkType : OTZMQWorkType {
     Shutdown = 0,
     NymCreated = 1,
     BlockchainSyncProgress = 2,
+    BlockchainAccountCreated = 3,
 };
 
 constexpr auto value(const WorkType in) noexcept
@@ -45,6 +46,13 @@ constexpr auto value(const WorkType in) noexcept
  *          1: chain type as opentxs::blockchain::Type
  *          2: current progress as opentxs::blockchain::block::Height
  *          3: target height as opentxs::blockchain::block::Height
+ *
+ *   BlockchainAccountCreated: reports the creation of a new blockchain account.
+ *       * Additional frames:
+ *          1: chain type as opentxs::blockchain::Type
+ *          2: account owner as identifier::Nym (encoded as byte sequence)
+ *          3: account type as api::client::Blockchain::AccountType
+ *          4: account id as Identifier (encoded as byte sequence)
  */
 }  // namespace opentxs
 #endif

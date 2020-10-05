@@ -122,9 +122,16 @@ AccountList::AccountList(
           blockchain_balance_cb_,
           zmq::socket::Socket::Direction::Connect))
 #endif  // OT_BLOCKCHAIN
-    , listeners_{
-          {api_.Endpoints().AccountUpdate(),
-           new MessageProcessor<AccountList>(&AccountList::process_account)}}
+    , listeners_
+{
+    {api_.Endpoints().AccountUpdate(),
+     new MessageProcessor<AccountList>(&AccountList::process_account)},
+#if OT_BLOCKCHAIN
+        {api_.Endpoints().BlockchainAccountCreated(),
+         new MessageProcessor<AccountList>(
+             &AccountList::process_blockchain_account)},
+#endif  // OT_BLOCKCHAIN
+}
 {
     init();
     setup_listeners(listeners_);
@@ -132,6 +139,41 @@ AccountList::AccountList(
 
     OT_ASSERT(startup_)
 }
+
+#if OT_BLOCKCHAIN
+auto AccountList::add_blockchain_account(
+    const blockchain::Type chain,
+    const Amount balance) noexcept -> void
+{
+    try {
+        const auto& accountID = AccountID(api_, chain);
+
+        {
+            Lock lock(lock_);
+
+            if (0 < names_.count(accountID)) { delete_item(lock, accountID); }
+
+            OT_ASSERT(0 == names_.count(accountID));
+        }
+
+        auto index = make_blank<AccountListSortKey>::value(api_);
+        auto& [type, notary] = index;
+        type = Translate(chain);
+        notary = NotaryID(api_, chain).str();
+        auto custom = CustomData{};
+        custom.emplace_back(new bool{true});
+        custom.emplace_back(new Amount{balance});
+        custom.emplace_back(new blockchain::Type{chain});
+        custom.emplace_back(new std::string{AccountName(chain)});
+        add_item(accountID, index, custom);
+    } catch (...) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid chain or balance")
+            .Flush();
+
+        return;
+    }
+}
+#endif  // OT_BLOCKCHAIN
 
 auto AccountList::construct_row(
     const AccountListRowID& id,
@@ -230,6 +272,33 @@ auto AccountList::process_account(
 }
 
 #if OT_BLOCKCHAIN
+auto AccountList::process_blockchain_account(
+    const network::zeromq::Message& message) noexcept -> void
+{
+    wait_for_startup();
+
+    if (5 > message.Body().size()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid message").Flush();
+
+        return;
+    }
+
+    const auto& nymFrame = message.Body_at(2);
+    auto nymID = api_.Factory().NymID();
+    nymID->Assign(nymFrame.Bytes());
+
+    if (nymID != primary_id_) {
+        LogTrace(OT_METHOD)(__FUNCTION__)(
+            ": Update does not apply to this widget")
+            .Flush();
+
+        return;
+    }
+
+    const auto& chainFrame = message.Body_at(1);
+    subscribe(chainFrame.as<blockchain::Type>());
+}
+
 auto AccountList::process_blockchain_balance(
     const network::zeromq::Message& message) noexcept -> void
 {
@@ -244,35 +313,8 @@ auto AccountList::process_blockchain_balance(
     const auto& chainFrame = message.Body_at(0);
     // NOTE confirmed balance is not used here
     const auto& balanceFrame = message.Body_at(2);
-
-    try {
-        const auto chain = chainFrame.as<blockchain::Type>();
-        const auto& accountID = AccountID(api_, chain);
-
-        {
-            Lock lock(lock_);
-
-            if (0 < names_.count(accountID)) { delete_item(lock, accountID); }
-
-            OT_ASSERT(0 == names_.count(accountID));
-        }
-
-        auto index = make_blank<AccountListSortKey>::value(api_);
-        auto& [type, notary] = index;
-        type = Translate(chain);
-        notary = NotaryID(api_, chain).str();
-        auto custom = CustomData{};
-        custom.emplace_back(new bool{true});
-        custom.emplace_back(new Amount{balanceFrame.as<Amount>()});
-        custom.emplace_back(new blockchain::Type{chain});
-        custom.emplace_back(new std::string{AccountName(chain)});
-        add_item(accountID, index, custom);
-    } catch (...) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid chain or balance")
-            .Flush();
-
-        return;
-    }
+    add_blockchain_account(
+        chainFrame.as<blockchain::Type>(), balanceFrame.as<Amount>());
 }
 
 auto AccountList::setup_listeners(
@@ -298,16 +340,23 @@ auto AccountList::startup() noexcept -> void
 #if OT_BLOCKCHAIN
     for (const auto& chain : blockchain::SupportedChains()) {
         if (0 < api_.Blockchain().AccountList(primary_id_, chain).size()) {
-            auto out = api_.ZeroMQ().Message();
-            out->AddFrame();
-            out->AddFrame(chain);
-            blockchain_balance_->Send(out);
+            subscribe(chain);
         }
     }
 #endif  // OT_BLOCKCHAIN
 
     finish_startup();
 }
+
+#if OT_BLOCKCHAIN
+auto AccountList::subscribe(const blockchain::Type chain) const noexcept -> void
+{
+    auto out = api_.ZeroMQ().Message();
+    out->AddFrame();
+    out->AddFrame(chain);
+    blockchain_balance_->Send(out);
+}
+#endif  // OT_BLOCKCHAIN
 
 AccountList::~AccountList()
 {

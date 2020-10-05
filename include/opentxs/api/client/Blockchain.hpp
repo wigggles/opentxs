@@ -61,6 +61,10 @@ public:
     using PatternID = opentxs::blockchain::PatternID;
 #endif  // OT_BLOCKCHAIN
 
+    enum class AccountType : std::uint8_t {
+        HD = 0,
+    };
+
     /// Throws std::runtime_error if type is invalid
     OPENTXS_EXPORT virtual const blockchain::BalanceTree& Account(
         const identifier::Nym& nymID,
