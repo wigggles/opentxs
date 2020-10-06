@@ -9,6 +9,7 @@
 
 #include <atomic>
 #include <functional>
+#include <limits>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -94,7 +95,7 @@ BlockchainAccountActivity::BlockchainAccountActivity(
                    &BlockchainAccountActivity::process_sync)},
           })
     , chain_(ui::Chain(api_, accountID))
-    , sync_(0)
+    , progress_()
     , sync_cb_()
 {
     startup_.reset(new std::thread(&BlockchainAccountActivity::startup, this));
@@ -171,12 +172,17 @@ auto BlockchainAccountActivity::process_sync(
 
     const auto height = body.at(2).as<blockchain::block::Height>();
     const auto target = body.at(3).as<blockchain::block::Height>();
-    const auto progress = (double(height) / double(target)) * double{100};
-    sync_.store(progress);
+
+    OT_ASSERT(height <= std::numeric_limits<int>::max());
+    OT_ASSERT(target <= std::numeric_limits<int>::max());
+
+    const auto current = static_cast<int>(height);
+    const auto max = static_cast<int>(target);
+    const auto percent = progress_.set(current, max);
     Lock lock(sync_cb_.lock_);
     const auto& cb = sync_cb_.cb_;
 
-    if (cb) { cb(); }
+    if (cb) { cb(current, max, percent); }
 }
 
 auto BlockchainAccountActivity::process_txid(
@@ -211,8 +217,8 @@ auto BlockchainAccountActivity::process_txid(
     load_thread();
 }
 
-auto BlockchainAccountActivity::SetSyncCallback(
-    const SimpleCallback cb) noexcept -> void
+auto BlockchainAccountActivity::SetSyncCallback(const SyncCallback cb) noexcept
+    -> void
 {
     Lock lock(sync_cb_.lock_);
     sync_cb_.cb_ = cb;

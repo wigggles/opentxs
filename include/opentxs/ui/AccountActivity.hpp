@@ -10,6 +10,8 @@
 
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
+#include <tuple>
+
 #include "opentxs/SharedPimpl.hpp"
 #include "opentxs/ui/List.hpp"
 
@@ -66,6 +68,8 @@ public:
     OPENTXS_EXPORT virtual std::string NotaryName() const noexcept = 0;
 #if OT_BLOCKCHAIN
     OPENTXS_EXPORT virtual double SyncPercentage() const noexcept = 0;
+    OPENTXS_EXPORT virtual std::pair<int, int> SyncProgress()
+        const noexcept = 0;
 #endif  // OT_BLOCKCHAIN
     OPENTXS_EXPORT virtual AccountType Type() const noexcept = 0;
     OPENTXS_EXPORT virtual proto::ContactItemType Unit() const noexcept = 0;
@@ -97,12 +101,17 @@ class OPENTXS_EXPORT opentxs::ui::AccountActivityQt final
 #endif  // OT_BLOCKCHAIN
     Q_PROPERTY(QString displayBalance READ displayBalance NOTIFY updated)
 #if OT_BLOCKCHAIN
-    Q_PROPERTY(double syncPercentage READ syncPercentage NOTIFY sync_progress)
+    Q_PROPERTY(
+        double syncPercentage READ syncPercentage NOTIFY syncPercentageUpdated)
+    using Progress = QPair<int, int>;
+    Q_PROPERTY(
+        Progress syncProgress READ syncProgress NOTIFY syncProgressUpdated)
 #endif  // OT_BLOCKCHAIN
 
 signals:
     OPENTXS_EXPORT void updated() const;
-    OPENTXS_EXPORT void sync_progress() const;
+    OPENTXS_EXPORT void syncPercentageUpdated(double) const;
+    OPENTXS_EXPORT void syncProgressUpdated(int, int) const;
 
 public:
     // User roles return the same data for all columns
@@ -142,6 +151,7 @@ public:
     OPENTXS_EXPORT Q_INVOKABLE QString
     getDepositAddress(const int chain = 0) const noexcept;
     OPENTXS_EXPORT double syncPercentage() const noexcept;
+    OPENTXS_EXPORT QPair<int, int> syncProgress() const noexcept;
 #endif  // OT_BLOCKCHAIN
 
     AccountActivityQt(implementation::AccountActivity& parent) noexcept;
