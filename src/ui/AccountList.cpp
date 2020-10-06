@@ -19,7 +19,9 @@
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Shared.hpp"
 #include "opentxs/api/Endpoints.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
 #if OT_BLOCKCHAIN
 #include "opentxs/api/client/Blockchain.hpp"
 #endif  // OT_BLOCKCHAIN

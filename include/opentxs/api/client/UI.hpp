@@ -116,8 +116,16 @@ public:
         const Identifier& threadID,
         const SimpleCallback updateCB = {}) const noexcept = 0;
 #if OT_BLOCKCHAIN
+    OPENTXS_EXPORT virtual const Identifier& BlockchainAccountID(
+        const opentxs::blockchain::Type chain) const noexcept = 0;
+    OPENTXS_EXPORT virtual opentxs::blockchain::Type BlockchainAccountToChain(
+        const Identifier& account) const noexcept = 0;
+    OPENTXS_EXPORT virtual const identifier::Server& BlockchainNotaryID(
+        const opentxs::blockchain::Type chain) const noexcept = 0;
     OPENTXS_EXPORT virtual const ui::BlockchainSelection& BlockchainSelection()
         const noexcept = 0;
+    OPENTXS_EXPORT virtual const identifier::UnitDefinition& BlockchainUnitID(
+        const opentxs::blockchain::Type chain) const noexcept = 0;
 #endif  // OT_BLOCKCHAIN
     OPENTXS_EXPORT virtual const ui::Contact& Contact(
         const Identifier& contactID,
