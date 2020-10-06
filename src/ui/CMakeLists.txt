@@ -145,7 +145,8 @@ if(OT_BLOCKCHAIN_EXPORT)
     "${opentxs_SOURCE_DIR}/include/opentxs/ui/BlockchainSelection.hpp"
   )
   list(
-    APPEND cxx-install-headers
+    APPEND
+    cxx-install-headers
     "${opentxs_SOURCE_DIR}/include/opentxs/ui/BlockchainSelection.hpp"
     "${opentxs_SOURCE_DIR}/include/opentxs/ui/BlockchainSelectionItem.hpp"
   )

@@ -5,12 +5,19 @@
 
 add_subdirectory(message)
 
-set(cxx-sources Bitcoin.cpp Header.cpp Message.cpp Peer.cpp)
+set(cxx-sources
+    Bitcoin.cpp
+    Header.cpp
+    Message.cpp
+    Peer.cpp
+)
 
 set(cxx-headers
     "${opentxs_SOURCE_DIR}/src/internal/blockchain/p2p/bitcoin/Bitcoin.hpp"
     "${opentxs_SOURCE_DIR}/src/internal/blockchain/p2p/bitcoin/Factory.hpp"
-    Header.hpp Message.hpp Peer.hpp
+    Header.hpp
+    Message.hpp
+    Peer.hpp
 )
 
 add_library(opentxs-blockchain-p2p-bitcoin OBJECT ${cxx-sources} ${cxx-headers})

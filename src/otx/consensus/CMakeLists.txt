@@ -3,8 +3,12 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-set(cxx-sources Base.cpp Client.cpp ManagedNumber.cpp Server.cpp
-                TransactionStatement.cpp
+set(cxx-sources
+    Base.cpp
+    Client.cpp
+    ManagedNumber.cpp
+    Server.cpp
+    TransactionStatement.cpp
 )
 set(cxx-install-headers
     "${opentxs_SOURCE_DIR}/include/opentxs/otx/consensus/Base.hpp"
@@ -15,8 +19,11 @@ set(cxx-install-headers
 )
 set(cxx-headers
     ${cxx-install-headers}
-    "${opentxs_SOURCE_DIR}/src/internal/otx/consensus/Consensus.hpp" Base.hpp
-    Client.hpp ManagedNumber.hpp Server.hpp
+    "${opentxs_SOURCE_DIR}/src/internal/otx/consensus/Consensus.hpp"
+    Base.hpp
+    Client.hpp
+    ManagedNumber.hpp
+    Server.hpp
 )
 
 add_library(opentxs-otx-consensus OBJECT ${cxx-sources} ${cxx-headers})

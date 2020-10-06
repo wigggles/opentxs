@@ -3,8 +3,13 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-set(cxx-sources "Base.cpp" "Contact.cpp" "Key.cpp" "Primary.cpp"
-                "Secondary.cpp" "Verification.cpp"
+set(cxx-sources
+    "Base.cpp"
+    "Contact.cpp"
+    "Key.cpp"
+    "Primary.cpp"
+    "Secondary.cpp"
+    "Verification.cpp"
 )
 set(cxx-install-headers
     "${opentxs_SOURCE_DIR}/include/opentxs/identity/credential/Base.hpp"

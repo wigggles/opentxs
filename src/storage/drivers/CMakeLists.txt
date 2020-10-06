@@ -8,8 +8,20 @@ set(cxx-install-headers "")
 set(cxx-headers ${cxx-install-headers} StorageMemDB.hpp StorageMultiplex.hpp)
 
 if(FS_EXPORT)
-  list(APPEND cxx-sources StorageFS.cpp StorageFSGC.cpp StorageFSArchive.cpp)
-  list(APPEND cxx-headers StorageFS.hpp StorageFSGC.hpp StorageFSArchive.hpp)
+  list(
+    APPEND
+    cxx-sources
+    StorageFS.cpp
+    StorageFSGC.cpp
+    StorageFSArchive.cpp
+  )
+  list(
+    APPEND
+    cxx-headers
+    StorageFS.hpp
+    StorageFSGC.hpp
+    StorageFSArchive.hpp
+  )
 endif()
 
 if(SQLITE_EXPORT)

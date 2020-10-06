@@ -3,11 +3,21 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-set(cxx-sources BlockFilter.cpp BlockHeaders.cpp Blocks.cpp Database.cpp
-                Peers.cpp Wallet.cpp
+set(cxx-sources
+    BlockFilter.cpp
+    BlockHeaders.cpp
+    Blocks.cpp
+    Database.cpp
+    Peers.cpp
+    Wallet.cpp
 )
-set(cxx-headers BlockFilter.hpp BlockHeaders.hpp Blocks.hpp Database.hpp
-                Peers.hpp Wallet.hpp
+set(cxx-headers
+    BlockFilter.hpp
+    BlockHeaders.hpp
+    Blocks.hpp
+    Database.hpp
+    Peers.hpp
+    Wallet.hpp
 )
 
 add_library(

@@ -22,8 +22,11 @@ set(cxx-install-headers
     "${opentxs_SOURCE_DIR}/include/opentxs/core/crypto/PaymentCode.hpp"
     "${opentxs_SOURCE_DIR}/include/opentxs/core/crypto/Signature.hpp"
 )
-set(cxx-headers ${cxx-install-headers} NullCallback.hpp PaymentCode.hpp
-                Signature.hpp
+set(cxx-headers
+    ${cxx-install-headers}
+    NullCallback.hpp
+    PaymentCode.hpp
+    Signature.hpp
 )
 
 add_library(opentxs-core-crypto OBJECT ${cxx-sources} ${cxx-headers})

@@ -71,7 +71,10 @@ endif()
 if(OPENSSL_EXPORT)
   add_library(
     opentxs-crypto-library-openssl OBJECT
-    OpenSSL.cpp OpenSSL_BIO.cpp OpenSSL.hpp OpenSSL_BIO.hpp
+    OpenSSL.cpp
+    OpenSSL_BIO.cpp
+    OpenSSL.hpp
+    OpenSSL_BIO.hpp
     "${opentxs_SOURCE_DIR}/src/internal/crypto/library/OpenSSL.hpp"
   )
   target_include_directories(

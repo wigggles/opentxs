@@ -3,7 +3,12 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-set(cxx-sources Callback.cpp Handler.cpp Reply.cpp Request.cpp)
+set(cxx-sources
+    Callback.cpp
+    Handler.cpp
+    Reply.cpp
+    Request.cpp
+)
 set(cxx-install-headers
     "${opentxs_SOURCE_DIR}/include/opentxs/network/zeromq/zap/Callback.hpp"
     "${opentxs_SOURCE_DIR}/include/opentxs/network/zeromq/zap/Handler.hpp"

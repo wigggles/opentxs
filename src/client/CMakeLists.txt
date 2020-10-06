@@ -3,8 +3,12 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-set(cxx-sources NymData.cpp OT_API.cpp OTAPI_Exec.cpp OTAPI_Func.cpp
-                OTClient.cpp
+set(cxx-sources
+    NymData.cpp
+    OT_API.cpp
+    OTAPI_Exec.cpp
+    OTAPI_Func.cpp
+    OTClient.cpp
 )
 set(cxx-install-headers
     "${opentxs_SOURCE_DIR}/include/opentxs/client/NymData.hpp"

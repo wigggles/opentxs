@@ -5,8 +5,13 @@
 
 add_subdirectory(base58)
 
-set(cxx-sources Asymmetric.cpp Config.cpp Crypto.cpp Encode.cpp Hash.cpp
-                Symmetric.cpp
+set(cxx-sources
+    Asymmetric.cpp
+    Config.cpp
+    Crypto.cpp
+    Encode.cpp
+    Hash.cpp
+    Symmetric.cpp
 )
 set(cxx-install-headers
     "${opentxs_SOURCE_DIR}/include/opentxs/api/crypto/Asymmetric.hpp"
