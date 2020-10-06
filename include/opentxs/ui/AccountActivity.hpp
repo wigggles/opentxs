@@ -86,7 +86,8 @@ private:
 #endif
 
 #if OT_QT || defined(Q_MOC_RUN)
-class opentxs::ui::AccountActivityQt final : public QIdentityProxyModel
+class OPENTXS_EXPORT opentxs::ui::AccountActivityQt final
+    : public QIdentityProxyModel
 {
     Q_OBJECT
     Q_PROPERTY(QString accountID READ accountID NOTIFY updated)
@@ -100,8 +101,8 @@ class opentxs::ui::AccountActivityQt final : public QIdentityProxyModel
 #endif  // OT_BLOCKCHAIN
 
 signals:
-    void updated() const;
-    void sync_progress() const;
+    OPENTXS_EXPORT void updated() const;
+    OPENTXS_EXPORT void sync_progress() const;
 
 public:
     // User roles return the same data for all columns

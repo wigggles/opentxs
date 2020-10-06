@@ -73,7 +73,7 @@ private:
 #endif
 
 #if OT_QT || defined(Q_MOC_RUN)
-class opentxs::ui::ContactQt final : public QIdentityProxyModel
+class OPENTXS_EXPORT opentxs::ui::ContactQt final : public QIdentityProxyModel
 {
     Q_OBJECT
     Q_PROPERTY(QString displayName READ displayName NOTIFY updated)
@@ -81,7 +81,7 @@ class opentxs::ui::ContactQt final : public QIdentityProxyModel
     Q_PROPERTY(QString paymentCode READ paymentCode NOTIFY updated)
 
 signals:
-    void updated() const;
+    OPENTXS_EXPORT void updated() const;
 
 public:
     // Tree layout

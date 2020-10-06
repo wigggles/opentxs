@@ -75,12 +75,13 @@ private:
 #endif
 
 #if OT_QT || defined(Q_MOC_RUN)
-class opentxs::ui::BlockchainSelectionQt final : public QIdentityProxyModel
+class OPENTXS_EXPORT opentxs::ui::BlockchainSelectionQt final
+    : public QIdentityProxyModel
 {
     Q_OBJECT
 
 signals:
-    void updated() const;
+    OPENTXS_EXPORT void updated() const;
 
 public:
     // User roles return the same data for all columns

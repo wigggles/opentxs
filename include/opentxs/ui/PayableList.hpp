@@ -64,12 +64,13 @@ private:
 #endif
 
 #if OT_QT || defined(Q_MOC_RUN)
-class opentxs::ui::PayableListQt final : public QIdentityProxyModel
+class OPENTXS_EXPORT opentxs::ui::PayableListQt final
+    : public QIdentityProxyModel
 {
     Q_OBJECT
 
 signals:
-    void updated() const;
+    OPENTXS_EXPORT void updated() const;
 
 public:
     // Table layout: name, payment code
