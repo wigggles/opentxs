@@ -3,8 +3,12 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-set(cxx-sources Contact.cpp ContactData.cpp ContactGroup.cpp ContactItem.cpp
-                ContactSection.cpp
+set(cxx-sources
+    Contact.cpp
+    ContactData.cpp
+    ContactGroup.cpp
+    ContactItem.cpp
+    ContactSection.cpp
 )
 set(cxx-install-headers
     "${opentxs_SOURCE_DIR}/include/opentxs/contact/Contact.hpp"

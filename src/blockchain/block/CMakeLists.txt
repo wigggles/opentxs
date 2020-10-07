@@ -14,7 +14,8 @@ set(cxx-install-headers
 
 set(cxx-headers
     ${cxx-install-headers}
-    "${opentxs_SOURCE_DIR}/src/internal/blockchain/block/Block.hpp" Block.hpp
+    "${opentxs_SOURCE_DIR}/src/internal/blockchain/block/Block.hpp"
+    Block.hpp
     Header.hpp
 )
 

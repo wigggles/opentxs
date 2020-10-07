@@ -65,12 +65,12 @@ private:
 #endif
 
 #if OT_QT || defined(Q_MOC_RUN)
-class opentxs::ui::UnitListQt final : public QIdentityProxyModel
+class OPENTXS_EXPORT opentxs::ui::UnitListQt final : public QIdentityProxyModel
 {
     Q_OBJECT
 
 signals:
-    void updated() const;
+    OPENTXS_EXPORT void updated() const;
 
 public:
     enum Columns {

@@ -6,6 +6,7 @@
 #pragma once
 
 #include <atomic>
+#include <functional>
 #include <set>
 #include <string>
 #include <utility>
@@ -107,11 +108,17 @@ public:
         return {};
     }
     auto SyncPercentage() const noexcept -> double override { return 100; }
+    auto SyncProgress() const noexcept -> std::pair<int, int> override
+    {
+        return {1, 1};
+    }
 #endif  // OT_BLOCKCHAIN
     auto Type() const noexcept -> AccountType final { return type_; }
 
 #if OT_BLOCKCHAIN
-    virtual auto SetSyncCallback(const SimpleCallback) noexcept -> void {}
+    using SyncCallback = std::function<void(int, int, double)>;
+
+    virtual auto SetSyncCallback(const SyncCallback) noexcept -> void {}
 #endif  // OT_BLOCKCHAIN
 
     ~AccountActivity() override;

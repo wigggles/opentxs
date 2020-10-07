@@ -6,8 +6,12 @@
 add_subdirectory(basket)
 add_subdirectory(peer)
 
-set(cxx-sources CurrencyContract.cpp SecurityContract.cpp ServerContract.cpp
-                Signable.cpp UnitDefinition.cpp
+set(cxx-sources
+    CurrencyContract.cpp
+    SecurityContract.cpp
+    ServerContract.cpp
+    Signable.cpp
+    UnitDefinition.cpp
 )
 set(cxx-install-headers
     "${opentxs_SOURCE_DIR}/include/opentxs/core/contract/CurrencyContract.hpp"

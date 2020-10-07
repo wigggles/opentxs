@@ -5,8 +5,11 @@
 
 set(cxx-sources RPC.cpp)
 set(cxx-install-headers "")
-set(cxx-headers ${cxx-install-headers}
-                ${opentxs_SOURCE_DIR}/src/internal/rpc/RPC.hpp RPC.hpp RPC.tpp
+set(cxx-headers
+    ${cxx-install-headers}
+    ${opentxs_SOURCE_DIR}/src/internal/rpc/RPC.hpp
+    RPC.hpp
+    RPC.tpp
 )
 
 add_library(opentxs-rpc OBJECT ${cxx-sources} ${cxx-headers})

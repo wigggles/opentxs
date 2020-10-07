@@ -12,6 +12,7 @@
 #include <mutex>
 #include <set>
 #include <string>
+#include <tuple>
 #include <utility>
 #include <vector>
 
@@ -110,14 +111,18 @@ public:
     }
     auto SyncPercentage() const noexcept -> double final
     {
-        return sync_.load();
+        return progress_.get_percentage();
+    }
+    auto SyncProgress() const noexcept -> std::pair<int, int> final
+    {
+        return progress_.get_progress();
     }
     auto Unit() const noexcept -> proto::ContactItemType final
     {
         return Translate(chain_);
     }
 
-    auto SetSyncCallback(const SimpleCallback cb) noexcept -> void final;
+    auto SetSyncCallback(const SyncCallback cb) noexcept -> void final;
 
     BlockchainAccountActivity(
         const api::client::internal::Manager& api,
@@ -133,11 +138,42 @@ public:
 private:
     struct SyncCB {
         std::mutex lock_{};
-        SimpleCallback cb_{};
+        SyncCallback cb_{};
+    };
+
+    struct Progress {
+        auto get_percentage() const noexcept -> double
+        {
+            Lock lock{lock_};
+
+            return percentage_;
+        }
+        auto get_progress() const noexcept -> std::pair<int, int>
+        {
+            Lock lock{lock_};
+
+            return ratio_;
+        }
+
+        auto set(const int height, const int target) noexcept -> double
+        {
+            Lock lock{lock_};
+            auto& [current, max] = ratio_;
+            current = height;
+            max = target;
+            percentage_ = (double(height) / double(target)) * double{100};
+
+            return percentage_;
+        }
+
+    private:
+        mutable std::mutex lock_{};
+        double percentage_{};
+        std::pair<int, int> ratio_{};
     };
 
     const blockchain::Type chain_;
-    std::atomic<double> sync_;
+    Progress progress_;
     SyncCB sync_cb_;
 
     auto load_thread() noexcept -> void;

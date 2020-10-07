@@ -62,7 +62,10 @@ auto AccountActivityQt::displayBalance() const noexcept -> QString
 auto AccountActivityQt::init() noexcept -> void
 {
 #if OT_BLOCKCHAIN
-    parent_.SetSyncCallback([this]() { emit sync_progress(); });
+    parent_.SetSyncCallback([this](int current, int max, double percent) {
+        emit syncPercentageUpdated(percent);
+        emit syncProgressUpdated(current, max);
+    });
 #endif  // OT_BLOCKCHAIN
 }
 #if OT_BLOCKCHAIN

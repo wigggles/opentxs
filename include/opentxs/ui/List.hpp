@@ -45,7 +45,7 @@ namespace opentxs
 {
 namespace ui
 {
-struct BlankModel final : public QAbstractItemModel {
+struct OPENTXS_EXPORT BlankModel final : public QAbstractItemModel {
     Q_OBJECT
 
 public:

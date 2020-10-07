@@ -9,7 +9,12 @@ set(cxx-install-headers
     "${opentxs_SOURCE_DIR}/include/opentxs/api/network/ZAP.hpp"
     "${opentxs_SOURCE_DIR}/include/opentxs/api/network/ZMQ.hpp"
 )
-set(cxx-headers ${cxx-install-headers} Dht.hpp ZAP.hpp ZMQ.hpp)
+set(cxx-headers
+    ${cxx-install-headers}
+    Dht.hpp
+    ZAP.hpp
+    ZMQ.hpp
+)
 
 add_library(opentxs-api-network OBJECT ${cxx-sources} ${cxx-headers})
 target_link_libraries(opentxs-api-network PRIVATE opentxs::messages)

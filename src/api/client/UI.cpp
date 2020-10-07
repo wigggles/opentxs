@@ -542,12 +542,37 @@ auto UI::ActivityThreadQt(
 #endif
 
 #if OT_BLOCKCHAIN
+auto UI::BlockchainAccountID(
+    const opentxs::blockchain::Type chain) const noexcept -> const Identifier&
+{
+    return ui::AccountID(api_, chain);
+}
+
+auto UI::BlockchainAccountToChain(const Identifier& account) const noexcept
+    -> opentxs::blockchain::Type
+{
+    return ui::Chain(api_, account);
+}
+
+auto UI::BlockchainNotaryID(const opentxs::blockchain::Type chain)
+    const noexcept -> const identifier::Server&
+{
+    return ui::NotaryID(api_, chain);
+}
+
 auto UI::BlockchainSelection() const noexcept -> const ui::BlockchainSelection&
 {
     OT_ASSERT(blockchain_selection_);
 
     return *blockchain_selection_;
 }
+
+auto UI::BlockchainUnitID(const opentxs::blockchain::Type chain) const noexcept
+    -> const identifier::UnitDefinition&
+{
+    return ui::UnitID(api_, chain);
+}
+
 #endif  // OT_BLOCKCHAIN
 
 auto UI::contact(

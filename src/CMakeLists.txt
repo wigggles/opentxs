@@ -197,9 +197,11 @@ add_dependencies(generated_code messages)
 
 include(GenerateExportHeader)
 generate_export_header(
-  opentxs EXPORT_FILE_NAME
+  opentxs
+  EXPORT_FILE_NAME
   "${${PROJECT_NAME}_BINARY_DIR}/src/opentxs/opentxs_export.hpp"
-  EXPORT_MACRO_NAME OPENTXS_EXPORT
+  EXPORT_MACRO_NAME
+  OPENTXS_EXPORT
 )
 
 install(
@@ -245,8 +247,12 @@ if(OT_INSTALL_LIBRARY_DEPENDENCIES)
 
   install(
     FILES
-      "${SODIUM_LIBRARY}" "${ZMQ_LIBRARY_PATH}" "${Protobuf_LITE_LIBRARY}"
-      "${ZLIB_LIBRARY}" "${Boost_system_LIBRARY}" "${Boost_filesystem_LIBRARY}"
+      "${SODIUM_LIBRARY}"
+      "${ZMQ_LIBRARY_PATH}"
+      "${Protobuf_LITE_LIBRARY}"
+      "${ZLIB_LIBRARY}"
+      "${Boost_system_LIBRARY}"
+      "${Boost_filesystem_LIBRARY}"
     DESTINATION ${CMAKE_INSTALL_LIBDIR}
     COMPONENT main
   )

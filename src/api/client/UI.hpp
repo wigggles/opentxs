@@ -25,6 +25,8 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/network/zeromq/Pipeline.hpp"
 #include "opentxs/network/zeromq/socket/Publish.hpp"
 #include "opentxs/protobuf/ContactEnums.pb.h"
@@ -117,8 +119,16 @@ public:
         const SimpleCallback cb) const noexcept
         -> const ui::ActivityThread& final;
 #if OT_BLOCKCHAIN
+    auto BlockchainAccountID(const opentxs::blockchain::Type chain)
+        const noexcept -> const Identifier& final;
+    auto BlockchainAccountToChain(const Identifier& account) const noexcept
+        -> opentxs::blockchain::Type final;
+    auto BlockchainNotaryID(const opentxs::blockchain::Type chain)
+        const noexcept -> const identifier::Server& final;
     auto BlockchainSelection() const noexcept
         -> const ui::BlockchainSelection& final;
+    auto BlockchainUnitID(const opentxs::blockchain::Type chain) const noexcept
+        -> const identifier::UnitDefinition& final;
 #endif  // OT_BLOCKCHAIN
     auto Contact(const Identifier& contactID, const SimpleCallback cb)
         const noexcept -> const ui::Contact& final;

@@ -9,11 +9,28 @@ set(cxx-install-headers
     "${opentxs_SOURCE_DIR}/include/opentxs/blind/Purse.hpp"
     "${opentxs_SOURCE_DIR}/include/opentxs/blind/Token.hpp"
 )
-set(cxx-headers ${cxx-install-headers} Mint.hpp Purse.hpp Token.hpp)
+set(cxx-headers
+    ${cxx-install-headers}
+    Mint.hpp
+    Purse.hpp
+    Token.hpp
+)
 
 if(CASH_LUCRE_EXPORT)
-  list(APPEND cxx-sources mint/Lucre.cpp token/Lucre.cpp Lucre.cpp)
-  list(APPEND cxx-headers mint/Lucre.hpp token/Lucre.hpp Lucre.hpp)
+  list(
+    APPEND
+    cxx-sources
+    mint/Lucre.cpp
+    token/Lucre.cpp
+    Lucre.cpp
+  )
+  list(
+    APPEND
+    cxx-headers
+    mint/Lucre.hpp
+    token/Lucre.hpp
+    Lucre.hpp
+  )
 endif()
 
 add_library(opentxs-blind OBJECT ${cxx-sources} ${cxx-headers})

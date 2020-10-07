@@ -9,8 +9,10 @@ set(cxx-install-headers
 )
 set(cxx-headers
     ${cxx-install-headers}
-    "${opentxs_SOURCE_DIR}/src/internal/api/server/Server.hpp" Factory.hpp
-    Manager.hpp Wallet.hpp
+    "${opentxs_SOURCE_DIR}/src/internal/api/server/Server.hpp"
+    Factory.hpp
+    Manager.hpp
+    Wallet.hpp
 )
 
 add_library(opentxs-api-server OBJECT ${cxx-sources} ${cxx-headers})
