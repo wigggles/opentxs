@@ -14,11 +14,12 @@
 
 #include "OTTestEnvironment.hpp"  // IWYU pragma: keep
 #include "opentxs/OT.hpp"
-#include "opentxs/Types.hpp"
 #include "opentxs/Version.hpp"
 #include "opentxs/api/Context.hpp"
 #include "opentxs/api/client/Blockchain.hpp"
 #include "opentxs/api/client/Manager.hpp"
+#include "opentxs/api/client/blockchain/AddressStyle.hpp"
+#include "opentxs/blockchain/BlockchainType.hpp"
 
 namespace ot = opentxs;
 
@@ -37,12 +38,14 @@ const auto vector_ = TestData{
      {Style::P2PKH,
       {Chain::Bitcoin_testnet3,
        Chain::BitcoinCash_testnet3,
-       Chain::Litecoin_testnet4}}},
+       Chain::Litecoin_testnet4,
+       Chain::PKT_testnet}}},
     {"2MzQwSSnBHWHqSAqtTVQ6v47XtaisrJa1Vc",
      {Style::P2SH,
       {Chain::Bitcoin_testnet3,
        Chain::BitcoinCash_testnet3,
-       Chain::Litecoin_testnet4}}},
+       Chain::Litecoin_testnet4,
+       Chain::PKT_testnet}}},
     {"LM2WMpR1Rp6j3Sa59cMXMs1SPzj9eXpGc1", {Style::P2PKH, {Chain::Litecoin}}},
     {"3MSvaVbVFFLML86rt5eqgA9SvW23upaXdY",
      {Style::P2SH, {Chain::Bitcoin, Chain::BitcoinCash, Chain::Litecoin}}},
@@ -51,9 +54,11 @@ const auto vector_ = TestData{
      {Style::P2SH,
       {Chain::Bitcoin_testnet3,
        Chain::BitcoinCash_testnet3,
-       Chain::Litecoin_testnet4}}},
+       Chain::Litecoin_testnet4,
+       Chain::PKT_testnet}}},
     {"QVk4MvUu7Wb7tZ1wvAeiUvdF7wxhvpyLLK",
      {Style::P2SH, {Chain::Litecoin_testnet4}}},
+    {"pS8EA1pKEVBvv3kGsSGH37R8YViBmuRCPn", {Style::P2PKH, {Chain::PKT}}},
 };
 
 namespace

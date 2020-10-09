@@ -19,6 +19,8 @@
 #include "opentxs/Bytes.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/blockchain/BlockchainType.hpp"
+#include "opentxs/blockchain/Types.hpp"
 #include "opentxs/blockchain/block/bitcoin/Output.hpp"
 #include "opentxs/blockchain/block/bitcoin/Script.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -102,9 +104,9 @@ public:
     {
         const_cast<std::uint32_t&>(index_) = index;
     }
-    auto SetValue(const std::int64_t value) noexcept -> void final
+    auto SetValue(const std::uint64_t value) noexcept -> void final
     {
-        const_cast<std::int64_t&>(value_) = value;
+        const_cast<std::uint64_t&>(value_) = value;
     }
 
     Output(
@@ -112,7 +114,7 @@ public:
         const api::client::Blockchain& blockchain,
         const blockchain::Type chain,
         const std::uint32_t index,
-        const std::int64_t value,
+        const std::uint64_t value,
         const std::size_t size,
         const ReadView script,
         const VersionNumber version = default_version_) noexcept(false);
@@ -121,7 +123,7 @@ public:
         const api::client::Blockchain& blockchain,
         const blockchain::Type chain,
         const std::uint32_t index,
-        const std::int64_t value,
+        const std::uint64_t value,
         std::unique_ptr<const internal::Script> script,
         boost::container::flat_set<KeyID>&& keys,
         const VersionNumber version = default_version_) noexcept(false);
@@ -131,7 +133,7 @@ public:
         const blockchain::Type chain,
         const VersionNumber version,
         const std::uint32_t index,
-        const std::int64_t value,
+        const std::uint64_t value,
         std::unique_ptr<const internal::Script> script,
         std::optional<std::size_t> size,
         boost::container::flat_set<KeyID>&& keys,
@@ -150,7 +152,7 @@ private:
     const blockchain::Type chain_;
     const VersionNumber serialize_version_;
     const std::uint32_t index_;
-    const std::int64_t value_;
+    const std::uint64_t value_;
     const std::unique_ptr<const internal::Script> script_;
     const boost::container::flat_set<PatternID> pubkey_hashes_;
     const std::optional<PatternID> script_hash_;

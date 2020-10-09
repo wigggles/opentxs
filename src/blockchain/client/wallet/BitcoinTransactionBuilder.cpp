@@ -23,8 +23,10 @@
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/client/Blockchain.hpp"
 #include "opentxs/api/client/blockchain/BalanceNode.hpp"
+#include "opentxs/api/client/blockchain/Types.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Hash.hpp"  // IWYU pragma: keep
+#include "opentxs/blockchain/BlockchainType.hpp"
 #include "opentxs/blockchain/block/bitcoin/Transaction.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
@@ -578,6 +580,8 @@ auto Wallet::Proposals::BitcoinTransactionBuilder::sign_input(
         case Type::Bitcoin_testnet3:
         case Type::Litecoin:
         case Type::Litecoin_testnet4:
+        case Type::PKT:
+        case Type::PKT_testnet:
         case Type::UnitTest: {
             if (is_segwit(input)) {
                 // TODO not implemented yet

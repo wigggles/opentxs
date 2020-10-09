@@ -18,6 +18,9 @@
 #include "opentxs/api/Primitives.hpp"
 #if OT_BLOCKCHAIN
 #include "opentxs/blockchain/Blockchain.hpp"
+#endif                                   // OT_BLOCKCHAIN
+#include "opentxs/blockchain/Types.hpp"  // IWYU pragma: keep
+#if OT_BLOCKCHAIN
 #include "opentxs/blockchain/p2p/Address.hpp"
 #endif  // OT_BLOCKCHAIN
 #include "opentxs/core/Armored.hpp"
@@ -160,52 +163,60 @@ public:
         const proto::UnitDefinition serialized) const noexcept(false) = 0;
 #if OT_BLOCKCHAIN
     OPENTXS_EXPORT virtual auto BitcoinBlock(
-        const blockchain::Type chain,
+        const opentxs::blockchain::Type chain,
         const ReadView bytes) const noexcept
-        -> std::shared_ptr<const blockchain::block::bitcoin::Block> = 0;
+        -> std::shared_ptr<
+            const opentxs::blockchain::block::bitcoin::Block> = 0;
     OPENTXS_EXPORT virtual auto BitcoinScriptNullData(
-        const blockchain::Type chain,
+        const opentxs::blockchain::Type chain,
         const std::vector<ReadView>& data) const noexcept
-        -> std::unique_ptr<const blockchain::block::bitcoin::Script> = 0;
+        -> std::unique_ptr<
+            const opentxs::blockchain::block::bitcoin::Script> = 0;
     OPENTXS_EXPORT virtual auto BitcoinScriptP2MS(
-        const blockchain::Type chain,
+        const opentxs::blockchain::Type chain,
         const std::uint8_t M,
         const std::uint8_t N,
         const std::vector<const opentxs::crypto::key::EllipticCurve*>&
             publicKeys) const noexcept
-        -> std::unique_ptr<const blockchain::block::bitcoin::Script> = 0;
+        -> std::unique_ptr<
+            const opentxs::blockchain::block::bitcoin::Script> = 0;
     OPENTXS_EXPORT virtual auto BitcoinScriptP2PK(
-        const blockchain::Type chain,
+        const opentxs::blockchain::Type chain,
         const opentxs::crypto::key::EllipticCurve& publicKey) const noexcept
-        -> std::unique_ptr<const blockchain::block::bitcoin::Script> = 0;
+        -> std::unique_ptr<
+            const opentxs::blockchain::block::bitcoin::Script> = 0;
     OPENTXS_EXPORT virtual auto BitcoinScriptP2PKH(
-        const blockchain::Type chain,
+        const opentxs::blockchain::Type chain,
         const opentxs::crypto::key::EllipticCurve& publicKey) const noexcept
-        -> std::unique_ptr<const blockchain::block::bitcoin::Script> = 0;
+        -> std::unique_ptr<
+            const opentxs::blockchain::block::bitcoin::Script> = 0;
     OPENTXS_EXPORT virtual auto BitcoinScriptP2SH(
-        const blockchain::Type chain,
-        const blockchain::block::bitcoin::Script& script) const noexcept
-        -> std::unique_ptr<const blockchain::block::bitcoin::Script> = 0;
+        const opentxs::blockchain::Type chain,
+        const opentxs::blockchain::block::bitcoin::Script& script)
+        const noexcept -> std::unique_ptr<
+            const opentxs::blockchain::block::bitcoin::Script> = 0;
     OPENTXS_EXPORT virtual OTBlockchainAddress BlockchainAddress(
-        const blockchain::p2p::Protocol protocol,
-        const blockchain::p2p::Network network,
+        const opentxs::blockchain::p2p::Protocol protocol,
+        const opentxs::blockchain::p2p::Network network,
         const opentxs::Data& bytes,
         const std::uint16_t port,
-        const blockchain::Type chain,
+        const opentxs::blockchain::Type chain,
         const Time lastConnected,
-        const std::set<blockchain::p2p::Service>& services,
+        const std::set<opentxs::blockchain::p2p::Service>& services,
         const bool incoming = false) const = 0;
     OPENTXS_EXPORT virtual OTBlockchainAddress BlockchainAddress(
-        const blockchain::p2p::Address::SerializedType& serialized) const = 0;
-    OPENTXS_EXPORT virtual std::unique_ptr<blockchain::block::Header>
+        const opentxs::blockchain::p2p::Address::SerializedType& serialized)
+        const = 0;
+    OPENTXS_EXPORT virtual std::unique_ptr<opentxs::blockchain::block::Header>
     BlockHeader(const proto::BlockchainBlockHeader& serialized) const = 0;
-    OPENTXS_EXPORT virtual std::unique_ptr<blockchain::block::Header>
-    BlockHeader(const blockchain::Type type, const Data& raw) const = 0;
-    OPENTXS_EXPORT virtual std::unique_ptr<blockchain::block::Header>
+    OPENTXS_EXPORT virtual std::unique_ptr<opentxs::blockchain::block::Header>
+    BlockHeader(const opentxs::blockchain::Type type, const Data& raw)
+        const = 0;
+    OPENTXS_EXPORT virtual std::unique_ptr<opentxs::blockchain::block::Header>
     BlockHeaderForUnitTests(
-        const blockchain::block::Hash& hash,
-        const blockchain::block::Hash& parent,
-        const blockchain::block::Height height) const = 0;
+        const opentxs::blockchain::block::Hash& hash,
+        const opentxs::blockchain::block::Hash& parent,
+        const opentxs::blockchain::block::Height height) const = 0;
 #endif  // OT_BLOCKCHAIN
     OPENTXS_EXPORT virtual std::unique_ptr<opentxs::Cheque> Cheque(
         const OTTransaction& receipt) const = 0;

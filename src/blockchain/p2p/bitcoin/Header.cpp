@@ -17,6 +17,7 @@
 #include "internal/blockchain/Params.hpp"
 #include "internal/blockchain/p2p/bitcoin/Factory.hpp"
 #include "opentxs/Pimpl.hpp"
+#include "opentxs/blockchain/BlockchainType.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
 

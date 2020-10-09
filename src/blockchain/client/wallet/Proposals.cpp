@@ -16,6 +16,7 @@
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
+#include "opentxs/blockchain/BlockchainType.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
@@ -186,6 +187,8 @@ auto Wallet::Proposals::get_builder() const noexcept -> Builder
         case Type::BitcoinCash_testnet3:
         case Type::Litecoin:
         case Type::Litecoin_testnet4:
+        case Type::PKT:
+        case Type::PKT_testnet:
         case Type::UnitTest: {
 
             return [this](

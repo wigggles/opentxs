@@ -20,6 +20,8 @@
 #include "internal/api/client/blockchain/Blockchain.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/api/client/blockchain/BalanceList.hpp"
+#include "opentxs/blockchain/BlockchainType.hpp"
+#include "opentxs/blockchain/Types.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 

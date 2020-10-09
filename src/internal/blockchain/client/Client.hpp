@@ -28,9 +28,13 @@
 #endif  // OT_BLOCKCHAIN
 #include "opentxs/Types.hpp"
 #include "opentxs/Version.hpp"
+#include "opentxs/api/client/blockchain/Types.hpp"
 #if OT_BLOCKCHAIN
 #include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/blockchain/Network.hpp"
+#endif  // OT_BLOCKCHAIN
+#include "opentxs/blockchain/Types.hpp"
+#if OT_BLOCKCHAIN
 #include "opentxs/blockchain/client/BlockOracle.hpp"
 #include "opentxs/blockchain/client/FilterOracle.hpp"
 #include "opentxs/blockchain/client/HeaderOracle.hpp"
@@ -39,6 +43,9 @@
 #include "opentxs/core/Data.hpp"
 #if OT_BLOCKCHAIN
 #include "opentxs/core/Identifier.hpp"
+#endif  // OT_BLOCKCHAIN
+#include "opentxs/crypto/Types.hpp"
+#if OT_BLOCKCHAIN
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/socket/Router.hpp"

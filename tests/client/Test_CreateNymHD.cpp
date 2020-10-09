@@ -20,6 +20,9 @@
 #include "opentxs/client/OTAPI_Exec.hpp"
 #include "opentxs/core/PasswordPrompt.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/crypto/Bip32Child.hpp"
+#include "opentxs/crypto/Bip43Purpose.hpp"
+#include "opentxs/crypto/Types.hpp"
 #include "opentxs/identity/Nym.hpp"
 #include "opentxs/protobuf/HDPath.pb.h"
 

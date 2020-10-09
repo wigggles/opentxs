@@ -30,19 +30,23 @@ if(OT_BLOCKCHAIN_EXPORT)
 endif()
 
 set(cxx-install-headers
+    "${opentxs_SOURCE_DIR}/include/opentxs/api/client/blockchain/AddressStyle.hpp"
     "${opentxs_SOURCE_DIR}/include/opentxs/api/client/blockchain/BalanceList.hpp"
     "${opentxs_SOURCE_DIR}/include/opentxs/api/client/blockchain/BalanceNode.hpp"
+    "${opentxs_SOURCE_DIR}/include/opentxs/api/client/blockchain/BalanceNodeType.hpp"
     "${opentxs_SOURCE_DIR}/include/opentxs/api/client/blockchain/BalanceTree.hpp"
     "${opentxs_SOURCE_DIR}/include/opentxs/api/client/blockchain/Deterministic.hpp"
     "${opentxs_SOURCE_DIR}/include/opentxs/api/client/blockchain/Ethereum.hpp"
     "${opentxs_SOURCE_DIR}/include/opentxs/api/client/blockchain/HD.hpp"
     "${opentxs_SOURCE_DIR}/include/opentxs/api/client/blockchain/Imported.hpp"
     "${opentxs_SOURCE_DIR}/include/opentxs/api/client/blockchain/PaymentCode.hpp"
-)
-set(cxx-headers
-    ${cxx-install-headers}
+    "${opentxs_SOURCE_DIR}/include/opentxs/api/client/blockchain/Subchain.hpp"
+    "${opentxs_SOURCE_DIR}/include/opentxs/api/client/blockchain/Types.hpp"
     "${opentxs_SOURCE_DIR}/src/internal/api/client/blockchain/Blockchain.hpp"
     "${opentxs_SOURCE_DIR}/src/internal/api/client/blockchain/Factory.hpp"
+    ${cxx-install-headers}
+)
+set(cxx-headers
     BalanceList.hpp
     BalanceNode.hpp
     BalanceTree.hpp

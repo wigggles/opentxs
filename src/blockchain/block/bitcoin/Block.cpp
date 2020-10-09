@@ -14,6 +14,7 @@
 #include <cstdint>
 #include <cstring>
 #include <functional>
+#include <iosfwd>
 #include <iterator>
 #include <limits>
 #include <map>
@@ -26,13 +27,13 @@
 #include <vector>
 
 #include "blockchain/block/Block.hpp"
-#include "internal/blockchain/bitcoin/Bitcoin.hpp"
+#include "blockchain/block/bitcoin/BlockParser.hpp"
 #include "internal/blockchain/block/Block.hpp"
 #include "internal/blockchain/block/bitcoin/Bitcoin.hpp"
-#include "opentxs/Pimpl.hpp"
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/blockchain/BlockchainType.hpp"
 #include "opentxs/blockchain/block/bitcoin/Block.hpp"
 #include "opentxs/blockchain/block/bitcoin/Transaction.hpp"
 #include "opentxs/core/Data.hpp"
@@ -45,19 +46,8 @@
 
 namespace be = boost::endian;
 
-namespace opentxs
-{
-template <typename ArrayType>
-auto reader(const ArrayType& in) noexcept -> ReadView
-{
-    return {reinterpret_cast<const char*>(in.data()), in.size()};
-}
-}  // namespace opentxs
-
 namespace opentxs::factory
 {
-using ReturnType = blockchain::block::bitcoin::implementation::Block;
-
 auto BitcoinBlock(
     const api::Core& api,
     const api::client::Blockchain& blockchain,
@@ -65,96 +55,68 @@ auto BitcoinBlock(
     const ReadView in) noexcept
     -> std::shared_ptr<blockchain::block::bitcoin::Block>
 {
-    auto data = api.Factory().Data(in);
-
     try {
-        if ((nullptr == in.data()) || (0 == in.size())) {
-            throw std::runtime_error("Invalid block input");
+        switch (chain) {
+            case blockchain::Type::Bitcoin:
+            case blockchain::Type::Bitcoin_testnet3:
+            case blockchain::Type::BitcoinCash:
+            case blockchain::Type::BitcoinCash_testnet3:
+            case blockchain::Type::Litecoin:
+            case blockchain::Type::Litecoin_testnet4:
+            case blockchain::Type::UnitTest: {
+                return parse_normal_block(api, blockchain, chain, in);
+            }
+            case blockchain::Type::PKT:
+            case blockchain::Type::PKT_testnet: {
+                return parse_pkt_block(api, blockchain, chain, in);
+            }
+            case blockchain::Type::Unknown:
+            case blockchain::Type::Ethereum_frontier:
+            case blockchain::Type::Ethereum_ropsten:
+            default: {
+                LogOutput(OT_METHOD)(__FUNCTION__)(": Unsupported type (")(
+                    static_cast<std::uint32_t>(chain))(")")
+                    .Flush();
+
+                return {};
+            }
         }
-
-        auto it = reinterpret_cast<const std::byte*>(in.data());
-        auto expectedSize = std::size_t{ReturnType::header_bytes_};
-
-        if (in.size() < expectedSize) {
-            throw std::runtime_error("Block size too short (header)");
-        }
-
-        auto pHeader = BitcoinBlockHeader(
-            api,
-            chain,
-            {reinterpret_cast<const char*>(it), ReturnType::header_bytes_});
-
-        if (false == bool(pHeader)) {
-            throw std::runtime_error("Invalid block header");
-        }
-
-        const auto& header = *pHeader;
-        std::advance(it, ReturnType::header_bytes_);
-        expectedSize += 1;
-
-        if (in.size() < expectedSize) {
-            throw std::runtime_error(
-                "Block size too short (transaction count)");
-        }
-
-        auto sizeData =
-            ReturnType::CalculatedSize{in.size(), bb::CompactSize{}};
-        auto& [size, txCount] = sizeData;
-
-        if (false == bb::DecodeCompactSizeFromPayload(
-                         it, expectedSize, in.size(), txCount)) {
-            throw std::runtime_error("Failed to decode transaction count");
-        }
-
-        const auto& transactionCount = txCount.Value();
-
-        if (0 == transactionCount) { throw std::runtime_error("Empty block"); }
-
-        auto counter = int{-1};
-        auto index = ReturnType::TxidIndex{};
-        auto transactions = ReturnType::TransactionMap{};
-
-        while (transactions.size() < transactionCount) {
-            auto data = bb::EncodedTransaction::Deserialize(
-                api,
-                chain,
-                ReadView{
-                    reinterpret_cast<const char*>(it),
-                    in.size() - expectedSize});
-            const auto txBytes = data.size();
-            std::advance(it, txBytes);
-            expectedSize += txBytes;
-            auto& txid = index.emplace_back(data.txid_);
-            transactions.emplace(
-                reader(txid),
-                BitcoinTransaction(
-                    api,
-                    blockchain,
-                    chain,
-                    (0 == ++counter),
-                    header.Timestamp(),
-                    std::move(data)));
-        }
-
-        const auto merkle =
-            ReturnType::calculate_merkle_value(api, chain, index);
-
-        if (header.MerkleRoot() != merkle) {
-            throw std::runtime_error("Invalid merkle hash");
-        }
-
-        return std::make_shared<ReturnType>(
-            api,
-            chain,
-            std::move(pHeader),
-            std::move(index),
-            std::move(transactions),
-            std::move(sizeData));
     } catch (const std::exception& e) {
         LogOutput("opentxs::factory::")(__FUNCTION__)(": ")(e.what()).Flush();
 
         return {};
     }
+}
+
+auto parse_normal_block(
+    const api::Core& api,
+    const api::client::Blockchain& blockchain,
+    const blockchain::Type chain,
+    const ReadView in) noexcept(false)
+    -> std::shared_ptr<blockchain::block::bitcoin::Block>
+{
+    OT_ASSERT(
+        (blockchain::Type::PKT != chain) &&
+        (blockchain::Type::PKT_testnet != chain));
+
+    auto it = ByteIterator{};
+    auto expectedSize = std::size_t{};
+    auto pHeader = parse_header(api, chain, in, it, expectedSize);
+
+    OT_ASSERT(pHeader);
+
+    const auto& header = *pHeader;
+    auto sizeData = ReturnType::CalculatedSize{in.size(), bb::CompactSize{}};
+    auto [index, transactions] = parse_transactions(
+        api, blockchain, chain, in, header, sizeData, it, expectedSize);
+
+    return std::make_shared<ReturnType>(
+        api,
+        chain,
+        std::move(pHeader),
+        std::move(index),
+        std::move(transactions),
+        std::move(sizeData));
 }
 }  // namespace opentxs::factory
 
@@ -399,20 +361,18 @@ auto Block::calculate_merkle_value(
 
 auto Block::calculate_size() const noexcept -> CalculatedSize
 {
-    if (false == size_.has_value()) {
-        size_ = CalculatedSize{0, bb::CompactSize(transactions_.size())};
-        auto& [bytes, cs] = size_.value();
-        auto cb = [](const auto& previous, const auto& in) -> std::size_t {
-            return previous + in.second->CalculateSize();
-        };
-        bytes = std::accumulate(
-            std::begin(transactions_),
-            std::end(transactions_),
-            header_bytes_ + cs.Size(),
-            cb);
-    }
+    auto output = CalculatedSize{0, bb::CompactSize(transactions_.size())};
+    auto& [bytes, cs] = output;
+    auto cb = [](const auto& previous, const auto& in) -> std::size_t {
+        return previous + in.second->CalculateSize();
+    };
+    bytes = std::accumulate(
+        std::begin(transactions_),
+        std::end(transactions_),
+        header_bytes_ + cs.Size() + extra_bytes(),
+        cb);
 
-    return size_.value();
+    return output;
 }
 
 auto Block::ExtractElements(const FilterType style) const noexcept
@@ -461,6 +421,15 @@ auto Block::FindMatches(
     return output;
 }
 
+auto Block::get_or_calculate_size() const noexcept -> CalculatedSize
+{
+    if (false == size_.has_value()) { size_ = calculate_size(); }
+
+    OT_ASSERT(size_.has_value());
+
+    return size_.value();
+}
+
 auto Block::Serialize(AllocateOutput bytes) const noexcept -> bool
 {
     if (false == bool(bytes)) {
@@ -470,7 +439,7 @@ auto Block::Serialize(AllocateOutput bytes) const noexcept -> bool
         return false;
     }
 
-    const auto [size, txCount] = calculate_size();
+    const auto [size, txCount] = get_or_calculate_size();
     const auto out = bytes(size);
 
     if (false == out.valid(size)) {
@@ -483,7 +452,7 @@ auto Block::Serialize(AllocateOutput bytes) const noexcept -> bool
     LogInsane(OT_METHOD)(__FUNCTION__)(": Serializing ")(txCount.Value())(
         " transactions into ")(size)(" bytes.")
         .Flush();
-    auto remaining{size};
+    auto remaining = std::size_t{size};
     auto it = static_cast<std::byte*>(out.data());
 
     if (false == header_.Serialize(preallocated(remaining, it))) {
@@ -495,6 +464,14 @@ auto Block::Serialize(AllocateOutput bytes) const noexcept -> bool
 
     remaining -= header_bytes_;
     std::advance(it, header_bytes_);
+
+    if (false == serialize_post_header(it, remaining)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Failed to extra data (post header)")
+            .Flush();
+
+        return false;
+    }
 
     if (false == txCount.Encode(preallocated(remaining, it))) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -542,4 +519,13 @@ auto Block::Serialize(AllocateOutput bytes) const noexcept -> bool
 
     return true;
 }
+
+auto Block::serialize_post_header(
+    [[maybe_unused]] ByteIterator& it,
+    [[maybe_unused]] std::size_t& remaining) const noexcept -> bool
+{
+    return true;
+}
+
+Block::~Block() = default;
 }  // namespace opentxs::blockchain::block::bitcoin::implementation

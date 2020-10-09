@@ -9,6 +9,9 @@
 #include "1_Internal.hpp"                      // IWYU pragma: associated
 #include "blockchain/client/FilterOracle.hpp"  // IWYU pragma: associated
 
+#include "opentxs/blockchain/BlockchainType.hpp"
+#include "opentxs/blockchain/FilterType.hpp"
+
 constexpr char operator"" _B(const unsigned long long int in)
 {
     return static_cast<const char&>(in);
@@ -2567,6 +2570,38 @@ const FilterOracle::CheckpointMap FilterOracle::filter_checkpoints_{
                 0_B,  51_B,  163_B, 72_B,  163_B, 93_B,  27_B,  41_B,
                 82_B, 243_B, 26_B,  158_B, 238_B, 34_B,  133_B, 234_B,
                 79_B, 92_B,  219_B, 140_B, 28_B,  141_B, 236_B, 254_B}},
+          }},
+     }},
+    {blockchain::Type::PKT,
+     {
+         {0,
+          {
+              {filter::Type::Basic_BIP158,
+               {82_B,  107_B, 6_B,   86_B,  222_B, 244_B, 15_B,  203_B,
+                101_B, 239_B, 135_B, 167_B, 83_B,  55_B,  0_B,   31_B,
+                174_B, 87_B,  161_B, 209_B, 125_B, 193_B, 126_B, 16_B,
+                63_B,  181_B, 54_B,  207_B, 221_B, 237_B, 211_B, 108_B}},
+              {filter::Type::Extended_opentxs,
+               {216_B, 169_B, 108_B, 208_B, 177_B, 157_B, 230_B, 38_B,
+                231_B, 216_B, 76_B,  150_B, 76_B,  241_B, 218_B, 14_B,
+                9_B,   185_B, 12_B,  88_B,  155_B, 211_B, 226_B, 59_B,
+                207_B, 28_B,  147_B, 23_B,  121_B, 164_B, 117_B, 18_B}},
+          }},
+     }},
+    {blockchain::Type::PKT_testnet,
+     {
+         {0,
+          {
+              {filter::Type::Basic_BIP158,
+               {82_B,  107_B, 6_B,   86_B,  222_B, 244_B, 15_B,  203_B,
+                101_B, 239_B, 135_B, 167_B, 83_B,  55_B,  0_B,   31_B,
+                174_B, 87_B,  161_B, 209_B, 125_B, 193_B, 126_B, 16_B,
+                63_B,  181_B, 54_B,  207_B, 221_B, 237_B, 211_B, 108_B}},
+              {filter::Type::Extended_opentxs,
+               {216_B, 169_B, 108_B, 208_B, 177_B, 157_B, 230_B, 38_B,
+                231_B, 216_B, 76_B,  150_B, 76_B,  241_B, 218_B, 14_B,
+                9_B,   185_B, 12_B,  88_B,  155_B, 211_B, 226_B, 59_B,
+                207_B, 28_B,  147_B, 23_B,  121_B, 164_B, 117_B, 18_B}},
           }},
      }},
     {blockchain::Type::UnitTest,

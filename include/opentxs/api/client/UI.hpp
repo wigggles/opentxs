@@ -12,6 +12,9 @@
 
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
+#if OT_BLOCKCHAIN
+#include "opentxs/blockchain/Types.hpp"
+#endif  // OT_BLOCKCHAIN
 #include "opentxs/protobuf/ContactEnums.pb.h"
 
 #ifdef SWIG

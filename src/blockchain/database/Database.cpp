@@ -10,7 +10,6 @@
 #include <memory>
 #include <string>
 
-#include "internal/api/client/Client.hpp"
 #include "internal/blockchain/Blockchain.hpp"
 #include "internal/blockchain/client/Factory.hpp"
 #include "opentxs/core/Log.hpp"
@@ -80,7 +79,7 @@ Database::Database(
            {database::BlockFilterBest, MDB_INTEGERKEY},
            {database::BlockFilterHeaderBest, MDB_INTEGERKEY}},
           0)
-    , blocks_(api, blockchain, common_, type)
+    , blocks_(api, common_, type)
     , filters_(api, common_, lmdb_, type)
     , headers_(api, network, common_, lmdb_, type)
     , wallet_(api, blockchain, common_, chain_)

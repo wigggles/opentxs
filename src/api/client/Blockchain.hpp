@@ -37,14 +37,21 @@
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/client/Blockchain.hpp"
 #include "opentxs/api/client/Contacts.hpp"
+#include "opentxs/api/client/blockchain/AddressStyle.hpp"
 #include "opentxs/api/client/blockchain/BalanceNode.hpp"
 #include "opentxs/api/client/blockchain/BalanceTree.hpp"
 #include "opentxs/api/client/blockchain/HD.hpp"
+#include "opentxs/api/client/blockchain/Subchain.hpp"
+#include "opentxs/api/client/blockchain/Types.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/blockchain/BlockchainType.hpp"
 #include "opentxs/blockchain/Network.hpp"
+#include "opentxs/blockchain/Types.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/crypto/Bip44Type.hpp"
+#include "opentxs/crypto/Types.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/socket/Publish.hpp"
 #include "opentxs/network/zeromq/socket/Pull.hpp"
@@ -126,6 +133,8 @@ public:
         LitecoinP2PKH,
         LitecoinP2SH,
         LitecoinTestnetP2SH,
+        PKTP2PKH,
+        PKTP2SH,
     };
 
     using StylePair = std::pair<Style, Chain>;

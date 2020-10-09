@@ -18,6 +18,7 @@
 #include "internal/blockchain/p2p/P2P.hpp"
 #include "opentxs/Forward.hpp"
 #include "opentxs/Pimpl.hpp"
+#include "opentxs/Types.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 

@@ -10,6 +10,7 @@
 #include "2_Factory.hpp"
 #include "internal/api/client/Client.hpp"
 #include "internal/api/client/Factory.hpp"
+#include "opentxs/blockchain/BlockchainType.hpp"
 #if OT_BLOCKCHAIN
 #include "internal/blockchain/block/Block.hpp"
 #include "internal/blockchain/block/bitcoin/Bitcoin.hpp"
@@ -71,6 +72,8 @@ auto Factory::BlockHeader(const proto::BlockchainBlockHeader& serialized) const
         case opentxs::blockchain::Type::BitcoinCash_testnet3:
         case opentxs::blockchain::Type::Litecoin:
         case opentxs::blockchain::Type::Litecoin_testnet4:
+        case opentxs::blockchain::Type::PKT:
+        case opentxs::blockchain::Type::PKT_testnet:
         case opentxs::blockchain::Type::UnitTest: {
             return factory::BitcoinBlockHeader(client_, serialized);
         }
@@ -99,6 +102,8 @@ auto Factory::BlockHeader(
         case opentxs::blockchain::Type::BitcoinCash_testnet3:
         case opentxs::blockchain::Type::Litecoin:
         case opentxs::blockchain::Type::Litecoin_testnet4:
+        case opentxs::blockchain::Type::PKT:
+        case opentxs::blockchain::Type::PKT_testnet:
         case opentxs::blockchain::Type::UnitTest: {
             return factory::BitcoinBlockHeader(client_, type, raw.Bytes());
         }

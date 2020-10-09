@@ -27,6 +27,8 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Secret.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
+#include "opentxs/crypto/Bip32Child.hpp"
+#include "opentxs/crypto/Bip43Purpose.hpp"
 #include "opentxs/crypto/key/Asymmetric.hpp"
 #include "opentxs/crypto/key/HD.hpp"
 #include "opentxs/crypto/library/AsymmetricProvider.hpp"

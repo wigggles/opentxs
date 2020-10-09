@@ -25,7 +25,9 @@
 #include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/client/UI.hpp"
 #include "opentxs/api/client/blockchain/HD.hpp"
+#include "opentxs/api/client/blockchain/Subchain.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/blockchain/BlockchainType.hpp"
 #include "opentxs/blockchain/block/bitcoin/Outputs.hpp"
 #include "opentxs/blockchain/block/bitcoin/Transaction.hpp"
 #include "opentxs/contact/Contact.hpp"
@@ -33,6 +35,7 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/PasswordPrompt.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/crypto/Types.hpp"
 #include "opentxs/protobuf/BlockchainTransactionOutput.pb.h"
 #include "opentxs/protobuf/ContactEnums.pb.h"
 #include "opentxs/ui/AccountActivity.hpp"
@@ -213,6 +216,16 @@ TEST_F(Test_BlockchainActivity, blockchain_selection)
     EXPECT_FALSE(row->IsEnabled());
     EXPECT_TRUE(row->IsTestnet());
 
+    ASSERT_FALSE(row->Last());
+
+    row = widget.Next();
+    expected = ot::blockchain::Type::PKT;
+
+    EXPECT_EQ(row->Name(), ot::blockchain::DisplayString(expected));
+    EXPECT_EQ(row->Type(), expected);
+    EXPECT_FALSE(row->IsEnabled());
+    EXPECT_TRUE(row->IsTestnet());  // TODO temporary for testing
+
     EXPECT_TRUE(row->Last());
 }
 
@@ -226,7 +239,7 @@ TEST_F(Test_BlockchainActivity, blockchain_selection_qt)
     const auto& widget = *pWidget;
 
     EXPECT_EQ(widget.columnCount(), 3);
-    EXPECT_EQ(widget.rowCount(), 6);
+    EXPECT_EQ(widget.rowCount(), 7);
 
     using Model = ot::ui::BlockchainSelectionQt;
 
@@ -367,6 +380,29 @@ TEST_F(Test_BlockchainActivity, blockchain_selection_qt)
             ot::blockchain::DisplayString(expected));
         EXPECT_FALSE(enabled.toBool());
         EXPECT_TRUE(testnet.toBool());
+    }
+    {
+        const auto row{6};
+        const auto expected{ot::blockchain::Type::PKT};
+
+        ASSERT_TRUE(widget.hasIndex(row, Model::NameColumn));
+        ASSERT_TRUE(widget.hasIndex(row, Model::EnabledColumn));
+        ASSERT_TRUE(widget.hasIndex(row, Model::TestnetColumn));
+
+        const auto type =
+            widget.data(widget.index(row, Model::NameColumn), Model::TypeRole);
+        const auto name = widget.data(widget.index(row, Model::NameColumn));
+        const auto enabled =
+            widget.data(widget.index(row, Model::EnabledColumn));
+        const auto testnet =
+            widget.data(widget.index(row, Model::TestnetColumn));
+
+        EXPECT_EQ(type.toInt(), static_cast<int>(expected));
+        EXPECT_EQ(
+            name.toString().toStdString(),
+            ot::blockchain::DisplayString(expected));
+        EXPECT_FALSE(enabled.toBool());
+        EXPECT_TRUE(testnet.toBool());  // TODO temporary for testing
     }
 }
 #endif  // OT_QT

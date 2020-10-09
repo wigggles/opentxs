@@ -24,6 +24,10 @@
 #include "opentxs/api/crypto/Symmetric.hpp"
 #if OT_BLOCKCHAIN
 #include "opentxs/blockchain/Blockchain.hpp"
+#endif  // OT_BLOCKCHAIN
+#include "opentxs/blockchain/BlockchainType.hpp"
+#include "opentxs/blockchain/Types.hpp"
+#if OT_BLOCKCHAIN
 #include "opentxs/blockchain/block/Header.hpp"
 #include "opentxs/blockchain/p2p/Address.hpp"
 #include "opentxs/blockchain/p2p/Types.hpp"
@@ -58,6 +62,7 @@
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/crypto/Envelope.hpp"
+#include "opentxs/crypto/Types.hpp"
 #include "opentxs/crypto/key/Asymmetric.hpp"
 #include "opentxs/crypto/key/Keypair.hpp"
 #include "opentxs/crypto/key/Symmetric.hpp"
@@ -230,62 +235,71 @@ public:
         const proto::UnitDefinition serialized) const noexcept(false)
         -> OTBasketContract final;
 #if OT_BLOCKCHAIN
-    auto BitcoinBlock(const blockchain::Type chain, const ReadView bytes)
-        const noexcept
-        -> std::shared_ptr<const blockchain::block::bitcoin::Block> override
+    auto BitcoinBlock(
+        const opentxs::blockchain::Type chain,
+        const ReadView bytes) const noexcept
+        -> std::shared_ptr<
+            const opentxs::blockchain::block::bitcoin::Block> override
     {
         return {};
     }
     auto BitcoinScriptNullData(
-        const blockchain::Type chain,
+        const opentxs::blockchain::Type chain,
         const std::vector<ReadView>& data) const noexcept
-        -> std::unique_ptr<const blockchain::block::bitcoin::Script> final;
+        -> std::unique_ptr<
+            const opentxs::blockchain::block::bitcoin::Script> final;
     auto BitcoinScriptP2MS(
-        const blockchain::Type chain,
+        const opentxs::blockchain::Type chain,
         const std::uint8_t M,
         const std::uint8_t N,
         const std::vector<const opentxs::crypto::key::EllipticCurve*>&
             publicKeys) const noexcept
-        -> std::unique_ptr<const blockchain::block::bitcoin::Script> final;
+        -> std::unique_ptr<
+            const opentxs::blockchain::block::bitcoin::Script> final;
     auto BitcoinScriptP2PK(
-        const blockchain::Type chain,
+        const opentxs::blockchain::Type chain,
         const opentxs::crypto::key::EllipticCurve& publicKey) const noexcept
-        -> std::unique_ptr<const blockchain::block::bitcoin::Script> final;
+        -> std::unique_ptr<
+            const opentxs::blockchain::block::bitcoin::Script> final;
     auto BitcoinScriptP2PKH(
-        const blockchain::Type chain,
+        const opentxs::blockchain::Type chain,
         const opentxs::crypto::key::EllipticCurve& publicKey) const noexcept
-        -> std::unique_ptr<const blockchain::block::bitcoin::Script> final;
+        -> std::unique_ptr<
+            const opentxs::blockchain::block::bitcoin::Script> final;
     auto BitcoinScriptP2SH(
-        const blockchain::Type chain,
-        const blockchain::block::bitcoin::Script& script) const noexcept
-        -> std::unique_ptr<const blockchain::block::bitcoin::Script> final;
+        const opentxs::blockchain::Type chain,
+        const opentxs::blockchain::block::bitcoin::Script& script)
+        const noexcept -> std::unique_ptr<
+            const opentxs::blockchain::block::bitcoin::Script> final;
     auto BlockchainAddress(
-        const blockchain::p2p::Protocol protocol,
-        const blockchain::p2p::Network network,
+        const opentxs::blockchain::p2p::Protocol protocol,
+        const opentxs::blockchain::p2p::Network network,
         const opentxs::Data& bytes,
         const std::uint16_t port,
-        const blockchain::Type chain,
+        const opentxs::blockchain::Type chain,
         const Time lastConnected,
-        const std::set<blockchain::p2p::Service>& services,
+        const std::set<opentxs::blockchain::p2p::Service>& services,
         const bool incoming) const -> OTBlockchainAddress final;
     auto BlockchainAddress(
-        const blockchain::p2p::Address::SerializedType& serialized) const
-        -> OTBlockchainAddress final;
+        const opentxs::blockchain::p2p::Address::SerializedType& serialized)
+        const -> OTBlockchainAddress final;
     auto BlockHeader(const proto::BlockchainBlockHeader& serialized) const
-        -> std::unique_ptr<blockchain::block::Header> override
+        -> std::unique_ptr<opentxs::blockchain::block::Header> override
     {
         return {};
     }
-    auto BlockHeader(const blockchain::Type type, const opentxs::Data& raw)
-        const -> std::unique_ptr<blockchain::block::Header> override
+    auto BlockHeader(
+        const opentxs::blockchain::Type type,
+        const opentxs::Data& raw) const
+        -> std::unique_ptr<opentxs::blockchain::block::Header> override
     {
         return {};
     }
     auto BlockHeaderForUnitTests(
-        const blockchain::block::Hash& hash,
-        const blockchain::block::Hash& parent,
-        const blockchain::block::Height height) const
-        -> std::unique_ptr<blockchain::block::Header> override
+        const opentxs::blockchain::block::Hash& hash,
+        const opentxs::blockchain::block::Hash& parent,
+        const opentxs::blockchain::block::Height height) const
+        -> std::unique_ptr<opentxs::blockchain::block::Header> override
     {
         return {};
     }

@@ -25,6 +25,8 @@
 #include "opentxs/Proto.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/HDSeed.hpp"
+#include "opentxs/api/client/blockchain/BalanceNodeType.hpp"
+#include "opentxs/api/client/blockchain/Subchain.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"

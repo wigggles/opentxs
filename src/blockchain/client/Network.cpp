@@ -22,6 +22,7 @@
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Factory.hpp"
+#include "opentxs/api/client/blockchain/AddressStyle.hpp"
 #include "opentxs/blockchain/block/Header.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -68,7 +69,6 @@ Network::Network(
           shutdown_sender_.endpoint_))
     , block_p_(factory::BlockOracle(
           api,
-          blockchain,
           *this,
           *database_p_,
           type,

@@ -16,6 +16,7 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/crypto/Bip32.hpp"
+#include "opentxs/crypto/Types.hpp"
 
 namespace opentxs
 {

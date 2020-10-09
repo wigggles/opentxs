@@ -21,7 +21,12 @@
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/Version.hpp"
+#include "opentxs/api/client/blockchain/Subchain.hpp"
+#include "opentxs/api/client/blockchain/Types.hpp"
+#include "opentxs/blockchain/BlockchainType.hpp"
+#include "opentxs/blockchain/Types.hpp"
 #include "opentxs/core/Identifier.hpp"
+#include "opentxs/crypto/Types.hpp"
 #include "opentxs/protobuf/HDAccount.pb.h"
 
 namespace opentxs

@@ -28,6 +28,8 @@
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/blockchain/BlockchainType.hpp"
+#include "opentxs/blockchain/Types.hpp"
 #include "opentxs/blockchain/block/bitcoin/Input.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -70,13 +72,11 @@ public:
 
     Blocks(
         const api::Core& api,
-        const api::client::Blockchain& blockchain,
         const Common& common,
         const blockchain::Type type) noexcept;
 
 private:
     const api::Core& api_;
-    const api::client::Blockchain& blockchain_;
     const Common& common_;
     const blockchain::Type chain_;
 };

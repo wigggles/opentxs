@@ -9,9 +9,9 @@
 #include <memory>
 
 #include "Helpers.hpp"
-#include "opentxs/Types.hpp"
 #include "opentxs/api/client/Blockchain.hpp"
 #include "opentxs/api/client/Manager.hpp"
+#include "opentxs/blockchain/BlockchainType.hpp"
 
 namespace
 {
@@ -32,8 +32,10 @@ TEST_F(Test_StartStop, all)
     EXPECT_TRUE(api_.Blockchain().Start(b::Type::Litecoin, "127.0.0.2"));
     EXPECT_TRUE(
         api_.Blockchain().Start(b::Type::Litecoin_testnet4, "127.0.0.2"));
+    EXPECT_TRUE(api_.Blockchain().Start(b::Type::PKT, "127.0.0.2"));
     EXPECT_TRUE(api_.Blockchain().Start(b::Type::UnitTest));
     EXPECT_TRUE(api_.Blockchain().Stop(b::Type::UnitTest));
+    EXPECT_TRUE(api_.Blockchain().Stop(b::Type::PKT));
     EXPECT_TRUE(api_.Blockchain().Stop(b::Type::Litecoin_testnet4));
     EXPECT_TRUE(api_.Blockchain().Stop(b::Type::Litecoin));
     EXPECT_TRUE(api_.Blockchain().Stop(b::Type::Ethereum_ropsten));

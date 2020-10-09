@@ -14,6 +14,7 @@
 #include "opentxs/Bytes.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
+#include "opentxs/api/client/blockchain/Types.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/blockchain/block/bitcoin/Input.hpp"
 #include "opentxs/blockchain/block/bitcoin/Inputs.hpp"
@@ -144,7 +145,7 @@ struct Output : virtual public bitcoin::Output {
     virtual auto ForTestingOnlyAddKey(const KeyID& key) noexcept -> void = 0;
     virtual auto MergeMetadata(const SerializeType& rhs) noexcept -> void = 0;
     virtual auto SetIndex(const std::uint32_t index) noexcept -> void = 0;
-    virtual auto SetValue(const std::int64_t value) noexcept -> void = 0;
+    virtual auto SetValue(const std::uint64_t value) noexcept -> void = 0;
 
     virtual ~Output() = default;
 };
@@ -310,7 +311,7 @@ auto BitcoinTransactionOutput(
     const api::client::Blockchain& blockchain,
     const blockchain::Type chain,
     const std::uint32_t index,
-    const std::int64_t value,
+    const std::uint64_t value,
     std::unique_ptr<const blockchain::block::bitcoin::internal::Script> script,
     const std::set<api::client::blockchain::Key>& keys) noexcept
     -> std::unique_ptr<blockchain::block::bitcoin::internal::Output>;
@@ -319,7 +320,7 @@ OPENTXS_EXPORT auto BitcoinTransactionOutput(
     const api::client::Blockchain& blockchain,
     const blockchain::Type chain,
     const std::uint32_t index,
-    const std::int64_t value,
+    const std::uint64_t value,
     const blockchain::bitcoin::CompactSize& cs,
     const ReadView script) noexcept
     -> std::unique_ptr<blockchain::block::bitcoin::internal::Output>;

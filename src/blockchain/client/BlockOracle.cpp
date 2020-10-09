@@ -24,24 +24,12 @@
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/Pipeline.hpp"
 
-namespace opentxs
-{
-namespace api
-{
-namespace client
-{
-class Blockchain;
-}  // namespace client
-}  // namespace api
-}  // namespace opentxs
-
 #define OT_METHOD "opentxs::blockchain::client::implementation::BlockOracle::"
 
 namespace opentxs::factory
 {
 auto BlockOracle(
     const api::Core& api,
-    const api::client::Blockchain& blockchain,
     const blockchain::client::internal::Network& network,
     const blockchain::client::internal::BlockDatabase& db,
     const blockchain::Type chain,
@@ -50,8 +38,7 @@ auto BlockOracle(
 {
     using ReturnType = blockchain::client::implementation::BlockOracle;
 
-    return std::make_unique<ReturnType>(
-        api, blockchain, network, db, chain, shutdown);
+    return std::make_unique<ReturnType>(api, network, db, chain, shutdown);
 }
 }  // namespace opentxs::factory
 
@@ -59,7 +46,6 @@ namespace opentxs::blockchain::client::implementation
 {
 BlockOracle::BlockOracle(
     const api::Core& api,
-    const api::client::Blockchain& blockchain,
     const internal::Network& network,
     const internal::BlockDatabase& db,
     const blockchain::Type chain,
@@ -68,7 +54,7 @@ BlockOracle::BlockOracle(
     , network_(network)
     , init_promise_()
     , init_(init_promise_.get_future())
-    , cache_(api, blockchain, network, db, chain)
+    , cache_(api, network, db, chain)
 {
     init_executor({shutdown});
 }

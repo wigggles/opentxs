@@ -16,6 +16,8 @@
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/blockchain/BlockchainType.hpp"
+#include "opentxs/blockchain/FilterType.hpp"
 #include "opentxs/protobuf/ContactEnums.pb.h"
 #include "opentxs/protobuf/Enums.pb.h"
 #endif  // OT_BLOCKCHAIN
@@ -39,6 +41,8 @@ auto BlockHash(
         case Type::Ethereum_ropsten:
         case Type::Litecoin:
         case Type::Litecoin_testnet4:
+        case Type::PKT:
+        case Type::PKT_testnet:
         case Type::UnitTest:
         default: {
             return api.Crypto().Hash().Digest(
@@ -63,6 +67,8 @@ auto FilterHash(
         case Type::Ethereum_ropsten:
         case Type::Litecoin:
         case Type::Litecoin_testnet4:
+        case Type::PKT:
+        case Type::PKT_testnet:
         case Type::UnitTest:
         default: {
             return BlockHash(api, chain, input, output);
@@ -109,6 +115,8 @@ auto P2PMessageHash(
         case Type::Ethereum_ropsten:
         case Type::Litecoin:
         case Type::Litecoin_testnet4:
+        case Type::PKT:
+        case Type::PKT_testnet:
         case Type::UnitTest:
         default: {
             return api.Crypto().Hash().Digest(
@@ -137,6 +145,8 @@ auto ProofOfWorkHash(
         case Type::BitcoinCash_testnet3:
         case Type::Ethereum_frontier:
         case Type::Ethereum_ropsten:
+        case Type::PKT:
+        case Type::PKT_testnet:
         default: {
             return BlockHash(api, chain, input, output);
         }
@@ -159,6 +169,8 @@ auto PubkeyHash(
         case Type::Ethereum_ropsten:
         case Type::Litecoin:
         case Type::Litecoin_testnet4:
+        case Type::PKT:
+        case Type::PKT_testnet:
         case Type::UnitTest:
         default: {
             return api.Crypto().Hash().Digest(
@@ -183,6 +195,8 @@ auto ScriptHash(
         case Type::Ethereum_ropsten:
         case Type::Litecoin:
         case Type::Litecoin_testnet4:
+        case Type::PKT:
+        case Type::PKT_testnet:
         case Type::UnitTest:
         default: {
             return api.Crypto().Hash().Digest(
@@ -225,6 +239,8 @@ auto TransactionHash(
         case Type::Ethereum_ropsten:
         case Type::Litecoin:
         case Type::Litecoin_testnet4:
+        case Type::PKT:
+        case Type::PKT_testnet:
         case Type::UnitTest:
         default: {
             return BlockHash(api, chain, input, output);
@@ -478,6 +494,70 @@ const Data::ChainData Data::chains_{
           {u8"μLTC", {"", u8"μŁ", {{10, 2}}, 0, 0}},
           {u8"photons", {"", u8"photons", {{10, 2}}, 0, 0}},
       }}}},
+    {blockchain::Type::PKT,
+     {true,
+      true,  // TODO switch to false when testing is complete
+      opentxs::proto::CITEMTYPE_PKT,
+      "PKT",
+      "PKT",
+      521142271,  // 0x1f0fffff
+      "000000000000000000000000000000000000000000000000000000000000000000000000"
+      "df345ba23b13467eec222a919d449dab6506abc555ef307794ecd3d36ac891fb00000000"
+      "ffff0f1f00000000",
+      "852d43936f4c9606a4a063cf356c454f2d9c43b07a41cf52e59461a41217dc0b",
+      {490000,
+       "d6eb7a9f6de0c2cfddd2c08169ccc00110d831b406f28823fa4a423a0ff89b38",
+       "428e5154459f4539a98e4d756da99eb98f8b181a2197c27ce4280b05ea227f76",
+       "a79249bda2788c631c3acb80e2a57d68b821248b6ea3b6e93dd16f9b419c6d91"},
+      filter::Type::Basic_BIP158,
+      p2p::Protocol::bitcoin,
+      137298172,
+      64764,
+      {
+          "seed.cjd.li",
+          "seed.anode.co",
+          "seed.gridfinity.com",
+      },
+      1000,
+      {{
+          {u8"PKT", {"", u8"PKT", {{2, 30}}, 0, 11}},
+          {u8"mPKT", {"", u8"mPKT", {{2, 30}, {10, -3}}, 0, 8}},
+          {u8"μPKT", {"", u8"μPKT", {{2, 30}, {10, -6}}, 0, 5}},
+          {u8"nPKT", {"", u8"nPKT", {{2, 30}, {10, -9}}, 0, 2}},
+          {u8"pack", {"", u8"pack", {{10, 0}}, 0, 2}},
+      }}}},
+    {blockchain::Type::PKT_testnet,
+     {false,
+      true,
+      opentxs::proto::CITEMTYPE_TNPKT,
+      "PKT (testnet)",
+      "tnPKT",
+      521142271,  // 0x1f0fffff
+      "000000000000000000000000000000000000000000000000000000000000000000000000"
+      "df345ba23b13467eec222a919d449dab6506abc555ef307794ecd3d36ac891fb00000000"
+      "ffff0f1f00000000",
+      "852d43936f4c9606a4a063cf356c454f2d9c43b07a41cf52e59461a41217dc0b",
+      {0,
+       "852d43936f4c9606a4a063cf356c454f2d9c43b07a41cf52e59461a41217dc0b",
+       "0000000000000000000000000000000000000000000000000000000000000000",
+       "526b0656def40fcb65ef87a75337001fae57a1d17dc17e103fb536cfddedd36c"},
+      filter::Type::Basic_BIP158,
+      p2p::Protocol::bitcoin,
+      118034940,
+      64764,
+      {
+          "testseed.cjd.li",
+          "testseed.anode.co",
+          "testseed.gridfinity.com",
+      },
+      1000,
+      {{
+          {u8"PKT", {"", u8"PKT", {{2, 30}}, 0, 11}},
+          {u8"mPKT", {"", u8"mPKT", {{2, 30}, {10, -3}}, 0, 8}},
+          {u8"μPKT", {"", u8"μPKT", {{2, 30}, {10, -6}}, 0, 5}},
+          {u8"nPKT", {"", u8"nPKT", {{2, 30}, {10, -9}}, 0, 2}},
+          {u8"pack", {"", u8"pack", {{10, 0}}, 0, 2}},
+      }}}},
     {blockchain::Type::UnitTest,
      {false,
       true,
@@ -560,6 +640,24 @@ const Data::FilterData Data::genesis_filters_{
           {"042bce138093a271d8d7f730f7f9f9ab8c7240f297b47aea4440dceec623aca3",
            "048b3d6095a4b01eb30ce44017c0"}},
      }},
+    {blockchain::Type::PKT,
+     {
+         {filter::Type::Basic_BIP158,
+          {"526b0656def40fcb65ef87a75337001fae57a1d17dc17e103fb536cfddedd36c",
+           "01902168"}},
+         {filter::Type::Extended_opentxs,
+          {"d8a96cd0b19de626e7d84c964cf1da0e09b90c589bd3e23bcf1c931779a47512",
+           "02649a429ba06300"}},
+     }},
+    {blockchain::Type::PKT_testnet,
+     {
+         {filter::Type::Basic_BIP158,
+          {"526b0656def40fcb65ef87a75337001fae57a1d17dc17e103fb536cfddedd36c",
+           "01902168"}},
+         {filter::Type::Extended_opentxs,
+          {"d8a96cd0b19de626e7d84c964cf1da0e09b90c589bd3e23bcf1c931779a47512",
+           "02649a429ba06300"}},
+     }},
     {blockchain::Type::UnitTest,
      {
          {filter::Type::Basic_BIP158,
@@ -603,6 +701,16 @@ const Data::FilterTypes Data::bip158_types_{
          {filter::Type::Extended_opentxs, 0x58},
      }},
     {Type::Litecoin_testnet4,
+     {
+         {filter::Type::Basic_BIP158, 0x0},
+         {filter::Type::Extended_opentxs, 0x58},
+     }},
+    {Type::PKT,
+     {
+         {filter::Type::Basic_BIP158, 0x0},
+         {filter::Type::Extended_opentxs, 0x58},
+     }},
+    {Type::PKT_testnet,
      {
          {filter::Type::Basic_BIP158, 0x0},
          {filter::Type::Extended_opentxs, 0x58},
@@ -687,6 +795,32 @@ const Data::ServiceBits Data::service_bits_{
          {p2p::bitcoin::Service::Bit11, p2p::Service::Limited},
      }},
     {blockchain::Type::Litecoin_testnet4,
+     {
+         {p2p::bitcoin::Service::None, p2p::Service::None},
+         {p2p::bitcoin::Service::Bit1, p2p::Service::Network},
+         {p2p::bitcoin::Service::Bit2, p2p::Service::UTXO},
+         {p2p::bitcoin::Service::Bit3, p2p::Service::Bloom},
+         {p2p::bitcoin::Service::Bit4, p2p::Service::Witness},
+         {p2p::bitcoin::Service::Bit5, p2p::Service::XThin},
+         {p2p::bitcoin::Service::Bit6, p2p::Service::BitcoinCash},
+         {p2p::bitcoin::Service::Bit7, p2p::Service::CompactFilters},
+         {p2p::bitcoin::Service::Bit8, p2p::Service::Segwit2X},
+         {p2p::bitcoin::Service::Bit11, p2p::Service::Limited},
+     }},
+    {blockchain::Type::PKT,
+     {
+         {p2p::bitcoin::Service::None, p2p::Service::None},
+         {p2p::bitcoin::Service::Bit1, p2p::Service::Network},
+         {p2p::bitcoin::Service::Bit2, p2p::Service::UTXO},
+         {p2p::bitcoin::Service::Bit3, p2p::Service::Bloom},
+         {p2p::bitcoin::Service::Bit4, p2p::Service::Witness},
+         {p2p::bitcoin::Service::Bit5, p2p::Service::XThin},
+         {p2p::bitcoin::Service::Bit6, p2p::Service::BitcoinCash},
+         {p2p::bitcoin::Service::Bit7, p2p::Service::CompactFilters},
+         {p2p::bitcoin::Service::Bit8, p2p::Service::Segwit2X},
+         {p2p::bitcoin::Service::Bit11, p2p::Service::Limited},
+     }},
+    {blockchain::Type::PKT_testnet,
      {
          {p2p::bitcoin::Service::None, p2p::Service::None},
          {p2p::bitcoin::Service::Bit1, p2p::Service::Network},

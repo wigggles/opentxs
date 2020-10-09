@@ -102,6 +102,7 @@ const Wallet::UnitNameMap Wallet::unit_of_account_{
     {"SEK", proto::CITEMTYPE_SEK},   {"BTT", proto::CITEMTYPE_TNBTC},
     {"LTT", proto::CITEMTYPE_TNLTC}, {"DAT", proto::CITEMTYPE_TNDASH},
     {"BCH", proto::CITEMTYPE_BCH},   {"BCT", proto::CITEMTYPE_TNBCH},
+    {"PKT", proto::CITEMTYPE_PKT},   {"PTT", proto::CITEMTYPE_TNPKT},
 };
 const Wallet::UnitNameReverse Wallet::unit_lookup_{
     reverse_unit_map(unit_of_account_)};

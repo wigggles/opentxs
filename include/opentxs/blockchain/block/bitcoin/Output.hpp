@@ -13,6 +13,7 @@
 #include <string>
 #include <vector>
 
+#include "opentxs/blockchain/Types.hpp"
 #include "opentxs/blockchain/block/bitcoin/Transaction.hpp"
 
 namespace opentxs

@@ -32,6 +32,7 @@
 #include "opentxs/api/client/UI.hpp"
 #include "opentxs/api/client/Workflow.hpp"
 #include "opentxs/api/network/ZMQ.hpp"
+#include "opentxs/blockchain/BlockchainType.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/core/Flag.hpp"

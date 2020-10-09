@@ -8,6 +8,7 @@
 #include "opentxs/Bytes.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/core/Secret.hpp"
+#include "opentxs/crypto/Types.hpp"
 
 namespace opentxs
 {

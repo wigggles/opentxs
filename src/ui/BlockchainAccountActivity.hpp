@@ -25,6 +25,8 @@
 #include "opentxs/Types.hpp"
 #include "opentxs/Version.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/blockchain/BlockchainType.hpp"
+#include "opentxs/blockchain/Types.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/identifier/Server.hpp"
@@ -86,6 +88,7 @@ public:
     {
         return ui::UnitID(api_, chain_).str();
     }
+    using AccountActivity::DepositAddress;
     auto DepositAddress(const blockchain::Type) const noexcept
         -> std::string final;
     auto DepositChains() const noexcept -> std::vector<blockchain::Type> final

@@ -15,8 +15,12 @@ set(cxx-sources
 )
 set(cxx-install-headers
     "${opentxs_SOURCE_DIR}/include/opentxs/crypto/Bip32.hpp"
+    "${opentxs_SOURCE_DIR}/include/opentxs/crypto/Bip32Child.hpp"
     "${opentxs_SOURCE_DIR}/include/opentxs/crypto/Bip39.hpp"
+    "${opentxs_SOURCE_DIR}/include/opentxs/crypto/Bip43Purpose.hpp"
+    "${opentxs_SOURCE_DIR}/include/opentxs/crypto/Bip44Type.hpp"
     "${opentxs_SOURCE_DIR}/include/opentxs/crypto/Envelope.hpp"
+    "${opentxs_SOURCE_DIR}/include/opentxs/crypto/Types.hpp"
 )
 set(cxx-headers
     ${cxx-install-headers}

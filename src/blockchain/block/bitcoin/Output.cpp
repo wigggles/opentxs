@@ -26,6 +26,7 @@
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/client/Blockchain.hpp"
 #include "opentxs/api/client/blockchain/BalanceNode.hpp"
+#include "opentxs/api/client/blockchain/Types.hpp"
 #include "opentxs/blockchain/block/bitcoin/Output.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
@@ -45,7 +46,7 @@ auto BitcoinTransactionOutput(
     const api::client::Blockchain& blockchain,
     const blockchain::Type chain,
     const std::uint32_t index,
-    const std::int64_t value,
+    const std::uint64_t value,
     std::unique_ptr<const blockchain::block::bitcoin::internal::Script> script,
     const std::set<api::client::blockchain::Key>& keys) noexcept
     -> std::unique_ptr<blockchain::block::bitcoin::internal::Output>
@@ -76,7 +77,7 @@ auto BitcoinTransactionOutput(
     const api::client::Blockchain& blockchain,
     const blockchain::Type chain,
     const std::uint32_t index,
-    const std::int64_t value,
+    const std::uint64_t value,
     const blockchain::bitcoin::CompactSize& cs,
     const ReadView script) noexcept
     -> std::unique_ptr<blockchain::block::bitcoin::internal::Output>
@@ -154,7 +155,7 @@ Output::Output(
     const blockchain::Type chain,
     const VersionNumber version,
     const std::uint32_t index,
-    const std::int64_t value,
+    const std::uint64_t value,
     std::unique_ptr<const internal::Script> script,
     std::optional<std::size_t> size,
     boost::container::flat_set<KeyID>&& keys,
@@ -178,8 +179,6 @@ Output::Output(
         throw std::runtime_error("Invalid output script");
     }
 
-    if (0 > value_) { throw std::runtime_error("Invalid output value"); }
-
     if (false == indexed) { index_elements(blockchain); }
 }
 
@@ -188,7 +187,7 @@ Output::Output(
     const api::client::Blockchain& blockchain,
     const blockchain::Type chain,
     const std::uint32_t index,
-    const std::int64_t value,
+    const std::uint64_t value,
     const std::size_t size,
     const ReadView in,
     const VersionNumber version) noexcept(false)
@@ -213,7 +212,7 @@ Output::Output(
     const api::client::Blockchain& blockchain,
     const blockchain::Type chain,
     const std::uint32_t index,
-    const std::int64_t value,
+    const std::uint64_t value,
     std::unique_ptr<const internal::Script> script,
     boost::container::flat_set<KeyID>&& keys,
     const VersionNumber version) noexcept(false)
@@ -459,8 +458,6 @@ auto Output::Serialize(
     const api::client::Blockchain& blockchain,
     SerializeType& out) const noexcept -> bool
 {
-    OT_ASSERT(0 <= value_);
-
     out.set_version(std::max(default_version_, serialize_version_));
     out.set_index(index_);
     out.set_value(value_);

@@ -14,6 +14,7 @@
 #include <stdexcept>
 
 #include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/blockchain/BlockchainType.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 
@@ -637,6 +638,8 @@ SigHash::SigHash(
         case opentxs::blockchain::Type::Ethereum_ropsten:
         case opentxs::blockchain::Type::Litecoin:
         case opentxs::blockchain::Type::Litecoin_testnet4:
+        case opentxs::blockchain::Type::PKT:
+        case opentxs::blockchain::Type::PKT_testnet:
         case opentxs::blockchain::Type::UnitTest:
         default: {
         }
