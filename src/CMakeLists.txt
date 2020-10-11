@@ -16,6 +16,7 @@ add_subdirectory(client)
 add_subdirectory(contact)
 add_subdirectory(core)
 add_subdirectory(crypto)
+add_subdirectory(display)
 add_subdirectory(ext)
 add_subdirectory(identity)
 add_subdirectory(iterator)
@@ -92,6 +93,7 @@ list(
   $<TARGET_OBJECTS:opentxs-crypto-key>
   $<TARGET_OBJECTS:opentxs-crypto-library>
   $<TARGET_OBJECTS:opentxs-crypto>
+  $<TARGET_OBJECTS:opentxs-display>
   $<TARGET_OBJECTS:opentxs-ext>
   $<TARGET_OBJECTS:opentxs-identity-credential>
   $<TARGET_OBJECTS:opentxs-identity-wot-verification>
