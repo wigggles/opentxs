@@ -14,6 +14,7 @@
 #include <utility>
 #include <vector>
 
+#include "display/Definition.hpp"
 #if OT_BLOCKCHAIN
 #include "internal/blockchain/p2p/bitcoin/Bitcoin.hpp"
 #endif  // OT_BLOCKCHAIN
@@ -56,7 +57,6 @@ struct Data {
     proto::ContactItemType proto_{};
     std::string display_string_{};
     std::string display_ticker_{};
-    unsigned int display_precision_{};
     std::int32_t nBits_{};
     std::string genesis_header_hex_{};
     std::string genesis_hash_hex_{};
@@ -67,5 +67,6 @@ struct Data {
     std::uint16_t default_port_{};
     std::vector<std::string> dns_seeds_{};
     Amount default_fee_rate_{};
+    display::Definition scales_{};
 };
 }  // namespace opentxs::blockchain::params

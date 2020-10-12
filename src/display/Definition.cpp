@@ -21,6 +21,37 @@ Definition::Definition(Scales&& scales) noexcept
     OT_ASSERT(imp_);
 }
 
+Definition::Definition() noexcept
+    : Definition(Scales{})
+{
+}
+
+Definition::Definition(const Definition& rhs) noexcept
+    : imp_(std::make_unique<Imp>(*rhs.imp_))
+{
+    OT_ASSERT(imp_);
+}
+
+Definition::Definition(Definition&& rhs) noexcept
+    : imp_(std::move(rhs.imp_))
+{
+    OT_ASSERT(imp_);
+}
+
+auto Definition::operator=(const Definition& rhs) noexcept -> Definition&
+{
+    if (&rhs != this) { imp_ = std::make_unique<Imp>(*rhs.imp_); }
+
+    return *this;
+}
+
+auto Definition::operator=(Definition&& rhs) noexcept -> Definition&
+{
+    if (&rhs != this) { std::swap(imp_, rhs.imp_); }
+
+    return *this;
+}
+
 auto Definition::Format(
     const Amount amount,
     const Index index,

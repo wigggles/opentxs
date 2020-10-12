@@ -40,6 +40,12 @@ public:
         noexcept(false) -> Amount;
 
     Definition(Scales&& scales) noexcept;
+    Definition() noexcept;
+    Definition(const Definition&) noexcept;
+    Definition(Definition&&) noexcept;
+
+    auto operator=(const Definition&) noexcept -> Definition&;
+    auto operator=(Definition&&) noexcept -> Definition&;
 
     ~Definition();
 
@@ -47,10 +53,5 @@ private:
     struct Imp;
 
     std::unique_ptr<Imp> imp_;
-
-    Definition(const Definition&) = delete;
-    Definition(Definition&&) = delete;
-    auto operator=(const Definition&) -> Definition& = delete;
-    auto operator=(Definition &&) -> Definition& = delete;
 };
 }  // namespace opentxs::display

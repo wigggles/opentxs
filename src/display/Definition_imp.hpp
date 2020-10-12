@@ -14,7 +14,7 @@ namespace opentxs::display
 struct Definition::Imp {
     using Scales = std::vector<NamedScale>;
 
-    const Scales scales_;
+    Scales scales_;
 
     auto Import(const std::string& in, const Index index) const noexcept(false)
         -> Amount
@@ -30,6 +30,11 @@ struct Definition::Imp {
 
     Imp(Scales&& scales) noexcept
         : scales_(std::move(scales))
+    {
+    }
+
+    Imp(const Imp& rhs) noexcept
+        : scales_(rhs.scales_)
     {
     }
 };
