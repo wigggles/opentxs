@@ -145,7 +145,7 @@ public:
         virtual auto stop_internal() noexcept -> void = 0;
         virtual auto transmit(
             const zmq::Frame& payload,
-            SendPromise& promise) noexcept -> void = 0;
+            std::shared_ptr<SendPromise> promise) noexcept -> void = 0;
 
         virtual ~ConnectionManager() = default;
 
@@ -290,8 +290,6 @@ protected:
     const client::internal::Network& network_;
     const client::internal::PeerManager& manager_;
     const blockchain::Type chain_;
-    SendPromise send_promise_;
-    SendFuture send_future_;
     Address address_;
     DownloadPeers download_peers_;
     States state_;
@@ -384,7 +382,6 @@ private:
     auto check_activity() noexcept -> void;
     auto check_download_peers() noexcept -> void;
     auto connect() noexcept -> void;
-    auto init_send_promise() noexcept -> void;
     auto pipeline(zmq::Message& message) noexcept -> void;
     virtual auto process_message(const zmq::Message& message) noexcept
         -> void = 0;

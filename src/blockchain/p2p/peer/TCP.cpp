@@ -239,20 +239,17 @@ struct TCPConnectionManager final : public Peer::ConnectionManager {
     }
     auto stop_internal() noexcept -> void final { dealer_->Close(); }
     auto transmit(
-        const zmq::Frame& payload,
-        Peer::SendPromise& promise) noexcept -> void final
+        const zmq::Frame& data,
+        std::shared_ptr<Peer::SendPromise> promise) noexcept -> void final
     {
-        auto work = [this, &payload, &promise]() -> void {
-            auto cb = [&promise](auto& error, auto bytes) -> void {
+        auto work = [=, buf{asio::buffer(data.data(), data.size())}]() -> void {
+            auto cb = [=](auto& error, auto bytes) -> void {
                 try {
-                    promise.set_value({error, bytes});
+                    if (promise) { promise->set_value({error, bytes}); }
                 } catch (...) {
                 }
             };
-            asio::async_write(
-                this->socket_,
-                asio::buffer(payload.data(), payload.size()),
-                cb);
+            asio::async_write(socket_, buf, cb);
         };
 
         auto& asio = context_.operator boost::asio::io_context&();

@@ -108,7 +108,7 @@ struct ZMQIncomingConnectionManager final : public Peer::ConnectionManager {
     auto stop_internal() noexcept -> void final {}
     auto transmit(
         const zmq::Frame& payload,
-        Peer::SendPromise& promise) noexcept -> void final
+        std::shared_ptr<Peer::SendPromise> promise) noexcept -> void final
     {
         OT_ASSERT(header_bytes_ <= payload.size());
 
@@ -127,7 +127,11 @@ struct ZMQIncomingConnectionManager final : public Peer::ConnectionManager {
         const auto ec = sent ? boost::system::error_code{}
                              : boost::system::error_code{
                                    boost::asio::error::host_unreachable};
-        promise.set_value({ec, bytes.size()});
+
+        try {
+            if (promise) { promise->set_value({ec, bytes.size()}); }
+        } catch (...) {
+        }
     }
 
     ZMQIncomingConnectionManager(
