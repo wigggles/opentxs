@@ -123,10 +123,10 @@ auto Peer::check_handshake() noexcept -> void
                                 : "Connected to ")(
             DisplayString(address_.Chain()))(" peer at ")(address_.Display())
             .Flush();
-        LogNormal("Advertised services: ").Flush();
+        LogVerbose("Advertised services: ").Flush();
 
         for (const auto& service : address_.Services()) {
-            LogNormal(" * ")(p2p::DisplayService(service)).Flush();
+            LogVerbose(" * ")(p2p::DisplayService(service)).Flush();
         }
 
         update_address_activity();
@@ -160,7 +160,7 @@ auto Peer::disconnect() noexcept -> void
     } catch (...) {
     }
 
-    LogNormal(
+    LogVerbose(
         address_.Incoming() ? "Dropping incoming connection "
                             : "Disconnecting from ")(connection_->host())(":")(
         connection_->port())

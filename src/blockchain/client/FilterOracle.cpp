@@ -338,7 +338,7 @@ auto FilterOracle::compare_tips_to_checkpoint() noexcept -> void
             .Flush();
         reset_tips_to(default_type_, headerTip, checkPosition, changed);
     } else {
-        LogNormal(DisplayString(chain_))(
+        LogVerbose(DisplayString(chain_))(
             " filter header chain matched checkpoint")
             .Flush();
     }
@@ -350,7 +350,7 @@ auto FilterOracle::compare_tips_to_header_chain() noexcept -> bool
     const auto [parent, best] = header_.CommonParent(current);
 
     if ((parent.first == current.first) && (parent.second == current.second)) {
-        LogNormal(DisplayString(chain_))(
+        LogVerbose(DisplayString(chain_))(
             " filter header chain is following the best chain")
             .Flush();
 
@@ -382,7 +382,7 @@ auto FilterOracle::flush_filters() noexcept -> void
 
     database_.SetFilterTip(type, position);
     notify_new_filter(type, position);
-    LogNormal(DisplayString(chain_))(" filter chain updated to height ")(
+    LogVerbose(DisplayString(chain_))(" filter chain updated to height ")(
         position.first)
         .Flush();
 }
@@ -631,7 +631,7 @@ auto FilterOracle::process_cfheader(const zmq::Message& in) noexcept -> void
 
     if (database_.StoreFilterHeaders(type, previousHeader, std::move(output))) {
         if (database_.SetFilterHeaderTip(type, header.Position())) {
-            LogNormal(DisplayString(chain_))(
+            LogVerbose(DisplayString(chain_))(
                 " filter header chain updated to height ")(header.Height())
                 .Flush();
         } else {

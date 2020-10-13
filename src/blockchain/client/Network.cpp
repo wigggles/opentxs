@@ -182,7 +182,7 @@ auto Network::init() noexcept -> void
         OT_ASSERT(best);
 
         const auto position = best->Position();
-        LogNormal(DisplayString(chain_))(" chain initialized with best hash ")(
+        LogVerbose(DisplayString(chain_))(" chain initialized with best hash ")(
             position.second->asHex())(" at height ")(position.first)
             .Flush();
     }
