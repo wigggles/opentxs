@@ -39,6 +39,11 @@ OPENTXS_EXPORT auto FilterHash(
     const ReadView input,
     const AllocateOutput output) noexcept -> bool;
 OPENTXS_EXPORT auto IsTestnet(const Type type) noexcept -> bool;
+OPENTXS_EXPORT auto MerkleHash(
+    const api::Core& api,
+    const Type chain,
+    const ReadView input,
+    const AllocateOutput output) noexcept -> bool;
 OPENTXS_EXPORT auto P2PMessageHash(
     const api::Core& api,
     const Type chain,

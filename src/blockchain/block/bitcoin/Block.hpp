@@ -18,6 +18,7 @@
 #include "internal/blockchain/block/Block.hpp"
 #include "opentxs/Bytes.hpp"
 #include "opentxs/Types.hpp"
+#include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/blockchain/block/Block.hpp"
 #include "opentxs/blockchain/block/bitcoin/Block.hpp"
 
@@ -47,6 +48,24 @@ public:
     using TransactionMap = std::map<ReadView, value_type>;
 
     static const std::size_t header_bytes_;
+
+    template <typename HashType>
+    static auto calculate_merkle_hash(
+        const api::Core& api,
+        const Type chain,
+        const HashType& lhs,
+        const HashType& rhs,
+        AllocateOutput out) -> bool;
+    template <typename InputContainer, typename OutputContainer>
+    static auto calculate_merkle_row(
+        const api::Core& api,
+        const Type chain,
+        const InputContainer& in,
+        OutputContainer& out) -> bool;
+    static auto calculate_merkle_value(
+        const api::Core& api,
+        const Type chain,
+        const TxidIndex& txids) -> block::pHash;
 
     auto at(const std::size_t index) const noexcept -> const value_type& final;
     auto at(const ReadView txid) const noexcept -> const value_type& final;

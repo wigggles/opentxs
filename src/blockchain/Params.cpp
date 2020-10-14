@@ -70,6 +70,29 @@ auto FilterHash(
     }
 }
 
+auto MerkleHash(
+    const api::Core& api,
+    const Type chain,
+    const ReadView input,
+    const AllocateOutput output) noexcept -> bool
+{
+    switch (chain) {
+        case Type::Unknown:
+        case Type::Bitcoin:
+        case Type::Bitcoin_testnet3:
+        case Type::BitcoinCash:
+        case Type::BitcoinCash_testnet3:
+        case Type::Ethereum_frontier:
+        case Type::Ethereum_ropsten:
+        case Type::Litecoin:
+        case Type::Litecoin_testnet4:
+        case Type::UnitTest:
+        default: {
+            return BlockHash(api, chain, input, output);
+        }
+    }
+}
+
 auto P2PMessageHash(
     const api::Core& api,
     const Type chain,
@@ -220,7 +243,6 @@ const Data::ChainData Data::chains_{
       opentxs::proto::CITEMTYPE_BTC,
       "Bitcoin",
       "BTC",
-      8,
       486604799,  // 0x1d00ffff
       "010000000000000000000000000000000000000000000000000000000000000000000000"
       "3ba3edfd7a7b12b27ac72c3e67768f617fc81bc3888a51323a9fb8aa4b1e5e4a29ab5f49"
@@ -244,14 +266,20 @@ const Data::ChainData Data::chains_{
           "seed.bitcoin.sprovoost.nl",
           "dnsseed.emzy.de",
       },
-      25000}},
+      25000,
+      {{
+          {u8"BTC", {"", u8"₿", {{10, 8}}, 0, 8}},
+          {u8"mBTC", {"", u8"mBTC", {{10, 5}}, 0, 5}},
+          {u8"bits", {"", u8"bits", {{10, 2}}, 0, 2}},
+          {u8"μBTC", {"", u8"μBTC", {{10, 2}}, 0, 2}},
+          {u8"satoshi", {"", u8"satoshis", {{10, 0}}, 0, 0}},
+      }}}},
     {blockchain::Type::Bitcoin_testnet3,
      {true,
       true,
       opentxs::proto::CITEMTYPE_TNBTC,
       "Bitcoin (testnet3)",
       "tnBTC",
-      8,
       486604799,  // 0x1d00ffff
       "010000000000000000000000000000000000000000000000000000000000000000000000"
       "3ba3edfd7a7b12b27ac72c3e67768f617fc81bc3888a51323a9fb8aa4b1e5e4adae5494d"
@@ -272,14 +300,20 @@ const Data::ChainData Data::chains_{
           "testnet-seed.bluematt.me",
           "testnet-seed.bitcoin.schildbach.de",
       },
-      3113}},
+      3113,
+      {{
+          {u8"BTC", {"", u8"tBTC", {{10, 8}}, 0, 8}},
+          {u8"mBTC", {"", u8"mBTC", {{10, 5}}, 0, 5}},
+          {u8"bits", {"", u8"bits", {{10, 2}}, 0, 2}},
+          {u8"μBTC", {"", u8"μBTC", {{10, 2}}, 0, 2}},
+          {u8"satoshi", {"", u8"satoshis", {{10, 0}}, 0, 0}},
+      }}}},
     {blockchain::Type::BitcoinCash,
      {true,
       false,
       opentxs::proto::CITEMTYPE_BCH,
       "Bitcoin Cash",
       "BCH",
-      8,
       486604799,  // 0x1d00ffff
       "010000000000000000000000000000000000000000000000000000000000000000000000"
       "3ba3edfd7a7b12b27ac72c3e67768f617fc81bc3888a51323a9fb8aa4b1e5e4a29ab5f49"
@@ -301,14 +335,20 @@ const Data::ChainData Data::chains_{
           "seed.bchd.cash",
           "dnsseed.electroncash.de",
       },
-      1000}},
+      1000,
+      {{
+          {u8"BCH", {"", u8"BCH", {{10, 8}}, 0, 8}},
+          {u8"mBCH", {"", u8"mBCH", {{10, 5}}, 0, 5}},
+          {u8"bits", {"", u8"bits", {{10, 2}}, 0, 2}},
+          {u8"μBCH", {"", u8"μBCH", {{10, 2}}, 0, 2}},
+          {u8"satoshi", {"", u8"satoshis", {{10, 0}}, 0, 0}},
+      }}}},
     {blockchain::Type::BitcoinCash_testnet3,
      {true,
       true,
       opentxs::proto::CITEMTYPE_TNBCH,
       "Bitcoin Cash (testnet3)",
       "tnBCH",
-      8,
       486604799,  // 0x1d00ffff
       "010000000000000000000000000000000000000000000000000000000000000000000000"
       "3ba3edfd7a7b12b27ac72c3e67768f617fc81bc3888a51323a9fb8aa4b1e5e4adae5494d"
@@ -329,48 +369,58 @@ const Data::ChainData Data::chains_{
           "testnet-seed.deadalnix.me",
           "testnet-seed.bchd.cash",
       },
-      1000}},
+      1000,
+      {{
+          {u8"BCH", {"", u8"tBCH", {{10, 8}}, 0, 8}},
+          {u8"mBCH", {"", u8"mBCH", {{10, 5}}, 0, 5}},
+          {u8"bits", {"", u8"bits", {{10, 2}}, 0, 2}},
+          {u8"μBCH", {"", u8"μBCH", {{10, 2}}, 0, 2}},
+          {u8"satoshi", {"", u8"satoshis", {{10, 0}}, 0, 0}},
+      }}}},
     {blockchain::Type::Ethereum_frontier,
-     {false,
-      false,
-      opentxs::proto::CITEMTYPE_ETH,
-      "Ethereum (frontier)",
-      "",
-      0,
-      0,
-      "",
-      "d4e56740f876aef8c010b86a40d5f56745a118d0906a34e69aec8c0db1cb8fa3",
-      {0, "", "", ""},
-      {},
-      p2p::Protocol::ethereum,
-      0,
-      30303,
-      {},
-      0}},
+     {
+         false,
+         false,
+         opentxs::proto::CITEMTYPE_ETH,
+         "Ethereum (frontier)",
+         "",
+         0,
+         "",
+         "d4e56740f876aef8c010b86a40d5f56745a118d0906a34e69aec8c0db1cb8fa3",
+         {0, "", "", ""},
+         {},
+         p2p::Protocol::ethereum,
+         0,
+         30303,
+         {},
+         0,
+         {}  // TODO
+     }},
     {blockchain::Type::Ethereum_ropsten,
-     {false,
-      true,
-      opentxs::proto::CITEMTYPE_ETHEREUM_ROPSTEN,
-      "Ethereum (ropsten testnet)",
-      "",
-      0,
-      0,
-      "",
-      "41941023680923e0fe4d74a34bdac8141f2540e3ae90623718e47d66d1ca4a2d",
-      {0, "", "", ""},
-      {},
-      p2p::Protocol::ethereum,
-      0,
-      30303,
-      {},
-      0}},
+     {
+         false,
+         true,
+         opentxs::proto::CITEMTYPE_ETHEREUM_ROPSTEN,
+         "Ethereum (ropsten testnet)",
+         "",
+         0,
+         "",
+         "41941023680923e0fe4d74a34bdac8141f2540e3ae90623718e47d66d1ca4a2d",
+         {0, "", "", ""},
+         {},
+         p2p::Protocol::ethereum,
+         0,
+         30303,
+         {},
+         0,
+         {}  // TODO
+     }},
     {blockchain::Type::Litecoin,
      {true,
       false,
       opentxs::proto::CITEMTYPE_LTC,
       "Litecoin",
       "LTC",
-      8,
       504365040,  // 0x1e0ffff0
       "010000000000000000000000000000000000000000000000000000000000000000000000"
       "d9ced4ed1130f7b7faad9be25323ffafa33232a17c3edf6cfd97bee6bafbdd97b9aa8e4e"
@@ -390,14 +440,19 @@ const Data::ChainData Data::chains_{
           "dnsseed.litecointools.com",
           "dnsseed.litecoinpool.org",
       },
-      25000}},
+      25000,
+      {{
+          {u8"LTC", {"", u8"Ł", {{10, 8}}, 0, 6}},
+          {u8"mLTC", {"", u8"mŁ", {{10, 5}}, 0, 3}},
+          {u8"μLTC", {"", u8"μŁ", {{10, 2}}, 0, 0}},
+          {u8"photons", {"", u8"photons", {{10, 2}}, 0, 0}},
+      }}}},
     {blockchain::Type::Litecoin_testnet4,
      {true,
       true,
       opentxs::proto::CITEMTYPE_TNLTC,
       "Litecoin (testnet4)",
       "tnLTC",
-      8,
       504365040,  // 0x1e0ffff0
       "010000000000000000000000000000000000000000000000000000000000000000000000"
       "d9ced4ed1130f7b7faad9be25323ffafa33232a17c3edf6cfd97bee6bafbdd97f60ba158"
@@ -416,14 +471,19 @@ const Data::ChainData Data::chains_{
           "seed-b.litecoin.loshan.co.uk",
           "dnsseed-testnet.thrasher.io",
       },
-      25000}},
+      25000,
+      {{
+          {u8"LTC", {"", u8"Ł", {{10, 8}}, 0, 6}},
+          {u8"mLTC", {"", u8"mŁ", {{10, 5}}, 0, 3}},
+          {u8"μLTC", {"", u8"μŁ", {{10, 2}}, 0, 0}},
+          {u8"photons", {"", u8"photons", {{10, 2}}, 0, 0}},
+      }}}},
     {blockchain::Type::UnitTest,
      {false,
       true,
       opentxs::proto::CITEMTYPE_ERROR,
       "Unit Test Simulation",
       "UNITTEST",
-      8,
       545259519,  // 0x207fffff
       "010000000000000000000000000000000000000000000000000000000000000000000000"
       "3ba3edfd7a7b12b27ac72c3e67768f617fc81bc3888a51323a9fb8aa4b1e5e4adae5494d"
@@ -438,7 +498,10 @@ const Data::ChainData Data::chains_{
       3669344250,
       18444,
       {},
-      0}},
+      0,
+      {{
+          {u8"Unit", {"", u8"units", {{10, 8}}, 0, 8}},
+      }}}},
 };
 
 #if OT_BLOCKCHAIN

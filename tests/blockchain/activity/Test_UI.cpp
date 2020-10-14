@@ -123,7 +123,7 @@ TEST_F(Test_BlockchainActivity, init)
 TEST_F(Test_BlockchainActivity, blank_account_list)
 {
     const auto& widget = api_.UI().AccountList(
-        nym_1_id(), make_cb(account_list_, "account_list_"));
+        nym_1_id(), make_cb(account_list_, u8"account_list_"));
     auto row = widget.First();
 
     ASSERT_FALSE(row->Valid());
@@ -383,7 +383,7 @@ TEST_F(Test_BlockchainActivity, setup_blockchain_account)
         account.UseNext(Subchain::External, reason_, contact_5_id());
     const auto indexTwo = account.UseNext(Subchain::External, reason_);
     const auto indexThree = account.UseNext(
-        Subchain::External, reason_, contact_6_id(), "Free Ross");
+        Subchain::External, reason_, contact_6_id(), u8"Free Ross");
     const auto indexFour = account.UseNext(Subchain::External, reason_);
     const auto indexFive = account.UseNext(Subchain::External, reason_);
     const auto indexSix = account.UseNext(Subchain::External, reason_);
@@ -416,25 +416,25 @@ TEST_F(Test_BlockchainActivity, setup_ui)
     api_.UI().AccountActivity(
         nym_1_id(),
         api_.Factory().Identifier(std::string{btc_account_id_}),
-        make_cb(account_activity_, "account_activity_"));
+        make_cb(account_activity_, u8"account_activity_"));
     api_.UI().AccountSummary(
         nym_1_id(),
         ot::proto::CITEMTYPE_BTC,
-        make_cb(account_summary_, "account_summary"));
+        make_cb(account_summary_, u8"account_summary"));
     api_.UI().ActivitySummary(
-        nym_1_id(), make_cb(activity_summary_, "activity_summary"));
+        nym_1_id(), make_cb(activity_summary_, u8"activity_summary"));
     api_.UI().ActivityThread(
         nym_1_id(),
         contact_5_id(),
-        make_cb(activity_thread_1_, "activity_thread_1"));
+        make_cb(activity_thread_1_, u8"activity_thread_1"));
     api_.UI().ActivityThread(
         nym_1_id(),
         contact_6_id(),
-        make_cb(activity_thread_2_, "activity_thread_2"));
+        make_cb(activity_thread_2_, u8"activity_thread_2"));
     api_.UI().ActivityThread(
         nym_1_id(),
         contact_7_id(),
-        make_cb(activity_thread_3_, "activity_thread_3"));
+        make_cb(activity_thread_3_, u8"activity_thread_3"));
 }
 
 TEST_F(Test_BlockchainActivity, initial_state_account_list)
@@ -448,11 +448,11 @@ TEST_F(Test_BlockchainActivity, initial_state_account_list)
     EXPECT_EQ(row->AccountID(), btc_account_id_);
     EXPECT_EQ(row->Balance(), 0);
     EXPECT_EQ(row->ContractID(), btc_unit_id_);
-    EXPECT_EQ(row->DisplayBalance(), "0.00000000 BTC");
-    EXPECT_EQ(row->DisplayUnit(), "BTC");
-    EXPECT_EQ(row->Name(), "This device");
+    EXPECT_EQ(row->DisplayBalance(), u8"0 ₿");
+    EXPECT_EQ(row->DisplayUnit(), u8"BTC");
+    EXPECT_EQ(row->Name(), u8"This device");
     EXPECT_EQ(row->NotaryID(), btc_notary_id_);
-    EXPECT_EQ(row->NotaryName(), "Bitcoin");
+    EXPECT_EQ(row->NotaryName(), u8"Bitcoin");
     EXPECT_EQ(row->Type(), ot::AccountType::Blockchain);
     EXPECT_EQ(row->Unit(), ot::proto::CITEMTYPE_BTC);
     EXPECT_TRUE(row->Last());
@@ -505,10 +505,10 @@ TEST_F(Test_BlockchainActivity, initial_state_account_list_qt)
         EXPECT_EQ(polarity.toInt(), 0);
         EXPECT_EQ(type.toInt(), static_cast<int>(ot::AccountType::Blockchain));
         EXPECT_EQ(contractID.toString(), btc_unit_id_);
-        EXPECT_EQ(notaryName.toString(), "Bitcoin");
-        EXPECT_EQ(unitName.toString(), "BTC");
-        EXPECT_EQ(accountName.toString(), "This device");
-        EXPECT_EQ(displayBalance.toString(), "0.00000000 BTC");
+        EXPECT_EQ(notaryName.toString(), u8"Bitcoin");
+        EXPECT_EQ(unitName.toString(), u8"BTC");
+        EXPECT_EQ(accountName.toString(), u8"This device");
+        EXPECT_EQ(displayBalance.toString(), u8"0 ₿");
     }
 }
 #endif  // OT_QT
@@ -529,11 +529,11 @@ TEST_F(Test_BlockchainActivity, initial_state_account_activity)
 
     ASSERT_EQ(chains.size(), 1);
     EXPECT_EQ(chains.at(0), ot::blockchain::Type::Bitcoin);
-    EXPECT_EQ(widget.DisplayBalance(), "0.00000000 BTC");
-    EXPECT_EQ(widget.DisplayUnit(), "BTC");
-    EXPECT_EQ(widget.Name(), "This device");
+    EXPECT_EQ(widget.DisplayBalance(), u8"0 ₿");
+    EXPECT_EQ(widget.DisplayUnit(), u8"BTC");
+    EXPECT_EQ(widget.Name(), u8"This device");
     EXPECT_EQ(widget.NotaryID(), btc_notary_id_);
-    EXPECT_EQ(widget.NotaryName(), "Bitcoin");
+    EXPECT_EQ(widget.NotaryName(), u8"Bitcoin");
     EXPECT_EQ(widget.Type(), ot::AccountType::Blockchain);
     EXPECT_EQ(widget.Unit(), ot::proto::CITEMTYPE_BTC);
 
@@ -558,7 +558,7 @@ TEST_F(Test_BlockchainActivity, initial_state_account_activity_qt)
     EXPECT_EQ(widget.rowCount(), 0);
     EXPECT_EQ(widget.accountID(), btc_account_id_);
     EXPECT_EQ(widget.balancePolarity(), 0);
-    EXPECT_EQ(widget.displayBalance(), "0.00000000 BTC");
+    EXPECT_EQ(widget.displayBalance(), u8"0 ₿");
 
     {
         const auto chains = widget.depositChains();
@@ -662,11 +662,11 @@ TEST_F(Test_BlockchainActivity, receive_assigned_account_list)
     EXPECT_EQ(row->AccountID(), btc_account_id_);
     EXPECT_EQ(row->Balance(), 0);  // FIXME
     EXPECT_EQ(row->ContractID(), btc_unit_id_);
-    EXPECT_EQ(row->DisplayBalance(), "0.00000000 BTC");  // FIXME
-    EXPECT_EQ(row->DisplayUnit(), "BTC");
-    EXPECT_EQ(row->Name(), "This device");
+    EXPECT_EQ(row->DisplayBalance(), u8"0 ₿");  // FIXME
+    EXPECT_EQ(row->DisplayUnit(), u8"BTC");
+    EXPECT_EQ(row->Name(), u8"This device");
     EXPECT_EQ(row->NotaryID(), btc_notary_id_);
-    EXPECT_EQ(row->NotaryName(), "Bitcoin");
+    EXPECT_EQ(row->NotaryName(), u8"Bitcoin");
     EXPECT_EQ(row->Type(), ot::AccountType::Blockchain);
     EXPECT_EQ(row->Unit(), ot::proto::CITEMTYPE_BTC);
     EXPECT_TRUE(row->Last());
@@ -688,11 +688,11 @@ TEST_F(Test_BlockchainActivity, receive_assigned_account_activity)
 
     ASSERT_EQ(chains.size(), 1);
     EXPECT_EQ(chains.at(0), ot::blockchain::Type::Bitcoin);
-    EXPECT_EQ(widget.DisplayBalance(), "0.02761918 BTC");
-    EXPECT_EQ(widget.DisplayUnit(), "BTC");
-    EXPECT_EQ(widget.Name(), "This device");
+    EXPECT_EQ(widget.DisplayBalance(), u8"0.027 619 18 ₿");
+    EXPECT_EQ(widget.DisplayUnit(), u8"BTC");
+    EXPECT_EQ(widget.Name(), u8"This device");
     EXPECT_EQ(widget.NotaryID(), btc_notary_id_);
-    EXPECT_EQ(widget.NotaryName(), "Bitcoin");
+    EXPECT_EQ(widget.NotaryName(), u8"Bitcoin");
     EXPECT_EQ(widget.Type(), ot::AccountType::Blockchain);
     EXPECT_EQ(widget.Unit(), ot::proto::CITEMTYPE_BTC);
 
@@ -705,10 +705,10 @@ TEST_F(Test_BlockchainActivity, receive_assigned_account_activity)
 
     ASSERT_EQ(contacts.size(), 1);
     EXPECT_EQ(contacts.at(0), contact_6_id().str());
-    EXPECT_EQ(row->DisplayAmount(), "0.01380959 BTC");
-    EXPECT_EQ(row->Memo(), "Free Ross");
-    EXPECT_EQ(row->Workflow(), "");
-    EXPECT_EQ(row->Text(), "Incoming Bitcoin transaction: Free Ross");
+    EXPECT_EQ(row->DisplayAmount(), u8"0.013 809 59 ₿");
+    EXPECT_EQ(row->Memo(), u8"Free Ross");
+    EXPECT_EQ(row->Workflow(), u8"");
+    EXPECT_EQ(row->Text(), u8"Incoming Bitcoin transaction: Free Ross");
     EXPECT_EQ(row->Timestamp(), time_2_);
     EXPECT_EQ(row->Type(), ot::StorageBox::BLOCKCHAIN);
     EXPECT_FALSE(row->UUID().empty());
@@ -722,10 +722,10 @@ TEST_F(Test_BlockchainActivity, receive_assigned_account_activity)
 
     ASSERT_EQ(contacts.size(), 1);
     EXPECT_EQ(contacts.at(0), contact_5_id().str());
-    EXPECT_EQ(row->DisplayAmount(), "0.01380959 BTC");
-    EXPECT_EQ(row->Memo(), "");
-    EXPECT_EQ(row->Workflow(), "");
-    EXPECT_EQ(row->Text(), "Incoming Bitcoin transaction");
+    EXPECT_EQ(row->DisplayAmount(), u8"0.013 809 59 ₿");
+    EXPECT_EQ(row->Memo(), u8"");
+    EXPECT_EQ(row->Workflow(), u8"");
+    EXPECT_EQ(row->Text(), u8"Incoming Bitcoin transaction");
     EXPECT_EQ(row->Timestamp(), time_1_);
     EXPECT_EQ(row->Type(), ot::StorageBox::BLOCKCHAIN);
     EXPECT_FALSE(row->UUID().empty());
@@ -748,7 +748,7 @@ TEST_F(Test_BlockchainActivity, receive_assigned_account_activity_qt)
     EXPECT_EQ(widget.rowCount(), 2);
     EXPECT_EQ(widget.accountID(), btc_account_id_);
     EXPECT_EQ(widget.balancePolarity(), 1);
-    EXPECT_EQ(widget.displayBalance(), "0.02761918 BTC");
+    EXPECT_EQ(widget.displayBalance(), u8"0.027 619 18 ₿");
 
     {
         const auto chains = widget.depositChains();
@@ -788,11 +788,11 @@ TEST_F(Test_BlockchainActivity, receive_assigned_account_activity_qt)
         }
 
         EXPECT_EQ(polarity.toInt(), 1);
-        EXPECT_EQ(workflow.toString(), "");
+        EXPECT_EQ(workflow.toString(), u8"");
         EXPECT_EQ(type.toInt(), static_cast<int>(ot::StorageBox::BLOCKCHAIN));
-        EXPECT_EQ(amount.toString(), "0.01380959 BTC");
-        EXPECT_EQ(text.toString(), "Incoming Bitcoin transaction");
-        EXPECT_EQ(memo.toString(), "");
+        EXPECT_EQ(amount.toString(), u8"0.013 809 59 ₿");
+        EXPECT_EQ(text.toString(), u8"Incoming Bitcoin transaction");
+        EXPECT_EQ(memo.toString(), u8"");
 
         {
             auto expected = QDateTime{};
@@ -832,11 +832,11 @@ TEST_F(Test_BlockchainActivity, receive_assigned_account_activity_qt)
         }
 
         EXPECT_EQ(polarity.toInt(), 1);
-        EXPECT_EQ(workflow.toString(), "");
+        EXPECT_EQ(workflow.toString(), u8"");
         EXPECT_EQ(type.toInt(), static_cast<int>(ot::StorageBox::BLOCKCHAIN));
-        EXPECT_EQ(amount.toString(), "0.01380959 BTC");
-        EXPECT_EQ(text.toString(), "Incoming Bitcoin transaction: Free Ross");
-        EXPECT_EQ(memo.toString(), "Free Ross");
+        EXPECT_EQ(amount.toString(), u8"0.013 809 59 ₿");
+        EXPECT_EQ(text.toString(), u8"Incoming Bitcoin transaction: Free Ross");
+        EXPECT_EQ(memo.toString(), u8"Free Ross");
 
         {
             auto expected = QDateTime{};
@@ -865,8 +865,8 @@ TEST_F(Test_BlockchainActivity, receive_assigned_activity_summary)
 
     ASSERT_TRUE(row->Valid());
     EXPECT_EQ(row->DisplayName(), contact_6_name_);
-    EXPECT_EQ(row->ImageURI(), "");
-    EXPECT_EQ(row->Text(), "Incoming Bitcoin transaction: Free Ross");
+    EXPECT_EQ(row->ImageURI(), u8"");
+    EXPECT_EQ(row->Text(), u8"Incoming Bitcoin transaction: Free Ross");
     EXPECT_EQ(row->ThreadID(), contact_6_id().str());
     EXPECT_EQ(row->Timestamp(), time_2_);
     EXPECT_EQ(row->Type(), ot::StorageBox::BLOCKCHAIN);
@@ -875,8 +875,8 @@ TEST_F(Test_BlockchainActivity, receive_assigned_activity_summary)
     row = widget.Next();
 
     EXPECT_EQ(row->DisplayName(), contact_5_name_);
-    EXPECT_EQ(row->ImageURI(), "");
-    EXPECT_EQ(row->Text(), "Incoming Bitcoin transaction");
+    EXPECT_EQ(row->ImageURI(), u8"");
+    EXPECT_EQ(row->Text(), u8"Incoming Bitcoin transaction");
     EXPECT_EQ(row->ThreadID(), contact_5_id().str());
     EXPECT_EQ(row->Timestamp(), time_1_);
     EXPECT_EQ(row->Type(), ot::StorageBox::BLOCKCHAIN);
@@ -893,12 +893,12 @@ TEST_F(Test_BlockchainActivity, receive_assigned_activity_thread_1)
     ASSERT_TRUE(row->Valid());
     EXPECT_EQ(row->Amount(), 1380959);
     EXPECT_FALSE(row->Deposit());
-    EXPECT_EQ(row->DisplayAmount(), "0.01380959 BTC");
+    EXPECT_EQ(row->DisplayAmount(), u8"0.013 809 59 ₿");
     EXPECT_FALSE(row->Loading());
     EXPECT_TRUE(row->MarkRead());
-    EXPECT_EQ(row->Memo(), "");
+    EXPECT_EQ(row->Memo(), u8"");
     EXPECT_FALSE(row->Pending());
-    EXPECT_EQ(row->Text(), "Incoming Bitcoin transaction");
+    EXPECT_EQ(row->Text(), u8"Incoming Bitcoin transaction");
     EXPECT_EQ(row->Timestamp(), time_1_);
     EXPECT_EQ(row->Type(), ot::StorageBox::BLOCKCHAIN);
     EXPECT_TRUE(row->Last());
@@ -914,12 +914,12 @@ TEST_F(Test_BlockchainActivity, receive_assigned_activity_thread_2)
     ASSERT_TRUE(row->Valid());
     EXPECT_EQ(row->Amount(), 1380959);
     EXPECT_FALSE(row->Deposit());
-    EXPECT_EQ(row->DisplayAmount(), "0.01380959 BTC");
+    EXPECT_EQ(row->DisplayAmount(), u8"0.013 809 59 ₿");
     EXPECT_FALSE(row->Loading());
     EXPECT_TRUE(row->MarkRead());
-    EXPECT_EQ(row->Memo(), "Free Ross");
+    EXPECT_EQ(row->Memo(), u8"Free Ross");
     EXPECT_FALSE(row->Pending());
-    EXPECT_EQ(row->Text(), "Incoming Bitcoin transaction: Free Ross");
+    EXPECT_EQ(row->Text(), u8"Incoming Bitcoin transaction: Free Ross");
     EXPECT_EQ(row->Timestamp(), time_2_);
     EXPECT_EQ(row->Type(), ot::StorageBox::BLOCKCHAIN);
     EXPECT_TRUE(row->Last());
@@ -938,11 +938,11 @@ TEST_F(Test_BlockchainActivity, send)
     const auto& account =
         api_.Blockchain().HDSubaccount(nym_1_id(), account_1_id());
     const auto& keyOne = account.BalanceElement(
-        Subchain::External, first_index_);  // 0.0033045 BTC
+        Subchain::External, first_index_);  // 0.0033045 ₿
     const auto& keyTwo = account.BalanceElement(
-        Subchain::External, second_index_);  // 0.01050509 BTC
+        Subchain::External, second_index_);  // 0.01050509 ₿
     const auto& keyThree = account.BalanceElement(
-        Subchain::External, third_index_);  // 0.0033045 BTC
+        Subchain::External, third_index_);  // 0.0033045 ₿
     const auto& keyFour =
         account.BalanceElement(Subchain::External, fourth_index_);
     const auto tx1 = api_.Blockchain().LoadTransactionBitcoin(txid_1_);
@@ -999,11 +999,11 @@ TEST_F(Test_BlockchainActivity, send_account_activity)
 
     ASSERT_EQ(chains.size(), 1);
     EXPECT_EQ(chains.at(0), ot::blockchain::Type::Bitcoin);
-    EXPECT_EQ(widget.DisplayBalance(), "0.01380959 BTC");
-    EXPECT_EQ(widget.DisplayUnit(), "BTC");
-    EXPECT_EQ(widget.Name(), "This device");
+    EXPECT_EQ(widget.DisplayBalance(), u8"0.013 809 59 ₿");
+    EXPECT_EQ(widget.DisplayUnit(), u8"BTC");
+    EXPECT_EQ(widget.Name(), u8"This device");
     EXPECT_EQ(widget.NotaryID(), btc_notary_id_);
-    EXPECT_EQ(widget.NotaryName(), "Bitcoin");
+    EXPECT_EQ(widget.NotaryName(), u8"Bitcoin");
     EXPECT_EQ(widget.Type(), ot::AccountType::Blockchain);
     EXPECT_EQ(widget.Unit(), ot::proto::CITEMTYPE_BTC);
 
@@ -1016,10 +1016,10 @@ TEST_F(Test_BlockchainActivity, send_account_activity)
 
     ASSERT_EQ(contacts.size(), 1);
     EXPECT_EQ(contacts.at(0), contact_7_id().str());
-    EXPECT_EQ(row->DisplayAmount(), "-0.01380959 BTC");
-    EXPECT_EQ(row->Memo(), "");
-    EXPECT_EQ(row->Workflow(), "");
-    EXPECT_EQ(row->Text(), "Outgoing Bitcoin transaction");
+    EXPECT_EQ(row->DisplayAmount(), u8"-0.013 809 59 ₿");
+    EXPECT_EQ(row->Memo(), u8"");
+    EXPECT_EQ(row->Workflow(), u8"");
+    EXPECT_EQ(row->Text(), u8"Outgoing Bitcoin transaction");
     EXPECT_EQ(row->Timestamp(), time_3_);
     EXPECT_EQ(row->Type(), ot::StorageBox::BLOCKCHAIN);
     EXPECT_FALSE(row->UUID().empty());
@@ -1033,10 +1033,10 @@ TEST_F(Test_BlockchainActivity, send_account_activity)
 
     ASSERT_EQ(contacts.size(), 1);
     EXPECT_EQ(contacts.at(0), contact_6_id().str());
-    EXPECT_EQ(row->DisplayAmount(), "0.01380959 BTC");
-    EXPECT_EQ(row->Memo(), "Free Ross");
-    EXPECT_EQ(row->Workflow(), "");
-    EXPECT_EQ(row->Text(), "Incoming Bitcoin transaction: Free Ross");
+    EXPECT_EQ(row->DisplayAmount(), u8"0.013 809 59 ₿");
+    EXPECT_EQ(row->Memo(), u8"Free Ross");
+    EXPECT_EQ(row->Workflow(), u8"");
+    EXPECT_EQ(row->Text(), u8"Incoming Bitcoin transaction: Free Ross");
     EXPECT_EQ(row->Timestamp(), time_2_);
     EXPECT_EQ(row->Type(), ot::StorageBox::BLOCKCHAIN);
     EXPECT_FALSE(row->UUID().empty());
@@ -1050,10 +1050,10 @@ TEST_F(Test_BlockchainActivity, send_account_activity)
 
     ASSERT_EQ(contacts.size(), 1);
     EXPECT_EQ(contacts.at(0), contact_5_id().str());
-    EXPECT_EQ(row->DisplayAmount(), "0.01380959 BTC");
-    EXPECT_EQ(row->Memo(), "");
-    EXPECT_EQ(row->Workflow(), "");
-    EXPECT_EQ(row->Text(), "Incoming Bitcoin transaction");
+    EXPECT_EQ(row->DisplayAmount(), u8"0.013 809 59 ₿");
+    EXPECT_EQ(row->Memo(), u8"");
+    EXPECT_EQ(row->Workflow(), u8"");
+    EXPECT_EQ(row->Text(), u8"Incoming Bitcoin transaction");
     EXPECT_EQ(row->Timestamp(), time_1_);
     EXPECT_EQ(row->Type(), ot::StorageBox::BLOCKCHAIN);
     EXPECT_FALSE(row->UUID().empty());
@@ -1076,7 +1076,7 @@ TEST_F(Test_BlockchainActivity, send_account_activity_qt)
     EXPECT_EQ(widget.rowCount(), 3);
     EXPECT_EQ(widget.accountID(), btc_account_id_);
     EXPECT_EQ(widget.balancePolarity(), 1);
-    EXPECT_EQ(widget.displayBalance(), "0.01380959 BTC");
+    EXPECT_EQ(widget.displayBalance(), u8"0.013 809 59 ₿");
 
     {
         const auto chains = widget.depositChains();
@@ -1116,11 +1116,11 @@ TEST_F(Test_BlockchainActivity, send_account_activity_qt)
         }
 
         EXPECT_EQ(polarity.toInt(), 1);
-        EXPECT_EQ(workflow.toString(), "");
+        EXPECT_EQ(workflow.toString(), u8"");
         EXPECT_EQ(type.toInt(), static_cast<int>(ot::StorageBox::BLOCKCHAIN));
-        EXPECT_EQ(amount.toString(), "0.01380959 BTC");
-        EXPECT_EQ(text.toString(), "Incoming Bitcoin transaction");
-        EXPECT_EQ(memo.toString(), "");
+        EXPECT_EQ(amount.toString(), u8"0.013 809 59 ₿");
+        EXPECT_EQ(text.toString(), u8"Incoming Bitcoin transaction");
+        EXPECT_EQ(memo.toString(), u8"");
 
         {
             auto expected = QDateTime{};
@@ -1160,11 +1160,11 @@ TEST_F(Test_BlockchainActivity, send_account_activity_qt)
         }
 
         EXPECT_EQ(polarity.toInt(), 1);
-        EXPECT_EQ(workflow.toString(), "");
+        EXPECT_EQ(workflow.toString(), u8"");
         EXPECT_EQ(type.toInt(), static_cast<int>(ot::StorageBox::BLOCKCHAIN));
-        EXPECT_EQ(amount.toString(), "0.01380959 BTC");
-        EXPECT_EQ(text.toString(), "Incoming Bitcoin transaction: Free Ross");
-        EXPECT_EQ(memo.toString(), "Free Ross");
+        EXPECT_EQ(amount.toString(), u8"0.013 809 59 ₿");
+        EXPECT_EQ(text.toString(), u8"Incoming Bitcoin transaction: Free Ross");
+        EXPECT_EQ(memo.toString(), u8"Free Ross");
 
         {
             auto expected = QDateTime{};
@@ -1204,11 +1204,11 @@ TEST_F(Test_BlockchainActivity, send_account_activity_qt)
         }
 
         EXPECT_EQ(polarity.toInt(), -1);
-        EXPECT_EQ(workflow.toString(), "");
+        EXPECT_EQ(workflow.toString(), u8"");
         EXPECT_EQ(type.toInt(), static_cast<int>(ot::StorageBox::BLOCKCHAIN));
-        EXPECT_EQ(amount.toString(), "-0.01380959 BTC");
-        EXPECT_EQ(text.toString(), "Outgoing Bitcoin transaction");
-        EXPECT_EQ(memo.toString(), "");
+        EXPECT_EQ(amount.toString(), u8"-0.013 809 59 ₿");
+        EXPECT_EQ(text.toString(), u8"Outgoing Bitcoin transaction");
+        EXPECT_EQ(memo.toString(), u8"");
 
         {
             auto expected = QDateTime{};
@@ -1232,8 +1232,8 @@ TEST_F(Test_BlockchainActivity, send_activity_summary)
     ASSERT_TRUE(row->Valid());
 
     EXPECT_EQ(row->DisplayName(), contact_7_name_);
-    EXPECT_EQ(row->ImageURI(), "");
-    EXPECT_EQ(row->Text(), "Outgoing Bitcoin transaction");
+    EXPECT_EQ(row->ImageURI(), u8"");
+    EXPECT_EQ(row->Text(), u8"Outgoing Bitcoin transaction");
     EXPECT_EQ(row->ThreadID(), contact_7_id().str());
     EXPECT_EQ(row->Timestamp(), time_3_);
     EXPECT_EQ(row->Type(), ot::StorageBox::BLOCKCHAIN);
@@ -1242,8 +1242,8 @@ TEST_F(Test_BlockchainActivity, send_activity_summary)
     row = widget.Next();
 
     EXPECT_EQ(row->DisplayName(), contact_6_name_);
-    EXPECT_EQ(row->ImageURI(), "");
-    EXPECT_EQ(row->Text(), "Incoming Bitcoin transaction: Free Ross");
+    EXPECT_EQ(row->ImageURI(), u8"");
+    EXPECT_EQ(row->Text(), u8"Incoming Bitcoin transaction: Free Ross");
     EXPECT_EQ(row->ThreadID(), contact_6_id().str());
     EXPECT_EQ(row->Timestamp(), time_2_);
     EXPECT_EQ(row->Type(), ot::StorageBox::BLOCKCHAIN);
@@ -1252,8 +1252,8 @@ TEST_F(Test_BlockchainActivity, send_activity_summary)
     row = widget.Next();
 
     EXPECT_EQ(row->DisplayName(), contact_5_name_);
-    EXPECT_EQ(row->ImageURI(), "");
-    EXPECT_EQ(row->Text(), "Incoming Bitcoin transaction");
+    EXPECT_EQ(row->ImageURI(), u8"");
+    EXPECT_EQ(row->Text(), u8"Incoming Bitcoin transaction");
     EXPECT_EQ(row->ThreadID(), contact_5_id().str());
     EXPECT_EQ(row->Timestamp(), time_1_);
     EXPECT_EQ(row->Type(), ot::StorageBox::BLOCKCHAIN);
@@ -1270,12 +1270,12 @@ TEST_F(Test_BlockchainActivity, send_activity_thread_3)
     ASSERT_TRUE(row->Valid());
     EXPECT_EQ(row->Amount(), -1380959);
     EXPECT_FALSE(row->Deposit());
-    EXPECT_EQ(row->DisplayAmount(), "-0.01380959 BTC");
+    EXPECT_EQ(row->DisplayAmount(), u8"-0.013 809 59 ₿");
     EXPECT_FALSE(row->Loading());
     EXPECT_TRUE(row->MarkRead());
-    EXPECT_EQ(row->Memo(), "");
+    EXPECT_EQ(row->Memo(), u8"");
     EXPECT_FALSE(row->Pending());
-    EXPECT_EQ(row->Text(), "Outgoing Bitcoin transaction");
+    EXPECT_EQ(row->Text(), u8"Outgoing Bitcoin transaction");
     EXPECT_EQ(row->Timestamp(), time_3_);
     EXPECT_EQ(row->Type(), ot::StorageBox::BLOCKCHAIN);
     EXPECT_TRUE(row->Last());
@@ -1323,11 +1323,11 @@ TEST_F(Test_BlockchainActivity, receive_unassigned_account_activity)
 
     ASSERT_EQ(chains.size(), 1);
     EXPECT_EQ(chains.at(0), ot::blockchain::Type::Bitcoin);
-    EXPECT_EQ(widget.DisplayBalance(), "0.02761918 BTC");
-    EXPECT_EQ(widget.DisplayUnit(), "BTC");
-    EXPECT_EQ(widget.Name(), "This device");
+    EXPECT_EQ(widget.DisplayBalance(), u8"0.027 619 18 ₿");
+    EXPECT_EQ(widget.DisplayUnit(), u8"BTC");
+    EXPECT_EQ(widget.Name(), u8"This device");
     EXPECT_EQ(widget.NotaryID(), btc_notary_id_);
-    EXPECT_EQ(widget.NotaryName(), "Bitcoin");
+    EXPECT_EQ(widget.NotaryName(), u8"Bitcoin");
     EXPECT_EQ(widget.Type(), ot::AccountType::Blockchain);
     EXPECT_EQ(widget.Unit(), ot::proto::CITEMTYPE_BTC);
 
@@ -1339,10 +1339,10 @@ TEST_F(Test_BlockchainActivity, receive_unassigned_account_activity)
     auto contacts = row->Contacts();
 
     EXPECT_EQ(contacts.size(), 0);
-    EXPECT_EQ(row->DisplayAmount(), "0.01380959 BTC");
-    EXPECT_EQ(row->Memo(), "");
-    EXPECT_EQ(row->Workflow(), "");
-    EXPECT_EQ(row->Text(), "Incoming Bitcoin transaction");
+    EXPECT_EQ(row->DisplayAmount(), u8"0.013 809 59 ₿");
+    EXPECT_EQ(row->Memo(), u8"");
+    EXPECT_EQ(row->Workflow(), u8"");
+    EXPECT_EQ(row->Text(), u8"Incoming Bitcoin transaction");
     EXPECT_EQ(row->Timestamp(), time_4_);
     EXPECT_EQ(row->Type(), ot::StorageBox::BLOCKCHAIN);
     EXPECT_FALSE(row->UUID().empty());
@@ -1356,10 +1356,10 @@ TEST_F(Test_BlockchainActivity, receive_unassigned_account_activity)
 
     ASSERT_EQ(contacts.size(), 1);
     EXPECT_EQ(contacts.at(0), contact_7_id().str());
-    EXPECT_EQ(row->DisplayAmount(), "-0.01380959 BTC");
-    EXPECT_EQ(row->Memo(), "");
-    EXPECT_EQ(row->Workflow(), "");
-    EXPECT_EQ(row->Text(), "Outgoing Bitcoin transaction");
+    EXPECT_EQ(row->DisplayAmount(), u8"-0.013 809 59 ₿");
+    EXPECT_EQ(row->Memo(), u8"");
+    EXPECT_EQ(row->Workflow(), u8"");
+    EXPECT_EQ(row->Text(), u8"Outgoing Bitcoin transaction");
     EXPECT_EQ(row->Timestamp(), time_3_);
     EXPECT_EQ(row->Type(), ot::StorageBox::BLOCKCHAIN);
     EXPECT_FALSE(row->UUID().empty());
@@ -1373,10 +1373,10 @@ TEST_F(Test_BlockchainActivity, receive_unassigned_account_activity)
 
     ASSERT_EQ(contacts.size(), 1);
     EXPECT_EQ(contacts.at(0), contact_6_id().str());
-    EXPECT_EQ(row->DisplayAmount(), "0.01380959 BTC");
-    EXPECT_EQ(row->Memo(), "Free Ross");
-    EXPECT_EQ(row->Workflow(), "");
-    EXPECT_EQ(row->Text(), "Incoming Bitcoin transaction: Free Ross");
+    EXPECT_EQ(row->DisplayAmount(), u8"0.013 809 59 ₿");
+    EXPECT_EQ(row->Memo(), u8"Free Ross");
+    EXPECT_EQ(row->Workflow(), u8"");
+    EXPECT_EQ(row->Text(), u8"Incoming Bitcoin transaction: Free Ross");
     EXPECT_EQ(row->Timestamp(), time_2_);
     EXPECT_EQ(row->Type(), ot::StorageBox::BLOCKCHAIN);
     EXPECT_FALSE(row->UUID().empty());
@@ -1390,10 +1390,10 @@ TEST_F(Test_BlockchainActivity, receive_unassigned_account_activity)
 
     ASSERT_EQ(contacts.size(), 1);
     EXPECT_EQ(contacts.at(0), contact_5_id().str());
-    EXPECT_EQ(row->DisplayAmount(), "0.01380959 BTC");
-    EXPECT_EQ(row->Memo(), "");
-    EXPECT_EQ(row->Workflow(), "");
-    EXPECT_EQ(row->Text(), "Incoming Bitcoin transaction");
+    EXPECT_EQ(row->DisplayAmount(), u8"0.013 809 59 ₿");
+    EXPECT_EQ(row->Memo(), u8"");
+    EXPECT_EQ(row->Workflow(), u8"");
+    EXPECT_EQ(row->Text(), u8"Incoming Bitcoin transaction");
     EXPECT_EQ(row->Timestamp(), time_1_);
     EXPECT_EQ(row->Type(), ot::StorageBox::BLOCKCHAIN);
     EXPECT_FALSE(row->UUID().empty());
@@ -1416,7 +1416,7 @@ TEST_F(Test_BlockchainActivity, receive_unassigned_account_activity_qt)
     EXPECT_EQ(widget.rowCount(), 4);
     EXPECT_EQ(widget.accountID(), btc_account_id_);
     EXPECT_EQ(widget.balancePolarity(), 1);
-    EXPECT_EQ(widget.displayBalance(), "0.02761918 BTC");
+    EXPECT_EQ(widget.displayBalance(), u8"0.027 619 18 ₿");
 
     {
         const auto chains = widget.depositChains();
@@ -1456,11 +1456,11 @@ TEST_F(Test_BlockchainActivity, receive_unassigned_account_activity_qt)
         }
 
         EXPECT_EQ(polarity.toInt(), 1);
-        EXPECT_EQ(workflow.toString(), "");
+        EXPECT_EQ(workflow.toString(), u8"");
         EXPECT_EQ(type.toInt(), static_cast<int>(ot::StorageBox::BLOCKCHAIN));
-        EXPECT_EQ(amount.toString(), "0.01380959 BTC");
-        EXPECT_EQ(text.toString(), "Incoming Bitcoin transaction");
-        EXPECT_EQ(memo.toString(), "");
+        EXPECT_EQ(amount.toString(), u8"0.013 809 59 ₿");
+        EXPECT_EQ(text.toString(), u8"Incoming Bitcoin transaction");
+        EXPECT_EQ(memo.toString(), u8"");
 
         {
             auto expected = QDateTime{};
@@ -1500,11 +1500,11 @@ TEST_F(Test_BlockchainActivity, receive_unassigned_account_activity_qt)
         }
 
         EXPECT_EQ(polarity.toInt(), 1);
-        EXPECT_EQ(workflow.toString(), "");
+        EXPECT_EQ(workflow.toString(), u8"");
         EXPECT_EQ(type.toInt(), static_cast<int>(ot::StorageBox::BLOCKCHAIN));
-        EXPECT_EQ(amount.toString(), "0.01380959 BTC");
-        EXPECT_EQ(text.toString(), "Incoming Bitcoin transaction: Free Ross");
-        EXPECT_EQ(memo.toString(), "Free Ross");
+        EXPECT_EQ(amount.toString(), u8"0.013 809 59 ₿");
+        EXPECT_EQ(text.toString(), u8"Incoming Bitcoin transaction: Free Ross");
+        EXPECT_EQ(memo.toString(), u8"Free Ross");
 
         {
             auto expected = QDateTime{};
@@ -1544,11 +1544,11 @@ TEST_F(Test_BlockchainActivity, receive_unassigned_account_activity_qt)
         }
 
         EXPECT_EQ(polarity.toInt(), -1);
-        EXPECT_EQ(workflow.toString(), "");
+        EXPECT_EQ(workflow.toString(), u8"");
         EXPECT_EQ(type.toInt(), static_cast<int>(ot::StorageBox::BLOCKCHAIN));
-        EXPECT_EQ(amount.toString(), "-0.01380959 BTC");
-        EXPECT_EQ(text.toString(), "Outgoing Bitcoin transaction");
-        EXPECT_EQ(memo.toString(), "");
+        EXPECT_EQ(amount.toString(), u8"-0.013 809 59 ₿");
+        EXPECT_EQ(text.toString(), u8"Outgoing Bitcoin transaction");
+        EXPECT_EQ(memo.toString(), u8"");
 
         {
             auto expected = QDateTime{};
@@ -1587,11 +1587,11 @@ TEST_F(Test_BlockchainActivity, receive_unassigned_account_activity_qt)
         }
 
         EXPECT_EQ(polarity.toInt(), 1);
-        EXPECT_EQ(workflow.toString(), "");
+        EXPECT_EQ(workflow.toString(), u8"");
         EXPECT_EQ(type.toInt(), static_cast<int>(ot::StorageBox::BLOCKCHAIN));
-        EXPECT_EQ(amount.toString(), "0.01380959 BTC");
-        EXPECT_EQ(text.toString(), "Incoming Bitcoin transaction");
-        EXPECT_EQ(memo.toString(), "");
+        EXPECT_EQ(amount.toString(), u8"0.013 809 59 ₿");
+        EXPECT_EQ(text.toString(), u8"Incoming Bitcoin transaction");
+        EXPECT_EQ(memo.toString(), u8"");
 
         {
             auto expected = QDateTime{};
@@ -1614,8 +1614,8 @@ TEST_F(Test_BlockchainActivity, receive_unassigned_activity_summary)
     ASSERT_TRUE(row->Valid());
 
     EXPECT_EQ(row->DisplayName(), contact_7_name_);
-    EXPECT_EQ(row->ImageURI(), "");
-    EXPECT_EQ(row->Text(), "Outgoing Bitcoin transaction");
+    EXPECT_EQ(row->ImageURI(), u8"");
+    EXPECT_EQ(row->Text(), u8"Outgoing Bitcoin transaction");
     EXPECT_EQ(row->ThreadID(), contact_7_id().str());
     EXPECT_EQ(row->Timestamp(), time_3_);
     EXPECT_EQ(row->Type(), ot::StorageBox::BLOCKCHAIN);
@@ -1624,8 +1624,8 @@ TEST_F(Test_BlockchainActivity, receive_unassigned_activity_summary)
     row = widget.Next();
 
     EXPECT_EQ(row->DisplayName(), contact_6_name_);
-    EXPECT_EQ(row->ImageURI(), "");
-    EXPECT_EQ(row->Text(), "Incoming Bitcoin transaction: Free Ross");
+    EXPECT_EQ(row->ImageURI(), u8"");
+    EXPECT_EQ(row->Text(), u8"Incoming Bitcoin transaction: Free Ross");
     EXPECT_EQ(row->ThreadID(), contact_6_id().str());
     EXPECT_EQ(row->Timestamp(), time_2_);
     EXPECT_EQ(row->Type(), ot::StorageBox::BLOCKCHAIN);
@@ -1634,8 +1634,8 @@ TEST_F(Test_BlockchainActivity, receive_unassigned_activity_summary)
     row = widget.Next();
 
     EXPECT_EQ(row->DisplayName(), contact_5_name_);
-    EXPECT_EQ(row->ImageURI(), "");
-    EXPECT_EQ(row->Text(), "Incoming Bitcoin transaction");
+    EXPECT_EQ(row->ImageURI(), u8"");
+    EXPECT_EQ(row->Text(), u8"Incoming Bitcoin transaction");
     EXPECT_EQ(row->ThreadID(), contact_5_id().str());
     EXPECT_EQ(row->Timestamp(), time_1_);
     EXPECT_EQ(row->Type(), ot::StorageBox::BLOCKCHAIN);

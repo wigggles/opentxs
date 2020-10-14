@@ -415,7 +415,7 @@ auto Peer::process_cfheaders(
             .Flush();
 
         if (1 != pMessage->size()) {
-            LogOutput(OT_METHOD)(__FUNCTION__)(
+            LogVerbose(OT_METHOD)(__FUNCTION__)(
                 ": Unexpected filter header count: ")(pMessage->size())
                 .Flush();
 
@@ -431,7 +431,7 @@ auto Peer::process_cfheaders(
                 api_, message.at(0).Bytes(), message.Previous().Bytes());
 
         if (filterHash != receivedFilterHeader) {
-            LogOutput(OT_METHOD)(__FUNCTION__)(": Unexpected filter header: ")(
+            LogVerbose(OT_METHOD)(__FUNCTION__)(": Unexpected filter header: ")(
                 receivedFilterHeader->asHex())(". Expected: ")(
                 filterHash->asHex())
                 .Flush();
@@ -439,7 +439,7 @@ auto Peer::process_cfheaders(
             return;
         }
 
-        LogNormal("Filter checkpoint validated for ")(DisplayString(chain_))(
+        LogVerbose("Filter checkpoint validated for ")(DisplayString(chain_))(
             " peer ")(address_.Display())
             .Flush();
         success = true;
@@ -898,7 +898,7 @@ auto Peer::process_headers(
             return;
         }
 
-        LogNormal("Block checkpoint validated for ")(DisplayString(chain_))(
+        LogVerbose("Block checkpoint validated for ")(DisplayString(chain_))(
             " peer ")(address_.Display())
             .Flush();
         success = true;

@@ -7,25 +7,23 @@
 #include "1_Internal.hpp"                      // IWYU pragma: associated
 #include "internal/blockchain/Blockchain.hpp"  // IWYU pragma: associated
 
-#include <boost/lexical_cast/bad_lexical_cast.hpp>
 #include <boost/multiprecision/cpp_dec_float.hpp>  // IWYU pragma: keep
 #include <boost/multiprecision/cpp_int.hpp>
 #include <algorithm>
 #include <array>
 #include <cstddef>
 #include <cstring>
-#include <iomanip>
 #include <iterator>
 #include <limits>
 #include <map>
 #include <memory>
-#include <sstream>
 #include <stdexcept>
 #include <string_view>
 #include <thread>
 #include <type_traits>
 #include <utility>
 
+#include "display/Definition.hpp"
 #include "internal/blockchain/Params.hpp"
 #include "internal/blockchain/bitcoin/Bitcoin.hpp"
 #include "opentxs/Pimpl.hpp"
@@ -455,17 +453,9 @@ auto Format(const Type chain, const opentxs::Amount amount) noexcept
     -> std::string
 {
     try {
-        const auto& precision =
-            params::Data::chains_.at(chain).display_precision_;
-        const auto scaled = mp::cpp_dec_float_100{amount} /
-                            mp::cpp_dec_float_100{std::pow(10, precision)};
-        auto output = std::stringstream{};
-        output << std::fixed << std::setprecision(precision);
-        output << scaled;
-        output << ' ';
-        output << Ticker(chain);
+        const auto& definition = params::Data::chains_.at(chain).scales_;
 
-        return output.str();
+        return definition.Format(amount);
     } catch (...) {
 
         return {};

@@ -49,8 +49,6 @@ Peer::Peer(
     , network_(network)
     , manager_(manager)
     , chain_(address->Chain())
-    , send_promise_()
-    , send_future_(send_promise_.get_future())
     , address_(std::move(address))
     , download_peers_()
     , state_()
@@ -86,7 +84,6 @@ Peer::Peer(
 auto Peer::break_promises() noexcept -> void
 {
     state_.break_promises();
-    send_promise_ = {};
     send_promises_.Break();
 }
 
@@ -126,10 +123,10 @@ auto Peer::check_handshake() noexcept -> void
                                 : "Connected to ")(
             DisplayString(address_.Chain()))(" peer at ")(address_.Display())
             .Flush();
-        LogNormal("Advertised services: ").Flush();
+        LogVerbose("Advertised services: ").Flush();
 
         for (const auto& service : address_.Services()) {
-            LogNormal(" * ")(p2p::DisplayService(service)).Flush();
+            LogVerbose(" * ")(p2p::DisplayService(service)).Flush();
         }
 
         update_address_activity();
@@ -163,7 +160,7 @@ auto Peer::disconnect() noexcept -> void
     } catch (...) {
     }
 
-    LogNormal(
+    LogVerbose(
         address_.Incoming() ? "Dropping incoming connection "
                             : "Disconnecting from ")(connection_->host())(":")(
         connection_->port())
@@ -199,12 +196,6 @@ auto Peer::init_connection_manager(
         return ConnectionManager::ZMQ(
             api, parent, running, address, headerSize);
     }
-}
-
-auto Peer::init_send_promise() noexcept -> void
-{
-    send_promise_ = SendPromise{};
-    send_future_ = send_promise_.get_future();
 }
 
 auto Peer::on_connect() noexcept -> void
@@ -474,17 +465,20 @@ auto Peer::transmit(zmq::Message& message) noexcept -> void
         " byte message:")
         .Flush();
     LogTrace(Data::Factory(payload)->asHex()).Flush();
-    init_send_promise();
-    connection_->transmit(payload, send_promise_);
+    auto promise = std::make_shared<SendPromise>();
+
+    OT_ASSERT(promise);
+
+    auto future = promise->get_future();
+    connection_->transmit(payload, std::move(promise));
     auto result = SendResult{};
 
     try {
         while (running_.get()) {
-            const auto status =
-                send_future_.wait_for(std::chrono::milliseconds(5));
+            const auto status = future.wait_for(std::chrono::milliseconds(5));
 
             if (std::future_status::ready == status) {
-                result = send_future_.get();
+                result = future.get();
 
                 break;
             } else {
