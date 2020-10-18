@@ -66,13 +66,35 @@ public:
         const noexcept = 0;
     OPENTXS_EXPORT virtual std::string NotaryID() const noexcept = 0;
     OPENTXS_EXPORT virtual std::string NotaryName() const noexcept = 0;
+    OPENTXS_EXPORT virtual bool Send(
+        const Identifier& contact,
+        const Amount amount,
+        const std::string& memo = {}) const noexcept = 0;
+    OPENTXS_EXPORT virtual bool Send(
+        const Identifier& contact,
+        const std::string& amount,
+        const std::string& memo = {}) const noexcept = 0;
 #if OT_BLOCKCHAIN
+    OPENTXS_EXPORT virtual bool Send(
+        const std::string& address,
+        const Amount amount,
+        const std::string& memo = {}) const noexcept = 0;
+    OPENTXS_EXPORT virtual bool Send(
+        const std::string& address,
+        const std::string& amount,
+        const std::string& memo = {}) const noexcept = 0;
     OPENTXS_EXPORT virtual double SyncPercentage() const noexcept = 0;
     OPENTXS_EXPORT virtual std::pair<int, int> SyncProgress()
         const noexcept = 0;
 #endif  // OT_BLOCKCHAIN
     OPENTXS_EXPORT virtual AccountType Type() const noexcept = 0;
     OPENTXS_EXPORT virtual proto::ContactItemType Unit() const noexcept = 0;
+#if OT_BLOCKCHAIN
+    OPENTXS_EXPORT virtual bool ValidateAddress(
+        const std::string& text) const noexcept = 0;
+#endif  // OT_BLOCKCHAIN
+    OPENTXS_EXPORT virtual std::string ValidateAmount(
+        const std::string& text) const noexcept = 0;
 
     OPENTXS_EXPORT ~AccountActivity() override = default;
 
@@ -148,11 +170,25 @@ public:
 #endif  // OT_BLOCKCHAIN
     OPENTXS_EXPORT QString displayBalance() const noexcept;
 #if OT_BLOCKCHAIN
+    OPENTXS_EXPORT Q_INVOKABLE bool sendToAddress(
+        const QString& address,
+        const QString& amount,
+        const QString& memo) const noexcept;
+#endif  // OT_BLOCKCHAIN
+    OPENTXS_EXPORT Q_INVOKABLE bool sendToContact(
+        const QString& contactID,
+        const QString& amount,
+        const QString& memo) const noexcept;
+#if OT_BLOCKCHAIN
     OPENTXS_EXPORT Q_INVOKABLE QString
     getDepositAddress(const int chain = 0) const noexcept;
     OPENTXS_EXPORT double syncPercentage() const noexcept;
     OPENTXS_EXPORT QPair<int, int> syncProgress() const noexcept;
+    OPENTXS_EXPORT Q_INVOKABLE bool validateAddress(
+        const QString& address) const noexcept;
 #endif  // OT_BLOCKCHAIN
+    OPENTXS_EXPORT Q_INVOKABLE QString
+    validateAmount(const QString& amount) const noexcept;
 
     AccountActivityQt(implementation::AccountActivity& parent) noexcept;
 

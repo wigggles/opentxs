@@ -109,6 +109,15 @@ public:
     {
         return blockchain::DisplayString(chain_);
     }
+    using AccountActivity::Send;
+    auto Send(
+        const std::string& address,
+        const Amount amount,
+        const std::string& memo) const noexcept -> bool final;
+    auto Send(
+        const std::string& address,
+        const std::string& amount,
+        const std::string& memo) const noexcept -> bool final;
     auto SyncPercentage() const noexcept -> double final
     {
         return progress_.get_percentage();
@@ -121,6 +130,9 @@ public:
     {
         return Translate(chain_);
     }
+    auto ValidateAddress(const std::string& text) const noexcept -> bool final;
+    auto ValidateAmount(const std::string& text) const noexcept
+        -> std::string final;
 
     auto SetSyncCallback(const SyncCallback cb) noexcept -> void final;
 

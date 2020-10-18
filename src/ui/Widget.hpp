@@ -69,6 +69,8 @@ auto extract_custom(CustomData& custom, const std::size_t index = 0) noexcept
 class Widget : virtual public opentxs::ui::Widget
 {
 public:
+    const api::client::internal::Manager& api_;
+
     class MessageFunctor
     {
     public:
@@ -130,7 +132,6 @@ protected:
     using ListenerDefinition = std::pair<std::string, MessageFunctor*>;
     using ListenerDefinitions = std::vector<ListenerDefinition>;
 
-    const api::client::internal::Manager& api_;
     const OTIdentifier widget_id_;
 
     virtual void setup_listeners(
