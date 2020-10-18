@@ -107,6 +107,40 @@ public:
     {
         return {};
     }
+#endif  // OT_BLOCKCHAIN
+    auto Send(
+        [[maybe_unused]] const Identifier& contact,
+        [[maybe_unused]] const Amount amount,
+        [[maybe_unused]] const std::string& memo) const noexcept
+        -> bool override
+    {
+        return false;
+    }
+    auto Send(
+        [[maybe_unused]] const Identifier& contact,
+        [[maybe_unused]] const std::string& amount,
+        [[maybe_unused]] const std::string& memo) const noexcept
+        -> bool override
+    {
+        return false;
+    }
+#if OT_BLOCKCHAIN
+    auto Send(
+        [[maybe_unused]] const std::string& address,
+        [[maybe_unused]] const Amount amount,
+        [[maybe_unused]] const std::string& memo) const noexcept
+        -> bool override
+    {
+        return false;
+    }
+    auto Send(
+        [[maybe_unused]] const std::string& address,
+        [[maybe_unused]] const std::string& amount,
+        [[maybe_unused]] const std::string& memo) const noexcept
+        -> bool override
+    {
+        return false;
+    }
     auto SyncPercentage() const noexcept -> double override { return 100; }
     auto SyncProgress() const noexcept -> std::pair<int, int> override
     {
@@ -114,6 +148,18 @@ public:
     }
 #endif  // OT_BLOCKCHAIN
     auto Type() const noexcept -> AccountType final { return type_; }
+#if OT_BLOCKCHAIN
+    auto ValidateAddress([
+        [maybe_unused]] const std::string& text) const noexcept -> bool override
+    {
+        return false;
+    }
+#endif  // OT_BLOCKCHAIN
+    auto ValidateAmount([[maybe_unused]] const std::string& text) const noexcept
+        -> std::string override
+    {
+        return {};
+    }
 
 #if OT_BLOCKCHAIN
     using SyncCallback = std::function<void(int, int, double)>;

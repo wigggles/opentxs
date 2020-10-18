@@ -14,9 +14,12 @@
 #include <mutex>
 #include <string>
 #include <thread>
+#include <type_traits>
 
+#include "display/Definition.hpp"
 #include "internal/api/client/blockchain/Blockchain.hpp"
 #include "internal/blockchain/Blockchain.hpp"
+#include "internal/blockchain/Params.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Factory.hpp"
@@ -24,6 +27,7 @@
 #include "opentxs/api/client/blockchain/BalanceTree.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/blockchain/Network.hpp"
 #include "opentxs/blockchain/block/bitcoin/Transaction.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -216,7 +220,36 @@ auto BlockchainAccountActivity::process_txid(
 
     load_thread();
 }
+auto BlockchainAccountActivity::Send(
+    const std::string& address,
+    const Amount amount,
+    const std::string& memo) const noexcept -> bool
+{
+    try {
+        const auto& network = api_.Blockchain().GetChain(chain_);
+        network.SendToAddress(primary_id_, address, amount, memo);
 
+        return true;
+    } catch (...) {
+
+        return false;
+    }
+}
+auto BlockchainAccountActivity::Send(
+    const std::string& address,
+    const std::string& amount,
+    const std::string& memo) const noexcept -> bool
+{
+    try {
+        const auto& scale =
+            blockchain::params::Data::chains_.at(chain_).scales_;
+
+        return Send(address, scale.Import(amount), memo);
+    } catch (...) {
+
+        return false;
+    }
+}
 auto BlockchainAccountActivity::SetSyncCallback(const SyncCallback cb) noexcept
     -> void
 {
@@ -228,5 +261,33 @@ auto BlockchainAccountActivity::startup() noexcept -> void
 {
     load_thread();
     finish_startup();
+}
+
+auto BlockchainAccountActivity::ValidateAddress(
+    const std::string& in) const noexcept -> bool
+{
+    using Style = api::client::blockchain::AddressStyle;
+
+    const auto [data, style, chains] = api_.Blockchain().DecodeAddress(in);
+
+    if (Style::Unknown == style) { return false; }
+
+    if (0 == chains.count(chain_)) { return false; }
+
+    return true;
+}
+
+auto BlockchainAccountActivity::ValidateAmount(
+    const std::string& text) const noexcept -> std::string
+{
+    try {
+        const auto& scale =
+            blockchain::params::Data::chains_.at(chain_).scales_;
+
+        return scale.Format(scale.Import(text));
+    } catch (...) {
+
+        return {};
+    }
 }
 }  // namespace opentxs::ui::implementation

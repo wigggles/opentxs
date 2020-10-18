@@ -59,6 +59,13 @@ auto AccountActivityQt::displayBalance() const noexcept -> QString
 {
     return parent_.DisplayBalance().c_str();
 }
+#if OT_BLOCKCHAIN
+auto AccountActivityQt::getDepositAddress(const int chain) const noexcept
+    -> QString
+{
+    return parent_.DepositAddress(static_cast<blockchain::Type>(chain)).c_str();
+}
+#endif  // OT_BLOCKCHAIN
 auto AccountActivityQt::init() noexcept -> void
 {
 #if OT_BLOCKCHAIN
@@ -69,16 +76,41 @@ auto AccountActivityQt::init() noexcept -> void
 #endif  // OT_BLOCKCHAIN
 }
 #if OT_BLOCKCHAIN
-auto AccountActivityQt::getDepositAddress(const int chain) const noexcept
-    -> QString
+auto AccountActivityQt::sendToAddress(
+    const QString& address,
+    const QString& amount,
+    const QString& memo) const noexcept -> bool
 {
-    return parent_.DepositAddress(static_cast<blockchain::Type>(chain)).c_str();
+    return parent_.Send(
+        address.toStdString(), amount.toStdString(), memo.toStdString());
 }
+#endif  // OT_BLOCKCHAIN
+auto AccountActivityQt::sendToContact(
+    const QString& contactID,
+    const QString& amount,
+    const QString& memo) const noexcept -> bool
+{
+    return parent_.Send(
+        parent_.api_.Factory().Identifier(contactID.toStdString()),
+        amount.toStdString(),
+        memo.toStdString());
+}
+#if OT_BLOCKCHAIN
 auto AccountActivityQt::syncPercentage() const noexcept -> double
 {
     return parent_.SyncPercentage();
 }
+auto AccountActivityQt::validateAddress(const QString& address) const noexcept
+    -> bool
+{
+    return parent_.ValidateAddress(address.toStdString());
+}
 #endif  // OT_BLOCKCHAIN
+auto AccountActivityQt::validateAmount(const QString& amount) const noexcept
+    -> QString
+{
+    return parent_.ValidateAmount(amount.toStdString()).c_str();
+}
 }  // namespace opentxs::ui
 #endif
 
