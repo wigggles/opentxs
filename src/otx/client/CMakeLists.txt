@@ -25,4 +25,3 @@ target_link_libraries(opentxs-otx-client PRIVATE opentxs::messages)
 target_include_directories(
   opentxs-otx-client SYSTEM PRIVATE "${opentxs_SOURCE_DIR}/deps/"
 )
-set_property(TARGET opentxs-otx-client PROPERTY POSITION_INDEPENDENT_CODE 1)

@@ -9,29 +9,26 @@
 #
 
 # Locate include files for our wrappers
-set(
-  SWIG_INCLUDE_DIRS
-  SYSTEM
-  "${opentxs_SOURCE_DIR}/deps/"
-  "${opentxs_SOURCE_DIR}/include/"
-  "${opentxs_SOURCE_DIR}/include/opentxs"
-  "${opentxs_SOURCE_DIR}/include/opentxs/core"
-  "${opentxs_SOURCE_DIR}/include/opentxs/core/crypto"
-  "${opentxs_SOURCE_DIR}/include/opentxs/ext"
-  "${opentxs_SOURCE_DIR}/include/opentxs/client"
+set(SWIG_INCLUDE_DIRS
+    SYSTEM
+    "${opentxs_SOURCE_DIR}/deps/"
+    "${opentxs_SOURCE_DIR}/include/"
+    "${opentxs_SOURCE_DIR}/include/opentxs"
+    "${opentxs_SOURCE_DIR}/include/opentxs/core"
+    "${opentxs_SOURCE_DIR}/include/opentxs/core/crypto"
+    "${opentxs_SOURCE_DIR}/include/opentxs/ext"
+    "${opentxs_SOURCE_DIR}/include/opentxs/client"
 )
 
 # The opentxs libraries will we link to
 set(OTX_LINK_LIBS opentxs)
 
 if(CMAKE_CROSSCOMPILING)
-  set(
-    CMAKE_FIND_ROOT_PATH_MODE_PROGRAM_PRESERVE
-    "${CMAKE_FIND_ROOT_PATH_MODE_PROGRAM}"
+  set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM_PRESERVE
+      "${CMAKE_FIND_ROOT_PATH_MODE_PROGRAM}"
   )
-  set(
-    CMAKE_FIND_ROOT_PATH_MODE_INCLUDE_PRESERVE
-    "${CMAKE_FIND_ROOT_PATH_MODE_INCLUDE}"
+  set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE_PRESERVE
+      "${CMAKE_FIND_ROOT_PATH_MODE_INCLUDE}"
   )
   set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
   set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE NEVER)
@@ -40,13 +37,11 @@ endif()
 find_package(SWIG 4.0.0 REQUIRED)
 
 if(CMAKE_CROSSCOMPILING)
-  set(
-    CMAKE_FIND_ROOT_PATH_MODE_PROGRAM
-    "${CMAKE_FIND_ROOT_PATH_MODE_PROGRAM_PRESERVE}"
+  set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM
+      "${CMAKE_FIND_ROOT_PATH_MODE_PROGRAM_PRESERVE}"
   )
-  set(
-    CMAKE_FIND_ROOT_PATH_MODE_INCLUDE
-    "${CMAKE_FIND_ROOT_PATH_MODE_INCLUDE_PRESERVE}"
+  set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE
+      "${CMAKE_FIND_ROOT_PATH_MODE_INCLUDE_PRESERVE}"
   )
 endif()
 

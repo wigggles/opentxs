@@ -14,12 +14,11 @@ target_include_directories(
   opentxs-core-transaction SYSTEM PRIVATE "${opentxs_SOURCE_DIR}/deps/"
 )
 target_link_libraries(opentxs-core-transaction PRIVATE opentxs::messages)
-set_property(
-  TARGET opentxs-core-transaction PROPERTY POSITION_INDEPENDENT_CODE 1
-)
 
-install(
-  FILES ${cxx-install-headers}
-  DESTINATION include/opentxs/core/transaction
-  COMPONENT dev
-)
+if(OPENTXS_STANDALONE)
+  install(
+    FILES ${cxx-install-headers}
+    DESTINATION include/opentxs/core/transaction
+    COMPONENT dev
+  )
+endif()

@@ -21,10 +21,11 @@ target_include_directories(
 target_link_libraries(
   opentxs-identity PRIVATE opentxs::messages unofficial-sodium::sodium
 )
-set_property(TARGET opentxs-identity PROPERTY POSITION_INDEPENDENT_CODE 1)
 
-install(
-  FILES ${cxx-install-headers}
-  DESTINATION include/opentxs/identity
-  COMPONENT dev
-)
+if(OPENTXS_STANDALONE)
+  install(
+    FILES ${cxx-install-headers}
+    DESTINATION include/opentxs/identity
+    COMPONENT dev
+  )
+endif()

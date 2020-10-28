@@ -20,5 +20,3 @@ if(MSVC)
 else()
   target_compile_options(otprotob PRIVATE "-Wno-effc++")
 endif()
-
-set_property(TARGET otprotob PROPERTY POSITION_INDEPENDENT_CODE 1)

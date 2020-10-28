@@ -17,4 +17,3 @@ target_link_libraries(opentxs-rpc PRIVATE opentxs::messages)
 target_include_directories(
   opentxs-rpc SYSTEM PRIVATE "${opentxs_SOURCE_DIR}/deps/"
 )
-set_property(TARGET opentxs-rpc PROPERTY POSITION_INDEPENDENT_CODE 1)

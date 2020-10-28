@@ -9,6 +9,14 @@ project(opentxs)
 list(APPEND CMAKE_MODULE_PATH "${${PROJECT_NAME}_SOURCE_DIR}/cmake")
 list(APPEND CMAKE_MODULE_PATH "${${PROJECT_NAME}_SOURCE_DIR}")
 
+if("${CMAKE_PROJECT_NAME}" STREQUAL "${PROJECT_NAME}")
+  set(OPENTXS_STANDALONE ON)
+  message(STATUS "Configuring Open-Transactions as a library")
+else()
+  set(OPENTXS_STANDALONE OFF)
+  message(STATUS "Configuring Open-Transactions as a subproject")
+endif()
+
 # -----------------------------------------------------------------------------
 # Setup
 
@@ -46,10 +54,13 @@ endif()
 # -----------------------------------------------------------------------------
 # Options
 
-option(OPENTXS_BUILD_TESTS "Build the unit tests."
-       ${OPENTXS_BUILD_TESTS_DEFAULT})
-option(OPENTXS_PEDANTIC_BUILD "Treat compiler warnings as errors."
-       ${OPENTXS_PEDANTIC_DEFAULT})
+option(
+  OPENTXS_BUILD_TESTS "Build the unit tests." ${OPENTXS_BUILD_TESTS_DEFAULT}
+)
+option(
+  OPENTXS_PEDANTIC_BUILD "Treat compiler warnings as errors."
+  ${OPENTXS_PEDANTIC_DEFAULT}
+)
 option(OT_VALGRIND "Use Valgrind annotations." OFF)
 option(OT_DHT "Enable OpenDHT support" OFF)
 option(OT_STORAGE_FS "Enable filesystem backend for storage" OFF)
@@ -59,27 +70,38 @@ option(OT_CRYPTO_SUPPORTED_KEY_ED25519 "Enable ed25519 key support" ON)
 option(OT_CRYPTO_SUPPORTED_KEY_RSA "Enable RSA key support" OFF)
 option(OT_CRYPTO_SUPPORTED_KEY_SECP256K1 "Enable secp256k1 key support" ON)
 option(OT_CRYPTO_USING_LIBSECP256K1 "Use libsecp256k1 crypto library" ON)
-option(OT_WITH_BLOCKCHAIN "Enable blockchain client support"
-       ${OT_WITH_BLOCKCHAIN_DEFAULT})
+option(
+  OT_WITH_BLOCKCHAIN "Enable blockchain client support"
+  ${OT_WITH_BLOCKCHAIN_DEFAULT}
+)
 option(OT_CASH_USING_LUCRE "Enable Lucre support" OFF)
 option(OT_LUCRE_DEBUG "Output Lucre debug info" OFF)
 option(OT_SCRIPT_USING_CHAI "Use chaiscript" ${OT_SCRIPT_USING_CHAI_DEFAULT})
 option(OT_WITH_QT "Enable Qt5 model support for ui classes" OFF)
 option(OT_WITH_JAVA "Build with Java binding" OFF)
 option(OT_OPENSSL_FLAVOR_LIBRESSL "Assume OpenSSL library is LibreSSL" OFF)
-option(OT_USE_VCPKG_TARGETS "Assume dependencies are managed by vcpkg"
-       ${OT_USE_VCPKG_TARGETS_DEFAULT})
-option(OT_STATIC_DEPENDENCIES "Link against static version of dependencies"
-       ${OT_USE_VCPKG_TARGETS})
+option(
+  OT_USE_VCPKG_TARGETS "Assume dependencies are managed by vcpkg"
+  ${OT_USE_VCPKG_TARGETS_DEFAULT}
+)
+option(
+  OT_STATIC_DEPENDENCIES "Link against static version of dependencies"
+  ${OT_USE_VCPKG_TARGETS}
+)
 
-if(OT_CRYPTO_SUPPORTED_KEY_RSA OR OT_CASH_USING_LUCRE OR OT_WITH_BLOCKCHAIN)
+if(OT_CRYPTO_SUPPORTED_KEY_RSA
+   OR OT_CASH_USING_LUCRE
+   OR OT_WITH_BLOCKCHAIN
+)
   set(OT_CRYPTO_USING_OPENSSL_DEFAULT ON)
 else()
   set(OT_CRYPTO_USING_OPENSSL_DEFAULT OFF)
 endif()
 
-option(OT_CRYPTO_USING_OPENSSL "Use OpenSSL crypto library"
-       ${OT_CRYPTO_USING_OPENSSL_DEFAULT})
+option(
+  OT_CRYPTO_USING_OPENSSL "Use OpenSSL crypto library"
+  ${OT_CRYPTO_USING_OPENSSL_DEFAULT}
+)
 
 if(ANDROID OR OT_USE_VCPKG_TARGETS)
   set(OT_INSTALL_LIBRARY_DEPENDENCIES_DEFAULT ON)
@@ -87,9 +109,11 @@ else()
   set(OT_INSTALL_LIBRARY_DEPENDENCIES_DEFAULT OFF)
 endif()
 
-option(OT_INSTALL_LIBRARY_DEPENDENCIES
-       "Install dependent libraries along with libopentxs"
-       ${OT_INSTALL_LIBRARY_DEPENDENCIES_DEFAULT})
+option(
+  OT_INSTALL_LIBRARY_DEPENDENCIES
+  "Install dependent libraries along with libopentxs"
+  ${OT_INSTALL_LIBRARY_DEPENDENCIES_DEFAULT}
+)
 option(OT_ENABLE_RPC "Build RPC server" ${OT_ENABLE_RPC_DEFAULT})
 
 # -----------------------------------------------------------------------------
@@ -99,21 +123,18 @@ set_compiler_flags(17 ${OPENTXS_PEDANTIC_BUILD})
 
 # temporarily disabled warnings
 if(MSVC)
-  set(
-    CMAKE_CXX_FLAGS
-    "${CMAKE_CXX_FLAGS} /wd4244 /wd4251 /wd4267 /wd4275 /wd4996"
+  set(CMAKE_CXX_FLAGS
+      "${CMAKE_CXX_FLAGS} /wd4244 /wd4251 /wd4267 /wd4275 /wd4996"
   )
 else()
-  set(
-    CMAKE_CXX_FLAGS
-    "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations -Wno-format-nonliteral -Wno-noexcept -Wno-redundant-move -Wno-shadow -Wno-sign-conversion -Wno-switch-enum -Wno-undef -Wno-unused-parameter"
+  set(CMAKE_CXX_FLAGS
+      "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations -Wno-format-nonliteral -Wno-noexcept -Wno-redundant-move -Wno-shadow -Wno-sign-conversion -Wno-switch-enum -Wno-undef -Wno-unused-parameter"
   )
 endif()
 
 if(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
-  set(
-    CMAKE_CXX_FLAGS
-    "${CMAKE_CXX_FLAGS} -Wno-c++20-compat -Wno-comma -Wno-disabled-macro-expansion -Wno-documentation -Wno-documentation-unknown-command -Wno-extra-semi-stmt -Wno-implicit-int-conversion -Wno-redundant-parens -Wno-reserved-id-macro -Wno-shorten-64-to-32 -Wno-unused-template"
+  set(CMAKE_CXX_FLAGS
+      "${CMAKE_CXX_FLAGS} -Wno-c++20-compat -Wno-comma -Wno-disabled-macro-expansion -Wno-documentation -Wno-documentation-unknown-command -Wno-extra-semi-stmt -Wno-implicit-int-conversion -Wno-redundant-parens -Wno-reserved-id-macro -Wno-shorten-64-to-32 -Wno-unused-template"
   )
 endif()
 
@@ -264,10 +285,14 @@ if(OT_WITH_QT)
     REQUIRED
   )
   set_target_properties(
-    Qt5::Core
-    PROPERTIES MAP_IMPORTED_CONFIG_COVERAGE "RELEASE"
+    Qt5::Core PROPERTIES MAP_IMPORTED_CONFIG_COVERAGE "RELEASE"
   )
-  list(GET Qt5Core_INCLUDE_DIRS 0 QT_INCLUDE_DIR)
+  list(
+    GET
+    Qt5Core_INCLUDE_DIRS
+    0
+    QT_INCLUDE_DIR
+  )
   include_directories(SYSTEM "${QT_INCLUDE_DIR}")
 endif()
 
@@ -315,7 +340,10 @@ else()
   set(LMDB_EXPORT 0)
 endif()
 
-if((NOT OT_STORAGE_FS) AND (NOT OT_STORAGE_SQLITE) AND (NOT OT_STORAGE_LMDB))
+if((NOT OT_STORAGE_FS)
+   AND (NOT OT_STORAGE_SQLITE)
+   AND (NOT OT_STORAGE_LMDB)
+)
   message(FATAL_ERROR "At least one storage backend must be defined.")
 endif()
 
@@ -438,14 +466,17 @@ endif()
 
 # -----------------------------------------------------------------------------
 # Set in-source Version
-configure_file("Version.hpp.in"
-               "${opentxs_BINARY_DIR}/include/opentxs/Version.hpp" @ONLY)
-
-install(
-  FILES ${opentxs_BINARY_DIR}/include/opentxs/Version.hpp
-  DESTINATION include/opentxs/
-  COMPONENT dev
+configure_file(
+  "Version.hpp.in" "${opentxs_BINARY_DIR}/include/opentxs/Version.hpp" @ONLY
 )
+
+if(OPENTXS_STANDALONE)
+  install(
+    FILES ${opentxs_BINARY_DIR}/include/opentxs/Version.hpp
+    DESTINATION include/opentxs/
+    COMPONENT dev
+  )
+endif()
 
 # -----------------------------------------------------------------------------
 # Build source
@@ -459,6 +490,8 @@ include_directories(
   "${opentxs_SOURCE_DIR}/include"
   "${opentxs_SOURCE_DIR}/src"
 )
+
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 add_subdirectory(deps)
 add_subdirectory(serialization)
@@ -476,6 +509,8 @@ endif()
 # -----------------------------------------------------------------------------
 # Package
 
-generate_cmake_files()
-generate_pkgconfig("-lopentxs")
-generate_uninstall_target()
+if(OPENTXS_STANDALONE)
+  generate_cmake_files()
+  generate_pkgconfig("-lopentxs")
+  generate_uninstall_target()
+endif()

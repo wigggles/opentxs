@@ -28,10 +28,11 @@ set(cxx-headers
 
 add_library(opentxs-crypto OBJECT ${cxx-sources} ${cxx-headers})
 target_link_libraries(opentxs-crypto PRIVATE Boost::headers opentxs::messages)
-set_property(TARGET opentxs-crypto PROPERTY POSITION_INDEPENDENT_CODE 1)
 
-install(
-  FILES ${cxx-install-headers}
-  DESTINATION include/opentxs/crypto
-  COMPONENT dev
-)
+if(OPENTXS_STANDALONE)
+  install(
+    FILES ${cxx-install-headers}
+    DESTINATION include/opentxs/crypto
+    COMPONENT dev
+  )
+endif()

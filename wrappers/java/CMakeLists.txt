@@ -19,34 +19,25 @@ find_package(JNI REQUIRED)
 
 include_directories(${JAVA_INCLUDE_PATH})
 
-set(
-  JAVA_SOURCE_DIRECTORY
-  ${CMAKE_CURRENT_BINARY_DIR}/otx_java
-  CACHE INTERNAL ""
+set(JAVA_SOURCE_DIRECTORY
+    ${CMAKE_CURRENT_BINARY_DIR}/otx_java
+    CACHE INTERNAL ""
 )
-set(
-  JAVA_BINARY_DIRECTORY
-  ${CMAKE_CURRENT_BINARY_DIR}/otx_java
-  CACHE INTERNAL ""
+set(JAVA_BINARY_DIRECTORY
+    ${CMAKE_CURRENT_BINARY_DIR}/otx_java
+    CACHE INTERNAL ""
 )
 file(MAKE_DIRECTORY ${JAVA_SOURCE_DIRECTORY})
 file(MAKE_DIRECTORY ${JAVA_BINARY_DIRECTORY})
 
 set(CMAKE_SWIG_OUTDIR ${JAVA_BINARY_DIRECTORY})
 
-set_source_files_properties(
-  OTX_.i
-  PROPERTIES
-  CPLUSPLUS
-  ON
-)
+set_source_files_properties(OTX_.i PROPERTIES CPLUSPLUS ON)
 
 swig_add_library(
   ${OTX_WRAPPER_NAME}
-  LANGUAGE
-  java
-  SOURCES
-  OTX_.i
+  LANGUAGE java
+  SOURCES OTX_.i
 )
 swig_link_libraries(${OTX_WRAPPER_NAME} ${JAVA_LIBRARIES})
 
@@ -54,8 +45,8 @@ set(MOD_NAME ${SWIG_MODULE_${OTX_WRAPPER_NAME}_REAL_NAME})
 
 target_link_libraries(${MOD_NAME} opentxs::libopentxs)
 target_include_directories(
-  ${MOD_NAME} SYSTEM
-  PRIVATE "${JNI_INCLUDE_DIRS}" "${JAVA_INCLUDE_PATH}" "${JAVA_INCLUDE_PATH2}"
+  ${MOD_NAME} SYSTEM PRIVATE "${JNI_INCLUDE_DIRS}" "${JAVA_INCLUDE_PATH}"
+                             "${JAVA_INCLUDE_PATH2}"
 )
 
 if(NOT ANDROID)
@@ -78,28 +69,20 @@ if(NOT MSVC)
 
   if(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
     target_compile_options(
-      ${MOD_NAME}
-      PRIVATE
-        -Wno-deprecated-dynamic-exception-spec -Wno-missing-noreturn
-        -Wno-used-but-marked-unused
+      ${MOD_NAME} PRIVATE -Wno-deprecated-dynamic-exception-spec
+                          -Wno-missing-noreturn -Wno-used-but-marked-unused
     )
   endif()
 endif()
 
 set_target_properties(
-  ${MOD_NAME}
-  PROPERTIES
-    NO_SONAME
-    ON
-    OUTPUT_NAME
-    ${OTX_WRAPPER_NAME}
+  ${MOD_NAME} PROPERTIES NO_SONAME ON OUTPUT_NAME ${OTX_WRAPPER_NAME}
 )
 
-install(
-  TARGETS
-    ${MOD_NAME}
-    DESTINATION
-    ${CMAKE_INSTALL_LIBDIR}
-    COMPONENT
-    java
-)
+if(OPENTXS_STANDALONE)
+  install(
+    TARGETS ${MOD_NAME}
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    COMPONENT java
+  )
+endif()

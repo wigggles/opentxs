@@ -30,12 +30,11 @@ add_library(
 target_link_libraries(
   opentxs-identity-wot-verification PRIVATE opentxs::messages
 )
-set_property(
-  TARGET opentxs-identity-wot-verification PROPERTY POSITION_INDEPENDENT_CODE 1
-)
 
-install(
-  FILES ${cxx-install-headers}
-  DESTINATION include/opentxs/identity/wot/verification
-  COMPONENT dev
-)
+if(OPENTXS_STANDALONE)
+  install(
+    FILES ${cxx-install-headers}
+    DESTINATION include/opentxs/identity/wot/verification
+    COMPONENT dev
+  )
+endif()

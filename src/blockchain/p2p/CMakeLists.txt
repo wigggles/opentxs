@@ -31,10 +31,11 @@ add_library(opentxs-blockchain-p2p OBJECT ${cxx-sources} ${cxx-headers})
 target_link_libraries(
   opentxs-blockchain-p2p PRIVATE Boost::headers opentxs::messages
 )
-set_property(TARGET opentxs-blockchain-p2p PROPERTY POSITION_INDEPENDENT_CODE 1)
 
-install(
-  FILES ${cxx-install-headers}
-  DESTINATION include/opentxs/blockchain/p2p
-  COMPONENT dev
-)
+if(OPENTXS_STANDALONE)
+  install(
+    FILES ${cxx-install-headers}
+    DESTINATION include/opentxs/blockchain/p2p
+    COMPONENT dev
+  )
+endif()

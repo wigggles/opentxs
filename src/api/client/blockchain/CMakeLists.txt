@@ -55,12 +55,11 @@ target_link_libraries(opentxs-api-client-blockchain PRIVATE opentxs::messages)
 target_include_directories(
   opentxs-api-client-blockchain SYSTEM PRIVATE "${opentxs_SOURCE_DIR}/deps/"
 )
-set_property(
-  TARGET opentxs-api-client-blockchain PROPERTY POSITION_INDEPENDENT_CODE 1
-)
 
-install(
-  FILES ${cxx-install-headers}
-  DESTINATION include/opentxs/api/client/blockchain
-  COMPONENT dev
-)
+if(OPENTXS_STANDALONE)
+  install(
+    FILES ${cxx-install-headers}
+    DESTINATION include/opentxs/api/client/blockchain
+    COMPONENT dev
+  )
+endif()

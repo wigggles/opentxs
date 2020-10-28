@@ -43,10 +43,6 @@ else()
     PUBLIC OPENTXS_BLOCK_STORAGE_ENABLED=0
   )
 endif()
-set_property(
-  TARGET opentxs-api-client-blockchain-database
-  PROPERTY POSITION_INDEPENDENT_CODE 1
-)
 
 target_compile_definitions(
   opentxs-api-client-blockchain-database

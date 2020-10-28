@@ -29,7 +29,3 @@ target_link_libraries(
     lmdb
     opentxs-api-client-blockchain-database
 )
-
-set_property(
-  TARGET opentxs-blockchain-database PROPERTY POSITION_INDEPENDENT_CODE 1
-)

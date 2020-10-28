@@ -56,10 +56,10 @@ else()
   target_compile_definitions(opentxs-blind PRIVATE OT_LUCRE_DEBUG=0)
 endif()
 
-set_property(TARGET opentxs-blind PROPERTY POSITION_INDEPENDENT_CODE 1)
-
-install(
-  FILES ${cxx-install-headers}
-  DESTINATION include/opentxs/blind
-  COMPONENT dev
-)
+if(OPENTXS_STANDALONE)
+  install(
+    FILES ${cxx-install-headers}
+    DESTINATION include/opentxs/blind
+    COMPONENT dev
+  )
+endif()

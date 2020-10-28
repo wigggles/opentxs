@@ -7,5 +7,3 @@ set(c-sources base64.c)
 set(c-headers base64.h)
 
 add_library(base64 OBJECT ${c-sources} ${c-headers})
-
-set_property(TARGET base64 PROPERTY POSITION_INDEPENDENT_CODE 1)

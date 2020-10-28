@@ -31,10 +31,11 @@ target_link_libraries(opentxs-otx-consensus PRIVATE opentxs::messages)
 target_include_directories(
   opentxs-otx-consensus SYSTEM PRIVATE "${opentxs_SOURCE_DIR}/deps/"
 )
-set_property(TARGET opentxs-otx-consensus PROPERTY POSITION_INDEPENDENT_CODE 1)
 
-install(
-  FILES ${cxx-install-headers}
-  DESTINATION include/opentxs/otx/consensus
-  COMPONENT dev
-)
+if(OPENTXS_STANDALONE)
+  install(
+    FILES ${cxx-install-headers}
+    DESTINATION include/opentxs/otx/consensus
+    COMPONENT dev
+  )
+endif()

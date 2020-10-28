@@ -7,12 +7,12 @@
 #include "1_Internal.hpp"    // IWYU pragma: associated
 #include "api/Settings.hpp"  // IWYU pragma: associated
 
-// NOTE: cstdlib HAS to be included here above SimpleIni, since for some reason
-// it uses stdlib functions without including that header.
-#include <cstdlib>  // IWYU pragma: keep
 #include <simpleini/SimpleIni.h>
 #include <cinttypes>
 #include <cstdint>
+// NOTE: cstdlib HAS to be included here above SimpleIni, since for some reason
+// it uses stdlib functions without including that header.
+#include <cstdlib>  // IWYU pragma: keep
 #include <memory>
 #include <ostream>
 

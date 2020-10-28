@@ -35,12 +35,11 @@ target_link_libraries(opentxs-identity-credential PRIVATE opentxs::messages)
 target_include_directories(
   opentxs-identity-credential SYSTEM PRIVATE "${opentxs_SOURCE_DIR}/deps/"
 )
-set_property(
-  TARGET opentxs-identity-credential PROPERTY POSITION_INDEPENDENT_CODE 1
-)
 
-install(
-  FILES ${cxx-install-headers}
-  DESTINATION include/opentxs/identity/credential
-  COMPONENT dev
-)
+if(OPENTXS_STANDALONE)
+  install(
+    FILES ${cxx-install-headers}
+    DESTINATION include/opentxs/identity/credential
+    COMPONENT dev
+  )
+endif()

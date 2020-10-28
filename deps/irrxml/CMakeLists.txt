@@ -4,15 +4,14 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 set(cxx-sources irrXML.cpp)
-set(
-  cxx-install-headers
-  CXMLReaderImpl.hpp
-  fast_atof.hpp
-  heapsort.hpp
-  irrArray.hpp
-  irrString.hpp
-  irrTypes.hpp
-  irrXML.hpp
+set(cxx-install-headers
+    CXMLReaderImpl.hpp
+    fast_atof.hpp
+    heapsort.hpp
+    irrArray.hpp
+    irrString.hpp
+    irrTypes.hpp
+    irrXML.hpp
 )
 set(cxx-headers ${cxx-install-headers})
 
@@ -45,5 +44,10 @@ if(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
   )
 endif()
 
-set_property(TARGET irrxml PROPERTY POSITION_INDEPENDENT_CODE 1)
-install(FILES ${cxx-install-headers} DESTINATION include/irrxml COMPONENT dev)
+if(OPENTXS_STANDALONE)
+  install(
+    FILES ${cxx-install-headers}
+    DESTINATION include/irrxml
+    COMPONENT dev
+  )
+endif()

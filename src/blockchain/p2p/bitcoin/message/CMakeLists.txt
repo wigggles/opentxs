@@ -74,7 +74,3 @@ target_link_libraries(
   opentxs-blockchain-p2p-bitcoin-message PRIVATE Boost::headers
                                                  opentxs::messages
 )
-set_property(
-  TARGET opentxs-blockchain-p2p-bitcoin-message
-  PROPERTY POSITION_INDEPENDENT_CODE 1
-)
