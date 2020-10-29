@@ -22,6 +22,8 @@ target_include_directories(
   opentxs-api-network SYSTEM PRIVATE "${opentxs_SOURCE_DIR}/deps/"
 )
 
+add_dependencies(opentxs-api-network generated_code)
+
 if(OPENTXS_STANDALONE)
   install(
     FILES ${cxx-install-headers}

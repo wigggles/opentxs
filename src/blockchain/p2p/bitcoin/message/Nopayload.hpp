@@ -39,7 +39,8 @@ class Header;
 namespace opentxs::blockchain::p2p::bitcoin::message::implementation
 {
 template <typename InterfaceType>
-class Nopayload final : virtual public InterfaceType
+class Nopayload final : virtual public InterfaceType,
+                        public implementation::Message
 {
 public:
     Nopayload(

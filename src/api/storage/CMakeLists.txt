@@ -17,6 +17,7 @@ set(cxx-headers
 
 add_library(opentxs-api-storage OBJECT ${cxx-sources} ${cxx-headers})
 target_link_libraries(opentxs-api-storage PRIVATE opentxs::messages)
+add_dependencies(opentxs-api-storage generated_code)
 
 if(OPENTXS_STANDALONE)
   install(

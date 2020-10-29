@@ -21,6 +21,7 @@ target_include_directories(
 target_link_libraries(
   opentxs-identity PRIVATE opentxs::messages unofficial-sodium::sodium
 )
+add_dependencies(opentxs-identity generated_code)
 
 if(OPENTXS_STANDALONE)
   install(

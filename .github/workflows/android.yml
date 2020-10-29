@@ -10,10 +10,10 @@ jobs:
         include:
           - binding: qt
             platform: ubuntu-20.04
-            docker: v7
+            docker: v8
           - binding: java
             platform: ubuntu-20.04
-            docker: v7
+            docker: v8
     runs-on: ${{ matrix.platform }}
     steps:
     - uses: actions/checkout@v1

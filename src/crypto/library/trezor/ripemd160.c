@@ -27,6 +27,7 @@
 
 #include <string.h>
 
+#include "memzero.h"
 #include "ripemd160.h"
 
 /*

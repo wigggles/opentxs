@@ -44,6 +44,7 @@ add_library(
 target_link_libraries(
   opentxs-blockchain-block-bitcoin PRIVATE Boost::headers opentxs::messages
 )
+add_dependencies(opentxs-blockchain-block-bitcoin generated_code)
 
 if(OPENTXS_STANDALONE)
   install(

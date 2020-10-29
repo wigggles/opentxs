@@ -55,6 +55,7 @@ target_link_libraries(opentxs-api-client-blockchain PRIVATE opentxs::messages)
 target_include_directories(
   opentxs-api-client-blockchain SYSTEM PRIVATE "${opentxs_SOURCE_DIR}/deps/"
 )
+add_dependencies(opentxs-api-client-blockchain generated_code)
 
 if(OPENTXS_STANDALONE)
   install(

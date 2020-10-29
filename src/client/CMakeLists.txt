@@ -24,6 +24,7 @@ target_link_libraries(opentxs-client PRIVATE opentxs::messages)
 target_include_directories(
   opentxs-client SYSTEM PRIVATE "${opentxs_SOURCE_DIR}/deps/"
 )
+add_dependencies(opentxs-client generated_code)
 
 if(OPENTXS_STANDALONE)
   install(

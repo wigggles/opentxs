@@ -12,3 +12,4 @@ set(cxx-header ${cxx-install-headers} Plugin.hpp StorageConfig.hpp)
 
 add_library(opentxs-storage OBJECT ${cxx-sources} ${cxx-headers})
 target_link_libraries(opentxs-storage PRIVATE opentxs::messages)
+add_dependencies(opentxs-storage generated_code)

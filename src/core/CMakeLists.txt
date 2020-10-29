@@ -101,7 +101,7 @@ target_link_libraries(
   opentxs-core PRIVATE Boost::headers opentxs::messages
                        unofficial-sodium::sodium
 )
-add_dependencies(opentxs-core otprotob)
+add_dependencies(opentxs-core generated_code)
 
 if(OPENTXS_STANDALONE)
   install(

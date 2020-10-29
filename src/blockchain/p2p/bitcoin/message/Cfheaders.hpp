@@ -12,6 +12,7 @@
 #include <memory>
 #include <vector>
 
+#include "blockchain/p2p/bitcoin/Message.hpp"
 #include "internal/blockchain/p2p/bitcoin/message/Message.hpp"
 #include "opentxs/Bytes.hpp"
 #include "opentxs/Types.hpp"
@@ -41,7 +42,8 @@ class Factory;
 
 namespace opentxs::blockchain::p2p::bitcoin::message::implementation
 {
-class Cfheaders final : public internal::Cfheaders
+class Cfheaders final : public internal::Cfheaders,
+                        public implementation::Message
 {
 public:
     using BitcoinFormat = FilterPrefixChained;

@@ -16,7 +16,6 @@
 #include <vector>
 
 #include "1_Internal.hpp"
-#include "blockchain/p2p/bitcoin/Message.hpp"
 #include "internal/blockchain/p2p/P2P.hpp"
 #include "internal/blockchain/p2p/bitcoin/Bitcoin.hpp"
 #include "opentxs/Bytes.hpp"
@@ -89,6 +88,20 @@ class Frame;
 }  // namespace zeromq
 }  // namespace network
 }  // namespace opentxs
+
+namespace opentxs::blockchain::p2p::bitcoin
+{
+struct Message {
+    static auto MaxPayload() -> std::size_t;
+
+    virtual auto Encode() const -> OTData = 0;
+
+    virtual auto header() const -> const Header& = 0;
+    virtual auto payload() const noexcept -> OTData = 0;
+
+    virtual ~Message() = default;
+};
+}  // namespace opentxs::blockchain::p2p::bitcoin
 
 namespace opentxs::blockchain::p2p::bitcoin::message
 {

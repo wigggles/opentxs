@@ -107,7 +107,7 @@ class OPENTXS_EXPORT opentxs::ui::ActivityThreadQt final
     Q_PROPERTY(QString threadID READ threadID NOTIFY updated)
 
 signals:
-    OPENTXS_EXPORT void updated() const;
+    void updated() const;
 
 public:
     // Table layout
@@ -124,19 +124,17 @@ public:
         PendingColumn = 5,
     };
 
-    OPENTXS_EXPORT QString displayName() const noexcept;
-    OPENTXS_EXPORT QString getDraft() const noexcept;
-    OPENTXS_EXPORT QString participants() const noexcept;
-    OPENTXS_EXPORT QString threadID() const noexcept;
-    OPENTXS_EXPORT Q_INVOKABLE bool pay(
+    QString displayName() const noexcept;
+    QString getDraft() const noexcept;
+    QString participants() const noexcept;
+    QString threadID() const noexcept;
+    Q_INVOKABLE bool pay(
         const QString& amount,
         const QString& sourceAccount,
         const QString& memo = "") const noexcept;
-    OPENTXS_EXPORT Q_INVOKABLE QString
-    paymentCode(const int currency) const noexcept;
-    OPENTXS_EXPORT Q_INVOKABLE bool sendDraft() const noexcept;
-    OPENTXS_EXPORT Q_INVOKABLE bool setDraft(
-        const QString& draft) const noexcept;
+    Q_INVOKABLE QString paymentCode(const int currency) const noexcept;
+    Q_INVOKABLE bool sendDraft() const noexcept;
+    Q_INVOKABLE bool setDraft(const QString& draft) const noexcept;
 
     ActivityThreadQt(implementation::ActivityThread& parent) noexcept;
 

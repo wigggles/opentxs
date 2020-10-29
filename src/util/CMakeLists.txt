@@ -32,6 +32,7 @@ add_library(opentxs-util OBJECT ${cxx-sources} ${cxx-headers})
 target_link_libraries(
   opentxs-util PRIVATE opentxs::messages unofficial-sodium::sodium
 )
+add_dependencies(opentxs-util generated_code)
 
 if(OPENTXS_STANDALONE)
   install(

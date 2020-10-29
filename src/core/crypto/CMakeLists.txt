@@ -34,6 +34,7 @@ target_include_directories(
   opentxs-core-crypto SYSTEM PRIVATE "${opentxs_SOURCE_DIR}/deps/"
 )
 target_link_libraries(opentxs-core-crypto PRIVATE opentxs::messages)
+add_dependencies(opentxs-core-crypto generated_code)
 
 if(OPENTXS_STANDALONE)
   install(

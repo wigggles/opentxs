@@ -12,6 +12,7 @@
 #include <memory>
 #include <vector>
 
+#include "blockchain/p2p/bitcoin/Message.hpp"
 #include "internal/blockchain/p2p/bitcoin/message/Message.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
@@ -39,7 +40,8 @@ class Header;
 
 namespace opentxs::blockchain::p2p::bitcoin::message::implementation
 {
-class Getheaders final : public internal::Getheaders
+class Getheaders final : public internal::Getheaders,
+                         public implementation::Message
 {
 public:
     auto at(const std::size_t position) const noexcept(false)

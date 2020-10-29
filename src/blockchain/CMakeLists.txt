@@ -56,6 +56,8 @@ target_link_libraries(
   opentxs-blockchain PRIVATE Boost::headers opentxs::messages
 )
 
+add_dependencies(opentxs-blockchain generated_code)
+
 if(OT_BLOCKCHAIN_EXPORT)
   target_link_libraries(opentxs-blockchain PRIVATE lmdb)
 

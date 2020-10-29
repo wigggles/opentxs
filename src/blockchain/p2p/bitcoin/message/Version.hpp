@@ -12,6 +12,7 @@
 #include <set>
 #include <string>
 
+#include "blockchain/p2p/bitcoin/Message.hpp"
 #include "internal/blockchain/p2p/P2P.hpp"
 #include "internal/blockchain/p2p/bitcoin/Bitcoin.hpp"
 #include "internal/blockchain/p2p/bitcoin/message/Message.hpp"
@@ -41,7 +42,7 @@ class Header;
 
 namespace opentxs::blockchain::p2p::bitcoin::message::implementation
 {
-class Version final : public internal::Version
+class Version final : public internal::Version, public implementation::Message
 {
 public:
     struct BitcoinFormat_1 {

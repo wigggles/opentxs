@@ -43,7 +43,8 @@ swig_link_libraries(${OTX_WRAPPER_NAME} ${JAVA_LIBRARIES})
 
 set(MOD_NAME ${SWIG_MODULE_${OTX_WRAPPER_NAME}_REAL_NAME})
 
-target_link_libraries(${MOD_NAME} opentxs::libopentxs)
+target_link_libraries(${MOD_NAME} PRIVATE opentxs::libopentxs)
+opentxs_link_target("${MOD_NAME}")
 target_include_directories(
   ${MOD_NAME} SYSTEM PRIVATE "${JNI_INCLUDE_DIRS}" "${JAVA_INCLUDE_PATH}"
                              "${JAVA_INCLUDE_PATH2}"

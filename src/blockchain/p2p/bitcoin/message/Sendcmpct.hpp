@@ -42,7 +42,7 @@ namespace be = boost::endian;
 
 namespace opentxs::blockchain::p2p::bitcoin::message
 {
-class Sendcmpct final : virtual public bitcoin::Message
+class Sendcmpct final : public implementation::Message
 {
 public:
     struct Raw {

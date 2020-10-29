@@ -208,6 +208,7 @@ add_library(proto-verify OBJECT ${cxx-headers} ${cxx-sources})
 add_library(opentxs::proto-verify ALIAS proto-verify)
 target_include_directories(proto-verify SYSTEM PRIVATE ${Protobuf_INCLUDE_DIR})
 target_link_libraries(proto-verify PRIVATE opentxs::messages)
+add_dependencies(proto-verify generated_code)
 
 if(NOT MSVC)
   target_compile_options(

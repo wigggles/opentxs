@@ -43,7 +43,7 @@ namespace p2p
 namespace bitcoin
 {
 class Header;
-class Message;
+struct Message;
 }  // namespace bitcoin
 }  // namespace p2p
 }  // namespace blockchain

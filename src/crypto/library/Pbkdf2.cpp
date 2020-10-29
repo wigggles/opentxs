@@ -32,19 +32,23 @@ auto Pbkdf2::PKCS5_PBKDF2_HMAC(
     const std::size_t bytes,
     void* output) const noexcept -> bool
 {
-    if (inputSize > std::numeric_limits<int>::max()) {
+    static_assert(sizeof(int) <= sizeof(std::size_t));
+    static constexpr auto limit =
+        static_cast<std::size_t>(std::numeric_limits<int>::max());
+
+    if (inputSize > limit) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Input too large").Flush();
 
         return false;
     }
 
-    if (saltSize > std::numeric_limits<int>::max()) {
+    if (saltSize > limit) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Salt too large").Flush();
 
         return false;
     }
 
-    if (bytes > std::numeric_limits<int>::max()) {
+    if (bytes > limit) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Requested output too large")
             .Flush();
 

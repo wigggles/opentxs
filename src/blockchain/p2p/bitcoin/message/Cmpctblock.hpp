@@ -37,7 +37,7 @@ class Header;
 
 namespace opentxs::blockchain::p2p::bitcoin::message
 {
-class Cmpctblock final : virtual public bitcoin::Message
+class Cmpctblock final : public implementation::Message
 {
 public:
     auto getRawCmpctblock() const noexcept -> OTData

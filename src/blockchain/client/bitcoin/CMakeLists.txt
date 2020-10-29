@@ -13,3 +13,4 @@ add_library(
 target_link_libraries(
   opentxs-blockchain-client-bitcoin PRIVATE Boost::headers opentxs::messages
 )
+add_dependencies(opentxs-blockchain-client-bitcoin generated_code)

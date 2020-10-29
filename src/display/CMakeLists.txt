@@ -14,4 +14,5 @@ set(cxx-headers
 )
 
 add_library(opentxs-display OBJECT ${cxx-sources} ${cxx-headers})
-target_link_libraries(opentxs-display PRIVATE Boost::headers)
+target_link_libraries(opentxs-display PRIVATE Boost::headers opentxs::messages)
+add_dependencies(opentxs-display generated_code)

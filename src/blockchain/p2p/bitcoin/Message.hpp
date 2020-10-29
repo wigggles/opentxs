@@ -12,6 +12,7 @@
 
 #include "blockchain/p2p/bitcoin/Header.hpp"
 #include "internal/blockchain/p2p/bitcoin/Bitcoin.hpp"
+#include "internal/blockchain/p2p/bitcoin/message/Message.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/Version.hpp"
 #include "opentxs/api/Core.hpp"
@@ -28,27 +29,24 @@ class Core;
 
 namespace ot = opentxs;
 
-namespace opentxs::blockchain::p2p::bitcoin
+namespace opentxs::blockchain::p2p::bitcoin::message::implementation
 {
-class Message
+class OPENTXS_EXPORT Message : virtual public bitcoin::Message
 {
 public:
-    static auto MaxPayload() -> std::size_t;
+    auto Encode() const -> OTData final;
 
-    auto Encode() const -> OTData;
+    auto header() const -> const Header& final { return *header_; }
 
-    auto header() const -> const Header& { return *header_; }
-    virtual auto payload() const noexcept -> OTData = 0;
-
-    virtual ~Message() = default;
+    ~Message() override = default;
 
 protected:
     const ot::api::Core& api_;
     std::unique_ptr<Header> header_;
 
-    void verify_checksum() const noexcept(false);
+    auto verify_checksum() const noexcept(false) -> void;
 
-    void init_hash() noexcept;
+    auto init_hash() noexcept -> void;
 
     Message(
         const api::Core& api,
@@ -65,4 +63,4 @@ private:
     auto operator=(const Message&) -> Message& = delete;
     auto operator=(Message &&) -> Message& = delete;
 };
-}  // namespace opentxs::blockchain::p2p::bitcoin
+}  // namespace opentxs::blockchain::p2p::bitcoin::message::implementation

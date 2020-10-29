@@ -54,3 +54,4 @@ set(cxx-headers
 
 add_library(opentxs-storage-tree OBJECT ${cxx-sources} ${cxx-headers})
 target_link_libraries(opentxs-storage-tree PRIVATE opentxs::messages)
+add_dependencies(opentxs-storage-tree generated_code)

@@ -173,13 +173,13 @@ class OPENTXS_EXPORT opentxs::ui::ProfileQt final : public QIdentityProxyModel
     Q_PROPERTY(QString paymentCode READ paymentCode NOTIFY updated)
 
 signals:
-    OPENTXS_EXPORT void updated() const;
+    void updated() const;
 
 public:
     // Tree layout
-    OPENTXS_EXPORT QString displayName() const noexcept;
-    OPENTXS_EXPORT QString nymID() const noexcept;
-    OPENTXS_EXPORT QString paymentCode() const noexcept;
+    QString displayName() const noexcept;
+    QString nymID() const noexcept;
+    QString paymentCode() const noexcept;
 
     ProfileQt(implementation::Profile& parent) noexcept;
 

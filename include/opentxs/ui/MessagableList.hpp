@@ -70,7 +70,7 @@ class OPENTXS_EXPORT opentxs::ui::MessagableListQt final
     Q_OBJECT
 
 signals:
-    OPENTXS_EXPORT void updated() const;
+    void updated() const;
 
 public:
     // List layout

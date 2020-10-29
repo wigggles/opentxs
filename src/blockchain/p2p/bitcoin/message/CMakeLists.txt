@@ -74,3 +74,4 @@ target_link_libraries(
   opentxs-blockchain-p2p-bitcoin-message PRIVATE Boost::headers
                                                  opentxs::messages
 )
+add_dependencies(opentxs-blockchain-p2p-bitcoin-message generated_code)

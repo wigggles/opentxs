@@ -45,7 +45,7 @@ class Header;
 
 namespace opentxs::blockchain::p2p::bitcoin::message
 {
-class Getblocks final : virtual public bitcoin::Message
+class Getblocks final : public implementation::Message
 {
 public:
     struct Raw {

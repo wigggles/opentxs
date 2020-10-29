@@ -122,14 +122,14 @@ public:
 
     OPENTXS_EXPORT ~Pimpl() = default;
 
-#ifdef SWIG_VERSION
+#if defined SWIG_VERSION || defined _WIN32
     OPENTXS_EXPORT Pimpl() = default;
 #endif
 
 private:
     std::unique_ptr<C> pimpl_{nullptr};
 
-#ifndef SWIG_VERSION
+#if !defined SWIG_VERSION && !defined _WIN32
     Pimpl() = delete;
 #endif
 };  // class Pimpl

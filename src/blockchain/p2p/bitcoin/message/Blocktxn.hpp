@@ -10,6 +10,7 @@
 
 #include <memory>
 
+#include "blockchain/p2p/bitcoin/Message.hpp"
 #include "internal/blockchain/p2p/bitcoin/message/Message.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/core/Data.hpp"
@@ -35,7 +36,7 @@ class Header;
 
 namespace opentxs::blockchain::p2p::bitcoin::message::implementation
 {
-class Blocktxn final : public internal::Blocktxn
+class Blocktxn final : public internal::Blocktxn, public implementation::Message
 {
 public:
     auto BlockTransactions() const noexcept -> OTData final { return payload_; }

@@ -16,6 +16,7 @@ target_include_directories(
   opentxs-core-contract-basket SYSTEM PRIVATE "${opentxs_SOURCE_DIR}/deps/"
 )
 target_link_libraries(opentxs-core-contract-basket PRIVATE opentxs::messages)
+add_dependencies(opentxs-core-contract-basket generated_code)
 
 if(OPENTXS_STANDALONE)
   install(

@@ -12,6 +12,7 @@ set(cxx-headers ${cxx-install-headers})
 
 add_library(opentxs-core-util OBJECT ${cxx-sources} ${cxx-headers})
 target_link_libraries(opentxs-core-util PRIVATE opentxs::messages)
+add_dependencies(opentxs-core-util generated_code)
 
 if(OPENTXS_STANDALONE)
   install(

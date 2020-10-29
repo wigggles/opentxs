@@ -15,6 +15,7 @@ target_include_directories(
   opentxs-recurring SYSTEM PRIVATE "${opentxs_SOURCE_DIR}/deps/"
 )
 target_link_libraries(opentxs-recurring PRIVATE opentxs::messages)
+add_dependencies(opentxs-recurring generated_code)
 
 if(OPENTXS_STANDALONE)
   install(

@@ -73,7 +73,7 @@ class OPENTXS_EXPORT opentxs::ui::ActivitySummaryQt final
     Q_OBJECT
 
 signals:
-    OPENTXS_EXPORT void updated() const;
+    void updated() const;
 
 public:
     ActivitySummaryQt(implementation::ActivitySummary& parent) noexcept;

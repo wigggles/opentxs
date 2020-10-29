@@ -16,6 +16,7 @@ target_include_directories(
   opentxs-trade SYSTEM PRIVATE "${opentxs_SOURCE_DIR}/deps/"
 )
 target_link_libraries(opentxs-trade PRIVATE opentxs::messages)
+add_dependencies(opentxs-trade generated_code)
 
 if(OPENTXS_STANDALONE)
   install(

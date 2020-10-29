@@ -76,9 +76,10 @@ auto BlockchainSelectionItem::qt_data(const int column, int role) const noexcept
                     return IsTestnet();
                 }
                 default: {
-                    [[fallthrough]];
                 }
             }
+
+            [[fallthrough]];
         }
         default: {
         }

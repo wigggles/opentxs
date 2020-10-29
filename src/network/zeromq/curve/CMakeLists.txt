@@ -15,6 +15,7 @@ add_library(opentxs-network-zeromq-curve OBJECT ${cxx-sources} ${cxx-headers})
 target_link_libraries(
   opentxs-network-zeromq-curve PRIVATE opentxs::messages "${OT_ZMQ_TARGET}"
 )
+add_dependencies(opentxs-network-zeromq-curve generated_code)
 
 if(OPENTXS_STANDALONE)
   install(

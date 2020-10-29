@@ -51,3 +51,4 @@ if(LMDB_EXPORT)
 endif()
 
 target_link_libraries(opentxs-storage-drivers PRIVATE opentxs::messages)
+add_dependencies(opentxs-storage-drivers generated_code)

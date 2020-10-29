@@ -49,3 +49,4 @@ target_compile_definitions(
   PRIVATE
     OPENTXS_DEFAULT_BLOCK_STORAGE_POLICY=${OPENTXS_DEFAULT_BLOCK_STORAGE_POLICY}
 )
+add_dependencies(opentxs-api-client-blockchain-database generated_code)

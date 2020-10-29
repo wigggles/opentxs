@@ -40,7 +40,7 @@ class Header;
 
 namespace opentxs::blockchain::p2p::bitcoin::message
 {
-class Feefilter final : virtual public bitcoin::Message
+class Feefilter final : public implementation::Message
 {
 public:
     auto feeRate() const noexcept -> std::uint64_t { return fee_rate_; }

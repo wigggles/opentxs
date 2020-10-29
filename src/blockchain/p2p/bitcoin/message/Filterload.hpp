@@ -10,6 +10,7 @@
 
 #include <memory>
 
+#include "blockchain/p2p/bitcoin/Message.hpp"
 #include "internal/blockchain/p2p/bitcoin/message/Message.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/blockchain/BloomFilter.hpp"
@@ -36,7 +37,8 @@ class Header;
 
 namespace opentxs::blockchain::p2p::bitcoin::message::implementation
 {
-class Filterload final : virtual public internal::Filterload
+class Filterload final : virtual public internal::Filterload,
+                         public implementation::Message
 {
 public:
     virtual auto Filter() const noexcept -> OTBloomFilter { return payload_; }

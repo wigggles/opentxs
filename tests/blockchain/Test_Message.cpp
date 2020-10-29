@@ -15,7 +15,6 @@
 #include "OTTestEnvironment.hpp"  // IWYU pragma: keep
 #include "blockchain/bitcoin/CompactSize.hpp"
 #include "blockchain/p2p/bitcoin/Header.hpp"
-#include "blockchain/p2p/bitcoin/Message.hpp"
 #include "blockchain/p2p/bitcoin/message/Getblocks.hpp"
 #include "internal/api/client/Client.hpp"
 #include "internal/blockchain/p2p/bitcoin/Bitcoin.hpp"

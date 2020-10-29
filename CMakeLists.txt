@@ -134,7 +134,7 @@ endif()
 
 if(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
   set(CMAKE_CXX_FLAGS
-      "${CMAKE_CXX_FLAGS} -Wno-c++20-compat -Wno-comma -Wno-disabled-macro-expansion -Wno-documentation -Wno-documentation-unknown-command -Wno-extra-semi-stmt -Wno-implicit-int-conversion -Wno-redundant-parens -Wno-reserved-id-macro -Wno-shorten-64-to-32 -Wno-unused-template"
+      "${CMAKE_CXX_FLAGS} -Wno-c++2a-compat -Wno-c++20-compat -Wno-comma -Wno-disabled-macro-expansion -Wno-documentation -Wno-documentation-unknown-command -Wno-extra-semi-stmt -Wno-implicit-int-conversion -Wno-redundant-parens -Wno-reserved-id-macro -Wno-shorten-64-to-32 -Wno-unused-template"
   )
 endif()
 
@@ -200,10 +200,8 @@ endif()
 find_package(unofficial-sodium REQUIRED)
 find_package(Protobuf REQUIRED)
 find_package(ZLIB REQUIRED)
-# Boost versions before 1.72 have a bug in the multiprecision package
-# https://github.com/boostorg/multiprecision/issues/174
 find_package(
-  Boost 1.72.0 REQUIRED
+  Boost 1.73.0 REQUIRED
   COMPONENTS system filesystem
   OPTIONAL_COMPONENTS stacktrace_basic
 )

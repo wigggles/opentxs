@@ -32,6 +32,7 @@ target_link_libraries(opentxs-network PRIVATE opentxs::messages)
 target_include_directories(
   opentxs-network SYSTEM PRIVATE "${opentxs_SOURCE_DIR}/deps/"
 )
+add_dependencies(opentxs-network generated_code)
 
 if(OPENTXS_STANDALONE)
   install(
