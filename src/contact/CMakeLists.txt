@@ -24,10 +24,11 @@ target_link_libraries(opentxs-contact PRIVATE opentxs::messages)
 target_include_directories(
   opentxs-contact SYSTEM PRIVATE "${opentxs_SOURCE_DIR}/deps/"
 )
-set_property(TARGET opentxs-contact PROPERTY POSITION_INDEPENDENT_CODE 1)
 
-install(
-  FILES ${cxx-install-headers}
-  DESTINATION include/opentxs/contact
-  COMPONENT dev
-)
+if(OPENTXS_STANDALONE)
+  install(
+    FILES ${cxx-install-headers}
+    DESTINATION include/opentxs/contact
+    COMPONENT dev
+  )
+endif()

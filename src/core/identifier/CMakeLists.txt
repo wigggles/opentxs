@@ -9,8 +9,10 @@ set(cxx-install-headers
     "${opentxs_SOURCE_DIR}/include/opentxs/core/identifier/UnitDefinition.hpp"
 )
 
-install(
-  FILES ${cxx-install-headers}
-  DESTINATION include/opentxs/core/identifier
-  COMPONENT dev
-)
+if(OPENTXS_STANDALONE)
+  install(
+    FILES ${cxx-install-headers}
+    DESTINATION include/opentxs/core/identifier
+    COMPONENT dev
+  )
+endif()

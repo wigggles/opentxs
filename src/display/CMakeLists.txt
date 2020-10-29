@@ -15,4 +15,3 @@ set(cxx-headers
 
 add_library(opentxs-display OBJECT ${cxx-sources} ${cxx-headers})
 target_link_libraries(opentxs-display PRIVATE Boost::headers)
-set_property(TARGET opentxs-display PROPERTY POSITION_INDEPENDENT_CODE 1)

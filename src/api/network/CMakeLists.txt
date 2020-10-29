@@ -21,10 +21,11 @@ target_link_libraries(opentxs-api-network PRIVATE opentxs::messages)
 target_include_directories(
   opentxs-api-network SYSTEM PRIVATE "${opentxs_SOURCE_DIR}/deps/"
 )
-set_property(TARGET opentxs-api-network PROPERTY POSITION_INDEPENDENT_CODE 1)
 
-install(
-  FILES ${cxx-install-headers}
-  DESTINATION include/opentxs/api/network
-  COMPONENT dev
-)
+if(OPENTXS_STANDALONE)
+  install(
+    FILES ${cxx-install-headers}
+    DESTINATION include/opentxs/api/network
+    COMPONENT dev
+  )
+endif()

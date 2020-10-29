@@ -17,10 +17,11 @@ set(cxx-headers
 
 add_library(opentxs-api-storage OBJECT ${cxx-sources} ${cxx-headers})
 target_link_libraries(opentxs-api-storage PRIVATE opentxs::messages)
-set_property(TARGET opentxs-api-storage PROPERTY POSITION_INDEPENDENT_CODE 1)
 
-install(
-  FILES ${cxx-install-headers}
-  DESTINATION include/opentxs/api/storage
-  COMPONENT dev
-)
+if(OPENTXS_STANDALONE)
+  install(
+    FILES ${cxx-install-headers}
+    DESTINATION include/opentxs/api/storage
+    COMPONENT dev
+  )
+endif()

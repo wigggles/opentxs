@@ -17,10 +17,11 @@ target_link_libraries(opentxs-otx PRIVATE opentxs::messages)
 target_include_directories(
   opentxs-otx SYSTEM PRIVATE "${opentxs_SOURCE_DIR}/deps/"
 )
-set_property(TARGET opentxs-otx PROPERTY POSITION_INDEPENDENT_CODE 1)
 
-install(
-  FILES ${cxx-install-headers}
-  DESTINATION include/opentxs/otx
-  COMPONENT dev
-)
+if(OPENTXS_STANDALONE)
+  install(
+    FILES ${cxx-install-headers}
+    DESTINATION include/opentxs/otx
+    COMPONENT dev
+  )
+endif()

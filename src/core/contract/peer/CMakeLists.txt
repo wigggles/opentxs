@@ -52,12 +52,11 @@ target_link_libraries(opentxs-core-contract-peer PRIVATE opentxs::messages)
 target_include_directories(
   opentxs-core-contract-peer SYSTEM PRIVATE "${opentxs_SOURCE_DIR}/deps/"
 )
-set_property(
-  TARGET opentxs-core-contract-peer PROPERTY POSITION_INDEPENDENT_CODE 1
-)
 
-install(
-  FILES ${cxx-install-headers}
-  DESTINATION include/opentxs/core/contract/peer
-  COMPONENT dev
-)
+if(OPENTXS_STANDALONE)
+  install(
+    FILES ${cxx-install-headers}
+    DESTINATION include/opentxs/core/contract/peer
+    COMPONENT dev
+  )
+endif()

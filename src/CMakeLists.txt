@@ -181,7 +181,27 @@ set(cxx-headers
     "${CMAKE_CURRENT_SOURCE_DIR}/Exclusive.tpp"
 )
 
-add_library(opentxs ${cxx-sources} ${cxx-headers} ${object-deps})
+add_library(opentxs-common OBJECT ${cxx-sources} ${cxx-headers})
+target_link_libraries(opentxs-common PRIVATE opentxs::messages)
+
+list(APPEND object-deps $<TARGET_OBJECTS:opentxs-common>)
+
+if(OPENTXS_STANDALONE)
+  # library type controlled by BUILD_SHARED_LIBS
+  add_library(opentxs ${object-deps})
+else()
+  add_library(opentxs STATIC ${object-deps})
+  target_include_directories(
+    opentxs
+    INTERFACE
+      $<BUILD_INTERFACE:${opentxs_BINARY_DIR}/include>
+      $<BUILD_INTERFACE:${opentxs_BINARY_DIR}/serialization>
+      $<BUILD_INTERFACE:${opentxs_BINARY_DIR}/src>
+      $<BUILD_INTERFACE:${opentxs_SOURCE_DIR}/deps>
+      $<BUILD_INTERFACE:${opentxs_SOURCE_DIR}/include>
+  )
+endif()
+
 opentxs_link_target("opentxs")
 add_library(opentxs::libopentxs ALIAS opentxs)
 
@@ -206,14 +226,16 @@ generate_export_header(
   OPENTXS_EXPORT
 )
 
-install(
-  TARGETS opentxs
-  DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  EXPORT opentxs-targets
-  COMPONENT main
-)
+if(OPENTXS_STANDALONE)
+  install(
+    TARGETS opentxs
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    EXPORT opentxs-targets
+    COMPONENT main
+  )
+endif()
 
-if(OT_INSTALL_LIBRARY_DEPENDENCIES)
+if(OT_INSTALL_LIBRARY_DEPENDENCIES AND OPENTXS_STANDALONE)
   string(TOUPPER "${CMAKE_BUILD_TYPE}" BUILD_TYPE_SUFFIX)
   get_target_property(
     Boost_system_LIBRARY Boost::system IMPORTED_LOCATION_${BUILD_TYPE_SUFFIX}
@@ -335,11 +357,13 @@ if(OT_INSTALL_LIBRARY_DEPENDENCIES)
       COMPONENT main
     )
   endif()
-endif(OT_INSTALL_LIBRARY_DEPENDENCIES)
+endif(OT_INSTALL_LIBRARY_DEPENDENCIES AND OPENTXS_STANDALONE)
 
-install(
-  FILES ${cxx-install-headers}
-        "${${PROJECT_NAME}_BINARY_DIR}/src/opentxs/opentxs_export.hpp"
-  DESTINATION include/opentxs
-  COMPONENT dev
-)
+if(OPENTXS_STANDALONE)
+  install(
+    FILES ${cxx-install-headers}
+          "${${PROJECT_NAME}_BINARY_DIR}/src/opentxs/opentxs_export.hpp"
+    DESTINATION include/opentxs
+    COMPONENT dev
+  )
+endif()

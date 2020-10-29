@@ -238,7 +238,7 @@ protected:
                                  // be removed from Cron on next process.
     // (And its offer will be removed from the Market as well, if
     // appropriate.)
-    virtual void onActivate(const PasswordPrompt& reason) {
+    virtual void onActivate([[maybe_unused]] const PasswordPrompt& reason) {
     }  // called by HookActivationOnCron().
 
     virtual void onFinalReceipt(
@@ -249,7 +249,9 @@ protected:
         const PasswordPrompt& reason) = 0;  // called by
                                             // HookRemovalFromCron().
 
-    virtual void onRemovalFromCron(const PasswordPrompt& reason) {
+    virtual void onRemovalFromCron([
+        [maybe_unused]] const PasswordPrompt& reason)
+    {
     }  // called by HookRemovalFromCron().
     void ClearClosingNumbers();
 

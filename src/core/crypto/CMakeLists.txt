@@ -34,10 +34,11 @@ target_include_directories(
   opentxs-core-crypto SYSTEM PRIVATE "${opentxs_SOURCE_DIR}/deps/"
 )
 target_link_libraries(opentxs-core-crypto PRIVATE opentxs::messages)
-set_property(TARGET opentxs-core-crypto PROPERTY POSITION_INDEPENDENT_CODE 1)
 
-install(
-  FILES ${cxx-install-headers}
-  DESTINATION include/opentxs/core/crypto
-  COMPONENT dev
-)
+if(OPENTXS_STANDALONE)
+  install(
+    FILES ${cxx-install-headers}
+    DESTINATION include/opentxs/core/crypto
+    COMPONENT dev
+  )
+endif()

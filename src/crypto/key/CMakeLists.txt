@@ -57,10 +57,11 @@ endif()
 target_link_libraries(
   opentxs-crypto-key PRIVATE opentxs::messages unofficial-sodium::sodium
 )
-set_property(TARGET opentxs-crypto-key PROPERTY POSITION_INDEPENDENT_CODE 1)
 
-install(
-  FILES ${cxx-install-headers}
-  DESTINATION include/opentxs/crypto/key
-  COMPONENT dev
-)
+if(OPENTXS_STANDALONE)
+  install(
+    FILES ${cxx-install-headers}
+    DESTINATION include/opentxs/crypto/key
+    COMPONENT dev
+  )
+endif()

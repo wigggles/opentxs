@@ -34,10 +34,11 @@ target_link_libraries(opentxs-core-contract PRIVATE opentxs::messages)
 target_include_directories(
   opentxs-core-contract SYSTEM PRIVATE "${opentxs_SOURCE_DIR}/deps/"
 )
-set_property(TARGET opentxs-core-contract PROPERTY POSITION_INDEPENDENT_CODE 1)
 
-install(
-  FILES ${cxx-install-headers}
-  DESTINATION include/opentxs/core/contract
-  COMPONENT dev
-)
+if(OPENTXS_STANDALONE)
+  install(
+    FILES ${cxx-install-headers}
+    DESTINATION include/opentxs/core/contract
+    COMPONENT dev
+  )
+endif()

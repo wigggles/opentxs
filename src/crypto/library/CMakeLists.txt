@@ -50,7 +50,6 @@ target_include_directories(
 target_link_libraries(
   opentxs-crypto-library PRIVATE opentxs::messages unofficial-sodium::sodium
 )
-set_property(TARGET opentxs-crypto-library PROPERTY POSITION_INDEPENDENT_CODE 1)
 
 if(LIBSECP256K1_EXPORT)
   add_library(
@@ -61,10 +60,6 @@ if(LIBSECP256K1_EXPORT)
   target_link_libraries(
     opentxs-crypto-library-libsecp256k1 PRIVATE opentxs::messages
                                                 unofficial::secp256k1
-  )
-  set_property(
-    TARGET opentxs-crypto-library-libsecp256k1
-    PROPERTY POSITION_INDEPENDENT_CODE 1
   )
 endif()
 
@@ -84,13 +79,12 @@ if(OPENSSL_EXPORT)
     opentxs-crypto-library-openssl PRIVATE Boost::headers opentxs::messages
                                            opentxs-api-crypto
   )
-  set_property(
-    TARGET opentxs-crypto-library-openssl PROPERTY POSITION_INDEPENDENT_CODE 1
-  )
 endif()
 
-install(
-  FILES ${cxx-install-headers}
-  DESTINATION include/opentxs/crypto/library
-  COMPONENT dev
-)
+if(OPENTXS_STANDALONE)
+  install(
+    FILES ${cxx-install-headers}
+    DESTINATION include/opentxs/crypto/library
+    COMPONENT dev
+  )
+endif()

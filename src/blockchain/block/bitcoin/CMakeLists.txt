@@ -44,12 +44,11 @@ add_library(
 target_link_libraries(
   opentxs-blockchain-block-bitcoin PRIVATE Boost::headers opentxs::messages
 )
-set_property(
-  TARGET opentxs-blockchain-block-bitcoin PROPERTY POSITION_INDEPENDENT_CODE 1
-)
 
-install(
-  FILES ${cxx-install-headers}
-  DESTINATION include/opentxs/blockchain/block/bitcoin
-  COMPONENT dev
-)
+if(OPENTXS_STANDALONE)
+  install(
+    FILES ${cxx-install-headers}
+    DESTINATION include/opentxs/blockchain/block/bitcoin
+    COMPONENT dev
+  )
+endif()

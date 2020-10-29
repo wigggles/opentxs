@@ -29,12 +29,11 @@ add_library(opentxs-network-zeromq-zap OBJECT ${cxx-sources} ${cxx-headers})
 target_link_libraries(
   opentxs-network-zeromq-zap PRIVATE opentxs::messages "${OT_ZMQ_TARGET}"
 )
-set_property(
-  TARGET opentxs-network-zeromq-zap PROPERTY POSITION_INDEPENDENT_CODE 1
-)
 
-install(
-  FILES ${cxx-install-headers}
-  DESTINATION include/opentxs/network/zeromq/zap
-  COMPONENT dev
-)
+if(OPENTXS_STANDALONE)
+  install(
+    FILES ${cxx-install-headers}
+    DESTINATION include/opentxs/network/zeromq/zap
+    COMPONENT dev
+  )
+endif()

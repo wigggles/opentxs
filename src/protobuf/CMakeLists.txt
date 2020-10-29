@@ -216,6 +216,5 @@ if(NOT MSVC)
 endif()
 
 set_target_properties(
-  proto-verify PROPERTIES POSITION_INDEPENDENT_CODE ON
-                          MSVC_RUNTIME_LIBRARY "${MSVC_RUNTIME_DEFAULT}"
+  proto-verify PROPERTIES MSVC_RUNTIME_LIBRARY "${MSVC_RUNTIME_DEFAULT}"
 )

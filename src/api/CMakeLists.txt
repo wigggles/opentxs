@@ -69,10 +69,10 @@ else()
   target_compile_definitions(opentxs-api PRIVATE OT_RPC=0)
 endif()
 
-set_property(TARGET opentxs-api PROPERTY POSITION_INDEPENDENT_CODE 1)
-
-install(
-  FILES ${cxx-install-headers}
-  DESTINATION include/opentxs/api
-  COMPONENT dev
-)
+if(OPENTXS_STANDALONE)
+  install(
+    FILES ${cxx-install-headers}
+    DESTINATION include/opentxs/api
+    COMPONENT dev
+  )
+endif()

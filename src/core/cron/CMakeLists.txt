@@ -15,10 +15,11 @@ target_include_directories(
   opentxs-cron SYSTEM PRIVATE "${opentxs_SOURCE_DIR}/deps/"
 )
 target_link_libraries(opentxs-cron PRIVATE opentxs::messages)
-set_property(TARGET opentxs-cron PROPERTY POSITION_INDEPENDENT_CODE 1)
 
-install(
-  FILES ${cxx-install-headers}
-  DESTINATION include/opentxs/core/cron
-  COMPONENT dev
-)
+if(OPENTXS_STANDALONE)
+  install(
+    FILES ${cxx-install-headers}
+    DESTINATION include/opentxs/core/cron
+    COMPONENT dev
+  )
+endif()

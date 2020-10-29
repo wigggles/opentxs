@@ -101,11 +101,12 @@ target_link_libraries(
   opentxs-core PRIVATE Boost::headers opentxs::messages
                        unofficial-sodium::sodium
 )
-set_property(TARGET opentxs-core PROPERTY POSITION_INDEPENDENT_CODE 1)
 add_dependencies(opentxs-core otprotob)
 
-install(
-  FILES ${cxx-install-headers}
-  DESTINATION include/opentxs/core
-  COMPONENT dev
-)
+if(OPENTXS_STANDALONE)
+  install(
+    FILES ${cxx-install-headers}
+    DESTINATION include/opentxs/core
+    COMPONENT dev
+  )
+endif()

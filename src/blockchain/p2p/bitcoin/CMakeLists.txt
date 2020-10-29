@@ -24,6 +24,3 @@ add_library(opentxs-blockchain-p2p-bitcoin OBJECT ${cxx-sources} ${cxx-headers})
 target_link_libraries(
   opentxs-blockchain-p2p-bitcoin PRIVATE Boost::headers opentxs::messages
 )
-set_property(
-  TARGET opentxs-blockchain-p2p-bitcoin PROPERTY POSITION_INDEPENDENT_CODE 1
-)

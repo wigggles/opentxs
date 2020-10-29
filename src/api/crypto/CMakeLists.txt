@@ -50,10 +50,10 @@ else()
   )
 endif()
 
-set_property(TARGET opentxs-api-crypto PROPERTY POSITION_INDEPENDENT_CODE 1)
-
-install(
-  FILES ${cxx-install-headers}
-  DESTINATION include/opentxs/api/crypto
-  COMPONENT dev
-)
+if(OPENTXS_STANDALONE)
+  install(
+    FILES ${cxx-install-headers}
+    DESTINATION include/opentxs/api/crypto
+    COMPONENT dev
+  )
+endif()

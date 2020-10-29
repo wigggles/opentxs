@@ -52,7 +52,6 @@ if(OT_BLOCKCHAIN_EXPORT)
 endif()
 
 add_library(opentxs-blockchain OBJECT ${cxx-sources} ${cxx-headers})
-set_property(TARGET opentxs-blockchain PROPERTY POSITION_INDEPENDENT_CODE 1)
 target_link_libraries(
   opentxs-blockchain PRIVATE Boost::headers opentxs::messages
 )
@@ -60,9 +59,11 @@ target_link_libraries(
 if(OT_BLOCKCHAIN_EXPORT)
   target_link_libraries(opentxs-blockchain PRIVATE lmdb)
 
-  install(
-    FILES ${cxx-install-headers}
-    DESTINATION include/opentxs/blockchain
-    COMPONENT dev
-  )
+  if(OPENTXS_STANDALONE)
+    install(
+      FILES ${cxx-install-headers}
+      DESTINATION include/opentxs/blockchain
+      COMPONENT dev
+    )
+  endif()
 endif()

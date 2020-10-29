@@ -17,10 +17,8 @@ if(CASH_LUCRE_EXPORT)
   endif()
 
   target_include_directories(
-    lucre SYSTEM
-    PRIVATE
-      "${CMAKE_CURRENT_SOURCE_DIR}/lucre/include/lucre/"
-      "${OPENSSL_INCLUDE_DIR}"
+    lucre SYSTEM PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/lucre/include/lucre/"
+                         "${OPENSSL_INCLUDE_DIR}"
   )
   if(NOT MSVC)
     target_compile_options(
@@ -37,12 +35,9 @@ if(CASH_LUCRE_EXPORT)
 
   if(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
     target_compile_options(
-      lucre
-      PRIVATE -Wno-shorten-64-to-32 -Wno-string-conversion
+      lucre PRIVATE -Wno-shorten-64-to-32 -Wno-string-conversion
     )
   endif()
-
-  set_property(TARGET lucre PROPERTY POSITION_INDEPENDENT_CODE 1)
 endif(CASH_LUCRE_EXPORT)
 
 set(hashes-sources ${CMAKE_CURRENT_SOURCE_DIR}/smhasher/src/MurmurHash3.cpp)
@@ -68,9 +63,7 @@ endif()
 
 if(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
   target_compile_options(
-    external-hashes
-    PRIVATE -Wno-reserved-id-macro -Wno-shadow-field-in-constructor
+    external-hashes PRIVATE -Wno-reserved-id-macro
+                            -Wno-shadow-field-in-constructor
   )
 endif()
-
-set_property(TARGET external-hashes PROPERTY POSITION_INDEPENDENT_CODE 1)

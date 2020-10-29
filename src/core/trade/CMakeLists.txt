@@ -16,10 +16,11 @@ target_include_directories(
   opentxs-trade SYSTEM PRIVATE "${opentxs_SOURCE_DIR}/deps/"
 )
 target_link_libraries(opentxs-trade PRIVATE opentxs::messages)
-set_property(TARGET opentxs-trade PROPERTY POSITION_INDEPENDENT_CODE 1)
 
-install(
-  FILES ${cxx-install-headers}
-  DESTINATION include/opentxs/core/trade
-  COMPONENT dev
-)
+if(OPENTXS_STANDALONE)
+  install(
+    FILES ${cxx-install-headers}
+    DESTINATION include/opentxs/core/trade
+    COMPONENT dev
+  )
+endif()

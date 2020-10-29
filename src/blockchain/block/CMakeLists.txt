@@ -23,12 +23,11 @@ add_library(opentxs-blockchain-block OBJECT ${cxx-sources} ${cxx-headers})
 target_link_libraries(
   opentxs-blockchain-block PRIVATE Boost::headers opentxs::messages
 )
-set_property(
-  TARGET opentxs-blockchain-block PROPERTY POSITION_INDEPENDENT_CODE 1
-)
 
-install(
-  FILES ${cxx-install-headers}
-  DESTINATION include/opentxs/blockchain/block
-  COMPONENT dev
-)
+if(OPENTXS_STANDALONE)
+  install(
+    FILES ${cxx-install-headers}
+    DESTINATION include/opentxs/blockchain/block
+    COMPONENT dev
+  )
+endif()

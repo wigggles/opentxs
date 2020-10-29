@@ -163,10 +163,11 @@ target_link_libraries(opentxs-ui PRIVATE opentxs::messages)
 target_include_directories(
   opentxs-ui SYSTEM PRIVATE "${opentxs_SOURCE_DIR}/deps/"
 )
-set_property(TARGET opentxs-ui PROPERTY POSITION_INDEPENDENT_CODE 1)
 
-install(
-  FILES ${cxx-install-headers}
-  DESTINATION include/opentxs/ui
-  COMPONENT dev
-)
+if(OPENTXS_STANDALONE)
+  install(
+    FILES ${cxx-install-headers}
+    DESTINATION include/opentxs/ui
+    COMPONENT dev
+  )
+endif()
