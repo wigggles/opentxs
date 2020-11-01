@@ -19,7 +19,6 @@
 #include <QtCore/QDateTime>
 #include <QtCore/QIdentityProxyModel>
 #include <QtCore/QObject>
-#include <QtQml/QQmlEngine>
 #endif
 #pragma GCC diagnostic pop
 #endif

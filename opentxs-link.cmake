@@ -65,11 +65,14 @@ macro(opentxs_link_target target_name)
     target_link_libraries(${target_name} PRIVATE unofficial::secp256k1)
   endif()
 
-  if(OT_WITH_QT)
+  if(OT_QT_EXPORT)
     target_link_libraries(
-      ${target_name} PRIVATE ${Qt5Qml_LIBRARIES} ${Qt5Widgets_LIBRARIES}
-                             ${Qt5Core_LIBRARIES}
+      ${target_name} PRIVATE ${Qt5Core_LIBRARIES} ${Qt5Widgets_LIBRARIES}
     )
+
+    if(OT_QML_EXPORT)
+      target_link_libraries(${target_name} PRIVATE ${Qt5Qml_LIBRARIES})
+    endif()
   endif()
 
   target_include_directories(

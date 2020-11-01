@@ -3,13 +3,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-if(OT_WITH_QT)
-  add_definitions(${Qt5Core_DEFINITIONS})
-  add_definitions(${Qt5Gui_DEFINITIONS})
-  add_definitions(${Qt5Widgets_DEFINITIONS})
-  add_definitions(${Qt5Qml_DEFINITIONS})
-endif()
-
 set(cxx-sources
     AccountActivity.cpp
     AccountList.cpp
@@ -163,6 +156,22 @@ target_link_libraries(opentxs-ui PRIVATE opentxs::messages)
 target_include_directories(
   opentxs-ui SYSTEM PRIVATE "${opentxs_SOURCE_DIR}/deps/"
 )
+
+if(OT_QT_EXPORT)
+  target_compile_definitions(opentxs-ui PRIVATE ${Qt5Core_DEFINITIONS})
+  target_compile_definitions(opentxs-ui PRIVATE ${Qt5Gui_DEFINITIONS})
+  target_compile_definitions(opentxs-ui PRIVATE ${Qt5Widgets_DEFINITIONS})
+
+  if(OT_QML_EXPORT)
+    target_compile_definitions(opentxs-ui PRIVATE ${Qt5Qml_DEFINITIONS})
+    target_compile_definitions(opentxs-ui PRIVATE -DOT_WITH_QML=1)
+  else()
+    target_compile_definitions(opentxs-ui PRIVATE -DOT_WITH_QML=0)
+  endif()
+else()
+  target_compile_definitions(opentxs-ui PRIVATE -DOT_WITH_QML=0)
+endif()
+
 add_dependencies(opentxs-ui generated_code)
 
 if(OPENTXS_STANDALONE)

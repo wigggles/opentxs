@@ -63,6 +63,13 @@ target_link_libraries(
 target_include_directories(
   opentxs-api-client SYSTEM PRIVATE "${opentxs_SOURCE_DIR}/deps/"
 )
+
+if(OT_QML_EXPORT)
+  target_compile_definitions(opentxs-api-client PRIVATE -DOT_WITH_QML=1)
+else()
+  target_compile_definitions(opentxs-api-client PRIVATE -DOT_WITH_QML=0)
+endif()
+
 add_dependencies(opentxs-api-client generated_code)
 
 if(OPENTXS_STANDALONE)

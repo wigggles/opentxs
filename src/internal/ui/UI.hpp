@@ -5,6 +5,9 @@
 
 #pragma once
 
+#if OT_WITH_QML
+#include <QtQml/QQmlEngine>
+#endif
 #include <chrono>
 #include <cstdint>
 #include <memory>
@@ -686,6 +689,7 @@ struct UnitListItem : virtual public Row, virtual public ui::UnitListItem {
 };
 
 #if OT_QT
+#if OT_WITH_QML
 #define QT_PROXY_MODEL_WRAPPER_EXTRA(WrapperType, InterfaceType)               \
     WrapperType::WrapperType(InterfaceType& parent) noexcept                   \
         : parent_(parent)                                                      \
@@ -707,7 +711,28 @@ struct UnitListItem : virtual public Row, virtual public ui::UnitListItem {
     }                                                                          \
                                                                                \
     void WrapperType::notify() const noexcept { emit updated(); }
-#endif
+#else  // OT_WITH_QML
+#define QT_PROXY_MODEL_WRAPPER_EXTRA(WrapperType, InterfaceType)               \
+    WrapperType::WrapperType(InterfaceType& parent) noexcept                   \
+        : parent_(parent)                                                      \
+    {                                                                          \
+        parent_.SetCallback([this]() -> void { notify(); });                   \
+        setSourceModel(&parent_);                                              \
+        init();                                                                \
+    }                                                                          \
+                                                                               \
+    void WrapperType::notify() const noexcept { emit updated(); }
+#define QT_PROXY_MODEL_WRAPPER(WrapperType, InterfaceType)                     \
+    WrapperType::WrapperType(InterfaceType& parent) noexcept                   \
+        : parent_(parent)                                                      \
+    {                                                                          \
+        parent_.SetCallback([this]() -> void { notify(); });                   \
+        setSourceModel(&parent_);                                              \
+    }                                                                          \
+                                                                               \
+    void WrapperType::notify() const noexcept { emit updated(); }
+#endif  // OT_WITH_QML
+#endif  // OT_QT
 
 namespace blank
 {
