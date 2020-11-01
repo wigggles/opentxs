@@ -3,6 +3,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+add_custom_target(generated_code)
+
 add_subdirectory(api)
 
 if(OT_CASH_EXPORT)
@@ -213,7 +215,6 @@ set_target_properties(
     SOVERSION 1
 )
 
-add_custom_target(generated_code)
 add_dependencies(generated_code otprotob)
 add_dependencies(generated_code messages)
 

@@ -10,6 +10,7 @@
 
 #include <memory>
 
+#include "blockchain/p2p/bitcoin/Message.hpp"
 #include "internal/blockchain/p2p/bitcoin/message/Message.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
@@ -36,7 +37,8 @@ class Header;
 
 namespace opentxs::blockchain::p2p::bitcoin::message::implementation
 {
-class Getcfcheckpt final : public internal::Getcfcheckpt
+class Getcfcheckpt final : public internal::Getcfcheckpt,
+                           public implementation::Message
 {
 public:
     using BitcoinFormat = FilterPrefixBasic;

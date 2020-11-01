@@ -10,6 +10,7 @@
 
 #include <memory>
 
+#include "blockchain/p2p/bitcoin/Message.hpp"
 #include "internal/blockchain/p2p/bitcoin/message/Message.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/core/Data.hpp"
@@ -37,7 +38,8 @@ class Factory;
 
 namespace opentxs::blockchain::p2p::bitcoin::message::implementation
 {
-class Filteradd final : virtual public internal::Filteradd
+class Filteradd final : virtual public internal::Filteradd,
+                        public implementation::Message
 {
 public:
     auto Element() const noexcept -> OTData final { return element_; }

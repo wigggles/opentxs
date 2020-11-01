@@ -50,6 +50,7 @@ target_include_directories(
 target_link_libraries(
   opentxs-crypto-library PRIVATE opentxs::messages unofficial-sodium::sodium
 )
+add_dependencies(opentxs-crypto-library generated_code)
 
 if(LIBSECP256K1_EXPORT)
   add_library(
@@ -61,6 +62,7 @@ if(LIBSECP256K1_EXPORT)
     opentxs-crypto-library-libsecp256k1 PRIVATE opentxs::messages
                                                 unofficial::secp256k1
   )
+  add_dependencies(opentxs-crypto-library-libsecp256k1 generated_code)
 endif()
 
 if(OPENSSL_EXPORT)
@@ -79,6 +81,7 @@ if(OPENSSL_EXPORT)
     opentxs-crypto-library-openssl PRIVATE Boost::headers opentxs::messages
                                            opentxs-api-crypto
   )
+  add_dependencies(opentxs-crypto-library-openssl generated_code)
 endif()
 
 if(OPENTXS_STANDALONE)

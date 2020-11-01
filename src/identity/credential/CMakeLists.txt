@@ -35,6 +35,7 @@ target_link_libraries(opentxs-identity-credential PRIVATE opentxs::messages)
 target_include_directories(
   opentxs-identity-credential SYSTEM PRIVATE "${opentxs_SOURCE_DIR}/deps/"
 )
+add_dependencies(opentxs-identity-credential generated_code)
 
 if(OPENTXS_STANDALONE)
   install(

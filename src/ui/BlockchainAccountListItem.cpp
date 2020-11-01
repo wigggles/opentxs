@@ -95,9 +95,10 @@ auto BlockchainAccountListItem::qt_data(const int column, int role)
                     return DisplayBalance().c_str();
                 }
                 default: {
-                    [[fallthrough]];
                 }
             }
+
+            [[fallthrough]];
         }
         default: {
         }

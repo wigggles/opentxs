@@ -63,6 +63,7 @@ target_link_libraries(
 target_include_directories(
   opentxs-api-client SYSTEM PRIVATE "${opentxs_SOURCE_DIR}/deps/"
 )
+add_dependencies(opentxs-api-client generated_code)
 
 if(OPENTXS_STANDALONE)
   install(

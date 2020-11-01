@@ -39,7 +39,7 @@ class Header;
 
 namespace opentxs::blockchain::p2p::bitcoin::message
 {
-class Merkleblock final : virtual public bitcoin::Message
+class Merkleblock final : public implementation::Message
 {
 public:
     struct Raw {

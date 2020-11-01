@@ -1,0 +1,54 @@
+name: Blockchain
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        platform: [ubuntu-20.04, macos-10.15, windows-2019]
+        include:
+          - platform: 'ubuntu-20.04'
+            vcpkg_triplet: 'x64-linux'
+            cmake_extra: '-DOPENTXS_BUILD_TESTS=OFF'
+          - platform: 'macos-10.15'
+            vcpkg_triplet: 'x64-osx'
+            cmake_extra: ''
+          - platform: 'windows-2019'
+            vcpkg_triplet: 'x64-windows'
+            cmake_extra: '-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded -DOT_INSTALL_LIBRARY_DEPENDENCIES=OFF -DOPENTXS_BUILD_TESTS=OFF -DOPENTXS_PEDANTIC_BUILD=OFF'
+    runs-on: ${{ matrix.platform }}
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: '0'
+        submodules: 'recursive'
+    - name: Install Qt (system package)
+      if: matrix.platform == 'ubuntu-20.04'
+      run: 'sudo apt-get install -y qtbase5-dev qtdeclarative5-dev'
+    - name: Setup cmake
+      uses: jwlawson/actions-setup-cmake@v1.4
+      with:
+        cmake-version: '3.18.4'
+    - name: Run vcpkg
+      uses: lukka/run-vcpkg@v4
+      with:
+        vcpkgArguments: '--triplet ${{ matrix.vcpkg_triplet }} --overlay-ports=${{ github.workspace }}/vcpkg/ports @${{ github.workspace }}/vcpkg/vcpkg.txt'
+        vcpkgDirectory: '${{ github.workspace }}/deps/vcpkg'
+    - name: Install Qt (vcpkg)
+      uses: lukka/run-vcpkg@v4
+      if: matrix.platform != 'ubuntu-20.04'
+      with:
+        vcpkgArguments: '--triplet ${{ matrix.vcpkg_triplet }} --overlay-ports=${{ github.workspace }}/vcpkg/ports qt5-base qt5-declarative'
+        vcpkgDirectory: '${{ github.workspace }}/deps/vcpkg'
+    - name: 'Compile'
+      uses: lukka/run-cmake@v3
+      with:
+        cmakeListsOrSettingsJson: CMakeListsTxtAdvanced
+        cmakeListsTxtPath: '${{ github.workspace }}/CMakeLists.txt'
+        useVcpkgToolchainFile: true
+        vcpkgTriplet: '${{ matrix.vcpkg_triplet }}'
+        buildDirectory: '${{ github.workspace }}/build'
+        cmakeAppendedArgs: '-GNinja -DCMAKE_BUILD_TYPE=Debug -DOT_USE_VCPKG_TARGETS=ON -DOT_WITH_BLOCKCHAIN=ON -DOT_WITH_QT=ON -DOT_ENABLE_RPC=OFF ${{ matrix.cmake_extra }}'
+        buildWithCMake: true
+        buildWithCMakeArgs: '-- -k 0'

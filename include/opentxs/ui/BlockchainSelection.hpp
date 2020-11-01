@@ -81,7 +81,7 @@ class OPENTXS_EXPORT opentxs::ui::BlockchainSelectionQt final
     Q_OBJECT
 
 signals:
-    OPENTXS_EXPORT void updated() const;
+    void updated() const;
 
 public:
     // User roles return the same data for all columns
@@ -101,10 +101,9 @@ public:
         TypeRole = Qt::UserRole + 0,
     };
 
-    OPENTXS_EXPORT Q_INVOKABLE bool disableChain(
-        const int chain) const noexcept;
-    OPENTXS_EXPORT Q_INVOKABLE bool enableChain(const int chain) const noexcept;
-    OPENTXS_EXPORT Q_INVOKABLE bool toggleChain(const int chain) const noexcept;
+    Q_INVOKABLE bool disableChain(const int chain) const noexcept;
+    Q_INVOKABLE bool enableChain(const int chain) const noexcept;
+    Q_INVOKABLE bool toggleChain(const int chain) const noexcept;
 
     BlockchainSelectionQt(implementation::BlockchainSelection& parent) noexcept;
 

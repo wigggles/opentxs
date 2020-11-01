@@ -52,6 +52,7 @@ target_link_libraries(opentxs-core-contract-peer PRIVATE opentxs::messages)
 target_include_directories(
   opentxs-core-contract-peer SYSTEM PRIVATE "${opentxs_SOURCE_DIR}/deps/"
 )
+add_dependencies(opentxs-core-contract-peer generated_code)
 
 if(OPENTXS_STANDALONE)
   install(

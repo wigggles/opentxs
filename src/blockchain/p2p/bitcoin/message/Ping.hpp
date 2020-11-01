@@ -10,6 +10,7 @@
 
 #include <memory>
 
+#include "blockchain/p2p/bitcoin/Message.hpp"
 #include "internal/blockchain/p2p/bitcoin/Bitcoin.hpp"
 #include "internal/blockchain/p2p/bitcoin/message/Message.hpp"
 #include "opentxs/Types.hpp"
@@ -36,7 +37,7 @@ class Header;
 
 namespace opentxs::blockchain::p2p::bitcoin::message::implementation
 {
-class Ping final : public internal::Ping
+class Ping final : public internal::Ping, public implementation::Message
 {
 public:
     struct BitcoinFormat_60001 {

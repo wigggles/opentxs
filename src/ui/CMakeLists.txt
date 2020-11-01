@@ -163,6 +163,7 @@ target_link_libraries(opentxs-ui PRIVATE opentxs::messages)
 target_include_directories(
   opentxs-ui SYSTEM PRIVATE "${opentxs_SOURCE_DIR}/deps/"
 )
+add_dependencies(opentxs-ui generated_code)
 
 if(OPENTXS_STANDALONE)
   install(

@@ -24,6 +24,7 @@ target_link_libraries(opentxs-contact PRIVATE opentxs::messages)
 target_include_directories(
   opentxs-contact SYSTEM PRIVATE "${opentxs_SOURCE_DIR}/deps/"
 )
+add_dependencies(opentxs-contact generated_code)
 
 if(OPENTXS_STANDALONE)
   install(

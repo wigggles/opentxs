@@ -56,6 +56,8 @@ else()
   target_compile_definitions(opentxs-blind PRIVATE OT_LUCRE_DEBUG=0)
 endif()
 
+add_dependencies(opentxs-blind generated_code)
+
 if(OPENTXS_STANDALONE)
   install(
     FILES ${cxx-install-headers}

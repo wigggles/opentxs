@@ -18,7 +18,6 @@
 #include "blockchain/bitcoin/Inventory.hpp"
 #include "blockchain/p2p/Peer.hpp"
 #include "blockchain/p2p/bitcoin/Header.hpp"
-#include "blockchain/p2p/bitcoin/Message.hpp"
 #include "blockchain/p2p/bitcoin/message/Cmpctblock.hpp"
 #include "blockchain/p2p/bitcoin/message/Feefilter.hpp"
 #include "blockchain/p2p/bitcoin/message/Getblocks.hpp"

@@ -13,6 +13,7 @@
 #include <utility>
 #include <vector>
 
+#include "blockchain/p2p/bitcoin/Message.hpp"
 #include "internal/blockchain/p2p/bitcoin/Bitcoin.hpp"
 #include "internal/blockchain/p2p/bitcoin/message/Message.hpp"
 #include "opentxs/Types.hpp"
@@ -45,7 +46,7 @@ struct Address;
 
 namespace opentxs::blockchain::p2p::bitcoin::message::implementation
 {
-class Addr final : public internal::Addr
+class Addr final : public internal::Addr, public implementation::Message
 {
 public:
     struct BitcoinFormat_31402 {

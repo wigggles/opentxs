@@ -12,6 +12,7 @@
 #include <map>
 #include <memory>
 
+#include "blockchain/p2p/bitcoin/Message.hpp"
 #include "internal/blockchain/Blockchain.hpp"
 #include "internal/blockchain/p2p/bitcoin/message/Message.hpp"
 #include "opentxs/Bytes.hpp"
@@ -40,7 +41,7 @@ class Header;
 
 namespace opentxs::blockchain::p2p::bitcoin::message::implementation
 {
-class Cfilter final : public internal::Cfilter
+class Cfilter final : public internal::Cfilter, public implementation::Message
 {
 public:
     using BitcoinFormat = FilterPrefixBasic;

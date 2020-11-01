@@ -70,7 +70,7 @@ class OPENTXS_EXPORT opentxs::ui::UnitListQt final : public QIdentityProxyModel
     Q_OBJECT
 
 signals:
-    OPENTXS_EXPORT void updated() const;
+    void updated() const;
 
 public:
     enum Columns {

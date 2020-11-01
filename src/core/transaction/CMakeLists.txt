@@ -14,6 +14,7 @@ target_include_directories(
   opentxs-core-transaction SYSTEM PRIVATE "${opentxs_SOURCE_DIR}/deps/"
 )
 target_link_libraries(opentxs-core-transaction PRIVATE opentxs::messages)
+add_dependencies(opentxs-core-transaction generated_code)
 
 if(OPENTXS_STANDALONE)
   install(

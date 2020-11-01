@@ -12,6 +12,7 @@
 #include <set>
 
 #include "blockchain/p2p/bitcoin/Message.hpp"
+#include "blockchain/p2p/bitcoin/Message.hpp"
 #include "internal/blockchain/p2p/bitcoin/Bitcoin.hpp"
 #include "opentxs/Bytes.hpp"
 #include "opentxs/Types.hpp"
@@ -38,7 +39,7 @@ class Header;
 
 namespace opentxs::blockchain::p2p::bitcoin::message
 {
-class Tx final : virtual public bitcoin::Message
+class Tx final : virtual public implementation::Message
 {
 public:
     auto getRawTx() const noexcept -> OTData { return Data::Factory(raw_tx_); }

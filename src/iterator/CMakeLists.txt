@@ -15,6 +15,7 @@ set(cxx-headers "${cxx-install-headers}")
 add_library(opentxs-iterator OBJECT ${cxx-sources} ${cxx-headers})
 target_link_libraries(opentxs-iterator PRIVATE opentxs::messages)
 set_target_properties(opentxs-iterator PROPERTIES LINKER_LANGUAGE CXX)
+add_dependencies(opentxs-iterator generated_code)
 
 if(OPENTXS_STANDALONE)
   install(

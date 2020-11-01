@@ -17,3 +17,4 @@ target_link_libraries(opentxs-rpc PRIVATE opentxs::messages)
 target_include_directories(
   opentxs-rpc SYSTEM PRIVATE "${opentxs_SOURCE_DIR}/deps/"
 )
+add_dependencies(opentxs-rpc generated_code)

@@ -31,6 +31,7 @@ target_link_libraries(opentxs-otx-consensus PRIVATE opentxs::messages)
 target_include_directories(
   opentxs-otx-consensus SYSTEM PRIVATE "${opentxs_SOURCE_DIR}/deps/"
 )
+add_dependencies(opentxs-otx-consensus generated_code)
 
 if(OPENTXS_STANDALONE)
   install(

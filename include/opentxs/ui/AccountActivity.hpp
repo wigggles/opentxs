@@ -131,9 +131,9 @@ class OPENTXS_EXPORT opentxs::ui::AccountActivityQt final
 #endif  // OT_BLOCKCHAIN
 
 signals:
-    OPENTXS_EXPORT void updated() const;
-    OPENTXS_EXPORT void syncPercentageUpdated(double) const;
-    OPENTXS_EXPORT void syncProgressUpdated(int, int) const;
+    void updated() const;
+    void syncPercentageUpdated(double) const;
+    void syncProgressUpdated(int, int) const;
 
 public:
     // User roles return the same data for all columns
@@ -163,32 +163,29 @@ public:
         UUIDColumn = 4,
     };
 
-    OPENTXS_EXPORT QString accountID() const noexcept;
-    OPENTXS_EXPORT int balancePolarity() const noexcept;
+    QString accountID() const noexcept;
+    int balancePolarity() const noexcept;
 #if OT_BLOCKCHAIN
-    OPENTXS_EXPORT QList<int> depositChains() const noexcept;
+    QList<int> depositChains() const noexcept;
 #endif  // OT_BLOCKCHAIN
-    OPENTXS_EXPORT QString displayBalance() const noexcept;
+    QString displayBalance() const noexcept;
 #if OT_BLOCKCHAIN
-    OPENTXS_EXPORT Q_INVOKABLE bool sendToAddress(
+    Q_INVOKABLE bool sendToAddress(
         const QString& address,
         const QString& amount,
         const QString& memo) const noexcept;
 #endif  // OT_BLOCKCHAIN
-    OPENTXS_EXPORT Q_INVOKABLE bool sendToContact(
+    Q_INVOKABLE bool sendToContact(
         const QString& contactID,
         const QString& amount,
         const QString& memo) const noexcept;
 #if OT_BLOCKCHAIN
-    OPENTXS_EXPORT Q_INVOKABLE QString
-    getDepositAddress(const int chain = 0) const noexcept;
-    OPENTXS_EXPORT double syncPercentage() const noexcept;
-    OPENTXS_EXPORT QPair<int, int> syncProgress() const noexcept;
-    OPENTXS_EXPORT Q_INVOKABLE bool validateAddress(
-        const QString& address) const noexcept;
+    Q_INVOKABLE QString getDepositAddress(const int chain = 0) const noexcept;
+    double syncPercentage() const noexcept;
+    QPair<int, int> syncProgress() const noexcept;
+    Q_INVOKABLE bool validateAddress(const QString& address) const noexcept;
 #endif  // OT_BLOCKCHAIN
-    OPENTXS_EXPORT Q_INVOKABLE QString
-    validateAmount(const QString& amount) const noexcept;
+    Q_INVOKABLE QString validateAmount(const QString& amount) const noexcept;
 
     AccountActivityQt(implementation::AccountActivity& parent) noexcept;
 

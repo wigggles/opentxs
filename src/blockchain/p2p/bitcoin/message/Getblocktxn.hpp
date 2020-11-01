@@ -40,7 +40,7 @@ class Header;
 
 namespace opentxs::blockchain::p2p::bitcoin::message
 {
-class Getblocktxn final : virtual public bitcoin::Message
+class Getblocktxn final : public implementation::Message
 {
 public:
     auto getBlockHash() const noexcept -> OTData

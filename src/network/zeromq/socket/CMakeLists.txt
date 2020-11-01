@@ -58,6 +58,7 @@ add_library(opentxs-network-zeromq-socket OBJECT ${cxx-sources} ${cxx-headers})
 target_link_libraries(
   opentxs-network-zeromq-socket PRIVATE opentxs::messages "${OT_ZMQ_TARGET}"
 )
+add_dependencies(opentxs-network-zeromq-socket generated_code)
 
 if(OPENTXS_STANDALONE)
   install(

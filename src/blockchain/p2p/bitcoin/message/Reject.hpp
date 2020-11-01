@@ -38,7 +38,7 @@ class Header;
 
 namespace opentxs::blockchain::p2p::bitcoin::message
 {
-class Reject final : virtual public bitcoin::Message
+class Reject final : public implementation::Message
 {
 public:
     auto getMessage() const noexcept -> const std::string& { return message_; }

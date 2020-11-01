@@ -81,13 +81,13 @@ class OPENTXS_EXPORT opentxs::ui::ContactQt final : public QIdentityProxyModel
     Q_PROPERTY(QString paymentCode READ paymentCode NOTIFY updated)
 
 signals:
-    OPENTXS_EXPORT void updated() const;
+    void updated() const;
 
 public:
     // Tree layout
-    OPENTXS_EXPORT QString displayName() const noexcept;
-    OPENTXS_EXPORT QString contactID() const noexcept;
-    OPENTXS_EXPORT QString paymentCode() const noexcept;
+    QString displayName() const noexcept;
+    QString contactID() const noexcept;
+    QString paymentCode() const noexcept;
 
     ContactQt(implementation::Contact& parent) noexcept;
 

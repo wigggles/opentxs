@@ -29,3 +29,4 @@ target_link_libraries(
     lmdb
     opentxs-api-client-blockchain-database
 )
+add_dependencies(opentxs-blockchain-database generated_code)

@@ -123,9 +123,10 @@ auto AccountSummaryItem::qt_data(const int column, int role) const noexcept
                     return DisplayBalance().c_str();
                 }
                 default: {
-                    [[fallthrough]];
                 }
             }
+
+            [[fallthrough]];
         }
         default: {
         }

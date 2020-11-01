@@ -50,6 +50,8 @@ else()
   )
 endif()
 
+add_dependencies(opentxs-api-crypto generated_code)
+
 if(OPENTXS_STANDALONE)
   install(
     FILES ${cxx-install-headers}

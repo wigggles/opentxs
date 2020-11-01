@@ -71,7 +71,7 @@ class OPENTXS_EXPORT opentxs::ui::AccountListQt final
     Q_OBJECT
 
 signals:
-    OPENTXS_EXPORT void updated() const;
+    void updated() const;
 
 public:
     // User roles return the same data for all columns

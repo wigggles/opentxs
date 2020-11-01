@@ -36,3 +36,4 @@ target_include_directories(
   opentxs-server SYSTEM PRIVATE "${opentxs_SOURCE_DIR}/deps/"
 )
 target_link_libraries(opentxs-server PRIVATE opentxs::messages)
+add_dependencies(opentxs-server generated_code)

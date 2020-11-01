@@ -8,6 +8,7 @@
 #include "blockchain/p2p/bitcoin/Message.hpp"  // IWYU pragma: associated
 
 #include <cstdint>
+#include <iosfwd>
 #include <limits>
 #include <memory>
 #include <stdexcept>
@@ -196,6 +197,18 @@ auto BitcoinP2PMessage(
 
 namespace opentxs::blockchain::p2p::bitcoin
 {
+auto Message::MaxPayload() -> std::size_t
+{
+    static_assert(
+        std::numeric_limits<std::size_t>::max() >=
+        std::numeric_limits<std::uint32_t>::max());
+
+    return std::numeric_limits<std::uint32_t>::max();
+}
+}  // namespace opentxs::blockchain::p2p::bitcoin
+
+namespace opentxs::blockchain::p2p::bitcoin::message::implementation
+{
 Message::Message(
     const api::Core& api,
     const blockchain::Type network,
@@ -230,23 +243,14 @@ auto Message::calculate_checksum(const Data& payload) const noexcept -> OTData
     return output;
 }
 
-void Message::init_hash() noexcept
+auto Message::init_hash() noexcept -> void
 {
     const auto data = payload();
     const auto size = data->size();
     header_->SetChecksum(size, calculate_checksum(data));
 }
 
-auto Message::MaxPayload() -> std::size_t
-{
-    static_assert(
-        std::numeric_limits<std::size_t>::max() >=
-        std::numeric_limits<std::uint32_t>::max());
-
-    return std::numeric_limits<std::uint32_t>::max();
-}
-
-void Message::verify_checksum() const noexcept(false)
+auto Message::verify_checksum() const noexcept(false) -> void
 {
     const auto calculated = calculate_checksum(payload());
     const auto& header = header_->Checksum();
@@ -260,4 +264,4 @@ void Message::verify_checksum() const noexcept(false)
         throw std::runtime_error("checksum failure");
     }
 }
-}  // namespace opentxs::blockchain::p2p::bitcoin
+}  // namespace opentxs::blockchain::p2p::bitcoin::message::implementation

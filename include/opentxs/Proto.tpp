@@ -36,7 +36,8 @@ Output Factory(const Input& input);
 template <typename Output>
 Output Factory(const void* input, const std::size_t size)
 {
-    assert(size <= std::numeric_limits<int>::max());
+    static_assert(sizeof(int) <= sizeof(std::size_t));
+    assert(size <= static_cast<std::size_t>(std::numeric_limits<int>::max()));
 
     auto serialized = Output{};
     serialized.ParseFromArray(input, static_cast<int>(size));

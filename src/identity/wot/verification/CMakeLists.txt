@@ -30,6 +30,7 @@ add_library(
 target_link_libraries(
   opentxs-identity-wot-verification PRIVATE opentxs::messages
 )
+add_dependencies(opentxs-identity-wot-verification generated_code)
 
 if(OPENTXS_STANDALONE)
   install(

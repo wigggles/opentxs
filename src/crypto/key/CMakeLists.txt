@@ -57,6 +57,7 @@ endif()
 target_link_libraries(
   opentxs-crypto-key PRIVATE opentxs::messages unofficial-sodium::sodium
 )
+add_dependencies(opentxs-crypto-key generated_code)
 
 if(OPENTXS_STANDALONE)
   install(

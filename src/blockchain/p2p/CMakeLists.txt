@@ -31,6 +31,7 @@ add_library(opentxs-blockchain-p2p OBJECT ${cxx-sources} ${cxx-headers})
 target_link_libraries(
   opentxs-blockchain-p2p PRIVATE Boost::headers opentxs::messages
 )
+add_dependencies(opentxs-blockchain-p2p generated_code)
 
 if(OPENTXS_STANDALONE)
   install(

@@ -74,7 +74,7 @@ class OPENTXS_EXPORT opentxs::ui::ContactListQt final
     Q_OBJECT
 
 signals:
-    OPENTXS_EXPORT void updated() const;
+    void updated() const;
 
 public:
     // List layout
@@ -83,7 +83,7 @@ public:
         SectionRole = Qt::UserRole + 1,
     };
 
-    OPENTXS_EXPORT Q_INVOKABLE QString addContact(
+    Q_INVOKABLE QString addContact(
         const QString& label,
         const QString& paymentCode = "",
         const QString& nymID = "") const noexcept;
