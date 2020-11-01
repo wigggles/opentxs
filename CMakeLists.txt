@@ -77,7 +77,8 @@ option(
 option(OT_CASH_USING_LUCRE "Enable Lucre support" OFF)
 option(OT_LUCRE_DEBUG "Output Lucre debug info" OFF)
 option(OT_SCRIPT_USING_CHAI "Use chaiscript" ${OT_SCRIPT_USING_CHAI_DEFAULT})
-option(OT_WITH_QT "Enable Qt5 model support for ui classes" OFF)
+option(OT_WITH_QT "Enable Qt model support for ui classes" OFF)
+option(OT_WITH_QML "Enable Qt QML model support for ui classes" OFF)
 option(OT_WITH_JAVA "Build with Java binding" OFF)
 option(OT_OPENSSL_FLAVOR_LIBRESSL "Assume OpenSSL library is LibreSSL" OFF)
 option(
@@ -102,6 +103,14 @@ option(
   OT_CRYPTO_USING_OPENSSL "Use OpenSSL crypto library"
   ${OT_CRYPTO_USING_OPENSSL_DEFAULT}
 )
+
+if(NOT OT_WITH_QT)
+  if(OT_WITH_QML)
+    message(WARNING "QML support requires Qt")
+  endif()
+
+  set(OT_WITH_QML OFF)
+endif()
 
 if(ANDROID OR OT_USE_VCPKG_TARGETS)
   set(OT_INSTALL_LIBRARY_DEPENDENCIES_DEFAULT ON)
@@ -170,7 +179,7 @@ message(STATUS "libsecp256k1:           ${OT_CRYPTO_USING_LIBSECP256K1}")
 message(STATUS "Blockchain-----------------------------------")
 message(STATUS "Blockchain client:      ${OT_WITH_BLOCKCHAIN}")
 
-message(STATUS "Cash library providers---------------------")
+message(STATUS "Cash library providers-----------------------")
 message(STATUS "Lucre:                  ${OT_CASH_USING_LUCRE}")
 message(STATUS "Lucre debug info:       ${OT_LUCRE_DEBUG}")
 
@@ -178,10 +187,14 @@ message(STATUS "Script engines-------------------------------")
 message(STATUS "Chai:                   ${OT_SCRIPT_USING_CHAI}")
 
 message(STATUS "UI-------------------------------------------")
-message(STATUS "Qt5:                    ${OT_WITH_QT}")
+message(STATUS "Qt:                     ${OT_WITH_QT}")
+message(STATUS "QML:                    ${OT_WITH_QML}")
 
 message(STATUS "Bindings ------------------------------------")
 message(STATUS "Java binding:           ${OT_WITH_JAVA}")
+
+message(STATUS "Extra ---------------------------------------")
+message(STATUS "RPC server:             ${OT_ENABLE_RPC}")
 
 # -----------------------------------------------------------------------------
 # Dependencies
@@ -275,13 +288,18 @@ endif()
 if(OT_WITH_QT)
   find_package(
     Qt5
-    COMPONENTS
-      Core
-      Gui
-      Qml
-      Widgets
+    COMPONENTS Core Gui Widgets
     REQUIRED
   )
+
+  if(OT_WITH_QML)
+    find_package(
+      Qt5
+      COMPONENTS Qml
+      REQUIRED
+    )
+  endif()
+
   set_target_properties(
     Qt5::Core PROPERTIES MAP_IMPORTED_CONFIG_COVERAGE "RELEASE"
   )
@@ -449,6 +467,12 @@ if(OT_WITH_QT)
   set(OT_QT_EXPORT 1)
 else()
   set(OT_QT_EXPORT 0)
+endif()
+
+if(OT_WITH_QML)
+  set(OT_QML_EXPORT 1)
+else()
+  set(OT_QML_EXPORT 0)
 endif()
 
 if(OT_WITH_JAVA)
