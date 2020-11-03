@@ -8,10 +8,18 @@
 
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
+#include <cstddef>
 #include <cstdint>
 
 namespace opentxs
 {
+namespace crypto
+{
+enum class Language : std::uint8_t;
+enum class SeedStrength : std::size_t;
+enum class SeedStyle : std::uint8_t;
+}  // namespace crypto
+
 using Bip32Network = std::uint32_t;
 using Bip32Depth = std::uint8_t;
 using Bip32Fingerprint = std::uint32_t;

@@ -146,6 +146,9 @@
 #include "opentxs/crypto/Bip43Purpose.hpp"
 #include "opentxs/crypto/Bip44Type.hpp"
 #include "opentxs/crypto/Envelope.hpp"
+#include "opentxs/crypto/Language.hpp"
+#include "opentxs/crypto/SeedStrength.hpp"
+#include "opentxs/crypto/SeedStyle.hpp"
 #include "opentxs/crypto/Types.hpp"
 #include "opentxs/crypto/key/Asymmetric.hpp"
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519

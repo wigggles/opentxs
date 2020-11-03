@@ -8,8 +8,12 @@
 
 #pragma once
 
+#include <iosfwd>
+#include <map>
 #include <memory>
+#include <mutex>
 #include <string>
+#include <string_view>
 
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
@@ -73,6 +77,11 @@ public:
         const PasswordPrompt& reason) const
         -> std::unique_ptr<opentxs::crypto::key::HD> final;
 #endif  // OT_CRYPTO_WITH_BIP32
+    auto AllowedSeedTypes() const noexcept -> const SupportedSeeds& final;
+    auto AllowedLanguages(const Style type) const noexcept
+        -> const SupportedLanguages& final;
+    auto AllowedSeedStrength(const Style type) const noexcept
+        -> const SupportedStrengths& final;
     auto Bip32Root(
         const PasswordPrompt& reason,
         const std::string& fingerprint = "") const -> std::string final;
@@ -87,6 +96,15 @@ public:
         const VersionNumber version =
             opentxs::crypto::key::EllipticCurve::DefaultVersion) const
         -> std::unique_ptr<opentxs::crypto::key::HD> final;
+#endif  // OT_CRYPTO_WITH_BIP32
+    auto GetOrCreateDefaultSeed(
+        std::string& fingerprint,
+        Style& type,
+        Language& lang,
+        Bip32Index& index,
+        const Strength strength,
+        const PasswordPrompt& reason) const -> OTSecret final;
+#if OT_CRYPTO_WITH_BIP32
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
     auto GetPaymentCode(
         std::string& fingerprint,
@@ -102,8 +120,16 @@ public:
     auto ImportSeed(
         const Secret& words,
         const Secret& passphrase,
+        const Style type,
+        const Language lang,
         const PasswordPrompt& reason) const -> std::string final;
-    auto NewSeed(const PasswordPrompt& reason) const -> std::string final;
+    auto LongestWord(const Style type, const Language lang) const noexcept
+        -> std::size_t final;
+    auto NewSeed(
+        const Style type,
+        const Language lang,
+        const Strength strength,
+        const PasswordPrompt& reason) const -> std::string final;
     auto Passphrase(
         const PasswordPrompt& reason,
         const std::string& fingerprint = "") const -> std::string final;
@@ -115,6 +141,12 @@ public:
         std::string& seed,
         const Bip32Index index,
         const PasswordPrompt& reason) const -> bool final;
+    auto ValidateWord(
+        const Style type,
+        const Language lang,
+        const std::string_view word) const noexcept -> Matches final;
+    auto WordCount(const Style type, const Strength strength) const noexcept
+        -> std::size_t final;
     auto Words(
         const PasswordPrompt& reason,
         const std::string& fingerprint = "") const -> std::string final;
@@ -130,9 +162,18 @@ public:
     virtual ~HDSeed() = default;
 
 private:
+    using SeedMap = std::map<Style, proto::SeedType>;
+    using SeedReverseMap = std::map<proto::SeedType, Style>;
+    using LangMap = std::map<Language, proto::SeedLang>;
+    using LangReverseMap = std::map<proto::SeedLang, Language>;
+
     static const std::string DEFAULT_PASSPHRASE;
     static const proto::SymmetricMode DEFAULT_ENCRYPTION_MODE;
-    static const VersionNumber DefaultVersion{3};
+    static const VersionNumber DefaultVersion{4};
+    static const SeedMap seed_map_;
+    static const SeedReverseMap seed_reverse_map_;
+    static const LangMap lang_map_;
+    static const LangReverseMap lang_reverse_map_;
 
     const api::crypto::Symmetric& symmetric_;
 #if OT_CRYPTO_WITH_BIP32
@@ -143,6 +184,24 @@ private:
     const opentxs::crypto::Bip39& bip39_;
     const OTSecret binary_secret_;
     const OTSecret text_secret_;
+    mutable std::mutex lock_;
+
+    static auto translate(const Style in) noexcept -> proto::SeedType
+    {
+        return seed_map_.at(in);
+    }
+    static auto translate(const proto::SeedType in) noexcept -> Style
+    {
+        return seed_reverse_map_.at(in);
+    }
+    static auto translate(const Language in) noexcept -> proto::SeedLang
+    {
+        return lang_map_.at(in);
+    }
+    static auto translate(const proto::SeedLang in) noexcept -> Language
+    {
+        return lang_reverse_map_.at(in);
+    }
 
     auto decrypt_seed(
         const proto::Seed& seed,
@@ -150,10 +209,18 @@ private:
         Secret& phrase,
         Secret& raw,
         const PasswordPrompt& reason) const -> bool;
+    auto load_seed(
+        std::string& fingerprint,
+        Bip32Index& index,
+        Style& type,
+        Language& lang,
+        const PasswordPrompt& reason) const -> OTSecret;
     auto save_seed(
         const Secret& words,
         const Secret& passphrase,
         const Secret& raw,
+        const Style type,
+        const Language lang,
         const PasswordPrompt& reason) const -> std::string;
     auto seed_to_data(
         const Secret& words,

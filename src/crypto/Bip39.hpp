@@ -9,9 +9,12 @@
 #include <cstdint>
 #include <map>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "opentxs/crypto/Bip39.hpp"
+#include "opentxs/crypto/Language.hpp"
+#include "opentxs/crypto/Types.hpp"
 
 namespace opentxs
 {
@@ -29,22 +32,27 @@ namespace opentxs::crypto::implementation
 class Bip39 final : public opentxs::crypto::Bip39
 {
 public:
-    auto SeedToWords(const Secret& seed, Secret& words) const noexcept
-        -> bool final;
-    void WordsToSeed(
+    auto GetSuggestions(const Language lang, const std::string_view word)
+        const noexcept -> Suggestions final;
+    auto LongestWord(const Language lang) const noexcept -> std::size_t final;
+    auto SeedToWords(const Secret& seed, Secret& words, const Language lang)
+        const noexcept -> bool final;
+    auto WordsToSeed(
         const Secret& words,
         Secret& seed,
-        const Secret& passphrase) const noexcept final;
+        const Secret& passphrase) const noexcept -> void final;
 
     Bip39(const api::Crypto& crypto) noexcept;
     ~Bip39() final = default;
 
 private:
     using WordList = std::vector<const char*>;
-    using Words = std::map<std::string, WordList>;
+    using Words = std::map<Language, WordList>;
+    using LongestWords = std::map<Language, std::size_t>;
     using MnemonicWords = std::vector<std::string>;
 
     static const Words words_;
+    static const LongestWords longest_words_;
     static const std::size_t BitsPerWord;
     static const std::uint8_t ByteBits;
     static const std::size_t DictionarySize;
@@ -57,9 +65,12 @@ private:
     const api::Crypto& crypto_;
 
     static auto bitShift(std::size_t theBit) noexcept -> std::byte;
+    static auto find_longest_words(const Words& words) noexcept -> LongestWords;
 
-    auto entropy_to_words(const Secret& entropy, Secret& words) const noexcept
-        -> bool;
+    auto entropy_to_words(
+        const Secret& entropy,
+        Secret& words,
+        const Language lang) const noexcept -> bool;
     void words_to_root(
         const Secret& words,
         Secret& bip32RootNode,

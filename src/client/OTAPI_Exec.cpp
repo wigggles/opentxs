@@ -41,6 +41,8 @@
 #include "opentxs/core/script/OTPartyAccount.hpp"
 #include "opentxs/core/script/OTScriptable.hpp"
 #include "opentxs/core/script/OTVariable.hpp"
+#include "opentxs/crypto/Language.hpp"
+#include "opentxs/crypto/SeedStyle.hpp"
 #include "opentxs/protobuf/ContactEnums.pb.h"
 #include "opentxs/protobuf/UnitDefinition.pb.h"
 
@@ -2818,7 +2820,12 @@ auto OTAPI_Exec::Wallet_ImportSeed(
     auto securePassphrase = api_.Factory().SecretFromText(passphrase);
 
 #if OT_CRYPTO_WITH_BIP32
-    return api_.Seeds().ImportSeed(secureWords, securePassphrase, reason);
+    return api_.Seeds().ImportSeed(
+        secureWords,
+        securePassphrase,
+        crypto::SeedStyle::BIP39,
+        crypto::Language::en,
+        reason);
 #else
     return "";
 #endif

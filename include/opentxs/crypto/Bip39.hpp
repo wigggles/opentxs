@@ -8,6 +8,12 @@
 
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
+#include <string>
+#include <string_view>
+#include <vector>
+
+#include "opentxs/crypto/Types.hpp"
+
 namespace opentxs
 {
 class Secret;
@@ -20,8 +26,17 @@ namespace crypto
 class Bip39
 {
 public:
-    OPENTXS_EXPORT virtual bool SeedToWords(const Secret& seed, Secret& words)
-        const noexcept = 0;
+    using Suggestions = std::vector<std::string>;
+
+    OPENTXS_EXPORT virtual Suggestions GetSuggestions(
+        const Language lang,
+        const std::string_view word) const noexcept = 0;
+    OPENTXS_EXPORT virtual std::size_t LongestWord(
+        const Language lang) const noexcept = 0;
+    OPENTXS_EXPORT virtual bool SeedToWords(
+        const Secret& seed,
+        Secret& words,
+        const Language lang) const noexcept = 0;
     OPENTXS_EXPORT virtual void WordsToSeed(
         const Secret& words,
         Secret& seed,

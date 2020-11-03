@@ -16,6 +16,9 @@
 #include "opentxs/OT.hpp"
 #include "opentxs/api/Context.hpp"
 #include "opentxs/api/Primitives.hpp"
+#include "opentxs/crypto/Language.hpp"
+#include "opentxs/crypto/SeedStrength.hpp"
+#include "opentxs/crypto/SeedStyle.hpp"
 #include "opentxs/protobuf/ContactData.pb.h"
 #include "opentxs/protobuf/Enums.pb.h"
 #include "opentxs/protobuf/VerificationSet.pb.h"
@@ -56,6 +59,9 @@ NymParameters::NymParameters(
     , contact_data_(nullptr)
     , verification_set_(nullptr)
 #if OT_CRYPTO_WITH_BIP32
+    , seed_style_(crypto::SeedStyle::BIP39)
+    , seed_language_(crypto::Language::en)
+    , seed_strength_(crypto::SeedStrength::TwentyFour)
     , entropy_(Context().Factory().Secret(0))
     , seed_("")
     , nym_(0)
@@ -182,6 +188,18 @@ auto NymParameters::nymParameterType() const -> NymParameterType
 }
 #if OT_CRYPTO_WITH_BIP32
 auto NymParameters::Seed() const -> std::string { return seed_; }
+auto NymParameters::SeedLanguage() const -> crypto::Language
+{
+    return seed_language_;
+}
+auto NymParameters::SeedStrength() const -> crypto::SeedStrength
+{
+    return seed_strength_;
+}
+auto NymParameters::SeedStyle() const -> crypto::SeedStyle
+{
+    return seed_style_;
+}
 #endif  // OT_CRYPTO_WITH_BIP32
 auto NymParameters::SourceProofType() const -> proto::SourceProofType
 {
@@ -252,6 +270,18 @@ auto NymParameters::SetNym(const Bip32Index path) -> void
 
 #if OT_CRYPTO_WITH_BIP32
 auto NymParameters::SetSeed(const std::string& seed) -> void { seed_ = seed; }
+auto NymParameters::SetSeedLanguage(const crypto::Language lang) -> void
+{
+    seed_language_ = lang;
+}
+auto NymParameters::SetSeedStrength(const crypto::SeedStrength type) -> void
+{
+    seed_strength_ = type;
+}
+auto NymParameters::SetSeedStyle(const crypto::SeedStyle type) -> void
+{
+    seed_style_ = type;
+}
 #endif  // OT_CRYPTO_WITH_BIP32
 
 #if OT_CRYPTO_WITH_BIP32

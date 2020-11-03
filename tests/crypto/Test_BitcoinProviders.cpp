@@ -34,6 +34,7 @@
 #include "opentxs/crypto/Bip32.hpp"
 #include "opentxs/crypto/Bip32Child.hpp"
 #include "opentxs/crypto/Bip39.hpp"
+#include "opentxs/crypto/Language.hpp"
 #include "opentxs/crypto/Types.hpp"
 #include "opentxs/crypto/key/EllipticCurve.hpp"
 #include "opentxs/crypto/key/HD.hpp"
@@ -626,7 +627,8 @@ public:
             auto calculatedWords = client_.Factory().Secret(0);
             auto calculatedRoot = client_.Factory().Secret(0);
 
-            EXPECT_TRUE(crypto_.BIP39().SeedToWords(entropy, calculatedWords));
+            EXPECT_TRUE(crypto_.BIP39().SeedToWords(
+                entropy, calculatedWords, ot::crypto::Language::en));
 
             crypto_.BIP39().WordsToSeed(
                 calculatedWords, calculatedRoot, passphrase);

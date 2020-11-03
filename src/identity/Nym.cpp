@@ -9,6 +9,7 @@
 
 #include <atomic>
 #include <iterator>
+#include <limits>
 #include <list>
 #include <map>
 #include <stdexcept>
@@ -966,11 +967,20 @@ auto Nym::normalize(
 
     if (proto::CREDTYPE_HD == in.credentialType()) {
 #if OT_CRYPTO_WITH_BIP32
+        const auto& seeds = api.Seeds();
         output.SetCredset(0);
-        Bip32Index nymIndex = 0;
-        std::string fingerprint = in.Seed();
-        auto seed = api.Seeds().Seed(fingerprint, nymIndex, reason);
-        const bool defaultIndex = in.UseAutoIndex();
+        auto nymIndex = Bip32Index{0};
+        auto fingerprint = in.Seed();
+        auto style = in.SeedStyle();
+        auto lang = in.SeedLanguage();
+
+        if (fingerprint.empty()) {
+            seeds.GetOrCreateDefaultSeed(
+                fingerprint, style, lang, nymIndex, in.SeedStrength(), reason);
+        }
+
+        auto seed = seeds.Seed(fingerprint, nymIndex, reason);
+        const auto defaultIndex = in.UseAutoIndex();
 
         if (false == defaultIndex) {
             LogDetail(OT_METHOD)(__FUNCTION__)(
@@ -980,8 +990,16 @@ auto Nym::normalize(
             nymIndex = in.Nym();
         }
 
-        const std::int32_t newIndex = nymIndex + 1;
-        api.Seeds().UpdateIndex(fingerprint, newIndex, reason);
+        static constexpr auto maxIndex =
+            std::numeric_limits<std::int32_t>::max() - 1;
+
+        if (nymIndex >= static_cast<Bip32Index>(maxIndex)) {
+            throw std::runtime_error(
+                "Requested seed has already generated maximum number of nyms");
+        }
+
+        const auto newIndex = static_cast<std::int32_t>(nymIndex) + 1;
+        seeds.UpdateIndex(fingerprint, newIndex, reason);
         output.SetEntropy(seed);
         output.SetSeed(fingerprint);
         output.SetNym(nymIndex);

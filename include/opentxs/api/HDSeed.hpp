@@ -11,12 +11,15 @@
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <cstdint>
+#include <map>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
+#include "opentxs/crypto/Types.hpp"
 #include "opentxs/crypto/key/EllipticCurve.hpp"
 #include "opentxs/crypto/key/HD.hpp"
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
@@ -37,6 +40,13 @@ class HDSeed
 {
 public:
     using Path = std::vector<Bip32Index>;
+    using Style = opentxs::crypto::SeedStyle;
+    using Language = opentxs::crypto::Language;
+    using Strength = opentxs::crypto::SeedStrength;
+    using SupportedSeeds = std::map<Style, std::string>;
+    using SupportedLanguages = std::map<Language, std::string>;
+    using SupportedStrengths = std::map<Strength, std::string>;
+    using Matches = std::vector<std::string>;
 
 #if OT_CRYPTO_WITH_BIP32
     OPENTXS_EXPORT virtual std::unique_ptr<opentxs::crypto::key::HD>
@@ -46,6 +56,12 @@ public:
         const Bip32Index index,
         const PasswordPrompt& reason) const = 0;
 #endif  // OT_CRYPTO_WITH_BIP32
+    OPENTXS_EXPORT virtual const SupportedSeeds& AllowedSeedTypes()
+        const noexcept = 0;
+    OPENTXS_EXPORT virtual const SupportedLanguages& AllowedLanguages(
+        const Style type) const noexcept = 0;
+    OPENTXS_EXPORT virtual const SupportedStrengths& AllowedSeedStrength(
+        const Style type) const noexcept = 0;
     OPENTXS_EXPORT virtual std::string Bip32Root(
         const PasswordPrompt& reason,
         const std::string& fingerprint = "") const = 0;
@@ -59,6 +75,15 @@ public:
         const proto::KeyRole role = proto::KEYROLE_SIGN,
         const VersionNumber version =
             opentxs::crypto::key::EllipticCurve::DefaultVersion) const = 0;
+#endif  // OT_CRYPTO_WITH_BIP32
+    OPENTXS_EXPORT virtual OTSecret GetOrCreateDefaultSeed(
+        std::string& fingerprint,
+        Style& type,
+        Language& lang,
+        Bip32Index& index,
+        const Strength strength,
+        const PasswordPrompt& reason) const = 0;
+#if OT_CRYPTO_WITH_BIP32
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
     OPENTXS_EXPORT virtual std::unique_ptr<opentxs::crypto::key::Secp256k1>
     GetPaymentCode(
@@ -76,12 +101,20 @@ public:
     OPENTXS_EXPORT virtual std::string ImportSeed(
         const Secret& words,
         const Secret& passphrase,
+        const Style type,
+        const Language lang,
         const PasswordPrompt& reason) const = 0;
+    OPENTXS_EXPORT virtual std::size_t LongestWord(
+        const Style type,
+        const Language lang) const noexcept = 0;
     OPENTXS_EXPORT virtual std::string NewSeed(
+        const Style type,
+        const Language lang,
+        const Strength strength,
         const PasswordPrompt& reason) const = 0;
     OPENTXS_EXPORT virtual std::string Passphrase(
         const PasswordPrompt& reason,
-        const std::string& fingerprint = "") const = 0;
+        const std::string& fingerprint) const = 0;
     OPENTXS_EXPORT virtual OTSecret Seed(
         std::string& fingerprint,
         Bip32Index& index,
@@ -90,9 +123,16 @@ public:
         std::string& seed,
         const Bip32Index index,
         const PasswordPrompt& reason) const = 0;
+    OPENTXS_EXPORT virtual Matches ValidateWord(
+        const Style type,
+        const Language lang,
+        const std::string_view word) const noexcept = 0;
+    OPENTXS_EXPORT virtual std::size_t WordCount(
+        const Style type,
+        const Strength strength) const noexcept = 0;
     OPENTXS_EXPORT virtual std::string Words(
         const PasswordPrompt& reason,
-        const std::string& fingerprint = "") const = 0;
+        const std::string& fingerprint) const = 0;
 
     OPENTXS_EXPORT virtual ~HDSeed() = default;
 

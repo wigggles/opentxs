@@ -113,3 +113,15 @@ enum AuthorityMode {
     AUTHORITYMODE_INDEX = 1;
     AUTHORITYMODE_FULL = 2;
 }
+
+enum SeedType {
+    SEEDTYPE_ERROR = 0;
+    SEEDTYPE_RAW = 1;
+    SEEDTYPE_BIP39 = 2;
+}
+
+enum SeedLang {
+    SEEDLANG_ERROR = 0;
+    SEEDLANG_NONE = 1;
+    SEEDLANG_EN = 2;
+}

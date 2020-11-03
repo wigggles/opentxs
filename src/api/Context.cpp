@@ -45,6 +45,8 @@ extern "C" {
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/crypto/OTCallback.hpp"
 #include "opentxs/core/crypto/OTCaller.hpp"
+#include "opentxs/crypto/Language.hpp"
+#include "opentxs/crypto/SeedStyle.hpp"
 #include "opentxs/protobuf/RPCResponse.pb.h"
 #include "opentxs/util/PIDFile.hpp"
 #include "opentxs/util/Signals.hpp"
@@ -460,7 +462,12 @@ auto Context::StartClient(
             opentxs::Context().Factory().SecretFromText(recoverWords);
         auto phrase =
             opentxs::Context().Factory().SecretFromText(recoverPassphrase);
-        client.Seeds().ImportSeed(wordList, phrase, reason);
+        client.Seeds().ImportSeed(
+            wordList,
+            phrase,
+            opentxs::crypto::SeedStyle::BIP39,
+            opentxs::crypto::Language::en,
+            reason);
     }
 
     return client;
