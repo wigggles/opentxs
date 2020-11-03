@@ -206,7 +206,11 @@ endif()
 find_system_libraries()
 
 if(OPENTXS_BUILD_TESTS)
-  find_package(GTest REQUIRED)
+  if(OT_USE_VCPKG_TARGETS)
+    find_package(GTest CONFIG REQUIRED)
+  else()
+    find_package(GTest REQUIRED)
+  endif()
   enable_testing()
 endif()
 

@@ -13,10 +13,10 @@ jobs:
             cmake_extra: '-DOPENTXS_BUILD_TESTS=OFF'
           - platform: 'macos-10.15'
             vcpkg_triplet: 'x64-osx'
-            cmake_extra: ''
+            cmake_extra: '-DOPENTXS_BUILD_TESTS=ON'
           - platform: 'windows-2019'
             vcpkg_triplet: 'x64-windows'
-            cmake_extra: '-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded -DOT_INSTALL_LIBRARY_DEPENDENCIES=OFF -DOPENTXS_BUILD_TESTS=OFF -DOPENTXS_PEDANTIC_BUILD=OFF'
+            cmake_extra: '-DOPENTXS_BUILD_TESTS=ON -DCMAKE_MSVC_RUNTIME_LIBRARY="MultiThreaded" -DCMAKE_EXE_LINKER_FLAGS="/NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrt.lib /NODEFAULTLIB:msvcrtd.lib" -DCMAKE_STATIC_LINKER_FLAGS="/NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrt.lib /NODEFAULTLIB:msvcrtd.lib" -DOT_INSTALL_LIBRARY_DEPENDENCIES=OFF -DOPENTXS_PEDANTIC_BUILD=OFF'
     runs-on: ${{ matrix.platform }}
     steps:
     - uses: actions/checkout@v2
@@ -25,21 +25,21 @@ jobs:
         submodules: 'recursive'
     - name: Install Qt (system package)
       if: matrix.platform == 'ubuntu-20.04'
-      run: 'sudo apt-get install -y qtbase5-dev qtdeclarative5-dev'
+      run: 'sudo apt-get install -y qtbase5-dev'
     - name: Setup cmake
       uses: jwlawson/actions-setup-cmake@v1.4
       with:
         cmake-version: '3.18.4'
     - name: Run vcpkg
-      uses: lukka/run-vcpkg@v4
+      uses: lukka/run-vcpkg@v5
       with:
         vcpkgArguments: '--triplet ${{ matrix.vcpkg_triplet }} --overlay-ports=${{ github.workspace }}/vcpkg/ports @${{ github.workspace }}/vcpkg/vcpkg.txt'
         vcpkgDirectory: '${{ github.workspace }}/deps/vcpkg'
     - name: Install Qt (vcpkg)
-      uses: lukka/run-vcpkg@v4
+      uses: lukka/run-vcpkg@v5
       if: matrix.platform != 'ubuntu-20.04'
       with:
-        vcpkgArguments: '--triplet ${{ matrix.vcpkg_triplet }} --overlay-ports=${{ github.workspace }}/vcpkg/ports qt5-base qt5-declarative'
+        vcpkgArguments: '--triplet ${{ matrix.vcpkg_triplet }} --overlay-ports=${{ github.workspace }}/vcpkg/ports qt5-base'
         vcpkgDirectory: '${{ github.workspace }}/deps/vcpkg'
     - name: 'Compile'
       uses: lukka/run-cmake@v3
@@ -49,6 +49,6 @@ jobs:
         useVcpkgToolchainFile: true
         vcpkgTriplet: '${{ matrix.vcpkg_triplet }}'
         buildDirectory: '${{ github.workspace }}/build'
-        cmakeAppendedArgs: '-GNinja -DCMAKE_BUILD_TYPE=Debug -DOT_USE_VCPKG_TARGETS=ON -DOT_WITH_BLOCKCHAIN=ON -DOT_WITH_QT=ON -DOT_ENABLE_RPC=OFF ${{ matrix.cmake_extra }}'
+        cmakeAppendedArgs: '-GNinja -DCMAKE_BUILD_TYPE=Release -DOT_USE_VCPKG_TARGETS=ON -DOT_INSTALL_LIBRARY_DEPENDENCIES=OFF -DOT_WITH_BLOCKCHAIN=ON -DOT_WITH_QT=ON -DOT_ENABLE_RPC=OFF ${{ matrix.cmake_extra }}'
         buildWithCMake: true
         buildWithCMakeArgs: '-- -k 0'
