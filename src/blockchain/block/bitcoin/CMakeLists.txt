@@ -5,6 +5,7 @@
 
 set(cxx-sources
     Block.cpp
+    BlockParser.cpp
     Header.cpp
     Input.cpp
     Inputs.cpp
@@ -29,6 +30,7 @@ set(cxx-headers
     ${cxx-install-headers}
     "${opentxs_SOURCE_DIR}/src/internal/blockchain/block/bitcoin/Bitcoin.hpp"
     Block.hpp
+    BlockParser.hpp
     Header.hpp
     Input.hpp
     Inputs.hpp

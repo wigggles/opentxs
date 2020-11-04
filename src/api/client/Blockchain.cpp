@@ -36,18 +36,25 @@
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/api/client/Activity.hpp"
+#include "opentxs/api/client/blockchain/Subchain.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #if OT_BLOCKCHAIN
 #include "opentxs/blockchain/Blockchain.hpp"
+#endif  // OT_BLOCKCHAIN
+#include "opentxs/blockchain/BlockchainType.hpp"
+#if OT_BLOCKCHAIN
 #include "opentxs/blockchain/p2p/Types.hpp"
 #endif  // OT_BLOCKCHAIN
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
+#include "opentxs/crypto/Bip32Child.hpp"
+#include "opentxs/crypto/Bip43Purpose.hpp"
+#include "opentxs/crypto/Bip44Type.hpp"
 #include "opentxs/identity/Nym.hpp"
 #if OT_BLOCKCHAIN
 #include "opentxs/network/zeromq/Context.hpp"
@@ -107,8 +114,10 @@ const Blockchain::AddressReverseMap Blockchain::address_prefix_reverse_map_{
     {"30", Prefix::LitecoinP2PKH},
     {"32", Prefix::LitecoinP2SH},
     {"3a", Prefix::LitecoinTestnetP2SH},
+    {"38", Prefix::PKTP2SH},
     {"6f", Prefix::BitcoinTestnetP2PKH},
     {"c4", Prefix::BitcoinTestnetP2SH},
+    {"75", Prefix::PKTP2PKH},
 };
 const Blockchain::AddressMap Blockchain::address_prefix_map_{
     reverse_map(address_prefix_reverse_map_)};
@@ -122,6 +131,8 @@ const Blockchain::StyleMap Blockchain::address_style_map_{
     {{Style::P2PKH, Chain::Litecoin_testnet4},
      {Prefix::BitcoinTestnetP2PKH, {}}},
     {{Style::P2PKH, Chain::Litecoin}, {Prefix::LitecoinP2PKH, {}}},
+    {{Style::P2PKH, Chain::PKT_testnet}, {Prefix::BitcoinTestnetP2PKH, {}}},
+    {{Style::P2PKH, Chain::PKT}, {Prefix::PKTP2PKH, {}}},
     {{Style::P2SH, Chain::BitcoinCash_testnet3},
      {Prefix::BitcoinTestnetP2SH, {}}},
     {{Style::P2SH, Chain::BitcoinCash}, {Prefix::BitcoinP2SH, {}}},
@@ -131,6 +142,9 @@ const Blockchain::StyleMap Blockchain::address_style_map_{
      {Prefix::LitecoinTestnetP2SH, {Prefix::BitcoinTestnetP2SH}}},
     {{Style::P2SH, Chain::Litecoin},
      {Prefix::LitecoinP2SH, {Prefix::BitcoinP2SH}}},
+    {{Style::P2SH, Chain::PKT_testnet}, {Prefix::BitcoinTestnetP2SH, {}}},
+    {{Style::P2SH, Chain::PKT}, {Prefix::PKTP2SH, {}}},
+
 };
 const Blockchain::StyleReverseMap Blockchain::address_style_reverse_map_{
     ReturnType::reverse(address_style_map_)};
@@ -420,6 +434,10 @@ auto Blockchain::bip44_type(const proto::ContactItemType type) const noexcept
 
             return Bip44Type::BITCOINCASH;
         }
+        case proto::CITEMTYPE_PKT: {
+
+            return Bip44Type::PKT;
+        }
         case proto::CITEMTYPE_TNBCH:
         case proto::CITEMTYPE_TNBTC:
         case proto::CITEMTYPE_TNXRP:
@@ -433,7 +451,8 @@ auto Blockchain::bip44_type(const proto::ContactItemType type) const noexcept
         case proto::CITEMTYPE_TNWAVES:
         case proto::CITEMTYPE_TNNXT:
         case proto::CITEMTYPE_TNSC:
-        case proto::CITEMTYPE_TNSTEEM: {
+        case proto::CITEMTYPE_TNSTEEM:
+        case proto::CITEMTYPE_TNPKT: {
             return Bip44Type::TESTNET;
         }
         default: {

@@ -11,6 +11,7 @@
 #include "internal/blockchain/client/Factory.hpp"
 #include "opentxs/OT.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/blockchain/BlockchainType.hpp"
 #include "opentxs/blockchain/block/bitcoin/Header.hpp"
 #include "opentxs/blockchain/client/HeaderOracle.hpp"
 

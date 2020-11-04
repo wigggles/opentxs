@@ -35,6 +35,8 @@
 #include "opentxs/api/client/Blockchain.hpp"
 #include "opentxs/api/client/Manager.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/blockchain/BlockchainType.hpp"
+#include "opentxs/blockchain/FilterType.hpp"
 #include "opentxs/blockchain/Network.hpp"
 #include "opentxs/blockchain/block/Block.hpp"
 #include "opentxs/blockchain/block/bitcoin/Block.hpp"
@@ -262,6 +264,28 @@ TEST_F(Test_BitcoinBlock, ltc_genesis_testnet)
     EXPECT_TRUE(GenerateGenesisFilter(
         ot::blockchain::Type::Litecoin_testnet4,
         ot::blockchain::filter::Type::Extended_opentxs));
+}
+
+TEST_F(Test_BitcoinBlock, pkt_mainnet)
+{
+    constexpr auto chain = ot::blockchain::Type::PKT;
+
+    EXPECT_TRUE(GenerateGenesisFilter(
+        chain, ot::blockchain::filter::Type::Basic_BIP158));
+    EXPECT_TRUE(GenerateGenesisFilter(
+        chain, ot::blockchain::filter::Type::Extended_opentxs));
+
+    const auto& [genesisHex, filterMap] = genesis_block_data_.at(chain);
+    const auto bytes = api_.Factory().Data(genesisHex, ot::StringStyle::Hex);
+    const auto pBlock = api_.Factory().BitcoinBlock(chain, bytes->Bytes());
+
+    ASSERT_TRUE(pBlock);
+
+    const auto& block = *pBlock;
+    auto raw = api_.Factory().Data();
+
+    EXPECT_TRUE(block.Serialize(raw->WriteInto()));
+    EXPECT_EQ(raw.get(), bytes.get());
 }
 
 TEST_F(Test_BitcoinBlock, bip158)

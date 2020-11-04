@@ -21,6 +21,7 @@
 #if OT_CRYPTO_WITH_BIP32
 #include "opentxs/core/Secret.hpp"
 #endif  // OT_CRYPTO_WITH_BIP32
+#include "opentxs/crypto/Types.hpp"
 #include "opentxs/crypto/key/Keypair.hpp"
 #include "opentxs/identity/credential/Base.hpp"
 #include "opentxs/protobuf/Enums.pb.h"

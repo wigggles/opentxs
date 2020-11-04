@@ -27,6 +27,7 @@
 #include "opentxs/core/Secret.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/crypto/Bip32.hpp"
+#include "opentxs/crypto/Bip32Child.hpp"
 #include "opentxs/crypto/key/HD.hpp"
 #include "opentxs/crypto/key/Symmetric.hpp"
 #include "opentxs/protobuf/AsymmetricKey.pb.h"

@@ -322,7 +322,7 @@ auto Peer::send(OTData in) noexcept -> SendStatus
         auto [future, promise] = send_promises_.NewPromise();
         auto message = MakeWork(Task::SendMessage);
         message->AddFrame(in);
-        message->AddFrame(Data::Factory(&promise, sizeof(promise)));
+        message->AddFrame(promise);
         pipeline_->Push(message);
 
         return std::move(future);

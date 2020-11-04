@@ -13,10 +13,11 @@
 #include <memory>
 #include <vector>
 
-#include "internal/blockchain/block/bitcoin/Bitcoin.hpp"
 #include "internal/blockchain/client/Client.hpp"
 #include "opentxs/Bytes.hpp"
 #include "opentxs/Pimpl.hpp"
+#include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/blockchain/block/bitcoin/Block.hpp"
 #include "opentxs/blockchain/client/BlockOracle.hpp"
 #include "opentxs/core/Log.hpp"
@@ -33,12 +34,10 @@ const std::chrono::seconds BlockOracle::Cache::download_timeout_{60};
 
 BlockOracle::Cache::Cache(
     const api::Core& api,
-    const api::client::Blockchain& blockchain,
     const internal::Network& network,
     const internal::BlockDatabase& db,
     const blockchain::Type chain) noexcept
     : api_(api)
-    , blockchain_(blockchain)
     , network_(network)
     , db_(db)
     , chain_(chain)
@@ -58,7 +57,7 @@ auto BlockOracle::Cache::download(const block::Hash& block) const noexcept
 auto BlockOracle::Cache::ReceiveBlock(const zmq::Frame& in) const noexcept
     -> void
 {
-    auto pBlock = factory::BitcoinBlock(api_, blockchain_, chain_, in.Bytes());
+    auto pBlock = api_.Factory().BitcoinBlock(chain_, in.Bytes());
 
     if (false == bool(pBlock)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid block").Flush();

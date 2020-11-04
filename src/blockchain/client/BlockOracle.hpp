@@ -22,6 +22,7 @@
 #include "opentxs/Bytes.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/blockchain/Types.hpp"
 #include "opentxs/blockchain/client/BlockOracle.hpp"
 #include "opentxs/core/Data.hpp"
 
@@ -68,7 +69,6 @@ public:
 
     BlockOracle(
         const api::Core& api,
-        const api::client::Blockchain& blockchain,
         const internal::Network& network,
         const internal::BlockDatabase& db,
         const blockchain::Type chain,
@@ -95,7 +95,6 @@ private:
 
         Cache(
             const api::Core& api_,
-            const api::client::Blockchain& blockchain,
             const internal::Network& network,
             const internal::BlockDatabase& db,
             const blockchain::Type chain) noexcept;
@@ -126,7 +125,6 @@ private:
         };
 
         const api::Core& api_;
-        const api::client::Blockchain& blockchain_;
         const internal::Network& network_;
         const internal::BlockDatabase& db_;
         const blockchain::Type chain_;

@@ -12,6 +12,7 @@
 
 #include "opentxs/Types.hpp"
 #include "opentxs/api/Endpoints.hpp"
+#include "opentxs/blockchain/Types.hpp"
 
 namespace opentxs
 {

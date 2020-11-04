@@ -21,6 +21,7 @@
 #include "opentxs/Types.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Secret.hpp"
+#include "opentxs/crypto/Types.hpp"
 
 namespace opentxs
 {

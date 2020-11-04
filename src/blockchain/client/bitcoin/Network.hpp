@@ -11,6 +11,8 @@
 #include "blockchain/client/Network.hpp"
 #include "opentxs/Bytes.hpp"
 #include "opentxs/Types.hpp"
+#include "opentxs/blockchain/BlockchainType.hpp"
+#include "opentxs/blockchain/Types.hpp"
 
 namespace opentxs
 {

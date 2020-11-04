@@ -16,7 +16,9 @@
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/Version.hpp"
+#include "opentxs/api/client/blockchain/Types.hpp"
 #include "opentxs/core/Identifier.hpp"
+#include "opentxs/crypto/Types.hpp"
 #include "opentxs/crypto/key/HD.hpp"
 #include "opentxs/protobuf/HDPath.pb.h"
 

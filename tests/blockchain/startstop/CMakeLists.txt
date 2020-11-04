@@ -19,5 +19,6 @@ add_opentx_test(unittests-opentxs-blockchain-startstop-ltc Test_ltc.cpp)
 add_opentx_test(
   unittests-opentxs-blockchain-startstop-ltc_testnet4 Test_ltc_testnet4.cpp
 )
+add_opentx_test(unittests-opentxs-blockchain-startstop-pkt Test_pkt.cpp)
 add_opentx_test(unittests-opentxs-blockchain-startstop-ropsten Test_ropsten.cpp)
 add_opentx_test(unittests-opentxs-blockchain-startstop-regtest Test_regtest.cpp)

@@ -17,6 +17,7 @@
 
 #include "opentxs/Types.hpp"
 #include "opentxs/blockchain/BloomFilter.hpp"
+#include "opentxs/blockchain/Types.hpp"
 #include "opentxs/core/Data.hpp"
 
 namespace opentxs

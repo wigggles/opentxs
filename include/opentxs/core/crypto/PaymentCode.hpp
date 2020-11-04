@@ -16,6 +16,7 @@
 
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Proto.hpp"
+#include "opentxs/crypto/Types.hpp"
 
 namespace opentxs
 {

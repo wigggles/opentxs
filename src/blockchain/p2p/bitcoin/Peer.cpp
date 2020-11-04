@@ -37,6 +37,8 @@
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Util.hpp"
+#include "opentxs/blockchain/BlockchainType.hpp"
+#include "opentxs/blockchain/FilterType.hpp"
 #include "opentxs/blockchain/block/Header.hpp"
 #include "opentxs/blockchain/block/bitcoin/Header.hpp"
 #include "opentxs/blockchain/client/FilterOracle.hpp"
@@ -220,7 +222,9 @@ auto Peer::get_local_services(
         case blockchain::Type::Bitcoin:
         case blockchain::Type::Bitcoin_testnet3:
         case blockchain::Type::Litecoin:
-        case blockchain::Type::Litecoin_testnet4: {
+        case blockchain::Type::Litecoin_testnet4:
+        case blockchain::Type::PKT:
+        case blockchain::Type::PKT_testnet: {
             output.emplace(p2p::Service::Witness);
         } break;
         case blockchain::Type::BitcoinCash:

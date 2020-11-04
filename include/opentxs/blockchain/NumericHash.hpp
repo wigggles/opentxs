@@ -12,6 +12,7 @@
 
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Types.hpp"
+#include "opentxs/blockchain/Types.hpp"
 
 namespace opentxs
 {

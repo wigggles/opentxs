@@ -306,6 +306,8 @@ auto AllowedItemTypes() noexcept -> const ContactItemMap&
              CITEMTYPE_ETHEREUM_KOVAN,
              CITEMTYPE_ETHEREUM_SOKOL,
              CITEMTYPE_ETHEREUM_POA,
+             CITEMTYPE_PKT,
+             CITEMTYPE_TNPKT,
          }},
         {{1, CONTACTSECTION_COMMUNICATION},
          {CITEMTYPE_OPENTXS,    CITEMTYPE_PHONE,    CITEMTYPE_EMAIL,
@@ -837,6 +839,8 @@ auto AllowedItemTypes() noexcept -> const ContactItemMap&
              CITEMTYPE_ETHEREUM_KOVAN,
              CITEMTYPE_ETHEREUM_SOKOL,
              CITEMTYPE_ETHEREUM_POA,
+             CITEMTYPE_PKT,
+             CITEMTYPE_TNPKT,
          }},
         {{3, CONTACTSECTION_PROCEDURE},
          {CITEMTYPE_BTC,   CITEMTYPE_ETH,  CITEMTYPE_XRP,  CITEMTYPE_LTC,
@@ -948,6 +952,8 @@ auto AllowedItemTypes() noexcept -> const ContactItemMap&
              CITEMTYPE_ETHEREUM_KOVAN,
              CITEMTYPE_ETHEREUM_SOKOL,
              CITEMTYPE_ETHEREUM_POA,
+             CITEMTYPE_PKT,
+             CITEMTYPE_TNPKT,
          }},
     };
 
@@ -1232,6 +1238,8 @@ auto ContactItemTypes() noexcept -> const EnumTranslation&
         {{CITEMTYPE_ETHEREUM_KOVAN, "en"}, "Ethereum Parity testnet"},
         {{CITEMTYPE_ETHEREUM_SOKOL, "en"}, "Ethereum POA testnet"},
         {{CITEMTYPE_ETHEREUM_POA, "en"}, "Ethereum POA"},
+        {{CITEMTYPE_PKT, "en"}, "PKT"},
+        {{CITEMTYPE_TNPKT, "en"}, "PKT (testnet)"},
     };
 
     return output;

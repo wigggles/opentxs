@@ -52,8 +52,9 @@ if(OT_BLOCKCHAIN_EXPORT)
     object-deps
     $<TARGET_OBJECTS:opentxs-api-client-blockchain-database>
     $<TARGET_OBJECTS:opentxs-blockchain-bitcoin>
-    $<TARGET_OBJECTS:opentxs-blockchain-block-bitcoin>
     $<TARGET_OBJECTS:opentxs-blockchain-block>
+    $<TARGET_OBJECTS:opentxs-blockchain-block-bitcoin>
+    $<TARGET_OBJECTS:opentxs-blockchain-block-pkt>
     $<TARGET_OBJECTS:opentxs-blockchain-client-bitcoin>
     $<TARGET_OBJECTS:opentxs-blockchain-client>
     $<TARGET_OBJECTS:opentxs-blockchain-database>

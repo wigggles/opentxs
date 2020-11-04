@@ -23,6 +23,7 @@
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
+#include "opentxs/blockchain/BlockchainType.hpp"
 #include "opentxs/blockchain/NumericHash.hpp"
 #include "opentxs/blockchain/Work.hpp"
 #include "opentxs/blockchain/block/bitcoin/Header.hpp"
@@ -186,7 +187,11 @@ Header::Header(
     OT_ASSERT(validate || (blockchain::Type::UnitTest == type_));
 
     if (validate && (false == check_pow())) {
-        throw std::runtime_error("Invalid proof of work");
+        // FIXME is it possible to verify PKT proof of work?
+        if ((blockchain::Type::PKT != type_) &&
+            (blockchain::Type::PKT_testnet != type_)) {
+            throw std::runtime_error("Invalid proof of work");
+        }
     }
 }
 

@@ -11,6 +11,7 @@
 #include <type_traits>
 
 #include "internal/blockchain/Params.hpp"
+#include "opentxs/blockchain/BlockchainType.hpp"
 #include "opentxs/protobuf/ContactEnums.pb.h"
 
 namespace opentxs

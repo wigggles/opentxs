@@ -15,6 +15,7 @@
 
 #include "internal/api/client/Client.hpp"
 #include "opentxs/Pimpl.hpp"
+#include "opentxs/Types.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "ui/List.hpp"

@@ -18,6 +18,8 @@
 #include "opentxs/SharedPimpl.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/Version.hpp"
+#include "opentxs/blockchain/BlockchainType.hpp"
+#include "opentxs/blockchain/Types.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/protobuf/PaymentWorkflowEnums.pb.h"
@@ -97,6 +99,10 @@ public:
         return polarity(balance_.load());
     }
 #if OT_BLOCKCHAIN
+    auto DepositAddress() const noexcept -> std::string final
+    {
+        return DepositAddress(blockchain::Type::Unknown);
+    }
     auto DepositAddress(const blockchain::Type) const noexcept
         -> std::string override
     {

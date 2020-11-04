@@ -10,6 +10,8 @@
 
 #include <string>
 
+#include "opentxs/blockchain/Types.hpp"
+
 #ifdef SWIG
 // clang-format off
 %rename(ZMQEndpoints) opentxs::api::Endpoints;

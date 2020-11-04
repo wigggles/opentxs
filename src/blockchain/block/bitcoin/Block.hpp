@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <cstddef>
 #include <iosfwd>
 #include <map>
 #include <memory>
@@ -19,6 +20,8 @@
 #include "opentxs/Bytes.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/blockchain/BlockchainType.hpp"
+#include "opentxs/blockchain/Types.hpp"
 #include "opentxs/blockchain/block/Block.hpp"
 #include "opentxs/blockchain/block/bitcoin/Block.hpp"
 
@@ -33,13 +36,27 @@ class Blockchain;
 
 class Core;
 }  // namespace api
+
+namespace blockchain
+{
+namespace block
+{
+namespace bitcoin
+{
+namespace internal
+{
+struct Header;
+}  // namespace internal
+}  // namespace bitcoin
+}  // namespace block
+}  // namespace blockchain
 }  // namespace opentxs
 
 namespace bb = opentxs::blockchain::bitcoin;
 
 namespace opentxs::blockchain::block::bitcoin::implementation
 {
-class Block final : public bitcoin::Block, public block::implementation::Block
+class Block : public bitcoin::Block, public block::implementation::Block
 {
 public:
     using CalculatedSize =
@@ -72,7 +89,7 @@ public:
     auto begin() const noexcept -> const_iterator final { return cbegin(); }
     auto CalculateSize() const noexcept -> std::size_t final
     {
-        return calculate_size().first;
+        return get_or_calculate_size().first;
     }
     auto cbegin() const noexcept -> const_iterator final
     {
@@ -100,6 +117,10 @@ public:
         TxidIndex&& index,
         TransactionMap&& transactions,
         std::optional<CalculatedSize>&& size = {}) noexcept(false);
+    ~Block() override;
+
+protected:
+    using ByteIterator = std::byte*;
 
 private:
     static const value_type null_tx_;
@@ -111,6 +132,10 @@ private:
     mutable std::optional<CalculatedSize> size_;
 
     auto calculate_size() const noexcept -> CalculatedSize;
+    virtual auto extra_bytes() const noexcept -> std::size_t { return 0; }
+    auto get_or_calculate_size() const noexcept -> CalculatedSize;
+    virtual auto serialize_post_header(ByteIterator& it, std::size_t& remaining)
+        const noexcept -> bool;
 
     Block() = delete;
     Block(const Block&) = delete;

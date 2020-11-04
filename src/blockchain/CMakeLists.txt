@@ -13,7 +13,12 @@ endif()
 
 set(cxx-sources Params.cpp)
 
-set(cxx-install-headers "")
+set(cxx-install-headers
+    "${opentxs_SOURCE_DIR}/include/opentxs/blockchain/BlockchainType.hpp"
+    "${opentxs_SOURCE_DIR}/include/opentxs/blockchain/BloomUpdateFlag.hpp"
+    "${opentxs_SOURCE_DIR}/include/opentxs/blockchain/FilterType.hpp"
+    "${opentxs_SOURCE_DIR}/include/opentxs/blockchain/Types.hpp"
+)
 
 set(cxx-headers ${cxx-install-headers}
                 "${opentxs_SOURCE_DIR}/src/internal/blockchain/Params.hpp"

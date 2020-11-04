@@ -11,8 +11,14 @@
 
 #include "OTTestEnvironment.hpp"  // IWYU pragma: keep
 #include "UIHelpers.hpp"
+#include "opentxs/OT.hpp"
 #include "opentxs/SharedPimpl.hpp"
-#include "opentxs/opentxs.hpp"
+#include "opentxs/api/Context.hpp"
+#include "opentxs/api/client/Manager.hpp"
+#include "opentxs/api/client/UI.hpp"
+#include "opentxs/blockchain/BlockchainType.hpp"
+#include "opentxs/ui/BlockchainSelection.hpp"
+#include "opentxs/ui/BlockchainSelectionItem.hpp"
 
 namespace
 {
@@ -33,7 +39,7 @@ public:
 
 TEST_F(Test_BlockchainSelector, initialize_opentxs)
 {
-    counter_.expected_ = 6;
+    counter_.expected_ = 7;
     model_.SetCallback(make_cb(counter_, "Blockchain selector"));
 
     ASSERT_TRUE(wait_for_counter(counter_));
@@ -105,6 +111,17 @@ TEST_F(Test_BlockchainSelector, initial_state)
         EXPECT_FALSE(row->IsEnabled());
         EXPECT_TRUE(row->IsTestnet());
         EXPECT_EQ(row->Type(), ot::blockchain::Type::Litecoin_testnet4);
+    }
+
+    ASSERT_FALSE(row->Last());
+
+    row = model_.Next();
+
+    {
+        EXPECT_EQ(row->Name(), "PKT");
+        EXPECT_FALSE(row->IsEnabled());
+        EXPECT_TRUE(row->IsTestnet());  // TODO temporary for testing
+        EXPECT_EQ(row->Type(), ot::blockchain::Type::PKT);
     }
 
     EXPECT_TRUE(row->Last());

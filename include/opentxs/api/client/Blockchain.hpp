@@ -21,7 +21,8 @@
 #include "opentxs/api/client/blockchain/BalanceNode.hpp"
 #if OT_BLOCKCHAIN
 #include "opentxs/blockchain/Blockchain.hpp"
-#endif  // OT_BLOCKCHAIN
+#endif                                   // OT_BLOCKCHAIN
+#include "opentxs/blockchain/Types.hpp"  // IWYU pragma: keep
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 

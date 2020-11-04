@@ -7,6 +7,7 @@
 #define OPENTXS_CONTACT_CONTACT_HPP
 
 // IWYU pragma: no_include "opentxs/Proto.hpp"
+// IWYU pragma: no_include "opentxs/blockchain/BlockchainType.hpp"
 
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
@@ -23,6 +24,9 @@
 
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
+#include "opentxs/api/client/blockchain/AddressStyle.hpp"
+#include "opentxs/api/client/blockchain/Types.hpp"
+#include "opentxs/blockchain/Types.hpp"
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"

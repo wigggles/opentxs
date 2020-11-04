@@ -18,6 +18,7 @@
 
 #include "internal/blockchain/Params.hpp"
 #include "opentxs/Pimpl.hpp"
+#include "opentxs/Types.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "util/Container.hpp"

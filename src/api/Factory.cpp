@@ -85,6 +85,8 @@
 #include "opentxs/core/trade/OTMarket.hpp"
 #include "opentxs/core/trade/OTOffer.hpp"
 #include "opentxs/core/trade/OTTrade.hpp"
+#include "opentxs/crypto/Bip32Child.hpp"
+#include "opentxs/crypto/Bip43Purpose.hpp"
 #include "opentxs/crypto/key/EllipticCurve.hpp"
 #include "opentxs/crypto/key/HD.hpp"
 #include "opentxs/crypto/key/Secp256k1.hpp"
@@ -358,9 +360,9 @@ auto Factory::BasketContract(
 
 #if OT_BLOCKCHAIN
 auto Factory::BitcoinScriptNullData(
-    const blockchain::Type chain,
+    const opentxs::blockchain::Type chain,
     const std::vector<ReadView>& data) const noexcept
-    -> std::unique_ptr<const blockchain::block::bitcoin::Script>
+    -> std::unique_ptr<const opentxs::blockchain::block::bitcoin::Script>
 {
     namespace b = opentxs::blockchain;
     namespace bb = opentxs::blockchain::block::bitcoin;
@@ -376,11 +378,12 @@ auto Factory::BitcoinScriptNullData(
 }
 
 auto Factory::BitcoinScriptP2MS(
-    const blockchain::Type chain,
+    const opentxs::blockchain::Type chain,
     const std::uint8_t M,
     const std::uint8_t N,
     const std::vector<const opentxs::crypto::key::EllipticCurve*>& publicKeys)
-    const noexcept -> std::unique_ptr<const blockchain::block::bitcoin::Script>
+    const noexcept
+    -> std::unique_ptr<const opentxs::blockchain::block::bitcoin::Script>
 {
     namespace b = opentxs::blockchain;
     namespace bb = opentxs::blockchain::block::bitcoin;
@@ -418,9 +421,9 @@ auto Factory::BitcoinScriptP2MS(
 }
 
 auto Factory::BitcoinScriptP2PK(
-    const blockchain::Type chain,
+    const opentxs::blockchain::Type chain,
     const opentxs::crypto::key::EllipticCurve& key) const noexcept
-    -> std::unique_ptr<const blockchain::block::bitcoin::Script>
+    -> std::unique_ptr<const opentxs::blockchain::block::bitcoin::Script>
 {
     namespace bb = opentxs::blockchain::block::bitcoin;
 
@@ -432,9 +435,9 @@ auto Factory::BitcoinScriptP2PK(
 }
 
 auto Factory::BitcoinScriptP2PKH(
-    const blockchain::Type chain,
+    const opentxs::blockchain::Type chain,
     const opentxs::crypto::key::EllipticCurve& key) const noexcept
-    -> std::unique_ptr<const blockchain::block::bitcoin::Script>
+    -> std::unique_ptr<const opentxs::blockchain::block::bitcoin::Script>
 {
     namespace b = opentxs::blockchain;
     namespace bb = opentxs::blockchain::block::bitcoin;
@@ -459,9 +462,9 @@ auto Factory::BitcoinScriptP2PKH(
 }
 
 auto Factory::BitcoinScriptP2SH(
-    const blockchain::Type chain,
-    const blockchain::block::bitcoin::Script& script) const noexcept
-    -> std::unique_ptr<const blockchain::block::bitcoin::Script>
+    const opentxs::blockchain::Type chain,
+    const opentxs::blockchain::block::bitcoin::Script& script) const noexcept
+    -> std::unique_ptr<const opentxs::blockchain::block::bitcoin::Script>
 {
     namespace b = opentxs::blockchain;
     namespace bb = opentxs::blockchain::block::bitcoin;
@@ -492,13 +495,13 @@ auto Factory::BitcoinScriptP2SH(
 }
 
 auto Factory::BlockchainAddress(
-    const blockchain::p2p::Protocol protocol,
-    const blockchain::p2p::Network network,
+    const opentxs::blockchain::p2p::Protocol protocol,
+    const opentxs::blockchain::p2p::Network network,
     const opentxs::Data& bytes,
     const std::uint16_t port,
-    const blockchain::Type chain,
+    const opentxs::blockchain::Type chain,
     const Time lastConnected,
-    const std::set<blockchain::p2p::Service>& services,
+    const std::set<opentxs::blockchain::p2p::Service>& services,
     const bool incoming) const -> OTBlockchainAddress
 {
     return OTBlockchainAddress{factory::BlockchainAddress(
@@ -515,7 +518,7 @@ auto Factory::BlockchainAddress(
 }
 
 auto Factory::BlockchainAddress(
-    const blockchain::p2p::Address::SerializedType& serialized) const
+    const opentxs::blockchain::p2p::Address::SerializedType& serialized) const
     -> OTBlockchainAddress
 {
     return OTBlockchainAddress{

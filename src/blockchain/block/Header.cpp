@@ -19,6 +19,7 @@
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
+#include "opentxs/blockchain/BlockchainType.hpp"
 #include "opentxs/blockchain/NumericHash.hpp"
 #include "opentxs/blockchain/Work.hpp"
 #include "opentxs/blockchain/block/Header.hpp"
@@ -44,6 +45,8 @@ auto GenesisBlockHeader(
         case blockchain::Type::BitcoinCash_testnet3:
         case blockchain::Type::Litecoin:
         case blockchain::Type::Litecoin_testnet4:
+        case blockchain::Type::PKT:
+        case blockchain::Type::PKT_testnet:
         case blockchain::Type::UnitTest: {
             const auto& hex =
                 blockchain::params::Data::chains_.at(type).genesis_header_hex_;

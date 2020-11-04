@@ -12,6 +12,7 @@
 
 #include "opentxs/SharedPimpl.hpp"
 #include "opentxs/Types.hpp"
+#include "opentxs/blockchain/Types.hpp"
 #include "opentxs/ui/List.hpp"
 
 #ifdef SWIG
