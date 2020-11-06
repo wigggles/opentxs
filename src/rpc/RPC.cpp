@@ -57,6 +57,8 @@
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
+#include "opentxs/crypto/Language.hpp"
+#include "opentxs/crypto/SeedStyle.hpp"
 #include "opentxs/ext/OTPayment.hpp"  // IWYU pragma: keep
 #include "opentxs/identity/Nym.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
@@ -1309,8 +1311,12 @@ auto RPC::import_seed(const proto::RPCCommand& command) const
     auto& seed = command.hdseed();
     auto words = ot_.Factory().SecretFromText(seed.words());
     auto passphrase = ot_.Factory().SecretFromText(seed.passphrase());
-    const auto identifier =
-        session.Seeds().ImportSeed(words, passphrase, reason);
+    const auto identifier = session.Seeds().ImportSeed(
+        words,
+        passphrase,
+        crypto::SeedStyle::BIP39,
+        crypto::Language::en,
+        reason);
 
     if (identifier.empty()) {
         add_output_status(output, proto::RPCRESPONSE_INVALID);

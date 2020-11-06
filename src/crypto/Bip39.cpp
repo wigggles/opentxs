@@ -7,10 +7,14 @@
 #include "1_Internal.hpp"    // IWYU pragma: associated
 #include "crypto/Bip39.hpp"  // IWYU pragma: associated
 
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
+#include <iterator>
 #include <memory>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 #include "2_Factory.hpp"
@@ -22,6 +26,7 @@
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/core/Secret.hpp"
 #include "opentxs/protobuf/Enums.pb.h"
+#include "util/Container.hpp"
 
 #define OT_METHOD "opentxs::crypto::implementation::Bip39::"
 
@@ -57,8 +62,10 @@ auto Bip39::bitShift(std::size_t theBit) noexcept -> std::byte
     return static_cast<std::byte>(1 << (ByteBits - (theBit % ByteBits) - 1));
 }
 
-auto Bip39::entropy_to_words(const Secret& entropy, Secret& words)
-    const noexcept -> bool
+auto Bip39::entropy_to_words(
+    const Secret& entropy,
+    Secret& words,
+    const Language lang) const noexcept -> bool
 {
     const auto bytes = entropy.Bytes();
 
@@ -149,9 +156,16 @@ auto Bip39::entropy_to_words(const Secret& entropy, Secret& words)
 
         OT_ASSERT(indexDict < DictionarySize);
 
-        const auto& dictionary = words_.at("en");
-        const auto& theString = dictionary.at(indexDict);
-        mnemonicWords.push_back(theString);
+        try {
+            const auto& dictionary = words_.at(lang);
+            const auto& theString = dictionary.at(indexDict);
+            mnemonicWords.push_back(theString);
+        } catch (...) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Unsupported language")
+                .Flush();
+
+            return false;
+        }
     }
 
     if (mnemonicWords.size() != ((bitIndex + 1) / BitsPerWord)) {
@@ -178,10 +192,70 @@ auto Bip39::entropy_to_words(const Secret& entropy, Secret& words)
     return true;
 }
 
-auto Bip39::SeedToWords(const Secret& seed, Secret& words) const noexcept
-    -> bool
+auto Bip39::find_longest_words(const Words& in) noexcept -> LongestWords
 {
-    return entropy_to_words(seed, words);
+    auto output = LongestWords{};
+
+    for (const auto& [lang, words] : in) {
+        auto& max = output[lang];
+
+        for (const auto& word : words) {
+            max = std::max(max, std::strlen(word));
+        }
+    }
+
+    return output;
+}
+
+auto Bip39::GetSuggestions(const Language lang, const std::string_view word)
+    const noexcept -> Suggestions
+{
+    if (word.size() == 0) { return {}; }
+
+    try {
+        auto output = Suggestions{};
+        const auto& words = words_.at(lang);
+
+        if (0 == words.size()) { return {}; }
+
+        for (const auto candidate : words) {
+            const auto start = word.data();
+            const auto size = std::min(word.size(), std::strlen(candidate));
+            const auto end = start + size;
+            const auto prefix = std::distance(
+                start, std::mismatch(start, end, candidate).first);
+
+            if (0 > prefix) { continue; }
+
+            if (size == static_cast<std::size_t>(prefix)) {
+                output.emplace_back(candidate);
+            }
+        }
+
+        dedup(output);
+
+        return output;
+    } catch (...) {
+
+        return {};
+    }
+}
+
+auto Bip39::LongestWord(const Language lang) const noexcept -> std::size_t
+{
+    try {
+
+        return longest_words_.at(lang);
+    } catch (...) {
+
+        return {};
+    }
+}
+
+auto Bip39::SeedToWords(const Secret& seed, Secret& words, const Language lang)
+    const noexcept -> bool
+{
+    return entropy_to_words(seed, words, lang);
 }
 
 auto Bip39::words_to_root(

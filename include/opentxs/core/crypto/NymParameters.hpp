@@ -7,6 +7,9 @@
 #define OPENTXS_CORE_CRYPTO_NYMPARAMETERS_HPP
 
 // IWYU pragma: no_include "opentxs/Proto.hpp"
+// IWYU pragma: no_include "opentxs/crypto/Language.hpp"
+// IWYU pragma: no_include "opentxs/crypto/SeedStrength.hpp"
+// IWYU pragma: no_include "opentxs/crypto/SeedStyle.hpp"
 
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
@@ -66,6 +69,9 @@ public:
     OPENTXS_EXPORT NymParameterType nymParameterType() const;
 #if OT_CRYPTO_WITH_BIP32
     OPENTXS_EXPORT std::string Seed() const;
+    OPENTXS_EXPORT crypto::Language SeedLanguage() const;
+    OPENTXS_EXPORT crypto::SeedStrength SeedStrength() const;
+    OPENTXS_EXPORT crypto::SeedStyle SeedStyle() const;
 #endif  // OT_CRYPTO_WITH_BIP32
     OPENTXS_EXPORT proto::SourceProofType SourceProofType() const;
     OPENTXS_EXPORT proto::SourceType SourceType() const;
@@ -93,6 +99,9 @@ public:
 #endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
 #if OT_CRYPTO_WITH_BIP32
     OPENTXS_EXPORT void SetSeed(const std::string& seed);
+    OPENTXS_EXPORT void SetSeedLanguage(const crypto::Language lang);
+    OPENTXS_EXPORT void SetSeedStrength(const crypto::SeedStrength value);
+    OPENTXS_EXPORT void SetSeedStyle(const crypto::SeedStyle type);
 #endif  // OT_CRYPTO_WITH_BIP32
 #if OT_CRYPTO_WITH_BIP32
     OPENTXS_EXPORT void SetUseAutoIndex(const bool use);
@@ -160,6 +169,9 @@ private:
     std::shared_ptr<proto::ContactData> contact_data_;
     std::shared_ptr<proto::VerificationSet> verification_set_;
 #if OT_CRYPTO_WITH_BIP32
+    crypto::SeedStyle seed_style_;
+    crypto::Language seed_language_;
+    crypto::SeedStrength seed_strength_;
     OTSecret entropy_;
     std::string seed_;
     Bip32Index nym_;

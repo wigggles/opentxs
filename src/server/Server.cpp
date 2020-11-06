@@ -43,6 +43,8 @@
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/crypto/Envelope.hpp"
+#include "opentxs/crypto/Language.hpp"
+#include "opentxs/crypto/SeedStyle.hpp"
 #include "opentxs/ext/OTPayment.hpp"
 #include "opentxs/identity/Nym.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
@@ -187,7 +189,12 @@ void Server::CreateMainFile(bool& mainFileExists)
         auto parsed = parse_seed_backup(backup);
         auto phrase = manager_.Factory().SecretFromText(parsed.first);
         auto words = manager_.Factory().SecretFromText(parsed.second);
-        seed = manager_.Seeds().ImportSeed(words, phrase, reason_);
+        seed = manager_.Seeds().ImportSeed(
+            words,
+            phrase,
+            crypto::SeedStyle::BIP39,
+            crypto::Language::en,
+            reason_);
 
         if (seed.empty()) {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Seed restoration failed.")
