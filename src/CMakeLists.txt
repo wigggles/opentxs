@@ -61,6 +61,7 @@ if(OT_BLOCKCHAIN_EXPORT)
     $<TARGET_OBJECTS:opentxs-blockchain-p2p-bitcoin-message>
     $<TARGET_OBJECTS:opentxs-blockchain-p2p-bitcoin>
     $<TARGET_OBJECTS:opentxs-blockchain-p2p>
+    $<TARGET_OBJECTS:opentxs-ui-blockchainselection>
   )
 endif()
 
@@ -117,7 +118,18 @@ list(
   $<TARGET_OBJECTS:opentxs-storage-tree>
   $<TARGET_OBJECTS:opentxs-storage>
   $<TARGET_OBJECTS:opentxs-trade>
-  $<TARGET_OBJECTS:opentxs-ui>
+  $<TARGET_OBJECTS:opentxs-ui-accountactivity>
+  $<TARGET_OBJECTS:opentxs-ui-accountlist>
+  $<TARGET_OBJECTS:opentxs-ui-accountsummary>
+  $<TARGET_OBJECTS:opentxs-ui-activitysummary>
+  $<TARGET_OBJECTS:opentxs-ui-activitythread>
+  $<TARGET_OBJECTS:opentxs-ui-base>
+  $<TARGET_OBJECTS:opentxs-ui-contact>
+  $<TARGET_OBJECTS:opentxs-ui-contactlist>
+  $<TARGET_OBJECTS:opentxs-ui-messagablelist>
+  $<TARGET_OBJECTS:opentxs-ui-payablelist>
+  $<TARGET_OBJECTS:opentxs-ui-profile>
+  $<TARGET_OBJECTS:opentxs-ui-unitlist>
   $<TARGET_OBJECTS:opentxs-util>
   $<TARGET_OBJECTS:otprotob>
   $<TARGET_OBJECTS:proto-verify>

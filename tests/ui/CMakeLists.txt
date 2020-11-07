@@ -12,3 +12,5 @@ if(OT_BLOCKCHAIN_EXPORT)
     unittests-opentxs-ui-blockchainselector Test_BlockchainSelector.cpp
   )
 endif()
+
+add_opentx_test(unittests-opentxs-ui-items Test_Items.cpp)

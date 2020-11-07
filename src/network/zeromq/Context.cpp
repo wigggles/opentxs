@@ -8,6 +8,7 @@
 #include "network/zeromq/Context.hpp"  // IWYU pragma: associated
 
 #include <zmq.h>
+#include <cassert>
 #include <cstdint>
 #include <memory>
 
@@ -121,12 +122,20 @@ namespace opentxs::network::zeromq::implementation
 Context::Context() noexcept
     : context_(::zmq_ctx_new())
 {
-    OT_ASSERT(nullptr != context_);
-    OT_ASSERT(1 == ::zmq_has("curve"));
+    assert(nullptr != context_);
+    assert(1 == ::zmq_has("curve"));
 
-    auto init = ::zmq_ctx_set(context_, ZMQ_MAX_SOCKETS, 16384);
+    constexpr auto sockets{
+#ifndef _WIN32
+        16384
+#else
+        1536
+#endif
+    };
+    [[maybe_unused]] const auto init =
+        ::zmq_ctx_set(context_, ZMQ_MAX_SOCKETS, sockets);
 
-    OT_ASSERT(0 == init);
+    assert(0 == init);
 }
 
 Context::operator void*() const noexcept

@@ -204,12 +204,7 @@ public:
 #if OT_BLOCKCHAIN
        const api::client::internal::Blockchain& blockchain,
 #endif  // OT_BLOCKCHAIN
-       const Flag& running
-#if OT_QT
-       ,
-       const bool qt
-#endif  // OT_QT
-       )
+       const Flag& running)
     noexcept;
 
     ~UI() final = default;
@@ -330,9 +325,6 @@ private:
     const api::client::internal::Blockchain& blockchain_;
 #endif  // OT_BLOCKCHAIN
     const Flag& running_;
-#if OT_QT
-    const bool enable_qt_;
-#endif  // OT_QT
     mutable AccountActivityMap accounts_;
     mutable AccountListMap account_lists_;
     mutable AccountSummaryMap account_summaries_;

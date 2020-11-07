@@ -41,7 +41,7 @@ constexpr auto MiB_ = std::size_t{1024u * KiB_};
 constexpr auto GiB_ = std::size_t{1024u * MiB_};
 [[maybe_unused]] constexpr auto TiB_ = std::size_t{1024u * GiB_};
 constexpr auto target_file_size_ =
-#if OT_VALGRIND
+#if OT_VALGRIND || defined _WIN32 || defined __APPLE__
     std::size_t{4u * GiB_};
 #else
     std::size_t{8u * TiB_};
