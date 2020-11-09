@@ -182,7 +182,7 @@ TEST_F(Integration, instantiate_ui_objects)
 #else
     payable_list_btc_alex_.expected_ = 0;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1 && OT_CRYPTO_WITH_BIP32
-    profile_alex_.expected_ = 2;
+    profile_alex_.expected_ = 1;
 
     account_activity_usd_bob_.expected_ = 0;
     account_list_bob_.expected_ = 0;
@@ -199,7 +199,7 @@ TEST_F(Integration, instantiate_ui_objects)
 #else
     payable_list_btc_bob_.expected_ = 0;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1 && OT_CRYPTO_WITH_BIP32
-    profile_bob_.expected_ = 2;
+    profile_bob_.expected_ = 1;
 
     api_alex_.UI().AccountList(
         alex_.nym_id_, make_cb(account_list_alex_, "alex account list"));
@@ -625,11 +625,11 @@ TEST_F(Integration, add_contact_preconditions)
 
 TEST_F(Integration, add_contact_Bob_To_Alex)
 {
-    contact_list_alex_.expected_ += 3;
-    messagable_list_alex_.expected_ += 4;
+    contact_list_alex_.expected_ += 1;
+    messagable_list_alex_.expected_ += 1;
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1 && OT_CRYPTO_WITH_BIP32
-    payable_list_bch_alex_.expected_ += 2;
-    payable_list_btc_alex_.expected_ += 4;
+    payable_list_bch_alex_.expected_ += 1;
+    payable_list_btc_alex_.expected_ += 1;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1 && OT_CRYPTO_WITH_BIP32
 
     alex_.api_->UI()
@@ -730,17 +730,15 @@ TEST_F(Integration, activity_thread_bob_alex_0)
 TEST_F(Integration, send_message_from_Alex_to_Bob_1)
 {
     activity_summary_alex_.expected_ += 2;
-    activity_thread_bob_alex_.expected_ += 5;
-    contact_list_alex_.expected_ += 7;
-    messagable_list_alex_.expected_ += 4;
+    activity_thread_bob_alex_.expected_ += 4;
+    messagable_list_alex_.expected_ += 1;
     activity_summary_bob_.expected_ += 2;
-    contact_list_bob_.expected_ += 4;
-    messagable_list_bob_.expected_ += 5;
+    contact_list_bob_.expected_ += 2;
+    messagable_list_bob_.expected_ += 2;
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1 && OT_CRYPTO_WITH_BIP32
-    payable_list_bch_alex_.expected_ += 7;
-    payable_list_btc_alex_.expected_ += 7;
-    payable_list_bch_bob_.expected_ += 4;
-    payable_list_btc_bob_.expected_ += 4;
+    payable_list_bch_alex_.expected_ += 1;
+    payable_list_bch_bob_.expected_ += 1;
+    payable_list_btc_bob_.expected_ += 1;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1 && OT_CRYPTO_WITH_BIP32
 
     const auto& from_client = api_alex_;
@@ -961,18 +959,11 @@ TEST_F(Integration, activity_thread_alex_bob_0)
 TEST_F(Integration, send_message_from_Bob_to_Alex_2)
 {
     activity_summary_alex_.expected_ += 2;
-    activity_thread_bob_alex_.expected_ += 4;
+    activity_thread_bob_alex_.expected_ += 3;
     activity_summary_bob_.expected_ += 2;
-    activity_thread_alex_bob_.expected_ += 6;
-    contact_list_alex_.expected_ += 4;
-    contact_list_bob_.expected_ += 7;
-    messagable_list_alex_.expected_ += 4;
-    messagable_list_bob_.expected_ += 4;
+    activity_thread_alex_bob_.expected_ += 5;
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1 && OT_CRYPTO_WITH_BIP32
-    payable_list_bch_alex_.expected_ += 4;
-    payable_list_btc_alex_.expected_ += 4;
-    payable_list_bch_bob_.expected_ += 7;
-    payable_list_btc_bob_.expected_ += 7;
+    payable_list_bch_bob_.expected_ += 1;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1 && OT_CRYPTO_WITH_BIP32
 
     const auto& from_client = api_bob_;
@@ -1237,11 +1228,11 @@ TEST_F(Integration, add_alex_contact_to_issuer)
 TEST_F(Integration, pay_alex)
 {
     activity_summary_alex_.expected_ += 2;
-    contact_list_alex_.expected_ += 9;
-    messagable_list_alex_.expected_ += 9;
+    contact_list_alex_.expected_ += 2;
+    messagable_list_alex_.expected_ += 1;
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1 && OT_CRYPTO_WITH_BIP32
-    payable_list_bch_alex_.expected_ += 8;
-    payable_list_btc_alex_.expected_ += 8;
+    payable_list_bch_alex_.expected_ += 1;
+    payable_list_btc_alex_.expected_ += 1;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1 && OT_CRYPTO_WITH_BIP32
 
     idle();
@@ -1423,15 +1414,9 @@ TEST_F(Integration, issuer_claims)
 
 TEST_F(Integration, deposit_cheque_alex)
 {
-    account_list_alex_.expected_ += 4;
+    contact_issuer_alex_.expected_ += 8;
     activity_thread_issuer_alex_.expected_ += 3;
-    contact_issuer_alex_.expected_ += 12;
-    contact_list_alex_.expected_ += 6;
-    messagable_list_alex_.expected_ += 6;
-#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1 && OT_CRYPTO_WITH_BIP32
-    payable_list_bch_alex_.expected_ += 7;
-    payable_list_btc_alex_.expected_ += 6;
-#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1 && OT_CRYPTO_WITH_BIP32
+    account_list_alex_.expected_ += 2;
 
     api_alex_.UI().Contact(
         alex_.Contact(issuer_.name_),
@@ -1527,7 +1512,7 @@ TEST_F(Integration, contact_issuer_alex_0)
 
 TEST_F(Integration, account_activity_usd_alex_0)
 {
-    account_activity_usd_alex_.expected_ += 4;
+    account_activity_usd_alex_.expected_ += 1;
 
     const auto& widget = api_alex_.UI().AccountActivity(
         alex_.nym_id_,
@@ -1576,22 +1561,12 @@ TEST_F(Integration, process_inbox_issuer)
 
 TEST_F(Integration, pay_bob)
 {
-    account_activity_usd_alex_.expected_ += 5;
+    account_activity_usd_alex_.expected_ += 1;
     activity_summary_alex_.expected_ += 2;
-    activity_thread_bob_alex_.expected_ += 7;
-    contact_issuer_alex_.expected_ += 6;
-    activity_thread_alex_bob_.expected_ += 5;
+    activity_thread_bob_alex_.expected_ += 6;
+    contact_issuer_alex_.expected_ += 4;
+    activity_thread_alex_bob_.expected_ += 4;
     activity_summary_bob_.expected_ += 2;
-    contact_list_alex_.expected_ += 4;
-    messagable_list_alex_.expected_ += 4;
-    contact_list_bob_.expected_ += 2;
-    messagable_list_bob_.expected_ += 2;
-#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1 && OT_CRYPTO_WITH_BIP32
-    payable_list_bch_alex_.expected_ += 4;
-    payable_list_btc_alex_.expected_ += 4;
-    payable_list_bch_bob_.expected_ += 2;
-    payable_list_btc_bob_.expected_ += 2;
-#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1 && OT_CRYPTO_WITH_BIP32
 
     auto& thread =
         api_alex_.UI().ActivityThread(alex_.nym_id_, alex_.Contact(bob_.name_));
@@ -1811,5 +1786,58 @@ TEST_F(Integration, activity_summary_bob_3)
     EXPECT_TRUE(row->Last());
 }
 
-TEST_F(Integration, shutdown) { idle(); }
+TEST_F(Integration, shutdown)
+{
+    idle();
+
+    EXPECT_EQ(
+        account_activity_usd_alex_.expected_,
+        account_activity_usd_alex_.updated_);
+    EXPECT_EQ(account_list_alex_.expected_, account_list_alex_.updated_);
+    EXPECT_EQ(
+        account_summary_bch_alex_.expected_,
+        account_summary_bch_alex_.updated_);
+    EXPECT_EQ(
+        account_summary_btc_alex_.expected_,
+        account_summary_btc_alex_.updated_);
+    EXPECT_EQ(
+        account_summary_usd_alex_.expected_,
+        account_summary_usd_alex_.updated_);
+    EXPECT_EQ(
+        activity_summary_alex_.expected_, activity_summary_alex_.updated_);
+    EXPECT_EQ(
+        activity_thread_bob_alex_.expected_,
+        activity_thread_bob_alex_.updated_);
+    EXPECT_EQ(
+        activity_thread_issuer_alex_.expected_,
+        activity_thread_issuer_alex_.updated_);
+    EXPECT_EQ(contact_issuer_alex_.expected_, contact_issuer_alex_.updated_);
+    EXPECT_EQ(contact_list_alex_.expected_, contact_list_alex_.updated_);
+    EXPECT_EQ(messagable_list_alex_.expected_, messagable_list_alex_.updated_);
+    EXPECT_EQ(
+        payable_list_bch_alex_.expected_, payable_list_bch_alex_.updated_);
+    EXPECT_EQ(
+        payable_list_btc_alex_.expected_, payable_list_btc_alex_.updated_);
+    EXPECT_EQ(profile_alex_.expected_, profile_alex_.updated_);
+
+    EXPECT_EQ(
+        account_activity_usd_bob_.expected_,
+        account_activity_usd_bob_.updated_);
+    EXPECT_EQ(account_list_bob_.expected_, account_list_bob_.updated_);
+    EXPECT_EQ(
+        account_summary_bch_bob_.expected_, account_summary_bch_bob_.updated_);
+    EXPECT_EQ(
+        account_summary_btc_bob_.expected_, account_summary_btc_bob_.updated_);
+    EXPECT_EQ(
+        account_summary_usd_bob_.expected_, account_summary_usd_bob_.updated_);
+    EXPECT_EQ(activity_summary_bob_.expected_, activity_summary_bob_.updated_);
+    EXPECT_EQ(
+        activity_thread_alex_bob_.expected_,
+        activity_thread_alex_bob_.updated_);
+    EXPECT_EQ(contact_list_bob_.expected_, contact_list_bob_.updated_);
+    EXPECT_EQ(messagable_list_bob_.expected_, messagable_list_bob_.updated_);
+    EXPECT_EQ(payable_list_bch_bob_.expected_, payable_list_bch_bob_.updated_);
+    EXPECT_EQ(payable_list_btc_bob_.expected_, payable_list_btc_bob_.updated_);
+    EXPECT_EQ(profile_bob_.expected_, profile_bob_.updated_);
+}
 }  // namespace

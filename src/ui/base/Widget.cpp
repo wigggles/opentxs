@@ -21,19 +21,21 @@ Widget::Widget(
     const SimpleCallback& cb) noexcept
     : api_(api)
     , widget_id_(id)
+    , ui_(api_.InternalUI())
     , callbacks_()
     , listeners_()
 {
     if (cb) { SetCallback(cb); }
 }
 
-void Widget::setup_listeners(const ListenerDefinitions& definitions) noexcept
+auto Widget::setup_listeners(const ListenerDefinitions& definitions) noexcept
+    -> void
 {
     for (const auto& [endpoint, functor] : definitions) {
         const auto* copy{functor};
         auto& nextCallback =
             callbacks_.emplace_back(network::zeromq::ListenCallback::Factory(
-                [=](const network::zeromq::Message& message) -> void {
+                [=](const Message& message) -> void {
                     (*copy)(this, message);
                 }));
         auto& socket = listeners_.emplace_back(

@@ -6,30 +6,22 @@
 #include <gtest/gtest-message.h>
 #include <gtest/gtest-test-part.h>
 #include <gtest/gtest.h>
-#include <chrono>
-#include <future>
 #include <memory>
 #include <string>
-#include <utility>
 
 #include "OTLowLevelTestEnvironment.hpp"
 #include "opentxs/OT.hpp"
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/SharedPimpl.hpp"
 #include "opentxs/api/Context.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/api/client/Manager.hpp"
-#include "opentxs/api/client/OTX.hpp"
-#include "opentxs/api/server/Manager.hpp"
 #include "opentxs/core/Message.hpp"
-#include "opentxs/core/identifier/Nym.hpp"
-#include "opentxs/core/identifier/Server.hpp"
-#include "opentxs/identity/Nym.hpp"
-#include "opentxs/protobuf/ConsensusEnums.pb.h"
-
-#include "opentxs/core/crypto/OTCaller.hpp"
+#include "opentxs/core/Secret.hpp"
 #include "opentxs/core/crypto/OTCallback.hpp"
+#include "opentxs/core/crypto/OTCaller.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/identity/Nym.hpp"
 
 std::string profile_id_{};
 std::string nym_id_{};

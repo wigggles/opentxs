@@ -10,24 +10,17 @@
 #include <cstdint>
 #include <memory>
 #include <string>
-#include <thread>
 
 #include "internal/api/client/Client.hpp"
 #include "internal/ui/UI.hpp"
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/SharedPimpl.hpp"
-#include "opentxs/api/Wallet.hpp"
-#include "opentxs/api/client/OTX.hpp"
 #include "opentxs/api/client/Workflow.hpp"
-#include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
-#include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/protobuf/PaymentEvent.pb.h"
 #include "opentxs/protobuf/PaymentWorkflow.pb.h"
 #include "opentxs/protobuf/PaymentWorkflowEnums.pb.h"
@@ -49,15 +42,9 @@ TransferBalanceItem::TransferBalanceItem(
     : BalanceItem(parent, api, rowID, sortKey, custom, nymID, accountID)
     , transfer_()
 {
-    OT_ASSERT(2 == custom.size())
-
-    startup_.reset(new std::thread(
-        &TransferBalanceItem::startup,
-        this,
+    startup(
         extract_custom<proto::PaymentWorkflow>(custom, 0),
-        extract_custom<proto::PaymentEvent>(custom, 1)));
-
-    OT_ASSERT(startup_)
+        extract_custom<proto::PaymentEvent>(custom, 1));
 }
 
 auto TransferBalanceItem::effective_amount() const noexcept -> opentxs::Amount
@@ -107,35 +94,6 @@ auto TransferBalanceItem::effective_amount() const noexcept -> opentxs::Amount
     return amount * sign;
 }
 
-auto TransferBalanceItem::get_contract() const noexcept -> bool
-{
-    if (0 < contract_->Version()) { return true; }
-
-    auto contractID = identifier::UnitDefinition::Factory();
-    const auto in =
-        parent_.AccountID() == transfer_->GetDestinationAcctID().str();
-
-    if (in) {
-        contractID =
-            api_.Storage().AccountContract(transfer_->GetDestinationAcctID());
-    } else {
-        contractID =
-            api_.Storage().AccountContract(transfer_->GetPurportedAccountID());
-    }
-
-    try {
-        eLock lock(shared_lock_);
-        contract_ = api_.Wallet().UnitDefinition(contractID);
-
-        return true;
-    } catch (...) {
-        api_.OTX().DownloadUnitDefinition(
-            nym_id_, api_.OTX().IntroductionServer(), contractID);
-
-        return false;
-    }
-}
-
 auto TransferBalanceItem::Memo() const noexcept -> std::string
 {
     sLock lock(shared_lock_);
@@ -150,31 +108,33 @@ auto TransferBalanceItem::Memo() const noexcept -> std::string
     return {};
 }
 
-void TransferBalanceItem::reindex(
+auto TransferBalanceItem::reindex(
     const implementation::AccountActivitySortKey& key,
-    implementation::CustomData& custom) noexcept
+    implementation::CustomData& custom) noexcept -> bool
 {
-    OT_ASSERT(2 == custom.size())
-
-    BalanceItem::reindex(key, custom);
-    startup(
+    auto output = BalanceItem::reindex(key, custom);
+    output |= startup(
         extract_custom<proto::PaymentWorkflow>(custom, 0),
         extract_custom<proto::PaymentEvent>(custom, 1));
+
+    return output;
 }
 
-void TransferBalanceItem::startup(
+auto TransferBalanceItem::startup(
     const proto::PaymentWorkflow workflow,
-    const proto::PaymentEvent event) noexcept
+    const proto::PaymentEvent event) noexcept -> bool
 {
     eLock lock(shared_lock_);
-    transfer_ =
-        api::client::Workflow::InstantiateTransfer(api_, workflow).second;
+
+    if (false == bool(transfer_)) {
+        transfer_ =
+            api::client::Workflow::InstantiateTransfer(api_, workflow).second;
+    }
 
     OT_ASSERT(transfer_)
 
     lock.unlock();
-    get_contract();
-    std::string text{""};
+    auto text = std::string{};
     const auto number = std::to_string(transfer_->GetTransactionNum());
 
     switch (type_) {
@@ -272,10 +232,17 @@ void TransferBalanceItem::startup(
         }
     }
 
+    auto output{false};
     lock.lock();
-    text_ = text;
+
+    if (text_ != text) {
+        text_ = text;
+        output = true;
+    }
+
     lock.unlock();
-    UpdateNotify();
+
+    return output;
 }
 
 auto TransferBalanceItem::UUID() const noexcept -> std::string

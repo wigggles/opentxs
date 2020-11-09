@@ -35,12 +35,10 @@ class Endpoints
 public:
     /** Account balance update notifications
      *
-     *  A subscribe socket can connect to this endpoint to be notified when
-     *  any account balance changes.
+     *  A subscribe socket can connect to this endpoint to receive
+     *  AccountUpdated tagged messages
      *
-     *  Messages bodies consist of two frames.
-     *   * The first frame contains the account ID as a serialized string
-     *   * The second frame contains the account balance as an Amount
+     *  See opentxs/util/WorkTypes.hpp for message format documentation
      *
      *  This endpoint is active for all session types.
      */
@@ -60,16 +58,10 @@ public:
 
     /** Blockchain balance notifications
      *
-     *  A dealer socket can connect to this endpoint to request balance
-     *  information and receive updates as the balance changes
+     *  A dealer socket can connect to this endpoint to send and receive
+     *  BlockchainBalance tagged messages
      *
-     *  Request message bodies consist of one frames.
-     *   * The frame contains the chain type
-     *
-     *  Reply message bodies consist of three frames.
-     *   * The first frame contains the chain type
-     *   * The second frame contains the confirmed balance
-     *   * The second frame contains the unconfirmed balance
+     *  See opentxs/util/WorkTypes.hpp for message format documentation
      *
      *  This endpoint is active for client sessions only.
      */
@@ -77,30 +69,37 @@ public:
 
     /** Blockchain peer connection
      *
-     *  A subscribe socket can connect to this endpoint to be notified when
-     *  any active blockchain connects to a new peer
+     *  A subscribe socket can connect to this endpoint to receive
+     *  BlockchainPeerAdded tagged messages
      *
-     *  Messages bodies consist of two frames.
-     *   * The first frame contains the chain type
-     *   * The second frame contains the peer address
+     *  See opentxs/util/WorkTypes.hpp for message format documentation
      *
      *  This endpoint is active for client sessions only.
      */
     OPENTXS_EXPORT virtual std::string BlockchainPeer() const noexcept = 0;
 
-    /** Blockchain reorg notifications
+    /** Blockchain reorg and update notifications
      *
-     *  A subscribe socket can connect to this endpoint to be notified when
-     *  any active blockchain detects a chain reorg
+     *  A subscribe socket can connect to this endpoint to receive
+     *  BlockchainNewHeader and BlockchainReorg tagged messages
      *
-     *  Messages bodies consist of three frames.
-     *   * The first frame contains the chain type
-     *   * The second frame contains the height of the common parent block
-     *   * The second frame contains the hash of the common parent block
+     *  See opentxs/util/WorkTypes.hpp for message format documentation
      *
      *  This endpoint is active for client sessions only.
      */
     OPENTXS_EXPORT virtual std::string BlockchainReorg() const noexcept = 0;
+
+    /** Blockchain enabled state change
+     *
+     *  A subscribe socket can connect to this endpoint to receive
+     *  BlockchainStateChange tagged messages
+     *
+     *  See opentxs/util/WorkTypes.hpp for message format documentation
+     *
+     *  This endpoint is active for client sessions only.
+     */
+    OPENTXS_EXPORT virtual std::string BlockchainStateChange()
+        const noexcept = 0;
 
     /** Blockchain wallet sync progress
      *
@@ -114,30 +113,24 @@ public:
     OPENTXS_EXPORT virtual std::string BlockchainSyncProgress()
         const noexcept = 0;
 
-    /** Blockchain transaction notifications
+    /** Blockchain transaction notifications (global)
      *
-     *  A subscribe socket can connect to this endpoint to be notified when
-     *  any blockchain transaction is added to the wallet or has updated
-     *  metadata.
+     *  A subscribe socket can connect to this endpoint to receive
+     *  BlockchainNewTransaction tagged messages
      *
-     *  Messages bodies consist of two frame:
-     *   * The first frame contains the txid as a sequence of bytes
-     *   * The second frame contains the chain as an blockchain::Type
+     *  See opentxs/util/WorkTypes.hpp for message format documentation
      *
      *  This endpoint is active for client sessions only.
      */
     OPENTXS_EXPORT virtual std::string BlockchainTransactions()
         const noexcept = 0;
 
-    /** Blockchain transaction notifications
+    /** Blockchain transaction notifications (per-nym)
      *
-     *  A subscribe socket can connect to this endpoint to be notified when
-     *  a blockchain transaction is added or removed from a specific nym's
-     *  activity threads
+     *  A subscribe socket can connect to this endpoint to receive
+     *  BlockchainNewTransaction tagged messages
      *
-     *  Messages bodies consist of two frame:
-     *   * The first frame contains the txid as a sequence of bytes
-     *   * The second frame contains the chain as an blockchain::Type
+     *  See opentxs/util/WorkTypes.hpp for message format documentation
      *
      *  This endpoint is active for client sessions only.
      */
@@ -146,28 +139,21 @@ public:
 
     /** Connection state notifications
      *
-     *  A subscribe socket can connect to this endpoint to be notified when
-     *  any server connection state changes.
+     *  A subscribe socket can connect to this endpoint to receive
+     *  OTXConnectionStatus tagged messages
      *
-     *  Connection state is a boolean value that is true if the connection
-     *  has sent at least one message and has not timed out waiting for a reply.
-     *
-     *  Messages bodies consist of two frames.
-     *   * The first frame contains the ID of the notary on the other side of
-     *     the connection as a serialized string
-     *   * The second frame contains the state as a bool
+     *  See opentxs/util/WorkTypes.hpp for message format documentation
      *
      *  This endpoint is active for client sessions only.
      */
     OPENTXS_EXPORT virtual std::string ConnectionStatus() const noexcept = 0;
 
-    /** Contact update notifications
+    /** Contact account creation notification
      *
-     *  A subscribe socket can connect to this endpoint to be notified when
-     *  any contact is modified or updated.
+     *  A subscribe socket can connect to this endpoint to receive
+     *  ContactUpdated tagged messages
      *
-     *  Messages bodies consist of one frame.
-     *   * The frame contains the contact ID as a serialized string
+     *  See opentxs/util/WorkTypes.hpp for message format documentation
      *
      *  This endpoint is active for client sessions only.
      */
@@ -175,18 +161,10 @@ public:
 
     /** Search for a nym in the DHT
      *
-     *  A request or dealer socket can connect to this endpoint to trigger
-     *  a DHT search for a nym.
+     *  A dealer socket can connect to this endpoint to send and receive
+     *  DHTRequestNym tagged messages.
      *
-     *  Request messages bodies consist of one frame.
-     *
-     *   * The frame should contains the nym ID being requested as a serialized
-     *     string
-     *
-     *  Reply messages bodies consist of one frame.
-     *
-     *   * The frame contains a bool with a true value if the nym id provided
-     *     was valid or a false value if the nym id was invalid.
+     *  See opentxs/util/WorkTypes.hpp for message format documentation
      *
      *  This endpoint is active for all session types.
      */
@@ -194,18 +172,10 @@ public:
 
     /** Search for a notary in the DHT
      *
-     *  A request or dealer socket can connect to this endpoint to trigger
-     *  a DHT search for a notary.
+     *  A dealer socket can connect to this endpoint to send and receive
+     *  DHTRequestServer tagged messages.
      *
-     *  Request messages bodies consist of one frame.
-     *
-     *   * The frame should contains the notary ID being requested as a
-     * serialized string
-     *
-     *  Reply messages bodies consist of one frame.
-     *
-     *   * The frame contains a bool with a true value if the notary id provided
-     *     was valid or a false value if the notary id was invalid.
+     *  See opentxs/util/WorkTypes.hpp for message format documentation
      *
      *  This endpoint is active for all session types.
      */
@@ -213,19 +183,10 @@ public:
 
     /** Search for a unit definition in the DHT
      *
-     *  A request or dealer socket can connect to this endpoint to trigger
-     *  a DHT search for a unit definition.
+     *  A dealer socket can connect to this endpoint to send and receive
+     *  DHTRequestUnit tagged messages.
      *
-     *  Request messages bodies consist of one frame.
-     *
-     *   * The frame should contains the unit definition ID being requested as a
-     * serialized string
-     *
-     *  Reply messages bodies consist of one frame.
-     *
-     *   * The frame contains a bool with a true value if the unit definition id
-     * provided was valid or a false value if the unit definition id was
-     * invalid.
+     *  See opentxs/util/WorkTypes.hpp for message format documentation
      *
      *  This endpoint is active for all session types.
      */
@@ -233,13 +194,10 @@ public:
 
     /** Search for a nym on known notaries
      *
-     *  A push socket can connect to this endpoint to trigger an OTX search for
-     * a nym.
+     *  A push socket can connect to this endpoint to send
+     *  OTXSearchNym tagged messages.
      *
-     *  Request messages bodies consist of one frame.
-     *
-     *   * The frame should contains the nym ID being requested as a serialized
-     *     string
+     *  See opentxs/util/WorkTypes.hpp for message format documentation
      *
      *  This endpoint is active for client sessions only.
      */
@@ -247,13 +205,10 @@ public:
 
     /** Search for a notary contract on known notaries
      *
-     *  A push socket can connect to this endpoint to trigger an OTX search for
-     * a notary contract.
+     *  A push socket can connect to this endpoint to send
+     *  OTXSearchServer tagged messages.
      *
-     *  Request messages bodies consist of one frame.
-     *
-     *   * The frame should contains the notary ID being requested as a
-     * serialized string
+     *  See opentxs/util/WorkTypes.hpp for message format documentation
      *
      *  This endpoint is active for client sessions only.
      */
@@ -261,13 +216,10 @@ public:
 
     /** Search for a unit definition on known notaries
      *
-     *  A push socket can connect to this endpoint to trigger an OTX search for
-     * a unit definition contract.
+     *  A push socket can connect to this endpoint to send
+     *  OTXSearchUnit tagged messages.
      *
-     *  Request messages bodies consist of one frame.
-     *
-     *   * The frame should contains the unit definition ID being requested as a
-     * serialized string
+     *  See opentxs/util/WorkTypes.hpp for message format documentation
      *
      *  This endpoint is active for client sessions only.
      */
@@ -303,11 +255,10 @@ public:
 
     /** Issuer update notifications
      *
-     *  A subscribe socket can connect to this endpoint to be notified when
-     *  any issuer is modified or updated.
+     *  A subscribe socket can connect to this endpoint to receive
+     *  IssuerUpdated tagged messages
      *
-     *  Messages bodies consist of one frame.
-     *   * The frame contains the issuer nym ID as a serialized string
+     *  See opentxs/util/WorkTypes.hpp for message format documentation
      *
      *  This endpoint is active for client sessions only.
      */
@@ -326,11 +277,10 @@ public:
 
     /** Nym update notifications
      *
-     *  A subscribe socket can connect to this endpoint to be notified when
-     *  any nym is modified or updated.
+     *  A subscribe socket can connect to this endpoint to receive
+     *  NymUpdated tagged messages
      *
-     *  Messages bodies consist of one frame.
-     *   * The frame contains the nym ID as a serialized string
+     *  See opentxs/util/WorkTypes.hpp for message format documentation
      *
      *  This endpoint is active for all session types.
      */
@@ -410,13 +360,12 @@ public:
      */
     OPENTXS_EXPORT virtual std::string ServerRequestSent() const noexcept = 0;
 
-    /** Server contract download notifications
+    /** Server contract update notifications
      *
-     *  A subscribe socket can connect to this endpoint to be notified when
-     *  any new server contract is added to the wallet
+     *  A subscribe socket can connect to this endpoint to receive
+     *  NotaryUpdated tagged messages
      *
-     *  Messages bodies consist of one frame.
-     *   * The frame contains the server ID as a serialized string
+     *  See opentxs/util/WorkTypes.hpp for message format documentation
      *
      *  This endpoint is active for all session types.
      */
@@ -424,10 +373,10 @@ public:
 
     /** Notification of context shutdown
      *
-     *  A subscribe socket can connect to this endpoint to be notified when
-     *  a session is being shutdown
+     *  A subscribe socket can connect to this endpoint to receive
+     *  Shutdown tagged messages
      *
-     *  Messages bodies consist of one empty frame
+     *  See opentxs/util/WorkTypes.hpp for message format documentation
      *
      *  This endpoint is active for all session types.
      */
@@ -435,15 +384,10 @@ public:
 
     /** Background task completion notification
      *
-     *  A subscribe socket can connect to this endpoint to be notified when
-     *  a background task has concluded.
+     *  A subscribe socket can connect to this endpoint to receive
+     *  OTXTaskComplete tagged messages
      *
-     *  Resolution is a boolean value that is true if the task executed
-     *  successfully, or false in the event of a failure.
-     *
-     *  Messages bodies consist of two frames.
-     *   * The first frame contains the task ID as a serialized string
-     *   * The second frame contains the resolution as a bool
+     *  See opentxs/util/WorkTypes.hpp for message format documentation
      *
      *  This endpoint is active for client sessions only.
      */
@@ -451,24 +395,33 @@ public:
 
     /** Activity thread update notification
      *
-     *  A subscribe socket can connect to this endpoint to be notified when
-     *  any activity thread for a specified nym receives new activity.
+     *  A subscribe socket can connect to this endpoint to receive
+     *  ActivityThreadUpdated tagged messages
      *
-     *  Messages bodies consist of one frame.
-     *   * The frame contains the thread ID as a serialized string
+     *  See opentxs/util/WorkTypes.hpp for message format documentation
      *
      *  This endpoint is active for client sessions only.
      */
     OPENTXS_EXPORT virtual std::string ThreadUpdate(
         const std::string& thread) const noexcept = 0;
 
+    /** Unit definition contract update notifications
+     *
+     *  A subscribe socket can connect to this endpoint to receive
+     *  UnitDefinitionUpdated tagged messages
+     *
+     *  See opentxs/util/WorkTypes.hpp for message format documentation
+     *
+     *  This endpoint is active for all session types.
+     */
+    OPENTXS_EXPORT virtual std::string UnitUpdate() const noexcept = 0;
+
     /** UI widget update notification
      *
-     *  A subscribe socket can connect to this endpoint to be notified when
-     *  any ui widget updates
+     *  A subscribe socket can connect to this endpoint to receive
+     *  UIModelUpdated tagged messages
      *
-     *  Messages bodies consist of one frame.
-     *   * The frame contains the widget ID as a serialized string
+     *  See opentxs/util/WorkTypes.hpp for message format documentation
      *
      *  This endpoint is active for client sessions only.
      */
@@ -476,11 +429,10 @@ public:
 
     /** Account update notification
      *
-     *  A subscribe socket can connect to this endpoint to be notified when
-     *  any account receives new activity.
+     *  A subscribe socket can connect to this endpoint to receive
+     *  WorkflowAccountUpdate tagged messages
      *
-     *  Messages bodies consist of one frame.
-     *   * The frame contains the account ID as a serialized string
+     *  See opentxs/util/WorkTypes.hpp for message format documentation
      *
      *  This endpoint is active for client sessions only.
      */

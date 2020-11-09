@@ -212,10 +212,7 @@ void Context::HandleSignals(ShutdownCallback* callback) const
 #endif
 }
 
-auto Context::ProfileId() const -> std::string
-{
-    return profile_id_;
-}
+auto Context::ProfileId() const -> std::string { return profile_id_; }
 
 void Context::Init()
 {
@@ -255,8 +252,7 @@ void Context::Init_Profile()
         profile_id_exists);
     if (profile_id_exists) {
         profile_id_ = std::string(existing_profile_id->Get());
-    }
-    else {
+    } else {
         const auto new_profile_id(crypto_->Encode().Nonce(20));
         bool new_or_update{true};
         config.Set_str(

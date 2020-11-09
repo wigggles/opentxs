@@ -390,9 +390,10 @@ void Pair::callback_nym(const zmq::Message& in) noexcept
     startup_.get();
     const auto body = in.Body();
 
-    OT_ASSERT(1 <= body.size());
+    OT_ASSERT(1 < body.size());
 
-    const auto nymID = client_.Factory().NymID(body.at(0));
+    auto nymID = client_.Factory().NymID();
+    nymID->Assign(body.at(1).Bytes());
     auto trigger{state_.CheckIssuer(nymID)};
 
     {

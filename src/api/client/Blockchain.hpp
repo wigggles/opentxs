@@ -10,6 +10,7 @@
 
 #include <atomic>
 #include <cstdint>
+#include <functional>
 #include <future>
 #include <iosfwd>
 #include <map>
@@ -265,12 +266,6 @@ public:
         const Chain chain,
         const Tx& transaction,
         const PasswordPrompt& reason) const noexcept -> bool final;
-    auto RegisterForUpdates(
-        const opentxs::blockchain::Type type,
-        const EnabledCallback cb) const noexcept -> std::size_t final
-    {
-        return enabled_callbacks_.Add(type, cb);
-    }
     auto Reorg() const noexcept
         -> const opentxs::network::zeromq::socket::Publish& final
     {
@@ -289,19 +284,18 @@ public:
     {
         return thread_pool_;
     }
-    auto ToggleChain(const opentxs::blockchain::Type) const noexcept
-        -> bool final;
-    auto UnregisterForUpdates(
-        const opentxs::blockchain::Type type,
-        const std::size_t index) const noexcept -> void final
-    {
-        enabled_callbacks_.Delete(type, index);
-    }
     auto UpdateBalance(
         const opentxs::blockchain::Type chain,
         const opentxs::blockchain::Balance balance) const noexcept -> void final
     {
         balances_.UpdateBalance(chain, balance);
+    }
+    auto UpdateBalance(
+        const identifier::Nym& owner,
+        const opentxs::blockchain::Type chain,
+        const opentxs::blockchain::Balance balance) const noexcept -> void final
+    {
+        balances_.UpdateBalance(owner, chain, balance);
     }
 #endif  // OT_BLOCKCHAIN
     auto UpdateElement(std::vector<ReadView>& pubkeyHashes) const noexcept
@@ -396,34 +390,55 @@ private:
         using Balance = opentxs::blockchain::Balance;
         using Chain = opentxs::blockchain::Type;
 
+        auto RefreshBalance(const identifier::Nym& owner, const Chain chain)
+            const noexcept -> void;
         auto UpdateBalance(const Chain chain, const Balance balance)
             const noexcept -> void;
+        auto UpdateBalance(
+            const identifier::Nym& owner,
+            const Chain chain,
+            const Balance balance) const noexcept -> void;
 
         BalanceOracle(
             const api::client::internal::Blockchain& parent,
             const api::Core& api) noexcept;
 
     private:
+        using Subscribers = std::set<OTData>;
+
         const api::client::internal::Blockchain& parent_;
         const api::Core& api_;
         const opentxs::network::zeromq::Context& zmq_;
         OTZMQListenCallback cb_;
         OTZMQRouterSocket socket_;
         mutable std::mutex lock_;
-        mutable std::map<Chain, std::set<OTData>> subscribers_;
+        mutable std::map<Chain, Subscribers> subscribers_;
+        mutable std::map<Chain, std::map<OTNymID, Subscribers>>
+            nym_subscribers_;
 
         auto cb(opentxs::network::zeromq::Message& message) noexcept -> void;
 
         BalanceOracle() = delete;
     };
     struct EnableCallbacks {
+        using EnabledCallback = std::function<bool(const bool)>;
+
         auto Add(const Chain type, EnabledCallback cb) noexcept -> std::size_t;
         auto Delete(const Chain type, const std::size_t index) noexcept -> void;
         auto Execute(const Chain type, const bool value) noexcept -> void;
 
+        EnableCallbacks(const api::Core& api) noexcept;
+
     private:
-        mutable std::mutex lock_{};
-        std::map<Chain, std::vector<EnabledCallback>> map_{};
+        const opentxs::network::zeromq::Context& zmq_;
+        mutable std::mutex lock_;
+        std::map<Chain, std::vector<EnabledCallback>> map_;
+        OTZMQPublishSocket socket_;
+
+        EnableCallbacks(const EnableCallbacks&) = delete;
+        EnableCallbacks(EnableCallbacks&&) = delete;
+        auto operator=(const EnableCallbacks&) -> EnableCallbacks& = delete;
+        auto operator=(EnableCallbacks &&) -> EnableCallbacks& = delete;
     };
     struct ThreadPoolManager final : virtual public ThreadPoolType {
         auto Endpoint() const noexcept -> std::string final;

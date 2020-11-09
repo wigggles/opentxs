@@ -26,13 +26,15 @@ namespace opentxs::implementation
 {
 const std::string NullCallback::password_{OPENTXS_NULL_PASSWORD};
 
-void NullCallback::runOne(const char*, Secret& output,
-    const std::string& key) const
+void NullCallback::runOne(const char*, Secret& output, const std::string& key)
+    const
 {
     output.AssignText(password_);
 }
 
-void NullCallback::runTwo(const char* display, Secret& output,
+void NullCallback::runTwo(
+    const char* display,
+    Secret& output,
     const std::string& key) const
 {
     runOne(display, output, key);

@@ -22,6 +22,7 @@
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/contract/ServerContract.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/network/ServerConnection.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/socket/Dealer.hpp"
@@ -105,7 +106,7 @@ private:
     const api::network::ZMQ& zmq_;
     const api::internal::Core& api_;
     const zeromq::socket::Publish& updates_;
-    const std::string server_id_{};
+    const OTServerID server_id_;
     proto::AddressType address_type_{proto::ADDRESSTYPE_ERROR};
     OTServerContract remote_contract_;
     std::thread thread_;

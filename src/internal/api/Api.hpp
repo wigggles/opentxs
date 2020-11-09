@@ -62,7 +62,7 @@ struct Core : virtual public api::Core {
         Secret& secret,
         const PasswordPrompt& reason,
         const bool twice,
-        const std::string& key="") const -> bool = 0;
+        const std::string& key = "") const -> bool = 0;
     virtual auto Legacy() const noexcept -> const api::Legacy& = 0;
     virtual auto Lock() const -> std::mutex& = 0;
     virtual auto MasterKey(const opentxs::Lock& lock) const

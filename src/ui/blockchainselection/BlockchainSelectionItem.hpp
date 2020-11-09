@@ -80,13 +80,13 @@ public:
     auto Type() const noexcept -> blockchain::Type final { return row_id_; }
 
 #if OT_QT
-    QVariant qt_data(const int column, const int role) const noexcept final;
+    auto qt_data(const int column, const int role) const noexcept
+        -> QVariant final;
 #endif
 
     BlockchainSelectionItem(
         const BlockchainSelectionInternalInterface& parent,
         const api::client::internal::Manager& api,
-        const api::client::internal::Blockchain& blockchain,
         const BlockchainSelectionRowID& rowID,
         const BlockchainSelectionSortKey& sortKey,
         CustomData& custom) noexcept;
@@ -94,15 +94,12 @@ public:
     ~BlockchainSelectionItem() final;
 
 private:
-    const api::client::internal::Blockchain& blockchain_;
     const bool testnet_;
     const std::string name_;
     std::atomic_bool enabled_;
-    const std::size_t registration_;
 
-    void reindex(const BlockchainSelectionSortKey&, CustomData&) noexcept final
-    {
-    }
+    auto reindex(const BlockchainSelectionSortKey&, CustomData&) noexcept
+        -> bool final;
 
     BlockchainSelectionItem() = delete;
     BlockchainSelectionItem(const BlockchainSelectionItem&) = delete;

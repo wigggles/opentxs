@@ -75,6 +75,12 @@ struct Manager;
 }  // namespace client
 }  // namespace api
 
+namespace contract
+{
+class Server;
+class Unit;
+}  // namespace contract
+
 namespace identifier
 {
 class Server;
@@ -410,6 +416,9 @@ struct List : virtual public ui::List {
         const QModelIndex& parent,
         int first,
         int last) const noexcept -> void = 0;
+    virtual auto emit_data_changed(
+        const QModelIndex& topLeft,
+        const QModelIndex& bottomRight) noexcept -> void = 0;
     virtual auto emit_end_insert_rows() const noexcept -> void = 0;
     virtual auto emit_end_move_rows() const noexcept -> void = 0;
     virtual auto emit_end_remove_rows() const noexcept -> void = 0;
@@ -446,6 +455,12 @@ struct AccountActivity : virtual public List,
                          virtual public ui::AccountActivity {
     virtual auto last(const implementation::AccountActivityRowID& id)
         const noexcept -> bool = 0;
+    // WARNING potential race condition. Child rows must never call this
+    // except when directed by parent object
+    virtual auto Contract() const noexcept -> const contract::Unit& = 0;
+    // WARNING potential race condition. Child rows must never call this
+    // except when directed by parent object
+    virtual auto Notary() const noexcept -> const contract::Server& = 0;
 
     ~AccountActivity() override = default;
 };
@@ -457,9 +472,9 @@ struct AccountList : virtual public List, virtual public ui::AccountList {
 };
 struct AccountListItem : virtual public Row,
                          virtual public ui::AccountListItem {
-    virtual void reindex(
+    virtual auto reindex(
         const implementation::AccountListSortKey& key,
-        implementation::CustomData& custom) noexcept = 0;
+        implementation::CustomData& custom) noexcept -> bool = 0;
 
     ~AccountListItem() override = default;
 };
@@ -477,9 +492,9 @@ struct AccountSummary : virtual public List, virtual public ui::AccountSummary {
 };
 struct AccountSummaryItem : virtual public Row,
                             virtual public ui::AccountSummaryItem {
-    virtual void reindex(
+    virtual auto reindex(
         const implementation::IssuerItemSortKey& key,
-        implementation::CustomData& custom) noexcept = 0;
+        implementation::CustomData& custom) noexcept -> bool = 0;
 
     ~AccountSummaryItem() override = default;
 };
@@ -492,9 +507,9 @@ struct ActivitySummary : virtual public List,
 };
 struct ActivitySummaryItem : virtual public Row,
                              virtual public ui::ActivitySummaryItem {
-    virtual void reindex(
+    virtual auto reindex(
         const implementation::ActivitySummarySortKey& key,
-        implementation::CustomData& custom) noexcept = 0;
+        implementation::CustomData& custom) noexcept -> bool = 0;
 
     ~ActivitySummaryItem() override = default;
 };
@@ -508,16 +523,16 @@ struct ActivityThread : virtual public List {
 };
 struct ActivityThreadItem : virtual public Row,
                             virtual public ui::ActivityThreadItem {
-    virtual void reindex(
+    virtual auto reindex(
         const implementation::ActivityThreadSortKey& key,
-        implementation::CustomData& custom) noexcept = 0;
+        implementation::CustomData& custom) noexcept -> bool = 0;
 
     ~ActivityThreadItem() override = default;
 };
 struct BalanceItem : virtual public Row, virtual public ui::BalanceItem {
-    virtual void reindex(
+    virtual auto reindex(
         const implementation::AccountActivitySortKey& key,
-        implementation::CustomData& custom) noexcept = 0;
+        implementation::CustomData& custom) noexcept -> bool = 0;
 
     ~BalanceItem() override = default;
 };
@@ -531,9 +546,9 @@ struct BlockchainSelection : virtual public List,
 };
 struct BlockchainSelectionItem : virtual public Row,
                                  virtual public ui::BlockchainSelectionItem {
-    virtual void reindex(
+    virtual auto reindex(
         const implementation::BlockchainSelectionSortKey& key,
-        implementation::CustomData& custom) noexcept = 0;
+        implementation::CustomData& custom) noexcept -> bool = 0;
 
     ~BlockchainSelectionItem() override = default;
 };
@@ -549,9 +564,9 @@ struct Contact : virtual public List, virtual public ui::Contact {
     ~Contact() override = default;
 };
 struct ContactItem : virtual public Row, virtual public ui::ContactItem {
-    virtual void reindex(
+    virtual auto reindex(
         const implementation::ContactSubsectionSortKey& key,
-        implementation::CustomData& custom) noexcept = 0;
+        implementation::CustomData& custom) noexcept -> bool = 0;
 
     ~ContactItem() override = default;
 };
@@ -565,9 +580,9 @@ struct ContactList : virtual public List {
 };
 struct ContactListItem : virtual public Row,
                          virtual public ui::ContactListItem {
-    virtual void reindex(
+    virtual auto reindex(
         const implementation::ContactListSortKey& key,
-        implementation::CustomData& custom) noexcept = 0;
+        implementation::CustomData& custom) noexcept -> bool = 0;
 
     ~ContactListItem() override = default;
 };
@@ -582,18 +597,18 @@ struct ContactSection : virtual public List,
     virtual auto last(const implementation::ContactSectionRowID& id)
         const noexcept -> bool = 0;
 
-    virtual void reindex(
+    virtual auto reindex(
         const implementation::ContactSortKey& key,
-        implementation::CustomData& custom) noexcept = 0;
+        implementation::CustomData& custom) noexcept -> bool = 0;
 
     ~ContactSection() override = default;
 };
 struct ContactSubsection : virtual public List,
                            virtual public Row,
                            virtual public ui::ContactSubsection {
-    virtual void reindex(
+    virtual auto reindex(
         const implementation::ContactSectionSortKey& key,
-        implementation::CustomData& custom) noexcept = 0;
+        implementation::CustomData& custom) noexcept -> bool = 0;
     // List
     virtual auto last(const implementation::ContactSubsectionRowID& id)
         const noexcept -> bool = 0;
@@ -604,9 +619,9 @@ struct IssuerItem : virtual public List,
                     virtual public Row,
                     virtual public ui::IssuerItem {
     // Row
-    virtual void reindex(
+    virtual auto reindex(
         const implementation::AccountSummarySortKey& key,
-        implementation::CustomData& custom) noexcept = 0;
+        implementation::CustomData& custom) noexcept -> bool = 0;
     // List
     virtual auto last(const implementation::IssuerItemRowID& id) const noexcept
         -> bool = 0;
@@ -621,9 +636,9 @@ struct PayableList : virtual public ContactList {
 };
 struct PayableListItem : virtual public Row,
                          virtual public ui::PayableListItem {
-    virtual void reindex(
+    virtual auto reindex(
         const implementation::PayableListSortKey& key,
-        implementation::CustomData& custom) noexcept = 0;
+        implementation::CustomData& custom) noexcept -> bool = 0;
 
     ~PayableListItem() override = default;
 };
@@ -649,9 +664,9 @@ struct ProfileSection : virtual public List,
         const noexcept -> bool = 0;
     virtual auto NymID() const noexcept -> const identifier::Nym& = 0;
 
-    virtual void reindex(
+    virtual auto reindex(
         const implementation::ProfileSortKey& key,
-        implementation::CustomData& custom) noexcept = 0;
+        implementation::CustomData& custom) noexcept -> bool = 0;
 
     ~ProfileSection() override = default;
 };
@@ -659,9 +674,9 @@ struct ProfileSubsection : virtual public List,
                            virtual public Row,
                            virtual public ui::ProfileSubsection {
     // Row
-    virtual void reindex(
+    virtual auto reindex(
         const implementation::ProfileSectionSortKey& key,
-        implementation::CustomData& custom) noexcept = 0;
+        implementation::CustomData& custom) noexcept -> bool = 0;
     // List
     virtual auto last(const implementation::ProfileSubsectionRowID& id)
         const noexcept -> bool = 0;
@@ -672,9 +687,9 @@ struct ProfileSubsection : virtual public List,
     ~ProfileSubsection() override = default;
 };
 struct ProfileItem : virtual public Row, virtual public ui::ProfileItem {
-    virtual void reindex(
+    virtual auto reindex(
         const implementation::ProfileSubsectionSortKey& key,
-        implementation::CustomData& custom) noexcept = 0;
+        implementation::CustomData& custom) noexcept -> bool = 0;
 
     ~ProfileItem() override = default;
 };
@@ -685,9 +700,9 @@ struct UnitList : virtual public List, virtual public ui::UnitList {
     ~UnitList() override = default;
 };
 struct UnitListItem : virtual public Row, virtual public ui::UnitListItem {
-    virtual void reindex(
+    virtual auto reindex(
         const implementation::UnitListSortKey& key,
-        implementation::CustomData& custom) noexcept = 0;
+        implementation::CustomData& custom) noexcept -> bool = 0;
 
     ~UnitListItem() override = default;
 };
@@ -775,6 +790,10 @@ struct List : virtual public ListType, public Row {
         const noexcept -> void final
     {
     }
+    auto emit_data_changed(const QModelIndex&, const QModelIndex&) noexcept
+        -> void final
+    {
+    }
     auto emit_end_insert_rows() const noexcept -> void final {}
     auto emit_end_move_rows() const noexcept -> void final {}
     auto emit_end_remove_rows() const noexcept -> void final {}
@@ -801,10 +820,11 @@ struct AccountListItem final : virtual public Row,
     auto Type() const noexcept -> AccountType final { return {}; }
     auto Unit() const noexcept -> proto::ContactItemType final { return {}; }
 
-    void reindex(
+    auto reindex(
         const implementation::AccountListSortKey&,
-        implementation::CustomData&) noexcept final
+        implementation::CustomData&) noexcept -> bool final
     {
+        return false;
     }
 };
 struct AccountSummaryItem final : public Row,
@@ -814,10 +834,11 @@ struct AccountSummaryItem final : public Row,
     auto DisplayBalance() const noexcept -> std::string final { return {}; }
     auto Name() const noexcept -> std::string final { return {}; }
 
-    void reindex(
+    auto reindex(
         const implementation::IssuerItemSortKey&,
-        implementation::CustomData&) noexcept final
+        implementation::CustomData&) noexcept -> bool final
     {
+        return false;
     }
 };
 struct ActivitySummaryItem final
@@ -833,10 +854,11 @@ struct ActivitySummaryItem final
         return StorageBox::UNKNOWN;
     }
 
-    void reindex(
+    auto reindex(
         const implementation::ActivitySummarySortKey&,
-        implementation::CustomData&) noexcept final
+        implementation::CustomData&) noexcept -> bool final
     {
+        return false;
     }
 };
 struct ActivityThreadItem final : public Row,
@@ -855,10 +877,11 @@ struct ActivityThreadItem final : public Row,
         return StorageBox::UNKNOWN;
     }
 
-    void reindex(
+    auto reindex(
         const implementation::ActivityThreadSortKey&,
-        implementation::CustomData&) noexcept final
+        implementation::CustomData&) noexcept -> bool final
     {
+        return false;
     }
 };
 struct BalanceItem final : public Row, public internal::BalanceItem {
@@ -878,10 +901,11 @@ struct BalanceItem final : public Row, public internal::BalanceItem {
     }
     auto UUID() const noexcept -> std::string final { return {}; }
 
-    void reindex(
+    auto reindex(
         const implementation::AccountActivitySortKey&,
-        implementation::CustomData&) noexcept final
+        implementation::CustomData&) noexcept -> bool final
     {
+        return false;
     }
 };
 #if OT_BLOCKCHAIN
@@ -894,10 +918,11 @@ struct BlockchainSelectionItem final
     auto IsTestnet() const noexcept -> bool final { return {}; }
     auto Type() const noexcept -> blockchain::Type final { return {}; }
 
-    void reindex(
+    auto reindex(
         const implementation::BlockchainSelectionSortKey&,
-        implementation::CustomData&) noexcept final
+        implementation::CustomData&) noexcept -> bool final
     {
+        return false;
     }
 };
 #endif  // OT_BLOCKCHAIN
@@ -907,10 +932,11 @@ struct ContactItem final : public Row, public internal::ContactItem {
     auto IsPrimary() const noexcept -> bool final { return false; }
     auto Value() const noexcept -> std::string final { return {}; }
 
-    void reindex(
+    auto reindex(
         const implementation::ContactSectionSortKey&,
-        implementation::CustomData&) noexcept final
+        implementation::CustomData&) noexcept -> bool final
     {
+        return false;
     }
 };
 struct ContactListItem : virtual public Row,
@@ -920,10 +946,11 @@ struct ContactListItem : virtual public Row,
     auto ImageURI() const noexcept -> std::string final { return {}; }
     auto Section() const noexcept -> std::string final { return {}; }
 
-    void reindex(
+    auto reindex(
         const implementation::ContactListSortKey&,
-        implementation::CustomData&) noexcept override
+        implementation::CustomData&) noexcept -> bool override
     {
+        return false;
     }
 };
 struct ContactSection final : public List<
@@ -944,10 +971,11 @@ struct ContactSection final : public List<
     }
     auto Type() const noexcept -> proto::ContactSectionName final { return {}; }
 
-    void reindex(
+    auto reindex(
         const implementation::ContactSortKey&,
-        implementation::CustomData&) noexcept final
+        implementation::CustomData&) noexcept -> bool final
     {
+        return false;
     }
 };
 struct ContactSubsection final : public List<
@@ -960,10 +988,11 @@ struct ContactSubsection final : public List<
     }
     auto Type() const noexcept -> proto::ContactItemType final { return {}; }
 
-    void reindex(
+    auto reindex(
         const implementation::ContactSectionSortKey&,
-        implementation::CustomData&) noexcept final
+        implementation::CustomData&) noexcept -> bool final
     {
+        return false;
     }
 };
 struct IssuerItem final : public List<
@@ -975,20 +1004,22 @@ struct IssuerItem final : public List<
     auto Name() const noexcept -> std::string final { return {}; }
     auto Trusted() const noexcept -> bool final { return {}; }
 
-    void reindex(
+    auto reindex(
         const implementation::AccountSummarySortKey&,
-        implementation::CustomData&) noexcept final
+        implementation::CustomData&) noexcept -> bool final
     {
+        return false;
     }
 };
 struct PayableListItem final : virtual public ContactListItem,
                                virtual public internal::PayableListItem {
     auto PaymentCode() const noexcept -> std::string final { return {}; }
 
-    void reindex(
+    auto reindex(
         const implementation::PayableListSortKey&,
-        implementation::CustomData&) noexcept final
+        implementation::CustomData&) noexcept -> bool final
     {
+        return false;
     }
 };
 struct ProfileItem : virtual public Row, virtual public internal::ProfileItem {
@@ -1010,10 +1041,11 @@ struct ProfileItem : virtual public Row, virtual public internal::ProfileItem {
         return false;
     }
 
-    void reindex(
+    auto reindex(
         const implementation::ProfileSubsectionSortKey&,
-        implementation::CustomData&) noexcept final
+        implementation::CustomData&) noexcept -> bool final
     {
+        return false;
     }
 };
 struct ProfileSection : public List<
@@ -1068,10 +1100,11 @@ struct ProfileSection : public List<
     }
     auto Type() const noexcept -> proto::ContactSectionName final { return {}; }
 
-    void reindex(
+    auto reindex(
         const implementation::ProfileSortKey& key,
-        implementation::CustomData& custom) noexcept final
+        implementation::CustomData& custom) noexcept -> bool final
     {
+        return false;
     }
 
 private:
@@ -1117,10 +1150,11 @@ struct ProfileSubsection : public List<
         return false;
     }
 
-    void reindex(
+    auto reindex(
         const implementation::ProfileSortKey&,
-        implementation::CustomData&) noexcept final
+        implementation::CustomData&) noexcept -> bool final
     {
+        return false;
     }
 
 private:
@@ -1131,10 +1165,11 @@ struct UnitListItem final : virtual public Row,
     auto Name() const noexcept -> std::string final { return {}; }
     auto Unit() const noexcept -> proto::ContactItemType final { return {}; }
 
-    void reindex(
+    auto reindex(
         const implementation::UnitListSortKey&,
-        implementation::CustomData&) noexcept final
+        implementation::CustomData&) noexcept -> bool final
     {
+        return false;
     }
 };
 }  // namespace blank
@@ -1245,7 +1280,6 @@ auto BlockchainSelectionModel(
 auto BlockchainSelectionItem(
     const ui::implementation::BlockchainSelectionInternalInterface& parent,
     const api::client::internal::Manager& api,
-    const api::client::internal::Blockchain& blockchain,
     const ui::implementation::BlockchainSelectionRowID& rowID,
     const ui::implementation::BlockchainSelectionSortKey& sortKey,
     ui::implementation::CustomData& custom) noexcept
@@ -1336,6 +1370,12 @@ auto MailItem(
     const ui::implementation::ActivityThreadSortKey& sortKey,
     ui::implementation::CustomData& custom) noexcept
     -> std::shared_ptr<ui::implementation::ActivityThreadRowInternal>;
+auto MessagableListItem(
+    const ui::implementation::ContactListInternalInterface& parent,
+    const api::client::internal::Manager& api,
+    const ui::implementation::ContactListRowID& rowID,
+    const ui::implementation::ContactListSortKey& key) noexcept
+    -> std::shared_ptr<ui::implementation::MessagableListRowInternal>;
 auto MessagableListModel(
     const api::client::internal::Manager& api,
     const identifier::Nym& nymID,

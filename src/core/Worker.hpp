@@ -40,6 +40,8 @@ public:
     }
 
 protected:
+    using Endpoints = std::vector<std::string>;
+
     const API& api_;
     const std::chrono::milliseconds rate_limit_;
     OTFlag running_;
@@ -64,8 +66,7 @@ protected:
         state_machine_queued_.store(false);
         repeat(downcast().state_machine());
     }
-    auto init_executor(const std::vector<std::string> endpoints = {}) noexcept
-        -> void
+    auto init_executor(const Endpoints endpoints = {}) noexcept -> void
     {
         pipeline_->Start(api_.Endpoints().Shutdown());
 

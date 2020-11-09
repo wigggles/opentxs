@@ -158,6 +158,7 @@ auto Manager::Blockchain() const -> const api::client::Blockchain&
 
 void Manager::Cleanup()
 {
+    ui_->Shutdown();
     ui_.reset();
     pair_.reset();
     otx_.reset();

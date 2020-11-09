@@ -8,6 +8,8 @@
 
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
+#include <string>
+
 #ifdef SWIG
 // clang-format off
 %feature("director") OTCallback;
@@ -25,12 +27,16 @@ class OTCallback
 {
 public:
     // Asks for password once. (For authentication when using nym.)
-    OPENTXS_EXPORT virtual void runOne(const char* szDisplay, Secret& theOutput,
+    OPENTXS_EXPORT virtual void runOne(
+        const char* szDisplay,
+        Secret& theOutput,
         const std::string& key) const = 0;
 
     // Asks for password twice. (For confirmation when changing password or
     // creating nym.)
-    OPENTXS_EXPORT virtual void runTwo(const char* szDisplay, Secret& theOutput,
+    OPENTXS_EXPORT virtual void runTwo(
+        const char* szDisplay,
+        Secret& theOutput,
         const std::string& key) const = 0;
 
     OPENTXS_EXPORT OTCallback() = default;

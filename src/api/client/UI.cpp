@@ -43,6 +43,7 @@
 #include "opentxs/ui/PayableList.hpp"
 #include "opentxs/ui/Profile.hpp"
 #include "opentxs/ui/UnitList.hpp"
+#include "opentxs/util/WorkType.hpp"
 #include "ui/accountactivity/AccountActivity.hpp"
 #include "ui/accountlist/AccountList.hpp"
 #include "ui/accountsummary/AccountSummary.hpp"
@@ -184,6 +185,11 @@ auto UI::UpdateManager::pipeline(zmq::Message& in) noexcept -> void
     for (const auto& cb : callbacks) {
         if (cb) { cb(); }
     }
+
+    const auto& socket = publisher_.get();
+    auto work = socket.Context().TaggedMessage(WorkType::UIModelUpdated);
+    work->AddFrame(id);
+    socket.Send(work);
 }
 
 auto UI::UpdateManager::RegisterUICallback(
@@ -647,12 +653,10 @@ auto UI::Init() noexcept -> void
 
 #if OT_QT
     const_cast<BlockchainSelectionQtType&>(blockchain_selection_qt_) =
-        std::make_shared<ui::BlockchainSelectionQt>(*blockchain_selection_);
+        std::make_unique<ui::BlockchainSelectionQt>(*blockchain_selection_);
 
     OT_ASSERT(blockchain_selection_qt_);
 #endif  // OT_QT
-
-    blockchain_selection_->init();
 #endif  // OT_BLOCKCHAIN
 }
 
@@ -832,6 +836,40 @@ auto UI::ProfileQt(const identifier::Nym& nymID, const SimpleCallback cb)
 }
 #endif
 
+auto UI::Shutdown() noexcept -> void
+{
+#if OT_BLOCKCHAIN
+    const_cast<BlockchainSelectionType&>(blockchain_selection_).reset();
+#if OT_QT
+    const_cast<BlockchainSelectionQtType&>(blockchain_selection_qt_).reset();
+#endif  // OT_QT
+#endif  // OT_BLOCKCHAIN
+    unit_lists_.clear();
+    profiles_.clear();
+    activity_threads_.clear();
+    payable_lists_.clear();
+    messagable_lists_.clear();
+    contact_lists_.clear();
+    contacts_.clear();
+    activity_summaries_.clear();
+    account_summaries_.clear();
+    account_lists_.clear();
+    accounts_.clear();
+#if OT_QT
+    unit_lists_qt_.clear();
+    profiles_qt_.clear();
+    activity_threads_qt_.clear();
+    payable_lists_qt_.clear();
+    messagable_lists_qt_.clear();
+    contact_lists_qt_.clear();
+    contacts_qt_.clear();
+    activity_summaries_qt_.clear();
+    account_summaries_qt_.clear();
+    account_lists_qt_.clear();
+    accounts_qt_.clear();
+#endif  // OT_QT
+}
+
 auto UI::unit_list(
     const Lock& lock,
     const identifier::Nym& nymID,
@@ -885,4 +923,6 @@ auto UI::UnitListQt(const identifier::Nym& nymID, const SimpleCallback cb)
     return it->second.get();
 }
 #endif
+
+UI::~UI() { Shutdown(); }
 }  // namespace opentxs::api::client::implementation

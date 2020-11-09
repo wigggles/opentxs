@@ -112,12 +112,14 @@ auto ProfileSubsection::process_group(
     return active;
 }
 
-void ProfileSubsection::reindex(
+auto ProfileSubsection::reindex(
     const ProfileSectionSortKey&,
-    CustomData& custom) noexcept
+    CustomData& custom) noexcept -> bool
 {
     delete_inactive(
         process_group(extract_custom<opentxs::ContactGroup>(custom)));
+
+    return true;
 }
 
 auto ProfileSubsection::SetActive(const std::string& claimID, const bool active)

@@ -98,12 +98,14 @@ auto ContactSubsection::process_group(
     return active;
 }
 
-void ContactSubsection::reindex(
+auto ContactSubsection::reindex(
     const ContactSectionSortKey&,
-    CustomData& custom) noexcept
+    CustomData& custom) noexcept -> bool
 {
     delete_inactive(
         process_group(extract_custom<opentxs::ContactGroup>(custom)));
+
+    return true;
 }
 
 void ContactSubsection::startup(const opentxs::ContactGroup group) noexcept

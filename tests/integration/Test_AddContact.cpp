@@ -610,5 +610,13 @@ TEST_F(Test_AddContact, shutdown)
     api_alex_.OTX().ContextIdle(alex_.nym_id_, server_1_.id_).get();
     api_bob_.OTX().ContextIdle(bob_.nym_id_, server_1_.id_).get();
     api_chris_.OTX().ContextIdle(chris_.nym_id_, server_1_.id_).get();
+
+    EXPECT_EQ(contact_list_alex_.expected_, contact_list_alex_.updated_);
+    EXPECT_EQ(messagable_list_alex_.expected_, messagable_list_alex_.updated_);
+    EXPECT_EQ(contact_list_bob_.expected_, contact_list_bob_.updated_);
+    EXPECT_EQ(messagable_list_bob_.expected_, messagable_list_bob_.updated_);
+    EXPECT_EQ(contact_list_chris_.expected_, contact_list_chris_.updated_);
+    EXPECT_EQ(
+        messagable_list_chris_.expected_, messagable_list_chris_.updated_);
 }
 }  // namespace

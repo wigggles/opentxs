@@ -7,11 +7,11 @@
 #include "1_Internal.hpp"                  // IWYU pragma: associated
 #include "ui/contactlist/ContactList.hpp"  // IWYU pragma: associated
 
+#include <future>
 #include <list>
 #include <memory>
+#include <optional>
 #include <string>
-#include <thread>
-#include <utility>
 
 #include "internal/api/Api.hpp"
 #include "internal/api/client/Client.hpp"
@@ -22,15 +22,15 @@
 #include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/api/client/OTX.hpp"
 #include "opentxs/contact/Contact.hpp"
+#include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/core/crypto/PaymentCode.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
-#include "opentxs/network/zeromq/FrameIterator.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
-#include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/network/zeromq/Pipeline.hpp"
 #include "ui/base/List.hpp"
 
 #define OT_METHOD "opentxs::ui::implementation::ContactList::"
@@ -97,28 +97,19 @@ ContactList::ContactList(
           1
 #endif
           )
-    , listeners_({
-          {api_.Endpoints().ContactUpdate(),
-           new MessageProcessor<ContactList>(&ContactList::process_contact)},
-      })
-    , owner_contact_id_(api_.Contacts().ContactID(nymID))
-    , owner_(nullptr)
+    , Worker(api, {})
+    , owner_contact_id_(Widget::api_.Contacts().ContactID(nymID))
+    , owner_(factory::ContactListItem(*this, api, owner_contact_id_, "Owner"))
 {
-    owner_ = factory::ContactListItem(*this, api, owner_contact_id_, "Owner");
-
-    OT_ASSERT(owner_)
+    OT_ASSERT(false == owner_contact_id_->empty());
+    OT_ASSERT(owner_);
 
 #if OT_QT
     register_child(owner_.get());
 #endif  // OT_QT
-
-    OT_ASSERT(false == owner_contact_id_->empty())
-
     init();
-    setup_listeners(listeners_);
-    startup_.reset(new std::thread(&ContactList::startup, this));
-
-    OT_ASSERT(startup_)
+    init_executor({api.Endpoints().ContactUpdate()});
+    pipeline_->Push(MakeWork(Work::init));
 }
 
 ContactList::ParsedArgs::ParsedArgs(
@@ -195,23 +186,22 @@ auto ContactList::AddContact(
     const std::string& paymentCode,
     const std::string& nymID) const noexcept -> std::string
 {
-    auto args = ParsedArgs{api_, nymID, paymentCode};
-    const auto contact =
-        api_.Contacts().NewContact(label, args.nym_id_, args.payment_code_);
+    auto args = ParsedArgs{Widget::api_, nymID, paymentCode};
+    const auto contact = Widget::api_.Contacts().NewContact(
+        label, args.nym_id_, args.payment_code_);
     const auto& id = contact->ID();
-    api_.OTX().CanMessage(primary_id_, id, true);
+    Widget::api_.OTX().CanMessage(primary_id_, id, true);
 
     return id.str();
 }
 
-void ContactList::add_item(
+auto ContactList::add_item(
     const ContactListRowID& id,
     const ContactListSortKey& index,
-    CustomData& custom) noexcept
+    CustomData& custom) noexcept -> void
 {
     if (owner_contact_id_ == id) {
-        owner_->reindex(index, custom);
-        UpdateNotify();
+        if (owner_->reindex(index, custom)) { row_modified(0, owner_.get()); }
 
         return;
     }
@@ -224,7 +214,7 @@ auto ContactList::construct_row(
     const ContactListSortKey& index,
     CustomData&) const noexcept -> RowPointer
 {
-    return factory::ContactListItem(*this, api_, id, index);
+    return factory::ContactListItem(*this, Widget::api_, id, index);
 }
 
 #if OT_QT
@@ -249,8 +239,8 @@ auto ContactList::first(const Lock& lock) const noexcept
 }
 
 #if OT_QT
-QModelIndex ContactList::index(int row, int column, const QModelIndex& parent)
-    const noexcept
+auto ContactList::index(int row, int column, const QModelIndex& parent)
+    const noexcept -> QModelIndex
 {
     const auto* pointer = get_pointer(parent);
 
@@ -289,32 +279,86 @@ auto ContactList::lookup(const Lock& lock, const ContactListRowID& id)
     }
 }
 
-void ContactList::process_contact(
-    const network::zeromq::Message& message) noexcept
+auto ContactList::pipeline(const Message& in) noexcept -> void
 {
-    wait_for_startup();
+    if (false == running_.get()) { return; }
 
-    OT_ASSERT(1 == message.Body().size());
+    const auto body = in.Body();
 
-    const auto contactID = Identifier::Factory(*message.Body().begin());
+    if (1 > body.size()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid message").Flush();
+
+        OT_FAIL;
+    }
+
+    const auto work = body.at(0).as<Work>();
+
+    switch (work) {
+        case Work::contact: {
+            process_contact(in);
+        } break;
+        case Work::init: {
+            startup();
+        } break;
+        case Work::statemachine: {
+            do_work();
+        } break;
+        case Work::shutdown: {
+            running_->Off();
+            shutdown(shutdown_promise_);
+        } break;
+        default: {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Unhandled type").Flush();
+
+            OT_FAIL;
+        }
+    }
+}
+
+auto ContactList::process_contact(const Message& in) noexcept -> void
+{
+    const auto body = in.Body();
+
+    OT_ASSERT(1 < body.size());
+
+    const auto& id = body.at(1);
+    auto contactID = Widget::api_.Factory().Identifier();
+    contactID->Assign(id.Bytes());
 
     OT_ASSERT(false == contactID->empty())
 
-    const auto name = api_.Contacts().ContactName(contactID);
+    const auto name = Widget::api_.Contacts().ContactName(contactID);
     auto custom = CustomData{};
     add_item(contactID, name, custom);
 }
 
-void ContactList::startup() noexcept
+auto ContactList::row_modified(const Lock&, const ContactListRowID& id) noexcept
+    -> void
 {
-    const auto contacts = api_.Contacts().ContactList();
+    if (id == owner_contact_id_) {
+        row_modified(0, owner_.get());
+    } else {
+        Lock lock(lock_);
+        const auto index = find_index(id);
+
+        if (false == index.has_value()) { return; }
+
+        auto& row = const_cast<ContactListRowInternal&>(
+            ContactListList::lookup(lock, id));
+        row_modified(index.value() + 1, &row);
+    }
+}
+
+auto ContactList::startup() noexcept -> void
+{
+    const auto contacts = Widget::api_.Contacts().ContactList();
     LogVerbose(OT_METHOD)(__FUNCTION__)(": Loading ")(contacts.size())(
         " contacts.")
         .Flush();
 
     for (const auto& [id, alias] : contacts) {
         auto custom = CustomData{};
-        add_item(Identifier::Factory(id), alias, custom);
+        add_item(Widget::api_.Factory().Identifier(id), alias, custom);
     }
 
     finish_startup();
@@ -322,6 +366,7 @@ void ContactList::startup() noexcept
 
 ContactList::~ContactList()
 {
-    for (auto& it : listeners_) { delete it.second; }
+    wait_for_startup();
+    stop_worker().get();
 }
 }  // namespace opentxs::ui::implementation

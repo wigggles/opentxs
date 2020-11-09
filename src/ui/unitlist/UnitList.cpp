@@ -9,7 +9,6 @@
 
 #include <memory>
 #include <set>
-#include <string>
 #include <thread>
 #include <utility>
 
@@ -17,6 +16,7 @@
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/api/Endpoints.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/client/Blockchain.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
@@ -30,6 +30,7 @@
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/socket/Socket.hpp"
 #include "opentxs/protobuf/verify/VerifyContacts.hpp"
+#include "opentxs/util/WorkType.hpp"
 
 #define OT_METHOD "opentxs::ui::implementation::UnitList::"
 
@@ -111,25 +112,17 @@ auto UnitList::construct_row(
     return factory::UnitListItem(*this, api_, id, index, custom);
 }
 
-auto UnitList::process_account(const network::zeromq::Message& message) noexcept
-    -> void
+auto UnitList::process_account(const Message& message) noexcept -> void
 {
     wait_for_startup();
+    const auto body = message.Body();
 
-    if (2 > message.Body().size()) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid message").Flush();
+    OT_ASSERT(2 < body.size());
 
-        return;
-    }
+    auto accountID = api_.Factory().Identifier();
+    accountID->Assign(body.at(1).Bytes());
 
-    const std::string id(message.Body_at(0));
-    const auto accountID = Identifier::Factory(id);
-
-    if (accountID->empty()) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid account id").Flush();
-
-        return;
-    }
+    OT_ASSERT(false == accountID->empty());
 
     process_account(accountID);
 }
@@ -140,18 +133,15 @@ auto UnitList::process_account(const Identifier& id) noexcept -> void
 }
 
 #if OT_BLOCKCHAIN
-auto UnitList::process_blockchain_balance(
-    const network::zeromq::Message& message) noexcept -> void
+auto UnitList::process_blockchain_balance(const Message& message) noexcept
+    -> void
 {
     wait_for_startup();
+    const auto body = message.Body();
 
-    if (3 > message.Body().size()) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid message").Flush();
+    OT_ASSERT(3 < body.size());
 
-        return;
-    }
-
-    const auto& chainFrame = message.Body_at(0);
+    const auto& chainFrame = message.Body_at(1);
 
     try {
         process_unit(Translate(chainFrame.as<blockchain::Type>()));
@@ -193,8 +183,7 @@ auto UnitList::startup() noexcept -> void
 #if OT_BLOCKCHAIN
     for (const auto& chain : blockchain::SupportedChains()) {
         if (0 < api_.Blockchain().AccountList(primary_id_, chain).size()) {
-            auto out = api_.ZeroMQ().Message();
-            out->AddFrame();
+            auto out = api_.ZeroMQ().TaggedMessage(WorkType::BlockchainBalance);
             out->AddFrame(chain);
             blockchain_balance_->Send(out);
         }

@@ -10,6 +10,7 @@
 
 #include <atomic>
 #include <mutex>
+#include <optional>
 #include <set>
 #include <string>
 #include <tuple>
@@ -32,12 +33,16 @@
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
+#include "opentxs/network/zeromq/ListenCallback.hpp"
+#include "opentxs/network/zeromq/socket/Dealer.hpp"
 #include "opentxs/protobuf/ContactEnums.pb.h"
 #include "opentxs/protobuf/PaymentWorkflowEnums.pb.h"
 #include "opentxs/ui/AccountActivity.hpp"
+#include "opentxs/util/WorkType.hpp"
 #include "ui/accountactivity/AccountActivity.hpp"
 #include "ui/base/List.hpp"
 #include "ui/base/Widget.hpp"
+#include "util/Work.hpp"
 
 namespace opentxs
 {
@@ -76,6 +81,7 @@ class PaymentEvent;
 class PaymentWorkflow;
 }  // namespace proto
 
+class Data;
 class Identifier;
 }  // namespace opentxs
 
@@ -86,7 +92,7 @@ class BlockchainAccountActivity final : public AccountActivity
 public:
     auto ContractID() const noexcept -> std::string final
     {
-        return ui::UnitID(api_, chain_).str();
+        return ui::UnitID(Widget::api_, chain_).str();
     }
     using AccountActivity::DepositAddress;
     auto DepositAddress(const blockchain::Type) const noexcept
@@ -106,7 +112,7 @@ public:
     }
     auto NotaryID() const noexcept -> std::string final
     {
-        return ui::NotaryID(api_, chain_).str();
+        return ui::NotaryID(Widget::api_, chain_).str();
     }
     auto NotaryName() const noexcept -> std::string final
     {
@@ -145,7 +151,7 @@ public:
         const Identifier& accountID,
         const SimpleCallback& cb) noexcept;
 
-    ~BlockchainAccountActivity() final = default;
+    ~BlockchainAccountActivity() final;
 
 private:
     struct SyncCB {
@@ -184,13 +190,28 @@ private:
         std::pair<int, int> ratio_{};
     };
 
+    enum class Work : OTZMQWorkType {
+        balance = value(WorkType::BlockchainBalance),
+        txid = value(WorkType::BlockchainNewTransaction),
+        sync = value(WorkType::BlockchainSyncProgress),
+        init = OT_ZMQ_INIT_SIGNAL,
+        statemachine = OT_ZMQ_STATE_MACHINE_SIGNAL,
+        shutdown = value(WorkType::Shutdown),
+    };
+
     const blockchain::Type chain_;
+    OTZMQListenCallback balance_cb_;
+    OTZMQDealerSocket balance_socket_;
     Progress progress_;
     SyncCB sync_cb_;
 
     auto load_thread() noexcept -> void;
-    auto process_sync(const network::zeromq::Message& in) noexcept -> void;
-    auto process_txid(const network::zeromq::Message& in) noexcept -> void;
+    auto pipeline(const Message& in) noexcept -> void final;
+    auto process_balance(const Message& message) noexcept -> void;
+    auto process_sync(const Message& in) noexcept -> void;
+    auto process_txid(const Message& in) noexcept -> void;
+    auto process_txid(const Data& txid) noexcept
+        -> std::optional<AccountActivityRowID>;
     auto startup() noexcept -> void final;
 
     BlockchainAccountActivity() = delete;

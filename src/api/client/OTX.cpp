@@ -43,7 +43,6 @@
 #include "opentxs/contact/ContactItem.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Cheque.hpp"
-#include "opentxs/core/Data.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
@@ -68,7 +67,6 @@
 #include "opentxs/identity/Nym.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
-#include "opentxs/network/zeromq/FrameIterator.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
@@ -85,6 +83,7 @@
 #include "opentxs/protobuf/PeerEnums.pb.h"
 #include "opentxs/protobuf/ServerContract.pb.h"
 #include "opentxs/protobuf/ServerReply.pb.h"
+#include "opentxs/util/WorkType.hpp"
 #include "otx/client/PaymentTasks.hpp"
 #include "otx/client/StateMachine.hpp"
 
@@ -1064,14 +1063,18 @@ void OTX::find_nym(const opentxs::network::zeromq::Message& message) const
 {
     const auto body = message.Body();
 
-    if (1 > body.size()) {
+    if (1 >= body.size()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid message").Flush();
 
         return;
     }
 
-    auto id = identifier::Nym::Factory();
-    id->SetString(body.at(0));
+    const auto id = [&] {
+        auto output = client_.Factory().NymID();
+        output->Assign(body.at(1).Bytes());
+
+        return output;
+    }();
 
     if (id->empty()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid id").Flush();
@@ -1088,14 +1091,18 @@ void OTX::find_server(const opentxs::network::zeromq::Message& message) const
 {
     const auto body = message.Body();
 
-    if (1 > body.size()) {
+    if (1 >= body.size()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid message").Flush();
 
         return;
     }
 
-    auto id = identifier::Server::Factory();
-    id->SetString(body.at(0));
+    const auto id = [&] {
+        auto output = client_.Factory().ServerID();
+        output->Assign(body.at(1).Bytes());
+
+        return output;
+    }();
 
     if (id->empty()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid id").Flush();
@@ -1116,14 +1123,18 @@ void OTX::find_unit(const opentxs::network::zeromq::Message& message) const
 {
     const auto body = message.Body();
 
-    if (1 > body.size()) {
+    if (1 >= body.size()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid message").Flush();
 
         return;
     }
 
-    auto id = identifier::UnitDefinition::Factory();
-    id->SetString(body.at(0));
+    const auto id = [&] {
+        auto output = client_.Factory().UnitID();
+        output->Assign(body.at(1).Bytes());
+
+        return output;
+    }();
 
     if (id->empty()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid id").Flush();
@@ -1629,15 +1640,15 @@ auto OTX::ProcessInbox(
 
 void OTX::process_account(const zmq::Message& message) const
 {
-    OT_ASSERT(2 == message.Body().size())
+    const auto body = message.Body();
 
-    const std::string id(*message.Body().begin());
-    const auto& balance = message.Body().at(1);
+    OT_ASSERT(2 < body.size())
 
-    OT_ASSERT(balance.size() == sizeof(Amount))
-
-    LogVerbose(OT_METHOD)(__FUNCTION__)(": Account ")(id)(" balance: ")(
-        *static_cast<const Amount*>(balance.data()))
+    auto accountID = client_.Factory().Identifier();
+    accountID->Assign(body.at(1).Bytes());
+    const auto balance = body.at(2).as<Amount>();
+    LogVerbose(OT_METHOD)(__FUNCTION__)(": Account ")(accountID->str())(
+        " balance: ")(balance)
         .Flush();
 }
 
@@ -2292,11 +2303,12 @@ void OTX::update_task(
         }
 
         if (publish) {
-            auto message = zmq::Message::Factory();
-            message->PrependEmptyFrame();
-            message->AddFrame(std::to_string(taskID));
-            message->AddFrame(Data::Factory(&value, sizeof(value)));
-            task_finished_->Send(message);
+            const auto& socket = task_finished_.get();
+            auto work =
+                socket.Context().TaggedMessage(WorkType::OTXTaskComplete);
+            work->AddFrame(taskID);
+            work->AddFrame(value);
+            socket.Send(work);
         }
     } catch (...) {
         LogOutput(OT_METHOD)(__FUNCTION__)(

@@ -139,9 +139,9 @@ private:
         reset_filter_tip = OT_ZMQ_INTERNAL_SIGNAL + 2,
         index_block = OT_ZMQ_INTERNAL_SIGNAL + 3,
         calculate_headers = OT_ZMQ_INTERNAL_SIGNAL + 4,
-        peer = OT_ZMQ_NEW_PEER_SIGNAL,
-        block = OT_ZMQ_NEW_BLOCK_HEADER_SIGNAL,
-        reorg = OT_ZMQ_REORG_SIGNAL,
+        peer = value(WorkType::BlockchainPeerAdded),
+        block = value(WorkType::BlockchainNewHeader),
+        reorg = value(WorkType::BlockchainReorg),
         statemachine = OT_ZMQ_STATE_MACHINE_SIGNAL,
         shutdown = value(WorkType::Shutdown),
     };

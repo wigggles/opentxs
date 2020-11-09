@@ -26,12 +26,15 @@
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/api/network/Dht.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/identity/Nym.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
+#include "opentxs/network/zeromq/Frame.hpp"
+#include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/ReplyCallback.hpp"
 #include "opentxs/network/zeromq/socket/Reply.hpp"
@@ -234,14 +237,19 @@ auto Dht::process_request(
     OT_ASSERT(nullptr != get)
 
     bool output{false};
+    const auto body = incoming.Body();
 
-    if (1 == incoming.size()) {
-        const std::string id{incoming.at(0)};
-        const auto nymID = identifier::Nym::Factory(id);
+    if (1 < body.size()) {
+        const auto id = [&] {
+            auto output = api_.Factory().Identifier();
+            output->Assign(body.at(1).Bytes());
 
-        if (false == nymID->empty()) {
+            return output;
+        }();
+
+        if (false == id->empty()) {
             output = true;
-            (this->*get)(id);
+            (this->*get)(id->str());
         }
     }
 

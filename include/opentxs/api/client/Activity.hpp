@@ -210,6 +210,13 @@ public:
     OPENTXS_EXPORT virtual std::size_t UnreadCount(
         const identifier::Nym& nym) const noexcept = 0;
 
+    /** Activity thread update notification
+     *
+     *  A subscribe socket can connect to this endpoint to receive
+     *  ActivityThreadUpdated tagged messages
+     *
+     *  See opentxs/util/WorkTypes.hpp for message format documentation
+     */
     OPENTXS_EXPORT virtual std::string ThreadPublisher(
         const identifier::Nym& nym) const noexcept = 0;
 

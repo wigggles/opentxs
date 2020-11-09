@@ -42,7 +42,6 @@
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/socket/Publish.hpp"
 #include "opentxs/network/zeromq/socket/Push.hpp"
-#include "opentxs/network/zeromq/socket/Sender.tpp"
 #include "opentxs/network/zeromq/socket/Socket.hpp"
 #include "opentxs/protobuf/AccountEvent.pb.h"
 #include "opentxs/protobuf/Check.hpp"
@@ -55,6 +54,7 @@
 #include "opentxs/protobuf/RPCPush.pb.h"
 #include "opentxs/protobuf/verify/PaymentWorkflow.hpp"
 #include "opentxs/protobuf/verify/RPCPush.hpp"
+#include "opentxs/util/WorkType.hpp"
 
 #define RPC_ACCOUNT_EVENT_VERSION 1
 #define RPC_PUSH_VERSION 1
@@ -493,7 +493,7 @@ auto Workflow::AbortTransfer(
              : versions_.at(proto::PAYMENTWORKFLOWTYPE_OUTGOINGTRANSFER)
                    .event_),
         reply,
-        transfer.GetRealAccountID().str(),
+        transfer.GetRealAccountID(),
         true);
 }
 
@@ -553,7 +553,7 @@ auto Workflow::AcceptTransfer(
         proto::PAYMENTEVENTTYPE_ACCEPT,
         versions_.at(proto::PAYMENTWORKFLOWTYPE_OUTGOINGTRANSFER).event_,
         reply,
-        accountID.str(),
+        accountID,
         true);
 }
 
@@ -606,7 +606,7 @@ auto Workflow::AcknowledgeTransfer(
              : versions_.at(proto::PAYMENTWORKFLOWTYPE_OUTGOINGTRANSFER)
                    .event_),
         reply,
-        transfer.GetRealAccountID().str(),
+        transfer.GetRealAccountID(),
         true);
 }
 
@@ -660,7 +660,7 @@ auto Workflow::add_cheque_event(
     const VersionNumber version,
     const Message& request,
     const Message* reply,
-    const std::string& account) const -> bool
+    const Identifier& account) const -> bool
 {
     const bool haveReply = (nullptr != reply);
     const bool success = cheque_deposit_success(reply);
@@ -669,7 +669,7 @@ auto Workflow::add_cheque_event(
         workflow.set_state(newState);
 
         if ((false == account.empty()) && (0 == workflow.account_size())) {
-            workflow.add_account(account);
+            workflow.add_account(account.str());
         }
     }
 
@@ -716,7 +716,7 @@ auto Workflow::add_cheque_event(
 auto Workflow::add_cheque_event(
     const eLock& lock,
     const std::string& nymID,
-    const std::string& accountID,
+    const Identifier& accountID,
     proto::PaymentWorkflow& workflow,
     const proto::PaymentWorkflowState newState,
     const proto::PaymentEventType newEventType,
@@ -754,7 +754,7 @@ auto Workflow::add_transfer_event(
     const proto::PaymentEventType newEventType,
     const VersionNumber version,
     const Message& message,
-    const std::string& account,
+    const Identifier& account,
     const bool success) const -> bool
 {
     if (success) { workflow.set_state(newState); }
@@ -802,7 +802,7 @@ auto Workflow::add_transfer_event(
     const proto::PaymentEventType newEventType,
     const VersionNumber version,
     const OTTransaction& receipt,
-    const std::string& account,
+    const Identifier& account,
     const bool success) const -> bool
 {
     if (success) { workflow.set_state(newState); }
@@ -1143,6 +1143,8 @@ auto Workflow::CancelCheque(
 
     if (false == can_cancel_cheque(*workflow)) { return false; }
 
+    static const auto accountID = api_.Factory().Identifier();
+
     return add_cheque_event(
         lock,
         nymID,
@@ -1152,7 +1154,8 @@ auto Workflow::CancelCheque(
         proto::PAYMENTEVENTTYPE_CANCEL,
         versions_.at(proto::PAYMENTWORKFLOWTYPE_OUTGOINGCHEQUE).event_,
         request,
-        reply);
+        reply,
+        accountID);
 }
 
 auto Workflow::cheque_deposit_success(const Message* message) -> bool
@@ -1211,7 +1214,7 @@ auto Workflow::ClearCheque(
     const auto output = add_cheque_event(
         lock,
         nymID,
-        workflow->account(0),
+        api_.Factory().Identifier(workflow->account(0)),
         *workflow,
         proto::PAYMENTWORKFLOWSTATE_ACCEPTED,
         proto::PAYMENTEVENTTYPE_ACCEPT,
@@ -1319,7 +1322,7 @@ auto Workflow::ClearTransfer(
              : versions_.at(proto::PAYMENTWORKFLOWTYPE_OUTGOINGTRANSFER)
                    .event_),
         receipt,
-        accountID.str(),
+        accountID,
         true);
 
     if (output) {
@@ -1418,7 +1421,7 @@ auto Workflow::CompleteTransfer(
              : versions_.at(proto::PAYMENTWORKFLOWTYPE_OUTGOINGTRANSFER)
                    .event_),
         receipt,
-        transfer->GetRealAccountID().str(),
+        transfer->GetRealAccountID(),
         true);
 }
 
@@ -1462,7 +1465,7 @@ auto Workflow::convey_incoming_transfer(
         versions_.at(proto::PAYMENTWORKFLOWTYPE_INCOMINGTRANSFER).source_,
         versions_.at(proto::PAYMENTWORKFLOWTYPE_INCOMINGTRANSFER).event_,
         senderNymID,
-        accountID.str(),
+        accountID,
         notaryID.str(),
         "");
 
@@ -1536,7 +1539,7 @@ auto Workflow::convey_internal_transfer(
         proto::PAYMENTEVENTTYPE_CONVEY,
         versions_.at(proto::PAYMENTWORKFLOWTYPE_INTERNALTRANSFER).event_,
         pending,
-        transfer.GetDestinationAcctID().str(),
+        transfer.GetDestinationAcctID(),
         true);
 
     if (output) {
@@ -1595,7 +1598,7 @@ auto Workflow::create_cheque(
     const VersionNumber sourceVersion,
     const VersionNumber eventVersion,
     const std::string& party,
-    const std::string& account,
+    const Identifier& account,
     const Message* message) const
     -> std::pair<OTIdentifier, proto::PaymentWorkflow>
 {
@@ -1652,7 +1655,7 @@ auto Workflow::create_cheque(
 
     // add account if it was passed in and is not already present
     if ((false == account.empty()) && (0 == workflow.account_size())) {
-        workflow.add_account(account);
+        workflow.add_account(account.str());
     }
 
     if ((false == account.empty()) && (workflow.notary().empty())) {
@@ -1677,7 +1680,7 @@ auto Workflow::create_transfer(
     const VersionNumber sourceVersion,
     const VersionNumber eventVersion,
     const std::string& party,
-    const std::string& account,
+    const Identifier& account,
     const std::string& notaryID,
     const std::string& destinationAccountID) const
     -> std::pair<OTIdentifier, proto::PaymentWorkflow>
@@ -1745,7 +1748,7 @@ auto Workflow::create_transfer(
 
     // add account if it is not already present
     if (0 == workflow.account_size()) {
-        workflow.add_account(account);
+        workflow.add_account(account.str());
 
         if (false == destinationAccountID.empty()) {
             workflow.add_account(destinationAccountID);
@@ -1806,7 +1809,7 @@ auto Workflow::CreateTransfer(const Item& transfer, const Message& request)
              : versions_.at(proto::PAYMENTWORKFLOWTYPE_OUTGOINGTRANSFER)
                    .event_),
         "",
-        accountID.str(),
+        accountID,
         request.m_strNotaryID->Get(),
         (isInternal ? transfer.GetDestinationAcctID().str() : ""));
 
@@ -1866,7 +1869,7 @@ auto Workflow::DepositCheque(
         versions_.at(proto::PAYMENTWORKFLOWTYPE_INCOMINGCHEQUE).event_,
         request,
         reply,
-        accountID.str());
+        accountID);
 
     if (output && cheque_deposit_success(reply)) {
         update_rpc(
@@ -1914,7 +1917,7 @@ auto Workflow::ExpireCheque(
 
     workflow->set_state(proto::PAYMENTWORKFLOWSTATE_EXPIRED);
 
-    return save_workflow(nymID, cheque.GetSenderAcctID().str(), *workflow);
+    return save_workflow(nymID, cheque.GetSenderAcctID(), *workflow);
 }
 
 auto Workflow::ExportCheque(const opentxs::Cheque& cheque) const -> bool
@@ -1946,7 +1949,7 @@ auto Workflow::ExportCheque(const opentxs::Cheque& cheque) const -> bool
     event.set_method(proto::TRANSPORTMETHOD_OOB);
     event.set_success(true);
 
-    return save_workflow(nymID, cheque.GetSenderAcctID().str(), *workflow);
+    return save_workflow(nymID, cheque.GetSenderAcctID(), *workflow);
 }
 
 auto Workflow::extract_conveyed_time(const proto::PaymentWorkflow& workflow)
@@ -2145,6 +2148,8 @@ auto Workflow::FinishCheque(
 
     if (false == can_finish_cheque(*workflow)) { return false; }
 
+    static const auto accountID = api_.Factory().Identifier();
+
     return add_cheque_event(
         lock,
         nymID,
@@ -2154,7 +2159,8 @@ auto Workflow::FinishCheque(
         proto::PAYMENTEVENTTYPE_COMPLETE,
         versions_.at(proto::PAYMENTWORKFLOWTYPE_OUTGOINGCHEQUE).event_,
         request,
-        reply);
+        reply,
+        accountID);
 }
 
 template <typename T>
@@ -2265,6 +2271,7 @@ auto Workflow::ImportCheque(
     }
 
     const std::string party = cheque.GetSenderNymID().str();
+    static const auto accountID = api_.Factory().Identifier();
     const auto [workflowID, workflow] = create_cheque(
         global,
         nymID.str(),
@@ -2275,7 +2282,7 @@ auto Workflow::ImportCheque(
         versions_.at(proto::PAYMENTWORKFLOWTYPE_INCOMINGCHEQUE).source_,
         versions_.at(proto::PAYMENTWORKFLOWTYPE_INCOMINGCHEQUE).event_,
         party,
-        "");
+        accountID);
 
     if (false == workflowID->empty()) {
         const auto time = extract_conveyed_time(workflow);
@@ -2541,6 +2548,7 @@ auto Workflow::ReceiveCheque(
     }
 
     const std::string party = cheque.GetSenderNymID().str();
+    static const auto accountID = api_.Factory().Identifier();
     const auto [workflowID, workflow] = create_cheque(
         global,
         nymID.str(),
@@ -2551,7 +2559,7 @@ auto Workflow::ReceiveCheque(
         versions_.at(proto::PAYMENTWORKFLOWTYPE_INCOMINGCHEQUE).source_,
         versions_.at(proto::PAYMENTWORKFLOWTYPE_INCOMINGCHEQUE).event_,
         party,
-        "",
+        accountID,
         &message);
 
     if (false == workflowID->empty()) {
@@ -2583,12 +2591,14 @@ auto Workflow::save_workflow(
     const std::string& nymID,
     const proto::PaymentWorkflow& workflow) const -> bool
 {
-    return save_workflow(nymID, "", workflow);
+    static const auto id = api_.Factory().Identifier();
+
+    return save_workflow(nymID, id, workflow);
 }
 
 auto Workflow::save_workflow(
     const std::string& nymID,
-    const std::string& accountID,
+    const Identifier& accountID,
     const proto::PaymentWorkflow& workflow) const -> bool
 {
     const bool valid = proto::Validate(workflow, VERBOSE);
@@ -2599,7 +2609,12 @@ auto Workflow::save_workflow(
 
     OT_ASSERT(saved)
 
-    if (false == accountID.empty()) { account_publisher_->Send(accountID); }
+    if (false == accountID.empty()) {
+        auto work =
+            api_.ZeroMQ().TaggedMessage(WorkType::WorkflowAccountUpdate);
+        work->AddFrame(accountID);
+        account_publisher_->Send(work);
+    }
 
     return valid && saved;
 }
@@ -2607,7 +2622,7 @@ auto Workflow::save_workflow(
 auto Workflow::save_workflow(
     OTIdentifier&& output,
     const std::string& nymID,
-    const std::string& accountID,
+    const Identifier& accountID,
     const proto::PaymentWorkflow& workflow) const -> OTIdentifier
 {
     if (save_workflow(nymID, accountID, workflow)) { return std::move(output); }
@@ -2618,7 +2633,7 @@ auto Workflow::save_workflow(
 auto Workflow::save_workflow(
     std::pair<OTIdentifier, proto::PaymentWorkflow>&& output,
     const std::string& nymID,
-    const std::string& accountID,
+    const Identifier& accountID,
     const proto::PaymentWorkflow& workflow) const
     -> std::pair<OTIdentifier, proto::PaymentWorkflow>
 {
@@ -2703,6 +2718,8 @@ auto Workflow::SendCheque(
 
     if (false == can_convey_cheque(*workflow)) { return false; }
 
+    static const auto accountID = api_.Factory().Identifier();
+
     return add_cheque_event(
         lock,
         nymID,
@@ -2712,7 +2729,8 @@ auto Workflow::SendCheque(
         proto::PAYMENTEVENTTYPE_CONVEY,
         versions_.at(proto::PAYMENTWORKFLOWTYPE_OUTGOINGCHEQUE).event_,
         request,
-        reply);
+        reply,
+        accountID);
 }
 
 auto Workflow::update_activity(
@@ -2869,7 +2887,7 @@ auto Workflow::WriteCheque(const opentxs::Cheque& cheque) const -> OTIdentifier
         versions_.at(proto::PAYMENTWORKFLOWTYPE_OUTGOINGCHEQUE).source_,
         versions_.at(proto::PAYMENTWORKFLOWTYPE_OUTGOINGCHEQUE).event_,
         party,
-        cheque.GetSenderAcctID().str());
+        cheque.GetSenderAcctID());
     global.unlock();
     const bool haveWorkflow = (false == workflowID->empty());
     const auto time{Clock::from_time_t(workflow.event(0).time())};

@@ -41,7 +41,23 @@ ContactListItem::ContactListItem(
     const ContactListSortKey& key) noexcept
     : ContactListItemRow(parent, api, rowID, true)
     , key_(key)
+    , section_(calculate_section())
 {
+}
+
+auto ContactListItem::calculate_section() const noexcept -> std::string
+{
+    Lock lock(lock_);
+
+    return calculate_section(lock);
+}
+
+auto ContactListItem::calculate_section(const Lock& lock) const noexcept
+    -> std::string
+{
+    if (row_id_ == parent_.ID()) { return {"ME"}; }
+
+    return translate_section(lock);
 }
 
 auto ContactListItem::ContactID() const noexcept -> std::string
@@ -64,8 +80,8 @@ auto ContactListItem::ImageURI() const noexcept -> std::string
 }
 
 #if OT_QT
-QVariant ContactListItem::qt_data([[maybe_unused]] const int column, int role)
-    const noexcept
+auto ContactListItem::qt_data([[maybe_unused]] const int column, int role)
+    const noexcept -> QVariant
 {
     switch (role) {
         case Qt::DisplayRole: {
@@ -88,20 +104,42 @@ QVariant ContactListItem::qt_data([[maybe_unused]] const int column, int role)
 }
 #endif
 
-void ContactListItem::reindex(
+auto ContactListItem::reindex(
     const ContactListSortKey& key,
-    CustomData&) noexcept
+    CustomData& custom) noexcept -> bool
 {
     Lock lock(lock_);
-    key_ = key;
+
+    return reindex(lock, key, custom);
+}
+
+auto ContactListItem::reindex(
+    const Lock& lock,
+    const ContactListSortKey& key,
+    CustomData&) noexcept -> bool
+{
+    auto output = (key_ != key);
+
+    if (output) { key_ = key; }
+
+    if (auto section = calculate_section(lock); section != section_) {
+        section_ = section;
+        output |= true;
+    }
+
+    return output;
 }
 
 auto ContactListItem::Section() const noexcept -> std::string
 {
     Lock lock(lock_);
 
-    if (row_id_ == parent_.ID()) { return {"ME"}; }
+    return section_;
+}
 
+auto ContactListItem::translate_section(const Lock&) const noexcept
+    -> std::string
+{
     if (key_.empty()) { return {" "}; }
 
     std::locale locale;

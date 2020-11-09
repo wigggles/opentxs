@@ -7,14 +7,13 @@
 #include "1_Internal.hpp"                      // IWYU pragma: associated
 #include "ui/accountactivity/BalanceItem.hpp"  // IWYU pragma: associated
 
+#include <chrono>
 #include <memory>
 #include <string>
-#include <thread>
 #include <vector>
 
 #include "internal/api/client/Client.hpp"
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/blockchain/BlockchainType.hpp"
 #if OT_BLOCKCHAIN
@@ -55,8 +54,8 @@ auto BalanceItem(
     if (2 < custom.size()) {
         using Transaction = opentxs::blockchain::block::bitcoin::Transaction;
 
-        auto pTx = std::unique_ptr<Transaction>{
-            static_cast<Transaction*>(custom.at(2))};
+        auto pTx =
+            ui::implementation::extract_custom_ptr<Transaction>(custom, 2);
 
         OT_ASSERT(pTx);
 
@@ -124,8 +123,6 @@ BalanceItem::BalanceItem(
     , type_(extract_type(recover_workflow(custom)))
     , text_(text)
     , time_(sortKey)
-    , contract_(api.Factory().UnitDefinition())
-    , startup_(nullptr)
     , account_id_(Identifier::Factory(accountID))
     , contacts_(extract_contacts(api_, recover_workflow(custom)))
 {
@@ -134,19 +131,14 @@ BalanceItem::BalanceItem(
 auto BalanceItem::DisplayAmount() const noexcept -> std::string
 {
     sLock lock(shared_lock_);
+    const auto amount = effective_amount();
+    std::string output{};
+    const auto formatted =
+        parent_.Contract().FormatAmountLocale(amount, output, ",", ".");
 
-    if (get_contract()) {
-        const auto amount = effective_amount();
-        std::string output{};
-        const auto formatted =
-            contract_->FormatAmountLocale(amount, output, ",", ".");
+    if (formatted) { return output; }
 
-        if (formatted) { return output; }
-
-        return std::to_string(amount);
-    }
-
-    return std::to_string(0);
+    return std::to_string(amount);
 }
 
 auto BalanceItem::extract_contacts(
@@ -267,18 +259,6 @@ QVariant BalanceItem::qt_data(const int column, int role) const noexcept
 }
 #endif
 
-auto BalanceItem::recover_event(CustomData& custom) noexcept
-    -> const proto::PaymentEvent&
-{
-    OT_ASSERT(2 <= custom.size())
-
-    const auto& input = custom.at(1);
-
-    OT_ASSERT(nullptr != input)
-
-    return *static_cast<const proto::PaymentEvent*>(input);
-}
-
 auto BalanceItem::recover_workflow(CustomData& custom) noexcept
     -> const proto::PaymentWorkflow&
 {
@@ -291,13 +271,20 @@ auto BalanceItem::recover_workflow(CustomData& custom) noexcept
     return *static_cast<const proto::PaymentWorkflow*>(input);
 }
 
-void BalanceItem::reindex(
+auto BalanceItem::reindex(
     const implementation::AccountActivitySortKey& key,
-    implementation::CustomData&) noexcept
+    implementation::CustomData&) noexcept -> bool
 {
     eLock lock(shared_lock_);
-    time_ = key;
-    lock.unlock();
+
+    if (key == time_) {
+
+        return false;
+    } else {
+        time_ = key;
+
+        return true;
+    }
 }
 
 auto BalanceItem::Text() const noexcept -> std::string
@@ -314,11 +301,5 @@ auto BalanceItem::Timestamp() const noexcept -> Time
     return time_;
 }
 
-BalanceItem::~BalanceItem()
-{
-    if (startup_ && startup_->joinable()) {
-        startup_->join();
-        startup_.reset();
-    }
-}
+BalanceItem::~BalanceItem() = default;
 }  // namespace opentxs::ui::implementation

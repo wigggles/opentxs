@@ -12,6 +12,7 @@
 #include <utility>
 
 #include "1_Internal.hpp"
+#include "core/Worker.hpp"
 #include "internal/ui/UI.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/SharedPimpl.hpp"
@@ -20,8 +21,10 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/protobuf/ContactEnums.pb.h"
 #include "opentxs/ui/PayableList.hpp"
+#include "opentxs/util/WorkType.hpp"
 #include "ui/base/List.hpp"
 #include "ui/base/Widget.hpp"
+#include "util/Work.hpp"
 
 namespace opentxs
 {
@@ -67,20 +70,32 @@ using PayableListList = List<
     PayableListSortKey,
     PayablePrimaryID>;
 
-class PayableList final : public PayableListList
+class PayableList final : public PayableListList, Worker<PayableList>
 {
 public:
-    auto ID() const -> const Identifier& final;
+    auto ID() const noexcept -> const Identifier& final
+    {
+        return owner_contact_id_;
+    }
 
     PayableList(
         const api::client::internal::Manager& api,
         const identifier::Nym& nymID,
         const proto::ContactItemType& currency,
-        const SimpleCallback& cb);
+        const SimpleCallback& cb) noexcept;
     ~PayableList() final;
 
 private:
-    const ListenerDefinitions listeners_;
+    friend Worker<PayableList>;
+
+    enum class Work : OTZMQWorkType {
+        contact = value(WorkType::ContactUpdated),
+        nym = value(WorkType::NymUpdated),
+        init = OT_ZMQ_INIT_SIGNAL,
+        statemachine = OT_ZMQ_STATE_MACHINE_SIGNAL,
+        shutdown = value(WorkType::Shutdown),
+    };
+
     const OTIdentifier owner_contact_id_;
     const proto::ContactItemType currency_;
 
@@ -93,12 +108,13 @@ private:
         return PayableListList::last(id);
     }
 
-    void process_contact(
+    auto pipeline(const Message& in) noexcept -> void;
+    auto process_contact(
         const PayableListRowID& id,
-        const PayableListSortKey& key);
-    void process_contact(const network::zeromq::Message& message);
-    void process_nym(const network::zeromq::Message& message);
-    void startup();
+        const PayableListSortKey& key) noexcept -> void;
+    auto process_contact(const Message& message) noexcept -> void;
+    auto process_nym(const Message& message) noexcept -> void;
+    auto startup() noexcept -> void;
 
     PayableList() = delete;
     PayableList(const PayableList&) = delete;

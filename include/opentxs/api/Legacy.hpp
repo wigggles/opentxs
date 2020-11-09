@@ -50,7 +50,8 @@ public:
     OPENTXS_EXPORT virtual const char* Mint() const noexcept = 0;
     OPENTXS_EXPORT virtual const char* Nym() const noexcept = 0;
     OPENTXS_EXPORT virtual const char* Nymbox() const noexcept = 0;
-    OPENTXS_EXPORT virtual std::string OpentxsConfigFilePath() const noexcept = 0;
+    OPENTXS_EXPORT virtual std::string OpentxsConfigFilePath()
+        const noexcept = 0;
     OPENTXS_EXPORT virtual const char* Outbox() const noexcept = 0;
     OPENTXS_EXPORT virtual bool PathExists(
         const String& path) const noexcept = 0;

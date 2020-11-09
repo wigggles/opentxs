@@ -101,9 +101,9 @@ QVariant ActivityThreadItem::qt_data(const int column, int role) const noexcept
 }
 #endif
 
-void ActivityThreadItem::reindex(
+auto ActivityThreadItem::reindex(
     const ActivityThreadSortKey&,
-    CustomData& custom) noexcept
+    CustomData& custom) noexcept -> bool
 {
     const auto text = extract_custom<std::string>(custom);
 
@@ -111,6 +111,8 @@ void ActivityThreadItem::reindex(
         eLock lock(shared_lock_);
         text_ = text;
     }
+
+    return true;
 }
 
 auto ActivityThreadItem::Text() const noexcept -> std::string

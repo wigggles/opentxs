@@ -18,6 +18,7 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
+#include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/socket/Request.hpp"
 #include "opentxs/network/zeromq/socket/Subscribe.hpp"
 #include "opentxs/ui/Widget.hpp"
@@ -31,6 +32,7 @@ namespace client
 namespace internal
 {
 struct Manager;
+struct UI;
 }  // namespace internal
 }  // namespace client
 }  // namespace api
@@ -52,15 +54,24 @@ class Publish;
 namespace opentxs::ui::implementation
 {
 template <typename T>
-auto extract_custom(CustomData& custom, const std::size_t index = 0) noexcept
-    -> T
+auto extract_custom_ptr(
+    CustomData& custom,
+    const std::size_t index = 0) noexcept -> std::unique_ptr<T>
 {
     OT_ASSERT((index + 1) <= custom.size())
 
-    auto ptr = std::unique_ptr<T>{static_cast<T*>(custom.at(index))};
+    auto output = std::unique_ptr<T>{static_cast<T*>(custom.at(index))};
 
-    OT_ASSERT(ptr)
+    OT_ASSERT(output)
 
+    return output;
+}
+
+template <typename T>
+auto extract_custom(CustomData& custom, const std::size_t index = 0) noexcept
+    -> T
+{
+    auto ptr = extract_custom_ptr<T>(custom, index);
     auto output = T{std::move(*ptr)};
 
     return output;
@@ -69,12 +80,14 @@ auto extract_custom(CustomData& custom, const std::size_t index = 0) noexcept
 class Widget : virtual public opentxs::ui::Widget
 {
 public:
+    using Message = network::zeromq::Message;
+
     const api::client::internal::Manager& api_;
 
     class MessageFunctor
     {
     public:
-        virtual void operator()(Widget* object, const network::zeromq::Message&)
+        virtual void operator()(Widget* object, const Message&)
             const noexcept = 0;
 
         virtual ~MessageFunctor() = default;
@@ -93,9 +106,9 @@ public:
     class MessageProcessor : virtual public MessageFunctor
     {
     public:
-        using Function = void (T::*)(const network::zeromq::Message&);
+        using Function = void (T::*)(const Message&);
 
-        void operator()(Widget* object, const network::zeromq::Message& message)
+        void operator()(Widget* object, const Message& message)
             const noexcept final
         {
             auto real = dynamic_cast<T*>(object);
@@ -122,7 +135,7 @@ public:
 
     void SetCallback(SimpleCallback cb) const noexcept final
     {
-        api_.RegisterUICallback(WidgetID(), cb);
+        ui_.RegisterUICallback(WidgetID(), cb);
     }
     auto WidgetID() const noexcept -> OTIdentifier final { return widget_id_; }
 
@@ -136,7 +149,10 @@ protected:
 
     virtual void setup_listeners(
         const ListenerDefinitions& definitions) noexcept;
-    void UpdateNotify() const noexcept { api_.ActivateUICallback(WidgetID()); }
+    auto UpdateNotify() const noexcept -> void
+    {
+        ui_.ActivateUICallback(WidgetID());
+    }
 
     Widget(
         const api::client::internal::Manager& api,
@@ -144,6 +160,7 @@ protected:
         const SimpleCallback& cb = {}) noexcept;
 
 private:
+    const api::client::internal::UI& ui_;
     std::vector<OTZMQListenCallback> callbacks_;
     std::vector<OTZMQSubscribeSocket> listeners_;
 

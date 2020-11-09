@@ -14,6 +14,7 @@
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
+#include "opentxs/core/Log.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
@@ -51,16 +52,23 @@ AccountListItem::AccountListItem(
     : AccountListItemRow(parent, api, rowID, true)
     , type_(AccountType::Custodial)
     , unit_(sortKey.first)
-    , balance_(extract_custom<Amount>(custom, 1))
     , contract_(load_unit(api_, extract_custom<OTUnitID>(custom, 2)))
     , notary_(load_server(api_, api.Factory().ServerID(sortKey.second)))
+    , balance_(extract_custom<Amount>(custom, 1))
     , name_(extract_custom<std::string>(custom, 3))
 {
 }
 
+auto AccountListItem::Balance() const noexcept -> Amount
+{
+    Lock lock(lock_);
+
+    return balance_;
+}
+
 auto AccountListItem::DisplayBalance() const noexcept -> std::string
 {
-    std::string output{};
+    auto output = std::string{};
     const auto formatted =
         contract_->FormatAmountLocale(balance_, output, ",", ".");
 
@@ -93,6 +101,13 @@ auto AccountListItem::load_unit(
 
         return api.Factory().UnitDefinition();
     }
+}
+
+auto AccountListItem::Name() const noexcept -> std::string
+{
+    Lock lock(lock_);
+
+    return name_;
 }
 
 #if OT_QT
@@ -147,4 +162,32 @@ auto AccountListItem::qt_data(const int column, int role) const noexcept
     return {};
 }
 #endif
+
+auto AccountListItem::reindex(
+    const AccountListSortKey& key,
+    CustomData& custom) noexcept -> bool
+{
+    const auto blockchain = extract_custom<bool>(custom, 0);
+    const auto balance = extract_custom<Amount>(custom, 1);
+    const auto unitID = extract_custom<OTUnitID>(custom, 2);
+    const auto name = extract_custom<std::string>(custom, 3);
+
+    OT_ASSERT(false == blockchain);
+    OT_ASSERT(contract_->ID() == unitID);
+
+    Lock lock{lock_};
+    auto output{false};
+
+    if (balance_ != balance) {
+        output = true;
+        balance_ = balance;
+    }
+
+    if (name_ != name) {
+        output = true;
+        name_ = name;
+    }
+
+    return output;
+}
 }  // namespace opentxs::ui::implementation

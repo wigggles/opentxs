@@ -20,6 +20,7 @@
 #include "opentxs/Shared.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/api/Endpoints.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/api/client/Issuer.hpp"
 #include "opentxs/api/storage/Storage.hpp"
@@ -32,7 +33,6 @@
 #include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
-#include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/protobuf/ContactEnums.pb.h"
 #include "ui/base/Combined.hpp"
 
@@ -132,23 +132,20 @@ void IssuerItem::process_account(const Identifier& accountID) noexcept
     add_item(rowID, sortKey, custom);
 }
 
-void IssuerItem::process_account(
-    const network::zeromq::Message& message) noexcept
+void IssuerItem::process_account(const Message& message) noexcept
 {
     wait_for_startup();
+    const auto body = message.Body();
 
-    OT_ASSERT(2 == message.Body().size())
+    OT_ASSERT(2 < message.Body().size())
 
-    const auto accountID = Identifier::Factory(message.Body().at(0));
-    const IssuerItemRowID rowID{
-        accountID, {api_.Storage().AccountUnit(accountID)}};
+    auto accountID = api_.Factory().Identifier();
+    accountID->Assign(body.at(1).Bytes());
 
-    if (accountID->empty()) {
-        LogDetail(OT_METHOD)(__FUNCTION__)(": Invalid account").Flush();
+    OT_ASSERT(false == accountID->empty());
 
-        return;
-    }
-
+    const auto rowID =
+        IssuerItemRowID{accountID, {api_.Storage().AccountUnit(accountID)}};
     const auto issuerID = api_.Storage().AccountIssuer(accountID);
 
     if (issuerID == issuer_->IssuerID()) { process_account(accountID); }
@@ -213,13 +210,16 @@ void IssuerItem::refresh_accounts() noexcept
     delete_inactive(active);
 }
 
-void IssuerItem::reindex(const AccountSummarySortKey& key, CustomData&) noexcept
+auto IssuerItem::reindex(const AccountSummarySortKey& key, CustomData&) noexcept
+    -> bool
 {
     eLock lock(shared_lock_);
     key_ = key;
     connection_.store(std::get<0>(key_));
     lock.unlock();
     refresh_accounts();
+
+    return true;
 }
 
 void IssuerItem::startup() noexcept

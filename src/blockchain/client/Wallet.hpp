@@ -172,10 +172,10 @@ private:
 
     enum class Work : OTZMQWorkType {
         key = OT_ZMQ_NEW_BLOCKCHAIN_WALLET_KEY_SIGNAL,
-        block = OT_ZMQ_NEW_BLOCK_HEADER_SIGNAL,
+        block = value(WorkType::BlockchainNewHeader),
         filter = OT_ZMQ_NEW_FILTER_SIGNAL,
         nym = value(WorkType::NymCreated),
-        reorg = OT_ZMQ_REORG_SIGNAL,
+        reorg = value(WorkType::BlockchainReorg),
         statemachine = OT_ZMQ_STATE_MACHINE_SIGNAL,
         shutdown = value(WorkType::Shutdown),
     };

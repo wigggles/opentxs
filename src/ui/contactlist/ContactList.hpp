@@ -15,6 +15,7 @@
 #include <utility>
 
 #include "1_Internal.hpp"
+#include "core/Worker.hpp"
 #include "internal/ui/UI.hpp"
 #include "opentxs/SharedPimpl.hpp"
 #include "opentxs/Types.hpp"
@@ -23,8 +24,10 @@
 #include "opentxs/core/crypto/PaymentCode.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/ui/ContactList.hpp"
+#include "opentxs/util/WorkType.hpp"
 #include "ui/base/List.hpp"
 #include "ui/base/Widget.hpp"
+#include "util/Work.hpp"
 
 namespace opentxs
 {
@@ -72,7 +75,7 @@ using ContactListList = List<
     ContactListSortKey,
     ContactListPrimaryID>;
 
-class ContactList final : public ContactListList
+class ContactList final : public ContactListList, Worker<ContactList>
 {
 public:
     auto AddContact(
@@ -97,6 +100,15 @@ public:
     ~ContactList() final;
 
 private:
+    friend Worker<ContactList>;
+
+    enum class Work : OTZMQWorkType {
+        contact = value(WorkType::ContactUpdated),
+        init = OT_ZMQ_INIT_SIGNAL,
+        statemachine = OT_ZMQ_STATE_MACHINE_SIGNAL,
+        shutdown = value(WorkType::Shutdown),
+    };
+
     struct ParsedArgs {
         OTNymID nym_id_;
         OTPaymentCode payment_code_;
@@ -117,7 +129,6 @@ private:
             const std::string& purportedPaymentCode) noexcept -> OTPaymentCode;
     };
 
-    const ListenerDefinitions listeners_;
     const ContactListRowID owner_contact_id_;
     std::shared_ptr<ContactListRowInternal> owner_;
 
@@ -143,13 +154,16 @@ private:
     auto lookup(const Lock& lock, const ContactListRowID& id) const noexcept
         -> const ContactListRowInternal& final;
 
-    void add_item(
+    auto add_item(
         const ContactListRowID& id,
         const ContactListSortKey& index,
-        CustomData& custom) noexcept final;
-    void process_contact(const network::zeromq::Message& message) noexcept;
-
-    void startup() noexcept;
+        CustomData& custom) noexcept -> void final;
+    auto pipeline(const Message& in) noexcept -> void;
+    auto process_contact(const Message& message) noexcept -> void;
+    using ContactListList::row_modified;
+    auto row_modified(const Lock&, const ContactListRowID& id) noexcept
+        -> void final;
+    auto startup() noexcept -> void;
 
     ContactList() = delete;
     ContactList(const ContactList&) = delete;

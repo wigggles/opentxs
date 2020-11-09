@@ -27,7 +27,7 @@ struct Counter {
 
 [[maybe_unused]] auto wait_for_counter(
     Counter& data,
-    const bool hard = false) noexcept -> bool
+    const bool hard = true) noexcept -> bool
 {
     const auto limit =
         hard ? std::chrono::seconds(300) : std::chrono::seconds(10);

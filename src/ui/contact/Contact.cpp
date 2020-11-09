@@ -17,6 +17,7 @@
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/api/Endpoints.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/contact/Contact.hpp"
 #include "opentxs/contact/ContactSection.hpp"
@@ -24,9 +25,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
-#include "opentxs/network/zeromq/FrameIterator.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
-#include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/protobuf/ContactEnums.pb.h"
 #include "ui/base/List.hpp"
 
@@ -166,14 +165,17 @@ void Contact::process_contact(const opentxs::Contact& contact) noexcept
     delete_inactive(active);
 }
 
-void Contact::process_contact(const network::zeromq::Message& message) noexcept
+void Contact::process_contact(const Message& message) noexcept
 {
     wait_for_startup();
 
-    OT_ASSERT(1 == message.Body().size());
+    const auto body = message.Body();
 
-    const std::string id(*message.Body().begin());
-    const auto contactID = Identifier::Factory(id);
+    OT_ASSERT(1 < body.size());
+
+    const auto& id = body.at(1);
+    auto contactID = Widget::api_.Factory().Identifier();
+    contactID->Assign(id.Bytes());
 
     OT_ASSERT(false == contactID->empty())
 

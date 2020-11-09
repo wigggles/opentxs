@@ -137,10 +137,12 @@ auto AccountSummaryItem::qt_data(const int column, int role) const noexcept
 
 auto AccountSummaryItem::reindex(
     const IssuerItemSortKey& key,
-    CustomData& custom) noexcept -> void
+    CustomData& custom) noexcept -> bool
 {
     balance_.store(extract_custom<Amount>(custom));
     eLock lock(shared_lock_);
     name_ = key;
+
+    return true;
 }
 }  // namespace opentxs::ui::implementation

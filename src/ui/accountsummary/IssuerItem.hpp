@@ -91,8 +91,8 @@ public:
     QVariant qt_data(const int column, const int role) const noexcept final;
 #endif
 
-    void reindex(const AccountSummarySortKey& key, CustomData& custom) noexcept
-        final;
+    auto reindex(const AccountSummarySortKey& key, CustomData& custom) noexcept
+        -> bool final;
 
     IssuerItem(
         const AccountSummaryInternalInterface& parent,
@@ -116,7 +116,7 @@ private:
         CustomData& custom) const noexcept -> RowPointer final;
 
     void process_account(const Identifier& accountID) noexcept;
-    void process_account(const network::zeromq::Message& message) noexcept;
+    void process_account(const Message& message) noexcept;
     void refresh_accounts() noexcept;
     void startup() noexcept;
 

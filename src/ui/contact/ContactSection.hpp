@@ -95,9 +95,9 @@ public:
         return row_id_;
     }
 
-    void reindex(
+    auto reindex(
         const implementation::ContactSortKey& key,
-        implementation::CustomData& custom) noexcept final;
+        implementation::CustomData& custom) noexcept -> bool final;
 
     ContactSection(
         const ContactInternalInterface& parent,

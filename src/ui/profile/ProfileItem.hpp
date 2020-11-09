@@ -92,9 +92,9 @@ public:
         return item_->Value();
     }
 
-    void reindex(
+    auto reindex(
         const ProfileSubsectionSortKey& key,
-        CustomData& custom) noexcept final;
+        CustomData& custom) noexcept -> bool final;
 
     ProfileItem(
         const ProfileSubsectionInternalInterface& parent,

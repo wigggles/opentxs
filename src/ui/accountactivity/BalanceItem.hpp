@@ -68,8 +68,6 @@ using BalanceItemRow =
 class BalanceItem : public BalanceItemRow
 {
 public:
-    static auto recover_event(CustomData& custom) noexcept
-        -> const proto::PaymentEvent&;
     static auto recover_workflow(CustomData& custom) noexcept
         -> const proto::PaymentWorkflow&;
 
@@ -82,9 +80,9 @@ public:
     auto Timestamp() const noexcept -> Time final;
     auto Type() const noexcept -> StorageBox override { return type_; }
 
-    void reindex(
+    auto reindex(
         const implementation::AccountActivitySortKey& key,
-        implementation::CustomData& custom) noexcept override;
+        implementation::CustomData& custom) noexcept -> bool override;
 
 #if OT_QT
     QVariant qt_data(const int column, const int role) const noexcept final;
@@ -98,8 +96,6 @@ protected:
     const StorageBox type_;
     std::string text_;
     Time time_;
-    mutable OTUnitDefinition contract_;
-    std::unique_ptr<std::thread> startup_;
 
     static auto extract_type(const proto::PaymentWorkflow& workflow) noexcept
         -> StorageBox;
@@ -127,7 +123,6 @@ private:
         -> std::vector<std::string>;
 
     virtual auto effective_amount() const noexcept -> opentxs::Amount = 0;
-    virtual auto get_contract() const noexcept -> bool = 0;
 
     BalanceItem(const BalanceItem&) = delete;
     BalanceItem(BalanceItem&&) = delete;

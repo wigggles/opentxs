@@ -184,12 +184,14 @@ auto ContactSection::process_section(
     return active;
 }
 
-void ContactSection::reindex(
+auto ContactSection::reindex(
     const implementation::ContactSortKey&,
-    implementation::CustomData& custom) noexcept
+    implementation::CustomData& custom) noexcept -> bool
 {
     delete_inactive(
         process_section(extract_custom<opentxs::ContactSection>(custom)));
+
+    return true;
 }
 
 auto ContactSection::sort_key(const ContactSectionRowID type) noexcept -> int

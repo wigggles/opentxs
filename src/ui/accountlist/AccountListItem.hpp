@@ -74,7 +74,7 @@ public:
     {
         return row_id_->str();
     }
-    auto Balance() const noexcept -> Amount final { return balance_; }
+    auto Balance() const noexcept -> Amount final;
     auto ContractID() const noexcept -> std::string final
     {
         return contract_->ID()->str();
@@ -84,7 +84,7 @@ public:
     {
         return contract_->TLA();
     }
-    auto Name() const noexcept -> std::string final { return name_; }
+    auto Name() const noexcept -> std::string final;
     auto NotaryID() const noexcept -> std::string final
     {
         return notary_->ID()->str();
@@ -93,15 +93,14 @@ public:
     {
         return notary_->EffectiveName();
     }
-    void reindex(const AccountListSortKey& key, CustomData& custom) noexcept
-        final
-    {
-    }
+    auto reindex(const AccountListSortKey& key, CustomData& custom) noexcept
+        -> bool final;
     auto Type() const noexcept -> AccountType final { return type_; }
     auto Unit() const noexcept -> proto::ContactItemType final { return unit_; }
 
 #if OT_QT
-    QVariant qt_data(const int column, const int role) const noexcept final;
+    auto qt_data(const int column, const int role) const noexcept
+        -> QVariant final;
 #endif
 
     AccountListItem(
@@ -116,10 +115,10 @@ public:
 private:
     const AccountType type_;
     const proto::ContactItemType unit_;
-    const Amount balance_;
     const OTUnitDefinition contract_;
     const OTServerContract notary_;
-    const std::string name_;
+    Amount balance_;
+    std::string name_;
 
     static auto load_server(const api::Core& api, const identifier::Server& id)
         -> OTServerContract;

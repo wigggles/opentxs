@@ -36,9 +36,7 @@
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
-#include "opentxs/network/zeromq/FrameIterator.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
-#include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/protobuf/ContactEnums.pb.h"
 #include "opentxs/protobuf/StorageThread.pb.h"
 #include "opentxs/protobuf/StorageThreadItem.pb.h"
@@ -465,15 +463,20 @@ auto ActivityThread::process_item(const proto::StorageThreadItem& item) noexcept
     return id;
 }
 
-void ActivityThread::process_thread(
-    const network::zeromq::Message& message) noexcept
+void ActivityThread::process_thread(const Message& message) noexcept
 {
     wait_for_startup();
 
-    OT_ASSERT(1 == message.Body().size());
+    const auto body = message.Body();
 
-    const std::string id(*message.Body().begin());
-    const auto threadID = Identifier::Factory(id);
+    OT_ASSERT(1 < body.size());
+
+    const auto threadID = [&] {
+        auto output = api_.Factory().Identifier();
+        output->Assign(body.at(1).Bytes());
+
+        return output;
+    }();
 
     OT_ASSERT(false == threadID->empty())
 

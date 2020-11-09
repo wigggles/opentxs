@@ -27,9 +27,7 @@
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/identity/Nym.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
-#include "opentxs/network/zeromq/FrameIterator.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
-#include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/protobuf/ContactEnums.pb.h"
 #include "opentxs/protobuf/verify/VerifyContacts.hpp"
 #include "opentxs/ui/Profile.hpp"
@@ -268,14 +266,14 @@ void Profile::process_nym(const identity::Nym& nym) noexcept
     delete_inactive(active);
 }
 
-void Profile::process_nym(const network::zeromq::Message& message) noexcept
+void Profile::process_nym(const Message& message) noexcept
 {
     wait_for_startup();
 
-    OT_ASSERT(1 == message.Body().size());
+    OT_ASSERT(1 < message.Body().size());
 
-    const std::string id(*message.Body().begin());
-    const auto nymID = identifier::Nym::Factory(id);
+    auto nymID = api_.Factory().NymID();
+    nymID->Assign(message.Body_at(1).Bytes());
 
     OT_ASSERT(false == nymID->empty())
 

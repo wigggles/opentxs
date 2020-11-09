@@ -191,7 +191,7 @@ private:
         -> const opentxs::network::zeromq::socket::Publish&;
     auto get_publisher(const identifier::Nym& nymID, std::string& endpoint)
         const noexcept -> const opentxs::network::zeromq::socket::Publish&;
-    void publish(const identifier::Nym& nymID, const std::string& threadID)
+    void publish(const identifier::Nym& nymID, const Identifier& threadID)
         const noexcept;
     auto start_publisher(const std::string& endpoint) const noexcept
         -> OTZMQPublishSocket;

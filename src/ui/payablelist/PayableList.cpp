@@ -7,11 +7,10 @@
 #include "1_Internal.hpp"                  // IWYU pragma: associated
 #include "ui/payablelist/PayableList.hpp"  // IWYU pragma: associated
 
+#include <future>
 #include <list>
 #include <memory>
 #include <string>
-#include <thread>
-#include <utility>
 
 #include "internal/api/client/Client.hpp"
 #include "opentxs/Pimpl.hpp"
@@ -20,14 +19,14 @@
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/contact/Contact.hpp"
+#include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
-#include "opentxs/network/zeromq/FrameIterator.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
-#include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/network/zeromq/Pipeline.hpp"
 #include "opentxs/protobuf/ContactEnums.pb.h"
 #include "ui/base/List.hpp"
 
@@ -71,7 +70,7 @@ PayableList::PayableList(
     const api::client::internal::Manager& api,
     const identifier::Nym& nymID,
     const proto::ContactItemType& currency,
-    const SimpleCallback& cb)
+    const SimpleCallback& cb) noexcept
     : PayableListList(
           api,
           nymID,
@@ -85,20 +84,14 @@ PayableList::PayableList(
           2
 #endif
           )
-    , listeners_({
-          {api_.Endpoints().ContactUpdate(),
-           new MessageProcessor<PayableList>(&PayableList::process_contact)},
-          {api_.Endpoints().NymDownload(),
-           new MessageProcessor<PayableList>(&PayableList::process_nym)},
-      })
-    , owner_contact_id_(api_.Factory().Identifier())  // FIXME wtf
+    , Worker(api, {})
+    , owner_contact_id_(Widget::api_.Factory().Identifier())  // FIXME wtf
     , currency_(currency)
 {
     init();
-    setup_listeners(listeners_);
-    startup_.reset(new std::thread(&PayableList::startup, this));
-
-    OT_ASSERT(startup_)
+    init_executor(
+        {api.Endpoints().ContactUpdate(), api.Endpoints().NymDownload()});
+    pipeline_->Push(MakeWork(Work::init));
 }
 
 auto PayableList::construct_row(
@@ -108,22 +101,59 @@ auto PayableList::construct_row(
 {
     return factory::PayableListItem(
         *this,
-        api_,
+        Widget::api_,
         id,
         index,
         extract_custom<const std::string>(custom, 0),
         currency_);
 }
 
-auto PayableList::ID() const -> const Identifier& { return owner_contact_id_; }
+auto PayableList::pipeline(const Message& in) noexcept -> void
+{
+    if (false == running_.get()) { return; }
 
-void PayableList::process_contact(
+    const auto body = in.Body();
+
+    if (1 > body.size()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid message").Flush();
+
+        OT_FAIL;
+    }
+
+    const auto work = body.at(0).as<Work>();
+
+    switch (work) {
+        case Work::contact: {
+            process_contact(in);
+        } break;
+        case Work::nym: {
+            process_nym(in);
+        } break;
+        case Work::init: {
+            startup();
+        } break;
+        case Work::statemachine: {
+            do_work();
+        } break;
+        case Work::shutdown: {
+            running_->Off();
+            shutdown(shutdown_promise_);
+        } break;
+        default: {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Unhandled type").Flush();
+
+            OT_FAIL;
+        }
+    }
+}
+
+auto PayableList::process_contact(
     const PayableListRowID& id,
-    const PayableListSortKey& key)
+    const PayableListSortKey& key) noexcept -> void
 {
     if (owner_contact_id_ == id) { return; }
 
-    const auto contact = api_.Contacts().Contact(id);
+    const auto contact = Widget::api_.Contacts().Contact(id);
 
     if (false == bool(contact)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error: Contact ")(id)(
@@ -140,7 +170,7 @@ void PayableList::process_contact(
 
     OT_ASSERT(paymentCode);
 
-    if (!paymentCode->empty()) {
+    if (false == paymentCode->empty()) {
         auto custom = CustomData{paymentCode.release()};
         add_item(id, key, custom);
     } else {
@@ -149,40 +179,42 @@ void PayableList::process_contact(
     }
 }
 
-void PayableList::process_contact(const network::zeromq::Message& message)
+auto PayableList::process_contact(const Message& message) noexcept -> void
 {
-    wait_for_startup();
+    const auto body = message.Body();
 
-    OT_ASSERT(1 == message.Body().size());
+    OT_ASSERT(1 < body.size());
 
-    const std::string id(*message.Body().begin());
-    const auto contactID = Identifier::Factory(id);
+    const auto& id = body.at(1);
+    auto contactID = Widget::api_.Factory().Identifier();
+    contactID->Assign(id.Bytes());
 
     OT_ASSERT(false == contactID->empty())
 
-    const auto name = api_.Contacts().ContactName(contactID);
+    const auto name = Widget::api_.Contacts().ContactName(contactID);
     process_contact(contactID, name);
 }
 
-void PayableList::process_nym(const network::zeromq::Message& message)
+auto PayableList::process_nym(const Message& message) noexcept -> void
 {
-    wait_for_startup();
+    const auto body = message.Body();
 
-    OT_ASSERT(1 == message.Body().size());
+    OT_ASSERT(1 < body.size());
 
-    const std::string id(*message.Body().begin());
-    const auto nymID = identifier::Nym::Factory(id);
+    const auto& id = body.at(1);
+    auto nymID = Widget::api_.Factory().NymID();
+    nymID->Assign(id.Bytes());
 
     OT_ASSERT(false == nymID->empty())
 
-    const auto contactID = api_.Contacts().ContactID(nymID);
-    const auto name = api_.Contacts().ContactName(contactID);
+    const auto contactID = Widget::api_.Contacts().ContactID(nymID);
+    const auto name = Widget::api_.Contacts().ContactName(contactID);
     process_contact(contactID, name);
 }
 
-void PayableList::startup()
+auto PayableList::startup() noexcept -> void
 {
-    const auto contacts = api_.Contacts().ContactList();
+    const auto contacts = Widget::api_.Contacts().ContactList();
     LogDetail(OT_METHOD)(__FUNCTION__)(": Loading ")(contacts.size())(
         " contacts.")
         .Flush();
@@ -196,6 +228,7 @@ void PayableList::startup()
 
 PayableList::~PayableList()
 {
-    for (auto& it : listeners_) { delete it.second; }
+    wait_for_startup();
+    stop_worker().get();
 }
 }  // namespace opentxs::ui::implementation

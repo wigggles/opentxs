@@ -119,7 +119,7 @@ public:
     virtual auto last(const RowID& id) const noexcept -> bool override
     {
         Lock lock(lock_);
-        const auto index = items_.get_index(id);
+        const auto index = find_index(id);
 
         if (0 == items_.size()) { return true; }
 
@@ -144,6 +144,17 @@ public:
             return First();
         }
     }
+
+    auto shutdown(std::promise<void>& promise) noexcept -> void
+    {
+        wait_for_startup();
+
+        try {
+            promise.set_value();
+        } catch (...) {
+        }
+    }
+    auto state_machine() noexcept -> bool { return false; }
 
     ~List() override
     {
@@ -299,7 +310,7 @@ protected:
 
         for (const auto& id : deleteIDs) { delete_item(lock, id); }
 
-        UpdateNotify();
+        if (0 < deleteIDs.size()) { UpdateNotify(); }
     }
     auto delete_item(const RowID& id) const noexcept -> void
     {
@@ -335,10 +346,15 @@ protected:
     {
         return value;
     }
+    virtual auto find_index(const RowID& id) const noexcept
+        -> std::optional<std::size_t>
+    {
+        return items_.get_index(id);
+    }
 #if OT_QT
     virtual auto find_row(const RowID& id) const noexcept -> int
     {
-        if (const auto index{items_.get_index(id)}; index.has_value()) {
+        if (const auto index{find_index(id)}; index.has_value()) {
 
             return static_cast<int>(index.value());
         } else {
@@ -387,7 +403,7 @@ protected:
         CustomData& custom) noexcept -> void
     {
         Lock lock(lock_);
-        auto existing = items_.get_index(id);
+        auto existing = find_index(id);
 
         if (existing.has_value()) {
             move_item(lock, id, index, custom);
@@ -403,6 +419,34 @@ protected:
         }
     }
     auto init() noexcept -> void {}
+    auto row_modified(const RowID& id) noexcept -> void
+    {
+        Lock lock(lock_);
+        row_modified(id);
+    }
+    virtual auto row_modified(const Lock&, const RowID& id) noexcept -> void
+    {
+        const auto lookup = find_index(id);
+
+        if (false == lookup.has_value()) { return; }
+
+        const auto index = lookup.value();
+        auto& row = items_.at(index);
+        row_modified(index, row.item_.get());
+    }
+    // FIXME The Combined child class must override this
+    virtual auto row_modified(
+        [[maybe_unused]] const std::size_t index,
+        [[maybe_unused]] RowInternal* pointer) noexcept -> void
+    {
+#if OT_QT
+        const auto row = static_cast<int>(index);
+        emit_data_changed(
+            createIndex(row, 0, pointer),
+            createIndex(row, column_count_, pointer));
+#endif  // OT_QT
+        UpdateNotify();
+    }
 
     List(
         const api::client::internal::Manager& api,
@@ -507,6 +551,13 @@ private:
     {
         const_cast<List&>(*this).beginRemoveRows(parent, first, last);
     }
+    auto emit_data_changed(
+        const QModelIndex& topLeft,
+        const QModelIndex& bottomRight) noexcept
+        -> void override  // FIXME Combined must override this
+    {
+        emit dataChanged(topLeft, bottomRight);
+    }
     auto emit_end_insert_rows() const noexcept -> void override
     {
         const_cast<List&>(*this).endInsertRows();
@@ -583,27 +634,30 @@ private:
         auto& [source, fromRow] = from;
         auto& [dest, toRow] = to;
         auto item = source->item_.get();
-#if OT_QT
         const auto samePosition{(fromRow == toRow) || ((fromRow + 1) == toRow)};
+#if OT_QT
 
         if (false == samePosition) {
             emit_begin_move_rows(me(), fromRow, fromRow, me(), toRow);
         }
 #endif  // OT_QT
-        items_.move_before(id, source, key, id, dest);
-        item->reindex(key, custom);
-#if OT_QT
 
+        items_.move_before(id, source, key, id, dest);
+        const auto changed = item->reindex(key, custom);
+
+#if OT_QT
         if (samePosition) {
-            emit dataChanged(
-                createIndex(fromRow, 0, item),
-                createIndex(fromRow, column_count_, item));
+            if (changed) {
+                emit_data_changed(
+                    createIndex(fromRow, 0, item),
+                    createIndex(fromRow, column_count_, item));
+            }
         } else {
             emit_end_move_rows();
         }
-
 #endif  // OT_QT
-        UpdateNotify();
+
+        if (changed || (!samePosition)) { UpdateNotify(); }
     }
 
     List() = delete;

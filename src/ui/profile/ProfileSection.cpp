@@ -238,10 +238,13 @@ auto ProfileSection::process_section(
     return active;
 }
 
-void ProfileSection::reindex(const ProfileSortKey&, CustomData& custom) noexcept
+auto ProfileSection::reindex(const ProfileSortKey&, CustomData& custom) noexcept
+    -> bool
 {
     delete_inactive(
         process_section(extract_custom<opentxs::ContactSection>(custom)));
+
+    return true;
 }
 
 auto ProfileSection::SetActive(

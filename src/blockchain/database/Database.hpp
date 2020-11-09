@@ -94,6 +94,11 @@ struct GCS;
 }  // namespace client
 }  // namespace blockchain
 
+namespace identifier
+{
+class Nym;
+}  // namespace identifier
+
 namespace proto
 {
 class BlockchainTransactionOutput;
@@ -229,6 +234,11 @@ public:
     auto GetBalance() const noexcept -> Balance final
     {
         return wallet_.GetBalance();
+    }
+    auto GetBalance(const identifier::Nym& owner) const noexcept
+        -> Balance final
+    {
+        return wallet_.GetBalance(owner);
     }
     auto GetPatterns(
         const NodeID& balanceNode,

@@ -18,7 +18,6 @@
 #include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
-#include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
@@ -26,6 +25,7 @@
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/socket/Sender.tpp"  // IWYU pragma: keep
 #include "opentxs/network/zeromq/socket/Socket.hpp"
+#include "opentxs/util/WorkType.hpp"
 #include "util/ScopeGuard.hpp"
 
 // #define OT_METHOD
@@ -43,6 +43,7 @@ Blockchain::BalanceOracle::BalanceOracle(
     , socket_(zmq_.RouterSocket(cb_, zmq::socket::Socket::Direction::Bind))
     , lock_()
     , subscribers_()
+    , nym_subscribers_()
 {
     const auto started = socket_->Start(api_.Endpoints().BlockchainBalance());
 
@@ -54,45 +55,82 @@ auto Blockchain::BalanceOracle::cb(
 {
     const auto& header = in.Header();
 
-    if (0 == header.size()) { return; }
+    OT_ASSERT(0 < header.size());
 
     const auto& connectionID = header.at(0);
-    const auto& body = in.Body();
+    const auto body = in.Body();
 
-    if (0 == body.size()) { return; }
+    OT_ASSERT(1 < body.size());
 
+    const auto haveNym = (2 < body.size());
     auto output = opentxs::blockchain::Balance{};
-    const auto& chainFrame = body.at(0);
+    const auto& chainFrame = body.at(1);
+    const auto nym = [&] {
+        auto output = api_.Factory().NymID();
+
+        if (haveNym) {
+            const auto& frame = body.at(2);
+            output->Assign(frame.Bytes());
+        }
+
+        return output;
+    }();
     auto postcondition = ScopeGuard{[&]() {
-        auto message = zmq_.ReplyMessage(in);
+        auto message = zmq_.TaggedReply(in, WorkType::BlockchainBalance);
         message->AddFrame(chainFrame);
         message->AddFrame(output.first);
         message->AddFrame(output.second);
+
+        if (haveNym) { message->AddFrame(nym); }
+
         socket_->Send(message);
     }};
-
     const auto chain = chainFrame.as<Chain>();
 
     if (0 == opentxs::blockchain::SupportedChains().count(chain)) { return; }
 
     try {
-        output = parent_.GetChain(chain).GetBalance();
+        const auto& network = parent_.GetChain(chain);
+
+        if (haveNym) {
+            output = network.GetBalance(nym);
+        } else {
+            output = network.GetBalance();
+        }
+
+        Lock lock(lock_);
+
+        if (haveNym) {
+            nym_subscribers_[chain][nym].emplace(
+                api_.Factory().Data(connectionID.Bytes()));
+        } else {
+            subscribers_[chain].emplace(
+                api_.Factory().Data(connectionID.Bytes()));
+        }
     } catch (...) {
-
-        return;
     }
+}
 
-    Lock lock(lock_);
-    subscribers_[chain].emplace(api_.Factory().Data(connectionID.Bytes()));
+auto Blockchain::BalanceOracle::RefreshBalance(
+    const identifier::Nym& owner,
+    const Chain chain) const noexcept -> void
+{
+    try {
+        const auto& network = parent_.GetChain(chain);
+        UpdateBalance(chain, network.GetBalance());
+        UpdateBalance(owner, chain, network.GetBalance(owner));
+    } catch (...) {
+    }
 }
 
 auto Blockchain::BalanceOracle::UpdateBalance(
     const Chain chain,
     const Balance balance) const noexcept -> void
 {
-    auto cb = [this, &chain, &balance](const auto& in) {
+    auto cb = [&](const auto& in) {
         auto out = zmq_.Message(in);
         out->AddFrame();
+        out->AddFrame(value(WorkType::BlockchainBalance));
         out->AddFrame(chain);
         out->AddFrame(balance.first);
         out->AddFrame(balance.second);
@@ -100,6 +138,26 @@ auto Blockchain::BalanceOracle::UpdateBalance(
     };
     Lock lock(lock_);
     const auto& subscribers = subscribers_[chain];
+    std::for_each(std::begin(subscribers), std::end(subscribers), cb);
+}
+
+auto Blockchain::BalanceOracle::UpdateBalance(
+    const identifier::Nym& owner,
+    const Chain chain,
+    const Balance balance) const noexcept -> void
+{
+    auto cb = [&](const auto& in) {
+        auto out = zmq_.Message(in);
+        out->AddFrame();
+        out->AddFrame(value(WorkType::BlockchainBalance));
+        out->AddFrame(chain);
+        out->AddFrame(balance.first);
+        out->AddFrame(balance.second);
+        out->AddFrame(owner);
+        socket_->Send(out);
+    };
+    Lock lock(lock_);
+    const auto& subscribers = nym_subscribers_[chain][owner];
     std::for_each(std::begin(subscribers), std::end(subscribers), cb);
 }
 }  // namespace opentxs::api::client::implementation

@@ -14,6 +14,7 @@
 #include <utility>
 
 #include "1_Internal.hpp"
+#include "core/Worker.hpp"
 #include "internal/ui/UI.hpp"
 #include "opentxs/SharedPimpl.hpp"
 #include "opentxs/Types.hpp"
@@ -21,11 +22,13 @@
 #include "opentxs/blockchain/BlockchainType.hpp"
 #include "opentxs/blockchain/Types.hpp"
 #include "opentxs/core/Identifier.hpp"
+#include "util/Work.hpp"
 #if OT_BLOCKCHAIN
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/socket/Dealer.hpp"
 #endif  // OT_BLOCKCHAIN
 #include "opentxs/ui/BlockchainSelection.hpp"
+#include "opentxs/util/WorkType.hpp"
 #include "ui/base/List.hpp"
 #include "ui/base/Widget.hpp"
 
@@ -76,28 +79,41 @@ using BlockchainSelectionList = List<
     BlockchainSelectionSortKey,
     BlockchainSelectionPrimaryID>;
 
-class BlockchainSelection final : public BlockchainSelectionList
+class BlockchainSelection final : public BlockchainSelectionList,
+                                  Worker<BlockchainSelection>
 {
 public:
     auto Disable(const blockchain::Type type) const noexcept -> bool final;
     auto Enable(const blockchain::Type type) const noexcept -> bool final;
-    auto Toggle(const blockchain::Type type) const noexcept -> bool final;
 
     BlockchainSelection(
         const api::client::internal::Manager& api,
         const api::client::internal::Blockchain& blockchain) noexcept;
 
-    auto init() noexcept -> void;
-
     ~BlockchainSelection() final;
 
 private:
+    friend Worker<BlockchainSelection>;
+
+    enum class Work : OTZMQWorkType {
+        statechange = value(WorkType::BlockchainStateChange),
+        init = OT_ZMQ_INIT_SIGNAL,
+        statemachine = OT_ZMQ_STATE_MACHINE_SIGNAL,
+        shutdown = value(WorkType::Shutdown),
+    };
+
     const api::client::internal::Blockchain& blockchain_;
+
+    auto process_state(const blockchain::Type chain, const bool enabled)
+        const noexcept -> void;
 
     auto construct_row(
         const BlockchainSelectionRowID& id,
         const BlockchainSelectionSortKey& index,
         CustomData& custom) const noexcept -> RowPointer final;
+    auto pipeline(const Message& in) noexcept -> void;
+    auto process_state(const Message& in) noexcept -> void;
+    auto startup() noexcept -> void;
 
     BlockchainSelection() = delete;
     BlockchainSelection(const BlockchainSelection&) = delete;

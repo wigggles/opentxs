@@ -9,11 +9,11 @@
 
 #include <atomic>
 #include <functional>
+#include <future>
 #include <limits>
 #include <memory>
-#include <mutex>
+#include <set>
 #include <string>
-#include <thread>
 #include <type_traits>
 
 #include "display/Definition.hpp"
@@ -31,18 +31,24 @@
 #include "opentxs/blockchain/Network.hpp"
 #include "opentxs/blockchain/block/bitcoin/Transaction.hpp"
 #include "opentxs/core/Data.hpp"
+#include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/network/zeromq/Pipeline.hpp"
+#include "opentxs/network/zeromq/socket/Socket.hpp"
 #include "opentxs/protobuf/PaymentEvent.pb.h"
 #include "opentxs/protobuf/PaymentWorkflow.pb.h"
 #include "opentxs/protobuf/PaymentWorkflowEnums.pb.h"
 #include "ui/base/Widget.hpp"
 #include "util/Container.hpp"
 
-// #define OT_METHOD "opentxs::ui::implementation::BlockchainAccountActivity::"
+#define OT_METHOD "opentxs::ui::implementation::BlockchainAccountActivity::"
 
 namespace opentxs::factory
 {
@@ -66,30 +72,33 @@ BlockchainAccountActivity::BlockchainAccountActivity(
     const identifier::Nym& nymID,
     const Identifier& accountID,
     const SimpleCallback& cb) noexcept
-    : AccountActivity(
-          api,
-          nymID,
-          accountID,
-          AccountType::Blockchain,
-          cb,
-          {
-              {api.Endpoints().BlockchainTransactions(),
-               new MessageProcessor<BlockchainAccountActivity>(
-                   &BlockchainAccountActivity::process_txid)},
-              {api.Endpoints().BlockchainTransactions(nymID),
-               new MessageProcessor<BlockchainAccountActivity>(
-                   &BlockchainAccountActivity::process_txid)},
-              {api.Endpoints().BlockchainSyncProgress(),
-               new MessageProcessor<BlockchainAccountActivity>(
-                   &BlockchainAccountActivity::process_sync)},
-          })
-    , chain_(ui::Chain(api_, accountID))
+    : AccountActivity(api, nymID, accountID, AccountType::Blockchain, cb)
+    , chain_(ui::Chain(Widget::api_, accountID))
+    , balance_cb_(zmq::ListenCallback::Factory(
+          [this](const auto& in) { pipeline_->Push(in); }))
+    , balance_socket_(Widget::api_.ZeroMQ().DealerSocket(
+          balance_cb_,
+          zmq::socket::Socket::Direction::Connect))
     , progress_()
     , sync_cb_()
 {
-    startup_.reset(new std::thread(&BlockchainAccountActivity::startup, this));
+    const auto connected =
+        balance_socket_->Start(Widget::api_.Endpoints().BlockchainBalance());
 
-    OT_ASSERT(startup_)
+    OT_ASSERT(connected);
+
+    init(
+        {api.Endpoints().BlockchainTransactions(),
+         api.Endpoints().BlockchainTransactions(nymID),
+         api.Endpoints().BlockchainSyncProgress()});
+
+    {
+        const auto& socket = balance_socket_.get();
+        auto work = socket.Context().TaggedMessage(WorkType::BlockchainBalance);
+        work->AddFrame(chain_);
+        work->AddFrame(nymID);
+        socket.Send(work);
+    }
 }
 
 auto BlockchainAccountActivity::DepositAddress(
@@ -99,7 +108,7 @@ auto BlockchainAccountActivity::DepositAddress(
         return {};
     }
 
-    const auto& wallet = api_.Blockchain().Account(primary_id_, chain_);
+    const auto& wallet = Widget::api_.Blockchain().Account(primary_id_, chain_);
 
     return wallet.GetDepositAddress();
 }
@@ -112,46 +121,95 @@ auto BlockchainAccountActivity::DisplayBalance() const noexcept -> std::string
 auto BlockchainAccountActivity::load_thread() noexcept -> void
 {
     const auto transactions =
-        api_.Storage().BlockchainTransactionList(primary_id_);
+        Widget::api_.Storage().BlockchainTransactionList(primary_id_);
+    auto active = std::set<AccountActivityRowID>{};
 
     for (const auto& txid : transactions) {
-        const auto rowID = AccountActivityRowID{
-            blockchain_thread_item_id(api_.Crypto(), chain_, txid),
-            proto::PAYMENTEVENTTYPE_COMPLETE};
-
-        {
-            Lock lock(lock_);
-            auto& existing = lookup(lock, rowID);
-
-            if (existing.Valid()) { continue; }
+        if (const auto id = process_txid(txid); id.has_value()) {
+            active.emplace(id.value());
         }
+    }
 
-        auto pTX = api_.Blockchain().LoadTransactionBitcoin(txid);
+    delete_inactive(active);
+}
 
-        if (false == bool(pTX)) { continue; }
+auto BlockchainAccountActivity::pipeline(const Message& in) noexcept -> void
+{
+    if (false == running_.get()) { return; }
 
-        const auto& tx = *pTX;
+    const auto body = in.Body();
 
-        if (false == contains(tx.Chains(), chain_)) { continue; }
+    if (1 > body.size()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid message").Flush();
 
-        const auto sortKey{tx.Timestamp()};
-        balance_ += tx.NetBalanceChange(api_.Blockchain(), primary_id_);
-        auto custom = CustomData{
-            new proto::PaymentWorkflow(),
-            new proto::PaymentEvent(),
-            const_cast<void*>(static_cast<const void*>(pTX.release())),
-            new blockchain::Type{chain_},
-            new std::string{
-                api_.Blockchain().ActivityDescription(primary_id_, chain_, tx)},
-            new OTData{tx.ID()}};
-        add_item(rowID, sortKey, custom);
+        OT_FAIL;
+    }
+
+    const auto work = body.at(0).as<Work>();
+
+    switch (work) {
+        case Work::balance: {
+            process_balance(in);
+        } break;
+        case Work::txid: {
+            process_txid(in);
+        } break;
+        case Work::sync: {
+            process_sync(in);
+        } break;
+        case Work::init: {
+            startup();
+            finish_startup();
+        } break;
+        case Work::statemachine: {
+            do_work();
+        } break;
+        case Work::shutdown: {
+            running_->Off();
+            shutdown(shutdown_promise_);
+        } break;
+        default: {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Unhandled type").Flush();
+
+            OT_FAIL;
+        }
     }
 }
 
-auto BlockchainAccountActivity::process_sync(
-    const network::zeromq::Message& in) noexcept -> void
+auto BlockchainAccountActivity::process_balance(const Message& in) noexcept
+    -> void
 {
-    const auto& body = in.Body();
+    wait_for_startup();
+    const auto body = in.Body();
+
+    OT_ASSERT(4 < body.size());
+
+    const auto chain = body.at(1).as<blockchain::Type>();
+    [[maybe_unused]] const auto confirmed = body.at(2).as<Amount>();
+    const auto unconfirmed = body.at(3).as<Amount>();
+    const auto nym = [&] {
+        auto output = Widget::api_.Factory().NymID();
+        output->Assign(body.at(4).Bytes());
+
+        return output;
+    }();
+
+    OT_ASSERT(chain_ == chain);
+    OT_ASSERT(primary_id_ == nym);
+
+    const auto oldBalance = balance_.exchange(unconfirmed);
+
+    if (oldBalance != unconfirmed) {
+        // TODO notify Qt of property change
+        UpdateNotify();
+    }
+
+    load_thread();
+}
+
+auto BlockchainAccountActivity::process_sync(const Message& in) noexcept -> void
+{
+    const auto body = in.Body();
 
     OT_ASSERT(3 < body.size());
 
@@ -174,44 +232,56 @@ auto BlockchainAccountActivity::process_sync(
     if (cb) { cb(current, max, percent); }
 }
 
-auto BlockchainAccountActivity::process_txid(
-    const network::zeromq::Message& in) noexcept -> void
+auto BlockchainAccountActivity::process_txid(const Message& in) noexcept -> void
 {
-    static std::mutex zmq_lock_{};
-
     wait_for_startup();
-    const auto& body = in.Body();
+    const auto body = in.Body();
 
-    OT_ASSERT(2 <= body.size());
+    OT_ASSERT(2 < body.size());
 
-    const auto txid = api_.Factory().Data(body.at(0));
-    const auto chain = body.at(1).as<blockchain::Type>();
+    const auto txid = Widget::api_.Factory().Data(body.at(1));
+    const auto chain = body.at(2).as<blockchain::Type>();
 
     if (chain != chain_) { return; }
 
-    Lock zmq(zmq_lock_);
-    const auto rowID = AccountActivityRowID{
-        blockchain_thread_item_id(api_.Crypto(), chain_, txid),
-        proto::PAYMENTEVENTTYPE_COMPLETE};
-    {
-        Lock lock(lock_);
-        auto& existing = lookup(lock, rowID);
-
-        if (existing.Valid()) {
-            balance_ -= existing.Amount();
-            delete_item(lock, rowID);
-        }
-    }
-
-    load_thread();
+    process_txid(txid);
 }
+
+auto BlockchainAccountActivity::process_txid(const Data& txid) noexcept
+    -> std::optional<AccountActivityRowID>
+{
+    const auto rowID = AccountActivityRowID{
+        blockchain_thread_item_id(Widget::api_.Crypto(), chain_, txid),
+        proto::PAYMENTEVENTTYPE_COMPLETE};
+    auto pTX = Widget::api_.Blockchain().LoadTransactionBitcoin(txid);
+
+    if (false == bool(pTX)) { return std::nullopt; }
+
+    const auto& tx = *pTX;
+
+    if (false == contains(tx.Chains(), chain_)) { return std::nullopt; }
+
+    const auto sortKey{tx.Timestamp()};
+    auto custom = CustomData{
+        new proto::PaymentWorkflow(),
+        new proto::PaymentEvent(),
+        const_cast<void*>(static_cast<const void*>(pTX.release())),
+        new blockchain::Type{chain_},
+        new std::string{Widget::api_.Blockchain().ActivityDescription(
+            primary_id_, chain_, tx)},
+        new OTData{tx.ID()}};
+    add_item(rowID, sortKey, custom);
+
+    return std::move(rowID);
+}
+
 auto BlockchainAccountActivity::Send(
     const std::string& address,
     const Amount amount,
     const std::string& memo) const noexcept -> bool
 {
     try {
-        const auto& network = api_.Blockchain().GetChain(chain_);
+        const auto& network = Widget::api_.Blockchain().GetChain(chain_);
         network.SendToAddress(primary_id_, address, amount, memo);
 
         return true;
@@ -242,18 +312,15 @@ auto BlockchainAccountActivity::SetSyncCallback(const SyncCallback cb) noexcept
     sync_cb_.cb_ = cb;
 }
 
-auto BlockchainAccountActivity::startup() noexcept -> void
-{
-    load_thread();
-    finish_startup();
-}
+auto BlockchainAccountActivity::startup() noexcept -> void { load_thread(); }
 
 auto BlockchainAccountActivity::ValidateAddress(
     const std::string& in) const noexcept -> bool
 {
     using Style = api::client::blockchain::AddressStyle;
 
-    const auto [data, style, chains] = api_.Blockchain().DecodeAddress(in);
+    const auto [data, style, chains] =
+        Widget::api_.Blockchain().DecodeAddress(in);
 
     if (Style::Unknown == style) { return false; }
 
@@ -274,5 +341,11 @@ auto BlockchainAccountActivity::ValidateAmount(
 
         return {};
     }
+}
+
+BlockchainAccountActivity::~BlockchainAccountActivity()
+{
+    wait_for_startup();
+    stop_worker().get();
 }
 }  // namespace opentxs::ui::implementation

@@ -57,8 +57,6 @@ public:
         const blockchain::Type type) const noexcept = 0;
     OPENTXS_EXPORT virtual bool Enable(
         const blockchain::Type type) const noexcept = 0;
-    OPENTXS_EXPORT virtual bool Toggle(
-        const blockchain::Type type) const noexcept = 0;
 
     OPENTXS_EXPORT ~BlockchainSelection() override = default;
 
@@ -104,7 +102,6 @@ public:
 
     Q_INVOKABLE bool disableChain(const int chain) const noexcept;
     Q_INVOKABLE bool enableChain(const int chain) const noexcept;
-    Q_INVOKABLE bool toggleChain(const int chain) const noexcept;
 
     BlockchainSelectionQt(implementation::BlockchainSelection& parent) noexcept;
 

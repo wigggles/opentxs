@@ -121,6 +121,11 @@ class Address;
 }  // namespace p2p
 }  // namespace blockchain
 
+namespace identifier
+{
+class Nym;
+}  // namespace identifier
+
 namespace network
 {
 namespace zeromq
@@ -609,6 +614,8 @@ struct WalletDatabase {
     virtual auto ForgetProposals(
         const std::set<OTIdentifier>& ids) const noexcept -> bool = 0;
     virtual auto GetBalance() const noexcept -> Balance = 0;
+    virtual auto GetBalance(const identifier::Nym& owner) const noexcept
+        -> Balance = 0;
     virtual auto GetPatterns(
         const NodeID& balanceNode,
         const Subchain subchain,
