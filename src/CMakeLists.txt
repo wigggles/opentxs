@@ -332,9 +332,9 @@ if(OT_INSTALL_LIBRARY_DEPENDENCIES AND OPENTXS_STANDALONE)
     )
   endif(OPENTXS_BLOCK_STORAGE_ENABLED OR FS_EXPORT)
 
-  if(OT_DHT)
+  if(DHT_EXPORT)
     message(WARNING "Installing OpenDHT dependencies not supported yet")
-  endif(OT_DHT)
+  endif(DHT_EXPORT)
 
   if(SQLITE_EXPORT)
     get_target_property(

@@ -15,10 +15,8 @@
 
 #include "2_Factory.hpp"
 #include "internal/api/Api.hpp"
+#include "internal/network/Factory.hpp"
 #include "network/DhtConfig.hpp"
-#if OT_DHT
-#include "network/OpenDHT.hpp"
-#endif  // OT_DHT
 #include "opentxs/Forward.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Proto.tpp"
@@ -42,9 +40,7 @@
 #include "opentxs/protobuf/ServerContract.pb.h"
 #include "opentxs/protobuf/UnitDefinition.pb.h"
 
-#if OT_DHT
 #define OT_METHOD "opentxs::Dht"
-#endif
 
 namespace zmq = opentxs::network::zeromq;
 
@@ -60,8 +56,8 @@ auto Factory::Dht(
     std::int64_t& unitPublishInterval,
     std::int64_t& unitRefreshInterval) -> api::network::Dht*
 {
-    DhtConfig config;
-    bool notUsed;
+    auto config = network::DhtConfig{};
+    auto notUsed{false};
     api.Config().CheckSet_bool(
         String::Factory("OpenDHT"),
         String::Factory("enable_dht"),
@@ -129,12 +125,11 @@ auto Factory::Dht(
 
 namespace opentxs::api::network::implementation
 {
-Dht::Dht(DhtConfig& config, const api::internal::Core& api)
+Dht::Dht(opentxs::network::DhtConfig& config, const api::internal::Core& api)
     : api_(api)
-    , config_(new DhtConfig(config))
-#if OT_DHT
-    , node_(new opentxs::network::implementation::OpenDHT(*config_))
-#endif
+    , callback_map_()
+    , config_(config)
+    , node_(factory::OpenDHT(config_))
     , request_nym_callback_{zmq::ReplyCallback::Factory(
           [=](const zmq::Message& incoming) -> OTZMQMessage {
               return this->process_request(incoming, &Dht::GetPublicNym);
@@ -162,39 +157,28 @@ Dht::Dht(DhtConfig& config, const api::internal::Core& api)
     request_unit_socket_->Start(api_.Endpoints().DhtRequestUnit());
 }
 
-void Dht::Insert(
-    [[maybe_unused]] const std::string& key,
-    [[maybe_unused]] const std::string& value) const
+void Dht::Insert(const std::string& key, const std::string& value) const
 {
-#if OT_DHT
     node_->Insert(key, value);
-#endif
 }
 
-void Dht::Insert([[maybe_unused]] const identity::Nym::Serialized& nym) const
+void Dht::Insert(const identity::Nym::Serialized& nym) const
 {
-#if OT_DHT
     node_->Insert(nym.nymid(), proto::ToString(nym));
-#endif
 }
 
-void Dht::Insert([[maybe_unused]] const proto::ServerContract& contract) const
+void Dht::Insert(const proto::ServerContract& contract) const
 {
-#if OT_DHT
     node_->Insert(contract.id(), proto::ToString(contract));
-#endif
 }
 
-void Dht::Insert([[maybe_unused]] const proto::UnitDefinition& contract) const
+void Dht::Insert(const proto::UnitDefinition& contract) const
 {
-#if OT_DHT
     node_->Insert(contract.id(), proto::ToString(contract));
-#endif
 }
 
-void Dht::GetPublicNym([[maybe_unused]] const std::string& key) const
+void Dht::GetPublicNym(const std::string& key) const
 {
-#if OT_DHT
     auto it = callback_map_.find(Dht::Callback::PUBLIC_NYM);
     bool haveCB = (it != callback_map_.end());
     NotifyCB notifyCB;
@@ -207,12 +191,10 @@ void Dht::GetPublicNym([[maybe_unused]] const std::string& key) const
         });
 
     node_->Retrieve(key, gcb);
-#endif
 }
 
-void Dht::GetServerContract([[maybe_unused]] const std::string& key) const
+void Dht::GetServerContract(const std::string& key) const
 {
-#if OT_DHT
     auto it = callback_map_.find(Dht::Callback::SERVER_CONTRACT);
     bool haveCB = (it != callback_map_.end());
     NotifyCB notifyCB;
@@ -225,12 +207,10 @@ void Dht::GetServerContract([[maybe_unused]] const std::string& key) const
         });
 
     node_->Retrieve(key, gcb);
-#endif
 }
 
-void Dht::GetUnitDefinition([[maybe_unused]] const std::string& key) const
+void Dht::GetUnitDefinition(const std::string& key) const
 {
-#if OT_DHT
     auto it = callback_map_.find(Dht::Callback::ASSET_CONTRACT);
     bool haveCB = (it != callback_map_.end());
     NotifyCB notifyCB;
@@ -243,12 +223,9 @@ void Dht::GetUnitDefinition([[maybe_unused]] const std::string& key) const
         });
 
     node_->Retrieve(key, gcb);
-#endif
 }
 
-#if OT_DHT
 auto Dht::OpenDHT() const -> const opentxs::network::OpenDHT& { return *node_; }
-#endif
 
 auto Dht::process_request(
     const zmq::Message& incoming,
@@ -271,7 +248,6 @@ auto Dht::process_request(
     return api_.ZeroMQ().Message(output);
 }
 
-#if OT_DHT
 auto Dht::ProcessPublicNym(
     const api::internal::Core& api,
     const std::string key,
@@ -429,7 +405,6 @@ auto Dht::ProcessUnitDefinition(
 
     return foundData;
 }
-#endif
 
 void Dht::RegisterCallbacks(const CallbackMap& callbacks) const
 {

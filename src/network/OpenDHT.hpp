@@ -5,6 +5,9 @@
 
 #pragma once
 
+// IWYU pragma: private
+// IWYU pragma: friend ".*src/network/OpenDHT.cpp"
+
 #include <atomic>
 #include <memory>
 #include <mutex>
@@ -22,18 +25,10 @@ class DhtRunner;
 
 namespace opentxs
 {
-namespace api
-{
 namespace network
 {
-namespace implementation
-{
-class Dht;
-}  // namespace implementation
-}  // namespace network
-}  // namespace api
-
 class DhtConfig;
+}  // namespace network
 }  // namespace opentxs
 
 namespace opentxs::network::implementation
@@ -41,29 +36,30 @@ namespace opentxs::network::implementation
 class OpenDHT final : virtual public network::OpenDHT
 {
 public:
-    void Insert(
+    auto Insert(
         const std::string& key,
         const std::string& value,
-        DhtDoneCallback cb = {}) const final;
-    void Retrieve(
+        DhtDoneCallback cb = {}) const noexcept -> void final;
+    auto Retrieve(
         const std::string& key,
         DhtResultsCallback vcb,
-        DhtDoneCallback dcb = {}) const final;
+        DhtDoneCallback dcb = {}) const noexcept -> void final;
+
+    OpenDHT(const DhtConfig& config) noexcept;
 
     ~OpenDHT() final;
 
 private:
-    friend api::network::implementation::Dht;
+    using Pointer = std::unique_ptr<dht::DhtRunner>;
 
-    std::unique_ptr<const DhtConfig> config_;
-    std::unique_ptr<dht::DhtRunner> node_;
+    const DhtConfig& config_;
+    Pointer node_;
     mutable OTFlag loaded_;
     mutable OTFlag ready_;
     mutable std::mutex init_;
 
     auto Init() const -> bool;
 
-    OpenDHT(const DhtConfig& config);
     OpenDHT() = delete;
     OpenDHT(const OpenDHT&) = delete;
     OpenDHT(OpenDHT&&) = delete;

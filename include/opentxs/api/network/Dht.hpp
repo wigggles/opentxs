@@ -58,13 +58,11 @@ public:
         const proto::ServerContract& contract) const = 0;
     OPENTXS_EXPORT virtual void Insert(
         const proto::UnitDefinition& contract) const = 0;
-#if OT_DHT
     OPENTXS_EXPORT virtual const opentxs::network::OpenDHT& OpenDHT() const = 0;
-#endif
     OPENTXS_EXPORT virtual void RegisterCallbacks(
         const CallbackMap& callbacks) const = 0;
 
-    OPENTXS_EXPORT virtual ~Dht() = default;
+    virtual ~Dht() = default;
 
 protected:
     Dht() = default;

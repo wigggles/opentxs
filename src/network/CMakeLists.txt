@@ -10,11 +10,17 @@ set(cxx-install-headers
     "${opentxs_SOURCE_DIR}/include/opentxs/network/OpenDHT.hpp"
     "${opentxs_SOURCE_DIR}/include/opentxs/network/ServerConnection.hpp"
 )
-set(cxx-headers ${cxx-install-headers} ServerConnection.hpp)
+set(cxx-headers
+    ${cxx-install-headers}
+    "${opentxs_SOURCE_DIR}/src/internal/network/Factory.hpp"
+    ServerConnection.hpp
+)
 
 if(DHT_EXPORT)
   list(APPEND cxx-sources OpenDHT.cpp)
   list(APPEND cxx-headers OpenDHT.hpp)
+else()
+  list(APPEND cxx-sources Null.cpp)
 endif()
 
 add_library(opentxs-network OBJECT ${cxx-sources} ${cxx-headers})
