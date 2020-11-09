@@ -125,11 +125,12 @@ Context::Context() noexcept
     assert(nullptr != context_);
     assert(1 == ::zmq_has("curve"));
 
-    constexpr auto sockets{
-#ifndef _WIN32
-        16384
-#else
+    constexpr auto sockets
+    {
+#if _WIN32 || __APPLE__
         1536
+#else
+        16384
 #endif
     };
     [[maybe_unused]] const auto init =
