@@ -8,7 +8,7 @@
 #include <cstdint>
 #include <string>
 
-namespace opentxs
+namespace opentxs::network
 {
 class DhtConfig
 {
@@ -25,4 +25,4 @@ public:
     std::string bootstrap_url_ = "bootstrap.ring.cx";
     std::string bootstrap_port_ = "4222";
 };
-}  // namespace opentxs
+}  // namespace opentxs::network

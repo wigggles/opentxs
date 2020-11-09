@@ -13,6 +13,7 @@
 #include <stdexcept>
 #include <vector>
 
+#include "internal/network/Factory.hpp"
 #include "network/DhtConfig.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/core/Log.hpp"
@@ -20,35 +21,53 @@
 
 #define OT_METHOD "opentxs::OpenDHT::"
 
+namespace opentxs::factory
+{
+auto OpenDHT(const network::DhtConfig& config) noexcept
+    -> std::unique_ptr<network::OpenDHT>
+{
+    using ReturnType = network::implementation::OpenDHT;
+
+    return std::make_unique<ReturnType>(config);
+}
+}  // namespace opentxs::factory
+
 namespace opentxs::network::implementation
 {
-OpenDHT::OpenDHT(const DhtConfig& config)
-    : config_(new DhtConfig(config))
-    , node_(new dht::DhtRunner)
+OpenDHT::OpenDHT(const DhtConfig& config) noexcept
+    : config_(config)
+    , node_()
     , loaded_(Flag::Factory(false))
     , ready_(Flag::Factory(false))
     , init_()
 {
-    Init();
 }
 
 auto OpenDHT::Init() const -> bool
 {
-    Lock initLock(init_);
-
-    if (!config_->enable_dht_) { return true; }
-
     if (ready_.get()) { return true; }
+    if (false == config_.enable_dht_) { return false; }
 
-    if (!node_) { return false; }
+    Lock lock(init_);
 
-    std::int64_t listenPort = config_->listen_port_;
+    if (false == bool(node_)) {
+        try {
+            const_cast<Pointer&>(node_) = std::make_unique<dht::DhtRunner>();
+        } catch (...) {
 
-    if ((listenPort <= 1000) || (listenPort >= 65535)) {
-        listenPort = config_->default_port_;
+            return false;
+        }
     }
 
-    if (!loaded_.get()) {
+    OT_ASSERT(node_);
+
+    auto listenPort = config_.listen_port_;
+
+    if ((listenPort <= 1000) || (listenPort >= 65535)) {
+        listenPort = config_.default_port_;
+    }
+
+    if (false == loaded_.get()) {
         try {
             node_->run(
                 static_cast<unsigned short>(listenPort),
@@ -69,7 +88,7 @@ auto OpenDHT::Init() const -> bool
 
     try {
         node_->bootstrap(
-            config_->bootstrap_url_.c_str(), config_->bootstrap_port_.c_str());
+            config_.bootstrap_url_.c_str(), config_.bootstrap_port_.c_str());
         ready_->On();
     } catch (const std::exception& e) {
         std::cout << e.what() << std::endl;
@@ -84,23 +103,20 @@ auto OpenDHT::Init() const -> bool
     return true;
 }
 
-void OpenDHT::Insert(
+auto OpenDHT::Insert(
     const std::string& key,
     const std::string& value,
-    DhtDoneCallback cb) const
+    DhtDoneCallback cb) const noexcept -> void
 {
-    if (!ready_.get()) {
-        if (!Init()) { return; }
-    }
+    if (false == Init()) { return; }
 
     try {
-        dht::InfoHash infoHash = dht::InfoHash::get(
+        auto infoHash = dht::InfoHash::get(
             reinterpret_cast<const std::uint8_t*>(key.c_str()), key.size());
-
-        std::shared_ptr<dht::Value> pValue = std::make_shared<dht::Value>(
+        auto pValue = std::make_shared<dht::Value>(
             reinterpret_cast<const std::uint8_t*>(value.c_str()), value.size());
 
-        if (!pValue) { return; }
+        if (false == bool(pValue)) { return; }
 
         if (value.size() > dht::MAX_VALUE_SIZE) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -117,14 +133,12 @@ void OpenDHT::Insert(
     }
 }
 
-void OpenDHT::Retrieve(
+auto OpenDHT::Retrieve(
     const std::string& key,
     DhtResultsCallback vcb,
-    DhtDoneCallback dcb) const
+    DhtDoneCallback dcb) const noexcept -> void
 {
-    if (!ready_.get()) {
-        if (!Init()) { return; }
-    }
+    if (false == Init()) { return; }
 
     try {
         // The OpenDHT get method wants a lambda function that accepts an
@@ -146,10 +160,8 @@ void OpenDHT::Retrieve(
 
                 return vcb(input);
             });
-
-        dht::InfoHash infoHash = dht::InfoHash::get(
+        auto infoHash = dht::InfoHash::get(
             reinterpret_cast<const std::uint8_t*>(key.c_str()), key.size());
-
         node_->get(infoHash, cb, dcb, dht::Value::AllFilter());
     } catch (const std::exception& e) {
         std::cout << e.what() << std::endl;

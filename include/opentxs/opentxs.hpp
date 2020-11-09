@@ -185,6 +185,7 @@
 #include "opentxs/identity/wot/verification/Nym.hpp"
 #include "opentxs/identity/wot/verification/Set.hpp"
 #include "opentxs/iterator/Bidirectional.hpp"
+#include "opentxs/network/OpenDHT.hpp"
 #include "opentxs/network/ServerConnection.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"

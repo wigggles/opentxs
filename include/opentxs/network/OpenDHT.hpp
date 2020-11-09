@@ -8,7 +8,6 @@
 
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
-#if OT_DHT
 #include <string>
 
 #include "opentxs/Types.hpp"
@@ -23,13 +22,13 @@ public:
     OPENTXS_EXPORT virtual void Insert(
         const std::string& key,
         const std::string& value,
-        DhtDoneCallback cb = {}) const = 0;
+        DhtDoneCallback cb = {}) const noexcept = 0;
     OPENTXS_EXPORT virtual void Retrieve(
         const std::string& key,
         DhtResultsCallback vcb,
-        DhtDoneCallback dcb = {}) const = 0;
+        DhtDoneCallback dcb = {}) const noexcept = 0;
 
-    OPENTXS_EXPORT virtual ~OpenDHT() = default;
+    virtual ~OpenDHT() = default;
 
 protected:
     OpenDHT() = default;
@@ -42,5 +41,4 @@ private:
 };
 }  // namespace network
 }  // namespace opentxs
-#endif  // OT_DHT
 #endif
