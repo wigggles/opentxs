@@ -120,12 +120,7 @@ Manager::Manager(
 #if OT_BLOCKCHAIN
           *blockchain_,
 #endif  // OT_BLOCKCHAIN
-          running_
-#if OT_QT
-          ,
-          enable_qt_
-#endif
-          ))
+          running_))
     , map_lock_()
     , context_locks_()
 {

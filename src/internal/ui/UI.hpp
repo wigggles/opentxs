@@ -396,19 +396,26 @@ namespace opentxs::ui::internal
 {
 struct List : virtual public ui::List {
 #if OT_QT
-    virtual void emit_begin_insert_rows(
+    virtual auto emit_begin_insert_rows(
         const QModelIndex& parent,
         int first,
-        int last) const noexcept = 0;
-    virtual void emit_begin_remove_rows(
+        int last) const noexcept -> void = 0;
+    virtual auto emit_begin_move_rows(
+        const QModelIndex& source,
+        int start,
+        int end,
+        const QModelIndex& destination,
+        int to) const noexcept -> void = 0;
+    virtual auto emit_begin_remove_rows(
         const QModelIndex& parent,
         int first,
-        int last) const noexcept = 0;
-    virtual void emit_end_insert_rows() const noexcept = 0;
-    virtual void emit_end_remove_rows() const noexcept = 0;
-    virtual QModelIndex me() const noexcept = 0;
-    virtual void register_child(const void* child) const noexcept = 0;
-    virtual void unregister_child(const void* child) const noexcept = 0;
+        int last) const noexcept -> void = 0;
+    virtual auto emit_end_insert_rows() const noexcept -> void = 0;
+    virtual auto emit_end_move_rows() const noexcept -> void = 0;
+    virtual auto emit_end_remove_rows() const noexcept -> void = 0;
+    virtual auto me() const noexcept -> QModelIndex = 0;
+    virtual auto register_child(const void* child) const noexcept -> void = 0;
+    virtual auto unregister_child(const void* child) const noexcept -> void = 0;
 #endif
 
     ~List() override = default;
@@ -460,8 +467,7 @@ struct AccountSummary : virtual public List, virtual public ui::AccountSummary {
     virtual auto Currency() const -> proto::ContactItemType = 0;
 #if OT_QT
     virtual int FindRow(
-        const implementation::AccountSummaryRowID& id,
-        const implementation::AccountSummarySortKey& key) const noexcept = 0;
+        const implementation::AccountSummaryRowID& id) const noexcept = 0;
 #endif
     virtual auto last(const implementation::AccountSummaryRowID& id)
         const noexcept -> bool = 0;
@@ -535,8 +541,7 @@ struct BlockchainSelectionItem : virtual public Row,
 struct Contact : virtual public List, virtual public ui::Contact {
 #if OT_QT
     virtual int FindRow(
-        const implementation::ContactRowID& id,
-        const implementation::ContactSortKey& key) const noexcept = 0;
+        const implementation::ContactRowID& id) const noexcept = 0;
 #endif
     virtual auto last(const implementation::ContactRowID& id) const noexcept
         -> bool = 0;
@@ -572,8 +577,7 @@ struct ContactSection : virtual public List,
     virtual auto ContactID() const noexcept -> std::string = 0;
 #if OT_QT
     virtual int FindRow(
-        const implementation::ContactSectionRowID& id,
-        const implementation::ContactSectionSortKey& key) const noexcept = 0;
+        const implementation::ContactSectionRowID& id) const noexcept = 0;
 #endif
     virtual auto last(const implementation::ContactSectionRowID& id)
         const noexcept -> bool = 0;
@@ -626,8 +630,7 @@ struct PayableListItem : virtual public Row,
 struct Profile : virtual public List, virtual public ui::Profile {
 #if OT_QT
     virtual int FindRow(
-        const implementation::ProfileRowID& id,
-        const implementation::ProfileSortKey& key) const noexcept = 0;
+        const implementation::ProfileRowID& id) const noexcept = 0;
 #endif
     virtual auto last(const implementation::ProfileRowID& id) const noexcept
         -> bool = 0;
@@ -640,8 +643,7 @@ struct ProfileSection : virtual public List,
                         virtual public ui::ProfileSection {
 #if OT_QT
     virtual int FindRow(
-        const implementation::ProfileSectionRowID& id,
-        const implementation::ProfileSectionSortKey& key) const noexcept = 0;
+        const implementation::ProfileSectionRowID& id) const noexcept = 0;
 #endif
     virtual auto last(const implementation::ProfileSectionRowID& id)
         const noexcept -> bool = 0;
@@ -757,19 +759,28 @@ struct List : virtual public ListType, public Row {
     auto First() const noexcept -> RowType final { return RowType{nullptr}; }
     auto last(const RowIDType&) const noexcept -> bool final { return false; }
 #if OT_QT
-    void emit_begin_insert_rows(const QModelIndex& parent, int first, int last)
-        const noexcept
+    auto emit_begin_insert_rows(const QModelIndex& parent, int first, int last)
+        const noexcept -> void final
     {
     }
-    void emit_begin_remove_rows(const QModelIndex& parent, int first, int last)
-        const noexcept
+    auto emit_begin_move_rows(
+        const QModelIndex& source,
+        int start,
+        int end,
+        const QModelIndex& destination,
+        int to) const noexcept -> void final
     {
     }
-    void emit_end_insert_rows() const noexcept {}
-    void emit_end_remove_rows() const noexcept {}
-    QModelIndex me() const noexcept final { return {}; }
-    void register_child(const void* child) const noexcept final {}
-    void unregister_child(const void* child) const noexcept final {}
+    auto emit_begin_remove_rows(const QModelIndex& parent, int first, int last)
+        const noexcept -> void final
+    {
+    }
+    auto emit_end_insert_rows() const noexcept -> void final {}
+    auto emit_end_move_rows() const noexcept -> void final {}
+    auto emit_end_remove_rows() const noexcept -> void final {}
+    auto me() const noexcept -> QModelIndex final { return {}; }
+    auto register_child(const void* child) const noexcept -> void final {}
+    auto unregister_child(const void* child) const noexcept -> void final {}
 #endif
     auto Next() const noexcept -> RowType final { return RowType{nullptr}; }
     auto WidgetID() const noexcept -> OTIdentifier final
@@ -922,8 +933,7 @@ struct ContactSection final : public List<
     auto ContactID() const noexcept -> std::string final { return {}; }
 #if OT_QT
     int FindRow(
-        const implementation::ContactSectionRowID& id,
-        const implementation::ContactSectionSortKey& key) const noexcept final
+        const implementation::ContactSectionRowID& id) const noexcept final
     {
         return -1;
     }
@@ -1024,8 +1034,7 @@ struct ProfileSection : public List<
     }
 #if OT_QT
     int FindRow(
-        const implementation::ProfileSectionRowID& id,
-        const implementation::ProfileSectionSortKey& key) const noexcept final
+        const implementation::ProfileSectionRowID& id) const noexcept final
     {
         return -1;
     }
@@ -1137,9 +1146,6 @@ auto AccountActivityModel(
     const api::client::internal::Manager& api,
     const identifier::Nym& nymID,
     const opentxs::Identifier& accountID,
-#if OT_QT
-    const bool qt,
-#endif
     const SimpleCallback& cb) noexcept
     -> std::unique_ptr<ui::implementation::AccountActivity>;
 #if OT_QT
@@ -1157,9 +1163,6 @@ auto AccountListItem(
 auto AccountListModel(
     const api::client::internal::Manager& api,
     const identifier::Nym& nymID,
-#if OT_QT
-    const bool qt,
-#endif
     const SimpleCallback& cb) noexcept
     -> std::unique_ptr<ui::implementation::AccountList>;
 #if OT_QT
@@ -1177,9 +1180,6 @@ auto AccountSummaryModel(
     const api::client::internal::Manager& api,
     const identifier::Nym& nymID,
     const proto::ContactItemType currency,
-#if OT_QT
-    const bool qt,
-#endif
     const SimpleCallback& cb) noexcept
     -> std::unique_ptr<ui::implementation::AccountSummary>;
 #if OT_QT
@@ -1199,9 +1199,6 @@ auto ActivitySummaryModel(
     const api::client::internal::Manager& api,
     const Flag& running,
     const identifier::Nym& nymID,
-#if OT_QT
-    const bool qt,
-#endif
     const SimpleCallback& cb) noexcept
     -> std::unique_ptr<ui::implementation::ActivitySummary>;
 #if OT_QT
@@ -1213,9 +1210,6 @@ auto ActivityThreadModel(
     const api::client::internal::Manager& api,
     const identifier::Nym& nymID,
     const opentxs::Identifier& threadID,
-#if OT_QT
-    const bool qt,
-#endif
     const SimpleCallback& cb) noexcept
     -> std::unique_ptr<ui::implementation::ActivityThread>;
 #if OT_QT
@@ -1227,9 +1221,6 @@ auto BlockchainAccountActivityModel(
     const api::client::internal::Manager& api,
     const identifier::Nym& nymID,
     const opentxs::Identifier& accountID,
-#if OT_QT
-    const bool qt,
-#endif
     const SimpleCallback& cb) noexcept
     -> std::unique_ptr<ui::implementation::AccountActivity>;
 auto BlockchainAccountListItem(
@@ -1249,12 +1240,8 @@ auto BlockchainActivityThreadItem(
     -> std::shared_ptr<ui::implementation::ActivityThreadRowInternal>;
 auto BlockchainSelectionModel(
     const api::client::internal::Manager& api,
-    const api::client::internal::Blockchain& blockchain
-#if OT_QT
-    ,
-    const bool qt
-#endif  // OT_QT
-    ) noexcept -> std::unique_ptr<ui::implementation::BlockchainSelection>;
+    const api::client::internal::Blockchain& blockchain) noexcept
+    -> std::unique_ptr<ui::implementation::BlockchainSelection>;
 auto BlockchainSelectionItem(
     const ui::implementation::BlockchainSelectionInternalInterface& parent,
     const api::client::internal::Manager& api,
@@ -1294,9 +1281,6 @@ auto ContactListItem(
 auto ContactListModel(
     const api::client::internal::Manager& api,
     const identifier::Nym& nymID,
-#if OT_QT
-    const bool qt,
-#endif
     const SimpleCallback& cb) noexcept
     -> std::unique_ptr<ui::implementation::ContactList>;
 #if OT_QT
@@ -1306,9 +1290,6 @@ auto ContactListQtModel(ui::implementation::ContactList& parent) noexcept
 auto ContactModel(
     const api::client::internal::Manager& api,
     const opentxs::Identifier& contactID,
-#if OT_QT
-    const bool qt,
-#endif
     const SimpleCallback& cb) noexcept
     -> std::unique_ptr<ui::implementation::Contact>;
 #if OT_QT
@@ -1320,23 +1301,14 @@ auto ContactSectionWidget(
     const api::client::internal::Manager& api,
     const ui::implementation::ContactRowID& rowID,
     const ui::implementation::ContactSortKey& key,
-    ui::implementation::CustomData& custom
-#if OT_QT
-    ,
-    const bool qt
-#endif
-    ) noexcept -> std::shared_ptr<ui::implementation::ContactRowInternal>;
+    ui::implementation::CustomData& custom) noexcept
+    -> std::shared_ptr<ui::implementation::ContactRowInternal>;
 auto ContactSubsectionWidget(
     const ui::implementation::ContactSectionInternalInterface& parent,
     const api::client::internal::Manager& api,
     const ui::implementation::ContactSectionRowID& rowID,
     const ui::implementation::ContactSectionSortKey& key,
-    ui::implementation::CustomData& custom
-#if OT_QT
-    ,
-    const bool qt
-#endif
-    ) noexcept
+    ui::implementation::CustomData& custom) noexcept
     -> std::shared_ptr<ui::implementation::ContactSectionRowInternal>;
 auto IssuerItem(
     const ui::implementation::AccountSummaryInternalInterface& parent,
@@ -1344,12 +1316,7 @@ auto IssuerItem(
     const ui::implementation::AccountSummaryRowID& rowID,
     const ui::implementation::AccountSummarySortKey& sortKey,
     ui::implementation::CustomData& custom,
-    const proto::ContactItemType currency
-#if OT_QT
-    ,
-    const bool qt
-#endif
-    ) noexcept
+    const proto::ContactItemType currency) noexcept
     -> std::shared_ptr<ui::implementation::AccountSummaryRowInternal>;
 auto MailItem(
     const ui::implementation::ActivityThreadInternalInterface& parent,
@@ -1372,9 +1339,6 @@ auto MailItem(
 auto MessagableListModel(
     const api::client::internal::Manager& api,
     const identifier::Nym& nymID,
-#if OT_QT
-    const bool qt,
-#endif
     const SimpleCallback& cb) noexcept
     -> std::unique_ptr<ui::implementation::MessagableList>;
 #if OT_QT
@@ -1401,9 +1365,6 @@ auto PayableListModel(
     const api::client::internal::Manager& api,
     const identifier::Nym& nymID,
     const proto::ContactItemType& currency,
-#if OT_QT
-    const bool qt,
-#endif
     const SimpleCallback& cb) noexcept
     -> std::unique_ptr<ui::implementation::PayableList>;
 #if OT_QT
@@ -1421,9 +1382,6 @@ auto PendingSend(
 auto ProfileModel(
     const api::client::internal::Manager& api,
     const identifier::Nym& nymID,
-#if OT_QT
-    const bool qt,
-#endif
     const SimpleCallback& cb) noexcept
     -> std::unique_ptr<ui::implementation::Profile>;
 #if OT_QT
@@ -1442,23 +1400,14 @@ auto ProfileSectionWidget(
     const api::client::internal::Manager& api,
     const ui::implementation::ProfileRowID& rowID,
     const ui::implementation::ProfileSortKey& key,
-    ui::implementation::CustomData& custom
-#if OT_QT
-    ,
-    const bool qt
-#endif
-    ) noexcept -> std::shared_ptr<ui::implementation::ProfileRowInternal>;
+    ui::implementation::CustomData& custom) noexcept
+    -> std::shared_ptr<ui::implementation::ProfileRowInternal>;
 auto ProfileSubsectionWidget(
     const ui::implementation::ProfileSectionInternalInterface& parent,
     const api::client::internal::Manager& api,
     const ui::implementation::ProfileSectionRowID& rowID,
     const ui::implementation::ProfileSectionSortKey& key,
-    ui::implementation::CustomData& custom
-#if OT_QT
-    ,
-    const bool qt
-#endif
-    ) noexcept
+    ui::implementation::CustomData& custom) noexcept
     -> std::shared_ptr<ui::implementation::ProfileSectionRowInternal>;
 auto UnitListItem(
     const ui::implementation::UnitListInternalInterface& parent,
@@ -1470,9 +1419,6 @@ auto UnitListItem(
 auto UnitListModel(
     const api::client::internal::Manager& api,
     const identifier::Nym& nymID,
-#if OT_QT
-    const bool qt,
-#endif
     const SimpleCallback& cb) noexcept
     -> std::unique_ptr<ui::implementation::UnitList>;
 #if OT_QT

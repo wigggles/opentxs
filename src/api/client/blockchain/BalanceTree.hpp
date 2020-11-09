@@ -25,6 +25,8 @@
 #include "opentxs/Types.hpp"
 #include "opentxs/api/client/blockchain/BalanceNode.hpp"
 #include "opentxs/api/client/blockchain/BalanceTree.hpp"
+#include "opentxs/api/client/blockchain/Types.hpp"
+#include "opentxs/blockchain/BlockchainType.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"

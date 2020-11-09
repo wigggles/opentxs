@@ -3,181 +3,20 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-set(cxx-sources
-    AccountActivity.cpp
-    AccountList.cpp
-    AccountListItem.cpp
-    AccountSummary.cpp
-    AccountSummaryItem.cpp
-    ActivitySummary.cpp
-    ActivitySummaryItem.cpp
-    ActivityThread.cpp
-    ActivityThreadItem.cpp
-    BalanceItem.cpp
-    ChequeBalanceItem.cpp
-    Contact.cpp
-    ContactItem.cpp
-    ContactList.cpp
-    ContactListItem.cpp
-    ContactSection.cpp
-    ContactSubsection.cpp
-    CustodialAccountActivity.cpp
-    IssuerItem.cpp
-    MailItem.cpp
-    MessagableList.cpp
-    PayableList.cpp
-    PayableListItem.cpp
-    PaymentItem.cpp
-    PendingSend.cpp
-    Profile.cpp
-    ProfileItem.cpp
-    ProfileSection.cpp
-    ProfileSubsection.cpp
-    TransferBalanceItem.cpp
-    UI.cpp
-    UnitList.cpp
-    UnitListItem.cpp
-    Widget.cpp
-)
-set(ot-qobject-install-headers
-    "${opentxs_SOURCE_DIR}/include/opentxs/ui/AccountActivity.hpp"
-    "${opentxs_SOURCE_DIR}/include/opentxs/ui/AccountList.hpp"
-    "${opentxs_SOURCE_DIR}/include/opentxs/ui/AccountSummary.hpp"
-    "${opentxs_SOURCE_DIR}/include/opentxs/ui/ActivitySummary.hpp"
-    "${opentxs_SOURCE_DIR}/include/opentxs/ui/ActivityThread.hpp"
-    "${opentxs_SOURCE_DIR}/include/opentxs/ui/Contact.hpp"
-    "${opentxs_SOURCE_DIR}/include/opentxs/ui/ContactList.hpp"
-    "${opentxs_SOURCE_DIR}/include/opentxs/ui/List.hpp"
-    "${opentxs_SOURCE_DIR}/include/opentxs/ui/MessagableList.hpp"
-    "${opentxs_SOURCE_DIR}/include/opentxs/ui/PayableList.hpp"
-    "${opentxs_SOURCE_DIR}/include/opentxs/ui/Profile.hpp"
-    "${opentxs_SOURCE_DIR}/include/opentxs/ui/UnitList.hpp"
-)
-set(cxx-install-headers
-    ${ot-qobject-install-headers}
-    "${opentxs_SOURCE_DIR}/include/opentxs/ui/AccountListItem.hpp"
-    "${opentxs_SOURCE_DIR}/include/opentxs/ui/AccountSummaryItem.hpp"
-    "${opentxs_SOURCE_DIR}/include/opentxs/ui/ActivitySummaryItem.hpp"
-    "${opentxs_SOURCE_DIR}/include/opentxs/ui/ActivityThreadItem.hpp"
-    "${opentxs_SOURCE_DIR}/include/opentxs/ui/BalanceItem.hpp"
-    "${opentxs_SOURCE_DIR}/include/opentxs/ui/ContactItem.hpp"
-    "${opentxs_SOURCE_DIR}/include/opentxs/ui/ContactListItem.hpp"
-    "${opentxs_SOURCE_DIR}/include/opentxs/ui/ContactSection.hpp"
-    "${opentxs_SOURCE_DIR}/include/opentxs/ui/ContactSubsection.hpp"
-    "${opentxs_SOURCE_DIR}/include/opentxs/ui/IssuerItem.hpp"
-    "${opentxs_SOURCE_DIR}/include/opentxs/ui/ListRow.hpp"
-    "${opentxs_SOURCE_DIR}/include/opentxs/ui/PayableListItem.hpp"
-    "${opentxs_SOURCE_DIR}/include/opentxs/ui/ProfileItem.hpp"
-    "${opentxs_SOURCE_DIR}/include/opentxs/ui/ProfileSection.hpp"
-    "${opentxs_SOURCE_DIR}/include/opentxs/ui/ProfileSubsection.hpp"
-    "${opentxs_SOURCE_DIR}/include/opentxs/ui/UnitListItem.hpp"
-    "${opentxs_SOURCE_DIR}/include/opentxs/ui/Widget.hpp"
-)
-set(cxx-headers
-    ${cxx-install-headers}
-    "${opentxs_SOURCE_DIR}/src/internal/ui/UI.hpp"
-    AccountActivity.hpp
-    AccountList.hpp
-    AccountListItem.hpp
-    AccountSummary.hpp
-    AccountSummaryItem.hpp
-    ActivitySummary.hpp
-    ActivitySummaryItem.hpp
-    ActivityThread.hpp
-    ActivityThreadItem.hpp
-    BalanceItem.hpp
-    Combined.hpp
-    Contact.hpp
-    ContactItem.hpp
-    ContactList.hpp
-    ContactListItem.hpp
-    ContactSection.hpp
-    ContactSubsection.hpp
-    CustodialAccountActivity.hpp
-    IssuerItem.hpp
-    List.hpp
-    MailItem.hpp
-    MessagableList.hpp
-    PayableList.hpp
-    PayableListItem.hpp
-    PendingSend.hpp
-    Profile.hpp
-    ProfileItem.hpp
-    ProfileSection.hpp
-    ProfileSubsection.hpp
-    Row.hpp
-    RowType.hpp
-    UnitList.hpp
-    UnitListItem.hpp
-    Widget.hpp
-)
+add_subdirectory(accountactivity)
+add_subdirectory(accountlist)
+add_subdirectory(accountsummary)
+add_subdirectory(activitysummary)
+add_subdirectory(activitythread)
+add_subdirectory(base)
 
 if(OT_BLOCKCHAIN_EXPORT)
-  list(
-    APPEND
-    cxx-sources
-    BlockchainAccountActivity.cpp
-    BlockchainAccountListItem.cpp
-    BlockchainActivityThreadItem.cpp
-    BlockchainBalanceItem.cpp
-    BlockchainSelection.cpp
-    BlockchainSelectionItem.cpp
-  )
-  list(
-    APPEND
-    cxx-headers
-    BlockchainAccountActivity.hpp
-    BlockchainAccountListItem.hpp
-    BlockchainActivityThreadItem.hpp
-    BlockchainBalanceItem.hpp
-    BlockchainSelection.hpp
-    BlockchainSelectionItem.hpp
-  )
-  list(
-    APPEND ot-qobject-install-headers
-    "${opentxs_SOURCE_DIR}/include/opentxs/ui/BlockchainSelection.hpp"
-  )
-  list(
-    APPEND
-    cxx-install-headers
-    "${opentxs_SOURCE_DIR}/include/opentxs/ui/BlockchainSelection.hpp"
-    "${opentxs_SOURCE_DIR}/include/opentxs/ui/BlockchainSelectionItem.hpp"
-  )
+  add_subdirectory(blockchainselection)
 endif()
 
-if(OT_WITH_QT)
-  qt5_wrap_cpp(MOC_SRCS ${ot-qobject-install-headers})
-else()
-  set(MOC_SRCS "")
-endif()
-
-add_library(opentxs-ui OBJECT ${cxx-sources} ${cxx-headers} ${MOC_SRCS})
-target_link_libraries(opentxs-ui PRIVATE opentxs::messages)
-target_include_directories(
-  opentxs-ui SYSTEM PRIVATE "${opentxs_SOURCE_DIR}/deps/"
-)
-
-if(OT_QT_EXPORT)
-  target_compile_definitions(opentxs-ui PRIVATE ${Qt5Core_DEFINITIONS})
-  target_compile_definitions(opentxs-ui PRIVATE ${Qt5Gui_DEFINITIONS})
-  target_compile_definitions(opentxs-ui PRIVATE ${Qt5Widgets_DEFINITIONS})
-
-  if(OT_QML_EXPORT)
-    target_compile_definitions(opentxs-ui PRIVATE ${Qt5Qml_DEFINITIONS})
-    target_compile_definitions(opentxs-ui PRIVATE -DOT_WITH_QML=1)
-  else()
-    target_compile_definitions(opentxs-ui PRIVATE -DOT_WITH_QML=0)
-  endif()
-else()
-  target_compile_definitions(opentxs-ui PRIVATE -DOT_WITH_QML=0)
-endif()
-
-add_dependencies(opentxs-ui generated_code)
-
-if(OPENTXS_STANDALONE)
-  install(
-    FILES ${cxx-install-headers}
-    DESTINATION include/opentxs/ui
-    COMPONENT dev
-  )
-endif()
+add_subdirectory(contact)
+add_subdirectory(contactlist)
+add_subdirectory(messagablelist)
+add_subdirectory(payablelist)
+add_subdirectory(profile)
+add_subdirectory(unitlist)

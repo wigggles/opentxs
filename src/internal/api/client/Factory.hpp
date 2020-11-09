@@ -119,12 +119,7 @@ auto UI(
 #if OT_BLOCKCHAIN
     const api::client::internal::Blockchain& blockchain,
 #endif  // OT_BLOCKCHAIN
-    const Flag& running
-#if OT_QT
-    ,
-    const bool qt
-#endif
-    ) noexcept -> std::unique_ptr<api::client::internal::UI>;
+    const Flag& running) noexcept -> std::unique_ptr<api::client::internal::UI>;
 auto Wallet(const api::client::internal::Manager& client) -> api::Wallet*;
 auto Workflow(
     const api::internal::Core& api,

@@ -625,11 +625,11 @@ TEST_F(Integration, add_contact_preconditions)
 
 TEST_F(Integration, add_contact_Bob_To_Alex)
 {
-    contact_list_alex_.expected_ += 1;
-    messagable_list_alex_.expected_ += 1;
+    contact_list_alex_.expected_ += 3;
+    messagable_list_alex_.expected_ += 4;
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1 && OT_CRYPTO_WITH_BIP32
-    payable_list_bch_alex_.expected_ += 1;
-    payable_list_btc_alex_.expected_ += 1;
+    payable_list_bch_alex_.expected_ += 2;
+    payable_list_btc_alex_.expected_ += 4;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1 && OT_CRYPTO_WITH_BIP32
 
     alex_.api_->UI()
@@ -731,14 +731,16 @@ TEST_F(Integration, send_message_from_Alex_to_Bob_1)
 {
     activity_summary_alex_.expected_ += 2;
     activity_thread_bob_alex_.expected_ += 5;
-    contact_list_alex_.expected_ += 3;
+    contact_list_alex_.expected_ += 7;
+    messagable_list_alex_.expected_ += 4;
     activity_summary_bob_.expected_ += 2;
-    contact_list_bob_.expected_ += 2;
-    messagable_list_bob_.expected_ += 2;
+    contact_list_bob_.expected_ += 4;
+    messagable_list_bob_.expected_ += 5;
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1 && OT_CRYPTO_WITH_BIP32
-    payable_list_bch_alex_.expected_ += 1;
-    payable_list_bch_bob_.expected_ += 1;
-    payable_list_btc_bob_.expected_ += 1;
+    payable_list_bch_alex_.expected_ += 7;
+    payable_list_btc_alex_.expected_ += 7;
+    payable_list_bch_bob_.expected_ += 4;
+    payable_list_btc_bob_.expected_ += 4;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1 && OT_CRYPTO_WITH_BIP32
 
     const auto& from_client = api_alex_;
@@ -849,15 +851,14 @@ TEST_F(Integration, contact_list_bob_1)
 
     ASSERT_TRUE(row->Valid());
     EXPECT_EQ(row->DisplayName(), bob_.name_);
-    ASSERT_TRUE(row->Valid());
     EXPECT_STREQ("", row->ImageURI().c_str());
     EXPECT_STREQ("ME", row->Section().c_str());
     EXPECT_FALSE(row->Last());
 
     row = widget.Next();
 
-    EXPECT_EQ(row->DisplayName(), alex_.name_);
     ASSERT_TRUE(row->Valid());
+    EXPECT_EQ(row->DisplayName(), alex_.name_);
     EXPECT_STREQ("", row->ImageURI().c_str());
     EXPECT_STREQ("A", row->Section().c_str());
     EXPECT_TRUE(row->Last());
@@ -875,7 +876,6 @@ TEST_F(Integration, messagable_list_bob_1)
 
     ASSERT_TRUE(row->Valid());
     EXPECT_EQ(row->DisplayName(), alex_.name_);
-    ASSERT_TRUE(row->Valid());
     EXPECT_STREQ("", row->ImageURI().c_str());
     EXPECT_STREQ("A", row->Section().c_str());
     EXPECT_TRUE(row->Last());
@@ -961,12 +961,18 @@ TEST_F(Integration, activity_thread_alex_bob_0)
 TEST_F(Integration, send_message_from_Bob_to_Alex_2)
 {
     activity_summary_alex_.expected_ += 2;
-    activity_thread_bob_alex_.expected_ += 3;
+    activity_thread_bob_alex_.expected_ += 4;
     activity_summary_bob_.expected_ += 2;
-    activity_thread_alex_bob_.expected_ += 5;
-    contact_list_bob_.expected_ += 3;
+    activity_thread_alex_bob_.expected_ += 6;
+    contact_list_alex_.expected_ += 4;
+    contact_list_bob_.expected_ += 7;
+    messagable_list_alex_.expected_ += 4;
+    messagable_list_bob_.expected_ += 4;
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1 && OT_CRYPTO_WITH_BIP32
-    payable_list_bch_bob_.expected_ += 1;
+    payable_list_bch_alex_.expected_ += 4;
+    payable_list_btc_alex_.expected_ += 4;
+    payable_list_bch_bob_.expected_ += 7;
+    payable_list_btc_bob_.expected_ += 7;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1 && OT_CRYPTO_WITH_BIP32
 
     const auto& from_client = api_bob_;
@@ -1231,11 +1237,11 @@ TEST_F(Integration, add_alex_contact_to_issuer)
 TEST_F(Integration, pay_alex)
 {
     activity_summary_alex_.expected_ += 2;
-    contact_list_alex_.expected_ += 3;
-    messagable_list_alex_.expected_ += 2;
+    contact_list_alex_.expected_ += 9;
+    messagable_list_alex_.expected_ += 9;
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1 && OT_CRYPTO_WITH_BIP32
-    payable_list_bch_alex_.expected_ += 1;
-    payable_list_btc_alex_.expected_ += 1;
+    payable_list_bch_alex_.expected_ += 8;
+    payable_list_btc_alex_.expected_ += 8;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1 && OT_CRYPTO_WITH_BIP32
 
     idle();
@@ -1419,7 +1425,13 @@ TEST_F(Integration, deposit_cheque_alex)
 {
     account_list_alex_.expected_ += 4;
     activity_thread_issuer_alex_.expected_ += 3;
-    contact_issuer_alex_.expected_ += 9;
+    contact_issuer_alex_.expected_ += 12;
+    contact_list_alex_.expected_ += 6;
+    messagable_list_alex_.expected_ += 6;
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1 && OT_CRYPTO_WITH_BIP32
+    payable_list_bch_alex_.expected_ += 7;
+    payable_list_btc_alex_.expected_ += 6;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1 && OT_CRYPTO_WITH_BIP32
 
     api_alex_.UI().Contact(
         alex_.Contact(issuer_.name_),
@@ -1564,12 +1576,22 @@ TEST_F(Integration, process_inbox_issuer)
 
 TEST_F(Integration, pay_bob)
 {
-    account_activity_usd_alex_.expected_ += 4;
+    account_activity_usd_alex_.expected_ += 5;
     activity_summary_alex_.expected_ += 2;
-    activity_thread_bob_alex_.expected_ += 5;
-    contact_issuer_alex_.expected_ += 4;
-    activity_thread_alex_bob_.expected_ += 3;
+    activity_thread_bob_alex_.expected_ += 7;
+    contact_issuer_alex_.expected_ += 6;
+    activity_thread_alex_bob_.expected_ += 5;
     activity_summary_bob_.expected_ += 2;
+    contact_list_alex_.expected_ += 4;
+    messagable_list_alex_.expected_ += 4;
+    contact_list_bob_.expected_ += 2;
+    messagable_list_bob_.expected_ += 2;
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1 && OT_CRYPTO_WITH_BIP32
+    payable_list_bch_alex_.expected_ += 4;
+    payable_list_btc_alex_.expected_ += 4;
+    payable_list_bch_bob_.expected_ += 2;
+    payable_list_btc_bob_.expected_ += 2;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1 && OT_CRYPTO_WITH_BIP32
 
     auto& thread =
         api_alex_.UI().ActivityThread(alex_.nym_id_, alex_.Contact(bob_.name_));

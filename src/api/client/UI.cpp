@@ -43,20 +43,20 @@
 #include "opentxs/ui/PayableList.hpp"
 #include "opentxs/ui/Profile.hpp"
 #include "opentxs/ui/UnitList.hpp"
-#include "ui/AccountActivity.hpp"
-#include "ui/AccountList.hpp"
-#include "ui/AccountSummary.hpp"
-#include "ui/ActivitySummary.hpp"
-#include "ui/ActivityThread.hpp"
+#include "ui/accountactivity/AccountActivity.hpp"
+#include "ui/accountlist/AccountList.hpp"
+#include "ui/accountsummary/AccountSummary.hpp"
+#include "ui/activitysummary/ActivitySummary.hpp"
+#include "ui/activitythread/ActivityThread.hpp"
 #if OT_BLOCKCHAIN
-#include "ui/BlockchainSelection.hpp"
+#include "ui/blockchainselection/BlockchainSelection.hpp"
 #endif  // OT_BLOCKCHAIN
-#include "ui/Contact.hpp"
-#include "ui/ContactList.hpp"
-#include "ui/MessagableList.hpp"
-#include "ui/PayableList.hpp"
-#include "ui/Profile.hpp"
-#include "ui/UnitList.hpp"
+#include "ui/contact/Contact.hpp"
+#include "ui/contactlist/ContactList.hpp"
+#include "ui/messagablelist/MessagableList.hpp"
+#include "ui/payablelist/PayableList.hpp"
+#include "ui/profile/Profile.hpp"
+#include "ui/unitlist/UnitList.hpp"
 
 //#define OT_METHOD "opentxs::api::implementation::UI"
 
@@ -67,12 +67,7 @@ auto UI(
 #if OT_BLOCKCHAIN
     const api::client::internal::Blockchain& blockchain,
 #endif  // OT_BLOCKCHAIN
-    const Flag& running
-#if OT_QT
-    ,
-    const bool qt
-#endif
-    ) noexcept -> std::unique_ptr<api::client::internal::UI>
+    const Flag& running) noexcept -> std::unique_ptr<api::client::internal::UI>
 {
     using ReturnType = api::client::implementation::UI;
 
@@ -81,12 +76,7 @@ auto UI(
 #if OT_BLOCKCHAIN
         blockchain,
 #endif  // OT_BLOCKCHAIN
-        running
-#if OT_QT
-        ,
-        qt
-#endif
-    );
+        running);
 }
 }  // namespace opentxs::factory
 
@@ -97,20 +87,12 @@ UI::UI(
 #if OT_BLOCKCHAIN
     const api::client::internal::Blockchain& blockchain,
 #endif  // OT_BLOCKCHAIN
-    const Flag& running
-#if OT_QT
-    ,
-    const bool qt
-#endif
-    ) noexcept
+    const Flag& running) noexcept
     : api_(api)
 #if OT_BLOCKCHAIN
     , blockchain_(blockchain)
 #endif  // OT_BLOCKCHAIN
     , running_(running)
-#if OT_QT
-    , enable_qt_(qt)
-#endif
     , accounts_()
     , account_lists_()
     , account_summaries_()
@@ -239,13 +221,7 @@ auto UI::account_activity(
 #else   // OT_BLOCKCHAIN
                          (opentxs::factory::AccountActivityModel)
 #endif  // OT_BLOCKCHAIN
-                             (api_,
-                              nymID,
-                              accountID,
-#if OT_QT
-                              enable_qt_,
-#endif  // OT_QT
-                              cb)))
+                             (api_, nymID, accountID, cb)))
                  .first;
 
         OT_ASSERT(it->second);
@@ -302,13 +278,8 @@ auto UI::account_list(
                  .emplace(
                      std::piecewise_construct,
                      std::forward_as_tuple(std::move(key)),
-                     std::forward_as_tuple(opentxs::factory::AccountListModel(
-                         api_,
-                         nymID,
-#if OT_QT
-                         enable_qt_,
-#endif  // OT_QT
-                         cb)))
+                     std::forward_as_tuple(
+                         opentxs::factory::AccountListModel(api_, nymID, cb)))
                  .first;
 
         OT_ASSERT(it->second);
@@ -364,13 +335,7 @@ auto UI::account_summary(
                     std::piecewise_construct,
                     std::forward_as_tuple(std::move(key)),
                     std::forward_as_tuple(opentxs::factory::AccountSummaryModel(
-                        api_,
-                        nymID,
-                        currency,
-#if OT_QT
-                        enable_qt_,
-#endif  // OT_QT
-                        cb)))
+                        api_, nymID, currency, cb)))
                 .first;
 
         OT_ASSERT(it->second);
@@ -429,13 +394,7 @@ auto UI::activity_summary(
                      std::forward_as_tuple(std::move(key)),
                      std::forward_as_tuple(
                          opentxs::factory::ActivitySummaryModel(
-                             api_,
-                             running_,
-                             nymID,
-#if OT_QT
-                             enable_qt_,
-#endif  // OT_QT
-                             cb)))
+                             api_, running_, nymID, cb)))
                  .first;
 
         OT_ASSERT(it->second);
@@ -492,13 +451,7 @@ auto UI::activity_thread(
                     std::piecewise_construct,
                     std::forward_as_tuple(std::move(key)),
                     std::forward_as_tuple(opentxs::factory::ActivityThreadModel(
-                        api_,
-                        nymID,
-                        threadID,
-#if OT_QT
-                        enable_qt_,
-#endif  // OT_QT
-                        cb)))
+                        api_, nymID, threadID, cb)))
                 .first;
 
         OT_ASSERT(it->second);
@@ -589,13 +542,8 @@ auto UI::contact(
                  .emplace(
                      std::piecewise_construct,
                      std::forward_as_tuple(std::move(key)),
-                     std::forward_as_tuple(opentxs::factory::ContactModel(
-                         api_,
-                         contactID,
-#if OT_QT
-                         enable_qt_,
-#endif  // OT_QT
-                         cb)))
+                     std::forward_as_tuple(
+                         opentxs::factory::ContactModel(api_, contactID, cb)))
                  .first;
 
         OT_ASSERT(it->second);
@@ -648,13 +596,8 @@ auto UI::contact_list(
                  .emplace(
                      std::piecewise_construct,
                      std::forward_as_tuple(std::move(key)),
-                     std::forward_as_tuple(opentxs::factory::ContactListModel(
-                         api_,
-                         nymID,
-#if OT_QT
-                         enable_qt_,
-#endif  // OT_QT
-                         cb)))
+                     std::forward_as_tuple(
+                         opentxs::factory::ContactListModel(api_, nymID, cb)))
                  .first;
 
         OT_ASSERT(it->second);
@@ -698,14 +641,7 @@ auto UI::Init() noexcept -> void
 {
 #if OT_BLOCKCHAIN
     const_cast<BlockchainSelectionType&>(blockchain_selection_) =
-        factory::BlockchainSelectionModel(
-            api_,
-            blockchain_
-#if OT_QT
-            ,
-            enable_qt_
-#endif  // OT_QT
-        );
+        factory::BlockchainSelectionModel(api_, blockchain_);
 
     OT_ASSERT(blockchain_selection_);
 
@@ -746,13 +682,8 @@ auto UI::messagable_list(
                 .emplace(
                     std::piecewise_construct,
                     std::forward_as_tuple(std::move(key)),
-                    std::forward_as_tuple(opentxs::factory::MessagableListModel(
-                        api_,
-                        nymID,
-#if OT_QT
-                        enable_qt_,
-#endif  // OT_QT
-                        cb)))
+                    std::forward_as_tuple(
+                        opentxs::factory::MessagableListModel(api_, nymID, cb)))
                 .first;
     }
 
@@ -805,13 +736,7 @@ auto UI::payable_list(
                      std::piecewise_construct,
                      std::forward_as_tuple(std::move(key)),
                      std::forward_as_tuple(opentxs::factory::PayableListModel(
-                         api_,
-                         nymID,
-                         currency,
-#if OT_QT
-                         enable_qt_,
-#endif  // OT_QT
-                         cb)))
+                         api_, nymID, currency, cb)))
                  .first;
     }
 
@@ -866,13 +791,8 @@ auto UI::profile(
                  .emplace(
                      std::piecewise_construct,
                      std::forward_as_tuple(std::move(key)),
-                     std::forward_as_tuple(opentxs::factory::ProfileModel(
-                         api_,
-                         nymID,
-#if OT_QT
-                         enable_qt_,
-#endif  // OT_QT
-                         cb)))
+                     std::forward_as_tuple(
+                         opentxs::factory::ProfileModel(api_, nymID, cb)))
                  .first;
 
         OT_ASSERT(it->second);
@@ -925,13 +845,8 @@ auto UI::unit_list(
                  .emplace(
                      std::piecewise_construct,
                      std::forward_as_tuple(std::move(key)),
-                     std::forward_as_tuple(opentxs::factory::UnitListModel(
-                         api_,
-                         nymID,
-#if OT_QT
-                         enable_qt_,
-#endif  // OT_QT
-                         cb)))
+                     std::forward_as_tuple(
+                         opentxs::factory::UnitListModel(api_, nymID, cb)))
                  .first;
 
         OT_ASSERT(it->second);

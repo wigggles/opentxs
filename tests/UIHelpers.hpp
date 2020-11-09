@@ -25,15 +25,20 @@ struct Counter {
     };
 }
 
-[[maybe_unused]] auto wait_for_counter(const Counter& data) noexcept -> bool
+[[maybe_unused]] auto wait_for_counter(
+    Counter& data,
+    const bool hard = false) noexcept -> bool
 {
-    constexpr auto limit = std::chrono::minutes(5);
+    const auto limit =
+        hard ? std::chrono::seconds(300) : std::chrono::seconds(10);
     auto start = ot::Clock::now();
-    const auto& [expected, updated] = data;
+    auto& [expected, updated] = data;
 
     while ((updated < expected) && ((ot::Clock::now() - start) < limit)) {
         ot::Sleep(std::chrono::milliseconds(100));
     }
+
+    if (false == hard) { updated.store(expected.load()); }
 
     return updated >= expected;
 }

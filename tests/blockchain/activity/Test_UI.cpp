@@ -797,68 +797,26 @@ TEST_F(Test_BlockchainActivity, receive_assigned_account_activity_qt)
     using Model = ot::ui::AccountActivityQt;
 
     {
-        ASSERT_TRUE(widget.hasIndex(0, 0));
-        ASSERT_TRUE(widget.hasIndex(0, 1));
-        ASSERT_TRUE(widget.hasIndex(0, 2));
-        ASSERT_TRUE(widget.hasIndex(0, 3));
-        ASSERT_TRUE(widget.hasIndex(0, 4));
+        constexpr auto row{0};
+
+        ASSERT_TRUE(widget.hasIndex(row, 0));
+        ASSERT_TRUE(widget.hasIndex(row, 1));
+        ASSERT_TRUE(widget.hasIndex(row, 2));
+        ASSERT_TRUE(widget.hasIndex(row, 3));
+        ASSERT_TRUE(widget.hasIndex(row, 4));
 
         const auto contacts =
-            widget.data(widget.index(0, 0), Model::ContactsRole);
+            widget.data(widget.index(row, 0), Model::ContactsRole);
         const auto polarity =
-            widget.data(widget.index(0, 0), Model::PolarityRole);
+            widget.data(widget.index(row, 0), Model::PolarityRole);
         const auto workflow =
-            widget.data(widget.index(0, 0), Model::WorkflowRole);
-        const auto type = widget.data(widget.index(0, 0), Model::TypeRole);
-        const auto amount = widget.data(widget.index(0, 0));
-        const auto text = widget.data(widget.index(0, 1));
-        const auto memo = widget.data(widget.index(0, 2));
-        const auto time = widget.data(widget.index(0, 3));
-        const auto uuid = widget.data(widget.index(0, 4));
-
-        {
-            const auto ids = contacts.toStringList();
-
-            ASSERT_EQ(ids.size(), 1);
-            EXPECT_EQ(ids.at(0).toStdString(), contact_5_id().str());
-        }
-
-        EXPECT_EQ(polarity.toInt(), 1);
-        EXPECT_EQ(workflow.toString(), u8"");
-        EXPECT_EQ(type.toInt(), static_cast<int>(ot::StorageBox::BLOCKCHAIN));
-        EXPECT_EQ(amount.toString(), u8"0.013 809 59 ₿");
-        EXPECT_EQ(text.toString(), u8"Incoming Bitcoin transaction");
-        EXPECT_EQ(memo.toString(), u8"");
-
-        {
-            auto expected = QDateTime{};
-            expected.setSecsSinceEpoch(ot::Clock::to_time_t(time_1_));
-
-            EXPECT_EQ(time.toDateTime(), expected);
-        }
-
-        EXPECT_FALSE(uuid.toString().isEmpty());
-    }
-
-    {
-        ASSERT_TRUE(widget.hasIndex(1, 0));
-        ASSERT_TRUE(widget.hasIndex(1, 1));
-        ASSERT_TRUE(widget.hasIndex(1, 2));
-        ASSERT_TRUE(widget.hasIndex(1, 3));
-        ASSERT_TRUE(widget.hasIndex(1, 4));
-
-        const auto contacts =
-            widget.data(widget.index(1, 0), Model::ContactsRole);
-        const auto polarity =
-            widget.data(widget.index(1, 0), Model::PolarityRole);
-        const auto workflow =
-            widget.data(widget.index(1, 0), Model::WorkflowRole);
-        const auto type = widget.data(widget.index(1, 0), Model::TypeRole);
-        const auto amount = widget.data(widget.index(1, 0));
-        const auto text = widget.data(widget.index(1, 1));
-        const auto memo = widget.data(widget.index(1, 2));
-        const auto time = widget.data(widget.index(1, 3));
-        const auto uuid = widget.data(widget.index(1, 4));
+            widget.data(widget.index(row, 0), Model::WorkflowRole);
+        const auto type = widget.data(widget.index(row, 0), Model::TypeRole);
+        const auto amount = widget.data(widget.index(row, 0));
+        const auto text = widget.data(widget.index(row, 1));
+        const auto memo = widget.data(widget.index(row, 2));
+        const auto time = widget.data(widget.index(row, 3));
+        const auto uuid = widget.data(widget.index(row, 4));
 
         {
             const auto ids = contacts.toStringList();
@@ -877,6 +835,51 @@ TEST_F(Test_BlockchainActivity, receive_assigned_account_activity_qt)
         {
             auto expected = QDateTime{};
             expected.setSecsSinceEpoch(ot::Clock::to_time_t(time_2_));
+
+            EXPECT_EQ(time.toDateTime(), expected);
+        }
+
+        EXPECT_FALSE(uuid.toString().isEmpty());
+    }
+    {
+        constexpr auto row{1};
+
+        ASSERT_TRUE(widget.hasIndex(row, 0));
+        ASSERT_TRUE(widget.hasIndex(row, 1));
+        ASSERT_TRUE(widget.hasIndex(row, 2));
+        ASSERT_TRUE(widget.hasIndex(row, 3));
+        ASSERT_TRUE(widget.hasIndex(row, 4));
+
+        const auto contacts =
+            widget.data(widget.index(row, 0), Model::ContactsRole);
+        const auto polarity =
+            widget.data(widget.index(row, 0), Model::PolarityRole);
+        const auto workflow =
+            widget.data(widget.index(row, 0), Model::WorkflowRole);
+        const auto type = widget.data(widget.index(row, 0), Model::TypeRole);
+        const auto amount = widget.data(widget.index(row, 0));
+        const auto text = widget.data(widget.index(row, 1));
+        const auto memo = widget.data(widget.index(row, 2));
+        const auto time = widget.data(widget.index(row, 3));
+        const auto uuid = widget.data(widget.index(row, 4));
+
+        {
+            const auto ids = contacts.toStringList();
+
+            ASSERT_EQ(ids.size(), 1);
+            EXPECT_EQ(ids.at(0).toStdString(), contact_5_id().str());
+        }
+
+        EXPECT_EQ(polarity.toInt(), 1);
+        EXPECT_EQ(workflow.toString(), u8"");
+        EXPECT_EQ(type.toInt(), static_cast<int>(ot::StorageBox::BLOCKCHAIN));
+        EXPECT_EQ(amount.toString(), u8"0.013 809 59 ₿");
+        EXPECT_EQ(text.toString(), u8"Incoming Bitcoin transaction");
+        EXPECT_EQ(memo.toString(), u8"");
+
+        {
+            auto expected = QDateTime{};
+            expected.setSecsSinceEpoch(ot::Clock::to_time_t(time_1_));
 
             EXPECT_EQ(time.toDateTime(), expected);
         }
@@ -1125,68 +1128,71 @@ TEST_F(Test_BlockchainActivity, send_account_activity_qt)
     using Model = ot::ui::AccountActivityQt;
 
     {
-        ASSERT_TRUE(widget.hasIndex(0, 0));
-        ASSERT_TRUE(widget.hasIndex(0, 1));
-        ASSERT_TRUE(widget.hasIndex(0, 2));
-        ASSERT_TRUE(widget.hasIndex(0, 3));
-        ASSERT_TRUE(widget.hasIndex(0, 4));
+        constexpr auto row{0};
+
+        ASSERT_TRUE(widget.hasIndex(row, 0));
+        ASSERT_TRUE(widget.hasIndex(row, 1));
+        ASSERT_TRUE(widget.hasIndex(row, 2));
+        ASSERT_TRUE(widget.hasIndex(row, 3));
+        ASSERT_TRUE(widget.hasIndex(row, 4));
 
         const auto contacts =
-            widget.data(widget.index(0, 0), Model::ContactsRole);
+            widget.data(widget.index(row, 0), Model::ContactsRole);
         const auto polarity =
-            widget.data(widget.index(0, 0), Model::PolarityRole);
+            widget.data(widget.index(row, 0), Model::PolarityRole);
         const auto workflow =
-            widget.data(widget.index(0, 0), Model::WorkflowRole);
-        const auto type = widget.data(widget.index(0, 0), Model::TypeRole);
-        const auto amount = widget.data(widget.index(0, 0));
-        const auto text = widget.data(widget.index(0, 1));
-        const auto memo = widget.data(widget.index(0, 2));
-        const auto time = widget.data(widget.index(0, 3));
-        const auto uuid = widget.data(widget.index(0, 4));
+            widget.data(widget.index(row, 0), Model::WorkflowRole);
+        const auto type = widget.data(widget.index(row, 0), Model::TypeRole);
+        const auto amount = widget.data(widget.index(row, 0));
+        const auto text = widget.data(widget.index(row, 1));
+        const auto memo = widget.data(widget.index(row, 2));
+        const auto time = widget.data(widget.index(row, 3));
+        const auto uuid = widget.data(widget.index(row, 4));
 
         {
             const auto ids = contacts.toStringList();
 
             ASSERT_EQ(ids.size(), 1);
-            EXPECT_EQ(ids.at(0).toStdString(), contact_5_id().str());
+            EXPECT_EQ(ids.at(0).toStdString(), contact_7_id().str());
         }
 
-        EXPECT_EQ(polarity.toInt(), 1);
+        EXPECT_EQ(polarity.toInt(), -1);
         EXPECT_EQ(workflow.toString(), u8"");
         EXPECT_EQ(type.toInt(), static_cast<int>(ot::StorageBox::BLOCKCHAIN));
-        EXPECT_EQ(amount.toString(), u8"0.013 809 59 ₿");
-        EXPECT_EQ(text.toString(), u8"Incoming Bitcoin transaction");
+        EXPECT_EQ(amount.toString(), u8"-0.013 809 59 ₿");
+        EXPECT_EQ(text.toString(), u8"Outgoing Bitcoin transaction");
         EXPECT_EQ(memo.toString(), u8"");
 
         {
             auto expected = QDateTime{};
-            expected.setSecsSinceEpoch(ot::Clock::to_time_t(time_1_));
+            expected.setSecsSinceEpoch(ot::Clock::to_time_t(time_3_));
 
             EXPECT_EQ(time.toDateTime(), expected);
         }
 
         EXPECT_FALSE(uuid.toString().isEmpty());
     }
-
     {
-        ASSERT_TRUE(widget.hasIndex(1, 0));
-        ASSERT_TRUE(widget.hasIndex(1, 1));
-        ASSERT_TRUE(widget.hasIndex(1, 2));
-        ASSERT_TRUE(widget.hasIndex(1, 3));
-        ASSERT_TRUE(widget.hasIndex(1, 4));
+        constexpr auto row{1};
+
+        ASSERT_TRUE(widget.hasIndex(row, 0));
+        ASSERT_TRUE(widget.hasIndex(row, 1));
+        ASSERT_TRUE(widget.hasIndex(row, 2));
+        ASSERT_TRUE(widget.hasIndex(row, 3));
+        ASSERT_TRUE(widget.hasIndex(row, 4));
 
         const auto contacts =
-            widget.data(widget.index(1, 0), Model::ContactsRole);
+            widget.data(widget.index(row, 0), Model::ContactsRole);
         const auto polarity =
-            widget.data(widget.index(1, 0), Model::PolarityRole);
+            widget.data(widget.index(row, 0), Model::PolarityRole);
         const auto workflow =
-            widget.data(widget.index(1, 0), Model::WorkflowRole);
-        const auto type = widget.data(widget.index(1, 0), Model::TypeRole);
-        const auto amount = widget.data(widget.index(1, 0));
-        const auto text = widget.data(widget.index(1, 1));
-        const auto memo = widget.data(widget.index(1, 2));
-        const auto time = widget.data(widget.index(1, 3));
-        const auto uuid = widget.data(widget.index(1, 4));
+            widget.data(widget.index(row, 0), Model::WorkflowRole);
+        const auto type = widget.data(widget.index(row, 0), Model::TypeRole);
+        const auto amount = widget.data(widget.index(row, 0));
+        const auto text = widget.data(widget.index(row, 1));
+        const auto memo = widget.data(widget.index(row, 2));
+        const auto time = widget.data(widget.index(row, 3));
+        const auto uuid = widget.data(widget.index(row, 4));
 
         {
             const auto ids = contacts.toStringList();
@@ -1211,44 +1217,45 @@ TEST_F(Test_BlockchainActivity, send_account_activity_qt)
 
         EXPECT_FALSE(uuid.toString().isEmpty());
     }
-
     {
-        ASSERT_TRUE(widget.hasIndex(2, 0));
-        ASSERT_TRUE(widget.hasIndex(2, 1));
-        ASSERT_TRUE(widget.hasIndex(2, 2));
-        ASSERT_TRUE(widget.hasIndex(2, 3));
-        ASSERT_TRUE(widget.hasIndex(2, 4));
+        constexpr auto row{2};
+
+        ASSERT_TRUE(widget.hasIndex(row, 0));
+        ASSERT_TRUE(widget.hasIndex(row, 1));
+        ASSERT_TRUE(widget.hasIndex(row, 2));
+        ASSERT_TRUE(widget.hasIndex(row, 3));
+        ASSERT_TRUE(widget.hasIndex(row, 4));
 
         const auto contacts =
-            widget.data(widget.index(2, 0), Model::ContactsRole);
+            widget.data(widget.index(row, 0), Model::ContactsRole);
         const auto polarity =
-            widget.data(widget.index(2, 0), Model::PolarityRole);
+            widget.data(widget.index(row, 0), Model::PolarityRole);
         const auto workflow =
-            widget.data(widget.index(2, 0), Model::WorkflowRole);
-        const auto type = widget.data(widget.index(2, 0), Model::TypeRole);
-        const auto amount = widget.data(widget.index(2, 0));
-        const auto text = widget.data(widget.index(2, 1));
-        const auto memo = widget.data(widget.index(2, 2));
-        const auto time = widget.data(widget.index(2, 3));
-        const auto uuid = widget.data(widget.index(2, 4));
+            widget.data(widget.index(row, 0), Model::WorkflowRole);
+        const auto type = widget.data(widget.index(row, 0), Model::TypeRole);
+        const auto amount = widget.data(widget.index(row, 0));
+        const auto text = widget.data(widget.index(row, 1));
+        const auto memo = widget.data(widget.index(row, 2));
+        const auto time = widget.data(widget.index(row, 3));
+        const auto uuid = widget.data(widget.index(row, 4));
 
         {
             const auto ids = contacts.toStringList();
 
             ASSERT_EQ(ids.size(), 1);
-            EXPECT_EQ(ids.at(0).toStdString(), contact_7_id().str());
+            EXPECT_EQ(ids.at(0).toStdString(), contact_5_id().str());
         }
 
-        EXPECT_EQ(polarity.toInt(), -1);
+        EXPECT_EQ(polarity.toInt(), 1);
         EXPECT_EQ(workflow.toString(), u8"");
         EXPECT_EQ(type.toInt(), static_cast<int>(ot::StorageBox::BLOCKCHAIN));
-        EXPECT_EQ(amount.toString(), u8"-0.013 809 59 ₿");
-        EXPECT_EQ(text.toString(), u8"Outgoing Bitcoin transaction");
+        EXPECT_EQ(amount.toString(), u8"0.013 809 59 ₿");
+        EXPECT_EQ(text.toString(), u8"Incoming Bitcoin transaction");
         EXPECT_EQ(memo.toString(), u8"");
 
         {
             auto expected = QDateTime{};
-            expected.setSecsSinceEpoch(ot::Clock::to_time_t(time_3_));
+            expected.setSecsSinceEpoch(ot::Clock::to_time_t(time_1_));
 
             EXPECT_EQ(time.toDateTime(), expected);
         }
@@ -1465,30 +1472,31 @@ TEST_F(Test_BlockchainActivity, receive_unassigned_account_activity_qt)
     using Model = ot::ui::AccountActivityQt;
 
     {
-        ASSERT_TRUE(widget.hasIndex(0, 0));
-        ASSERT_TRUE(widget.hasIndex(0, 1));
-        ASSERT_TRUE(widget.hasIndex(0, 2));
-        ASSERT_TRUE(widget.hasIndex(0, 3));
-        ASSERT_TRUE(widget.hasIndex(0, 4));
+        constexpr auto row{0};
+
+        ASSERT_TRUE(widget.hasIndex(row, 0));
+        ASSERT_TRUE(widget.hasIndex(row, 1));
+        ASSERT_TRUE(widget.hasIndex(row, 2));
+        ASSERT_TRUE(widget.hasIndex(row, 3));
+        ASSERT_TRUE(widget.hasIndex(row, 4));
 
         const auto contacts =
-            widget.data(widget.index(0, 0), Model::ContactsRole);
+            widget.data(widget.index(row, 0), Model::ContactsRole);
         const auto polarity =
-            widget.data(widget.index(0, 0), Model::PolarityRole);
+            widget.data(widget.index(row, 0), Model::PolarityRole);
         const auto workflow =
-            widget.data(widget.index(0, 0), Model::WorkflowRole);
-        const auto type = widget.data(widget.index(0, 0), Model::TypeRole);
-        const auto amount = widget.data(widget.index(0, 0));
-        const auto text = widget.data(widget.index(0, 1));
-        const auto memo = widget.data(widget.index(0, 2));
-        const auto time = widget.data(widget.index(0, 3));
-        const auto uuid = widget.data(widget.index(0, 4));
+            widget.data(widget.index(row, 0), Model::WorkflowRole);
+        const auto type = widget.data(widget.index(row, 0), Model::TypeRole);
+        const auto amount = widget.data(widget.index(row, 0));
+        const auto text = widget.data(widget.index(row, 1));
+        const auto memo = widget.data(widget.index(row, 2));
+        const auto time = widget.data(widget.index(row, 3));
+        const auto uuid = widget.data(widget.index(row, 4));
 
         {
             const auto ids = contacts.toStringList();
 
-            ASSERT_EQ(ids.size(), 1);
-            EXPECT_EQ(ids.at(0).toStdString(), contact_5_id().str());
+            ASSERT_EQ(ids.size(), 0);
         }
 
         EXPECT_EQ(polarity.toInt(), 1);
@@ -1500,77 +1508,34 @@ TEST_F(Test_BlockchainActivity, receive_unassigned_account_activity_qt)
 
         {
             auto expected = QDateTime{};
-            expected.setSecsSinceEpoch(ot::Clock::to_time_t(time_1_));
+            expected.setSecsSinceEpoch(ot::Clock::to_time_t(time_4_));
 
             EXPECT_EQ(time.toDateTime(), expected);
         }
 
         EXPECT_FALSE(uuid.toString().isEmpty());
     }
-
     {
-        ASSERT_TRUE(widget.hasIndex(1, 0));
-        ASSERT_TRUE(widget.hasIndex(1, 1));
-        ASSERT_TRUE(widget.hasIndex(1, 2));
-        ASSERT_TRUE(widget.hasIndex(1, 3));
-        ASSERT_TRUE(widget.hasIndex(1, 4));
+        constexpr auto row{1};
+
+        ASSERT_TRUE(widget.hasIndex(row, 0));
+        ASSERT_TRUE(widget.hasIndex(row, 1));
+        ASSERT_TRUE(widget.hasIndex(row, 2));
+        ASSERT_TRUE(widget.hasIndex(row, 3));
+        ASSERT_TRUE(widget.hasIndex(row, 4));
 
         const auto contacts =
-            widget.data(widget.index(1, 0), Model::ContactsRole);
+            widget.data(widget.index(row, 0), Model::ContactsRole);
         const auto polarity =
-            widget.data(widget.index(1, 0), Model::PolarityRole);
+            widget.data(widget.index(row, 0), Model::PolarityRole);
         const auto workflow =
-            widget.data(widget.index(1, 0), Model::WorkflowRole);
-        const auto type = widget.data(widget.index(1, 0), Model::TypeRole);
-        const auto amount = widget.data(widget.index(1, 0));
-        const auto text = widget.data(widget.index(1, 1));
-        const auto memo = widget.data(widget.index(1, 2));
-        const auto time = widget.data(widget.index(1, 3));
-        const auto uuid = widget.data(widget.index(1, 4));
-
-        {
-            const auto ids = contacts.toStringList();
-
-            ASSERT_EQ(ids.size(), 1);
-            EXPECT_EQ(ids.at(0).toStdString(), contact_6_id().str());
-        }
-
-        EXPECT_EQ(polarity.toInt(), 1);
-        EXPECT_EQ(workflow.toString(), u8"");
-        EXPECT_EQ(type.toInt(), static_cast<int>(ot::StorageBox::BLOCKCHAIN));
-        EXPECT_EQ(amount.toString(), u8"0.013 809 59 ₿");
-        EXPECT_EQ(text.toString(), u8"Incoming Bitcoin transaction: Free Ross");
-        EXPECT_EQ(memo.toString(), u8"Free Ross");
-
-        {
-            auto expected = QDateTime{};
-            expected.setSecsSinceEpoch(ot::Clock::to_time_t(time_2_));
-
-            EXPECT_EQ(time.toDateTime(), expected);
-        }
-
-        EXPECT_FALSE(uuid.toString().isEmpty());
-    }
-
-    {
-        ASSERT_TRUE(widget.hasIndex(2, 0));
-        ASSERT_TRUE(widget.hasIndex(2, 1));
-        ASSERT_TRUE(widget.hasIndex(2, 2));
-        ASSERT_TRUE(widget.hasIndex(2, 3));
-        ASSERT_TRUE(widget.hasIndex(2, 4));
-
-        const auto contacts =
-            widget.data(widget.index(2, 0), Model::ContactsRole);
-        const auto polarity =
-            widget.data(widget.index(2, 0), Model::PolarityRole);
-        const auto workflow =
-            widget.data(widget.index(2, 0), Model::WorkflowRole);
-        const auto type = widget.data(widget.index(2, 0), Model::TypeRole);
-        const auto amount = widget.data(widget.index(2, 0));
-        const auto text = widget.data(widget.index(2, 1));
-        const auto memo = widget.data(widget.index(2, 2));
-        const auto time = widget.data(widget.index(2, 3));
-        const auto uuid = widget.data(widget.index(2, 4));
+            widget.data(widget.index(row, 0), Model::WorkflowRole);
+        const auto type = widget.data(widget.index(row, 0), Model::TypeRole);
+        const auto amount = widget.data(widget.index(row, 0));
+        const auto text = widget.data(widget.index(row, 1));
+        const auto memo = widget.data(widget.index(row, 2));
+        const auto time = widget.data(widget.index(row, 3));
+        const auto uuid = widget.data(widget.index(row, 4));
 
         {
             const auto ids = contacts.toStringList();
@@ -1595,31 +1560,78 @@ TEST_F(Test_BlockchainActivity, receive_unassigned_account_activity_qt)
 
         EXPECT_FALSE(uuid.toString().isEmpty());
     }
-
     {
-        ASSERT_TRUE(widget.hasIndex(3, 0));
-        ASSERT_TRUE(widget.hasIndex(3, 1));
-        ASSERT_TRUE(widget.hasIndex(3, 2));
-        ASSERT_TRUE(widget.hasIndex(3, 3));
-        ASSERT_TRUE(widget.hasIndex(3, 4));
+        constexpr auto row{2};
+
+        ASSERT_TRUE(widget.hasIndex(row, 0));
+        ASSERT_TRUE(widget.hasIndex(row, 1));
+        ASSERT_TRUE(widget.hasIndex(row, 2));
+        ASSERT_TRUE(widget.hasIndex(row, 3));
+        ASSERT_TRUE(widget.hasIndex(row, 4));
 
         const auto contacts =
-            widget.data(widget.index(3, 0), Model::ContactsRole);
+            widget.data(widget.index(row, 0), Model::ContactsRole);
         const auto polarity =
-            widget.data(widget.index(3, 0), Model::PolarityRole);
+            widget.data(widget.index(row, 0), Model::PolarityRole);
         const auto workflow =
-            widget.data(widget.index(3, 0), Model::WorkflowRole);
-        const auto type = widget.data(widget.index(3, 0), Model::TypeRole);
-        const auto amount = widget.data(widget.index(3, 0));
-        const auto text = widget.data(widget.index(3, 1));
-        const auto memo = widget.data(widget.index(3, 2));
-        const auto time = widget.data(widget.index(3, 3));
-        const auto uuid = widget.data(widget.index(3, 4));
+            widget.data(widget.index(row, 0), Model::WorkflowRole);
+        const auto type = widget.data(widget.index(row, 0), Model::TypeRole);
+        const auto amount = widget.data(widget.index(row, 0));
+        const auto text = widget.data(widget.index(row, 1));
+        const auto memo = widget.data(widget.index(row, 2));
+        const auto time = widget.data(widget.index(row, 3));
+        const auto uuid = widget.data(widget.index(row, 4));
 
         {
             const auto ids = contacts.toStringList();
 
-            ASSERT_EQ(ids.size(), 0);
+            ASSERT_EQ(ids.size(), 1);
+            EXPECT_EQ(ids.at(0).toStdString(), contact_6_id().str());
+        }
+
+        EXPECT_EQ(polarity.toInt(), 1);
+        EXPECT_EQ(workflow.toString(), u8"");
+        EXPECT_EQ(type.toInt(), static_cast<int>(ot::StorageBox::BLOCKCHAIN));
+        EXPECT_EQ(amount.toString(), u8"0.013 809 59 ₿");
+        EXPECT_EQ(text.toString(), u8"Incoming Bitcoin transaction: Free Ross");
+        EXPECT_EQ(memo.toString(), u8"Free Ross");
+
+        {
+            auto expected = QDateTime{};
+            expected.setSecsSinceEpoch(ot::Clock::to_time_t(time_2_));
+
+            EXPECT_EQ(time.toDateTime(), expected);
+        }
+
+        EXPECT_FALSE(uuid.toString().isEmpty());
+    }
+    {
+        constexpr auto row{3};
+
+        ASSERT_TRUE(widget.hasIndex(row, 0));
+        ASSERT_TRUE(widget.hasIndex(row, 1));
+        ASSERT_TRUE(widget.hasIndex(row, 2));
+        ASSERT_TRUE(widget.hasIndex(row, 3));
+        ASSERT_TRUE(widget.hasIndex(row, 4));
+
+        const auto contacts =
+            widget.data(widget.index(row, 0), Model::ContactsRole);
+        const auto polarity =
+            widget.data(widget.index(row, 0), Model::PolarityRole);
+        const auto workflow =
+            widget.data(widget.index(row, 0), Model::WorkflowRole);
+        const auto type = widget.data(widget.index(row, 0), Model::TypeRole);
+        const auto amount = widget.data(widget.index(row, 0));
+        const auto text = widget.data(widget.index(row, 1));
+        const auto memo = widget.data(widget.index(row, 2));
+        const auto time = widget.data(widget.index(row, 3));
+        const auto uuid = widget.data(widget.index(row, 4));
+
+        {
+            const auto ids = contacts.toStringList();
+
+            ASSERT_EQ(ids.size(), 1);
+            EXPECT_EQ(ids.at(0).toStdString(), contact_5_id().str());
         }
 
         EXPECT_EQ(polarity.toInt(), 1);
@@ -1631,7 +1643,7 @@ TEST_F(Test_BlockchainActivity, receive_unassigned_account_activity_qt)
 
         {
             auto expected = QDateTime{};
-            expected.setSecsSinceEpoch(ot::Clock::to_time_t(time_4_));
+            expected.setSecsSinceEpoch(ot::Clock::to_time_t(time_1_));
 
             EXPECT_EQ(time.toDateTime(), expected);
         }
