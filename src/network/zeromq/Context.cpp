@@ -127,8 +127,10 @@ Context::Context() noexcept
 
     constexpr auto sockets
     {
-#if _WIN32 || __APPLE__
+#if defined _WIN32
         1536
+#elif defined __APPLE__
+        1024
 #else
         16384
 #endif

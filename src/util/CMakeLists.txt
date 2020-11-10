@@ -5,13 +5,11 @@
 
 set(cxx-sources
     LMDB.cpp
-    PIDFile.cpp
     ScopeGuard.cpp
     Signals.cpp
     Sodium.cpp
 )
 set(cxx-install-headers
-    "${opentxs_SOURCE_DIR}/include/opentxs/util/PIDFile.hpp"
     "${opentxs_SOURCE_DIR}/include/opentxs/util/Signals.hpp"
     "${opentxs_SOURCE_DIR}/include/opentxs/util/WorkType.hpp"
 )
@@ -21,7 +19,6 @@ set(cxx-headers
     Container.hpp
     HDIndex.hpp
     LMDB.hpp
-    PIDFile.hpp
     Polarity.hpp
     ScopeGuard.hpp
     Sodium.hpp

@@ -7,6 +7,7 @@
 // IWYU pragma: private
 // IWYU pragma: friend ".*src/api/Context.cpp"
 
+#include <boost/interprocess/sync/file_lock.hpp>
 #include <chrono>
 #include <cstdint>
 #include <iosfwd>
@@ -53,7 +54,6 @@ struct RPC;
 class Flag;
 class OTCallback;
 class OTCaller;
-class PIDFile;
 class Signals;
 }  // namespace opentxs
 
@@ -125,7 +125,7 @@ private:
     std::unique_ptr<OTCallback> null_callback_;
     std::unique_ptr<OTCaller> default_external_password_callback_;
     OTCaller* external_password_callback_;
-    mutable std::unique_ptr<opentxs::PIDFile> pid_;
+    mutable boost::interprocess::file_lock file_lock_;
     mutable std::vector<std::unique_ptr<api::server::Manager>> server_;
     mutable std::vector<std::unique_ptr<api::client::internal::Manager>>
         client_;

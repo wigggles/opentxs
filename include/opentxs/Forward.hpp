@@ -374,7 +374,6 @@ class OTTransactionType;
 class OTVariable;
 class OTWallet;
 class OT_API;
-class PIDFile;
 class PairEventCallbackSwig;
 class PasswordPrompt;
 class PayDividendVisitor;
