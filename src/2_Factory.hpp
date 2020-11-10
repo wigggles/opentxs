@@ -650,7 +650,6 @@ public:
         const Nym_p& nym,
         const proto::PeerRequest& serialized) noexcept
         -> std::shared_ptr<contract::peer::Request>;
-    static auto PIDFile(const std::string& path) -> opentxs::PIDFile*;
     static auto PrimaryCredential(
         const api::internal::Core& api,
         identity::internal::Authority& parent,

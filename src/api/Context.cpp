@@ -15,10 +15,12 @@ extern "C" {
 
 #include <algorithm>
 #include <cassert>
+#include <fstream>  // IWYU pragma: keep
 #include <functional>
 #include <map>
 #include <mutex>
 #include <set>
+#include <stdexcept>
 #include <string>
 #include <utility>
 #include <vector>
@@ -48,7 +50,6 @@ extern "C" {
 #include "opentxs/crypto/Language.hpp"
 #include "opentxs/crypto/SeedStyle.hpp"
 #include "opentxs/protobuf/RPCResponse.pb.h"
-#include "opentxs/util/PIDFile.hpp"
 #include "opentxs/util/Signals.hpp"
 
 // #define OT_METHOD "opentxs::api::implementation::Context::"
@@ -104,7 +105,7 @@ Context::Context(
     , null_callback_(nullptr)
     , default_external_password_callback_(nullptr)
     , external_password_callback_{externalPasswordCallback}
-    , pid_(nullptr)
+    , file_lock_()
     , server_()
     , client_()
 #if OT_RPC
@@ -268,20 +269,27 @@ void Context::Init_Log(const std::int32_t argLevel)
     }
 }
 
-void Context::init_pid(const Lock& lock) const
+void Context::init_pid(const Lock&) const
 {
-    if (false == bool(pid_)) {
-        OT_ASSERT(legacy_);
+    try {
+        const auto path = legacy_->PIDFilePath();
+        {
+            std::ofstream(path.c_str());
+        }
 
-        pid_.reset(opentxs::Factory::PIDFile(legacy_->PIDFilePath()));
+        auto lock = boost::interprocess::file_lock{path.c_str()};
 
-        OT_ASSERT(pid_);
+        if (false == lock.try_lock()) {
+            throw std::runtime_error(
+                "Another process has locked the data directory");
+        }
 
-        pid_->Open();
+        file_lock_.swap(lock);
+    } catch (const std::exception& e) {
+        LogNormal(e.what()).Flush();
+
+        OT_FAIL;
     }
-
-    OT_ASSERT(pid_);
-    OT_ASSERT(pid_->isOpen());
 }
 
 #ifndef _WIN32
@@ -534,9 +542,6 @@ Context::~Context()
 {
     client_.clear();
     server_.clear();
-
-    if (pid_) { pid_->Close(); }
-
     LogSource::Shutdown();
     log_.reset();
 }

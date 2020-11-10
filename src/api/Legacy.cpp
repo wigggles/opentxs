@@ -31,7 +31,7 @@ extern "C" {
 #define SERVER_CONFIG_KEY "server"
 #define DATA_FOLDER_EXT "_data"
 #define CONFIG_FILE_EXT ".cfg"
-#define PID_FILE "opentxs.pid"
+#define PID_FILE "opentxs.lock"
 
 //#define OT_METHOD "opentxs::Legacy::"
 
