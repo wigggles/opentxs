@@ -7,42 +7,69 @@ jobs:
     strategy:
       matrix:
         binding: [qt, java]
+        arch: [arm64, arm, x64, x86]
         include:
           - binding: qt
             platform: ubuntu-20.04
-            docker: v8
+            docker: v9
           - binding: java
             platform: ubuntu-20.04
-            docker: v8
+            docker: v9
     runs-on: ${{ matrix.platform }}
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
       with:
+        fetch-depth: '0'
         submodules: 'recursive'
     - name: Setup build environment
       run: |
         docker pull opentransactions/android:${{ matrix.docker }}
-    - name: Build arm64
+    - name: Compile
       run: |
-        mkdir -p /tmp/opentxs-for-android/arm64
-        docker run --read-only --tmpfs /tmp/build:rw,nosuid,size=2g --mount type=bind,src=${{ github.workspace }},dst=/home/src --mount type=bind,src=/tmp/opentxs-for-android/arm64,dst=/home/output -i opentransactions/android:${{ matrix.docker }} arm64 ${{ matrix.binding }}
-    - name: Build arm
-      run: |
-        mkdir -p /tmp/opentxs-for-android/arm
-        docker run --read-only --tmpfs /tmp/build:rw,nosuid,size=2g --mount type=bind,src=${{ github.workspace }},dst=/home/src --mount type=bind,src=/tmp/opentxs-for-android/arm,dst=/home/output -i opentransactions/android:${{ matrix.docker }} arm ${{ matrix.binding }}
-    - name: Build x64
-      run: |
-        mkdir -p /tmp/opentxs-for-android/x64
-        docker run --read-only --tmpfs /tmp/build:rw,nosuid,size=2g --mount type=bind,src=${{ github.workspace }},dst=/home/src --mount type=bind,src=/tmp/opentxs-for-android/x64,dst=/home/output -i opentransactions/android:${{ matrix.docker }} x64 ${{ matrix.binding }}
-    - name: Build x86
-      run: |
-        mkdir -p /tmp/opentxs-for-android/x86
-        docker run --read-only --tmpfs /tmp/build:rw,nosuid,size=2g --mount type=bind,src=${{ github.workspace }},dst=/home/src --mount type=bind,src=/tmp/opentxs-for-android/x86,dst=/home/output -i opentransactions/android:${{ matrix.docker }} x86 ${{ matrix.binding }}
+        mkdir -p ${{ runner.temp }}/opentxs-for-android/${{ matrix.arch }}
+        docker run --read-only --tmpfs /tmp/build:rw,nosuid,size=2g --mount type=bind,src=${{ github.workspace }},dst=/home/src --mount type=bind,src=${{ runner.temp }}/opentxs-for-android/${{ matrix.arch }},dst=/home/output -i opentransactions/android:${{ matrix.docker }} ${{ matrix.arch }} ${{ matrix.binding }}
+    - uses: actions/upload-artifact@v2
+      with:
+        name: ${{ matrix.arch }}-${{ matrix.binding }}
+        path: ${{ runner.temp }}/opentxs-for-android/${{ matrix.arch }}
+        if-no-files-found: error
+  package:
+    needs: build
+    strategy:
+      matrix:
+        binding: [qt, java]
+    runs-on: ubuntu-20.04
+    steps:
+    - run: |
+        mkdir -p ${{ runner.temp }}/opentxs-for-android/
+    - uses: actions/download-artifact@v2
+      with:
+        name: arm64-${{ matrix.binding }}
+        path: ${{ runner.temp }}/opentxs-for-android/arm64
+    - uses: actions/download-artifact@v2
+      with:
+        name: arm64-${{ matrix.binding }}
+        path: ${{ runner.temp }}/opentxs-for-android/arm
+    - uses: actions/download-artifact@v2
+      with:
+        name: arm64-${{ matrix.binding }}
+        path: ${{ runner.temp }}/opentxs-for-android/x64
+    - uses: actions/download-artifact@v2
+      with:
+        name: arm64-${{ matrix.binding }}
+        path: ${{ runner.temp }}/opentxs-for-android/x86
     - name: Package artifacts
       run: |
-        cd /tmp
+        cd ${{ runner.temp }}
         zip -r opentxs-for-android.zip opentxs-for-android/
-    - uses: actions/upload-artifact@v1
+    - uses: actions/upload-artifact@v2
       with:
-        name: opentxs-for-android_${{ matrix.binding }}.zip
-        path: /tmp/opentxs-for-android.zip
+        name: opentxs-for-android_${{ matrix.binding }}
+        path: ${{ runner.temp }}/opentxs-for-android.zip
+    - uses: geekyeggo/delete-artifact@v1
+      with:
+        name: |
+          arm64-${{ matrix.binding }}
+          arm-${{ matrix.binding }}
+          x64-${{ matrix.binding }}
+          x86-${{ matrix.binding }}
