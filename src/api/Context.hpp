@@ -73,6 +73,7 @@ public:
     {
         return *legacy_;
     }
+    auto ProfileId() const -> std::string final;
     auto RPC(const proto::RPCCommand& command) const
         -> proto::RPCResponse final;
     auto Server(const int instance) const -> const api::server::Manager& final;
@@ -100,7 +101,6 @@ public:
     Context(
         Flag& running,
         const ArgList& args,
-        const std::chrono::seconds gcInterval,
         OTCaller* externalPasswordCallback = nullptr);
 
     ~Context() final;
@@ -121,6 +121,7 @@ private:
     std::unique_ptr<api::Legacy> legacy_;
     std::unique_ptr<api::network::ZAP> zap_;
     const ArgList args_;
+    std::string profile_id_;
     mutable ShutdownCallback* shutdown_callback_;
     std::unique_ptr<OTCallback> null_callback_;
     std::unique_ptr<OTCaller> default_external_password_callback_;
@@ -149,6 +150,7 @@ private:
 #ifndef _WIN32
     void Init_Rlimit() noexcept;
 #endif  // _WIN32
+    void Init_Profile();
     void Init_Zap();
     void Init() final;
     void setup_default_external_password_callback();

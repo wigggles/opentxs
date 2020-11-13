@@ -19,18 +19,20 @@ OTCaller::OTCaller()
 {
 }
 
-void OTCaller::AskOnce(const PasswordPrompt& prompt, Secret& output)
+void OTCaller::AskOnce(const PasswordPrompt& prompt, Secret& output,
+    const std::string& key)
 {
     OT_ASSERT(callback_);
 
-    callback_->runOne(prompt.GetDisplayString(), output);
+    callback_->runOne(prompt.GetDisplayString(), output, key);
 }
 
-void OTCaller::AskTwice(const PasswordPrompt& prompt, Secret& output)
+void OTCaller::AskTwice(const PasswordPrompt& prompt, Secret& output,
+    const std::string& key)
 {
     OT_ASSERT(callback_);
 
-    callback_->runTwo(prompt.GetDisplayString(), output);
+    callback_->runTwo(prompt.GetDisplayString(), output, key);
 }
 
 auto OTCaller::HaveCallback() const -> bool { return nullptr != callback_; }

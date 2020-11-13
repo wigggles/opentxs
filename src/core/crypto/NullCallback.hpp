@@ -24,8 +24,10 @@ namespace opentxs::implementation
 class NullCallback final : virtual public OTCallback
 {
 public:
-    void runOne(const char* display, Secret& output) const final;
-    void runTwo(const char* display, Secret& output) const final;
+    void runOne(const char* display, Secret& output,
+        const std::string& key) const final;
+    void runTwo(const char* display, Secret& output,
+        const std::string& key) const final;
 
     NullCallback() = default;
 

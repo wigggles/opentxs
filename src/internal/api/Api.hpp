@@ -61,7 +61,8 @@ struct Core : virtual public api::Core {
         const opentxs::Lock& lock,
         Secret& secret,
         const PasswordPrompt& reason,
-        const bool twice) const -> bool = 0;
+        const bool twice,
+        const std::string& key="") const -> bool = 0;
     virtual auto Legacy() const noexcept -> const api::Legacy& = 0;
     virtual auto Lock() const -> std::mutex& = 0;
     virtual auto MasterKey(const opentxs::Lock& lock) const
@@ -88,7 +89,6 @@ namespace opentxs::factory
 auto Context(
     Flag& running,
     const ArgList& args,
-    const std::chrono::seconds gcInterval,
     OTCaller* externalPasswordCallback = nullptr) noexcept
     -> std::unique_ptr<api::internal::Context>;
 auto Endpoints(const network::zeromq::Context& zmq, const int instance) noexcept

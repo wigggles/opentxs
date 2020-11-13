@@ -41,6 +41,7 @@ extern "C" {
 #include "opentxs/api/HDSeed.hpp"
 #endif  // OT_CRYPTO_WITH_BIP32
 #include "opentxs/api/Primitives.hpp"
+#include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
@@ -59,14 +60,13 @@ namespace opentxs::factory
 auto Context(
     Flag& running,
     const ArgList& args,
-    const std::chrono::seconds gcInterval,
     OTCaller* externalPasswordCallback) noexcept
     -> std::unique_ptr<api::internal::Context>
 {
     using ReturnType = api::implementation::Context;
 
     return std::make_unique<ReturnType>(
-        running, args, gcInterval, externalPasswordCallback);
+        running, args, externalPasswordCallback);
 }
 }  // namespace opentxs::factory
 
@@ -83,7 +83,6 @@ namespace opentxs::api::implementation
 Context::Context(
     Flag& running,
     const ArgList& args,
-    [[maybe_unused]] const std::chrono::seconds gcInterval,
     OTCaller* externalPasswordCallback)
     : api::internal::Context()
     , Lockable()
@@ -101,6 +100,7 @@ Context::Context(
     , legacy_(factory::Legacy(home_))
     , zap_(nullptr)
     , args_(args)
+    , profile_id_()
     , shutdown_callback_(nullptr)
     , null_callback_(nullptr)
     , default_external_password_callback_(nullptr)
@@ -212,6 +212,11 @@ void Context::HandleSignals(ShutdownCallback* callback) const
 #endif
 }
 
+auto Context::ProfileId() const -> std::string
+{
+    return profile_id_;
+}
+
 void Context::Init()
 {
     std::int32_t argLevel{-2};
@@ -224,6 +229,7 @@ void Context::Init()
     Init_Log(argLevel);
     Init_Crypto();
     Init_Factory();
+    Init_Profile();
 #ifndef _WIN32
     Init_Rlimit();
 #endif  // _WIN32
@@ -232,9 +238,34 @@ void Context::Init()
 
 void Context::Init_Crypto()
 {
-    crypto_ = factory::Crypto(Config(legacy_->CryptoConfigFilePath()));
+    crypto_ = factory::Crypto(Config(legacy_->OpentxsConfigFilePath()));
 
     OT_ASSERT(crypto_);
+}
+
+void Context::Init_Profile()
+{
+    const auto& config = Config(legacy_->OpentxsConfigFilePath());
+    bool profile_id_exists{false};
+    auto existing_profile_id{String::Factory()};
+    config.Check_str(
+        String::Factory("profile"),
+        String::Factory("profile_id"),
+        existing_profile_id,
+        profile_id_exists);
+    if (profile_id_exists) {
+        profile_id_ = std::string(existing_profile_id->Get());
+    }
+    else {
+        const auto new_profile_id(crypto_->Encode().Nonce(20));
+        bool new_or_update{true};
+        config.Set_str(
+            String::Factory("profile"),
+            String::Factory("profile_id"),
+            new_profile_id,
+            new_or_update);
+        profile_id_ = std::string(new_profile_id->Get());
+    }
 }
 
 void Context::Init_Factory()
@@ -248,7 +279,7 @@ void Context::Init_Log(const std::int32_t argLevel)
 {
     OT_ASSERT(legacy_)
 
-    const auto& config = Config(legacy_->LogConfigFilePath());
+    const auto& config = Config(legacy_->OpentxsConfigFilePath());
     bool notUsed{false};
     std::int64_t level{0};
 

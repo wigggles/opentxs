@@ -26,8 +26,7 @@ extern "C" {
 #include "opentxs/core/String.hpp"
 
 #define CLIENT_CONFIG_KEY "client"
-#define CRYPTO_CONFIG_KEY "crypto"
-#define LOG_CONFIG_KEY "log"
+#define OPENTXS_CONFIG_KEY "opentxs"
 #define SERVER_CONFIG_KEY "server"
 #define DATA_FOLDER_EXT "_data"
 #define CONFIG_FILE_EXT ".cfg"
@@ -81,8 +80,7 @@ Legacy::Legacy(const std::string& home) noexcept
     , client_data_folder_(std::string(CLIENT_CONFIG_KEY) + DATA_FOLDER_EXT)
     , server_data_folder_(std::string(SERVER_CONFIG_KEY) + DATA_FOLDER_EXT)
     , client_config_file_(std::string(CLIENT_CONFIG_KEY) + CONFIG_FILE_EXT)
-    , crypto_config_file_(std::string(CRYPTO_CONFIG_KEY) + CONFIG_FILE_EXT)
-    , log_config_file_(std::string(LOG_CONFIG_KEY) + CONFIG_FILE_EXT)
+    , opentxs_config_file_(std::string(OPENTXS_CONFIG_KEY) + CONFIG_FILE_EXT)
     , server_config_file_(std::string(SERVER_CONFIG_KEY) + CONFIG_FILE_EXT)
     , pid_file_(PID_FILE)
 {
@@ -163,11 +161,6 @@ auto Legacy::ConfirmCreateFolder(const String& path) const noexcept -> bool
 
         return false;
     }
-}
-
-auto Legacy::CryptoConfigFilePath() const noexcept -> std::string
-{
-    return get_file(crypto_config_file_);
 }
 
 auto Legacy::FileExists(const String& path, std::size_t& size) const noexcept
@@ -290,9 +283,9 @@ auto Legacy::get_path(const std::string& fragment, const int instance)
     return output->Get();
 }
 
-auto Legacy::LogConfigFilePath() const noexcept -> std::string
+auto Legacy::OpentxsConfigFilePath() const noexcept -> std::string
 {
-    return get_file(log_config_file_);
+    return get_file(opentxs_config_file_);
 }
 
 auto Legacy::PathExists(const String& path) const noexcept -> bool

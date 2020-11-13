@@ -44,18 +44,15 @@ void Cleanup()
     }
 }
 
-auto InitContext(
-    const ArgList& args,
-    const std::chrono::seconds gcInterval,
-    OTCaller* externalPasswordCallback) -> const api::Context&
+auto InitContext(const ArgList& args, OTCaller* externalPasswordCallback)
+    -> const api::Context&
 {
     if (nullptr != instance_pointer_) {
         std::runtime_error("Context is not initialized");
     }
 
     instance_pointer_ =
-        factory::Context(running_, args, gcInterval, externalPasswordCallback)
-            .release();
+        factory::Context(running_, args, externalPasswordCallback).release();
 
     OT_ASSERT(nullptr != instance_pointer_);
 

@@ -42,7 +42,6 @@ OPENTXS_EXPORT void Cleanup();
  */
 OPENTXS_EXPORT const api::Context& InitContext(
     const ArgList& args = {},
-    const std::chrono::seconds gcInterval = std::chrono::seconds(0),
     OTCaller* externalPasswordCallback = nullptr);
 
 /** Wait on context shutdown
