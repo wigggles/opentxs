@@ -82,7 +82,8 @@ public:
         const opentxs::Lock& lock,
         Secret& secret,
         const PasswordPrompt& reason,
-        const bool twice) const -> bool final;
+        const bool twice,
+        const std::string& key) const -> bool final;
     auto Instance() const -> int final { return instance_; }
     auto Legacy() const noexcept -> const api::Legacy& final
     {
@@ -154,6 +155,6 @@ private:
     Core(const Core&) = delete;
     Core(Core&&) = delete;
     auto operator=(const Core&) -> Core& = delete;
-    auto operator=(Core &&) -> Core& = delete;
+    auto operator=(Core&&) -> Core& = delete;
 };
 }  // namespace opentxs::api::implementation

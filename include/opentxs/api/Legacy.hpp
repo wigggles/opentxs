@@ -41,18 +41,16 @@ public:
         const String& path) const noexcept = 0;
     OPENTXS_EXPORT virtual const char* Contract() const noexcept = 0;
     OPENTXS_EXPORT virtual const char* Cron() const noexcept = 0;
-    OPENTXS_EXPORT virtual std::string CryptoConfigFilePath()
-        const noexcept = 0;
     OPENTXS_EXPORT virtual const char* ExpiredBox() const noexcept = 0;
     OPENTXS_EXPORT virtual bool FileExists(
         const String& path,
         std::size_t& size) const noexcept = 0;
     OPENTXS_EXPORT virtual const char* Inbox() const noexcept = 0;
-    OPENTXS_EXPORT virtual std::string LogConfigFilePath() const noexcept = 0;
     OPENTXS_EXPORT virtual const char* Market() const noexcept = 0;
     OPENTXS_EXPORT virtual const char* Mint() const noexcept = 0;
     OPENTXS_EXPORT virtual const char* Nym() const noexcept = 0;
     OPENTXS_EXPORT virtual const char* Nymbox() const noexcept = 0;
+    OPENTXS_EXPORT virtual std::string OpentxsConfigFilePath() const noexcept = 0;
     OPENTXS_EXPORT virtual const char* Outbox() const noexcept = 0;
     OPENTXS_EXPORT virtual bool PathExists(
         const String& path) const noexcept = 0;

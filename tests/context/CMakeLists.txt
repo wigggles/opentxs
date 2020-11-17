@@ -12,3 +12,6 @@ add_opentx_low_level_test(
 add_opentx_low_level_test(
   unittests-opentxs-context-server-session Test_ServerSession.cpp
 )
+add_opentx_low_level_test(
+  unittests-opentxs-context-password-callback Test_PasswordCallback.cpp
+)

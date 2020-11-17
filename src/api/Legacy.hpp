@@ -44,7 +44,6 @@ public:
     auto ConfirmCreateFolder(const String& path) const noexcept -> bool final;
     auto Contract() const noexcept -> const char* final { return contract_; }
     auto Cron() const noexcept -> const char* final { return cron_; }
-    auto CryptoConfigFilePath() const noexcept -> std::string final;
     auto ExpiredBox() const noexcept -> const char* final
     {
         return expired_box_;
@@ -52,11 +51,11 @@ public:
     auto FileExists(const String& path, std::size_t& size) const noexcept
         -> bool final;
     auto Inbox() const noexcept -> const char* final { return inbox_; }
-    auto LogConfigFilePath() const noexcept -> std::string final;
     auto Market() const noexcept -> const char* final { return market_; }
     auto Mint() const noexcept -> const char* final { return mint_; }
     auto Nym() const noexcept -> const char* final { return nym_; }
     auto Nymbox() const noexcept -> const char* final { return nymbox_; }
+    auto OpentxsConfigFilePath() const noexcept -> std::string final;
     auto Outbox() const noexcept -> const char* final { return outbox_; }
     auto PathExists(const String& path) const noexcept -> bool final;
     auto PIDFilePath() const noexcept -> std::string final;
@@ -95,8 +94,7 @@ private:
     const std::string client_data_folder_;
     const std::string server_data_folder_;
     const std::string client_config_file_;
-    const std::string crypto_config_file_;
-    const std::string log_config_file_;
+    const std::string opentxs_config_file_;
     const std::string server_config_file_;
     const std::string pid_file_;
 

@@ -53,6 +53,7 @@ public:
     OPENTXS_EXPORT virtual const api::Primitives& Factory() const = 0;
     OPENTXS_EXPORT virtual void HandleSignals(
         ShutdownCallback* callback = nullptr) const = 0;
+    OPENTXS_EXPORT virtual std::string ProfileId() const = 0;
     OPENTXS_EXPORT virtual proto::RPCResponse RPC(
         const proto::RPCCommand& command) const = 0;
     /** Throws std::out_of_range if the specified server does not exist. */

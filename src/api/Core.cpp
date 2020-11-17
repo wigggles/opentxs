@@ -190,7 +190,8 @@ auto Core::GetSecret(
     const opentxs::Lock& lock,
     Secret& secret,
     const PasswordPrompt& reason,
-    const bool twice) const -> bool
+    const bool twice,
+    const std::string& key) const -> bool
 {
     bump_password_timer(lock);
 
@@ -213,10 +214,12 @@ auto Core::GetSecret(
     auto masterPassword = factory_.Secret(256);
     OTPasswordPrompt prompt{reason};
 
+    const std::string password_key{key.empty() ? parent_.ProfileId() : key};
+
     if (twice) {
-        callback.AskTwice(reason, masterPassword);
+        callback.AskTwice(reason, masterPassword, password_key);
     } else {
-        callback.AskOnce(reason, masterPassword);
+        callback.AskOnce(reason, masterPassword, password_key);
     }
 
     prompt->SetPassword(masterPassword);
@@ -277,7 +280,7 @@ auto Core::make_master_key(
 
     auto reason = factory.PasswordPrompt("Choose a master password");
     auto masterPassword = factory.Secret(0);
-    caller.AskTwice(reason, masterPassword);
+    caller.AskTwice(reason, masterPassword, parent.ProfileId());
     reason->SetPassword(masterPassword);
     auto output = symmetric.Key(reason, proto::SMODE_CHACHA20POLY1305);
     auto saved = output->Encrypt(
