@@ -75,8 +75,8 @@ public:
     QVariant qt_data(const int column, const int role) const noexcept override;
 #endif
 
-    void reindex(const IssuerItemSortKey& key, CustomData& custom) noexcept
-        final;
+    auto reindex(const IssuerItemSortKey& key, CustomData& custom) noexcept
+        -> bool final;
 
     AccountSummaryItem(
         const IssuerItemInternalInterface& parent,

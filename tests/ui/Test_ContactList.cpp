@@ -160,4 +160,9 @@ TEST_F(Test_ContactList, add_chris_state)
     EXPECT_EQ(chris.get().DisplayName(), CHRIS_NYM_NAME);
     EXPECT_TRUE(chris.get().Last());
 }
+
+TEST_F(Test_ContactList, shutdown)
+{
+    EXPECT_EQ(contact_list_widget_.expected_, contact_list_widget_.updated_);
+}
 }  // namespace

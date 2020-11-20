@@ -122,6 +122,11 @@ public:
     {
         return database_.GetBalance();
     }
+    auto GetBalance(const identifier::Nym& owner) const noexcept
+        -> Balance final
+    {
+        return database_.GetBalance(owner);
+    }
     auto GetConfirmations(const std::string& txid) const noexcept
         -> ChainHeight final;
     auto GetHeight() const noexcept -> ChainHeight final

@@ -36,6 +36,7 @@
 #include "opentxs/blockchain/block/bitcoin/Output.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/crypto/Types.hpp"
 #include "opentxs/protobuf/BlockchainTransactionProposal.pb.h"
 #include "util/LMDB.hpp"
@@ -123,6 +124,7 @@ public:
     auto ForgetProposals(const std::set<OTIdentifier>& ids) const noexcept
         -> bool;
     auto GetBalance() const noexcept -> Balance;
+    auto GetBalance(const identifier::Nym& owner) const noexcept -> Balance;
     auto GetPatterns(
         const NodeID& balanceNode,
         const Subchain subchain,
@@ -233,6 +235,7 @@ private:
     using VersionIndex = std::map<OTIdentifier, VersionNumber>;
     using PositionMap = std::map<OTIdentifier, block::Position>;
     using MatchIndex = std::map<block::pHash, IDSet>;
+    using Owners = std::set<OTNymID>;
     using OutputMap = std::map<
         block::bitcoin::Outpoint,
         std::tuple<
@@ -258,6 +261,8 @@ private:
     using OutputProposalMap = std::map<block::bitcoin::Outpoint, OTIdentifier>;
     using FinishedProposals = std::set<OTIdentifier>;
     using ChangeKeyMap = std::map<OTIdentifier, std::vector<KeyID>>;
+    using NymMap = std::map<OTNymID, std::set<block::bitcoin::Outpoint>>;
+    using NymBalances = std::map<OTNymID, Balance>;
 
     const api::Core& api_;
     const api::client::internal::Blockchain& blockchain_;
@@ -285,6 +290,7 @@ private:
     mutable OutputProposalMap outpoint_proposal_;
     mutable FinishedProposals finished_proposals_;  // NOTE don't move to lmdb
     mutable ChangeKeyMap change_keys_;
+    mutable NymMap nym_map_;
 
     static auto owns(
         const identifier::Nym& spender,
@@ -304,6 +310,9 @@ private:
         const block::Position& position) const noexcept
         -> const block::Position&;
     auto get_balance(const Lock& lock) const noexcept -> Balance;
+    auto get_balance(const Lock& lock, const identifier::Nym& owner)
+        const noexcept -> Balance;
+    auto get_balances(const Lock& lock) const noexcept -> NymBalances;
     auto get_patterns(
         const Lock& lock,
         const NodeID& balanceNode,
@@ -352,6 +361,7 @@ private:
         const block::Position newPosition) const noexcept -> bool;
     auto create_state(
         const Lock& lock,
+        const Owners& owners,
         const block::bitcoin::Outpoint& id,
         const TxoState state,
         const block::Position position,

@@ -10,20 +10,15 @@
 #include <cstdint>
 #include <memory>
 #include <string>
-#include <thread>
 
 #include "internal/api/client/Client.hpp"
 #include "opentxs/Pimpl.hpp"
-#include "opentxs/SharedPimpl.hpp"
-#include "opentxs/api/Wallet.hpp"
-#include "opentxs/api/client/OTX.hpp"
 #include "opentxs/api/client/Workflow.hpp"
 #include "opentxs/core/Cheque.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/protobuf/PaymentEvent.pb.h"
@@ -47,15 +42,9 @@ ChequeBalanceItem::ChequeBalanceItem(
     : BalanceItem(parent, api, rowID, sortKey, custom, nymID, accountID)
     , cheque_(nullptr)
 {
-    OT_ASSERT(2 == custom.size())
-
-    startup_.reset(new std::thread(
-        &ChequeBalanceItem::startup,
-        this,
+    startup(
         extract_custom<proto::PaymentWorkflow>(custom, 0),
-        extract_custom<proto::PaymentEvent>(custom, 1)));
-
-    OT_ASSERT(startup_)
+        extract_custom<proto::PaymentEvent>(custom, 1));
 }
 
 auto ChequeBalanceItem::effective_amount() const noexcept -> opentxs::Amount
@@ -93,26 +82,6 @@ auto ChequeBalanceItem::effective_amount() const noexcept -> opentxs::Amount
     return amount * sign;
 }
 
-auto ChequeBalanceItem::get_contract() const noexcept -> bool
-{
-    if (0 < contract_->Version()) { return true; }
-
-    eLock lock(shared_lock_);
-    const auto& contractID = cheque_->GetInstrumentDefinitionID();
-
-    try {
-        contract_ = api_.Wallet().UnitDefinition(contractID);
-
-        return true;
-    } catch (...) {
-    }
-
-    api_.OTX().DownloadUnitDefinition(
-        nym_id_, api_.OTX().IntroductionServer(), contractID);
-
-    return false;
-}
-
 auto ChequeBalanceItem::Memo() const noexcept -> std::string
 {
     sLock lock(shared_lock_);
@@ -122,31 +91,34 @@ auto ChequeBalanceItem::Memo() const noexcept -> std::string
     return {};
 }
 
-void ChequeBalanceItem::reindex(
+auto ChequeBalanceItem::reindex(
     const implementation::AccountActivitySortKey& key,
-    implementation::CustomData& custom) noexcept
+    implementation::CustomData& custom) noexcept -> bool
 {
-    OT_ASSERT(2 == custom.size())
-
-    BalanceItem::reindex(key, custom);
-    startup(
+    auto output = BalanceItem::reindex(key, custom);
+    output |= startup(
         extract_custom<proto::PaymentWorkflow>(custom, 0),
         extract_custom<proto::PaymentEvent>(custom, 1));
+
+    return output;
 }
 
-void ChequeBalanceItem::startup(
+auto ChequeBalanceItem::startup(
     const proto::PaymentWorkflow workflow,
-    const proto::PaymentEvent event) noexcept
+    const proto::PaymentEvent event) noexcept -> bool
 {
     eLock lock(shared_lock_);
-    cheque_ = api::client::Workflow::InstantiateCheque(api_, workflow).second;
+
+    if (false == bool(cheque_)) {
+        cheque_ =
+            api::client::Workflow::InstantiateCheque(api_, workflow).second;
+    }
 
     OT_ASSERT(cheque_)
 
     lock.unlock();
-    get_contract();
-    std::string name{""};
-    std::string text{""};
+    auto name = std::string{};
+    auto text = std::string{};
     auto number = std::to_string(cheque_->GetTransactionNum());
     auto otherNymID = identifier::Nym::Factory();
 
@@ -221,10 +193,17 @@ void ChequeBalanceItem::startup(
         }
     }
 
+    auto output{false};
     lock.lock();
-    text_ = text;
+
+    if (text_ != text) {
+        text_ = text;
+        output = true;
+    }
+
     lock.unlock();
-    UpdateNotify();
+
+    return output;
 }
 
 auto ChequeBalanceItem::UUID() const noexcept -> std::string

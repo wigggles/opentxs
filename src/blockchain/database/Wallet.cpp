@@ -16,6 +16,7 @@
 #include <stdexcept>
 #include <string>
 #include <tuple>
+#include <type_traits>
 
 #include "internal/api/client/Client.hpp"
 #include "internal/blockchain/block/bitcoin/Bitcoin.hpp"
@@ -93,6 +94,7 @@ Wallet::Wallet(
     , outpoint_proposal_()
     , finished_proposals_()
     , change_keys_()
+    , nym_map_()
 {
     // TODO persist default_filter_type_ and reindex various tables
     // if the type provided by the filter oracle has changed
@@ -198,7 +200,23 @@ auto Wallet::AddConfirmedTransaction(
             block::bitcoin::Outpoint{copy.ID().Bytes(), index};
         const auto& output = copy.Outputs().at(index);
 
+        OT_ASSERT((0 < output.Keys().size()));
+
+        const auto owners = [&] {
+            auto val = Owners{};
+
+            for (const auto& key : output.Keys()) {
+                val.emplace(blockchain_.Owner(key));
+            }
+
+            return val;
+        }();
+
+        OT_ASSERT(0 < owners.size());
+
         if (auto out = find_output(lock, outpoint); out.has_value()) {
+            // TODO is is possible the owners need to be changed here?
+
             if (false ==
                 change_state(lock, outpoint, TxoState::ConfirmedNew, block)) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -208,9 +226,13 @@ auto Wallet::AddConfirmedTransaction(
                 return false;
             }
         } else {
-            if (false ==
-                create_state(
-                    lock, outpoint, TxoState::ConfirmedNew, block, output)) {
+            if (false == create_state(
+                             lock,
+                             owners,
+                             outpoint,
+                             TxoState::ConfirmedNew,
+                             block,
+                             output)) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(
                     ": Error created new output state")
                     .Flush();
@@ -236,6 +258,10 @@ auto Wallet::AddConfirmedTransaction(
     }
 
     blockchain_.UpdateBalance(chain_, get_balance(lock));
+
+    for (const auto& [nym, balance] : get_balances(lock)) {
+        blockchain_.UpdateBalance(nym, chain_, balance);
+    }
 
     return true;
 }
@@ -288,9 +314,23 @@ auto Wallet::AddOutgoingTransaction(
                 return false;
             }
         } else {
-            if (false ==
-                create_state(
-                    lock, outpoint, TxoState::UnconfirmedNew, block, output)) {
+            const auto owners = [&] {
+                auto val = Owners{};
+
+                for (const auto& key : output.Keys()) {
+                    val.emplace(blockchain_.Owner(key));
+                }
+
+                return val;
+            }();
+
+            if (false == create_state(
+                             lock,
+                             owners,
+                             outpoint,
+                             TxoState::UnconfirmedNew,
+                             block,
+                             output)) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(
                     ": Error creating new output state")
                     .Flush();
@@ -320,6 +360,10 @@ auto Wallet::AddOutgoingTransaction(
 
     dedup(pending);
     blockchain_.UpdateBalance(chain_, get_balance(lock));
+
+    for (const auto& [nym, balance] : get_balances(lock)) {
+        blockchain_.UpdateBalance(nym, chain_, balance);
+    }
 
     return true;
 }
@@ -473,6 +517,7 @@ auto Wallet::check_proposals(
 
 auto Wallet::create_state(
     const Lock& lock,
+    const Owners& owners,
     const block::bitcoin::Outpoint& id,
     const TxoState state,
     const block::Position position,
@@ -511,6 +556,8 @@ auto Wallet::create_state(
         vector.emplace_back(id);
         dedup(vector);
     }
+
+    for (const auto& nym : owners) { nym_map_[nym].emplace(id); }
 
     return true;
 }
@@ -617,15 +664,29 @@ auto Wallet::ForgetProposals(const std::set<OTIdentifier>& ids) const noexcept
     return true;
 }
 
-auto Wallet::get_balance(const Lock&) const noexcept -> Balance
+auto Wallet::get_balance(const Lock& lock) const noexcept -> Balance
+{
+    const auto nym = api_.Factory().NymID();
+
+    return get_balance(lock, nym);
+}
+
+auto Wallet::get_balance(const Lock&, const identifier::Nym& owner)
+    const noexcept -> Balance
 {
     auto output = Balance{};
     auto& [confirmed, unconfirmed] = output;
-    auto cb = [this](const auto previous, const auto& outpoint) -> auto
+    auto cb = [&](const auto previous, const auto& outpoint) -> auto
     {
         const auto& [state, position, data] = outputs_.at(outpoint);
 
-        return previous + data.value();
+        if (owner.empty() || (0 < nym_map_[owner].count(outpoint))) {
+
+            return previous + data.value();
+        } else {
+
+            return previous;
+        }
     };
     const auto& confirmedNew = output_states_[TxoState::ConfirmedNew];
     const auto& unconfirmedSpend = output_states_[TxoState::UnconfirmedSpend];
@@ -651,6 +712,17 @@ auto Wallet::get_balance(const Lock&) const noexcept -> Balance
     return output;
 }
 
+auto Wallet::get_balances(const Lock& lock) const noexcept -> NymBalances
+{
+    auto output = NymBalances{};
+
+    for (const auto& [nym, outpoints] : nym_map_) {
+        output[nym] = get_balance(lock, nym);
+    }
+
+    return output;
+}
+
 auto Wallet::get_patterns(
     const Lock& lock,
     const NodeID& balanceNode,
@@ -667,6 +739,13 @@ auto Wallet::GetBalance() const noexcept -> Balance
     Lock lock(lock_);
 
     return get_balance(lock);
+}
+
+auto Wallet::GetBalance(const identifier::Nym& owner) const noexcept -> Balance
+{
+    Lock lock(lock_);
+
+    return get_balance(lock, owner);
 }
 
 auto Wallet::GetPatterns(

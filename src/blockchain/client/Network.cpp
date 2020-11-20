@@ -278,7 +278,7 @@ auto Network::process_filter_update(network::zeromq::Message& in) noexcept
 {
     if (false == running_.get()) { return; }
 
-    const auto& body = in.Body();
+    const auto body = in.Body();
 
     OT_ASSERT(2 < body.size());
 

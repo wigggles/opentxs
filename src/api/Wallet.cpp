@@ -27,6 +27,7 @@
 #include "opentxs/SharedPimpl.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/api/Endpoints.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/client/Issuer.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #if OT_CASH
@@ -35,7 +36,6 @@
 #include "opentxs/client/NymData.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Contract.hpp"
-#include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/core/NymFile.hpp"
@@ -52,8 +52,6 @@
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/socket/Push.hpp"
-#include "opentxs/network/zeromq/socket/Request.tpp"
-#include "opentxs/network/zeromq/socket/Sender.tpp"
 #include "opentxs/network/zeromq/socket/Socket.hpp"
 #include "opentxs/otx/consensus/Server.hpp"
 #include "opentxs/protobuf/CashEnums.pb.h"
@@ -134,6 +132,7 @@ Wallet::Wallet(const api::internal::Core& core)
     , nym_publisher_(api_.ZeroMQ().PublishSocket())
     , nym_created_publisher_(api_.ZeroMQ().PublishSocket())
     , server_publisher_(api_.ZeroMQ().PublishSocket())
+    , unit_publisher_(api_.ZeroMQ().PublishSocket())
     , peer_reply_publisher_(api_.ZeroMQ().PublishSocket())
     , peer_request_publisher_(api_.ZeroMQ().PublishSocket())
     , dht_nym_requester_{api_.ZeroMQ().RequestSocket()}
@@ -147,6 +146,7 @@ Wallet::Wallet(const api::internal::Core& core)
     nym_publisher_->Start(api_.Endpoints().NymDownload());
     nym_created_publisher_->Start(api_.Endpoints().NymCreated());
     server_publisher_->Start(api_.Endpoints().ServerUpdate());
+    unit_publisher_->Start(api_.Endpoints().UnitUpdate());
     peer_reply_publisher_->Start(api_.Endpoints().PeerReplyUpdate());
     peer_request_publisher_->Start(api_.Endpoints().PeerRequestUpdate());
     dht_nym_requester_->Start(api_.Endpoints().DhtRequestNym());
@@ -677,15 +677,18 @@ auto Wallet::UpdateAccount(
 
         pAccount->SetAlias(alias);
         const auto balance = pAccount->GetBalance();
-        auto message = opentxs::network::zeromq::Message::Factory();
-        message->AddFrame(accountID.str());
-        message->AddFrame(Data::Factory(&balance, sizeof(balance)));
-        account_publisher_->Send(message);
+
+        {
+            auto work = api_.ZeroMQ().TaggedMessage(WorkType::AccountUpdated);
+            work->AddFrame(accountID);
+            work->AddFrame(balance);
+            account_publisher_->Send(work);
+        }
 
         return true;
     } catch (...) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Unable to load unit definition contract ")(unitID)(".")
+            ": Unable to load unit definition contract ")(unitID)
             .Flush();
 
         return false;
@@ -1064,7 +1067,12 @@ auto Wallet::Nym(
                 nym_map_.erase(nym);
             }
         } else {
-            dht_nym_requester_->Send(nym);
+            {
+                auto work =
+                    api_.ZeroMQ().TaggedMessage(WorkType::DHTRequestNym);
+                work->AddFrame(id);
+                dht_nym_requester_->Send(work);
+            }
 
             if (timeout > std::chrono::milliseconds(0)) {
                 mapLock.unlock();
@@ -1133,7 +1141,12 @@ auto Wallet::Nym(const proto::Nym& serialized) const -> Nym_p
             auto& mapNym = nym_map_[id].second;
             // TODO update existing nym rather than destroying it
             mapNym.reset(pCandidate.release());
-            nym_publisher_->Send(id);
+
+            {
+                auto work = api_.ZeroMQ().TaggedMessage(WorkType::NymUpdated);
+                work->AddFrame(id);
+                nym_publisher_->Send(work);
+            }
 
             return mapNym;
         } else {
@@ -1942,9 +1955,21 @@ auto Wallet::RemoveUnitDefinition(const identifier::UnitDefinition& id) const
     return false;
 }
 
-void Wallet::publish_server(const identifier::Server& id) const
+auto Wallet::publish_server(const identifier::Server& id) const noexcept -> void
 {
-    server_publisher_->Send(id.str());
+    const auto& socket = server_publisher_.get();
+    auto work = socket.Context().TaggedMessage(WorkType::NotaryUpdated);
+    work->AddFrame(id);
+    socket.Send(work);
+}
+
+auto Wallet::publish_unit(const identifier::UnitDefinition& id) const noexcept
+    -> void
+{
+    const auto& socket = unit_publisher_.get();
+    auto work = socket.Context().TaggedMessage(WorkType::UnitDefinitionUpdated);
+    work->AddFrame(id);
+    socket.Send(work);
 }
 
 auto Wallet::reverse_unit_map(const UnitNameMap& map) -> Wallet::UnitNameReverse
@@ -2046,9 +2071,14 @@ void Wallet::save(const Lock& lock, api::client::Issuer* in) const
     const auto& nymID = in->LocalNymID();
     const auto& issuerID = in->IssuerID();
     api_.Storage().Store(nymID.str(), in->Serialize());
-    auto message = issuer_publisher_->Context().Message(nymID.str());
-    message->AddFrame(issuerID.str());
-    issuer_publisher_->Send(message);
+
+    {
+        const auto& socket = issuer_publisher_.get();
+        auto work = socket.Context().TaggedMessage(WorkType::IssuerUpdated);
+        work->AddFrame(nymID);
+        work->AddFrame(issuerID);
+        socket.Send(work);
+    }
 }
 
 #if OT_CASH
@@ -2163,7 +2193,12 @@ auto Wallet::Server(
                 }
             }
         } else {
-            dht_server_requester_->Send(server);
+            {
+                auto work =
+                    api_.ZeroMQ().TaggedMessage(WorkType::DHTRequestServer);
+                work->AddFrame(id);
+                dht_server_requester_->Send(work);
+            }
 
             if (timeout > std::chrono::milliseconds(0)) {
                 mapLock.unlock();
@@ -2206,9 +2241,8 @@ auto Wallet::server(std::unique_ptr<contract::Server> contract) const
         throw std::runtime_error("Invalid server contract");
     }
 
-    const auto id =
-        identifier::Server::Factory(contract->ID()->str());  // TODO conversion
-    const auto server = id->str();
+    const auto server = contract->ID()->str();
+    const auto id = api_.Factory().ServerID(server);
     const auto serverNymName = contract->EffectiveName();
 
     if (serverNymName != contract->Name()) {
@@ -2216,9 +2250,11 @@ auto Wallet::server(std::unique_ptr<contract::Server> contract) const
     }
 
     if (api_.Storage().Store(contract->Contract(), contract->Alias())) {
-        Lock mapLock(server_map_lock_);
-        server_map_[server].reset(contract.release());
-        mapLock.unlock();
+        {
+            Lock mapLock(server_map_lock_);
+            server_map_[server].reset(contract.release());
+        }
+
         publish_server(id);
     } else {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to save server contract.")
@@ -2264,9 +2300,11 @@ auto Wallet::Server(const proto::ServerContract& contract) const
                     candidate->Contract(), candidate->EffectiveName());
 
                 if (stored) {
-                    Lock mapLock(server_map_lock_);
-                    server_map_[server].reset(candidate.release());
-                    mapLock.unlock();
+                    {
+                        Lock mapLock(server_map_lock_);
+                        server_map_[server].reset(candidate.release());
+                    }
+
                     publish_server(serverID);
                 }
             }
@@ -2377,8 +2415,11 @@ auto Wallet::SetServerAlias(
     const bool saved = api_.Storage().SetServerAlias(server, alias);
 
     if (saved) {
-        Lock mapLock(server_map_lock_);
-        server_map_.erase(server);
+        {
+            Lock mapLock(server_map_lock_);
+            server_map_.erase(server);
+        }
+
         publish_server(id);
 
         return true;
@@ -2395,8 +2436,12 @@ auto Wallet::SetUnitDefinitionAlias(
     const bool saved = api_.Storage().SetUnitDefinitionAlias(unit, alias);
 
     if (saved) {
-        Lock mapLock(unit_map_lock_);
-        unit_map_.erase(unit);
+        {
+            Lock mapLock(unit_map_lock_);
+            unit_map_.erase(unit);
+        }
+
+        publish_unit(id);
 
         return true;
     }
@@ -2444,7 +2489,12 @@ auto Wallet::UnitDefinition(
                 }
             }
         } else {
-            dht_unit_requester_->Send(unit);
+            {
+                auto work =
+                    api_.ZeroMQ().TaggedMessage(WorkType::DHTRequestUnit);
+                work->AddFrame(id);
+                dht_unit_requester_->Send(work);
+            }
 
             if (timeout > std::chrono::milliseconds(0)) {
                 mapLock.unlock();
@@ -2478,23 +2528,33 @@ auto Wallet::UnitDefinition(
 auto Wallet::unit_definition(std::shared_ptr<contract::Unit>&& contract) const
     -> OTUnitDefinition
 {
-    std::string unit = contract->ID()->str();
+    if (false == bool(contract)) {
+        throw std::runtime_error("Null unit definition contract");
+    }
 
-    if (contract) {
-        if (contract->Validate()) {
-            if (api_.Storage().Store(contract->Contract(), contract->Alias())) {
-                Lock mapLock(unit_map_lock_);
-                auto it = unit_map_.find(unit);
+    if (false == contract->Validate()) {
+        throw std::runtime_error("Invalid unit definition contract");
+    }
 
-                if (unit_map_.end() == it) {
-                    unit_map_.emplace(unit, std::move(contract));
-                } else {
-                    it->second = std::move(contract);
-                }
+    const auto unit = contract->ID()->str();
+    const auto id = api_.Factory().UnitID(unit);
 
-                mapLock.unlock();
+    if (api_.Storage().Store(contract->Contract(), contract->Alias())) {
+        {
+            Lock mapLock(unit_map_lock_);
+            auto it = unit_map_.find(unit);
+
+            if (unit_map_.end() == it) {
+                unit_map_.emplace(unit, std::move(contract));
+            } else {
+                it->second = std::move(contract);
             }
         }
+
+        publish_unit(id);
+    } else {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to save unit definition")
+            .Flush();
     }
 
     return UnitDefinition(identifier::UnitDefinition::Factory(unit));
@@ -2503,9 +2563,16 @@ auto Wallet::unit_definition(std::shared_ptr<contract::Unit>&& contract) const
 auto Wallet::UnitDefinition(const proto::UnitDefinition& contract) const
     -> OTUnitDefinition
 {
-    const std::string unit = contract.id();
-    const auto nymID = identifier::Nym::Factory(contract.nymid());
-    find_nym_->Send(nymID->str());
+    const auto unit = contract.id();
+    auto unitID = api_.Factory().UnitID(unit);
+    const auto nymID = api_.Factory().NymID(contract.nymid());
+
+    {
+        auto work = api_.ZeroMQ().TaggedMessage(WorkType::OTXSearchNym);
+        work->AddFrame(nymID);
+        find_nym_->Send(work);
+    }
+
     auto nym = Nym(nymID);
 
     if (!nym && contract.has_publicnym()) { nym = Nym(contract.publicnym()); }
@@ -2515,24 +2582,34 @@ auto Wallet::UnitDefinition(const proto::UnitDefinition& contract) const
 
         if (candidate) {
             if (candidate->Validate()) {
-                if (api_.Storage().Store(
-                        candidate->Contract(), candidate->Alias())) {
-                    Lock mapLock(unit_map_lock_);
-                    auto it = unit_map_.find(unit);
+                if (unitID.get() != candidate->ID()) {
+                    LogOutput(OT_METHOD)(__FUNCTION__)(": Wrong contract ID.")
+                        .Flush();
+                    unitID->Assign(candidate->ID());
+                }
 
-                    if (unit_map_.end() == it) {
-                        unit_map_.emplace(unit, std::move(candidate));
-                    } else {
-                        it->second = std::move(candidate);
+                const auto stored = api_.Storage().Store(
+                    candidate->Contract(), candidate->Alias());
+
+                if (stored) {
+                    {
+                        Lock mapLock(unit_map_lock_);
+                        auto it = unit_map_.find(unit);
+
+                        if (unit_map_.end() == it) {
+                            unit_map_.emplace(unit, std::move(candidate));
+                        } else {
+                            it->second = std::move(candidate);
+                        }
                     }
 
-                    mapLock.unlock();
+                    publish_unit(unitID);
                 }
             }
         }
     }
 
-    return UnitDefinition(identifier::UnitDefinition::Factory(unit));
+    return UnitDefinition(unitID);
 }
 
 auto Wallet::UnitDefinition(

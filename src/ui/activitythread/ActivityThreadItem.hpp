@@ -75,8 +75,8 @@ public:
     auto Timestamp() const noexcept -> Time final;
     auto Type() const noexcept -> StorageBox final { return box_; }
 
-    void reindex(const ActivityThreadSortKey& key, CustomData& custom) noexcept
-        final;
+    auto reindex(const ActivityThreadSortKey& key, CustomData& custom) noexcept
+        -> bool final;
 
 #if OT_QT
     QVariant qt_data(const int column, const int role) const noexcept final;

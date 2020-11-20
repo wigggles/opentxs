@@ -23,6 +23,7 @@
 #define BLOCKCHAIN_FILTER_UPDATED "blockchain/filter/"
 #define BLOCKCHAIN_PEER_ENDPOINT "blockchain/peer/"
 #define BLOCKCHAIN_REORG_ENDPOINT "blockchain/reorg"
+#define BLOCKCHAIN_STATE_ENDPOINT "blockchain/state"
 #define BLOCKCHAIN_SYNC_ENDPOINT "blockchain/sync"
 #define BLOCKCHAIN_THREAD_POOL_ENDPOINT "blockchain/thread_pool"
 #define BLOCKCHAIN_TRANSACTIONS_ENDPOINT "blockchain/transactions"
@@ -49,6 +50,7 @@
 #define SHUTDOWN "shutdown"
 #define TASK_COMPLETE_ENDPOINT "taskcomplete/"
 #define THREAD_UPDATE_ENDPOINT "threadupdate/"
+#define UNIT_UPDATE_ENDPOINT "unitupdate"
 #define WIDGET_UPDATE_ENDPOINT "ui/widgetupdate"
 #define WORKFLOW_ACCOUNT_UPDATE_ENDPOINT "ui/workflowupdate/account"
 
@@ -112,6 +114,11 @@ auto Endpoints::BlockchainPeer() const noexcept -> std::string
 auto Endpoints::BlockchainReorg() const noexcept -> std::string
 {
     return build_inproc_path(BLOCKCHAIN_REORG_ENDPOINT, ENDPOINT_VERSION_1);
+}
+
+auto Endpoints::BlockchainStateChange() const noexcept -> std::string
+{
+    return build_inproc_path(BLOCKCHAIN_STATE_ENDPOINT, ENDPOINT_VERSION_1);
 }
 
 auto Endpoints::BlockchainSyncProgress() const noexcept -> std::string
@@ -271,6 +278,11 @@ auto Endpoints::ThreadUpdate(const std::string& thread) const noexcept
 {
     return build_inproc_path(
         THREAD_UPDATE_ENDPOINT, ENDPOINT_VERSION_1, thread);
+}
+
+auto Endpoints::UnitUpdate() const noexcept -> std::string
+{
+    return build_inproc_path(UNIT_UPDATE_ENDPOINT, ENDPOINT_VERSION_1);
 }
 
 auto Endpoints::WidgetUpdate() const noexcept -> std::string

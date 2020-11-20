@@ -179,7 +179,7 @@ Blockchain::Blockchain(
     , new_blockchain_accounts_(api_.ZeroMQ().PublishSocket())
     , networks_()
     , balances_(*this, api_)
-    , enabled_callbacks_()
+    , enabled_callbacks_(api_)
     , running_(true)
     , heartbeat_(&Blockchain::heartbeat, this)
 #endif  // OT_BLOCKCHAIN
@@ -488,8 +488,8 @@ auto Blockchain::broadcast_update_signal(
 {
     const auto chains = tx.Chains();
     std::for_each(std::begin(chains), std::end(chains), [&](const auto& chain) {
-        auto out = api_.ZeroMQ().Message();
-        out->AddFrame();
+        auto out =
+            api_.ZeroMQ().TaggedMessage(WorkType::BlockchainNewTransaction);
         out->AddFrame(tx.ID());
         out->AddFrame(chain);
         transaction_updates_->Send(out);
@@ -904,7 +904,7 @@ auto Blockchain::NewHDSubaccount(
             new_blockchain_accounts_->Send(work);
         }
 
-        balances_.UpdateBalance(chain, {});
+        balances_.RefreshBalance(nymID, chain);
 #endif  // OT_BLOCKCHAIN
 
         return accountID;
@@ -1161,22 +1161,6 @@ auto Blockchain::stop(const Lock& lock, const Chain type) const noexcept -> bool
 
     return true;
 }
-
-auto Blockchain::ToggleChain(
-    const opentxs::blockchain::Type type) const noexcept -> bool
-{
-    Lock lock(lock_);
-    const auto chains = db_.LoadEnabledChains();
-    auto output{false};
-
-    if (std::find(chains.begin(), chains.end(), type) == chains.end()) {
-        output = enable(lock, type, {});
-    } else {
-        output = disable(lock, type);
-    }
-
-    return output;
-}
 #endif  // OT_BLOCKCHAIN
 
 auto Blockchain::UpdateElement([
@@ -1216,7 +1200,7 @@ auto Blockchain::UpdatePeer(
     const opentxs::blockchain::Type chain,
     const std::string& address) const noexcept -> void
 {
-    auto work = MakeWork(api_, OT_ZMQ_NEW_PEER_SIGNAL);
+    auto work = MakeWork(api_, WorkType::BlockchainPeerAdded);
     work->AddFrame(chain);
     work->AddFrame(address);
     peer_updates_->Send(work);

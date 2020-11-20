@@ -149,7 +149,7 @@ private:
     }
 
     void process_nym(const identity::Nym& nym) noexcept;
-    void process_nym(const network::zeromq::Message& message) noexcept;
+    void process_nym(const Message& message) noexcept;
     void startup() noexcept;
 
     Profile() = delete;

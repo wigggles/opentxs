@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <atomic>
 #include <memory>
 #include <string>
 #include <utility>
@@ -72,8 +73,7 @@ public:
     }
     auto Contacts() const noexcept -> std::vector<std::string> final;
     auto DisplayAmount() const noexcept -> std::string final;
-    auto Memo() const noexcept -> std::string final { return memo_; }
-    auto Text() const noexcept -> std::string final { return text_; }
+    auto Memo() const noexcept -> std::string final;
     auto Type() const noexcept -> StorageBox final
     {
         return StorageBox::BLOCKCHAIN;
@@ -102,14 +102,17 @@ public:
 private:
     const blockchain::Type chain_;
     const OTData txid_;
-    const opentxs::Amount amount_;
-    const std::string memo_;
+    std::atomic<opentxs::Amount> amount_;
+    std::string memo_;
 
     auto effective_amount() const noexcept -> opentxs::Amount final
     {
-        return amount_;
+        return amount_.load();
     }
-    auto get_contract() const noexcept -> bool final { return false; }
+
+    auto reindex(
+        const implementation::AccountActivitySortKey& key,
+        implementation::CustomData& custom) noexcept -> bool final;
 
     BlockchainBalanceItem() = delete;
     BlockchainBalanceItem(const BlockchainBalanceItem&) = delete;

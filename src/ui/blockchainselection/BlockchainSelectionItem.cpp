@@ -9,7 +9,9 @@
 
 #include <memory>
 
-#include "internal/api/client/Client.hpp"
+#include "opentxs/Types.hpp"
+#include "opentxs/core/Log.hpp"
+#include "ui/base/Widget.hpp"
 
 // #define OT_METHOD "opentxs::ui::implementation::BlockchainSelectionItem::"
 
@@ -18,7 +20,6 @@ namespace opentxs::factory
 auto BlockchainSelectionItem(
     const ui::implementation::BlockchainSelectionInternalInterface& parent,
     const api::client::internal::Manager& api,
-    const api::client::internal::Blockchain& blockchain,
     const ui::implementation::BlockchainSelectionRowID& rowID,
     const ui::implementation::BlockchainSelectionSortKey& sortKey,
     ui::implementation::CustomData& custom) noexcept
@@ -26,8 +27,7 @@ auto BlockchainSelectionItem(
 {
     using ReturnType = ui::implementation::BlockchainSelectionItem;
 
-    return std::make_shared<ReturnType>(
-        parent, api, blockchain, rowID, sortKey, custom);
+    return std::make_shared<ReturnType>(parent, api, rowID, sortKey, custom);
 }
 }  // namespace opentxs::factory
 
@@ -36,23 +36,13 @@ namespace opentxs::ui::implementation
 BlockchainSelectionItem::BlockchainSelectionItem(
     const BlockchainSelectionInternalInterface& parent,
     const api::client::internal::Manager& api,
-    const api::client::internal::Blockchain& blockchain,
     const BlockchainSelectionRowID& rowID,
     const BlockchainSelectionSortKey& sortKey,
     CustomData& custom) noexcept
     : BlockchainSelectionItemRow(parent, api, rowID, true)
-    , blockchain_(blockchain)
     , testnet_(sortKey.first)
     , name_(sortKey.second)
-    , enabled_(blockchain_.IsEnabled(row_id_))  // TODO race condition
-    , registration_(blockchain_.RegisterForUpdates(
-          row_id_,
-          [this](const bool value) -> auto {
-              enabled_ = value;
-              UpdateNotify();
-
-              return true;
-          }))
+    , enabled_(extract_custom<bool>(custom, 0))
 {
 }
 
@@ -89,8 +79,23 @@ auto BlockchainSelectionItem::qt_data(const int column, int role) const noexcept
 }
 #endif
 
-BlockchainSelectionItem::~BlockchainSelectionItem()
+auto BlockchainSelectionItem::reindex(
+    const BlockchainSelectionSortKey& key,
+    CustomData& custom) noexcept -> bool
 {
-    blockchain_.UnregisterForUpdates(row_id_, registration_);
+    OT_ASSERT(testnet_ == key.first);
+    OT_ASSERT(name_ == key.second);
+
+    Lock lock{lock_};
+
+    if (auto enabled = extract_custom<bool>(custom, 0); enabled_ != enabled) {
+        enabled_ = enabled;
+
+        return true;
+    }
+
+    return false;
 }
+
+BlockchainSelectionItem::~BlockchainSelectionItem() = default;
 }  // namespace opentxs::ui::implementation

@@ -10,6 +10,7 @@
 #include "1_Internal.hpp"
 #include "internal/ui/UI.hpp"
 #include "opentxs/SharedPimpl.hpp"
+#include "opentxs/Types.hpp"
 #include "opentxs/Version.hpp"
 #include "opentxs/ui/ContactListItem.hpp"
 #include "ui/base/Row.hpp"
@@ -58,10 +59,17 @@ public:
     auto Section() const noexcept -> std::string final;
 
 #if OT_QT
-    QVariant qt_data(const int column, const int role) const noexcept override;
+    auto qt_data(const int column, const int role) const noexcept
+        -> QVariant override;
 #endif
 
-    void reindex(const ContactListSortKey&, CustomData&) noexcept override;
+    using ContactListItemRow::reindex;
+    auto reindex(const ContactListSortKey&, CustomData&) noexcept
+        -> bool override;
+    virtual auto reindex(
+        const Lock& lock,
+        const ContactListSortKey&,
+        CustomData&) noexcept -> bool;
 
     ContactListItem(
         const ContactListInternalInterface& parent,
@@ -73,7 +81,14 @@ public:
 protected:
     ContactListSortKey key_;
 
+    auto translate_section(const Lock&) const noexcept -> std::string;
+
 private:
+    std::string section_;
+
+    auto calculate_section() const noexcept -> std::string;
+    virtual auto calculate_section(const Lock&) const noexcept -> std::string;
+
     ContactListItem() = delete;
     ContactListItem(const ContactListItem&) = delete;
     ContactListItem(ContactListItem&&) = delete;

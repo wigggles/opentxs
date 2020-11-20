@@ -498,5 +498,7 @@ TEST_F(Test_Pair, shutdown)
 {
     api_issuer_.OTX().ContextIdle(issuer_.nym_id_, server_1_.id_).get();
     api_chris_.OTX().ContextIdle(chris_.nym_id_, server_1_.id_).get();
+
+    // TODO EXPECT_EQ(account_summary_.expected_, account_summary_.updated_);
 }
 }  // namespace

@@ -7,11 +7,14 @@
 #include "1_Internal.hpp"  // IWYU pragma: associated
 #include "ui/accountactivity/BlockchainBalanceItem.hpp"  // IWYU pragma: associated
 
+#include <memory>
 #include <string>
 
 #include "internal/api/client/Client.hpp"
 #include "internal/blockchain/Blockchain.hpp"
 #include "opentxs/api/storage/Storage.hpp"
+#include "opentxs/blockchain/block/bitcoin/Transaction.hpp"
+#include "opentxs/core/Log.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/protobuf/PaymentEvent.pb.h"
 #include "opentxs/protobuf/PaymentWorkflow.pb.h"
@@ -41,6 +44,7 @@ BlockchainBalanceItem::BlockchainBalanceItem(
     , amount_(amount)
     , memo_(memo)
 {
+    // NOTE Avoids memory leaks
     extract_custom<proto::PaymentWorkflow>(custom, 0);
     extract_custom<proto::PaymentEvent>(custom, 1);
 }
@@ -59,6 +63,55 @@ auto BlockchainBalanceItem::Contacts() const noexcept
 
 auto BlockchainBalanceItem::DisplayAmount() const noexcept -> std::string
 {
-    return blockchain::internal::Format(chain_, amount_);
+    return blockchain::internal::Format(chain_, amount_.load());
+}
+
+auto BlockchainBalanceItem::Memo() const noexcept -> std::string
+{
+    sLock lock{shared_lock_};
+
+    return memo_;
+}
+
+auto BlockchainBalanceItem::reindex(
+    const implementation::AccountActivitySortKey& key,
+    implementation::CustomData& custom) noexcept -> bool
+{
+    using Transaction = opentxs::blockchain::block::bitcoin::Transaction;
+
+    extract_custom<proto::PaymentWorkflow>(custom, 0);
+    extract_custom<proto::PaymentEvent>(custom, 1);
+    const auto pTx = extract_custom_ptr<Transaction>(custom, 2);
+
+    OT_ASSERT(pTx);
+
+    const auto& tx = *pTx;
+    auto output = BalanceItem::reindex(key, custom);
+    const auto chain = extract_custom<blockchain::Type>(custom, 3);
+    const auto txid = extract_custom<OTData>(custom, 5);
+    const auto amount = tx.NetBalanceChange(Widget::api_.Blockchain(), nym_id_);
+    const auto memo = tx.Memo(Widget::api_.Blockchain());
+    const auto text = extract_custom<std::string>(custom, 4);
+
+    OT_ASSERT(chain_ == chain);
+    OT_ASSERT(txid_ == txid);
+
+    const auto oldAmount = amount_.exchange(amount);
+
+    if (oldAmount != amount) { output |= true; }
+
+    eLock lock{shared_lock_};
+
+    if (memo_ != memo) {
+        memo_ = memo;
+        output |= true;
+    }
+
+    if (text_ != text) {
+        text_ = text;
+        output |= true;
+    }
+
+    return output;
 }
 }  // namespace opentxs::ui::implementation

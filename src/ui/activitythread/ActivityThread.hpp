@@ -195,7 +195,7 @@ private:
     auto process_item(const proto::StorageThreadItem& item) noexcept
         -> ActivityThreadRowID;
     auto process_drafts() noexcept -> bool;
-    void process_thread(const network::zeromq::Message& message) noexcept;
+    void process_thread(const Message& message) noexcept;
     void startup() noexcept;
 
     ActivityThread() = delete;

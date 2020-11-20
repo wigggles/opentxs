@@ -3,12 +3,14 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-set(cxx-sources MessagableList.cpp)
+set(cxx-sources MessagableList.cpp MessagableListItem.cpp)
 set(ot-qobject-install-headers
     "${opentxs_SOURCE_DIR}/include/opentxs/ui/MessagableList.hpp"
 )
 set(cxx-install-headers ${ot-qobject-install-headers})
-set(cxx-headers ${cxx-install-headers} MessagableList.hpp)
+set(cxx-headers ${cxx-install-headers} MessagableList.hpp
+                MessagableListItem.hpp
+)
 
 if(OT_WITH_QT)
   qt5_wrap_cpp(MOC_SRCS ${ot-qobject-install-headers})

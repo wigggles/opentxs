@@ -11,14 +11,30 @@
 #include <map>
 #include <vector>
 
-#include "internal/api/client/Client.hpp"
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/api/Core.hpp"
+#include "opentxs/api/Endpoints.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/network/zeromq/Context.hpp"
+#include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/util/WorkType.hpp"
 
 // #define OT_METHOD
 // "opentxs::api::client::implementation::Blockchain::EnableCallbacks::"
 
 namespace opentxs::api::client::implementation
 {
+Blockchain::EnableCallbacks::EnableCallbacks(const api::Core& api) noexcept
+    : zmq_(api.ZeroMQ())
+    , lock_()
+    , map_()
+    , socket_(zmq_.PublishSocket())
+{
+    auto listen = socket_->Start(api.Endpoints().BlockchainStateChange());
+
+    OT_ASSERT(listen);
+}
+
 auto Blockchain::EnableCallbacks::Add(
     const Chain type,
     EnabledCallback cb) noexcept -> std::size_t
@@ -69,5 +85,10 @@ auto Blockchain::EnableCallbacks::Execute(
         }
     } catch (...) {
     }
+
+    auto work = zmq_.TaggedMessage(WorkType::BlockchainStateChange);
+    work->AddFrame(type);
+    work->AddFrame(value);
+    socket_->Send(work);
 }
 }  // namespace opentxs::api::client::implementation

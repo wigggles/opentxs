@@ -49,11 +49,11 @@
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/socket/Publish.hpp"
-#include "opentxs/network/zeromq/socket/Sender.tpp"
 #include "opentxs/protobuf/PaymentWorkflow.pb.h"
 #include "opentxs/protobuf/PaymentWorkflowEnums.pb.h"
 #include "opentxs/protobuf/StorageThread.pb.h"
 #include "opentxs/protobuf/StorageThreadItem.pb.h"
+#include "opentxs/util/WorkType.hpp"
 
 #define OT_METHOD "opentxs::api::client::implementation::Activity::"
 
@@ -144,7 +144,7 @@ auto Activity::add_blockchain_transaction(
                         nym, thread, chain, txid, transaction.Timestamp());
                 });
 
-            if (saved) { publish(nym, sThreadID); }
+            if (saved) { publish(nym, thread); }
 
             output &= saved;
         } else {
@@ -163,7 +163,7 @@ auto Activity::add_blockchain_transaction(
                     nym, thread, chain, txid);
             });
 
-        if (saved) { publish(nym, thread->str()); }
+        if (saved) { publish(nym, thread); }
 
         output &= saved;
     }
@@ -173,8 +173,8 @@ auto Activity::add_blockchain_transaction(
     }
 
     std::for_each(std::begin(chains), std::end(chains), [&](const auto& chain) {
-        auto out = api_.ZeroMQ().Message();
-        out->AddFrame();
+        auto out =
+            api_.ZeroMQ().TaggedMessage(WorkType::BlockchainNewTransaction);
         out->AddFrame(txid);
         out->AddFrame(chain);
         get_blockchain(lock, nym).Send(out);
@@ -223,7 +223,7 @@ auto Activity::AddPaymentEvent(
         type,
         workflowID.str());
 
-    if (saved) { publish(nymID, sthreadID); }
+    if (saved) { publish(nymID, threadID); }
 
     return saved;
 }
@@ -477,8 +477,8 @@ auto Activity::Mail(
 
     eLock lock(shared_lock_);
     std::string alias = contact->Label();
-    const std::string contactID = contact->ID().str();
-    const auto& threadID = contactID;
+    const auto& contactID = contact->ID();
+    const auto& threadID = contactID.str();
 
     if (false == verify_thread_exists(nymID, threadID)) { return {}; }
 
@@ -500,7 +500,7 @@ auto Activity::Mail(
             OTIdentifier{id},
             box);
         preload.detach();
-        publish(nym, threadID);
+        publish(nym, contactID);
 
         return output;
     }
@@ -825,12 +825,13 @@ void Activity::PreloadThread(
     preload.detach();
 }
 
-void Activity::publish(
-    const identifier::Nym& nymID,
-    const std::string& threadID) const noexcept
+void Activity::publish(const identifier::Nym& nymID, const Identifier& threadID)
+    const noexcept
 {
-    auto& publisher = get_publisher(nymID);
-    publisher.Send(threadID);
+    auto& socket = get_publisher(nymID);
+    auto work = socket.Context().TaggedMessage(WorkType::ActivityThreadUpdated);
+    work->AddFrame(threadID);
+    socket.Send(work);
 }
 
 auto Activity::start_publisher(const std::string& endpoint) const noexcept

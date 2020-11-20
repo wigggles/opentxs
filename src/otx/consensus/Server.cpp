@@ -73,6 +73,7 @@
 #include "opentxs/identity/Nym.hpp"
 #include "opentxs/network/ServerConnection.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
+#include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/socket/Publish.hpp"
 #include "opentxs/network/zeromq/socket/Push.hpp"
 #include "opentxs/network/zeromq/socket/Sender.tpp"
@@ -98,6 +99,7 @@
 #include "opentxs/protobuf/UnitDefinition.pb.h"
 #include "opentxs/protobuf/verify/Context.hpp"
 #include "opentxs/protobuf/verify/Purse.hpp"
+#include "opentxs/util/WorkType.hpp"
 #include "otx/consensus/Base.hpp"
 
 #define START()                                                                \
@@ -723,11 +725,24 @@ auto Server::add_item_to_workflow(
 
     auto& cheque = *pCheque;
     cheque.LoadContractFromString(payment->Payment());
+
     // The sender nym and notary of the cheque may not match the sender nym and
     // notary of the message which conveyed the cheque.
-    find_nym_->Send(cheque.GetSenderNymID().str());
-    find_server_->Send(cheque.GetNotaryID().str());
-    find_unit_definition_->Send(cheque.GetInstrumentDefinitionID().str());
+    {
+        auto work = api_.ZeroMQ().TaggedMessage(WorkType::OTXSearchNym);
+        work->AddFrame(cheque.GetSenderNymID());
+        find_nym_->Send(work);
+    }
+    {
+        auto work = api_.ZeroMQ().TaggedMessage(WorkType::OTXSearchServer);
+        work->AddFrame(cheque.GetNotaryID());
+        find_server_->Send(work);
+    }
+    {
+        auto work = api_.ZeroMQ().TaggedMessage(WorkType::OTXSearchUnit);
+        work->AddFrame(cheque.GetInstrumentDefinitionID());
+        find_unit_definition_->Send(work);
+    }
 
     // We already made sure a contact exists for the sender of the message, but
     // it's possible the sender of the cheque is a different nym

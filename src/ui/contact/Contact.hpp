@@ -108,7 +108,7 @@ private:
     void update(ContactRowInterface& row, CustomData& custom) const noexcept;
 
     void process_contact(const opentxs::Contact& contact) noexcept;
-    void process_contact(const network::zeromq::Message& message) noexcept;
+    void process_contact(const Message& message) noexcept;
     void startup() noexcept;
 
     Contact() = delete;

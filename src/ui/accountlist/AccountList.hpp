@@ -13,6 +13,7 @@
 #include <utility>
 
 #include "1_Internal.hpp"
+#include "core/Worker.hpp"
 #include "internal/ui/UI.hpp"
 #include "opentxs/SharedPimpl.hpp"
 #include "opentxs/Types.hpp"
@@ -25,8 +26,10 @@
 #include "opentxs/network/zeromq/socket/Dealer.hpp"
 #endif  // OT_BLOCKCHAIN
 #include "opentxs/ui/AccountList.hpp"
+#include "opentxs/util/WorkType.hpp"
 #include "ui/base/List.hpp"
 #include "ui/base/Widget.hpp"
+#include "util/Work.hpp"
 
 namespace opentxs
 {
@@ -75,7 +78,7 @@ using AccountListList = List<
     AccountListSortKey,
     AccountListPrimaryID>;
 
-class AccountList final : public AccountListList
+class AccountList final : public AccountListList, Worker<AccountList>
 {
 public:
     AccountList(
@@ -86,11 +89,21 @@ public:
     ~AccountList() final;
 
 private:
+    friend Worker<AccountList>;
+
+    enum class Work : OTZMQWorkType {
+        shutdown = value(WorkType::Shutdown),
+        new_blockchain = value(WorkType::BlockchainAccountCreated),
+        custodial = value(WorkType::AccountUpdated),
+        updated_blockchain = value(WorkType::BlockchainBalance),
+        init = OT_ZMQ_INIT_SIGNAL,
+        statemachine = OT_ZMQ_STATE_MACHINE_SIGNAL,
+    };
+
 #if OT_BLOCKCHAIN
     OTZMQListenCallback blockchain_balance_cb_;
     OTZMQDealerSocket blockchain_balance_;
 #endif  // OT_BLOCKCHAIN
-    const ListenerDefinitions listeners_;
 
     auto construct_row(
         const AccountListRowID& id,
@@ -100,11 +113,7 @@ private:
     auto subscribe(const blockchain::Type chain) const noexcept -> void;
 #endif  // OT_BLOCKCHAIN
 
-#if OT_BLOCKCHAIN
-    auto add_blockchain_account(
-        const blockchain::Type chain,
-        const Amount balance) noexcept -> void;
-#endif  // OT_BLOCKCHAIN
+    auto pipeline(const Message& in) noexcept -> void;
     auto process_account(const Identifier& id) noexcept -> void;
     auto process_account(const Identifier& id, const Amount balance) noexcept
         -> void;
@@ -112,15 +121,10 @@ private:
         const Identifier& id,
         const Amount balance,
         const std::string& name) noexcept -> void;
-    auto process_account(const network::zeromq::Message& message) noexcept
-        -> void;
+    auto process_account(const Message& message) noexcept -> void;
 #if OT_BLOCKCHAIN
-    auto process_blockchain_account(
-        const network::zeromq::Message& message) noexcept -> void;
-    auto process_blockchain_balance(
-        const network::zeromq::Message& message) noexcept -> void;
-    auto setup_listeners(const ListenerDefinitions& definitions) noexcept
-        -> void final;
+    auto process_blockchain_account(const Message& message) noexcept -> void;
+    auto process_blockchain_balance(const Message& message) noexcept -> void;
 #endif  // OT_BLOCKCHAIN
     auto startup() noexcept -> void;
 

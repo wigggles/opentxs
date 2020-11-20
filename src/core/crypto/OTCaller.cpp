@@ -19,7 +19,9 @@ OTCaller::OTCaller()
 {
 }
 
-void OTCaller::AskOnce(const PasswordPrompt& prompt, Secret& output,
+void OTCaller::AskOnce(
+    const PasswordPrompt& prompt,
+    Secret& output,
     const std::string& key)
 {
     OT_ASSERT(callback_);
@@ -27,7 +29,9 @@ void OTCaller::AskOnce(const PasswordPrompt& prompt, Secret& output,
     callback_->runOne(prompt.GetDisplayString(), output, key);
 }
 
-void OTCaller::AskTwice(const PasswordPrompt& prompt, Secret& output,
+void OTCaller::AskTwice(
+    const PasswordPrompt& prompt,
+    Secret& output,
     const std::string& key)
 {
     OT_ASSERT(callback_);

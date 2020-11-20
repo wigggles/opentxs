@@ -7,27 +7,26 @@
 #include "1_Internal.hpp"                        // IWYU pragma: associated
 #include "ui/messagablelist/MessagableList.hpp"  // IWYU pragma: associated
 
+#include <future>
 #include <list>
 #include <memory>
-#include <string>
-#include <thread>
-#include <utility>
 
 #include "internal/api/client/Client.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/Version.hpp"
 #include "opentxs/api/Endpoints.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/api/client/OTX.hpp"
+#include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
-#include "opentxs/network/zeromq/FrameIterator.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
-#include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/network/zeromq/Pipeline.hpp"
 #include "ui/base/List.hpp"
 
 #define OT_METHOD "opentxs::ui::implementation::MessagableList::"
@@ -82,20 +81,13 @@ MessagableList::MessagableList(
           1
 #endif
           )
-    , listeners_({
-          {api_.Endpoints().ContactUpdate(),
-           new MessageProcessor<MessagableList>(
-               &MessagableList::process_contact)},
-          {api_.Endpoints().NymDownload(),
-           new MessageProcessor<MessagableList>(&MessagableList::process_nym)},
-      })
-    , owner_contact_id_(api_.Contacts().ContactID(nymID))
+    , Worker(api, {})
+    , owner_contact_id_(Widget::api_.Contacts().ContactID(nymID))
 {
     init();
-    setup_listeners(listeners_);
-    startup_.reset(new std::thread(&MessagableList::startup, this));
-
-    OT_ASSERT(startup_)
+    init_executor(
+        {api.Endpoints().ContactUpdate(), api.Endpoints().NymDownload()});
+    pipeline_->Push(MakeWork(Work::init));
 }
 
 auto MessagableList::construct_row(
@@ -103,17 +95,51 @@ auto MessagableList::construct_row(
     const MessagableListSortKey& index,
     CustomData&) const noexcept -> RowPointer
 {
-    return factory::ContactListItem(*this, api_, id, index);
+    return factory::MessagableListItem(*this, Widget::api_, id, index);
 }
 
-auto MessagableList::ID() const noexcept -> const Identifier&
+auto MessagableList::pipeline(const Message& in) noexcept -> void
 {
-    return owner_contact_id_;
+    if (false == running_.get()) { return; }
+
+    const auto body = in.Body();
+
+    if (1 > body.size()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid message").Flush();
+
+        OT_FAIL;
+    }
+
+    const auto work = body.at(0).as<Work>();
+
+    switch (work) {
+        case Work::contact: {
+            process_contact(in);
+        } break;
+        case Work::nym: {
+            process_nym(in);
+        } break;
+        case Work::init: {
+            startup();
+        } break;
+        case Work::statemachine: {
+            do_work();
+        } break;
+        case Work::shutdown: {
+            running_->Off();
+            shutdown(shutdown_promise_);
+        } break;
+        default: {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Unhandled type").Flush();
+
+            OT_FAIL;
+        }
+    }
 }
 
-void MessagableList::process_contact(
+auto MessagableList::process_contact(
     const MessagableListRowID& id,
-    const MessagableListSortKey& key) noexcept
+    const MessagableListSortKey& key) noexcept -> void
 {
     if (owner_contact_id_ == id) {
         LogDetail(OT_METHOD)(__FUNCTION__)(": Skipping owner contact ")(id)(
@@ -127,7 +153,7 @@ void MessagableList::process_contact(
             .Flush();
     }
 
-    switch (api_.OTX().CanMessage(primary_id_, id, false)) {
+    switch (Widget::api_.OTX().CanMessage(primary_id_, id, false)) {
         case Messagability::READY:
         case Messagability::MISSING_RECIPIENT:
         case Messagability::UNREGISTERED: {
@@ -151,42 +177,42 @@ void MessagableList::process_contact(
     }
 }
 
-void MessagableList::process_contact(
-    const network::zeromq::Message& message) noexcept
+auto MessagableList::process_contact(const Message& message) noexcept -> void
 {
-    wait_for_startup();
+    const auto body = message.Body();
 
-    OT_ASSERT(1 == message.Body().size());
+    OT_ASSERT(1 < body.size());
 
-    const std::string id(*message.Body().begin());
-    const auto contactID = Identifier::Factory(id);
+    const auto& id = body.at(1);
+    auto contactID = Widget::api_.Factory().Identifier();
+    contactID->Assign(id.Bytes());
 
     OT_ASSERT(false == contactID->empty())
 
-    const auto name = api_.Contacts().ContactName(contactID);
+    const auto name = Widget::api_.Contacts().ContactName(contactID);
     process_contact(contactID, name);
 }
 
-void MessagableList::process_nym(
-    const network::zeromq::Message& message) noexcept
+auto MessagableList::process_nym(const Message& message) noexcept -> void
 {
-    wait_for_startup();
+    const auto body = message.Body();
 
-    OT_ASSERT(1 == message.Body().size());
+    OT_ASSERT(1 < body.size());
 
-    const std::string id(*message.Body().begin());
-    const auto nymID = identifier::Nym::Factory(id);
+    const auto& id = body.at(1);
+    auto nymID = Widget::api_.Factory().NymID();
+    nymID->Assign(id.Bytes());
 
     OT_ASSERT(false == nymID->empty())
 
-    const auto contactID = api_.Contacts().ContactID(nymID);
-    const auto name = api_.Contacts().ContactName(contactID);
+    const auto contactID = Widget::api_.Contacts().ContactID(nymID);
+    const auto name = Widget::api_.Contacts().ContactName(contactID);
     process_contact(contactID, name);
 }
 
-void MessagableList::startup() noexcept
+auto MessagableList::startup() noexcept -> void
 {
-    const auto contacts = api_.Contacts().ContactList();
+    const auto contacts = Widget::api_.Contacts().ContactList();
     LogDetail(OT_METHOD)(__FUNCTION__)(": Loading ")(contacts.size())(
         " contacts.")
         .Flush();
@@ -200,6 +226,7 @@ void MessagableList::startup() noexcept
 
 MessagableList::~MessagableList()
 {
-    for (auto& it : listeners_) { delete it.second; }
+    wait_for_startup();
+    stop_worker().get();
 }
 }  // namespace opentxs::ui::implementation

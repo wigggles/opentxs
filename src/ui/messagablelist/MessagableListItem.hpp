@@ -4,7 +4,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 // IWYU pragma: private
-// IWYU pragma: friend ".*src/ui/PayableListItem.cpp"
+// IWYU pragma: friend ".*src/ui/MessagableListItem.cpp"
 
 #pragma once
 
@@ -45,55 +45,36 @@ class Publish;
 
 namespace ui
 {
-class PayableListItem;
+class MessagableListItem;
 }  // namespace ui
 }  // namespace opentxs
 
 namespace opentxs::ui::implementation
 {
-class PayableListItem final : public PayableListRowInternal,
-                              public implementation::ContactListItem
+class MessagableListItem final : public implementation::ContactListItem
 {
 public:
-    auto PaymentCode() const noexcept -> std::string final;
-
-#if OT_QT
-    auto qt_data(const int column, const int role) const noexcept
-        -> QVariant final;
-#endif
-
-    PayableListItem(
-        const PayableInternalInterface& parent,
+    MessagableListItem(
+        const ContactListInternalInterface& parent,
         const api::client::internal::Manager& api,
-        const PayableListRowID& rowID,
-        const PayableListSortKey& key,
-        const std::string& paymentcode,
-        const proto::ContactItemType& currency) noexcept;
-    ~PayableListItem() = default;
+        const ContactListRowID& rowID,
+        const ContactListSortKey& key) noexcept;
+    ~MessagableListItem() = default;
 
 private:
     using ot_super = implementation::ContactListItem;
-
-    std::string payment_code_;
-    const proto::ContactItemType currency_;
 
     auto calculate_section(const Lock& lock) const noexcept -> std::string final
     {
         return translate_section(lock);
     }
 
-    auto reindex(const PayableListSortKey&, CustomData&) noexcept -> bool final;
-    auto reindex(
-        const Lock& lock,
-        const PayableListSortKey& key,
-        CustomData& custom) noexcept -> bool final;
-
-    PayableListItem() = delete;
-    PayableListItem(const PayableListItem&) = delete;
-    PayableListItem(PayableListItem&&) = delete;
-    auto operator=(const PayableListItem&) -> PayableListItem& = delete;
-    auto operator=(PayableListItem &&) -> PayableListItem& = delete;
+    MessagableListItem() = delete;
+    MessagableListItem(const MessagableListItem&) = delete;
+    MessagableListItem(MessagableListItem&&) = delete;
+    auto operator=(const MessagableListItem&) -> MessagableListItem& = delete;
+    auto operator=(MessagableListItem &&) -> MessagableListItem& = delete;
 };
 }  // namespace opentxs::ui::implementation
 
-template class opentxs::SharedPimpl<opentxs::ui::PayableListItem>;
+template class opentxs::SharedPimpl<opentxs::ui::MessagableListItem>;

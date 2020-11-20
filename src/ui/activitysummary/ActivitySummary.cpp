@@ -20,15 +20,14 @@
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/Version.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/client/Activity.hpp"
 #include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
-#include "opentxs/network/zeromq/FrameIterator.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
-#include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/protobuf/StorageThread.pb.h"
 #include "opentxs/protobuf/StorageThreadItem.pb.h"
 #include "ui/base/List.hpp"
@@ -87,7 +86,10 @@ ActivitySummary::ActivitySummary(
           6
 #endif
           )
-    , listeners_{{api_.Activity().ThreadPublisher(nymID), new MessageProcessor<ActivitySummary>(&ActivitySummary::process_thread)}}
+    , listeners_(
+          {{api_.Activity().ThreadPublisher(nymID),
+            new MessageProcessor<ActivitySummary>(
+                &ActivitySummary::process_thread)}})
     , running_(running)
 {
     init();
@@ -187,20 +189,24 @@ void ActivitySummary::process_thread(const std::string& id) noexcept
     add_item(threadID, index, custom);
 }
 
-void ActivitySummary::process_thread(
-    const network::zeromq::Message& message) noexcept
+void ActivitySummary::process_thread(const Message& message) noexcept
 {
     wait_for_startup();
+    const auto body = message.Body();
 
-    OT_ASSERT(1 == message.Body().size());
+    OT_ASSERT(1 < body.size());
 
-    const std::string id(*message.Body().begin());
-    const auto threadID = Identifier::Factory(id);
+    const auto threadID = [&] {
+        auto output = api_.Factory().Identifier();
+        output->Assign(body.at(1).Bytes());
+
+        return output;
+    }();
 
     OT_ASSERT(false == threadID->empty())
 
     delete_item(threadID);
-    process_thread(id);
+    process_thread(threadID->str());
 }
 
 void ActivitySummary::startup() noexcept

@@ -7,9 +7,18 @@
 #include "1_Internal.hpp"                          // IWYU pragma: associated
 #include "ui/accountactivity/AccountActivity.hpp"  // IWYU pragma: associated
 
+#include <future>
 #include <utility>
 
+#include "internal/api/client/Client.hpp"
 #include "opentxs/Pimpl.hpp"
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/api/Wallet.hpp"
+#include "opentxs/api/storage/Storage.hpp"
+#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
+#include "opentxs/network/zeromq/Pipeline.hpp"
+#include "util/Work.hpp"
 
 // #define OT_METHOD "opentxs::ui::implementation::AccountActivity::"
 
@@ -88,7 +97,7 @@ auto AccountActivityQt::sendToContact(
     const QString& memo) const noexcept -> bool
 {
     return parent_.Send(
-        parent_.api_.Factory().Identifier(contactID.toStdString()),
+        parent_.Widget::api_.Factory().Identifier(contactID.toStdString()),
         amount.toStdString(),
         memo.toStdString());
 }
@@ -118,8 +127,7 @@ AccountActivity::AccountActivity(
     const identifier::Nym& nymID,
     const Identifier& accountID,
     const AccountType type,
-    const SimpleCallback& cb,
-    ListenerDefinitions&& listeners) noexcept
+    const SimpleCallback& cb) noexcept
     : AccountActivityList(
           api,
           nymID,
@@ -136,13 +144,31 @@ AccountActivity::AccountActivity(
           5
 #endif  // OT_QT
           )
-    , listeners_(std::move(listeners))
+    , Worker(api, {})
     , balance_(0)
     , account_id_(accountID)
     , type_(type)
+    , contract_([&] {
+        try {
+
+            return api.Wallet().UnitDefinition(
+                api.Storage().AccountContract(account_id_));
+        } catch (...) {
+
+            return api.Factory().UnitDefinition();
+        }
+    }())
+    , notary_([&] {
+        try {
+
+            return api.Wallet().Server(
+                api.Storage().AccountServer(account_id_));
+        } catch (...) {
+
+            return api.Factory().ServerContract();
+        }
+    }())
 {
-    init();
-    setup_listeners(listeners_);
 }
 
 auto AccountActivity::construct_row(
@@ -151,11 +177,25 @@ auto AccountActivity::construct_row(
     CustomData& custom) const noexcept -> RowPointer
 {
     return factory::BalanceItem(
-        *this, api_, id, index, custom, primary_id_, account_id_);
+        *this,
+        Widget::Widget::api_,
+        id,
+        index,
+        custom,
+        primary_id_,
+        account_id_);
+}
+
+auto AccountActivity::init(Endpoints endpoints) noexcept -> void
+{
+    AccountActivityList::init();
+    init_executor(std::move(endpoints));
+    pipeline_->Push(MakeWork(OT_ZMQ_INIT_SIGNAL));
 }
 
 AccountActivity::~AccountActivity()
 {
-    for (auto& it : listeners_) { delete it.second; }
+    wait_for_startup();
+    stop_worker().get();
 }
 }  // namespace opentxs::ui::implementation

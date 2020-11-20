@@ -10,13 +10,13 @@
 #include <map>
 #include <memory>
 #include <set>
-#include <string>
 #include <thread>
 #include <utility>
 
 #include "internal/api/client/Client.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/api/Endpoints.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/api/client/Issuer.hpp"
 #include "opentxs/api/network/ZMQ.hpp"
@@ -25,9 +25,7 @@
 #include "opentxs/core/contract/ServerContract.hpp"
 #include "opentxs/identity/Nym.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
-#include "opentxs/network/zeromq/FrameIterator.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
-#include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/protobuf/ContactEnums.pb.h"
 #include "ui/base/List.hpp"
 
@@ -158,15 +156,20 @@ auto AccountSummary::extract_key(
     return output;
 }
 
-void AccountSummary::process_connection(
-    const network::zeromq::Message& message) noexcept
+void AccountSummary::process_connection(const Message& message) noexcept
 {
     wait_for_startup();
+    const auto body = message.Body();
 
-    OT_ASSERT(2 == message.Body().size());
+    OT_ASSERT(2 < body.size());
 
-    const auto serverID = identifier::Server::Factory(message.Body().at(0));
-    process_server(serverID);
+    const auto id = [&] {
+        auto output = api_.Factory().ServerID();
+        output->Assign(body.at(1).Bytes());
+
+        return output;
+    }();
+    process_server(id);
 }
 
 void AccountSummary::process_issuer(const identifier::Nym& issuerID) noexcept
@@ -176,15 +179,25 @@ void AccountSummary::process_issuer(const identifier::Nym& issuerID) noexcept
     add_item(issuerID, extract_key(primary_id_, issuerID), custom);
 }
 
-void AccountSummary::process_issuer(
-    const network::zeromq::Message& message) noexcept
+void AccountSummary::process_issuer(const Message& message) noexcept
 {
     wait_for_startup();
+    const auto body = message.Body();
 
-    OT_ASSERT(2 == message.Body().size());
+    OT_ASSERT(2 < body.size());
 
-    const auto nymID = identifier::Nym::Factory(message.Body().at(0));
-    const auto issuerID = identifier::Nym::Factory(message.Body().at(1));
+    const auto nymID = [&] {
+        auto output = api_.Factory().NymID();
+        output->Assign(body.at(1).Bytes());
+
+        return output;
+    }();
+    const auto issuerID = [&] {
+        auto output = api_.Factory().NymID();
+        output->Assign(body.at(2).Bytes());
+
+        return output;
+    }();
 
     OT_ASSERT(false == nymID->empty())
     OT_ASSERT(false == issuerID->empty())
@@ -194,16 +207,14 @@ void AccountSummary::process_issuer(
     process_issuer(issuerID);
 }
 
-void AccountSummary::process_nym(
-    const network::zeromq::Message& message) noexcept
+void AccountSummary::process_nym(const Message& message) noexcept
 {
     wait_for_startup();
 
-    OT_ASSERT(1 == message.Body().size());
+    OT_ASSERT(1 < message.Body().size());
 
-    const auto nymID =
-        identifier::Nym::Factory(std::string(*message.Body().begin()));
-
+    auto nymID = api_.Factory().NymID();
+    nymID->Assign(message.Body_at(1).Bytes());
     sLock lock(shared_lock_);
     const auto it = nym_server_map_.find(nymID);
 
@@ -215,15 +226,19 @@ void AccountSummary::process_nym(
     process_server(serverID);
 }
 
-void AccountSummary::process_server(
-    const network::zeromq::Message& message) noexcept
+void AccountSummary::process_server(const Message& message) noexcept
 {
     wait_for_startup();
+    const auto body = message.Body();
 
-    OT_ASSERT(1 == message.Body().size());
+    OT_ASSERT(1 < body.size());
 
-    const auto serverID =
-        identifier::Server::Factory(std::string(*message.Body().begin()));
+    const auto serverID = [&] {
+        auto output = api_.Factory().ServerID();
+        output->Assign(body.at(1).Bytes());
+
+        return output;
+    }();
 
     OT_ASSERT(false == serverID->empty())
 

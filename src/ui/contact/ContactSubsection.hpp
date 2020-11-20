@@ -83,8 +83,8 @@ public:
         return row_id_.second;
     }
 
-    void reindex(const ContactSectionSortKey& key, CustomData& custom) noexcept
-        final;
+    auto reindex(const ContactSectionSortKey& key, CustomData& custom) noexcept
+        -> bool final;
 
     ContactSubsection(
         const ContactSectionInternalInterface& parent,

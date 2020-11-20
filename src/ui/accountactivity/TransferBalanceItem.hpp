@@ -68,9 +68,9 @@ public:
     auto UUID() const noexcept -> std::string final;
     auto Workflow() const noexcept -> std::string final { return workflow_; }
 
-    void reindex(
+    auto reindex(
         const implementation::AccountActivitySortKey& key,
-        implementation::CustomData& custom) noexcept final;
+        implementation::CustomData& custom) noexcept -> bool final;
 
     TransferBalanceItem(
         const AccountActivityInternalInterface& parent,
@@ -86,11 +86,10 @@ private:
     std::unique_ptr<const opentxs::Item> transfer_;
 
     auto effective_amount() const noexcept -> opentxs::Amount final;
-    auto get_contract() const noexcept -> bool final;
 
-    void startup(
+    auto startup(
         const proto::PaymentWorkflow workflow,
-        const proto::PaymentEvent event) noexcept;
+        const proto::PaymentEvent event) noexcept -> bool;
 
     TransferBalanceItem() = delete;
     TransferBalanceItem(const TransferBalanceItem&) = delete;

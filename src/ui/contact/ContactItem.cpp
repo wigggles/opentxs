@@ -42,14 +42,16 @@ ContactItem::ContactItem(
     OT_ASSERT(item_);
 }
 
-void ContactItem::reindex(
+auto ContactItem::reindex(
     const ContactSubsectionSortKey&,
-    CustomData& custom) noexcept
+    CustomData& custom) noexcept -> bool
 {
     eLock lock(shared_lock_);
     item_.reset(
         new opentxs::ContactItem(extract_custom<opentxs::ContactItem>(custom)));
 
     OT_ASSERT(item_);
+
+    return true;
 }
 }  // namespace opentxs::ui::implementation

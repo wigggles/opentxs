@@ -74,7 +74,10 @@ public:
     QVariant qt_data(const int column, const int role) const noexcept final;
 #endif
 
-    void reindex(const UnitListSortKey&, CustomData&) noexcept final {}
+    auto reindex(const UnitListSortKey&, CustomData&) noexcept -> bool final
+    {
+        return false;
+    }
 
     UnitListItem(
         const UnitListInternalInterface& parent,

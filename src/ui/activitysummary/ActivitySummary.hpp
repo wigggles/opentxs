@@ -105,7 +105,7 @@ private:
         -> std::string;
 
     void process_thread(const std::string& threadID) noexcept;
-    void process_thread(const network::zeromq::Message& message) noexcept;
+    void process_thread(const Message& message) noexcept;
     void startup() noexcept;
 
     ActivitySummary() = delete;

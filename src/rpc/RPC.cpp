@@ -2032,13 +2032,14 @@ auto RPC::storagebox_to_accounteventtype(StorageBox storagebox)
 
 void RPC::task_handler(const zmq::Message& in)
 {
-    if (2 > in.Body().size()) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid message").Flush();
+    const auto body = in.Body();
 
-        return;
-    }
+    OT_ASSERT(2 < body.size());
 
-    const std::string taskID{in.Body_at(0)};
+    using ID = api::client::OTX::TaskID;
+
+    const auto taskID = std::to_string(body.at(1).as<ID>());
+    const auto success = body.at(2).as<bool>();
     LogTrace(OT_METHOD)(__FUNCTION__)(": Received notice for task ")(taskID)
         .Flush();
     Lock lock(task_lock_);
@@ -2062,7 +2063,6 @@ void RPC::task_handler(const zmq::Message& in)
     lock.lock();
     queued_tasks_.erase(it);
     lock.unlock();
-    const auto success = in.Body_at(1).as<bool>();
     message.set_version(RPCPUSH_VERSION);
     message.set_type(proto::RPCPUSH_TASK);
     task.set_version(TASKCOMPLETE_VERSION);

@@ -88,8 +88,8 @@ public:
     auto Timestamp() const noexcept -> Time final;
     auto Type() const noexcept -> StorageBox final;
 
-    void reindex(const ActivitySummarySortKey& key, CustomData& custom) noexcept
-        final;
+    auto reindex(const ActivitySummarySortKey& key, CustomData& custom) noexcept
+        -> bool final;
 
 #if OT_QT
     QVariant qt_data(const int column, const int role) const noexcept final;

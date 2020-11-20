@@ -7,18 +7,27 @@
 #include "1_Internal.hpp"  // IWYU pragma: associated
 #include "ui/blockchainselection/BlockchainSelection.hpp"  // IWYU pragma: associated
 
+#include <future>
 #include <memory>
 #include <set>
 #include <string>
+#include <vector>
 
 #include "internal/api/client/Client.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/Types.hpp"
+#include "opentxs/api/Endpoints.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
+#include "opentxs/network/zeromq/Frame.hpp"
+#include "opentxs/network/zeromq/FrameSection.hpp"
+#include "opentxs/network/zeromq/Pipeline.hpp"
 #include "ui/base/List.hpp"
 
-// #define OT_METHOD "opentxs::ui::implementation::BlockchainSelection::"
+#define OT_METHOD "opentxs::ui::implementation::BlockchainSelection::"
 
 namespace zmq = opentxs::network::zeromq;
 
@@ -55,26 +64,12 @@ QT_PROXY_MODEL_WRAPPER(
 
 auto BlockchainSelectionQt::disableChain(const int chain) const noexcept -> bool
 {
-    const auto out = parent_.Disable(static_cast<blockchain::Type>(chain));
-    emit updated();
-
-    return out;
+    return parent_.Disable(static_cast<blockchain::Type>(chain));
 }
 
 auto BlockchainSelectionQt::enableChain(const int chain) const noexcept -> bool
 {
-    const auto out = parent_.Enable(static_cast<blockchain::Type>(chain));
-    emit updated();
-
-    return out;
-}
-
-auto BlockchainSelectionQt::toggleChain(const int chain) const noexcept -> bool
-{
-    const auto out = parent_.Toggle(static_cast<blockchain::Type>(chain));
-    emit updated();
-
-    return out;
+    return parent_.Enable(static_cast<blockchain::Type>(chain));
 }
 }  // namespace opentxs::ui
 #endif
@@ -97,8 +92,11 @@ BlockchainSelection::BlockchainSelection(
           3
 #endif
           )
+    , Worker(api, {})
     , blockchain_(blockchain)
 {
+    init_executor({api.Endpoints().BlockchainStateChange()});
+    pipeline_->Push(MakeWork(Work::init));
 }
 
 auto BlockchainSelection::construct_row(
@@ -107,14 +105,93 @@ auto BlockchainSelection::construct_row(
     CustomData& custom) const noexcept -> RowPointer
 {
     return factory::BlockchainSelectionItem(
-        *this, api_, blockchain_, id, index, custom);
+        *this, Widget::api_, id, index, custom);
 }
 
-auto BlockchainSelection::init() noexcept -> void
+auto BlockchainSelection::Disable(const blockchain::Type type) const noexcept
+    -> bool
+{
+    const auto output = blockchain_.Disable(type);
+
+    if (output) { process_state(type, false); }
+
+    return output;
+}
+
+auto BlockchainSelection::Enable(const blockchain::Type type) const noexcept
+    -> bool
+{
+    const auto output = blockchain_.Enable(type);
+
+    if (output) { process_state(type, true); }
+
+    return output;
+}
+
+auto BlockchainSelection::pipeline(const Message& in) noexcept -> void
+{
+    if (false == running_.get()) { return; }
+
+    const auto body = in.Body();
+
+    if (1 > body.size()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid message").Flush();
+
+        OT_FAIL;
+    }
+
+    const auto work = body.at(0).as<Work>();
+
+    switch (work) {
+        case Work::statechange: {
+            process_state(in);
+        } break;
+        case Work::init: {
+            startup();
+        } break;
+        case Work::statemachine: {
+            do_work();
+        } break;
+        case Work::shutdown: {
+            running_->Off();
+            shutdown(shutdown_promise_);
+        } break;
+        default: {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Unhandled type: ")(
+                static_cast<OTZMQWorkType>(work))
+                .Flush();
+
+            OT_FAIL;
+        }
+    }
+}
+
+auto BlockchainSelection::process_state(const Message& in) noexcept -> void
+{
+    const auto body = in.Body();
+
+    OT_ASSERT(2 < body.size());
+
+    process_state(body.at(1).as<blockchain::Type>(), body.at(2).as<bool>());
+}
+
+auto BlockchainSelection::process_state(
+    const blockchain::Type chain,
+    const bool enabled) const noexcept -> void
 {
     auto custom = CustomData{};
+    custom.emplace_back(new bool{enabled});
+    const_cast<BlockchainSelection&>(*this).add_item(
+        chain,
+        {blockchain::IsTestnet(chain), blockchain::DisplayString(chain)},
+        custom);
+}
 
+auto BlockchainSelection::startup() noexcept -> void
+{
     for (const auto& chain : blockchain::SupportedChains()) {
+        auto custom = CustomData{};
+        custom.emplace_back(new bool{blockchain_.IsEnabled(chain)});
         add_item(
             chain,
             {blockchain::IsTestnet(chain), blockchain::DisplayString(chain)},
@@ -124,23 +201,9 @@ auto BlockchainSelection::init() noexcept -> void
     finish_startup();
 }
 
-auto BlockchainSelection::Disable(const blockchain::Type type) const noexcept
-    -> bool
+BlockchainSelection::~BlockchainSelection()
 {
-    return blockchain_.Disable(type);
+    wait_for_startup();
+    stop_worker().get();
 }
-
-auto BlockchainSelection::Enable(const blockchain::Type type) const noexcept
-    -> bool
-{
-    return blockchain_.Enable(type);
-}
-
-auto BlockchainSelection::Toggle(const blockchain::Type type) const noexcept
-    -> bool
-{
-    return blockchain_.ToggleChain(type);
-}
-
-BlockchainSelection::~BlockchainSelection() = default;
 }  // namespace opentxs::ui::implementation

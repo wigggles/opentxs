@@ -41,6 +41,8 @@ public:
     OPENTXS_EXPORT virtual auto FilterOracle() const noexcept
         -> const client::FilterOracle& = 0;
     OPENTXS_EXPORT virtual auto GetBalance() const noexcept -> Balance = 0;
+    OPENTXS_EXPORT virtual auto GetBalance(
+        const identifier::Nym& owner) const noexcept -> Balance = 0;
     OPENTXS_EXPORT virtual auto GetConfirmations(
         const std::string& txid) const noexcept -> ChainHeight = 0;
     OPENTXS_EXPORT virtual auto GetHeight() const noexcept -> ChainHeight = 0;

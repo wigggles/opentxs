@@ -67,26 +67,20 @@ class Manager final : public opentxs::api::client::internal::Manager,
                       public api::implementation::Core
 {
 public:
-    auto ActivateUICallback(const Identifier& widget) const noexcept
-        -> void final
-    {
-        ui_->ActivateUICallback(widget);
-    }
     auto Activity() const -> const api::client::Activity& final;
     auto Blockchain() const -> const api::client::Blockchain& final;
     auto Contacts() const -> const api::client::Contacts& final;
     auto Exec(const std::string& wallet = "") const -> const OTAPI_Exec& final;
+    auto InternalUI() const noexcept -> const internal::UI& final
+    {
+        return *ui_;
+    }
     using Core::Lock;
     auto Lock(const identifier::Nym& nymID, const identifier::Server& serverID)
         const -> std::recursive_mutex& final;
     auto OTAPI(const std::string& wallet = "") const -> const OT_API& final;
     auto OTX() const -> const client::OTX& final;
     auto Pair() const -> const api::client::Pair& final;
-    auto RegisterUICallback(const Identifier& widget, const SimpleCallback& cb)
-        const noexcept -> void final
-    {
-        ui_->RegisterUICallback(widget, cb);
-    }
     auto ServerAction() const -> const client::ServerAction& final;
     auto UI() const -> const api::client::UI& final;
     auto Workflow() const -> const client::Workflow& final;

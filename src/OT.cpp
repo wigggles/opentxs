@@ -7,6 +7,7 @@
 #include "1_Internal.hpp"  // IWYU pragma: associated
 #include "opentxs/OT.hpp"  // IWYU pragma: associated
 
+#include <chrono>
 #include <memory>
 #include <stdexcept>
 

@@ -199,6 +199,7 @@ public:
 #endif  // OT_QT
 
     auto Init() noexcept -> void final;
+    auto Shutdown() noexcept -> void final;
 
     UI(const api::client::internal::Manager& api,
 #if OT_BLOCKCHAIN
@@ -207,7 +208,7 @@ public:
        const Flag& running)
     noexcept;
 
-    ~UI() final = default;
+    ~UI() final;
 
 private:
     /** NymID, AccountID */
@@ -256,7 +257,7 @@ private:
     using UnitListMap = std::map<UnitListKey, UnitListValue>;
 #if OT_BLOCKCHAIN
     using BlockchainSelectionType =
-        std::shared_ptr<ui::implementation::BlockchainSelection>;
+        std::unique_ptr<ui::implementation::BlockchainSelection>;
 #endif  // OT_BLOCKCHAIN
 
 #if OT_QT
@@ -289,7 +290,7 @@ private:
     using UnitListQtMap = std::map<UnitListKey, UnitListQtValue>;
 #if OT_BLOCKCHAIN
     using BlockchainSelectionQtType =
-        std::shared_ptr<ui::BlockchainSelectionQt>;
+        std::unique_ptr<ui::BlockchainSelectionQt>;
 #endif  // OT_BLOCKCHAIN
 
     struct Blank {

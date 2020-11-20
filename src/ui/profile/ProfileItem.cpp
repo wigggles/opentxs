@@ -89,15 +89,17 @@ auto ProfileItem::Delete() const noexcept -> bool
     return nym.DeleteClaim(row_id_, reason);
 }
 
-void ProfileItem::reindex(
+auto ProfileItem::reindex(
     const ProfileSubsectionSortKey&,
-    CustomData& custom) noexcept
+    CustomData& custom) noexcept -> bool
 {
     eLock lock(shared_lock_);
     item_.reset(
         new opentxs::ContactItem(extract_custom<opentxs::ContactItem>(custom)));
 
     OT_ASSERT(item_);
+
+    return true;
 }
 
 auto ProfileItem::SetActive(const bool& active) const noexcept -> bool

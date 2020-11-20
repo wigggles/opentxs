@@ -36,8 +36,8 @@
 #include "opentxs/network/zeromq/socket/Publish.hpp"
 #include "opentxs/protobuf/BlockchainBlockHeader.pb.h"
 #include "opentxs/protobuf/BlockchainBlockLocalData.pb.h"
+#include "opentxs/util/WorkType.hpp"
 #include "util/LMDB.hpp"
-#include "util/Work.hpp"
 
 #define OT_METHOD "opentxs::blockchain::database::Headers::"
 
@@ -231,7 +231,7 @@ auto Headers::ApplyUpdate(const client::UpdateTransaction& update) noexcept
         LogNormal("Blockchain reorg detected. Last common ancestor is ")(
             hash->asHex())(" at height ")(height)
             .Flush();
-        auto work = MakeWork(api_, OT_ZMQ_REORG_SIGNAL);
+        auto work = MakeWork(api_, WorkType::BlockchainReorg);
         work->AddFrame(network_.Chain());
         work->AddFrame(bytes.data(), bytes.size());
         work->AddFrame(height);
@@ -239,7 +239,7 @@ auto Headers::ApplyUpdate(const client::UpdateTransaction& update) noexcept
     } else {
         const auto& [height, hash] = position;
         const auto bytes = hash->Bytes();
-        auto work = MakeWork(api_, OT_ZMQ_NEW_BLOCK_HEADER_SIGNAL);
+        auto work = MakeWork(api_, WorkType::BlockchainNewHeader);
         work->AddFrame(network_.Chain());
         work->AddFrame(bytes.data(), bytes.size());
         work->AddFrame(height);

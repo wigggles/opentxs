@@ -94,12 +94,10 @@ private:
         const UnitListSortKey& index,
         CustomData& custom) const noexcept -> RowPointer final;
 
-    auto process_account(const network::zeromq::Message& message) noexcept
-        -> void;
+    auto process_account(const Message& message) noexcept -> void;
     auto process_account(const Identifier& id) noexcept -> void;
 #if OT_BLOCKCHAIN
-    auto process_blockchain_balance(
-        const network::zeromq::Message& message) noexcept -> void;
+    auto process_blockchain_balance(const Message& message) noexcept -> void;
 #endif  // OT_BLOCKCHAIN
     auto process_unit(const UnitListRowID& id) noexcept -> void;
 #if OT_BLOCKCHAIN

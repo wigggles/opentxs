@@ -8,6 +8,8 @@
 
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
+#include <string>
+
 namespace opentxs
 {
 class OTCallback;
@@ -22,9 +24,13 @@ class OTCaller
 public:
     OPENTXS_EXPORT bool HaveCallback() const;
 
-    OPENTXS_EXPORT void AskOnce(const PasswordPrompt& prompt, Secret& output,
+    OPENTXS_EXPORT void AskOnce(
+        const PasswordPrompt& prompt,
+        Secret& output,
         const std::string& key);
-    OPENTXS_EXPORT void AskTwice(const PasswordPrompt& prompt, Secret& output,
+    OPENTXS_EXPORT void AskTwice(
+        const PasswordPrompt& prompt,
+        Secret& output,
         const std::string& key);
     OPENTXS_EXPORT void SetCallback(OTCallback* callback);
 

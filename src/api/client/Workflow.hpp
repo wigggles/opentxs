@@ -245,11 +245,11 @@ private:
         const VersionNumber version,
         const Message& request,
         const Message* reply,
-        const std::string& account = "") const -> bool;
+        const Identifier& account) const -> bool;
     auto add_cheque_event(
         const eLock& lock,
         const std::string& nymID,
-        const std::string& accountID,
+        const Identifier& accountID,
         proto::PaymentWorkflow& workflow,
         const proto::PaymentWorkflowState newState,
         const proto::PaymentEventType newEventType,
@@ -266,7 +266,7 @@ private:
         const proto::PaymentEventType newEventType,
         const VersionNumber version,
         const Message& message,
-        const std::string& account,
+        const Identifier& account,
         const bool success) const -> bool;
     auto add_transfer_event(
         const eLock& lock,
@@ -278,7 +278,7 @@ private:
         const proto::PaymentEventType newEventType,
         const VersionNumber version,
         const OTTransaction& receipt,
-        const std::string& account,
+        const Identifier& account,
         const bool success) const -> bool;
     auto convey_incoming_transfer(
         const identifier::Nym& nymID,
@@ -303,7 +303,7 @@ private:
         const VersionNumber sourceVersion,
         const VersionNumber eventVersion,
         const std::string& party,
-        const std::string& account,
+        const Identifier& account,
         const Message* message = nullptr) const
         -> std::pair<OTIdentifier, proto::PaymentWorkflow>;
     auto create_transfer(
@@ -316,7 +316,7 @@ private:
         const VersionNumber sourceVersion,
         const VersionNumber eventVersion,
         const std::string& party,
-        const std::string& account,
+        const Identifier& account,
         const std::string& notaryID,
         const std::string& destinationAccountID) const
         -> std::pair<OTIdentifier, proto::PaymentWorkflow>;
@@ -355,17 +355,17 @@ private:
         const proto::PaymentWorkflow& workflow) const -> bool;
     auto save_workflow(
         const std::string& nymID,
-        const std::string& accountID,
+        const Identifier& accountID,
         const proto::PaymentWorkflow& workflow) const -> bool;
     auto save_workflow(
         OTIdentifier&& workflowID,
         const std::string& nymID,
-        const std::string& accountID,
+        const Identifier& accountID,
         const proto::PaymentWorkflow& workflow) const -> OTIdentifier;
     auto save_workflow(
         std::pair<OTIdentifier, proto::PaymentWorkflow>&& workflowID,
         const std::string& nymID,
-        const std::string& accountID,
+        const Identifier& accountID,
         const proto::PaymentWorkflow& workflow) const
         -> std::pair<OTIdentifier, proto::PaymentWorkflow>;
     auto update_activity(

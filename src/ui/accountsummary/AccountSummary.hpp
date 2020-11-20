@@ -105,11 +105,11 @@ private:
     auto extract_key(
         const identifier::Nym& nymID,
         const identifier::Nym& issuerID) noexcept -> AccountSummarySortKey;
-    void process_connection(const network::zeromq::Message& message) noexcept;
+    void process_connection(const Message& message) noexcept;
     void process_issuer(const identifier::Nym& issuerID) noexcept;
-    void process_issuer(const network::zeromq::Message& message) noexcept;
-    void process_nym(const network::zeromq::Message& message) noexcept;
-    void process_server(const network::zeromq::Message& message) noexcept;
+    void process_issuer(const Message& message) noexcept;
+    void process_nym(const Message& message) noexcept;
+    void process_server(const Message& message) noexcept;
     void process_server(const identifier::Server& serverID) noexcept;
     void startup() noexcept;
 

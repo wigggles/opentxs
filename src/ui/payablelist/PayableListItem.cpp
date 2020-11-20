@@ -74,15 +74,33 @@ QVariant PayableListItem::qt_data(const int column, int role) const noexcept
 }
 #endif
 
-void PayableListItem::reindex(
+auto PayableListItem::reindex(
     const ContactListSortKey& key,
-    CustomData& custom) noexcept
+    CustomData& custom) noexcept -> bool
 {
-    ot_super::reindex(key, custom);
+    Lock lock(lock_);
+
+    return reindex(lock, key, custom);
+}
+
+auto PayableListItem::reindex(
+    const Lock& lock,
+    const ContactListSortKey& key,
+    CustomData& custom) noexcept -> bool
+{
+    auto output = ot_super::reindex(lock, key, custom);
+
     const auto contact = api_.Contacts().Contact(row_id_);
 
     OT_ASSERT(contact);
 
-    payment_code_ = contact->PaymentCode(currency_);
+    auto paymentCode = contact->PaymentCode(currency_);
+
+    if (payment_code_ != paymentCode) {
+        payment_code_ = paymentCode;
+        output |= true;
+    }
+
+    return output;
 }
 }  // namespace opentxs::ui::implementation

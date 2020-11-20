@@ -23,7 +23,6 @@
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/network/ZMQ.hpp"
 #include "opentxs/core/Armored.hpp"
-#include "opentxs/core/Data.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
@@ -56,6 +55,7 @@
 #include "opentxs/protobuf/ServerReply.pb.h"
 #include "opentxs/protobuf/ServerRequest.pb.h"
 #include "opentxs/protobuf/verify/ServerReply.hpp"
+#include "opentxs/util/WorkType.hpp"
 
 namespace zmq = opentxs::network::zeromq;
 
@@ -84,7 +84,7 @@ ServerConnection::ServerConnection(
     : zmq_(zmq)
     , api_(api)
     , updates_(updates)
-    , server_id_(contract->ID()->str())
+    , server_id_(api_.Factory().ServerID(contract->ID()->str()))
     , address_type_(zmq.DefaultAddressType())
     , remote_contract_(contract)
     , thread_()
@@ -328,9 +328,9 @@ void ServerConnection::process_incoming(const zeromq::Message& in)
 void ServerConnection::publish() const
 {
     const bool state(status_.get());
-    auto message = zmq::Message::Factory();
+    auto message = zmq_.Context().TaggedMessage(WorkType::OTXConnectionStatus);
     message->AddFrame(server_id_);
-    message->AddFrame(Data::Factory(&state, sizeof(state)));
+    message->AddFrame(state);
     updates_.Send(message);
 }
 

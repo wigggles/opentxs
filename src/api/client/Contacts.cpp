@@ -30,9 +30,10 @@
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/identity/Nym.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
+#include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/socket/Publish.hpp"
-#include "opentxs/network/zeromq/socket/Sender.tpp"
 #include "opentxs/protobuf/ContactEnums.pb.h"
+#include "opentxs/util/WorkType.hpp"
 
 #define OT_METHOD "opentxs::api::implementation::Contacts::"
 
@@ -610,8 +611,12 @@ void Contacts::refresh_indices(const rLock& lock, opentxs::Contact& contact)
 
     const auto& id = contact.ID();
     contact_name_map_[id] = contact.Label();
-    const std::string rawID{id.str()};
-    publisher_->Send(rawID);
+
+    {
+        auto work = api_.ZeroMQ().TaggedMessage(WorkType::ContactUpdated);
+        work->AddFrame(id);
+        publisher_->Send(work);
+    }
 }
 
 void Contacts::save(opentxs::Contact* contact) const

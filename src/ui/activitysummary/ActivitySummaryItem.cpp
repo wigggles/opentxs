@@ -224,14 +224,16 @@ QVariant ActivitySummaryItem::qt_data(const int column, int role) const noexcept
 }
 #endif
 
-void ActivitySummaryItem::reindex(
+auto ActivitySummaryItem::reindex(
     const ActivitySummarySortKey& key,
-    CustomData& custom) noexcept
+    CustomData& custom) noexcept -> bool
 {
     eLock lock(shared_lock_);
     key_ = key;
     lock.unlock();
     startup(custom);
+
+    return true;
 }
 
 void ActivitySummaryItem::startup(CustomData& custom) noexcept

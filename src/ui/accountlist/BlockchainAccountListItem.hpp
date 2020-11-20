@@ -78,7 +78,7 @@ public:
     {
         return row_id_->str();
     }
-    auto Balance() const noexcept -> Amount final { return balance_; }
+    auto Balance() const noexcept -> Amount;
     auto ContractID() const noexcept -> std::string final { return contract_; }
     auto DisplayBalance() const noexcept -> std::string final
     {
@@ -88,16 +88,14 @@ public:
     {
         return blockchain::internal::Ticker(chain_);
     }
-    auto Name() const noexcept -> std::string final { return name_; }
+    auto Name() const noexcept -> std::string final;
     auto NotaryID() const noexcept -> std::string final { return notary_; }
     auto NotaryName() const noexcept -> std::string final
     {
         return blockchain::DisplayString(chain_);
     }
     auto reindex(const AccountListSortKey& key, CustomData& custom) noexcept
-        -> void final
-    {
-    }
+        -> bool final;
     auto Type() const noexcept -> AccountType final { return type_; }
     auto Unit() const noexcept -> proto::ContactItemType final { return unit_; }
 
@@ -118,11 +116,11 @@ public:
 private:
     const AccountType type_;
     const proto::ContactItemType unit_;
-    const Amount balance_;
     const blockchain::Type chain_;
     const std::string contract_;
     const std::string notary_;
-    const std::string name_;
+    Amount balance_;
+    std::string name_;
 
     BlockchainAccountListItem() = delete;
     BlockchainAccountListItem(const BlockchainAccountListItem&) = delete;

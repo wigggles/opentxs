@@ -403,6 +403,7 @@ private:
     OTZMQPublishSocket nym_publisher_;
     OTZMQPublishSocket nym_created_publisher_;
     OTZMQPublishSocket server_publisher_;
+    OTZMQPublishSocket unit_publisher_;
     OTZMQPublishSocket peer_reply_publisher_;
     OTZMQPublishSocket peer_request_publisher_;
     OTZMQRequestSocket dht_nym_requester_;
@@ -457,7 +458,9 @@ private:
     }
     auto nymfile_lock(const identifier::Nym& nymID) const -> std::mutex&;
     auto peer_lock(const std::string& nymID) const -> std::mutex&;
-    void publish_server(const identifier::Server& id) const;
+    auto publish_server(const identifier::Server& id) const noexcept -> void;
+    auto publish_unit(const identifier::UnitDefinition& id) const noexcept
+        -> void;
 #if OT_CASH
     auto purse(
         const identifier::Nym& nym,

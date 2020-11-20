@@ -12,14 +12,17 @@
 #include <utility>
 
 #include "1_Internal.hpp"
+#include "core/Worker.hpp"
 #include "internal/ui/UI.hpp"
 #include "opentxs/SharedPimpl.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/Version.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/ui/MessagableList.hpp"
+#include "opentxs/util/WorkType.hpp"
 #include "ui/base/List.hpp"
 #include "ui/base/Widget.hpp"
+#include "util/Work.hpp"
 
 namespace opentxs
 {
@@ -65,10 +68,13 @@ using MessagableListList = List<
     MessagableListSortKey,
     MessagableListPrimaryID>;
 
-class MessagableList final : public MessagableListList
+class MessagableList final : public MessagableListList, Worker<MessagableList>
 {
 public:
-    auto ID() const noexcept -> const Identifier& final;
+    auto ID() const noexcept -> const Identifier& final
+    {
+        return owner_contact_id_;
+    }
 
     MessagableList(
         const api::client::internal::Manager& api,
@@ -77,7 +83,16 @@ public:
     ~MessagableList() final;
 
 private:
-    const ListenerDefinitions listeners_;
+    friend Worker<MessagableList>;
+
+    enum class Work : OTZMQWorkType {
+        contact = value(WorkType::ContactUpdated),
+        nym = value(WorkType::NymUpdated),
+        init = OT_ZMQ_INIT_SIGNAL,
+        statemachine = OT_ZMQ_STATE_MACHINE_SIGNAL,
+        shutdown = value(WorkType::Shutdown),
+    };
+
     const OTIdentifier owner_contact_id_;
 
     auto construct_row(
@@ -89,12 +104,13 @@ private:
         return MessagableListList::last(id);
     }
 
-    void process_contact(
+    auto pipeline(const Message& in) noexcept -> void;
+    auto process_contact(
         const MessagableListRowID& id,
-        const MessagableListSortKey& key) noexcept;
-    void process_contact(const network::zeromq::Message& message) noexcept;
-    void process_nym(const network::zeromq::Message& message) noexcept;
-    void startup() noexcept;
+        const MessagableListSortKey& key) noexcept -> void;
+    auto process_contact(const Message& message) noexcept -> void;
+    auto process_nym(const Message& message) noexcept -> void;
+    auto startup() noexcept -> void;
 
     MessagableList() = delete;
     MessagableList(const MessagableList&) = delete;

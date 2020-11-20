@@ -26,9 +26,11 @@
 #include "opentxs/protobuf/ContactEnums.pb.h"
 #include "opentxs/protobuf/PaymentWorkflowEnums.pb.h"
 #include "opentxs/ui/AccountActivity.hpp"
+#include "opentxs/util/WorkType.hpp"
 #include "ui/accountactivity/AccountActivity.hpp"
 #include "ui/base/List.hpp"
 #include "ui/base/Widget.hpp"
+#include "util/Work.hpp"
 
 namespace opentxs
 {
@@ -77,28 +79,13 @@ namespace opentxs::ui::implementation
 class CustodialAccountActivity final : public AccountActivity
 {
 public:
-    auto ContractID() const noexcept -> std::string final
-    {
-        return contract_->ID()->str();
-    }
+    auto ContractID() const noexcept -> std::string final;
     auto DisplayBalance() const noexcept -> std::string final;
-    auto DisplayUnit() const noexcept -> std::string final
-    {
-        return contract_->TLA();
-    }
+    auto DisplayUnit() const noexcept -> std::string final;
     auto Name() const noexcept -> std::string final;
-    auto NotaryID() const noexcept -> std::string final
-    {
-        return notary_->ID()->str();
-    }
-    auto NotaryName() const noexcept -> std::string final
-    {
-        return notary_->EffectiveName();
-    }
-    auto Unit() const noexcept -> proto::ContactItemType final
-    {
-        return contract_->UnitOfAccount();
-    }
+    auto NotaryID() const noexcept -> std::string final;
+    auto NotaryName() const noexcept -> std::string final;
+    auto Unit() const noexcept -> proto::ContactItemType final;
 
     CustodialAccountActivity(
         const api::client::internal::Manager& api,
@@ -106,15 +93,24 @@ public:
         const Identifier& accountID,
         const SimpleCallback& cb) noexcept;
 
-    ~CustodialAccountActivity() final = default;
+    ~CustodialAccountActivity() final;
 
 private:
     using EventRow =
         std::pair<AccountActivitySortKey, const proto::PaymentEvent*>;
     using RowKey = std::pair<proto::PaymentEventType, EventRow>;
 
-    const OTUnitDefinition contract_;
-    const OTServerContract notary_;
+    enum class Work : OTZMQWorkType {
+        notary = value(WorkType::NotaryUpdated),
+        unit = value(WorkType::UnitDefinitionUpdated),
+        contact = value(WorkType::ContactUpdated),
+        account = value(WorkType::AccountUpdated),
+        workflow = value(WorkType::WorkflowAccountUpdate),
+        init = OT_ZMQ_INIT_SIGNAL,
+        statemachine = OT_ZMQ_STATE_MACHINE_SIGNAL,
+        shutdown = value(WorkType::Shutdown),
+    };
+
     std::string alias_;
 
     static auto extract_event(
@@ -122,17 +118,17 @@ private:
         const proto::PaymentWorkflow& workflow) noexcept -> EventRow;
     static auto extract_rows(const proto::PaymentWorkflow& workflow) noexcept
         -> std::vector<RowKey>;
-    static auto load_server(const api::Core& api, const Identifier& account)
-        -> OTServerContract;
-    static auto load_unit(const api::Core& api, const Identifier& account)
-        -> OTUnitDefinition;
 
-    void process_balance(const network::zeromq::Message& message) noexcept;
-    void process_workflow(
+    auto pipeline(const Message& in) noexcept -> void final;
+    auto process_balance(const Message& message) noexcept -> void;
+    auto process_contact(const Message& message) noexcept -> void;
+    auto process_notary(const Message& message) noexcept -> void;
+    auto process_workflow(
         const Identifier& workflowID,
-        std::set<AccountActivityRowID>& active) noexcept;
-    void process_workflow(const network::zeromq::Message& message) noexcept;
-    void startup() noexcept final;
+        std::set<AccountActivityRowID>& active) noexcept -> void;
+    auto process_workflow(const Message& message) noexcept -> void;
+    auto process_unit(const Message& message) noexcept -> void;
+    auto startup() noexcept -> void final;
 
     CustodialAccountActivity() = delete;
     CustodialAccountActivity(const CustodialAccountActivity&) = delete;

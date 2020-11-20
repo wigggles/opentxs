@@ -147,7 +147,7 @@ TEST_F(Test_BlockchainSelector, disable_disabled)
 
 TEST_F(Test_BlockchainSelector, enable_disabled)
 {
-    counter_.expected_ += 2;
+    counter_.expected_ += 1;
 
     EXPECT_TRUE(model_.Enable(ot::blockchain::Type::Bitcoin));
     ASSERT_TRUE(wait_for_counter(counter_));
@@ -186,7 +186,7 @@ TEST_F(Test_BlockchainSelector, enable_enabled)
 
 TEST_F(Test_BlockchainSelector, disable_enabled)
 {
-    counter_.expected_ += 2;
+    counter_.expected_ += 1;
 
     EXPECT_TRUE(model_.Disable(ot::blockchain::Type::Bitcoin));
     ASSERT_TRUE(wait_for_counter(counter_));
@@ -205,45 +205,8 @@ TEST_F(Test_BlockchainSelector, disable_enabled)
     EXPECT_FALSE(row->Last());
 }
 
-TEST_F(Test_BlockchainSelector, toggle_disabled)
+TEST_F(Test_BlockchainSelector, shutdown)
 {
-    counter_.expected_ += 1;
-
-    EXPECT_TRUE(model_.Toggle(ot::blockchain::Type::Bitcoin));
-    ASSERT_TRUE(wait_for_counter(counter_));
-
-    auto row = model_.First();
-
-    ASSERT_TRUE(row->Valid());
-
-    {
-        EXPECT_EQ(row->Name(), "Bitcoin");
-        EXPECT_TRUE(row->IsEnabled());
-        EXPECT_FALSE(row->IsTestnet());
-        EXPECT_EQ(row->Type(), ot::blockchain::Type::Bitcoin);
-    }
-
-    EXPECT_FALSE(row->Last());
-}
-
-TEST_F(Test_BlockchainSelector, toggle_enabled)
-{
-    counter_.expected_ += 1;
-
-    EXPECT_TRUE(model_.Toggle(ot::blockchain::Type::Bitcoin));
-    ASSERT_TRUE(wait_for_counter(counter_));
-
-    auto row = model_.First();
-
-    ASSERT_TRUE(row->Valid());
-
-    {
-        EXPECT_EQ(row->Name(), "Bitcoin");
-        EXPECT_FALSE(row->IsEnabled());
-        EXPECT_FALSE(row->IsTestnet());
-        EXPECT_EQ(row->Type(), ot::blockchain::Type::Bitcoin);
-    }
-
-    EXPECT_FALSE(row->Last());
+    EXPECT_EQ(counter_.expected_, counter_.updated_);
 }
 }  // namespace
