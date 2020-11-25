@@ -14,6 +14,14 @@ namespace opentxs
 {
 namespace blockchain
 {
+namespace block
+{
+namespace bitcoin
+{
+class Block;
+}  // namespace bitcoin
+}  // namespace block
+
 namespace client
 {
 class FilterOracle;
@@ -36,6 +44,9 @@ class Network
 public:
     using PendingOutgoing = std::future<block::pTxid>;
 
+    OPENTXS_EXPORT virtual auto AddBlock(
+        const std::shared_ptr<const block::bitcoin::Block> block) const noexcept
+        -> bool = 0;
     OPENTXS_EXPORT virtual auto AddPeer(
         const p2p::Address& address) const noexcept -> bool = 0;
     OPENTXS_EXPORT virtual auto FilterOracle() const noexcept

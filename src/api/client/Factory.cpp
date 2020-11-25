@@ -7,16 +7,33 @@
 #include "1_Internal.hpp"          // IWYU pragma: associated
 #include "api/client/Factory.hpp"  // IWYU pragma: associated
 
+#include <boost/endian/buffers.hpp>
+#include <algorithm>
+#include <cstddef>
+#include <cstring>
+#include <iterator>
+#include <tuple>
+#include <utility>
+
 #include "2_Factory.hpp"
+#if OT_BLOCKCHAIN
+#include "blockchain/bitcoin/CompactSize.hpp"
+#endif  // OT_BLOCKCHAIN
+#include "internal/api/Api.hpp"
 #include "internal/api/client/Client.hpp"
 #include "internal/api/client/Factory.hpp"
-#include "opentxs/blockchain/BlockchainType.hpp"
 #if OT_BLOCKCHAIN
+#include "internal/blockchain/bitcoin/Bitcoin.hpp"
 #include "internal/blockchain/block/Block.hpp"
 #include "internal/blockchain/block/bitcoin/Bitcoin.hpp"
 #endif  // OT_BLOCKCHAIN
+#include "opentxs/blockchain/BlockchainType.hpp"
 #if OT_BLOCKCHAIN
+#include "opentxs/blockchain/block/Block.hpp"
 #include "opentxs/blockchain/block/Header.hpp"
+#include "opentxs/blockchain/block/bitcoin/Input.hpp"
+#include "opentxs/blockchain/block/bitcoin/Script.hpp"
+#include "opentxs/blockchain/block/bitcoin/Transaction.hpp"
 #endif  // OT_BLOCKCHAIN
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
@@ -58,8 +75,119 @@ auto Factory::BitcoinBlock(
     return factory::BitcoinBlock(client_, client_.Blockchain(), chain, bytes);
 }
 
+auto Factory::BitcoinBlock(
+    const opentxs::blockchain::block::Header& previous,
+    const Transaction_p generationTransaction,
+    const std::uint32_t nBits,
+    const std::vector<Transaction_p>& extraTransactions,
+    const std::int32_t version,
+    const AbortFunction abort) const noexcept
+    -> std::shared_ptr<const opentxs::blockchain::block::bitcoin::Block>
+{
+    return factory::BitcoinBlock(
+        api_,
+        previous,
+        generationTransaction,
+        nBits,
+        extraTransactions,
+        version,
+        abort);
+}
+
+auto Factory::BitcoinGenerationTransaction(
+    const opentxs::blockchain::Type chain,
+    const opentxs::blockchain::block::Height height,
+    std::vector<OutputBuilder> scripts,
+    const std::string& coinbase,
+    const std::int32_t version) const noexcept -> Transaction_p
+{
+    static const auto outpoint =
+        opentxs::blockchain::block::bitcoin::Outpoint{};
+
+    const auto serializedVersion = boost::endian::little_int32_buf_t{version};
+    const auto locktime = boost::endian::little_uint32_buf_t{0};
+    const auto sequence = boost::endian::little_uint32_buf_t{0xffffffff};
+    const auto& blockchain = client_.Blockchain();
+    // NOTE: BIP-0034
+    const auto cb = [&] {
+        // TODO stop hardcoding 3 bytes
+        OT_ASSERT(height <= 8388607);
+        static_assert(sizeof(height) >= 3);
+
+        const auto incoming = std::min<std::size_t>(coinbase.size(), 96u);
+        auto output = space(incoming + 4u);
+        auto it = output.data();
+        *it = std::byte{0x3};
+        std::advance(it, 1);
+        std::memcpy(it, &height, 3);
+        std::advance(it, 3);
+        std::memcpy(it, coinbase.data(), incoming);
+
+        return output;
+    }();
+    const auto cs = opentxs::blockchain::bitcoin::CompactSize{cb.size()};
+    auto inputs = std::vector<std::unique_ptr<
+        opentxs::blockchain::block::bitcoin::internal::Input>>{};
+    inputs.emplace_back(factory::BitcoinTransactionInput(
+        api_,
+        blockchain,
+        chain,
+        outpoint.Bytes(),
+        cs,
+        reader(cb),
+        ReadView{reinterpret_cast<const char*>(&sequence), sizeof(sequence)},
+        true,
+        {}));
+    auto outputs = std::vector<std::unique_ptr<
+        opentxs::blockchain::block::bitcoin::internal::Output>>{};
+    auto index{-1};
+
+    for (auto& [amount, pScript, keys] : scripts) {
+        if (false == bool(pScript)) { return {}; }
+
+        const auto& script = *pScript;
+        auto bytes = Space{};
+        script.Serialize(writer(bytes));
+        outputs.emplace_back(factory::BitcoinTransactionOutput(
+            api_,
+            blockchain,
+            chain,
+            static_cast<std::uint32_t>(++index),
+            amount,
+            factory::BitcoinScript(chain, reader(bytes)),
+            std::move(keys)));
+    }
+
+    return factory::BitcoinTransaction(
+        api_,
+        blockchain,
+        chain,
+        Clock::now(),
+        serializedVersion,
+        locktime,
+        factory::BitcoinTransactionInputs(std::move(inputs)),
+        factory::BitcoinTransactionOutputs(std::move(outputs)));
+}
+
+auto Factory::BitcoinTransaction(
+    const opentxs::blockchain::Type chain,
+    const ReadView bytes,
+    const bool isGeneration) const noexcept
+    -> std::unique_ptr<const opentxs::blockchain::block::bitcoin::Transaction>
+{
+    using Encoded = opentxs::blockchain::bitcoin::EncodedTransaction;
+
+    return factory::BitcoinTransaction(
+        api_,
+        client_.Blockchain(),
+        chain,
+        isGeneration,
+        Clock::now(),
+        Encoded::Deserialize(api_, chain, bytes));
+}
+
 auto Factory::BlockHeader(const proto::BlockchainBlockHeader& serialized) const
-    -> std::unique_ptr<opentxs::blockchain::block::Header>
+    -> BlockHeaderP
 {
     if (false == proto::Validate(serialized, VERBOSE)) { return {}; }
 
@@ -92,8 +220,7 @@ auto Factory::BlockHeader(const proto::BlockchainBlockHeader& serialized) const
 
 auto Factory::BlockHeader(
     const opentxs::blockchain::Type type,
-    const opentxs::Data& raw) const
-    -> std::unique_ptr<opentxs::blockchain::block::Header>
+    const opentxs::Data& raw) const -> BlockHeaderP
 {
     switch (type) {
         case opentxs::blockchain::Type::Bitcoin:
@@ -120,11 +247,16 @@ auto Factory::BlockHeader(
     }
 }
 
+auto Factory::BlockHeader(const opentxs::blockchain::block::Block& block) const
+    -> BlockHeaderP
+{
+    return block.Header().clone();
+}
+
 auto Factory::BlockHeaderForUnitTests(
     const opentxs::blockchain::block::Hash& hash,
     const opentxs::blockchain::block::Hash& parent,
-    const opentxs::blockchain::block::Height height) const
-    -> std::unique_ptr<opentxs::blockchain::block::Header>
+    const opentxs::blockchain::block::Height height) const -> BlockHeaderP
 {
     return factory::BitcoinBlockHeader(
         client_, opentxs::blockchain::Type::UnitTest, hash, parent, height);

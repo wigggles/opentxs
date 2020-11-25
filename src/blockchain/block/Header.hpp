@@ -6,6 +6,7 @@
 #pragma once
 
 #include <map>
+#include <memory>
 
 #include "opentxs/Types.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
@@ -14,6 +15,7 @@
 #include "opentxs/blockchain/Types.hpp"
 #include "opentxs/blockchain/Work.hpp"
 #include "opentxs/blockchain/block/Header.hpp"
+#include "opentxs/blockchain/block/bitcoin/Header.hpp"
 #include "opentxs/core/Data.hpp"
 
 namespace opentxs
@@ -29,6 +31,11 @@ namespace opentxs::blockchain::block::implementation
 class Header : virtual public block::Header
 {
 public:
+    auto as_Bitcoin() const noexcept
+        -> std::unique_ptr<bitcoin::Header> override
+    {
+        return {};
+    }
     auto Difficulty() const noexcept -> OTWork final { return work_; }
     auto EffectiveState() const noexcept -> Status final;
     auto Hash() const noexcept -> const block::Hash& final;

@@ -292,6 +292,8 @@ protected:
     const client::internal::Network& network_;
     const client::internal::PeerManager& manager_;
     const blockchain::Type chain_;
+    std::atomic_bool header_probe_;
+    std::atomic_bool cfilter_probe_;
     Address address_;
     DownloadPeers download_peers_;
     States state_;
@@ -301,6 +303,7 @@ protected:
         return *connection_;
     }
 
+    virtual auto broadcast_block(zmq::Message& message) noexcept -> void = 0;
     virtual auto broadcast_transaction(zmq::Message& message) noexcept
         -> void = 0;
     auto check_handshake() noexcept -> void;

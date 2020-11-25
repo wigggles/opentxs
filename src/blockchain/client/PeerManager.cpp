@@ -20,6 +20,7 @@
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/api/Core.hpp"
 #include "opentxs/blockchain/BlockchainType.hpp"
+#include "opentxs/blockchain/block/Block.hpp"
 #include "opentxs/blockchain/block/bitcoin/Transaction.hpp"
 #include "opentxs/blockchain/p2p/Address.hpp"
 #include "opentxs/core/Flag.hpp"
@@ -113,6 +114,21 @@ auto PeerManager::AddPeer(const p2p::Address& address) const noexcept -> bool
     }
 
     return false;
+}
+
+auto PeerManager::BroadcastBlock(const block::Block& block) const noexcept
+    -> bool
+{
+    if (false == running_.get()) { return false; }
+
+    if (0 == peers_.Count()) { return false; }
+
+    const auto& id = block.ID();
+    auto work = jobs_.Work(Task::BroadcastBlock);
+    work->AddFrame(id);
+    jobs_.Dispatch(work);
+
+    return true;
 }
 
 auto PeerManager::BroadcastTransaction(

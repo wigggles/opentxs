@@ -47,7 +47,7 @@ public:
     using BitcoinFormat = FilterRequest;
 
     auto Start() const noexcept -> block::Height final { return start_; }
-    auto Stop() const noexcept -> const filter::Hash& final { return stop_; }
+    auto Stop() const noexcept -> const block::Hash& final { return stop_; }
     auto Type() const noexcept -> filter::Type final { return type_; }
 
     Getcfilters(
@@ -68,7 +68,7 @@ public:
 private:
     const filter::Type type_;
     const block::Height start_;
-    const filter::pHash stop_;
+    const block::pHash stop_;
 
     auto payload() const noexcept -> OTData final;
 

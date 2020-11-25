@@ -54,6 +54,8 @@ namespace bitcoin
 {
 class Transaction;
 }  // namespace bitcoin
+
+class Block;
 }  // namespace block
 
 namespace p2p
@@ -191,6 +193,7 @@ public:
     auto AddIncomingPeer(const int id, std::uintptr_t endpoint) const noexcept
         -> void final;
     auto AddPeer(const p2p::Address& address) const noexcept -> bool final;
+    auto BroadcastBlock(const block::Block& block) const noexcept -> bool final;
     auto BroadcastTransaction(
         const block::bitcoin::Transaction& tx) const noexcept -> bool final;
     auto Database() const noexcept -> const internal::PeerDatabase& final
@@ -267,11 +270,14 @@ private:
         OTZMQPublishSocket heartbeat_;
         OTZMQPushSocket getblock_;
         OTZMQPushSocket broadcast_transaction_;
+        OTZMQPublishSocket broadcast_block_;
         const EndpointMap endpoint_map_;
         const SocketMap socket_map_;
 
-        auto listen(const Task type, const zmq::socket::Sender& socket) noexcept
-            -> void;
+        static auto listen(
+            EndpointMap& map,
+            const Task type,
+            const zmq::socket::Sender& socket) noexcept -> void;
 
         Jobs() = delete;
     };

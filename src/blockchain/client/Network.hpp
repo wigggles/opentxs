@@ -56,6 +56,7 @@ namespace block
 {
 namespace bitcoin
 {
+class Block;
 class Transaction;
 }  // namespace bitcoin
 
@@ -95,6 +96,8 @@ class Network : virtual public internal::Network,
                 public Worker<Network, api::Core>
 {
 public:
+    auto AddBlock(const std::shared_ptr<const block::bitcoin::Block> block)
+        const noexcept -> bool final;
     auto AddPeer(const p2p::Address& address) const noexcept -> bool final;
     auto BlockOracle() const noexcept -> const internal::BlockOracle& final
     {

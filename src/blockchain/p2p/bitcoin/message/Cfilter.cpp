@@ -121,17 +121,15 @@ auto BitcoinP2PCfilter(
     const api::Core& api,
     const blockchain::Type network,
     const blockchain::filter::Type type,
-    const blockchain::filter::Hash& hash,
-    std::unique_ptr<blockchain::client::GCS> filter)
+    const blockchain::block::Hash& hash,
+    const blockchain::client::GCS& filter)
     -> blockchain::p2p::bitcoin::message::internal::Cfilter*
 {
     namespace bitcoin = blockchain::p2p::bitcoin;
     using ReturnType = bitcoin::message::implementation::Cfilter;
 
-    OT_ASSERT(filter);
-
     return new ReturnType(
-        api, network, type, hash, filter->ElementCount(), filter->Compressed());
+        api, network, type, hash, filter.ElementCount(), filter.Compressed());
 }
 }  // namespace opentxs::factory
 
@@ -141,7 +139,7 @@ Cfilter::Cfilter(
     const api::Core& api,
     const blockchain::Type network,
     const filter::Type type,
-    const filter::Hash& hash,
+    const block::Hash& hash,
     const std::uint32_t count,
     const Space& compressed) noexcept
     : Message(api, network, bitcoin::Command::cfilter)
@@ -158,7 +156,7 @@ Cfilter::Cfilter(
     const api::Core& api,
     std::unique_ptr<Header> header,
     const filter::Type type,
-    const filter::Hash& hash,
+    const block::Hash& hash,
     const std::uint32_t count,
     Space&& compressed) noexcept
     : Message(api, std::move(header))
@@ -175,9 +173,19 @@ auto Cfilter::payload() const noexcept -> OTData
     try {
         auto raw = BitcoinFormat{header().Network(), type_, hash_};
         auto output = Data::Factory(&raw, sizeof(raw));
-        auto filter = CompactSize(count_).Encode();
-        filter.insert(filter.end(), filter_.begin(), filter_.end());
-        output->Concatenate(filter.data(), filter.size());
+        const auto filter = [&] {
+            auto output = CompactSize(count_).Encode();
+            output.insert(output.end(), filter_.begin(), filter_.end());
+
+            return output;
+        }();
+        const auto payload = [&] {
+            auto output = CompactSize(filter.size()).Encode();
+            output.insert(output.end(), filter.begin(), filter.end());
+
+            return output;
+        }();
+        output->Concatenate(payload.data(), payload.size());
 
         return output;
     } catch (...) {

@@ -24,6 +24,7 @@
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/Version.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Primitives.hpp"
 #include "opentxs/api/crypto/Symmetric.hpp"
 #if OT_BLOCKCHAIN
@@ -103,8 +104,10 @@ namespace block
 namespace bitcoin
 {
 class Block;
+class Transaction;
 }  // namespace bitcoin
 
+class Block;
 class Header;
 }  // namespace block
 }  // namespace blockchain
@@ -132,17 +135,39 @@ public:
         const ReadView bytes) const noexcept
         -> std::shared_ptr<
             const opentxs::blockchain::block::bitcoin::Block> final;
+    auto BitcoinBlock(
+        const opentxs::blockchain::block::Header& previous,
+        const Transaction_p generationTransaction,
+        const std::uint32_t nBits,
+        const std::vector<Transaction_p>& extraTransactions,
+        const std::int32_t version,
+        const AbortFunction abort) const noexcept
+        -> std::shared_ptr<
+            const opentxs::blockchain::block::bitcoin::Block> final;
+    auto BitcoinGenerationTransaction(
+        const opentxs::blockchain::Type chain,
+        const opentxs::blockchain::block::Height height,
+        std::vector<OutputBuilder> outputs,
+        const std::string& coinbase,
+        const std::int32_t version) const noexcept -> Transaction_p final;
+    auto BitcoinTransaction(
+        const opentxs::blockchain::Type chain,
+        const ReadView bytes,
+        const bool isGeneration) const noexcept
+        -> std::unique_ptr<
+            const opentxs::blockchain::block::bitcoin::Transaction> final;
     auto BlockHeader(const proto::BlockchainBlockHeader& serialized) const
-        -> std::unique_ptr<opentxs::blockchain::block::Header> final;
+        -> BlockHeaderP final;
     auto BlockHeader(
         const opentxs::blockchain::Type type,
-        const opentxs::Data& raw) const
-        -> std::unique_ptr<opentxs::blockchain::block::Header> final;
+        const opentxs::Data& raw) const -> BlockHeaderP final;
+    auto BlockHeader(const opentxs::blockchain::block::Block& block) const
+        -> BlockHeaderP final;
     auto BlockHeaderForUnitTests(
         const opentxs::blockchain::block::Hash& hash,
         const opentxs::blockchain::block::Hash& parent,
         const opentxs::blockchain::block::Height height) const
-        -> std::unique_ptr<opentxs::blockchain::block::Header> final;
+        -> BlockHeaderP final;
 #endif  // OT_BLOCKCHAIN
     auto PeerObject(const Nym_p& senderNym, const std::string& message) const
         -> std::unique_ptr<opentxs::PeerObject> final;

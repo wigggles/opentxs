@@ -6,3 +6,10 @@
 add_opentx_test(
   unittests-opentxs-blockchain-regtest-connection Test_connection.cpp
 )
+add_opentx_test(
+  unittests-opentxs-blockchain-regtest-generate-block Test_mine_block.cpp
+)
+add_opentx_test(
+  unittests-opentxs-blockchain-regtest-block-propagation
+  Test_block_propagation.cpp
+)

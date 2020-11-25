@@ -27,6 +27,7 @@
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/blockchain/FilterType.hpp"
 #include "opentxs/blockchain/block/Header.hpp"
+#include "opentxs/blockchain/block/bitcoin/Block.hpp"
 #include "opentxs/blockchain/client/FilterOracle.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Log.hpp"
@@ -208,6 +209,8 @@ auto FilterOracle::check_blocks(
         startHeight + std::min<block::Height>(maxRequests, capacity) -
         static_cast<block::Height>(1)};
     const auto stopHeight = std::min(target, best.first);
+
+    if (startHeight > stopHeight) { return; }  // TODO this class is a mess
 
     OT_ASSERT(startHeight <= stopHeight);
     OT_ASSERT(startHeight > 0);
@@ -491,6 +494,89 @@ auto FilterOracle::PreviousHeader(
     if (hash->empty()) { return api_.Factory().Data(); }
 
     return LoadFilterHeader(type, hash);
+}
+
+auto FilterOracle::ProcessBlock(
+    const block::bitcoin::Block& block) const noexcept -> bool
+{
+    // TODO this function isn't safe to use outside of unit tests.
+    constexpr auto filterType{filter::Type::Extended_opentxs};
+    const auto& id = block.ID();
+    const auto params = blockchain::internal::GetFilterParams(filterType);
+    auto filters = std::vector<internal::FilterDatabase::Filter>{};
+    auto headers = std::vector<internal::FilterDatabase::Header>{};
+    const auto elements = [&] {
+        const auto input = block.ExtractElements(filterType);
+        auto output = std::vector<OTData>{};
+        std::transform(
+            input.begin(),
+            input.end(),
+            std::back_inserter(output),
+            [&](const auto& element) -> OTData {
+                return api_.Factory().Data(reader(element));
+            });
+
+        return output;
+    }();
+    const auto& pGCS =
+        filters
+            .emplace_back(
+                id.Bytes(),
+                factory::GCS(
+                    api_,
+                    params.first,
+                    params.second,
+                    blockchain::internal::BlockHashToFilterKey(id.Bytes()),
+                    elements))
+            .second;
+
+    if (false == bool(pGCS)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to calculate ")(
+            DisplayString(chain_))(" cfilter")
+            .Flush();
+
+        return false;
+    }
+
+    const auto& gcs = *pGCS;
+    const auto previousHeader =
+        LoadFilterHeader(filterType, block.Header().ParentHash());
+
+    if (previousHeader->empty()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": failed to load previous")(
+            DisplayString(chain_))(" cfheader")
+            .Flush();
+
+        return false;
+    }
+
+    const auto filterHash = gcs.Hash();
+    const auto& cfheader = std::get<1>(headers.emplace_back(
+        id, gcs.Header(previousHeader->Bytes()), filterHash->Bytes()));
+
+    if (cfheader->empty()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": failed to calculate ")(
+            DisplayString(chain_))(" cfheader")
+            .Flush();
+
+        return false;
+    }
+
+    const auto stored = database_.StoreFilters(
+        filterType,
+        headers,
+        filters,
+        block::Position{block.Header().Height(), block.ID()});
+
+    if (stored) {
+        notify_new_filter(filterType, block.Header().Position());
+
+        return true;
+    } else {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Database error ").Flush();
+
+        return false;
+    }
 }
 
 auto FilterOracle::process_cfheader(const zmq::Message& in) noexcept -> void
@@ -874,8 +960,6 @@ auto FilterOracle::shutdown(std::promise<void>& promise) noexcept -> void
 
 auto FilterOracle::state_machine() noexcept -> bool
 {
-    LogTrace(OT_METHOD)(__FUNCTION__).Flush();
-
     if (false == running_.get()) { return false; }
 
     if (full_mode_) {

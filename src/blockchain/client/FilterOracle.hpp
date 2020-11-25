@@ -56,6 +56,14 @@ class Core;
 
 namespace blockchain
 {
+namespace block
+{
+namespace bitcoin
+{
+class Block;
+}  // namespace bitcoin
+}  // namespace block
+
 namespace client
 {
 class HeaderOracle;
@@ -111,6 +119,8 @@ public:
         -> std::unique_ptr<const GCS> final;
     auto PreviousHeader(const filter::Type type, const block::Height& block)
         const noexcept -> Header final;
+    auto ProcessBlock(const block::bitcoin::Block& block) const noexcept
+        -> bool final;
 
     auto Shutdown() noexcept -> std::shared_future<void> final
     {

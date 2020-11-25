@@ -42,7 +42,19 @@ PeerManager::Jobs::Jobs(const api::Core& api) noexcept
     , getblock_(api.ZeroMQ().PushSocket(zmq::socket::Socket::Direction::Bind))
     , broadcast_transaction_(
           api.ZeroMQ().PushSocket(zmq::socket::Socket::Direction::Bind))
-    , endpoint_map_()
+    , broadcast_block_(api.ZeroMQ().PublishSocket())
+    , endpoint_map_([&] {
+        auto map = EndpointMap{};
+        listen(map, Task::Getheaders, getheaders_);
+        listen(map, Task::Getcfheaders, getcfheaders_);
+        listen(map, Task::Getcfilters, getcfilters_);
+        listen(map, Task::Heartbeat, heartbeat_);
+        listen(map, Task::Getblock, getblock_);
+        listen(map, Task::BroadcastTransaction, broadcast_transaction_);
+        listen(map, Task::BroadcastBlock, broadcast_block_);
+
+        return map;
+    }())
     , socket_map_({
           {Task::Getheaders, &getheaders_.get()},
           {Task::Getcfheaders, &getcfheaders_.get()},
@@ -50,15 +62,9 @@ PeerManager::Jobs::Jobs(const api::Core& api) noexcept
           {Task::Heartbeat, &heartbeat_.get()},
           {Task::Getblock, &getblock_.get()},
           {Task::BroadcastTransaction, &broadcast_transaction_.get()},
+          {Task::BroadcastBlock, &broadcast_block_.get()},
       })
 {
-    // NOTE endpoint_map_ should never be modified after construction
-    listen(Task::Getheaders, getheaders_);
-    listen(Task::Getcfheaders, getcfheaders_);
-    listen(Task::Getcfilters, getcfilters_);
-    listen(Task::Heartbeat, heartbeat_);
-    listen(Task::Getblock, getblock_);
-    listen(Task::BroadcastTransaction, broadcast_transaction_);
 }
 
 auto PeerManager::Jobs::Dispatch(const Task type) noexcept -> void
@@ -87,10 +93,10 @@ auto PeerManager::Jobs::Endpoint(const Task type) const noexcept -> std::string
 }
 
 auto PeerManager::Jobs::listen(
+    EndpointMap& map,
     const Task type,
     const zmq::socket::Sender& socket) noexcept -> void
 {
-    auto& map = const_cast<EndpointMap&>(endpoint_map_);
     auto [it, added] = map.emplace(
         type,
         std::string{"inproc://opentxs//blockchain/peer_tasks/"} +

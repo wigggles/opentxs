@@ -6,6 +6,7 @@
 #pragma once
 
 #include <boost/endian/buffers.hpp>
+#include <functional>
 #include <memory>
 #include <optional>
 #include <vector>
@@ -216,13 +217,33 @@ namespace opentxs::factory
 using UTXO = std::pair<
     blockchain::block::bitcoin::Outpoint,
     proto::BlockchainTransactionOutput>;
+using Transaction_p =
+    std::shared_ptr<const opentxs::blockchain::block::bitcoin::Transaction>;
+using AbortFunction = std::function<bool()>;
 
+auto BitcoinBlock(
+    const api::Core& api,
+    const opentxs::blockchain::block::Header& previous,
+    const Transaction_p generationTransaction,
+    const std::uint32_t nBits,
+    const std::vector<Transaction_p>& extraTransactions,
+    const std::int32_t version,
+    const AbortFunction abort) noexcept
+    -> std::shared_ptr<const opentxs::blockchain::block::bitcoin::Block>;
 auto BitcoinBlock(
     const api::Core& api,
     const api::client::Blockchain& blockchain,
     const blockchain::Type chain,
     const ReadView in) noexcept
     -> std::shared_ptr<blockchain::block::bitcoin::Block>;
+auto BitcoinBlockHeader(
+    const api::Core& api,
+    const opentxs::blockchain::block::Header& previous,
+    const std::uint32_t nBits,
+    const std::int32_t version,
+    opentxs::blockchain::block::pHash&& merkle,
+    const AbortFunction abort) noexcept
+    -> std::unique_ptr<blockchain::block::bitcoin::internal::Header>;
 auto BitcoinBlockHeader(
     const api::Core& api,
     const proto::BlockchainBlockHeader& serialized) noexcept

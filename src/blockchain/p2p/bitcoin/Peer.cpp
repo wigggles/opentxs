@@ -40,6 +40,7 @@
 #include "opentxs/blockchain/BlockchainType.hpp"
 #include "opentxs/blockchain/FilterType.hpp"
 #include "opentxs/blockchain/block/Header.hpp"
+#include "opentxs/blockchain/block/bitcoin/Block.hpp"
 #include "opentxs/blockchain/block/bitcoin/Header.hpp"
 #include "opentxs/blockchain/client/FilterOracle.hpp"
 #include "opentxs/blockchain/client/HeaderOracle.hpp"
@@ -160,11 +161,48 @@ Peer::Peer(
           std::move(address))
     , protocol_((0 == protocol) ? default_protocol_version_ : protocol)
     , nonce_(nonce(api_))
-    , local_services_(get_local_services(protocol_, chain_, localServices))
+    , local_services_(
+          get_local_services(protocol_, chain_, network.DB(), localServices))
     , relay_(relay)
     , get_headers_()
 {
     init();
+}
+
+auto Peer::broadcast_block(zmq::Message& in) noexcept -> void
+{
+    const auto body = in.Body();
+
+    if (2 > body.size()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid command").Flush();
+
+        OT_FAIL;
+    }
+
+    const auto id = [&] {
+        auto output = api_.Factory().Data();
+        output->Assign(body.at(1).Bytes());
+
+        return output;
+    }();
+    auto payload = [&] {
+        using Inventory = blockchain::bitcoin::Inventory;
+        auto output = std::vector<Inventory>{};
+        output.emplace_back(Inventory::Type::MsgBlock, id);
+
+        return output;
+    }();
+    auto pMsg = std::unique_ptr<Message>{
+        factory::BitcoinP2PInv(api_, chain_, std::move(payload))};
+
+    if (false == bool(pMsg)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to construct inv").Flush();
+
+        return;
+    }
+
+    const auto& msg = *pMsg;
+    send(msg.Encode());
 }
 
 auto Peer::broadcast_transaction(zmq::Message& in) noexcept -> void
@@ -177,24 +215,17 @@ auto Peer::broadcast_transaction(zmq::Message& in) noexcept -> void
         OT_FAIL;
     }
 
-    auto& bytes = body.at(1);
+    auto pMsg = std::unique_ptr<Message>{
+        factory::BitcoinP2PTx(api_, chain_, body.at(1).Bytes())};
 
-    {
-        auto raw = api_.Factory().Data(bytes);
-        LogOutput(OT_METHOD)(__FUNCTION__)(": ")(raw->asHex()).Flush();
-    }
-
-    auto pTx = std::unique_ptr<Message>{
-        factory::BitcoinP2PTx(api_, chain_, bytes.Bytes())};
-
-    if (false == bool(pTx)) {
+    if (false == bool(pMsg)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to construct tx").Flush();
 
         return;
     }
 
-    const auto& tx = *pTx;
-    send(tx.Encode());
+    const auto& msg = *pMsg;
+    send(msg.Encode());
 }
 
 auto Peer::get_body_size(const zmq::Frame& header) const noexcept -> std::size_t
@@ -214,6 +245,7 @@ auto Peer::get_body_size(const zmq::Frame& header) const noexcept -> std::size_t
 auto Peer::get_local_services(
     const ProtocolVersion version,
     const blockchain::Type network,
+    const blockchain::client::internal::BlockDatabase& db,
     const std::set<p2p::Service>& input) noexcept -> std::set<p2p::Service>
 {
     auto output{input};
@@ -235,6 +267,19 @@ auto Peer::get_local_services(
         case blockchain::Type::Ethereum_frontier:
         case blockchain::Type::Ethereum_ropsten:
         case blockchain::Type::UnitTest:
+        default: {
+        }
+    }
+
+    switch (db.BlockPolicy()) {
+        case api::client::blockchain::BlockStorage::All: {
+            output.emplace(p2p::Service::Network);
+            output.emplace(p2p::Service::CompactFilters);
+        } break;
+        case api::client::blockchain::BlockStorage::Cache: {
+            output.emplace(p2p::Service::Limited);
+            output.emplace(p2p::Service::CompactFilters);
+        } break;
         default: {
         }
     }
@@ -445,6 +490,7 @@ auto Peer::process_cfheaders(
         LogVerbose("Filter checkpoint validated for ")(DisplayString(chain_))(
             " peer ")(address_.Display())
             .Flush();
+        cfilter_probe_ = true;
         success = true;
         check_verify();
     } else {
@@ -770,7 +816,92 @@ auto Peer::process_getcfilters(
         return;
     }
 
-    // TODO
+    const auto& message = *pMessage;
+    const auto& headers = network_.HeaderOracle();
+    const auto& stopHash = message.Stop();
+    const auto pStopHeader = headers.LoadHeader(stopHash);
+
+    if (!pStopHeader) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Skipping request with unknown stop header")
+            .Flush();
+
+        return;
+    }
+
+    const auto& stopHeader = *pStopHeader;
+    const auto startHeight{message.Start()};
+    const auto stopHeight{stopHeader.Height()};
+
+    if (startHeight > stopHeight) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Skipping request with malformed start height (")(startHeight)(
+            ") vs stop (")(stopHeight)(")")
+            .Flush();
+
+        return;
+    }
+
+    if (0 > startHeight) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Skipping request with negative start height (")(startHeight)(")")
+            .Flush();
+
+        return;
+    }
+
+    constexpr auto limit = std::size_t{1000};
+    const auto count =
+        static_cast<std::size_t>((stopHeight - startHeight) + 1u);
+
+    if (count > limit) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Skipping request with excessive filter requests (")(count)(
+            ") vs allowed (")(limit)(")")
+            .Flush();
+
+        return;
+    }
+
+    auto data = std::vector<std::unique_ptr<const client::GCS>>{};
+    data.reserve(count);
+    const auto& filters = network_.FilterOracle();
+    const auto type = message.Type();
+    const auto hashes = headers.BestHashes(startHeight, stopHash);
+
+    for (const auto& hash : hashes) {
+        const auto& pGCS = data.emplace_back(filters.LoadFilter(type, hash));
+
+        if (!pGCS) { break; }
+    }
+
+    if (data.size() != count) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Failed to load all filters, requested (")(count)("), loaded (")(
+            data.size())(")")
+            .Flush();
+
+        return;
+    }
+
+    OT_ASSERT(data.size() == hashes.size());
+
+    auto h{hashes.begin()};
+
+    for (auto g{data.begin()}; g != data.end(); ++g, ++h) {
+        auto pOut = std::unique_ptr<message::internal::Cfilter>{
+            factory::BitcoinP2PCfilter(api_, chain_, type, *h, *(*g))};
+
+        if (false == bool(pOut)) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to construct reply")
+                .Flush();
+
+            return;
+        }
+
+        const auto& message = *pOut;
+        send(message.Encode());
+    }
 }
 
 auto Peer::process_getdata(
@@ -792,7 +923,65 @@ auto Peer::process_getdata(
         return;
     }
 
-    // TODO
+    const auto& message = *pMessage;
+    using Type = blockchain::bitcoin::Inventory::Type;
+    auto notFound = std::vector<blockchain::bitcoin::Inventory>{};
+
+    for (const auto& inv : message) {
+        switch (inv.type_) {
+            case Type::MsgTx: {
+                // TODO
+            } break;
+            case Type::MsgBlock: {
+                const auto& oracle = network_.BlockOracle();
+                auto future = oracle.LoadBitcoin(inv.hash_);
+                const auto have = std::future_status::ready ==
+                                  future.wait_for(std::chrono::milliseconds{0});
+
+                if (have) {
+                    const auto pBlock = future.get();
+
+                    OT_ASSERT(pBlock);
+
+                    const auto& block = *pBlock;
+                    const auto serialized = [&] {
+                        auto output = api_.Factory().Data();
+                        block.Serialize(output->WriteInto());
+
+                        return output;
+                    }();
+                    const auto pMsg = std::unique_ptr<Message>{
+                        factory::BitcoinP2PBlock(api_, chain_, serialized)};
+
+                    OT_ASSERT(pMsg);
+
+                    const auto& msg = *pMsg;
+                    send(msg.Encode());
+                } else {
+                    notFound.emplace_back(inv);
+                }
+            } break;
+            case Type::None:
+            case Type::MsgFilteredBlock:
+            case Type::MsgCmpctBlock:
+            case Type::MsgWitnessTx:
+            case Type::MsgWitnessBlock:
+            case Type::MsgFilteredWitnessBlock:
+            default: {
+                // Unsupported
+            }
+        }
+    }
+
+    if (0 < notFound.size()) {
+        const auto pMsg = std::unique_ptr<Message>{
+            factory::BitcoinP2PNotfound(api_, chain_, std::move(notFound))};
+
+        OT_ASSERT(pMsg);
+
+        const auto& msg = *pMsg;
+        send(msg.Encode());
+    }
 }
 
 auto Peer::process_getheaders(
@@ -904,6 +1093,7 @@ auto Peer::process_headers(
         LogVerbose("Block checkpoint validated for ")(DisplayString(chain_))(
             " peer ")(address_.Display())
             .Flush();
+        header_probe_ = true;
         success = true;
         check_verify();
     } else {

@@ -61,6 +61,7 @@ public:
         std::vector<OTIdentifier>& output) const noexcept -> void final;
     auto CalculateSize(const bool normalized) const noexcept
         -> std::size_t final;
+    auto Coinbase() const noexcept -> Space final { return coinbase_; }
     auto clone() const noexcept -> std::unique_ptr<internal::Input> final
     {
         return std::make_unique<Input>(*this);

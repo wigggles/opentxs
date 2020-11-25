@@ -59,7 +59,7 @@ public:
         -> BitcoinBlockFuture final;
     auto LoadBitcoin(const BlockHashes& hashes) const noexcept
         -> BitcoinBlockFutures final;
-    auto SubmitBlock(const zmq::Frame& in) const noexcept -> void final;
+    auto SubmitBlock(const ReadView in) const noexcept -> void final;
 
     auto Init() noexcept -> void final;
     auto Shutdown() noexcept -> std::shared_future<void> final
