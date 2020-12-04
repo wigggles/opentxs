@@ -1,4 +1,4 @@
-## Open-Transactions Library Project
+# Open-Transactions Library Project
 
 [![License: MPL 2.0](https://img.shields.io/badge/License-MPL%202.0-brightgreen.svg)](https://opensource.org/licenses/MPL-2.0)
 
@@ -32,7 +32,7 @@ are unforgeable. The cash is untraceable. The cheques are non-repudiable. Etc.
 This product includes software developed by Ben Laurie for use in the Lucre
 project.
 
-### Contributing
+## Contributing
 
 All development goes in develop branch - please don't submit pull requests to
 master.
@@ -52,7 +52,7 @@ To check your code without pushing the following command can be used:
 
     git push -n
 
-### Build Instructions
+## Build Instructions:
 
 Ensure opentxs is fully checked out prior to running cmake:
 
@@ -64,11 +64,32 @@ Grab VCpkg cross compiler libs:
     ./vcpkg integrate install
     ./vcpkg.exe install --triplet <OS triplet value>  @..\..\vcpkg\vcpkg.txt
 
-Basic build instructions:
+### Prep Build make-
+
+Shared Instructions:
 
     mkdir build
     cd build
-    cmake -GNinja -DBUILD_SHARED_LIBS=ON..
+    cmake -GNinja -DBUILD_SHARED_LIBS=ON ..
     cmake --build .
+
+### Test Source-
+
     ctest -j4
+
+### System Specific Building-
+
+Unix:
+
     sudo cmake --install .
+
+Windows powershell:
+
+    Start-Process powershell -Verb runAs
+    cd <full local repo pull path>\opentxs\build
+    cmake --install .
+
+## Optional Build Configuration Variables-
+
+    -DCMAKE_BUILD_TYPE=<target> [Release, Debug]
+    -DCMAKE_TOOLCHAIN_FILE=../deps/vcpkg/scripts/buildsystems/vcpkg.cmake
