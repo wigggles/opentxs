@@ -2117,6 +2117,7 @@ auto Factory::SignedFile(const char* LOCAL_SUBDIR, const char* FILE_NAME) const
     return signedfile;
 }
 
+#ifdef OPENTXS_CHAINCONFIG_SMARTCONTRACT
 auto Factory::SmartContract() const -> std::unique_ptr<OTSmartContract>
 {
     std::unique_ptr<OTSmartContract> smartcontract;
@@ -2133,6 +2134,20 @@ auto Factory::SmartContract(const identifier::Server& NOTARY_ID) const
 
     return smartcontract;
 }
+#else // Disabled smart contracts
+auto Factory::SmartContract() 
+{
+    bool disabled = true;
+    return disabled;
+}
+
+auto Factory::SmartContract(const identifier::Server& NOTARY_ID) const
+    -> std::unique_ptr<OTSmartContract>
+{
+    bool disabled = true;
+    return disabled;
+}
+#endif
 
 auto Factory::StoreSecret(
     const Nym_p& nym,

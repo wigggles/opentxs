@@ -688,9 +688,16 @@ public:
         -> std::unique_ptr<OTSignedFile> final;
     auto SignedFile(const char* LOCAL_SUBDIR, const char* FILE_NAME) const
         -> std::unique_ptr<OTSignedFile> final;
+
+#ifdef OPENTXS_CHAINCONFIG_SMARTCONTRACT
     auto SmartContract() const -> std::unique_ptr<OTSmartContract> final;
     auto SmartContract(const identifier::Server& NOTARY_ID) const
         -> std::unique_ptr<OTSmartContract> final;
+#else // Disabled smart contracts
+    auto SmartContract() const -> std::unique_ptr<OTSmartContract> final;
+#endif
+
+
     auto StoreSecret(
         const Nym_p& nym,
         const identifier::Nym& recipientID,

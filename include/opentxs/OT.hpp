@@ -6,6 +6,8 @@
 #ifndef OPENTXS_OT_HPP
 #define OPENTXS_OT_HPP
 
+#include "Configuration.hpp"
+
 #include "opentxs/Forward.hpp"  // IWYU pragma: associated
 
 #include <chrono>

@@ -1081,6 +1081,13 @@ auto OTTransaction::HarvestOpeningNumber(
             // recovered. (Only removed, once you sign off on the receipt.)
             {
 
+#ifndef OPENTXS_CHAINCONFIG_SMARTCONTRACT
+                LogOutput(OT_METHOD)(__FUNCTION__)(
+                    ": Failed, Smart Contracts are compiler disabled.")
+                        .Flush();
+                return false;
+#endif
+
                 const auto pItem = GetItem(itemType::smartContract);
 
                 if (false == bool(pItem)) {
@@ -1422,6 +1429,13 @@ auto OTTransaction::HarvestClosingNumbers(
             // But if transaction succeeded, then the closers CANNOT be
             // recovered. (Only removed, once you sign off on the receipt.)
             {
+
+#ifndef OPENTXS_CHAINCONFIG_SMARTCONTRACT
+                LogOutput(OT_METHOD)(__FUNCTION__)(
+                    ": Failed, Smart Contracts are compiler disabled.")
+                        .Flush();
+                return false;
+#endif
 
                 const auto pItem = GetItem(itemType::smartContract);
 

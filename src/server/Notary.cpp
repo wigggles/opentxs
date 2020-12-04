@@ -3422,6 +3422,13 @@ void Notary::NotarizeSmartContract(
                                               // Transaction.
 
             // Also load up the smart contract from inside the transaction item.
+#ifndef OPENTXS_CHAINCONFIG_SMARTCONTRACT
+            LogOutput(OT_METHOD)(__FUNCTION__)(
+                ": Failed, Smart Contracts are compiler disabled.")
+                    .Flush();
+            return;
+#endif
+
             auto strContract = String::Factory();
             pItem->GetAttachment(strContract);
             auto pContract{manager_.Factory().SmartContract(NOTARY_ID)};

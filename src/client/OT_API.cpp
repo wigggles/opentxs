@@ -440,6 +440,13 @@ auto OT_API::Create_SmartContract(
                            // party.
     String& strOutput) const -> bool
 {
+#ifndef OPENTXS_CHAINCONFIG_SMARTCONTRACT
+    LogOutput(OT_METHOD)(__FUNCTION__)(
+        ": Failed, Smart Contracts are compiler disabled.")
+            .Flush();
+    return false;
+#endif
+
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     auto nym = api_.Wallet().Nym(SIGNER_NYM_ID);
 

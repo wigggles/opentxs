@@ -5,3 +5,6 @@ build/*
 
 # VS user settings
 .vs/
+
+#visual studio Code
+.vscode/
