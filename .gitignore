@@ -1,1 +1,7 @@
 cmake/.gitignore
+
+# cmake build cache
+build/*
+
+# VS user settings
+.vs/

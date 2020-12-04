@@ -58,11 +58,17 @@ Ensure opentxs is fully checked out prior to running cmake:
 
     git submodule update --init --recursive
 
+Grab VCpkg cross compiler libs:
+
+    cd deps/vcpkg
+    ./vcpkg integrate install
+    ./vcpkg.exe install --triplet <OS triplet value>  @..\..\vcpkg\vcpkg.txt
+
 Basic build instructions:
 
     mkdir build
     cd build
-    cmake -GNinja -DBUILD_SHARED_LIBS=ON ..
+    cmake -GNinja -DBUILD_SHARED_LIBS=ON..
     cmake --build .
     ctest -j4
     sudo cmake --install .
