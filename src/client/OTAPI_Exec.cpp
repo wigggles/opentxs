@@ -133,6 +133,12 @@ auto OTAPI_Exec::ProposePaymentPlan(
                                                    // maximum payments.)
 ) const -> std::string
 {
+#ifndef OPENTXS_CHAINCONFIG_PAYMENTPLAN
+    LogOutput(OT_METHOD)(__FUNCTION__)(
+        ": Failed, Payment Plans are compiler disabled.")
+            .Flush();
+    return {};
+#endif
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(SENDER_NYM_ID);
     // NOTE: Making this optional for this step. (Since sender account may
@@ -224,6 +230,12 @@ auto OTAPI_Exec::EasyProposePlan(
     // unlimited.
 ) const -> std::string
 {
+#ifndef OPENTXS_CHAINCONFIG_PAYMENTPLAN
+    LogOutput(OT_METHOD)(__FUNCTION__)(
+        ": Failed, Payment Plans are compiler disabled.")
+            .Flush();
+    return {};
+#endif
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(SENDER_NYM_ID);
     //  OT_VERIFY_ID_STR(SENDER_ACCT_ID); // Optional parameter.
@@ -348,6 +360,12 @@ auto OTAPI_Exec::ConfirmPaymentPlan(
     const std::string& RECIPIENT_NYM_ID,
     const std::string& PAYMENT_PLAN) const -> std::string
 {
+#ifndef OPENTXS_CHAINCONFIG_PAYMENTPLAN
+    LogOutput(OT_METHOD)(__FUNCTION__)(
+        ": Failed, Payment Plans are compiler disabled.")
+            .Flush();
+    return {};
+#endif
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(SENDER_NYM_ID);
     OT_VERIFY_ID_STR(SENDER_ACCT_ID);

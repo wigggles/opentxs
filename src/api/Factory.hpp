@@ -568,6 +568,7 @@ public:
         const std::uint8_t bitmessageStream) const noexcept
         -> OTPaymentCode final;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1 && OT_CRYPTO_WITH_BIP32
+#ifdef OPENTXS_CHAINCONFIG_PAYMENTPLAN
     auto PaymentPlan() const -> std::unique_ptr<OTPaymentPlan> final;
     auto PaymentPlan(
         const identifier::Server& NOTARY_ID,
@@ -581,6 +582,7 @@ public:
         const opentxs::Identifier& RECIPIENT_ACCT_ID,
         const identifier::Nym& RECIPIENT_NYM_ID) const
         -> std::unique_ptr<OTPaymentPlan> final;
+#endif // OPENTXS_CHAINCONFIG_PAYMENTPLAN
     auto PeerObject(const Nym_p& senderNym, const std::string& message) const
         -> std::unique_ptr<opentxs::PeerObject> override;
     auto PeerObject(

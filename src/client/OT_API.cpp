@@ -2044,6 +2044,12 @@ auto OT_API::ProposePaymentPlan(
                                                      // maximum
 ) const -> OTPaymentPlan*  // number of payments. These last
 {                          // two arguments are optional.
+#ifndef OPENTXS_CHAINCONFIG_PAYMENTPLAN
+    LogOutput(OT_METHOD)(__FUNCTION__)(
+        ": Failed, Payment Plans are compiler disabled.")
+            .Flush();
+    return nullptr;
+#endif
     auto reason = api_.Factory().PasswordPrompt("Proposing a payment plan");
     auto context = api_.Wallet().mutable_ServerContext(
         RECIPIENT_NYM_ID, NOTARY_ID, reason);
@@ -2236,6 +2242,12 @@ auto OT_API::ConfirmPaymentPlan(
     const identifier::Nym& RECIPIENT_NYM_ID,
     OTPaymentPlan& thePlan) const -> bool
 {
+#ifndef OPENTXS_CHAINCONFIG_PAYMENTPLAN
+    LogOutput(OT_METHOD)(__FUNCTION__)(
+        ": Failed, Payment Plans are compiler disabled.")
+            .Flush();
+    return false;
+#endif
     rLock lock(lock_callback_({SENDER_NYM_ID.str(), NOTARY_ID.str()}));
     auto reason = api_.Factory().PasswordPrompt("Activating a payment plan");
     auto context =
@@ -3540,6 +3552,14 @@ auto OT_API::depositPaymentPlan(
     transactionNum = 0;
     status = SendResult::Error;
     reply.reset();
+
+#ifndef OPENTXS_CHAINCONFIG_PAYMENTPLAN
+    LogOutput(OT_METHOD)(__FUNCTION__)(
+        ": Failed, Payment Plans are compiler disabled.")
+            .Flush();
+    return output;
+#endif
+
     const auto& nym = *context.Nym();
     const auto& nymID = nym.ID();
     const auto& serverID = context.Notary();

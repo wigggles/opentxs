@@ -1681,6 +1681,12 @@ auto Factory::PaymentCode(
 
 auto Factory::PaymentPlan() const -> std::unique_ptr<OTPaymentPlan>
 {
+#ifndef OPENTXS_CHAINCONFIG_PAYMENTPLAN
+    LogOutput(OT_METHOD)(__FUNCTION__)(
+        ": Failed, Payment Plans are compiler disabled.")
+            .Flush();
+    return nullptr;
+#endif
     std::unique_ptr<OTPaymentPlan> paymentplan;
     paymentplan.reset(new OTPaymentPlan(api_));
 
@@ -1692,6 +1698,12 @@ auto Factory::PaymentPlan(
     const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID) const
     -> std::unique_ptr<OTPaymentPlan>
 {
+#ifndef OPENTXS_CHAINCONFIG_PAYMENTPLAN
+    LogOutput(OT_METHOD)(__FUNCTION__)(
+        ": Failed, Payment Plans are compiler disabled.")
+            .Flush();
+    return nullptr;
+#endif
     std::unique_ptr<OTPaymentPlan> paymentplan;
     paymentplan.reset(
         new OTPaymentPlan(api_, NOTARY_ID, INSTRUMENT_DEFINITION_ID));
@@ -1708,6 +1720,12 @@ auto Factory::PaymentPlan(
     const identifier::Nym& RECIPIENT_NYM_ID) const
     -> std::unique_ptr<OTPaymentPlan>
 {
+#ifndef OPENTXS_CHAINCONFIG_PAYMENTPLAN
+    LogOutput(OT_METHOD)(__FUNCTION__)(
+        ": Failed, Payment Plans are compiler disabled.")
+            .Flush();
+    return nullptr;
+#endif
     std::unique_ptr<OTPaymentPlan> paymentplan;
     paymentplan.reset(new OTPaymentPlan(
         api_,
@@ -2137,15 +2155,13 @@ auto Factory::SmartContract(const identifier::Server& NOTARY_ID) const
 #else // Disabled smart contracts
 auto Factory::SmartContract() 
 {
-    bool disabled = true;
-    return disabled;
+    return nullptr;
 }
 
 auto Factory::SmartContract(const identifier::Server& NOTARY_ID) const
     -> std::unique_ptr<OTSmartContract>
 {
-    bool disabled = true;
-    return disabled;
+    return nullptr;
 }
 #endif
 
